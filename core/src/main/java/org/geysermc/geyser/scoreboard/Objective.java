@@ -25,13 +25,16 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -47,6 +50,7 @@ public final class Objective {
     private ScoreboardPosition displaySlot;
     private String displaySlotName;
     private String displayName = "unknown";
+    private NumberFormat numberFormat;
     private int type = 0; // 0 = integer, 1 = heart
 
     private Map<String, Score> scores = new ConcurrentHashMap<>();
@@ -85,25 +89,29 @@ public final class Objective {
         };
     }
 
-    public void registerScore(String id, int score) {
+    public void registerScore(String id, int score, Component displayName, NumberFormat numberFormat) {
         if (!scores.containsKey(id)) {
             long scoreId = scoreboard.getNextId().getAndIncrement();
             Score scoreObject = new Score(scoreId, id)
                     .setScore(score)
                     .setTeam(scoreboard.getTeamFor(id))
+                    .setDisplayName(displayName)
+                    .setNumberFormat(numberFormat)
                     .setUpdateType(UpdateType.ADD);
             scores.put(id, scoreObject);
         }
     }
 
-    public void setScore(String id, int score) {
+    public void setScore(String id, int score, Component displayName, NumberFormat numberFormat) {
         Score stored = scores.get(id);
         if (stored != null) {
             stored.setScore(score)
+                    .setDisplayName(displayName)
+                    .setNumberFormat(numberFormat)
                     .setUpdateType(UpdateType.UPDATE);
             return;
         }
-        registerScore(id, score);
+        registerScore(id, score, displayName, numberFormat);
     }
 
     public void removeScore(String id) {
@@ -125,6 +133,26 @@ public final class Objective {
         if (updateType == UpdateType.NOTHING) {
             updateType = UpdateType.UPDATE;
         }
+        return this;
+    }
+
+    public Objective setNumberFormat(NumberFormat numberFormat) {
+        if (Objects.equals(this.numberFormat, numberFormat)) {
+            return this;
+        }
+
+        this.numberFormat = numberFormat;
+        if (updateType == UpdateType.NOTHING) {
+            updateType = UpdateType.UPDATE;
+        }
+
+        // Update the number format for scores that are following this objective's number format
+        for (Score score : scores.values()) {
+            if (score.getNumberFormat() == null) {
+                score.setUpdateType(UpdateType.UPDATE);
+            }
+        }
+
         return this;
     }
 

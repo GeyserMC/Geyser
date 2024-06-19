@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -28,7 +53,6 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -80,7 +104,6 @@ public class CustomBlockRegistryPopulator {
     }
 
     private static Set<CustomBlockData> CUSTOM_BLOCKS;
-    private static Set<String> CUSTOM_BLOCK_NAMES;
     private static Map<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES;
     private static Map<JavaBlockState, CustomBlockState> NON_VANILLA_BLOCK_STATE_OVERRIDES;
     private static Map<String, CustomBlockState> BLOCK_STATE_OVERRIDES_QUEUE;
@@ -90,19 +113,19 @@ public class CustomBlockRegistryPopulator {
      */
     private static void populateBedrock() {
         CUSTOM_BLOCKS = new ObjectOpenHashSet<>();
-        CUSTOM_BLOCK_NAMES = new ObjectOpenHashSet<>();
         CUSTOM_BLOCK_ITEM_OVERRIDES = new HashMap<>();
         NON_VANILLA_BLOCK_STATE_OVERRIDES = new HashMap<>();
         BLOCK_STATE_OVERRIDES_QUEUE = new HashMap<>();
 
+        Set<String> customBlockIdentifiers = new ObjectOpenHashSet<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void register(@NonNull CustomBlockData customBlockData) {
                 if (customBlockData.name().isEmpty()) {
                     throw new IllegalArgumentException("Custom block name must have at least 1 character.");
                 }
-                if (!CUSTOM_BLOCK_NAMES.add(customBlockData.name())) {
-                    throw new IllegalArgumentException("Another custom block was already registered under the name: " + customBlockData.name());
+                if (!customBlockIdentifiers.add(customBlockData.identifier())) {
+                    throw new IllegalArgumentException("Another custom block was already registered under the identifier: " + customBlockData.identifier());
                 }
                 if (Character.isDigit(customBlockData.name().charAt(0))) {
                     throw new IllegalArgumentException("Custom block can not start with a digit. Name: " + customBlockData.name());
@@ -301,13 +324,11 @@ public class CustomBlockRegistryPopulator {
                 // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically
                 .putInt("molangVersion", 1)
                 .putList("permutations", NbtType.COMPOUND, permutations)
-                .putList("properties", NbtType.COMPOUND, properties);
-
-        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
-            propertyTag.putCompound("vanilla_block_data", NbtMap.builder()
+                .putList("properties", NbtType.COMPOUND, properties)
+                .putCompound("vanilla_block_data", NbtMap.builder()
                     .putInt("block_id", BLOCK_ID.getAndIncrement())
                     .build());
-        }
+
         return new BlockPropertyData(customBlock.identifier(), propertyTag.build());
     }
 
@@ -420,10 +441,6 @@ public class CustomBlockRegistryPopulator {
                     .putFloat("TY", components.transformation().ty())
                     .putFloat("TZ", components.transformation().tz())
                     .build());
-        }
-
-        if (components.unitCube()) {
-            builder.putCompound("minecraft:unit_cube", NbtMap.EMPTY);
         }
 
         // place_air is not an actual component

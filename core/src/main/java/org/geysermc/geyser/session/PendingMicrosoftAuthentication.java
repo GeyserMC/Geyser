@@ -123,7 +123,8 @@ public class PendingMicrosoftAuthentication {
 
         public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode(boolean offlineAccess) {
             // Request the code
-            CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(() -> tryGetCode(offlineAccess));
+            CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(
+                    () -> tryGetCode(offlineAccess));
             // Once the code is received, continuously try to request the access token, profile, etc
             code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
             return code;

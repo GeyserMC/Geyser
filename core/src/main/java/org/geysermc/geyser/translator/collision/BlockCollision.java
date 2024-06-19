@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.collision;
 
-import org.cloudburstmc.math.vector.Vector3d;
-import org.cloudburstmc.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -61,7 +61,7 @@ public class BlockCollision {
     }
 
     /**
-     * Overridden in classes like SnowCollision and GrassPathCollision when correction code needs to be run before the
+     * Overridden in classes like GrassPathCollision when correction code needs to be run before the
      * main correction
      */
     public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {}

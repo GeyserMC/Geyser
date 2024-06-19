@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}-fabric",
+  "version": "${version}",
+  "name": "${name}-Fabric",
+  "description": "A bridge/proxy allowing you to connect to Minecraft: Java Edition servers with Minecraft: Bedrock Edition. ",
+  "authors": [
+    "${author}"
+  ],
+  "contact": {
+    "website": "${url}",
+    "repo": "https://github.com/GeyserMC/Geyser"
+  },
+  "license": "MIT",
+  "icon": "assets/geyser/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+        "org.geysermc.geyser.platform.fabric.GeyserFabricBootstrap"
+    ]
+  },
+  "mixins": [
+    "geyser.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric": "*",
+    "minecraft": ">=1.21"
+  }
+}

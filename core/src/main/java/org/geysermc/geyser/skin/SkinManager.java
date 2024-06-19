@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,18 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.skin.Cape;
+import org.geysermc.geyser.api.skin.Skin;
+import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -56,21 +60,21 @@ public class SkinManager {
     public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
         // First: see if we have the cached skin texture ID.
         GameProfileData data = GameProfileData.from(playerEntity);
-        SkinProvider.Skin skin = null;
-        SkinProvider.Cape cape = null;
-        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.WIDE;
+        Skin skin = null;
+        Cape cape = null;
+        SkinGeometry geometry = SkinGeometry.WIDE;
         if (data != null) {
             // GameProfileData is not null = server provided us with textures data to work with.
             skin = SkinProvider.getCachedSkin(data.skinUrl());
             cape = SkinProvider.getCachedCape(data.capeUrl());
-            geometry = data.isAlex() ? SkinProvider.SkinGeometry.SLIM : SkinProvider.SkinGeometry.WIDE;
+            geometry = data.isAlex() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
         }
 
         if (skin == null || cape == null) {
             // The server either didn't have a texture to send, or we didn't have the texture ID cached.
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
             // Otherwise, grab the default player skin
-            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.getUuid());
+            SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.getUuid());
             if (skin == null) {
                 skin = fallbackSkinData.skin();
                 geometry = fallbackSkinData.geometry();
@@ -95,10 +99,10 @@ public class SkinManager {
      * With all the information needed, build a Bedrock player entry with translated skin information.
      */
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
-                                                            SkinProvider.Skin skin,
-                                                            SkinProvider.Cape cape,
-                                                            SkinProvider.SkinGeometry geometry) {
-        SerializedSkin serializedSkin = getSkin(skin.getTextureUrl(), skin, cape, geometry);
+                                                            Skin skin,
+                                                            Cape cape,
+                                                            SkinGeometry geometry) {
+        SerializedSkin serializedSkin = getSkin(skin.textureUrl(), skin, cape, geometry);
 
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
         String xuid = "";
@@ -128,10 +132,10 @@ public class SkinManager {
         return entry;
     }
 
-    public static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinProvider.SkinData skinData) {
-        SkinProvider.Skin skin = skinData.skin();
-        SkinProvider.Cape cape = skinData.cape();
-        SkinProvider.SkinGeometry geometry = skinData.geometry();
+    public static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinData skinData) {
+        Skin skin = skinData.skin();
+        Cape cape = skinData.cape();
+        SkinGeometry geometry = skinData.geometry();
 
         if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
             // TODO is this special behavior needed?
@@ -153,23 +157,23 @@ public class SkinManager {
             PlayerSkinPacket packet = new PlayerSkinPacket();
             packet.setUuid(entity.getUuid());
             packet.setOldSkinName("");
-            packet.setNewSkinName(skin.getTextureUrl());
-            packet.setSkin(getSkin(skin.getTextureUrl(), skin, cape, geometry));
+            packet.setNewSkinName(skin.textureUrl());
+            packet.setSkin(getSkin(skin.textureUrl(), skin, cape, geometry));
             packet.setTrustedSkin(true);
             session.sendUpstreamPacket(packet);
         }
     }
 
-    private static SerializedSkin getSkin(String skinId, SkinProvider.Skin skin, SkinProvider.Cape cape, SkinProvider.SkinGeometry geometry) {
+    private static SerializedSkin getSkin(String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
         return SerializedSkin.of(skinId, "", geometry.geometryName(),
-                ImageData.of(skin.getSkinData()), Collections.emptyList(),
+                ImageData.of(skin.skinData()), Collections.emptyList(),
                 ImageData.of(cape.capeData()), geometry.geometryData(),
                 "", true, false, false, cape.capeId(), skinId);
     }
 
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
-        SkinProvider.requestSkinData(entity).whenCompleteAsync((skinData, throwable) -> {
+        SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (skinData == null) {
                 if (skinAndCapeConsumer != null) {
                     skinAndCapeConsumer.accept(null);
@@ -224,22 +228,22 @@ public class SkinManager {
          * @param tag tag to build the GameProfileData from
          * @return The built GameProfileData, or null if this wasn't a valid tag
          */
-        public static @Nullable GameProfileData from(CompoundTag tag) {
-            if (!(tag.get("Properties") instanceof CompoundTag propertiesTag)) {
+        public static @Nullable GameProfileData from(NbtMap tag) {
+            NbtMap properties = tag.getCompound("Properties", null);
+            if (properties == null) {
                 return null;
             }
-            if (!(propertiesTag.get("textures") instanceof ListTag texturesTag) || texturesTag.size() == 0) {
+            List<NbtMap> textures = properties.getList("textures", NbtType.COMPOUND);
+            if (textures.isEmpty()) {
                 return null;
             }
-            if (!(texturesTag.get(0) instanceof CompoundTag texturesData)) {
-                return null;
-            }
-            if (!(texturesData.get("Value") instanceof StringTag skinDataValue)) {
+            String skinDataValue = textures.get(0).getString("Value", null);
+            if (skinDataValue == null) {
                 return null;
             }
 
             try {
-                return loadFromJson(skinDataValue.getValue());
+                return loadFromJson(skinDataValue);
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for tag " + tag);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {

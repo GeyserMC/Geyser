@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 public class CartographyContainer extends Container {
     public CartographyContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {

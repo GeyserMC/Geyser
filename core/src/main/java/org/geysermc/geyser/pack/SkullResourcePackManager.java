@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,9 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -116,7 +118,7 @@ public class SkullResourcePackManager {
             return;
         }
 
-        BufferedImage image = SkinProvider.requestImage(skinUrl, null);
+        BufferedImage image = SkinProvider.requestImage(skinUrl, false);
         // Resize skins to 48x16 to save on space and memory
         BufferedImage skullTexture = new BufferedImage(48, 16, image.getType());
         // Reorder skin parts to fit into the space
@@ -187,7 +189,7 @@ public class SkullResourcePackManager {
 
             ZipEntry entry = new ZipEntry("skull_resource_pack/pack_icon.png");
             zipOS.putNextEntry(entry);
-            zipOS.write(FileUtils.readAllBytes("icon.png"));
+            zipOS.write(FileUtils.readAllBytes("assets/geyser/icon.png"));
             zipOS.closeEntry();
         }
     }

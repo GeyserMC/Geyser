@@ -25,11 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -54,7 +52,6 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
     @Override
     public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
-        // todo 1.20.3 unused display and number format?
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
@@ -71,10 +68,10 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         // attached to this score.
         boolean isBelowName = objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
 
-        objective.setScore(packet.getOwner(), packet.getValue());
+        objective.setScore(packet.getOwner(), packet.getValue(), packet.getDisplay(), packet.getNumberFormat());
         if (isBelowName) {
             // Update the below name score on this player
-            setBelowName(session, objective, packet.getOwner(), packet.getValue());
+            setBelowName(session, objective, packet.getOwner());
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second
@@ -87,20 +84,13 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     /**
      * @param objective the objective that currently resides on the below name display slot
      */
-    static void setBelowName(GeyserSession session, Objective objective, String username, int count) {
+    static void setBelowName(GeyserSession session, Objective objective, String username) {
         PlayerEntity entity = getOtherPlayerEntity(session, username);
         if (entity == null) {
             return;
         }
 
-        String displayString = count + " " + objective.getDisplayName();
-
-        // Of note: unlike Bedrock, if there is an objective in the below name slot, everyone has a display
-        entity.getDirtyMetadata().put(EntityDataTypes.SCORE, displayString);
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().put(EntityDataTypes.SCORE, displayString);
-        session.sendUpstreamPacket(entityDataPacket);
+        entity.setBelowNameText(objective);
     }
 
     private static @Nullable PlayerEntity getOtherPlayerEntity(GeyserSession session, String username) {

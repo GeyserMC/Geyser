@@ -53,10 +53,6 @@ public enum ToolTier {
         this.repairIngredients = Suppliers.memoize(repairIngredients::get);
     }
 
-    public int getSpeed() {
-        return speed;
-    }
-
     public Set<Item> getRepairIngredients() {
         return repairIngredients.get();
     }

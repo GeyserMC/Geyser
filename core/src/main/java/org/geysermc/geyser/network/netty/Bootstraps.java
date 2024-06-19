@@ -31,43 +31,36 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.epoll.Native;
 import io.netty.channel.unix.UnixChannelOption;
 import lombok.experimental.UtilityClass;
+import org.geysermc.geyser.GeyserImpl;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @UtilityClass
 public final class Bootstraps {
-    private static final Optional<int[]> KERNEL_VERSION;
 
     // The REUSEPORT_AVAILABLE socket option is available starting from kernel version 3.9.
     // This option allows multiple sockets to listen on the same IP address and port without conflict.
-    private static final int[] REUSEPORT_VERSION = new int[]{3, 9, 0};
+    private static final int[] REUSEPORT_VERSION = new int[]{3, 9};
     private static final boolean REUSEPORT_AVAILABLE;
 
     static {
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
+            GeyserImpl.getInstance().getLogger().debug("Kernel version: " + kernelVersion);
         } catch (Throwable e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e.getMessage());
             kernelVersion = null;
         }
-        if (kernelVersion != null && kernelVersion.contains("-")) {
-            int index = kernelVersion.indexOf('-');
-            if (index > -1) {
-                kernelVersion = kernelVersion.substring(0, index);
-            }
-            int[] kernelVer = fromString(kernelVersion);
-            KERNEL_VERSION = Optional.of(kernelVer);
-            REUSEPORT_AVAILABLE = checkVersion(kernelVer, 0);
-        } else {
-            KERNEL_VERSION = Optional.empty();
-            REUSEPORT_AVAILABLE = false;
-        }
-    }
 
-    public static Optional<int[]> getKernelVersion() {
-        return KERNEL_VERSION;
+        if (kernelVersion == null) {
+            REUSEPORT_AVAILABLE = false;
+        } else {
+            int[] kernelVer = fromString(kernelVersion);
+            REUSEPORT_AVAILABLE = checkVersion(kernelVer, 0);
+        }
     }
 
     public static boolean isReusePortAvailable() {
@@ -75,23 +68,37 @@ public final class Bootstraps {
     }
 
     @SuppressWarnings({"rawtypes, unchecked"})
-    public static void setupBootstrap(AbstractBootstrap bootstrap) {
+    public static boolean setupBootstrap(AbstractBootstrap bootstrap) {
+        boolean success = true;
         if (REUSEPORT_AVAILABLE) {
-            bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+            // Guessing whether so_reuseport is available based on kernel version is cool, but unreliable.
+            Channel channel = bootstrap.register().channel();
+            if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
+                bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+            } else {
+                // If this occurs, we guessed wrong and reuseport is not available
+                GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                success = false;
+            }
+            // Now yeet that channel
+            channel.close();
         }
+        return success;
     }
 
-    private static int[] fromString(String ver) {
-        String[] parts = ver.split("\\.");
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("At least 2 version numbers required");
+    private static int[] fromString(String input) {
+        // Match only beginning of string for at least two digits separated by dot
+        Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+        Matcher matcher = pattern.matcher(input);
+
+        int[] version = {0, 0};
+
+        if (matcher.find()) {
+            version[0] = Integer.parseInt(matcher.group(1));
+            version[1] = Integer.parseInt(matcher.group(2));
         }
 
-        return new int[]{
-                Integer.parseInt(parts[0]),
-                Integer.parseInt(parts[1]),
-                parts.length == 2 ? 0 : Integer.parseInt(parts[2])
-        };
+        return version;
     }
 
     private static boolean checkVersion(int[] ver, int i) {

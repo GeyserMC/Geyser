@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.steveice10.packetlib.tcp.TcpSession;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -56,11 +55,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.event.lifecycle.*;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -84,19 +79,15 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.AssetUtils;
-import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.util.Metrics;
-import org.geysermc.geyser.util.NewsHandler;
-import org.geysermc.geyser.util.VersionCheckUtils;
-import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.*;
+import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -107,14 +98,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -187,6 +171,12 @@ public class GeyserImpl implements GeyserApi {
      */
     private volatile boolean isReloading;
 
+    /**
+     * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
+     */
+    @Setter
+    private boolean isEnabled;
+
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
 
@@ -224,6 +214,8 @@ public class GeyserImpl implements GeyserApi {
         Registries.init();
         BlockRegistries.init();
 
+        RegistryCache.init();
+
         /* Initialize translators */
         EntityDefinitions.init();
         MessageTranslator.init();
@@ -233,6 +225,7 @@ public class GeyserImpl implements GeyserApi {
             if (ex != null) {
                 return;
             }
+
             MinecraftLocale.ensureEN_US();
             String locale = GeyserLocale.getDefaultLocale();
             if (!"en_us".equals(locale)) {
@@ -362,15 +355,17 @@ public class GeyserImpl implements GeyserApi {
                 logger.info("Broadcast port set from system property: " + parsedPort);
             }
 
-            boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
-            if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                        + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-                return;
-            } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
-                // Floodgate installed means that the user wants Floodgate authentication
-                logger.debug("Auto-setting to Floodgate authentication.");
-                config.getRemote().setAuthType(AuthType.FLOODGATE);
+            if (platformType != PlatformType.VIAPROXY) {
+                boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
+                if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                            + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+                    return;
+                } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
+                    // Floodgate installed means that the user wants Floodgate authentication
+                    logger.debug("Auto-setting to Floodgate authentication.");
+                    config.getRemote().setAuthType(AuthType.FLOODGATE);
+                }
             }
         }
 
@@ -655,14 +650,18 @@ public class GeyserImpl implements GeyserApi {
             this.erosionUnixListener.close();
         }
 
+        // todo check
+        //Registries.RESOURCE_PACKS.get().clear();
         ResourcePackLoader.clear();
 
-        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
+        this.setEnabled(false);
     }
 
     public void shutdown() {
         shuttingDown = true;
-        this.disable();
+        if (isEnabled) {
+            this.disable();
+        }
         this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
@@ -774,6 +773,7 @@ public class GeyserImpl implements GeyserApi {
             return 0;
         }
 
+        //noinspection DataFlowIssue
         return Integer.parseInt(BUILD_NUMBER);
     }
 
@@ -795,6 +795,7 @@ public class GeyserImpl implements GeyserApi {
         } else {
             instance.initialize();
         }
+        instance.setEnabled(true);
     }
 
     public GeyserLogger getLogger() {

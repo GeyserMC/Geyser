@@ -25,19 +25,16 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.CrafterContainer;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.CrafterInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 /**
  * Translates the Crafter. Most important thing to know about this class is that
@@ -57,7 +54,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     private static final int TRIGGERED = 1; // triggered value
 
     public CrafterInventoryTranslator() {
-        super(10, "minecraft:crafter", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CRAFTER, CrafterInventoryUpdater.INSTANCE);
+        super(10, Blocks.CRAFTER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CRAFTER, CrafterInventoryUpdater.INSTANCE);
     }
 
     @Override

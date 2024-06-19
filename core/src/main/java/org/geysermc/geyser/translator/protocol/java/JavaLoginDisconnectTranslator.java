@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundLoginDisconnectPacket;
+import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundLoginDisconnectPacket;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -51,7 +51,7 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
         if (testForOutdatedServer(disconnectReason)) {
             String locale = session.locale();
             PlatformType platform = session.getGeyser().getPlatformType();
-            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY) ?
+            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY || platform == PlatformType.VIAPROXY) ?
                     "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
             disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'
                     + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage);

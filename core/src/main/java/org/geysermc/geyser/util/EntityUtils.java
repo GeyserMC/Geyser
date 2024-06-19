@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -41,6 +37,10 @@ import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Locale;
 
@@ -77,6 +77,12 @@ public final class EntityUtils {
             case BAD_OMEN -> 28;
             case HERO_OF_THE_VILLAGE -> 29;
             case DARKNESS -> 30;
+            case TRIAL_OMEN -> 31;
+            case WIND_CHARGED -> 32;
+            case WEAVING -> 33;
+            case OOZING -> 34;
+            case INFESTED -> 35;
+            case RAID_OMEN -> 36;
             default -> effect.ordinal() + 1;
         };
     }
