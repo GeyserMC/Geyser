@@ -33,11 +33,7 @@ import org.geysermc.geyser.GeyserLogger;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,7 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import java.util.concurrent.CompletableFuture;
 
 public class WebUtils {
 
@@ -111,91 +106,93 @@ public class WebUtils {
      *
      * @param url The URL to check
      * @param force If true, the pack will be downloaded even if it is cached to a separate location.
-     * @return Path to the downloaded pack file
+     * @return Path to the downloaded pack file, or null if it was unable to be loaded
      */
-    public static CompletableFuture<@Nullable Path> checkUrlAndDownloadRemotePack(String url, boolean force) {
+    public static @Nullable Path checkUrlAndDownloadRemotePack(String url, boolean force) {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 
-                con.setConnectTimeout(10000);
-                con.setReadTimeout(10000);
-                con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION);
-                con.setInstanceFollowRedirects(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setInstanceFollowRedirects(true);
 
-                int responseCode = con.getResponseCode();
-                if (responseCode >= 400) {
-                    logger.error(String.format("Invalid response code from remote pack URL: %s (code: %d)", url, responseCode));
-                    return null;
-                }
-
-                int size = con.getContentLength();
-                String type = con.getContentType();
-
-                if (size <= 0) {
-                    logger.error(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
-                    return null;
-                }
-
-                // This doesn't seem to be a requirement (anymore?). Logging to debug might be interesting though.
-                if (type == null || !type.equals("application/zip")) {
-                    logger.debug(String.format("Application type from remote pack URL: %s (type: %s)", url, type));
-                }
-
-                Path packLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".zip");
-                Path packMetadata = packLocation.resolveSibling(url.hashCode() + ".metadata");
-
-                if (Files.exists(packLocation) && Files.exists(packMetadata) && !force) {
-                    try {
-                        List<String> metadataLines = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
-                        int cachedSize = Integer.parseInt(metadataLines.get(0));
-                        String cachedEtag = metadataLines.get(1);
-                        long cachedLastModified = Long.parseLong(metadataLines.get(2));
-
-                        if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) && cachedLastModified == con.getLastModified()) {
-                            logger.debug("Using cached pack for " + url);
-                            return packLocation;
-                        }
-                    } catch (IOException e) {
-                        GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata: " + e.getMessage());
-                    }
-                }
-
-                Path downloadLocation = force ? REMOTE_PACK_CACHE.resolve(url.hashCode() + "_debug") : packLocation;
-                Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
-
-                // This needs to match as the client fails to download the pack otherwise
-                if (Files.size(downloadLocation) != size) {
-                    GeyserImpl.getInstance().getLogger().error(String.format("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!", url, Files.size(packLocation), size));
-                    Files.delete(downloadLocation);
-                    return null;
-                }
-
-                // "Force" runs when the client rejected a pack. This is done for diagnosis of the issue.
-                if (force) {
-                    if (Files.size(packLocation) != Files.size(downloadLocation)) {
-                        logger.error("The pack size seems to have changed. If you wish to change the pack at the remote URL, restart/reload Geyser. " +
-                                "Changing the pack mid-game can result in clients rejecting the pack, connected clients having different pack, or similar. ");
-                    }
-                } else {
-                    try {
-                        Files.write(packMetadata, Arrays.asList(String.valueOf(size), con.getHeaderField("ETag"), String.valueOf(con.getLastModified())));
-                    } catch (IOException e) {
-                        GeyserImpl.getInstance().getLogger().error("Failed to write cached pack metadata: " + e.getMessage());
-                    }
-                }
-
-                return downloadLocation;
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Malformed URL: " + url);
-            } catch (SocketTimeoutException | ConnectException e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to reach URL: " + url + " (" + e.getMessage() + ")");
-                return null;
-            } catch (IOException e) {
-                throw new RuntimeException("Unable to download and save remote resource pack from: " + url + " (" + e.getMessage() + ")");
+            int responseCode = con.getResponseCode();
+            if (responseCode >= 400) {
+                throw new IllegalStateException(String.format("Invalid response code from remote pack URL: %s (code: %d)", url, responseCode));
             }
-        });
+
+            int size = con.getContentLength();
+            String type = con.getContentType();
+
+            if (size <= 0) {
+                throw new IllegalArgumentException(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
+            }
+
+            // This doesn't seem to be a requirement (anymore?). Logging to debug might be interesting though.
+            if (type == null || !type.equals("application/zip")) {
+                logger.debug(String.format("Application type from remote pack URL: %s (type: %s)", url, type));
+            }
+
+            Path packLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".zip");
+            Path packMetadata = packLocation.resolveSibling(url.hashCode() + ".metadata");
+
+            // If we downloaded this pack before, reuse it if the ETag matches.
+            if (Files.exists(packLocation) && Files.exists(packMetadata) && !force) {
+                try {
+                    List<String> metadataLines = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
+                    int cachedSize = Integer.parseInt(metadataLines.get(0));
+                    String cachedEtag = metadataLines.get(1);
+                    long cachedLastModified = Long.parseLong(metadataLines.get(2));
+
+                    if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) && cachedLastModified == con.getLastModified()) {
+                        logger.debug("Using cached pack for " + url);
+                        return packLocation;
+                    }
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata: " + e.getMessage());
+                }
+            }
+
+            Path downloadLocation = force ? REMOTE_PACK_CACHE.resolve(url.hashCode() + "_debug") : packLocation;
+            Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            // This needs to match as the client fails to download the pack otherwise
+            long downloadSize = Files.size(downloadLocation);
+            if (downloadSize != size) {
+                Files.delete(downloadLocation);
+                throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes"
+                        .formatted(url, downloadSize, size));
+            }
+
+            // "Force" runs when the client rejected a pack. This is done for diagnosis of the issue.
+            if (force) {
+                // Check whether existing pack's size matches the newly downloaded packs' size
+                if (Files.size(packLocation) != Files.size(downloadLocation)) {
+                    logger.error("""
+                            The pack size seems to have changed (%s, expected %s). If you wish to change the pack at the remote URL, restart/reload Geyser.
+                            Changing the pack while Geyser is running can result in unexpected issues.
+                            """.formatted(Files.size(packLocation), Files.size(downloadLocation)));
+                }
+            } else {
+                try {
+                    Files.write(packMetadata, Arrays.asList(String.valueOf(size), con.getHeaderField("ETag"), String.valueOf(con.getLastModified())));
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to write cached pack metadata: " + e.getMessage());
+                }
+            }
+
+            return downloadLocation;
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s! ".formatted(url));
+        } catch (SocketTimeoutException | ConnectException e) {
+            logger.error("Unable to download pack from url %s due to network error! ( %s )".formatted(url, e.getMessage()));
+            logger.debug(e);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to download and save remote resource pack from: %s ( %s )!".formatted(url, e.getMessage()));
+        }
+        return null;
     }
 
 

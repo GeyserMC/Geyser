@@ -28,56 +28,46 @@ package org.geysermc.geyser.pack.url;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
-import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Path;
+import java.util.Objects;
 
 public class GeyserUrlPackCodec extends UrlPackCodec {
-    private final String url;
-    private final String contentKey;
+    private final @NonNull String url;
+    private final @Nullable String contentKey;
     @Getter
-    private GeyserPathPackCodec fallback;
+    private PathPackCodec fallback;
 
     public GeyserUrlPackCodec(String url) throws IllegalArgumentException {
-        this(url, "");
+        this(url, null);
     }
 
     public GeyserUrlPackCodec(@NonNull String url, @Nullable String contentKey) throws IllegalArgumentException {
-        //noinspection ConstantValue - need to enforce
-        if (url == null) {
-            throw new IllegalArgumentException("Url cannot be nulL!");
-        }
+        Objects.requireNonNull(url, "url cannot be null");
         this.url = url;
-        this.contentKey = contentKey == null ? "" : contentKey;
+        this.contentKey = contentKey;
     }
 
     @Override
     public byte @NonNull [] sha256() {
-        if (this.fallback == null) {
-            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
-        }
+        Objects.requireNonNull(fallback, "must call #create() before attempting to get the sha256!");
         return fallback.sha256();
     }
 
     @Override
     public long size() {
-        if (this.fallback == null) {
-            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
-        }
+        Objects.requireNonNull(fallback, "must call #create() before attempting to get the size!");
         return fallback.size();
     }
 
     @Override
     public @NonNull SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
-        if (this.fallback == null) {
-            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
-        }
+        Objects.requireNonNull(fallback, "must call #create() before attempting to serialize!!");
         return fallback.serialize(resourcePack);
     }
 
@@ -86,17 +76,15 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     public ResourcePack create() {
         if (this.fallback == null) {
             try {
-                final Path downloadedPack = ResourcePackLoader.downloadPack(url, false).whenComplete((pack, throwable) -> {
+                ResourcePackLoader.downloadPack(url, false).whenComplete((pack, throwable) -> {
                     if (throwable != null) {
-                        GeyserImpl.getInstance().getLogger().error("Failed to download pack from " + url + " due to " + throwable.getMessage());
-                        if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                            GeyserImpl.getInstance().getLogger().error("full error: " + throwable);
-                        }
+                        throw new IllegalArgumentException(throwable);
+                    } else if (pack != null) {
+                        this.fallback = pack;
                     }
-                }).join();
-                this.fallback = new GeyserPathPackCodec(downloadedPack);
+                });
             } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to download pack from " + url, e);
+                throw new IllegalArgumentException("Failed to download pack from the url %s (reason: %s)!".formatted(url, e.getMessage()));
             }
         }
         return ResourcePackLoader.readPack(this);
@@ -109,6 +97,6 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
 
     @Override
     public @NonNull String contentKey() {
-        return this.contentKey;
+        return this.contentKey != null ? contentKey : "";
     }
 }

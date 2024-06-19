@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
+import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
@@ -49,12 +52,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,7 +70,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      * Used to keep track of remote resource packs that the client rejected.
      * If a client rejects such a pack, it falls back to the old method, and Geyser serves a cached variant.
      */
-    private static final Set<UrlPackCodec> brokenPacks = new HashSet<>();
+    private static final Cache<String, UrlPackCodec> CACHED_FAILED_PACKS = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
@@ -169,9 +171,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      */
     public static GeyserResourcePack readPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
         Path path = codec.getFallback().path();
-        if (!PACK_MATCHER.matches(path)) {
-            throw new IllegalArgumentException("The url " + codec.url() + " did not provide a valid resource pack! Please check the url and try again.");
-        }
 
         ResourcePackManifest manifest = readManifest(path, codec.url());
         String contentKey = codec.contentKey();
@@ -216,9 +215,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     private Map<String, ResourcePack> loadRemotePacks() {
+        // Unable to make this a static variable, as the test would fail
         final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
-        // Download CDN packs to get the pack uuid's
         if (!Files.exists(cachedCdnPacksDirectory)) {
             try {
                 Files.createDirectories(cachedCdnPacksDirectory);
@@ -231,7 +230,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         List<String> remotePackUrls = GeyserImpl.getInstance().getConfig().getResourcePackUrls();
         Map<String, ResourcePack> packMap = new Object2ObjectOpenHashMap<>();
 
-        for (String url: remotePackUrls) {
+        for (String url : remotePackUrls) {
             try {
                 GeyserUrlPackCodec codec = new GeyserUrlPackCodec(url);
                 ResourcePack pack = codec.create();
@@ -246,57 +245,65 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return packMap;
     }
 
-    public static void checkPack(UrlPackCodec codec) {
-        if (!brokenPacks.contains(codec)) {
-            brokenPacks.add(codec);
-            GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded! " +
-                    "Is the pack at the URL " + codec.url() + " still available?");
+    /**
+     * Used when a Bedrock client requests a Bedrock resource pack from the server when it should be downloading it
+     * from a remote provider. Since this would be called each time a Bedrock client requests a piece of the Bedrock pack,
+     * this uses a cache to ensure we aren't re-checking a dozen times.
+     *
+     * @param codec the codec of the resource pack that wasn't successfully downloaded by a Bedrock client.
+     */
+    public static void testUrlPack(UrlPackCodec codec) {
+        if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
+            CACHED_FAILED_PACKS.put(codec.url(), codec);
+            GeyserImpl.getInstance().getLogger().warning("A client was not able to download the resource pack at %s. Is it still available? Running check now:");
             downloadPack(codec.url(), true);
         }
     }
 
-    public static CompletableFuture<@Nullable Path> downloadPack(String url, boolean checking) throws IllegalArgumentException {
-        return WebUtils.checkUrlAndDownloadRemotePack(url, checking).whenCompleteAsync((cachedPath, throwable) -> {
-            if (cachedPath == null) {
-                // already warned about in WebUtils
-                return;
-            }
+    public static CompletableFuture<@Nullable PathPackCodec> downloadPack(String url, boolean testing) throws IllegalArgumentException {
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = WebUtils.checkUrlAndDownloadRemotePack(url, testing);
 
-            if (throwable != null) {
-                GeyserImpl.getInstance().getLogger().error("Failed to download resource pack! ", throwable);
-                return;
+            // Already warned about these above
+            if (path == null) {
+                return null;
             }
 
             // Check if the pack is a .zip or .mcpack file
-            if (!PACK_MATCHER.matches(cachedPath)) {
+            if (!PACK_MATCHER.matches(path)) {
                 throw new IllegalArgumentException("Invalid pack format! Not a .zip or .mcpack file.");
             }
 
-            if (checking) {
-                try {
-                    Files.delete(cachedPath);
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Could not delete debug pack! " + e.getMessage(), e);
-                }
-            }
-
             try {
-                try (ZipFile zip = new ZipFile(cachedPath.toFile())) {
+                try (ZipFile zip = new ZipFile(path.toFile())) {
                     if (zip.stream().noneMatch(x -> x.getName().contains("manifest.json"))) {
-                        throw new IllegalArgumentException(url + " does not contain a manifest file.");
+                        throw new IllegalArgumentException("The pack at the url " + url + " does not contain a manifest file!");
                     }
 
-//                    // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
-//                    // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
-//                    if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
-//                        GeyserImpl.getInstance().getLogger().debug("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
-//                                "This is not supported for remote packs, and will cause Bedrock clients to fall back to request the pack from the server. " +
-//                                "Please put the pack file in a subfolder, and provide that zip in the URL.");
-//                    }
+                    // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
+                    // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
+                    if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
+                        if (testing) {
+                            GeyserImpl.getInstance().getLogger().info("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
+                                    "This may not work for remote packs, and could cause Bedrock clients to fall back to request the pack from the server. " +
+                                    "Please put the pack file in a subfolder, and provide that zip in the URL.");
+                        }
+                    }
                 }
             } catch (IOException e) {
                 throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
             }
+
+            if (testing) {
+                try {
+                    Files.delete(path);
+                    return null;
+                } catch (IOException e) {
+                    throw new IllegalStateException("Could not delete debug pack! " + e.getMessage(), e);
+                }
+            }
+
+            return new GeyserPathPackCodec(path);
         });
     }
 
@@ -305,7 +312,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
         // Now: let's clean up broken remote packs, so we don't cache them
         Path location = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
-        brokenPacks.forEach(codec -> {
+        for (UrlPackCodec codec : CACHED_FAILED_PACKS.asMap().values()) {
             int hash = codec.url().hashCode();
             Path packLocation = location.resolve(hash + ".zip");
             Path packMetadata = packLocation.resolveSibling(hash + ".metadata");
@@ -320,6 +327,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Could not delete broken cached resource packs! " + e);
             }
-        });
+        }
     }
 }

@@ -36,8 +36,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  *     <li>be a direct download link to a .zip or .mcpack resource pack</li>
  *     <li>use the application type `application/zip` and set a correct content length</li>
  * </ul>
- *
- * Additionally, the resource pack must be zipped in a folder enclosing the resource pack, instead of the resource pack being at the root of the zip.
  */
 public abstract class UrlPackCodec extends PackCodec {
 

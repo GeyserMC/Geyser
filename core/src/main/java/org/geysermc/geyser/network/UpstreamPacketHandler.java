@@ -319,7 +319,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         // If a remote pack ends up here, that usually implies that a platform was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
-            ResourcePackLoader.checkPack(urlPackCodec);
+            ResourcePackLoader.testUrlPack(urlPackCodec);
         }
 
         data.setChunkIndex(packet.getChunkIndex());

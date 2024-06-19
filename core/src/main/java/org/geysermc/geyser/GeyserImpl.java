@@ -650,8 +650,6 @@ public class GeyserImpl implements GeyserApi {
             this.erosionUnixListener.close();
         }
 
-        // todo check
-        //Registries.RESOURCE_PACKS.get().clear();
         ResourcePackLoader.clear();
 
         this.setEnabled(false);
