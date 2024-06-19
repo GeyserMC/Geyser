@@ -56,7 +56,6 @@ jobs:
         run: ./gradlew publish
         env:
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
-          CHANGELOG: ${{ steps.metadata.outputs.body }}
           ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
           ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
         
@@ -107,6 +106,7 @@ jobs:
       - name: Publish to Modrinth
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
+          CHANGELOG: ${{ steps.metadata.outputs.body }}
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: ./gradlew modrinth
