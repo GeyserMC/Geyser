@@ -35,6 +35,10 @@ import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -42,16 +46,17 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ShulkerInventoryTranslator() {
-        super(27, new BlockInventoryHolder("minecraft:shulker_box[facing=north]", ContainerType.CONTAINER) {
+        // Ensure that the shulker box default state won't be trying to open in a state facing the player
+        super(27, new BlockInventoryHolder(Blocks.SHULKER_BOX.defaultBlockState().withValue(Properties.FACING, Direction.NORTH), ContainerType.CONTAINER) {
             private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
-            protected boolean isValidBlock(String[] javaBlockString) {
-                return javaBlockString[0].contains("shulker_box");
+            protected boolean isValidBlock(BlockState blockState) {
+                return blockState.block().javaIdentifier().value().contains("shulker_box"); // TODO ew
             }
 
             @Override
-            protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, int javaBlockState) {
+            protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, BlockState javaBlockState) {
                 NbtMapBuilder tag = NbtMap.builder()
                         .putInt("x", position.getX())
                         .putInt("y", position.getY())

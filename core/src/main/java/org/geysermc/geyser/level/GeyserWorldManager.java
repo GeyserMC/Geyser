@@ -25,24 +25,20 @@
 
 package org.geysermc.geyser.level;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.erosion.packet.backendbound.*;
+import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPacket;
+import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
+import org.geysermc.erosion.packet.backendbound.BackendboundPickBlockPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
-import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserWorldManager extends WorldManager {
@@ -92,51 +88,6 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler == null) {
-            // No-op - don't send any additional information other than what the chunk has already sent
-            return;
-        }
-        List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
-            vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
-        }
-        erosionHandler.sendPacket(new BackendboundBatchBlockEntityPacket(x, z, vectors));
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int y, int z) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler != null) {
-            erosionHandler.sendPacket(new BackendboundBlockEntityPacket(Vector3i.from(x, y, z)));
-            return;
-        }
-
-        // Without direct server access, we can't get lectern information on-the-fly.
-        // I should have set this up so it's only called when there is a book in the block state. - Camotoy
-        NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, 1);
-        lecternTag.putCompound("book", NbtMap.builder()
-                .putByte("Count", (byte) 1)
-                .putShort("Damage", (short) 0)
-                .putString("Name", "minecraft:written_book")
-                .putCompound("tag", NbtMap.builder()
-                        .putString("photoname", "")
-                        .putString("text", "")
-                        .build())
-                .build());
-        lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
-        BlockEntityUtils.updateBlockEntity(session, lecternTag.build(), Vector3i.from(x, y, z));
-    }
-
-    @Override
-    public boolean shouldExpectLecternHandled(GeyserSession session) {
-        return session.getErosionHandler().isActive();
-    }
-
-    @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
         super.setGameRule(session, name, value);
         gameruleCache.put(name, String.valueOf(value));
@@ -179,9 +130,9 @@ public class GeyserWorldManager extends WorldManager {
         if (erosionHandler == null) {
             return super.getPickItemComponents(session, x, y, z, addNbtData);
         }
-        CompletableFuture<DataComponents> future = new CompletableFuture<>();
+        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
         erosionHandler.setPickBlockLookup(future);
         erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
-        return future;
+        return future.thenApply(RAW_TRANSFORMER);
     }
 }

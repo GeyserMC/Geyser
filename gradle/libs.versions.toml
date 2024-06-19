@@ -1,7 +1,7 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.2"
-erosion = "1.0-20230406.174837-8"
+erosion = "1.1-20240515.191456-1"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.2"
@@ -10,12 +10,10 @@ netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20240411.165033-129"
-protocol-connection = "3.0.0.Beta1-20240411.165033-128"
+protocol = "3.0.0.Beta2-20240616.144648-10"
 raknet = "1.0.0.CR3-20240416.144209-1"
-blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "e5b0bcc"
-mcprotocollib = "a1b559d" # Revert from jitpack after release
+mcprotocollib = "1.21-20240616.154144-5"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -25,17 +23,17 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.12-SNAPSHOT"
+adapters = "1.13-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.2.1"
-fabric-minecraft = "1.20.5"
-fabric-loader = "0.15.10"
-fabric-api = "0.97.6+1.20.5"
+fabric-loader = "0.15.11"
+fabric-api = "0.100.1+1.21"
 fabric-permissions = "0.2-SNAPSHOT"
-neoforge-minecraft = "20.5.0-beta"
+neoforge-minecraft = "21.0.0-beta"
 mixin = "0.8.5"
+minecraft = "1.21"
 
 # plugin versions
 indra = "3.1.3"
@@ -52,6 +50,7 @@ cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cum
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
+erosion-bukkit-nms = { group = "org.geysermc.erosion", name = "bukkit-nms", version.ref = "erosion" }
 erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
 
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -91,8 +90,9 @@ paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", versio
 
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
 
+minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
+
 # Check these on https://modmuss50.me/fabric.html
-fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions" }
@@ -108,7 +108,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.geysermc", name = "mcprotocollib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
@@ -116,16 +116,11 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-#protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
-#protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
-#protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
-protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
-protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
+protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol" }
+protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
+protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
-
-blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
 
 # plugins
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }

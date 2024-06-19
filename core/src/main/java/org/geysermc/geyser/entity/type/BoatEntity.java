@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class BoatEntity extends Entity implements Tickable {
+public class BoatEntity extends Entity implements Leashable, Tickable {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -64,6 +64,8 @@ public class BoatEntity extends Entity implements Tickable {
      */
     @Getter
     private int variant;
+
+    private long leashHolderBedrockId = -1;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.1f;
@@ -148,7 +150,17 @@ public class BoatEntity extends Entity implements Tickable {
     }
 
     @Override
+    public void setLeashHolderBedrockId(long bedrockId) {
+        this.leashHolderBedrockId = bedrockId;
+        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
+    }
+
+    @Override
     protected InteractiveTag testInteraction(Hand hand) {
+        InteractiveTag tag = super.testInteraction(hand);
+        if (tag != InteractiveTag.NONE) {
+            return tag;
+        }
         if (session.isSneaking()) {
             return InteractiveTag.NONE;
         } else if (passengers.size() < 2) {
@@ -160,6 +172,10 @@ public class BoatEntity extends Entity implements Tickable {
 
     @Override
     public InteractionResult interact(Hand hand) {
+        InteractionResult result = super.interact(hand);
+        if (result != InteractionResult.PASS) {
+            return result;
+        }
         if (session.isSneaking()) {
             return InteractionResult.PASS;
         } else {
@@ -189,6 +205,11 @@ public class BoatEntity extends Entity implements Tickable {
             paddleTimeRight += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
         }
+    }
+
+    @Override
+    public long leashHolderBedrockId() {
+        return leashHolderBedrockId;
     }
 
     private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {

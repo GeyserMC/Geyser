@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Called when a session has logged in, and is about to connect to a remote java server.
+ * Called when a session has logged in, and is about to connect to a remote Java server.
  * This event is cancellable, and can be used to prevent the player from connecting to the remote server.
  */
 public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
@@ -99,9 +99,9 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     }
 
     /**
-     * Gets the {@link RemoteServer} the section will attempt to connect to.
+     * Gets the {@link RemoteServer} the session will attempt to connect to.
      *
-     * @return the {@link RemoteServer} the section will attempt to connect to.
+     * @return the {@link RemoteServer} the session will attempt to connect to.
      */
     public @NonNull RemoteServer remoteServer() {
         return this.remoteServer;

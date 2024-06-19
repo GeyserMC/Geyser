@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.type;
 
 import it.unimi.dsi.fastutil.Pair;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -35,12 +36,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -58,9 +60,6 @@ public class BannerItem extends BlockItem {
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
     private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
-
-    // TODO fix - we somehow need to be able to get the sessions banner pattern registry, which we don't have where we need this :/
-    private static final int[] ominousBannerPattern = new int[] { 21, 29, 30, 1, 34, 15, 3, 1 };
 
     static {
         // Construct what an ominous banner is supposed to look like
@@ -108,7 +107,7 @@ public class BannerItem extends BlockItem {
             if (color != pair.right()) {
                 return false;
             }
-            String id = Identifier.formalize(patternLayer.getString("pattern")); // Ouch
+            Key id = MinecraftKey.key(patternLayer.getString("pattern")); // Ouch
             BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(id);
             if (bannerPattern != pair.left()) {
                 return false;
@@ -145,8 +144,8 @@ public class BannerItem extends BlockItem {
         } else {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
-                patternLayer.getPattern().ifId(holder -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(holder.id());
+                patternLayer.getPattern().ifId(id -> {
+                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(id);
                     if (bannerPattern != null) {
                         NbtMap tag = NbtMap.builder()
                                 .putString("Pattern", bannerPattern.getBedrockIdentifier())
@@ -168,7 +167,7 @@ public class BannerItem extends BlockItem {
      */
     private static NbtMap getBedrockBannerPattern(NbtMap pattern) {
         // ViaVersion 1.20.4 -> 1.20.5 can send without the namespace
-        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(Identifier.formalize(pattern.getString("pattern")));
+        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(MinecraftKey.key(pattern.getString("pattern")));
         DyeColor dyeColor = DyeColor.getByJavaIdentifier(pattern.getString("color"));
         if (bannerPattern == null || dyeColor == null) {
             return null;
@@ -199,8 +198,8 @@ public class BannerItem extends BlockItem {
         return null;
     }
 
-    public BannerItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+    public BannerItem(Builder builder, Block block, Block... otherBlocks) {
+        super(builder, block, otherBlocks);
     }
 
     @Override
@@ -214,20 +213,22 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(bedrockTag, components, mapping);
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(session, bedrockTag, components, mapping);
 
         if (bedrockTag.getInt("Type") == 1) {
             // Ominous banner pattern
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
-            for (int i = 0; i < ominousBannerPattern.length; i++) {
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(ominousBannerPattern[i]), OMINOUS_BANNER_PATTERN.get(i).right().ordinal()));
+            for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
+                var pair = OMINOUS_BANNER_PATTERN.get(i);
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().bannerPatterns().byValue(pair.left())),
+                        pair.right().ordinal()));
             }
 
             components.put(DataComponentType.BANNER_PATTERNS, patternLayers);
             components.put(DataComponentType.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
             components.put(DataComponentType.ITEM_NAME, Component
-                    .translatable("block.minecraft.ominous_banner") // thank god this works
+                    .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))
             );
         }

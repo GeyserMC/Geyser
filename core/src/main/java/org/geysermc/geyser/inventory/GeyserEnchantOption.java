@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.inventory;
 
+import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
-import lombok.Getter;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,13 +43,13 @@ public class GeyserEnchantOption {
      * is controlled by the server.
      * So, of course, we have to throw in some easter eggs. ;)
      */
-    private static final List<String> ENCHANT_NAMES = Arrays.asList("tougher armor", "lukeeey", "fall better",
-            "explode less", "camo toy", "breathe better", "rtm five one six", "armor stab", "water walk", "you are elsa",
-            "tim two zero three", "fast walk nether", "davchoo", "oof ouch owie", "enemy on fire", "spider sad", "aj ferguson", "redned",
-            "more items thx", "long sword reach", "fast tool", "give me block", "less breaky break", "cube craft",
-            "strong arrow", "fist arrow", "spicy arrow", "many many arrows", "geyser", "come here fish", "i like this",
-            "stabby stab", "supreme mortal", "avatar i guess", "more arrows", "fly finder seventeen", "in and out",
-            "xp heals tools", "dragon proxy waz here");
+    private static final List<String> ENCHANT_NAMES = List.of("tougher armor", "lukeeey", "fall better",
+            "explode less", "camo toy", "armor stab", "breathe better", "water walk", "rtm five one six", "oof ouch owie",
+            "enemy on fire", "spider sad", "aj ferguson", "redned", "more items thx", "fast tool", "give me block",
+            "less breaky break", "cube craft", "strong arrow", "fist arrow", "spicy arrow", "many many arrows", "geyser",
+            "come here fish", "you are elsa", "xp heals tools", "tim two zero three", "dragon proxy waz here",
+            "stabby stab", "supreme mortal", "i like this", "avatar i guess", "more arrows", "in and out",
+            "fly finder seventeen", "fast walk nether", "davchoo", "onechris", "death bringer thirteen", "kastle");
 
     @Getter
     private final int javaIndex;
@@ -62,7 +61,6 @@ public class GeyserEnchantOption {
     private boolean hasChanged;
 
     private int xpCost = 0;
-    private int javaEnchantIndex = -1;
     private int bedrockEnchantIndex = -1;
     private int enchantLevel = -1;
 
@@ -74,7 +72,7 @@ public class GeyserEnchantOption {
         this.hasChanged = false;
         return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
                 enchantLevel == -1 ? EMPTY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
-                javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
+                bedrockEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(bedrockEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
     }
 
     public boolean hasChanged() {
@@ -88,10 +86,9 @@ public class GeyserEnchantOption {
         }
     }
 
-    public void setEnchantIndex(int javaEnchantIndex, int bedrockEnchantIndex) {
-        if (this.javaEnchantIndex != javaEnchantIndex) {
+    public void setEnchantIndex(int bedrockEnchantIndex) {
+        if (this.bedrockEnchantIndex != bedrockEnchantIndex) {
             hasChanged = true;
-            this.javaEnchantIndex = javaEnchantIndex;
             this.bedrockEnchantIndex = bedrockEnchantIndex;
         }
     }

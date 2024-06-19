@@ -8,7 +8,6 @@ plugins {
     id("geyser.publish-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
-    id("com.modrinth.minotaur")
 }
 
 // These are provided by Minecraft/modded platforms already, no need to include them
@@ -39,7 +38,7 @@ provided("io.netty", "netty-resolver-dns-native-macos")
 provided("org.ow2.asm", "asm")
 
 architectury {
-    minecraft = "1.20.5"
+    minecraft = libs.minecraft.get().version as String
 }
 
 loom {
@@ -83,7 +82,7 @@ tasks {
     register("remapModrinthJar", RemapJarTask::class) {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
-        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
+        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("BUILD_NUMBER"))
         archiveClassifier.set("")
     }
 }
@@ -93,7 +92,7 @@ afterEvaluate {
 
     // These are shaded, no need to JiJ them
     configurations["shadow"].dependencies.forEach {shadowed ->
-        println("Not including shadowed dependency: ${shadowed.group}:${shadowed.name}")
+        //println("Not including shadowed dependency: ${shadowed.group}:${shadowed.name}")
         providedDependencies.add("${shadowed.group}:${shadowed.name}")
     }
 
@@ -101,39 +100,24 @@ afterEvaluate {
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
         if (!providedDependencies.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
             and !providedDependencies.contains("${dep.moduleVersion.id.group}:.*")) {
-            println("Including dependency via JiJ: ${dep.id}")
+            //println("Including dependency via JiJ: ${dep.id}")
             dependencies.add("include", dep.moduleVersion.id.toString())
         } else {
-            println("Not including ${dep.id} for ${project.name}!")
+            //println("Not including ${dep.id} for ${project.name}!")
         }
     }
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.5")
+    minecraft(libs.minecraft)
     mappings(loom.officialMojangMappings())
 }
 
 repositories {
     // mavenLocal()
-    maven("https://repo.opencollab.dev/maven-releases/")
-    maven("https://repo.opencollab.dev/maven-snapshots/")
+    maven("https://repo.opencollab.dev/main")
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://maven.neoforged.net/releases")
-}
-
-modrinth {
-    token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
-    projectId.set("wKkoqHrH")
-    versionNumber.set(project.version as String + "-" + System.getenv("GITHUB_RUN_NUMBER"))
-    versionType.set("beta")
-    changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
-
-    syncBodyFrom.set(rootProject.file("README.md").readText())
-
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.5", "1.20.6")
-    failSilently.set(true)
 }

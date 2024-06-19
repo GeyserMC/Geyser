@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
 
@@ -53,7 +54,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     private static final IntFunction<ItemData> UPGRADE_TEMPLATE = InventoryUtils.getUpgradeTemplate();
 
     private OldSmithingTableTranslator() {
-        super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
+        super(3, Blocks.SMITHING_TABLE, ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

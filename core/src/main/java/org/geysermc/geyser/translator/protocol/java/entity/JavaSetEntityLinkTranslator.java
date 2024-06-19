@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.living.MobEntity;
+import org.geysermc.geyser.entity.type.Leashable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityLinkPacket;
 
 /**
  * Called when a leash is attached, removed or updated from an entity
@@ -44,16 +44,16 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
         Entity holderId = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (!(holderId instanceof MobEntity mobEntity)) {
+        if (!(holderId instanceof Leashable asLeashable)) {
             return;
         }
 
         Entity attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
         if (attachedToId == null || packet.getAttachedToId() == 0) {
             // Is not being leashed
-            mobEntity.setFlag(EntityFlag.LEASHED, false);
-            mobEntity.setLeashHolderBedrockId(-1L);
-            mobEntity.updateBedrockMetadata();
+            holderId.setFlag(EntityFlag.LEASHED, false);
+            asLeashable.setLeashHolderBedrockId(-1L);
+            holderId.updateBedrockMetadata();
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(holderId.getGeyserId());
             eventPacket.setType(EntityEventType.REMOVE_LEASH);
@@ -62,8 +62,8 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
             return;
         }
 
-        mobEntity.setFlag(EntityFlag.LEASHED, true);
-        mobEntity.setLeashHolderBedrockId(attachedToId.getGeyserId());
+        holderId.setFlag(EntityFlag.LEASHED, true);
+        asLeashable.setLeashHolderBedrockId(attachedToId.getGeyserId());
         holderId.updateBedrockMetadata();
     }
 }

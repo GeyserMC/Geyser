@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -38,7 +39,7 @@ import java.util.List;
 @BlockEntity(type = BlockEntityType.CAMPFIRE)
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         List<NbtMap> items = javaNbt.getList("Items", NbtType.COMPOUND);
         if (items != null) {
             int i = 1;

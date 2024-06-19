@@ -25,17 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 
 @Translator(packet = ClientboundBlockUpdatePacket.class)
 public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlockUpdatePacket> {
@@ -66,14 +66,14 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockRegistries.JAVA_BLOCKS.get(packet.getEntry().getBlock()).getItemIdentifier();
-        if (identifier.equals(session.getLastBlockPlacedId())) {
+        Item item = BlockState.of(packet.getEntry().getBlock()).block().asItem();
+        if (item == session.getLastBlockPlaced()) {
             contains = true;
         }
 
         if (!contains) {
             session.setLastBlockPlacePosition(null);
-            session.setLastBlockPlacedId(null);
+            session.setLastBlockPlaced(null);
             return false;
         }
 
@@ -86,7 +86,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
-        session.setLastBlockPlacedId(null);
+        session.setLastBlockPlaced(null);
         return true;
     }
 
@@ -100,7 +100,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
                 || lastInteractPos.getZ() != packet.getEntry().getPosition().getZ())) {
             return;
         }
-        String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(packet.getEntry().getBlock(), BlockMapping.DEFAULT).getJavaIdentifier();
+        String identifier = BlockState.of(packet.getEntry().getBlock()).toString(); // This will be yeeted soon. Thanks Chris.
         session.setInteracting(false);
         BlockSoundInteractionTranslator.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }
