@@ -42,7 +42,7 @@ architectury-plugin = "3.4-SNAPSHOT"
 architectury-loom = "1.6-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
-blossom = "1.2.0"
+blossom = "2.1.0"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
