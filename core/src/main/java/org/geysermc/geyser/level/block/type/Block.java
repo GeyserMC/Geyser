@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
@@ -56,7 +57,7 @@ public class Block {
      * Can you harvest this with your hand.
      */
     private final boolean requiresCorrectToolForDrops;
-    private final BlockEntityType blockEntityType;
+    private final @Nullable BlockEntityType blockEntityType;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
     /**
@@ -185,6 +186,7 @@ public class Block {
         return blockEntityType != null;
     }
 
+    @Nullable
     public BlockEntityType blockEntityType() {
         return blockEntityType;
     }
