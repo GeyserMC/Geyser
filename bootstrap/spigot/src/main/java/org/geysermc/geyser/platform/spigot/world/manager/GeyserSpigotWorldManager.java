@@ -29,10 +29,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
@@ -43,8 +46,10 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * The base world manager to use when there is no supported NMS revision
@@ -144,6 +149,21 @@ public class GeyserSpigotWorldManager extends WorldManager {
         // java.lang.IllegalStateException: Tile is null, asynchronous access?
         SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
         return future.thenApply(RAW_TRANSFORMER);
+    }
+
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+        Player bukkitPlayer;
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
+            return;
+        }
+        Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+        SchedulerUtils.runTask(this.plugin, () -> {
+            var state = BukkitUtils.getBlockState(block);
+            if (!(state instanceof DecoratedPot pot)) {
+                return;
+            }
+            apply.accept(pot.getShards().stream().map(material -> material.getKey().toString()).toList());
+        }, block);
     }
 
     /**
