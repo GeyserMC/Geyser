@@ -16,7 +16,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
     boolean canBreakWithHand;
     String pickItem;
     String pistonBehavior;
-    boolean hasBlockEntity;
 
     private GeyserJavaBlockState(Builder builder) {
         this.identifier = builder.identifier;
@@ -28,7 +27,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
         this.canBreakWithHand = builder.canBreakWithHand;
         this.pickItem = builder.pickItem;
         this.pistonBehavior = builder.pistonBehavior;
-        this.hasBlockEntity = builder.hasBlockEntity;
     }
 
     @Override
@@ -76,9 +74,10 @@ public class GeyserJavaBlockState implements JavaBlockState {
         return pistonBehavior;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public boolean hasBlockEntity() {
-        return hasBlockEntity;
+        return false;
     }
 
     public static class Builder implements JavaBlockState.Builder {
@@ -91,7 +90,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
         private boolean canBreakWithHand;
         private String pickItem;
         private String pistonBehavior;
-        private boolean hasBlockEntity;
 
         @Override
         public Builder identifier(@NonNull String identifier) {
@@ -147,9 +145,13 @@ public class GeyserJavaBlockState implements JavaBlockState {
             return this;
         }
 
+        @SuppressWarnings("removal")
         @Override
         public Builder hasBlockEntity(boolean hasBlockEntity) {
-            this.hasBlockEntity = hasBlockEntity;
+            // keep the current behavior
+            if (this.pistonBehavior == null && hasBlockEntity) {
+                this.pistonBehavior = "BLOCK";
+            }
             return this;
         }
 
