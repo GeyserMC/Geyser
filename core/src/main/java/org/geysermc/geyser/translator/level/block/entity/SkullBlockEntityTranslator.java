@@ -58,7 +58,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             bedrockNbt.putFloat("Rotation", rotation * 22.5f);
         }
         bedrockNbt.putByte("SkullType", (byte) (blockState.block() instanceof SkullBlock skull ? skull.skullType().bedrockId() : 0));
-        if (blockState.getValue(Properties.POWERED, false)) {
+        if (blockState.getValue(Properties.POWERED)) {
             bedrockNbt.putBoolean("MouthMoving", true);
         }
     }
