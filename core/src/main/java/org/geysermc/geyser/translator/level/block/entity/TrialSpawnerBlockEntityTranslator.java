@@ -33,7 +33,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
 public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {
