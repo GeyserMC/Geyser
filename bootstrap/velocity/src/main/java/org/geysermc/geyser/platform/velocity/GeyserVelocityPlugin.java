@@ -32,10 +32,10 @@ import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
+import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import net.kyori.adventure.util.Codec;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -46,6 +46,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
@@ -64,78 +65,74 @@ import java.util.UUID;
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
 
-    /**
-     * Determines if the plugin has been ran once before, including before /geyser reload.
-     */
-    private static boolean INITIALIZED = false;
-
-    @Inject
-    private Logger logger;
-
-    @Inject
-    private ProxyServer proxyServer;
-
-    @Inject
-    private CommandManager commandManager;
-
+    private final ProxyServer proxyServer;
+    private final CommandManager commandManager;
+    private final GeyserVelocityLogger geyserLogger;
     private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
-    private GeyserVelocityLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
-
     private GeyserImpl geyser;
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
-    @Override
-    public void onEnable() {
-        try {
-            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
-        } catch (NoSuchMethodException e) {
-            // velocitypowered.com has a build that is very outdated
-            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
-                    "that has likely been downloaded is very outdated and does not support 1.19.");
-            return;
-        }
+    @Inject
+    public GeyserVelocityPlugin(ProxyServer server, Logger logger, CommandManager manager) {
+        this.geyserLogger = new GeyserVelocityLogger(logger);
+        this.proxyServer = server;
+        this.commandManager = manager;
+    }
 
+    @Override
+    public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        try {
-            if (!configFolder.toFile().exists())
-                //noinspection ResultOfMethodCallIgnored
-                configFolder.toFile().mkdirs();
-            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
-        } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return;
+        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
+            geyserLogger.error("      / \\");
+            geyserLogger.error("     /   \\");
+            geyserLogger.error("    /  |  \\");
+            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
+            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            geyserLogger.error(" /     o     \\");
+            geyserLogger.error("/_____________\\");
         }
 
-        this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        if (!loadConfig()) {
+            return;
+        }
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
-
-        // Hack: Normally triggered by ListenerBoundEvent, but that doesn't fire on /geyser reload
-        if (INITIALIZED) {
-            this.postStartup();
-        }
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
     }
 
-    private void postStartup() {
-        GeyserImpl.start();
-
-        if (!INITIALIZED) {
-            this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-            // Will be initialized after the proxy has been bound
+    @Override
+    public void onGeyserEnable() {
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
+            }
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
         }
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
+        GeyserImpl.start();
+
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
+        } else {
+            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
+        }
+
+        // No need to re-register commands when reloading
+        if (GeyserImpl.getInstance().isReloading()) {
+            return;
+        }
 
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -147,17 +144,18 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
         }
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
-        } else {
-            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
-        }
-
         proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
+        if (geyser != null) {
+            geyser.disable();
+        }
+    }
+
+    @Override
+    public void onGeyserShutdown() {
         if (geyser != null) {
             geyser.shutdown();
         }
@@ -188,26 +186,24 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
-        onEnable();
+        this.onGeyserInitialize();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        onDisable();
+        this.onGeyserShutdown();
     }
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            this.postStartup();
+            this.onGeyserEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
                 geyserInjector.initializeLocalChannel(this);
             }
-
-            INITIALIZED = true;
         }
     }
 
@@ -241,5 +237,22 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             return true;
         }
         return false;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadConfig() {
+        try {
+            if (!configFolder.toFile().exists())
+                //noinspection ResultOfMethodCallIgnored
+                configFolder.toFile().mkdirs();
+            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
+        } catch (IOException ex) {
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

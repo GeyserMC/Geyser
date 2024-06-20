@@ -56,12 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -78,6 +73,7 @@ public class DumpInfo {
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
+    private final int connectionAttempts;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
@@ -128,6 +124,8 @@ public class DumpInfo {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
+
+        this.connectionAttempts = GeyserImpl.getInstance().getGeyserServer().getConnectionAttempts();
 
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 

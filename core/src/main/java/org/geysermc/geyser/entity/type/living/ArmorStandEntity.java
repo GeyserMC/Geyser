@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -43,6 +39,11 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -99,11 +100,11 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         if (secondEntity != null) {
             secondEntity.despawnEntity();
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override
@@ -257,38 +258,38 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setHelmet(ItemData helmet) {
+    public void setHelmet(ItemStack helmet) {
         super.setHelmet(helmet);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setChestplate(ItemData chestplate) {
+    public void setChestplate(ItemStack chestplate) {
         super.setChestplate(chestplate);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setLeggings(ItemData leggings) {
+    public void setLeggings(ItemStack leggings) {
         super.setLeggings(leggings);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setBoots(ItemData boots) {
+    public void setBoots(ItemStack boots) {
         super.setBoots(boots);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setHand(ItemData hand) {
+    public void setHand(ItemStack hand) {
         super.setHand(hand);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setOffHand(ItemData offHand) {
-        super.setOffHand(offHand);
+    public void setOffhand(ItemStack offHand) {
+        super.setOffhand(offHand);
         updateSecondEntityStatus(true);
     }
 
@@ -310,7 +311,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isInvisible) {
             // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             updateOffsetRequirement(false);
 
             if (secondEntity != null) {
@@ -324,9 +325,9 @@ public class ArmorStandEntity extends LivingEntity {
         }
         boolean isNametagEmpty = nametag.isEmpty();
         if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
-                || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR))) {
+                || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offhand.equals(ItemData.AIR))) {
             // Reset scale of the proper armor stand
-            this.dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update the position of the armor stand
@@ -349,7 +350,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.SCALE, 0.0f);
+            secondEntity.setScale(0f);
             // No bounding box as we don't want to interact with this entity
             secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
@@ -359,7 +360,7 @@ public class ArmorStandEntity extends LivingEntity {
         } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
-            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update offset
@@ -373,7 +374,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Nametag is not empty and there is no armor
             // We don't need to make a new entity
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityDataTypes.SCALE, 0.0f);
+            setScale(0f);
             // As the above is applied, we need an offset
             updateOffsetRequirement(!isMarker);
 

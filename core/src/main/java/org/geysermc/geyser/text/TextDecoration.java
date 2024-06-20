@@ -25,71 +25,66 @@
 
 package org.geysermc.geyser.text;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
-public final class TextDecoration {
-    private final String translationKey;
-    private final Style style;
-    private final Set<Parameter> parameters;
+public record TextDecoration(String translationKey, List<Parameter> parameters, Style deserializedStyle) implements ChatTypeDecoration {
 
-    public TextDecoration(CompoundTag tag) {
-        translationKey = (String) tag.get("translation_key").getValue();
+    @Override
+    public NbtMap style() {
+        // Should not ever be called.
+        throw new UnsupportedOperationException();
+    }
 
-        CompoundTag styleTag = tag.get("style");
+    public static ChatType readChatType(RegistryEntry entry) {
+        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
+        // (This note has been passed around through several classes and iterations. It stays as a warning
+        // to anyone that dares to try and hardcode registry IDs.)
+        NbtMap tag = entry.getData();
+        NbtMap chat = tag.getCompound("chat", null);
+        if (chat != null) {
+            String translationKey = chat.getString("translation_key");
+
+            NbtMap styleTag = chat.getCompound("style");
+            Style style = deserializeStyle(styleTag);
+
+            List<ChatTypeDecoration.Parameter> parameters = new ArrayList<>();
+            List<String> parametersNbt = chat.getList("parameters", NbtType.STRING);
+            for (String parameter : parametersNbt) {
+                parameters.add(ChatTypeDecoration.Parameter.valueOf(parameter.toUpperCase(Locale.ROOT)));
+            }
+            return new ChatType(new TextDecoration(translationKey, parameters, style), null);
+        }
+        return new ChatType(null, null);
+    }
+
+    public static Style getStyle(ChatTypeDecoration decoration) {
+        if (decoration instanceof TextDecoration textDecoration) {
+            return textDecoration.deserializedStyle();
+        }
+        return deserializeStyle(decoration.style());
+    }
+
+    private static Style deserializeStyle(NbtMap styleTag) {
         Style.Builder builder = Style.style();
-        if (styleTag != null) {
-            StringTag color = styleTag.get("color");
+        if (!styleTag.isEmpty()) {
+            String color = styleTag.getString("color", null);
             if (color != null) {
-                builder.color(NamedTextColor.NAMES.value(color.getValue()));
+                builder.color(NamedTextColor.NAMES.value(color));
             }
             //TODO implement the rest
-            Tag italic = styleTag.get("italic");
-            if (italic != null && ((Number) italic.getValue()).byteValue() == (byte) 1) {
+            boolean italic = styleTag.getBoolean("italic");
+            if (italic) {
                 builder.decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC);
             }
         }
-        style = builder.build();
-
-        this.parameters = EnumSet.noneOf(Parameter.class);
-        ListTag parameters = tag.get("parameters");
-        for (Tag parameter : parameters) {
-            this.parameters.add(Parameter.valueOf(((String) parameter.getValue()).toUpperCase(Locale.ROOT)));
-        }
-    }
-
-    public String translationKey() {
-        return translationKey;
-    }
-
-    public Style style() {
-        return style;
-    }
-
-    public Set<Parameter> parameters() {
-        return parameters;
-    }
-
-    @Override
-    public String toString() {
-        return "TextDecoration{" +
-                "translationKey='" + translationKey + '\'' +
-                ", style=" + style +
-                ", parameters=" + parameters +
-                '}';
-    }
-
-    public enum Parameter {
-        CONTENT,
-        SENDER,
-        TARGET
+        return builder.build();
     }
 }

@@ -25,16 +25,17 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 
 public class CompassItem extends Item {
     public CompassItem(String javaIdentifier, Builder builder) {
@@ -42,43 +43,42 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (isLodestoneCompass(itemStack.getNbt())) {
-            return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        if (isLodestoneCompass(components)) {
+            return super.translateToBedrock(count, components, mappings.getLodestoneCompass(), mappings);
         }
-        return super.translateToBedrock(itemStack, mapping, mappings);
+        return super.translateToBedrock(count, components, mapping, mappings);
     }
 
     @Override
-    public ItemMapping toBedrockDefinition(CompoundTag nbt, ItemMappings mappings) {
-        if (isLodestoneCompass(nbt)) {
+    public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
+        if (isLodestoneCompass(components)) {
             return mappings.getLodestoneCompass();
         }
-        return super.toBedrockDefinition(nbt, mappings);
+        return super.toBedrockDefinition(components, mappings);
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        Tag lodestoneTag = tag.get("LodestoneTracked");
-        if (lodestoneTag instanceof ByteTag) {
-            int trackId = session.getLodestoneCache().store(tag);
+        LodestoneTracker tracker = components.get(DataComponentType.LODESTONE_TRACKER);
+        if (tracker != null) {
+            int trackId = session.getLodestoneCache().store(tracker);
             // Set the bedrock tracking id - will return 0 if invalid
-            tag.put(new IntTag("trackingHandle", trackId));
+            builder.putInt("trackingHandle", trackId);
         }
     }
 
-    private boolean isLodestoneCompass(CompoundTag nbt) {
-        if (nbt != null) {
-            Tag lodestoneTag = nbt.get("LodestoneTracked");
-            return lodestoneTag instanceof ByteTag;
+    private boolean isLodestoneCompass(@Nullable DataComponents components) {
+        if (components != null) {
+            return components.getDataComponents().containsKey(DataComponentType.LODESTONE_TRACKER);
         }
         return false;
     }
 
     @Override
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
             mapping = mappings.getStoredItems().compass();

@@ -85,27 +85,29 @@ public class EntityCache {
         return false;
     }
 
-    public boolean removeEntity(Entity entity, boolean force) {
+    public void removeEntity(Entity entity) {
         if (entity instanceof PlayerEntity player) {
             session.getPlayerWithCustomHeads().remove(player.getUuid());
         }
 
-        if (entity != null && entity.isValid() && (force || entity.despawnEntity())) {
+        if (entity != null) {
+            if (entity.isValid()) {
+                entity.despawnEntity();
+            }
+
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
 
             if (entity instanceof Tickable) {
                 tickableEntities.remove(entity);
             }
-            return true;
         }
-        return false;
     }
 
     public void removeAllEntities() {
         List<Entity> entities = new ArrayList<>(this.entities.values());
         for (Entity entity : entities) {
-            removeEntity(entity, false);
+            removeEntity(entity);
         }
 
         session.getPlayerWithCustomHeads().clear();

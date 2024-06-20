@@ -26,6 +26,7 @@
 package org.geysermc.geyser.ping;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.net.InetSocketAddress;
 
 /**

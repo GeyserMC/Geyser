@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.util;
 
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
+import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
 import org.geysermc.geyser.text.ChatColor;

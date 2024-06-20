@@ -44,14 +44,28 @@ public interface GeyserBootstrap {
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
     /**
-     * Called when the GeyserBootstrap is enabled
+     * Called when the GeyserBootstrap is initialized.
+     * This will only be called once, when Geyser is loading. Calling this must
+     * happen before {@link #onGeyserEnable()}, since this "sets up" Geyser.
      */
-    void onEnable();
+    void onGeyserInitialize();
 
     /**
-     * Called when the GeyserBootstrap is disabled
+     * Called when the GeyserBootstrap is enabled/reloaded.
+     * This starts Geyser, after which, Geyser is in a player-accepting state.
      */
-    void onDisable();
+    void onGeyserEnable();
+
+    /**
+     * Called when the GeyserBootstrap is disabled - either before a reload,
+     * of before fully shutting down.
+     */
+    void onGeyserDisable();
+
+    /**
+     * Called when the GeyserBootstrap is shutting down.
+     */
+    void onGeyserShutdown();
 
     /**
      * Returns the current GeyserConfiguration

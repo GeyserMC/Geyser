@@ -148,9 +148,9 @@ public class GeyserLocale {
                 } catch (IOException ignored) {}
             }
         } else {
-            if (GeyserImpl.getInstance() != null && !validLocalLanguage) {
+            if (!validLocalLanguage) {
                 // Don't warn on missing locales if a local file has been found
-                GeyserImpl.getInstance().getLogger().warning("Missing locale: " + locale);
+                bootstrap.getGeyserLogger().warning("Missing locale: " + locale);
             }
         }
 
@@ -162,12 +162,7 @@ public class GeyserLocale {
                 localeProp.load(stream);
             } catch (IOException e) {
                 String message = "Unable to load custom language override!";
-                if (GeyserImpl.getInstance() != null) {
-                    GeyserImpl.getInstance().getLogger().error(message, e);
-                } else {
-                    System.err.println(message);
-                    e.printStackTrace();
-                }
+                bootstrap.getGeyserLogger().error(message, e);
             }
 
             LOCALE_MAPPINGS.putIfAbsent(locale, localeProp);
@@ -264,6 +259,13 @@ public class GeyserLocale {
             // Invalid locale
             return locale;
         }
+
+        // See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes - covers the special case that is norwegian
+        String lowerCaseLocale = locale.toLowerCase(Locale.ROOT);
+        if (lowerCaseLocale.equals("nn_no") || lowerCaseLocale.equals("no_no")) {
+            locale = "nb_NO";
+        }
+
         String language = locale.substring(0, 2);
         String country = locale.substring(3);
         return language.toLowerCase(Locale.ENGLISH) + "_" + country.toUpperCase(Locale.ENGLISH);

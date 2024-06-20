@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
-import com.github.steveice10.mc.protocol.data.game.entity.object.FallingBlockData;
-import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
-import com.github.steveice10.mc.protocol.data.game.entity.object.WardenData;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;

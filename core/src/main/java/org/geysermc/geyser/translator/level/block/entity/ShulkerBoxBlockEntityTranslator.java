@@ -25,12 +25,14 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.SHULKER_BOX)
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -39,12 +41,7 @@ public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator imple
      * where {@code tag} is passed as null.
      */
     @Override
-    public void translateTag(NbtMapBuilder builder, @Nullable CompoundTag tag, int blockState) {
-        byte direction = BlockStateValues.getShulkerBoxDirection(blockState);
-        // Just in case...
-        if (direction == -1) {
-            direction = 1;
-        }
-        builder.put("facing", direction);
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
+        bedrockNbt.putByte("facing", (byte) blockState.getValue(Properties.FACING).ordinal());
     }
 }

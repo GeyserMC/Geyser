@@ -25,12 +25,18 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+
 /**
- * A more compact version of {@link com.github.steveice10.mc.protocol.data.game.recipe.Recipe}.
+ * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe}.
  */
 public interface GeyserRecipe {
     /**
      * Whether the recipe is flexible or not in which items can be placed where.
      */
     boolean isShaped();
+
+    @Nullable
+    ItemStack result();
 }

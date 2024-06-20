@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class MapItem extends Item {
     public MapItem(String javaIdentifier, Builder builder) {
@@ -36,27 +37,16 @@ public class MapItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        Tag mapId = tag.remove("map");
-        if (mapId == null || !(mapId.getValue() instanceof Number number)) return;
-
-        int mapValue = number.intValue();
-
-        tag.put(new LongTag("map_uuid", mapValue));
-        tag.put(new IntTag("map_name_index", mapValue));
-        tag.put(new ByteTag("map_display_players", (byte) 1));
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        IntTag mapNameIndex = tag.remove("map_name_index");
-        if (mapNameIndex != null) {
-            tag.put(new IntTag("map", mapNameIndex.getValue()));
-            tag.remove("map_uuid");
+        Integer mapValue = components.get(DataComponentType.MAP_ID);
+        if (mapValue == null) {
+            return;
         }
+
+        builder.putLong("map_uuid", mapValue);
+        builder.putInt("map_name_index", mapValue);
+        builder.putByte("map_display_players", (byte) 1);
     }
 }
