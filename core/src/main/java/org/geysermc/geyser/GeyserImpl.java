@@ -115,13 +115,13 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "${gitVersion}";
-    public static final String VERSION = "${version}";
+    public static final String GIT_VERSION = BuildData.GIT_VERSION;
+    public static final String VERSION = BuildData.VERSION;
 
-    public static final String BUILD_NUMBER = "${buildNumber}";
-    public static final String BRANCH = "${branch}";
-    public static final String COMMIT = "${commit}";
-    public static final String REPOSITORY = "${repository}";
+    public static final String BUILD_NUMBER = BuildData.BUILD_NUMBER;
+    public static final String BRANCH = BuildData.BRANCH;
+    public static final String COMMIT = BuildData.COMMIT;
+    public static final String REPOSITORY = BuildData.REPOSITORY;
 
     /**
      * Oauth client ID for Microsoft authentication
