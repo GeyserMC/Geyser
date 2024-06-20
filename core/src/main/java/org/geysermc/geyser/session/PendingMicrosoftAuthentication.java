@@ -54,7 +54,7 @@ public class PendingMicrosoftAuthentication {
     public static final HttpClient AUTH_CLIENT = MinecraftAuth.createHttpClient();
     public static final BiFunction<Boolean, Integer, StepFullJavaSession> AUTH_FLOW = (offlineAccess, timeoutSec) -> MinecraftAuth.builder()
             .withClientId(GeyserImpl.OAUTH_CLIENT_ID)
-            .withScope(offlineAccess ? "XboxLive.signin" : "XboxLive.signin XboxLive.offline_access")
+            .withScope(offlineAccess ? "XboxLive.signin XboxLive.offline_access" : "XboxLive.signin")
             .withTimeout(timeoutSec)
             .deviceCode()
             .withoutDeviceToken()
