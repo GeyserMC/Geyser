@@ -75,7 +75,7 @@ tasks.processResources {
         expand(
             "branch" to info.branch,
             "buildNumber" to info.buildNumber,
-            "projectVersion" to project.version,
+            "projectVersion" to info.version,
             "commit" to info.commit,
             "commitAbbrev" to info.commitAbbrev,
             "commitMessage" to info.commitMessage,
@@ -95,13 +95,13 @@ sourceSets {
                 property("branch", info.branch)
                 property("commit", info.commit)
                 property("repository", info.repository)
-                property("devVersion", info.isDev)
+                property("devVersion", info.isDev.toString())
             }
         }
     }
 }
 
-fun Project.buildNumber(): Int =
+fun buildNumber(): Int =
     (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
 
 fun isDevBuild(branch: String, repository: String): Boolean {

@@ -34,4 +34,6 @@ public class BuildData {
     public static final String BRANCH = "{{ branch }}";
     public static final String COMMIT = "{{ commit }}";
     public static final String REPOSITORY = "{{ repository }}";
+
+    public static final String DEV = "{{ devVersion }}";
 }

@@ -123,8 +123,7 @@ public class GeyserImpl implements GeyserApi {
     public static final String COMMIT = BuildData.COMMIT;
     public static final String REPOSITORY = BuildData.REPOSITORY;
 
-    @SuppressWarnings("ConstantValue")
-    public static final boolean IS_DEV = Boolean.parseBoolean("${dev}");
+    public static final boolean IS_DEV = Boolean.parseBoolean(BuildData.DEV);
 
     /**
      * Oauth client ID for Microsoft authentication
