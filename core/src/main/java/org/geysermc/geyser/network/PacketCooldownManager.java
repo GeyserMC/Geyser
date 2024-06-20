@@ -75,13 +75,12 @@ public class PacketCooldownManager {
         this.expiryTimeMillisDebug = 0;
     }
 
-    @Getter
     private record CooldownSettings(int cooldownMillis, int maxCount) {
-
     }
 
+
     @Getter
-    private static class CooldownTracker {
+    private class CooldownTracker {
         private long count;
         @Setter
         private long expiryTime;
@@ -89,6 +88,5 @@ public class PacketCooldownManager {
         public void incrementCount() {
             this.count++;
         }
-
     }
 }
