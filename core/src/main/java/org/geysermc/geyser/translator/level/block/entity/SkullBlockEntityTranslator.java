@@ -53,17 +53,13 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        if (blockState == null) {
-            bedrockNbt.putByte("SkullType", (byte) 0);
-            return;
-        }
         Integer rotation = blockState.getValue(Properties.ROTATION_16);
         if (rotation != null) {
             // Could be a wall skull block otherwise, which has rotation in its Bedrock state
             bedrockNbt.putFloat("Rotation", rotation * 22.5f);
         }
         bedrockNbt.putByte("SkullType", (byte) (blockState.block() instanceof SkullBlock skull ? skull.skullType().bedrockId() : 0));
-        if (blockState.getValue(Properties.POWERED)) {
+        if (blockState.getValue(Properties.POWERED, false)) {
             bedrockNbt.putBoolean("MouthMoving", true);
         }
     }

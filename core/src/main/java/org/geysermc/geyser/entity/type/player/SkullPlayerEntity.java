@@ -141,7 +141,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         float rotation;
 
         BlockState blockState = skull.getBlockState();
-        if (blockState != null && blockState.block() instanceof WallSkullBlock) {
+        if (blockState.block() instanceof WallSkullBlock) {
             y += 0.25f;
             Direction direction = blockState.getValue(Properties.HORIZONTAL_FACING);
             rotation = WallSkullBlock.getDegrees(direction);
@@ -152,7 +152,7 @@ public class SkullPlayerEntity extends PlayerEntity {
                 case EAST -> x -= 0.24f;
             }
         } else {
-            rotation = (180f + (blockState != null ? blockState.getValue(Properties.ROTATION_16) * 22.5f : 0.0f)) % 360;
+            rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);

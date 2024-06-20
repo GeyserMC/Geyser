@@ -254,10 +254,10 @@ public class SkullCache {
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
             CustomBlockState customBlockState;
-            if (blockState != null && blockState.block() instanceof WallSkullBlock) {
+            if (blockState.block() instanceof WallSkullBlock) {
                 customBlockState = customSkull.getWallBlockState(WallSkullBlock.getDegrees(blockState));
             } else {
-                customBlockState = customSkull.getFloorBlockState(blockState != null ? blockState.getValue(Properties.ROTATION_16) : 0);
+                customBlockState = customSkull.getFloorBlockState(blockState.getValue(Properties.ROTATION_16));
             }
 
             return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);

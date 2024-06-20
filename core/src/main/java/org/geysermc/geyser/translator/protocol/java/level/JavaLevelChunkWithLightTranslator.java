@@ -398,7 +398,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                BlockState blockState = BlockRegistries.BLOCK_STATES.get(section.get(x, y & 0xF, z));
+                BlockState blockState = BlockState.of(section.get(x, y & 0xF, z));
 
                 // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
                 // Also, some properties - like banner base colors - are part of the tag and is processed here.
