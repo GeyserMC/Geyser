@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
@@ -399,7 +398,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                BlockState blockState = BlockRegistries.BLOCK_STATES.getOrDefault(section.get(x, y & 0xF, z), Blocks.AIR.defaultBlockState());
+                BlockState blockState = BlockState.of(section.get(x, y & 0xF, z));
 
                 // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
                 // Also, some properties - like banner base colors - are part of the tag and is processed here.

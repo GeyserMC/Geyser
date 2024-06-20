@@ -33,9 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
@@ -59,8 +57,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(type);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
-        BlockState blockState = BlockRegistries.BLOCK_STATES.getOrDefault(session.getGeyser().getWorldManager().getBlockAt(session, packet.getPosition()),
-                Blocks.AIR.defaultBlockState());
+        BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getPosition());
 
         if (blockState.block().blockEntityType() != type) {
             return;
