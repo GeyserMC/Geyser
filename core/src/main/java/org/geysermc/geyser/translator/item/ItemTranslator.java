@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.translator.item;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.data.GameProfile.Texture;
-import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
-import com.github.steveice10.mc.auth.exception.property.PropertyException;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
+import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -465,12 +464,7 @@ public final class ItemTranslator {
         
         GameProfile profile = components.get(DataComponentType.PROFILE);
         if (profile != null) {
-            Map<TextureType, Texture> textures = null;
-            try {
-                textures = profile.getTextures(false);
-            } catch (PropertyException e) {
-                GeyserImpl.getInstance().getLogger().debug("Failed to get textures from GameProfile: " + e);
-            }
+            Map<TextureType, Texture> textures = profile.getTextures(false);
 
             if (textures == null || textures.isEmpty()) {
                 return null;

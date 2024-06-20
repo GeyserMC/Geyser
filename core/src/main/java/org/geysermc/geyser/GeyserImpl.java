@@ -160,7 +160,7 @@ public class GeyserImpl implements GeyserApi {
 
     private PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
     @Getter(AccessLevel.NONE)
-    private Map<String, String> savedRefreshTokens;
+    private Map<String, String> savedAuthChains;
 
     @Getter
     private static GeyserImpl instance;
@@ -527,37 +527,37 @@ public class GeyserImpl implements GeyserApi {
 
         if (config.getRemote().authType() == AuthType.ONLINE) {
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
-            savedRefreshTokens = new ConcurrentHashMap<>();
+            savedAuthChains = new ConcurrentHashMap<>();
 
-            File tokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
-            if (tokensFile.exists()) {
+            File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
+            if (authChainsFile.exists()) {
                 TypeReference<Map<String, String>> type = new TypeReference<>() { };
 
-                Map<String, String> refreshTokenFile = null;
+                Map<String, String> authChainFile = null;
                 try {
-                    refreshTokenFile = JSON_MAPPER.readValue(tokensFile, type);
+                    authChainFile = JSON_MAPPER.readValue(authChainsFile, type);
                 } catch (IOException e) {
                     logger.error("Cannot load saved user tokens!", e);
                 }
-                if (refreshTokenFile != null) {
+                if (authChainFile != null) {
                     List<String> validUsers = config.getSavedUserLogins();
                     boolean doWrite = false;
-                    for (Map.Entry<String, String> entry : refreshTokenFile.entrySet()) {
+                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
                         String user = entry.getKey();
                         if (!validUsers.contains(user)) {
                             // Perform a write to this file to purge the now-unused name
                             doWrite = true;
                             continue;
                         }
-                        savedRefreshTokens.put(user, entry.getValue());
+                        savedAuthChains.put(user, entry.getValue());
                     }
                     if (doWrite) {
-                        scheduleRefreshTokensWrite();
+                        scheduleAuthChainsWrite();
                     }
                 }
             }
         } else {
-            savedRefreshTokens = null;
+            savedAuthChains = null;
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
@@ -808,11 +808,11 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Nullable
-    public String refreshTokenFor(@NonNull String bedrockName) {
-        return savedRefreshTokens.get(bedrockName);
+    public String authChainFor(@NonNull String bedrockName) {
+        return savedAuthChains.get(bedrockName);
     }
 
-    public void saveRefreshToken(@NonNull String bedrockName, @NonNull String refreshToken) {
+    public void saveAuthChain(@NonNull String bedrockName, @NonNull String authChain) {
         if (!getConfig().getSavedUserLogins().contains(bedrockName)) {
             // Do not save this login
             return;
@@ -820,20 +820,20 @@ public class GeyserImpl implements GeyserApi {
 
         // We can safely overwrite old instances because MsaAuthenticationService#getLoginResponseFromRefreshToken
         // refreshes the token for us
-        if (!Objects.equals(refreshToken, savedRefreshTokens.put(bedrockName, refreshToken))) {
-            scheduleRefreshTokensWrite();
+        if (!Objects.equals(authChain, savedAuthChains.put(bedrockName, authChain))) {
+            scheduleAuthChainsWrite();
         }
     }
 
-    private void scheduleRefreshTokensWrite() {
+    private void scheduleAuthChainsWrite() {
         scheduledThread.execute(() -> {
             // Ensure all writes are handled on the same thread
-            File savedTokens = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            File savedAuthChains = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
             TypeReference<Map<String, String>> type = new TypeReference<>() { };
-            try (FileWriter writer = new FileWriter(savedTokens)) {
+            try (FileWriter writer = new FileWriter(savedAuthChains)) {
                 JSON_MAPPER.writerFor(type)
                         .withDefaultPrettyPrinter()
-                        .writeValue(writer, savedRefreshTokens);
+                        .writeValue(writer, this.savedAuthChains);
             } catch (IOException e) {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }

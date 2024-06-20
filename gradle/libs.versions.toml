@@ -12,8 +12,8 @@ gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
 protocol = "3.0.0.Beta2-20240616.144648-10"
 raknet = "1.0.0.CR3-20240416.144209-1"
-mcauthlib = "e5b0bcc"
-mcprotocollib = "1.21-20240616.154144-5"
+minecraftauth = "4.0.2"
+mcprotocollib = "1.21-20240618.151504-8"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -107,7 +107,7 @@ commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" 
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
-mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
+minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
