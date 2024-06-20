@@ -212,19 +212,20 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     private Map<String, ResourcePack> loadRemotePacks() {
+        GeyserImpl instance = GeyserImpl.getInstance();
         // Unable to make this a static variable, as the test would fail
-        final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
+        final Path cachedCdnPacksDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
         if (!Files.exists(cachedCdnPacksDirectory)) {
             try {
                 Files.createDirectories(cachedCdnPacksDirectory);
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not create remote pack cache directory", e);
+                instance.getLogger().error("Could not create remote pack cache directory", e);
                 return new Object2ObjectOpenHashMap<>();
             }
         }
 
-        List<String> remotePackUrls = GeyserImpl.getInstance().getConfig().getResourcePackUrls();
+        List<String> remotePackUrls = instance.getConfig().getResourcePackUrls();
         Map<String, ResourcePack> packMap = new Object2ObjectOpenHashMap<>();
 
         for (String url : remotePackUrls) {
@@ -233,8 +234,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 ResourcePack pack = codec.create();
                 packMap.put(pack.manifest().header().uuid().toString(), pack);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
-                if (GeyserImpl.getInstance().getLogger().isDebug()) {
+                instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
+                if (instance.getLogger().isDebug()) {
                     e.printStackTrace();
                 }
             }

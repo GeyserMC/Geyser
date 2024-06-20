@@ -68,7 +68,7 @@ public abstract class PackCodec {
      * @return the new resource pack
      */
     @NonNull
-    public abstract ResourcePack create();
+    protected abstract ResourcePack create();
 
     /**
      * Creates a new pack provider from the given path.

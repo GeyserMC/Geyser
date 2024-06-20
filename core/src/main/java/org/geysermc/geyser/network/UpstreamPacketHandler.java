@@ -235,10 +235,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
+
                 for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
                     ResourcePackManifest.Header header = pack.manifest().header();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.version().toString(), ""));
                 }
+
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));

@@ -84,7 +84,7 @@ public class GeyserPathPackCodec extends PathPackCodec {
     }
 
     @Override
-    public @NonNull ResourcePack create() {
+    protected @NonNull ResourcePack create() {
         return ResourcePackLoader.readPack(this.path);
     }
 
