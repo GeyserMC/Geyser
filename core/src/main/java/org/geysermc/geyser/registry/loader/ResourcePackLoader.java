@@ -235,11 +235,13 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 packMap.put(pack.manifest().header().uuid().toString(), pack);
             } catch (Exception e) {
                 instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
+                instance.getLogger().error(e.getMessage());
                 if (instance.getLogger().isDebug()) {
                     e.printStackTrace();
                 }
             }
         }
+
         return packMap;
     }
 

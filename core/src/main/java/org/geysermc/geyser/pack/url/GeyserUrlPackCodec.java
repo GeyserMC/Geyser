@@ -82,11 +82,12 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                     } else if (pack != null) {
                         this.fallback = pack;
                     }
-                });
+                }).join(); // Needed to ensure that we don't attempt to read a pack before downloading/checking it
             } catch (Exception e) {
                 throw new IllegalArgumentException("Failed to download pack from the url %s (reason: %s)!".formatted(url, e.getMessage()));
             }
         }
+
         return ResourcePackLoader.readPack(this);
     }
 
