@@ -82,6 +82,17 @@ public abstract class PackCodec {
     }
 
     /**
+     * Creates a new pack provider from the given url with no content key.
+     *
+     * @param url the url to create the pack provider from
+     * @return the new pack provider
+     */
+    @NonNull
+    public static PackCodec url(@NonNull String url) {
+        return url(url, null);
+    }
+
+    /**
      * Creates a new pack provider from the given url and content key.
      *
      * @param url the url to create the pack provider from

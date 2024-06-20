@@ -61,14 +61,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     @Override
-    public boolean registerAll(@NonNull Collection<ResourcePack> resourcePacks) {
-        boolean successful = true;
-        for (ResourcePack pack : resourcePacks) {
-            if (!this.register(pack)) {
-                successful = false;
-            }
-        }
-        return successful;
+    public void registerAll(@NonNull Collection<ResourcePack> resourcePacks) {
+        resourcePacks.forEach(this::register);
     }
 
     @Override

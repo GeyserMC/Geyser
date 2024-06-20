@@ -70,7 +70,7 @@ import java.util.OptionalInt;
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
-    private final Deque<String> packsToSent = new ArrayDeque<>();
+    private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
@@ -227,8 +227,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name()));
             }
             case SEND_PACKS -> {
-                packsToSent.addAll(packet.getPackIds());
-                sendPackDataInfo(packsToSent.pop());
+                packsToSend.addAll(packet.getPackIds());
+                sendPackDataInfo(packsToSend.pop());
             }
             case HAVE_ALL_PACKS -> {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
@@ -329,8 +329,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(data);
 
         // Check if it is the last chunk and send next pack in queue when available.
-        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSent.isEmpty()) {
-            sendPackDataInfo(packsToSent.pop());
+        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
+            sendPackDataInfo(packsToSend.pop());
         }
 
         return PacketSignal.HANDLED;

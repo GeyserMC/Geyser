@@ -58,9 +58,8 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      * Registers a collection of {@link ResourcePack} to be sent to clients.
      *
      * @param resourcePacks collection of resourcePack's that will be sent to clients.
-     * @return true if resource packs were added successfully, false if at least one failed
      */
-    public abstract boolean registerAll(@NonNull Collection<ResourcePack> resourcePacks);
+    public abstract void registerAll(@NonNull Collection<ResourcePack> resourcePacks);
 
 
     /**
