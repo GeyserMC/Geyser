@@ -214,7 +214,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
         if (packet.getPackIds().size() > this.resourcePackLoadEvent.getPacks().size()) {
-            session.disconnect("Packet " + packet.getClass().getName() + " PackIds max count");
+            session.disconnect("Packet " + packet.getClass().getSimpleName() + " PackIds max count");
             return PacketSignal.HANDLED;
         }
         switch (packet.getStatus()) {
