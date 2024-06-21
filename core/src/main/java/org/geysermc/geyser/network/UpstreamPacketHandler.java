@@ -36,20 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackClientResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackDataInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.geyser.Constants;
@@ -73,15 +60,12 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.OptionalInt;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
-    private final Deque<String> packsToSent = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
@@ -226,6 +210,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
+        if (this.handleLimit(packet)) {
+            return PacketSignal.HANDLED;
+        }
+        if (packet.getPackIds().size() > this.resourcePackLoadEvent.getPacks().size()) {
+            session.disconnect("Packet " + packet.getClass().getName() + " PackIds max count");
+            return PacketSignal.HANDLED;
+        }
         switch (packet.getStatus()) {
             case COMPLETED:
                 if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
@@ -238,8 +229,24 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case SEND_PACKS:
-                packsToSent.addAll(packet.getPackIds());
-                sendPackDataInfo(packsToSent.pop());
+                int chunkIndex = 1;
+                for (String id : packet.getPackIds()) {
+
+                    String[] packID = id.split("_", 2);
+                    if (packID.length != 2) {
+                        session.disconnect("Invalid packID id: " + id);
+                        break;
+                    }
+                    ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
+                    if (pack == null) {
+                        session.disconnect("Invalid request unknown pack " + packID[0] + ", available packs: " + this.resourcePackLoadEvent.getPacks().keySet());
+                        break;
+                    }
+
+                    sendPackDataInfo(id);
+                    chunkIndex += (int) ((this.resourcePackLoadEvent.getPacks().get(packID[0]).codec().size() + GeyserResourcePack.CHUNK_SIZE) / GeyserResourcePack.CHUNK_SIZE);
+                }
+                cooldownHandler.setPacketCooldown(ResourcePackChunkRequestPacket.class, -1, chunkIndex);
                 break;
 
             case HAVE_ALL_PACKS:
@@ -317,8 +324,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
+        if (this.handleLimit(packet)) {
+            return PacketSignal.HANDLED;
+        }
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
+        if (pack == null) {
+            session.disconnect("Invalid request for chunk " + packet.getChunkIndex() + " of unknown pack " + packet.getPackId() + ", available packs: " + this.resourcePackLoadEvent.getPacks().keySet());
+            return PacketSignal.HANDLED;
+        }
         PackCodec codec = pack.codec();
 
         data.setChunkIndex(packet.getChunkIndex());
@@ -327,6 +341,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setPackId(packet.getPackId());
 
         int offset = packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE;
+        if (offset < 0 || offset >= codec.size()) {
+            session.disconnect("Invalid out-of-bounds request for chunk " + packet.getChunkIndex() + " of " + packet.getPackId() + " offset " + offset + ", file size " + codec.size());
+            return PacketSignal.HANDLED;
+        }
         long remainingSize = codec.size() - offset;
         byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, GeyserResourcePack.CHUNK_SIZE)];
 
@@ -340,11 +358,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setData(Unpooled.wrappedBuffer(packData));
 
         session.sendUpstreamPacket(data);
-
-        // Check if it is the last chunk and send next pack in queue when available.
-        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSent.isEmpty()) {
-            sendPackDataInfo(packsToSent.pop());
-        }
 
         return PacketSignal.HANDLED;
     }
