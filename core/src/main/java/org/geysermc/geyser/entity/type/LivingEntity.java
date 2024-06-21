@@ -289,6 +289,36 @@ public class LivingEntity extends Entity {
         return super.interact(hand);
     }
 
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public boolean setBoundingBoxHeight(float height) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setHeight(height);
+        }
+
+        return super.setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public void setBoundingBoxWidth(float width) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setWidth(width);
+        }
+
+        super.setBoundingBoxWidth(width);
+    }
+
     /**
      * Checks to see if a nametag interaction would go through.
      */

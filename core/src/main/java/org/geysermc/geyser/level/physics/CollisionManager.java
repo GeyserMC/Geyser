@@ -38,6 +38,7 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -133,6 +134,21 @@ public class CollisionManager {
     }
 
     /**
+     * Gets the bounding box to use for player movement.
+     * <p>
+     * This will return either the bounding box of a {@link ClientVehicle}, or the player's own bounding box.
+     *
+     * @return the bounding box to use for movement calculations
+     */
+    public BoundingBox getActiveBoundingBox() {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            return clientVehicle.getVehicleComponent().getBoundingBox();
+        }
+
+        return playerBoundingBox;
+    }
+
+    /**
      * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
      * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
      *
@@ -153,6 +169,15 @@ public class CollisionManager {
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
+
+        // Don't correct position if controlling a vehicle
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            playerBoundingBox.setMiddleX(position.getX());
+            playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
+            playerBoundingBox.setMiddleZ(position.getZ());
+
+            return playerBoundingBox.getBottomCenter();
+        }
 
         Vector3d startingPos = playerBoundingBox.getBottomCenter();
         Vector3d movement = position.sub(startingPos);

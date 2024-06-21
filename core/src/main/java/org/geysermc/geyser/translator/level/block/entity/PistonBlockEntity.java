@@ -601,14 +601,7 @@ public class PistonBlockEntity {
         movingBlockMap.put(getPistonHeadPos(), this);
 
         Vector3i movement = getMovement();
-
-        BoundingBox playerBoundingBox;
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
-            playerBoundingBox = clientVehicle.getVehicleComponent().getBoundingBox().clone();
-        } else {
-            playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
-        }
-
+        BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
         if (orientation == Direction.UP) {
             // Extend the bounding box down, to catch collisions when the player is falling down
             playerBoundingBox.extend(0, -256, 0);
@@ -653,14 +646,8 @@ public class PistonBlockEntity {
         }
         placedFinalBlocks = true;
 
-        BoundingBox playerBoundingBox;
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
-            playerBoundingBox = clientVehicle.getVehicleComponent().getBoundingBox().clone();
-        } else {
-            playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
-        }
-
         Vector3i movement = getMovement();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
         attachedBlocks.forEach((blockPos, state) -> {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
