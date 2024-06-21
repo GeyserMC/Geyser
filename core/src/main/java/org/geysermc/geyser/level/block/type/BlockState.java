@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level.block.type;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -63,14 +64,6 @@ public final class BlockState {
         }
         //noinspection unchecked
         return (T) get(property);
-    }
-
-    public boolean getValue(Property<Boolean> property, boolean def) {
-        var value = get(property);
-        if (value == null) {
-            return def;
-        }
-        return (Boolean) value;
     }
 
     public <T extends Comparable<T>> T getValue(Property<T> property, T def) {
@@ -192,7 +185,14 @@ public final class BlockState {
         return builder.toString();
     }
 
+    /**
+     * Null-safe method that looks up a Java block state ID in the BLOCK_STATES registry, and defaults to air if not found.
+     *
+     * @param javaId the Java block state ID to look up.
+     * @return the corresponding block state, or air if the given ID wasn't registered and returned null.
+     */
+    @NonNull
     public static BlockState of(int javaId) {
-        return BlockRegistries.BLOCK_STATES.get(javaId);
+        return BlockRegistries.BLOCK_STATES.getOrDefault(javaId, BlockRegistries.BLOCK_STATES.get(Block.JAVA_AIR_ID));
     }
 }

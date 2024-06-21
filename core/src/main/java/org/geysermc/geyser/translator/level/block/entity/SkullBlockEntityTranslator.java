@@ -50,7 +50,6 @@ import java.util.concurrent.ExecutionException;
 
 @BlockEntity(type = BlockEntityType.SKULL)
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         Integer rotation = blockState.getValue(Properties.ROTATION_16);
