@@ -102,7 +102,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     PacketSignal defaultHandler(BedrockPacket packet) {
         if (handleLimit(packet)) {
-            return PacketSignal.UNHANDLED;
+            return PacketSignal.HANDLED;
         }
         return translateAndDefault(packet);
     }
@@ -173,7 +173,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
         if(this.handleLimit(loginPacket)){
-            return PacketSignal.UNHANDLED;
+            return PacketSignal.HANDLED;
         }
         if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
@@ -275,7 +275,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(ModalFormResponsePacket packet) {
         if(this.handleLimit(packet)){
-            return PacketSignal.UNHANDLED;
+            return PacketSignal.HANDLED;
         }
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return PacketSignal.HANDLED;
@@ -351,7 +351,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private void sendPackDataInfo(String id) {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
-        String[] packID = id.split("_");
+        String[] packID = id.split("_", 2);
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
         PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();

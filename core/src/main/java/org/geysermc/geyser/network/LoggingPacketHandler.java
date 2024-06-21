@@ -57,7 +57,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     PacketSignal defaultHandler(BedrockPacket packet) {
         if (handleLimit(packet)) {
-            return PacketSignal.UNHANDLED;
+            return PacketSignal.HANDLED;
         }
         geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return PacketSignal.HANDLED;
