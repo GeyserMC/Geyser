@@ -26,6 +26,14 @@ val moddedPlatforms = setOf(
     projects.mod
 ).map { it.dependencyProject }
 
+val modrinthPlatforms = setOf(
+    projects.bungeecord,
+    projects.fabric,
+    projects.neoforge,
+    projects.spigot,
+    projects.velocity
+).map { it.dependencyProject }
+
 subprojects {
     apply {
         plugin("java-library")
@@ -37,5 +45,11 @@ subprojects {
         in basePlatforms -> plugins.apply("geyser.platform-conventions")
         in moddedPlatforms -> plugins.apply("geyser.modded-conventions")
         else -> plugins.apply("geyser.base-conventions")
+    }
+
+    // Not combined with platform-conventions as that also contains
+    // platforms which we cant publish to modrinth
+    if (modrinthPlatforms.contains(this)) {
+        plugins.apply("geyser.modrinth-uploading-conventions")
     }
 }

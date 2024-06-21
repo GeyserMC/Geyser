@@ -1,6 +1,6 @@
-import net.kyori.blossom.BlossomExtension
-
 plugins {
+    // Allow blossom to mark sources root of templates
+    idea
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
 }
@@ -84,16 +84,20 @@ tasks.processResources {
     }
 }
 
-configure<BlossomExtension> {
-    val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
-    val info = GitInfo()
-
-    replaceToken("\${version}", "${project.version} (${info.gitVersion})", mainFile)
-    replaceToken("\${gitVersion}", info.gitVersion, mainFile)
-    replaceToken("\${buildNumber}", info.buildNumber, mainFile)
-    replaceToken("\${branch}", info.branch, mainFile)
-    replaceToken("\${commit}", info.commit, mainFile)
-    replaceToken("\${repository}", info.repository, mainFile)
+sourceSets {
+    main {
+        blossom {
+            val info = GitInfo()
+            javaSources {
+                property("version", "${project.version} (${info.gitVersion})")
+                property("gitVersion", info.gitVersion)
+                property("buildNumber", info.buildNumber.toString())
+                property("branch", info.branch)
+                property("commit", info.commit)
+                property("repository", info.repository)
+            }
+        }
+    }
 }
 
 fun Project.buildNumber(): Int =
