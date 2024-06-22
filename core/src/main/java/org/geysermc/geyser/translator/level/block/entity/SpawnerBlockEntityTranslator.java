@@ -107,7 +107,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         bedrockNbt.put("isMovable", (byte) 1);
     }
 
-    static void translateSpawnData(@NonNull NbtMapBuilder builder, @Nullable NbtMap spawnData) {
+    private static void translateSpawnData(@NonNull NbtMapBuilder builder, @Nullable NbtMap spawnData) {
         if (spawnData == null) {
             return;
         }
