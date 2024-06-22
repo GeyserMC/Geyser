@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSeri
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.ItemStackRequestSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
 import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
+import org.cloudburstmc.protocol.bedrock.codec.v567.serializer.CommandRequestSerializer_v567;
 import org.cloudburstmc.protocol.bedrock.codec.v630.serializer.SetPlayerInventoryOptionsSerializer_v360;
 import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSerializer_v662;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryLayout;
@@ -129,6 +130,16 @@ class CodecProcessor {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, ItemStackRequestPacket packet) {
             helper.readArray(buffer, packet.getRequests(), helper::readItemStackRequest, 110); // 64 is NOT enough, cloudburst
+        }
+    };
+
+    private static final BedrockPacketSerializer<CommandRequestPacket> COMMAND_REQUEST_SERIALIZER = new CommandRequestSerializer_v567() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, CommandRequestPacket packet) {
+            packet.setCommand(helper.readStringMaxLen(buffer, 513));
+            packet.setCommandOriginData(helper.readCommandOrigin(buffer));
+            packet.setInternal(buffer.readBoolean());
+            packet.setVersion(VarInts.readInt(buffer));
         }
     };
 
@@ -269,9 +280,8 @@ class CodecProcessor {
                 codecBuilder.updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER);
             }
 
-            if (codec.getProtocolVersion() >= 630) { // >= 1.20.50
-                codecBuilder.updateSerializer(SetPlayerInventoryOptionsPacket.class, SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER);
-            }
+            codecBuilder.updateSerializer(CommandRequestPacket.class, COMMAND_REQUEST_SERIALIZER);
+            codecBuilder.updateSerializer(SetPlayerInventoryOptionsPacket.class, SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER);
 
             return codecBuilder.build();
     }
