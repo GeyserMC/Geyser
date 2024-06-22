@@ -76,7 +76,10 @@ public class VersionCommand extends GeyserCommand {
         }
 
         if (GeyserImpl.IS_DEV) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.core.dev_build", sender.locale(), "https://discord.gg/geysermc"));
+            // TODO cloud use language string
+            sender.sendMessage("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s"
+                    .formatted("https://discord.gg/geysermc"));
+            //sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.core.dev_build", sender.locale(), "https://discord.gg/geysermc"));
             return;
         }
 

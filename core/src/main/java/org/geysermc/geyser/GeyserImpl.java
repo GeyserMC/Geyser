@@ -122,8 +122,7 @@ public class GeyserImpl implements GeyserApi {
     public static final String BRANCH = BuildData.BRANCH;
     public static final String COMMIT = BuildData.COMMIT;
     public static final String REPOSITORY = BuildData.REPOSITORY;
-
-    public static final boolean IS_DEV = Boolean.parseBoolean(BuildData.DEV);
+    public static final boolean IS_DEV = BuildData.isDevBuild();
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -210,7 +209,9 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         if (IS_DEV) {
-            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            // TODO cloud use language string
+            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
             logger.info("");
         }
         logger.info("******************************************");
