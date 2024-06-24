@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Range;
  */
 @Getter
 public class Container extends Inventory {
-    private final PlayerInventory playerInventory;
+    protected final PlayerInventory playerInventory;
     private final int containerSize;
 
     /**

@@ -45,7 +45,7 @@ import org.geysermc.geyser.session.GeyserSession;
 public class BiomeTranslator {
 
     public static int loadServerBiome(RegistryEntry entry) {
-        String javaIdentifier = entry.getId();
+        String javaIdentifier = entry.getId().asString();
         return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
     }
 

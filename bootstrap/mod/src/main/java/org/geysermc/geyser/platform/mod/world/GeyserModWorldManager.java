@@ -30,6 +30,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,14 +40,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
@@ -55,6 +59,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
 
@@ -160,6 +165,27 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return future;
     }
 
+    @Override
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+        server.execute(() -> {
+            ServerPlayer player = getPlayer(session);
+            if (player == null) {
+                return;
+            }
+
+            BlockPos blockPos = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
+            // Don't create a new block entity if invalid
+            //noinspection resource - level() is just a getter
+            BlockEntity blockEntity = player.level().getChunkAt(blockPos).getBlockEntity(blockPos);
+            if (blockEntity instanceof DecoratedPotBlockEntity pot) {
+                List<String> sherds = pot.getDecorations().ordered()
+                        .stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
+                        .toList();
+                apply.accept(sherds);
+            }
+        });
+    }
+
     private ServerPlayer getPlayer(GeyserSession session) {
         return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
     }
@@ -173,7 +199,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return patternLayers.layers().stream()
                 .map(layer -> {
                     BannerPatternLayer.BannerPattern pattern = new BannerPatternLayer.BannerPattern(
-                            layer.pattern().value().assetId().toString(), layer.pattern().value().translationKey()
+                            MinecraftKey.key(layer.pattern().value().assetId().toString()), layer.pattern().value().translationKey()
                     );
                     return new BannerPatternLayer(Holder.ofCustom(pattern), layer.color().getId());
                 })

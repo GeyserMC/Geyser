@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
@@ -75,6 +74,11 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
             ingredients.add(getNonNull(mappings, Items.GHAST_TEAR));
             ingredients.add(getNonNull(mappings, Items.TURTLE_HELMET));
             ingredients.add(getNonNull(mappings, Items.PHANTOM_MEMBRANE));
+            // 1.21
+            ingredients.add(getNonNull(mappings, Items.STONE));
+            ingredients.add(getNonNull(mappings, Items.SLIME_BLOCK));
+            ingredients.add(getNonNull(mappings, Items.COBWEB));
+            ingredients.add(getNonNull(mappings, Items.BREEZE_ROD));
 
             List<ItemMapping> inputs = List.of(
                     getNonNull(mappings, Items.POTION),

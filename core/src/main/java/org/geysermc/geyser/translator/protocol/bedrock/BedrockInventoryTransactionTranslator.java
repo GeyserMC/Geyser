@@ -394,8 +394,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
-                        session.sendDownstreamGamePacket(useItemPacket);
+                        session.useItem(Hand.MAIN_HAND);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
@@ -639,8 +638,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
         lookAt(session, target);
 
-        ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
-        session.sendDownstreamGamePacket(itemPacket);
+        session.useItem(Hand.MAIN_HAND);
         return true;
     }
 

@@ -31,7 +31,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -69,8 +70,8 @@ public class EnchantedBookItem extends Item {
     }
 
     @Override
-    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(bedrockTag, components, mapping);
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(session, bedrockTag, components, mapping);
 
         List<NbtMap> enchantmentTag = bedrockTag.getList("ench", NbtType.COMPOUND);
         if (enchantmentTag != null) {
@@ -78,11 +79,16 @@ public class EnchantedBookItem extends Item {
             for (NbtMap bedrockEnchantment : enchantmentTag) {
                 short bedrockId = bedrockEnchantment.getShort("id");
 
-                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId);
+                BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
-                    int level = bedrockEnchantment.getShort("lvl", (short) 1);
-                    // TODO
-                    javaEnchantments.put(Enchantment.JavaEnchantment.valueOf(enchantment.name()).ordinal(), level);
+                    List<Enchantment> enchantments = session.getRegistryCache().enchantments().values();
+                    for (int i = 0; i < enchantments.size(); i++) {
+                        if (enchantments.get(i).bedrockEnchantment() == enchantment) {
+                            int level = bedrockEnchantment.getShort("lvl", (short) 1);
+                            javaEnchantments.put(i, level);
+                            break;
+                        }
+                    }
                 } else {
                     GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
                 }
