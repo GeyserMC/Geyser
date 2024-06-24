@@ -42,6 +42,7 @@ import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
@@ -252,10 +253,12 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      *
      * @param codec the codec of the resource pack that wasn't successfully downloaded by a Bedrock client.
      */
-    public static void testUrlPack(UrlPackCodec codec) {
+    public static void testUrlPack(GeyserSession session, UrlPackCodec codec) {
         if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
             CACHED_FAILED_PACKS.put(codec.url(), codec);
-            GeyserImpl.getInstance().getLogger().warning("A client was not able to download the resource pack at %s. Is it still available? Running check now:");
+            GeyserImpl.getInstance().getLogger().warning("""
+                A Bedrock client (%s, playing on %s / %s) was not able to download the resource pack at %s. Is it still available? Running check now.
+           """.formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), session.getClientData().getDeviceId(), codec.url()));
             downloadPack(codec.url(), true);
         }
     }
