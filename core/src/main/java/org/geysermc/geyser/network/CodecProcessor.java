@@ -38,10 +38,12 @@ import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentS
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.ItemStackRequestSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
+import org.cloudburstmc.protocol.bedrock.codec.v554.serializer.TextSerializer_v554;
 import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
 import org.cloudburstmc.protocol.bedrock.codec.v567.serializer.CommandRequestSerializer_v567;
 import org.cloudburstmc.protocol.bedrock.codec.v630.serializer.SetPlayerInventoryOptionsSerializer_v360;
 import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSerializer_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v685.serializer.TextSerializer_v685;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryLayout;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabLeft;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabRight;
@@ -140,6 +142,47 @@ class CodecProcessor {
             packet.setCommandOriginData(helper.readCommandOrigin(buffer));
             packet.setInternal(buffer.readBoolean());
             packet.setVersion(VarInts.readInt(buffer));
+        }
+    };
+
+    private static final BedrockPacketSerializer<TextPacket> TEXT_SERIALIZER_V554 = new TextSerializer_v554() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, TextPacket packet) {
+            TextPacket.Type type = TextPacket.Type.values()[buffer.readUnsignedByte()];
+            packet.setType(type);
+            packet.setNeedsTranslation(buffer.readBoolean());
+
+            if (type == TextPacket.Type.CHAT) {
+                packet.setSourceName(helper.readString(buffer));
+                //The client does not send more than 512 characters, and we do not need to decode other TextPacket.Type
+                packet.setMessage(helper.readStringMaxLen(buffer, 513));
+            } else {
+                throw new IllegalArgumentException("Unsupported TextType " + type);
+            }
+
+            packet.setXuid(helper.readString(buffer));
+            packet.setPlatformChatId(helper.readString(buffer));
+        }
+    };
+
+    private static final BedrockPacketSerializer<TextPacket> TEXT_SERIALIZER = new TextSerializer_v685() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, TextPacket packet) {
+            TextPacket.Type type = TextPacket.Type.values()[buffer.readUnsignedByte()];
+            packet.setType(type);
+            packet.setNeedsTranslation(buffer.readBoolean());
+
+            if (type == TextPacket.Type.CHAT) {
+                packet.setSourceName(helper.readString(buffer));
+                //The client does not send more than 512 characters, and we do not need to decode other TextPacket.Type
+                packet.setMessage(helper.readStringMaxLen(buffer, 513));
+            } else {
+                throw new IllegalArgumentException("Unsupported TextType " + type);
+            }
+
+            packet.setXuid(helper.readString(buffer));
+            packet.setPlatformChatId(helper.readString(buffer));
+            packet.setFilteredMessage(helper.readString(buffer));
         }
     };
 
@@ -282,6 +325,11 @@ class CodecProcessor {
 
             codecBuilder.updateSerializer(CommandRequestPacket.class, COMMAND_REQUEST_SERIALIZER);
             codecBuilder.updateSerializer(SetPlayerInventoryOptionsPacket.class, SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER);
+        if (codec.getProtocolVersion() >= 685) {
+            codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER);
+        } else {
+            codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER_V554);
+        }
 
             return codecBuilder.build();
     }

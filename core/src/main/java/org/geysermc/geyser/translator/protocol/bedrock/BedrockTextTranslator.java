@@ -37,20 +37,7 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
     public void translate(GeyserSession session, TextPacket packet) {
-        if (!(packet.getParameters().isEmpty())) {
-            // I don't know if the client sends something there on 1.1.5, the client doesn't send anything like that
-            // Add yourself for this text if you need it
-            session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.chat.parameters", session.locale(), packet.getParameters().size()));
-            return;
-        }
-
         String message = packet.getMessage();
-        if (message.length() > 512) {
-            // A legitimate player cannot send more than 512 characters
-            // This is necessary so that the conversion to plain text is not clogged
-            session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.too_long", session.locale(), message.length()));
-            return;
-        }
 
         // Java trims all messages, and then checks for the leading slash
         message = MessageTranslator.convertToPlainText(
