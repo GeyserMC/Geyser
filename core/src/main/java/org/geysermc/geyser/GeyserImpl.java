@@ -122,6 +122,7 @@ public class GeyserImpl implements GeyserApi {
     public static final String BRANCH = BuildData.BRANCH;
     public static final String COMMIT = BuildData.COMMIT;
     public static final String REPOSITORY = BuildData.REPOSITORY;
+    public static final boolean IS_DEV = BuildData.isDevBuild();
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -207,6 +208,12 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
+        if (IS_DEV) {
+            // TODO cloud use language string
+            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
+            logger.info("");
+        }
         logger.info("******************************************");
 
         /* Initialize registries */
@@ -684,6 +691,7 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
         //noinspection ConstantConditions,MismatchedStringCase - changes in production
