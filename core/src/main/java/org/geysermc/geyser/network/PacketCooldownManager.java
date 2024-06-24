@@ -24,9 +24,9 @@ public class PacketCooldownManager {
         setPacketCooldown(LoginPacket.class, -1, 2);
         setPacketCooldown(ResourcePackClientResponsePacket.class, -1, 4);
         setPacketCooldown(ResourcePackChunkRequestPacket.class, -1, 0);
-        setPacketCooldown(TextPacket.class, 1000, 10);
-        setPacketCooldown(CommandRequestPacket.class, 1000, 10);
-        setPacketCooldown(ModalFormResponsePacket.class, 1000, 10);
+        setPacketCooldown(TextPacket.class, 1000, 50);
+        setPacketCooldown(CommandRequestPacket.class, 1000, 50);
+        setPacketCooldown(ModalFormResponsePacket.class, 1000, 50);
     }
 
     public void setPacketCooldown(Class<? extends BedrockPacket> packetClass, int cooldownMillis, int maxCount) {
@@ -51,14 +51,17 @@ public class PacketCooldownManager {
     private void updateCooldown(BedrockPacket packet) {
         String packetName = packet.getClass().getSimpleName();
         CooldownSettings settings = packetCooldownSettings.get(packetName);
-        activeCooldowns.computeIfAbsent(packetName, k -> new CooldownTracker());
-        CooldownTracker tracker = activeCooldowns.get(packetName);
+        CooldownTracker tracker = activeCooldowns.computeIfAbsent(packetName, k -> {
+            CooldownTracker newTracker = new CooldownTracker();
+            long cooldownMillis = settings.cooldownMillis();
+            if (cooldownMillis == -1) {
+                newTracker.setExpiryTime(-1);
+            } else {
+                newTracker.setExpiryTime(System.currentTimeMillis() + cooldownMillis);
+            }
+            return newTracker;
+        });
         tracker.incrementCount();
-        if (settings.cooldownMillis() == -1) {
-            tracker.setExpiryTime(settings.cooldownMillis());
-        } else {
-            tracker.setExpiryTime(System.currentTimeMillis() + settings.cooldownMillis());
-        }
     }
 
     public boolean handle(BedrockPacket packet) {
