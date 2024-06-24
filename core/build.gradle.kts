@@ -75,7 +75,7 @@ tasks.processResources {
         expand(
             "branch" to info.branch,
             "buildNumber" to info.buildNumber,
-            "projectVersion" to project.version,
+            "projectVersion" to info.version,
             "commit" to info.commit,
             "commitAbbrev" to info.commitAbbrev,
             "commitMessage" to info.commitMessage,
@@ -89,19 +89,24 @@ sourceSets {
         blossom {
             val info = GitInfo()
             javaSources {
-                property("version", "${project.version} (${info.gitVersion})")
+                property("version", "${info.version} (${info.gitVersion})")
                 property("gitVersion", info.gitVersion)
                 property("buildNumber", info.buildNumber.toString())
                 property("branch", info.branch)
                 property("commit", info.commit)
                 property("repository", info.repository)
+                property("devVersion", info.isDev.toString())
             }
         }
     }
 }
 
-fun Project.buildNumber(): Int =
+fun buildNumber(): Int =
     (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
+
+fun isDevBuild(branch: String, repository: String): Boolean {
+    return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
+}
 
 inner class GitInfo {
     val branch: String
@@ -115,22 +120,25 @@ inner class GitInfo {
     val commitMessage: String
     val repository: String
 
+    val isDev: Boolean
+
     init {
-        // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
-        // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
+        branch = indraGit.branchName() ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
         commitAbbrev = commit?.name?.substring(0, 7) ?: "0".repeat(7)
 
         gitVersion = "git-${branch}-${commitAbbrev}"
-        version = "${project.version} ($gitVersion)"
-        buildNumber = buildNumber()
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
+
+        buildNumber = buildNumber()
+        isDev = isDevBuild(branch, repository)
+        val projectVersion = if (isDev) project.version else project.version.toString().replace("SNAPSHOT", "b${buildNumber}")
+        version = "$projectVersion ($gitVersion)"
     }
 }
 

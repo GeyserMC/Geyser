@@ -34,4 +34,9 @@ public class BuildData {
     public static final String BRANCH = "{{ branch }}";
     public static final String COMMIT = "{{ commit }}";
     public static final String REPOSITORY = "{{ repository }}";
+    private static final String DEV = "{{ devVersion }}";
+
+    public static boolean isDevBuild() {
+        return Boolean.parseBoolean(DEV);
+    }
 }
