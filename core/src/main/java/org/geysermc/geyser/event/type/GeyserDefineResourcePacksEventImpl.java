@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Getter
 public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
 
-    @Getter
     private final Map<String, ResourcePack> packs;
 
     public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap) {

@@ -47,6 +47,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -55,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -126,10 +128,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             }
         }
 
-        // Load CDN entries
         packMap.putAll(loadRemotePacks());
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
-
+        GeyserImpl.getInstance().eventBus().fire(defineEvent);
         return defineEvent.getPacks();
     }
 
@@ -234,7 +235,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 GeyserUrlPackCodec codec = new GeyserUrlPackCodec(url);
                 ResourcePack pack = codec.create();
                 packMap.put(pack.manifest().header().uuid().toString(), pack);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
                 instance.getLogger().error(e.getMessage());
                 if (instance.getLogger().isDebug()) {
@@ -242,6 +243,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 }
             }
         }
+
+        // After loading the new resource packs: let's clean up the old
+        cleanupRemotePacks();
 
         return packMap;
     }
@@ -253,19 +257,76 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      *
      * @param codec the codec of the resource pack that wasn't successfully downloaded by a Bedrock client.
      */
-    public static void testUrlPack(GeyserSession session, UrlPackCodec codec) {
+    public static void testRemotePack(GeyserSession session, UrlPackCodec codec, String packId, String packVersion) {
         if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
-            CACHED_FAILED_PACKS.put(codec.url(), codec);
-            GeyserImpl.getInstance().getLogger().warning("""
-                A Bedrock client (%s, playing on %s / %s) was not able to download the resource pack at %s. Is it still available? Running check now.
-           """.formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), session.getClientData().getDeviceId(), codec.url()));
-            downloadPack(codec.url(), true);
+            String url = codec.url();
+            CACHED_FAILED_PACKS.put(url, codec);
+            GeyserImpl.getInstance().getLogger().warning(
+                "A Bedrock client (%s, playing on %s / %s) was not able to download the resource pack at %s. Checking for changes now:"
+                    .formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), session.getClientData().getDeviceId(), codec.url())
+            );
+
+            downloadPack(codec.url(), true).whenComplete((pathPackCodec, e) -> {
+                if (e != null) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
+                    if (GeyserImpl.getInstance().getLogger().isDebug()) {
+                        e.printStackTrace();
+                        if (pathPackCodec != null) {
+                            deleteFile(pathPackCodec.path());
+                        }
+                        return;
+                    }
+                }
+
+                if (pathPackCodec == null) {
+                    return; // Already warned about
+                }
+
+                ResourcePack newPack = ResourcePackLoader.readPack(pathPackCodec.path());
+                UUID newUUID = newPack.manifest().header().uuid();
+                if (newUUID.toString().equals(packId)) {
+                    GeyserImpl.getInstance().getLogger().info("Detected a new resource pack version (%s, old version %s) for pack at %s!"
+                            .formatted(packVersion, newPack.manifest().header().version().toString(), url));
+                } else {
+                    GeyserImpl.getInstance().getLogger().info("Detected a new resource pack at the url %s!".formatted(url));
+                }
+
+                // This should be safe to do as we're not directly using registries to read packs.
+                // Instead, they're cached per-session in the SessionLoadResourcePacks event
+                Registries.RESOURCE_PACKS.get().remove(packId);
+                Registries.RESOURCE_PACKS.get().put(newUUID.toString(), newPack);
+
+                if (codec instanceof GeyserUrlPackCodec geyserUrlPackCodec && geyserUrlPackCodec.getFallback() != null) {
+                    // Other implementations could, in theory, not have a fallback
+                    Path path = geyserUrlPackCodec.getFallback().path();
+                    try {
+                        GeyserImpl.getInstance().getScheduledThread().schedule(() -> {
+                            deleteFile(path);
+                            CACHED_FAILED_PACKS.invalidate(packId);
+                        }, 5, TimeUnit.MINUTES);
+                    } catch (RejectedExecutionException exception) {
+                        // No scheduling here, probably because we're shutting down?
+                        deleteFile(path);
+                    }
+                }
+            });
+        }
+    }
+
+    private static void deleteFile(Path path) {
+        if (path.toFile().exists()) {
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Unable to delete old pack! " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     public static CompletableFuture<@Nullable PathPackCodec> downloadPack(String url, boolean testing) throws IllegalArgumentException {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = WebUtils.checkUrlAndDownloadRemotePack(url, testing);
+            Path path = WebUtils.downloadRemotePack(url, testing);
 
             // Already warned about these above
             if (path == null) {
@@ -274,7 +335,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
             // Check if the pack is a .zip or .mcpack file
             if (!PACK_MATCHER.matches(path)) {
-                throw new IllegalArgumentException("Invalid pack format! Not a .zip or .mcpack file.");
+                throw new IllegalArgumentException("Invalid pack format from url %s! Not a .zip or .mcpack file.".formatted(url));
             }
 
             try {
@@ -286,7 +347,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                     // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
                     // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
                     if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
-                        if (testing) {
+                        if (GeyserImpl.getInstance().getLogger().isDebug()) {
                             GeyserImpl.getInstance().getLogger().info("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
                                     "This may not work for remote packs, and could cause Bedrock clients to fall back to request the pack from the server. " +
                                     "Please put the pack file in a subfolder, and provide that zip in the URL.");
@@ -297,39 +358,34 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
             }
 
-            if (testing) {
-                try {
-                    Files.delete(path);
-                    return null;
-                } catch (IOException e) {
-                    throw new IllegalStateException("Could not delete debug pack! " + e.getMessage(), e);
-                }
-            }
-
             return new GeyserPathPackCodec(path);
         });
     }
 
     public static void clear() {
         Registries.RESOURCE_PACKS.get().clear();
+        CACHED_FAILED_PACKS.invalidateAll();
 
-        // Now: let's clean up broken remote packs, so we don't cache them
-        Path location = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
-        for (UrlPackCodec codec : CACHED_FAILED_PACKS.asMap().values()) {
-            int hash = codec.url().hashCode();
-            Path packLocation = location.resolve(hash + ".zip");
-            Path packMetadata = packLocation.resolveSibling(hash + ".metadata");
+    }
 
-            try {
-                if (packMetadata.toFile().exists()) {
-                    Files.delete(packMetadata);
-                }
-                if (packLocation.toFile().exists()) {
-                    Files.delete(packLocation);
-                }
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not delete broken cached resource packs! " + e);
+    public static void cleanupRemotePacks() {
+        File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").toFile();
+        if (!cacheFolder.exists()) {
+            return;
+        }
+
+        int count = 0;
+        final long expireTime = (((long) 1000 * 60 * 60)); // one hour
+        for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
+            if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
+                //noinspection ResultOfMethodCallIgnored
+                imageFile.delete();
+                count++;
             }
+        }
+
+        if (count > 0) {
+            GeyserImpl.getInstance().getLogger().debug(String.format("Removed %d cached resource pack files as they are no longer in use!", count));
         }
     }
 }
