@@ -309,6 +309,15 @@ public class SkinManager {
                 return null;
             }
 
+            if (DEFAULT_FLOODGATE_STEVE.equals(skinUrl)) {
+                // https://github.com/GeyserMC/Floodgate/commit/00b8b1b6364116ff4bc9b00e2015ce35bae8abb1 ensures that
+                // Bedrock players on online-mode servers will always have a textures property. However, this skin is
+                // also sent our way, and isn't overwritten. It's very likely that this skin is *only* a placeholder,
+                // and no one should ever be using it outside of Floodgate, and therefore no one wants to see this
+                // specific Steve skin.
+                return null;
+            }
+
             boolean isAlex = skinTexture.has("metadata");
 
             String capeUrl = null;
@@ -322,5 +331,7 @@ public class SkinManager {
 
             return new GameProfileData(skinUrl, capeUrl, isAlex);
         }
+
+        private static final String DEFAULT_FLOODGATE_STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";
     }
 }

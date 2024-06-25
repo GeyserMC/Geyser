@@ -996,7 +996,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             @Override
             public void disconnected(DisconnectedEvent event) {
                 loggingIn = false;
-                loggedIn = false;
 
                 String disconnectMessage;
                 Throwable cause = event.getCause();
@@ -1036,13 +1035,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     } else {
                         GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
                     }
-                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
-                    // This only needs to be "initiated" here when there is an exception, hence the cause clause
-                    GeyserSession.this.disconnect(disconnectMessage);
                     if (geyser.getConfig().isDebugMode()) {
                         cause.printStackTrace();
                     }
                 }
+                if ((!GeyserSession.this.closed && GeyserSession.this.loggedIn) || cause != null) {
+                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
+                    // This needs to be "initiated" here when there is an exception, but also when the Netty connection
+                    // is closed without a disconnect packet - in this case, closed will still be false, but loggedIn
+                    // will also be true as GeyserSession#disconnect will not have been called.
+                    GeyserSession.this.disconnect(disconnectMessage);
+                }
+
+                loggedIn = false;
             }
 
             @Override
