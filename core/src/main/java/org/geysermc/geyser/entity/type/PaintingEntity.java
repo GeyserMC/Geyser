@@ -86,7 +86,11 @@ public class PaintingEntity extends Entity {
 
     private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
-        position = position.add(0.5, 0.5, 0.5);
+        // ViaVersion already adds the offset for us on older versions,
+        // so no need to do it then otherwise it will be spaced
+        if (session.isEmulatePost1_18Logic()) {
+            position = position.add(0.5, 0.5, 0.5);
+        }
         double widthOffset = paintingName.getWidth() > 1 && paintingName.getWidth() != 3 ? 0.5 : 0;
         double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
