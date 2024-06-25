@@ -150,7 +150,7 @@ public class WebUtils {
 
                     if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) &&
                             cachedLastModified == con.getLastModified() && downloadLocation.toFile().exists()) {
-                        logger.info("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
+                        logger.debug("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
                         downloadLocation.toFile().setLastModified(System.currentTimeMillis());
                         packMetadata.toFile().setLastModified(System.currentTimeMillis());
                         return downloadLocation;
