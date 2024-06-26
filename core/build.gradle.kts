@@ -61,6 +61,7 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.gson.runtime)
 
     // Annotation Processors
     compileOnly(projects.ap)
