@@ -20,6 +20,7 @@ public class PacketCooldownManager {
         setPacketCooldown(LoginPacket.class, -1, 2);
         setPacketCooldown(ResourcePackClientResponsePacket.class, -1, 4);
         setPacketCooldown(ResourcePackChunkRequestPacket.class, -1, 0);
+        setPacketCooldown(RequestNetworkSettingsPacket.class, -1, 2);
         setPacketCooldown(TextPacket.class, 1000, 50);
         setPacketCooldown(CommandRequestPacket.class, 1000, 50);
         setPacketCooldown(ModalFormResponsePacket.class, 1000, 50);

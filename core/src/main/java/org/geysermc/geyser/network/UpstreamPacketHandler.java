@@ -135,6 +135,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
+        this.cooldownHandler.handle(packet);
         if (!setCorrectCodec(packet.getProtocolVersion())) {
             return PacketSignal.HANDLED;
         }
