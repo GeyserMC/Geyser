@@ -25,6 +25,8 @@ dependencies {
     compileOnly(libs.paper.mojangapi)
 
     compileOnlyApi(libs.viaversion)
+
+    implementation(libs.gson.record.factory) // For 1.16.5/1.17.1
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -36,6 +38,7 @@ platformRelocate("me.lucko.commodore")
 platformRelocate("org.yaml") // Broken as of 1.20
 platformRelocate("org.spongepowered")
 platformRelocate("io.leangen.geantyref")
+platformRelocate("marcono1234.gson")
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)

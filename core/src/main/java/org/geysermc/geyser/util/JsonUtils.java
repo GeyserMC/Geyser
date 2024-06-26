@@ -25,9 +25,13 @@
 
 package org.geysermc.geyser.util;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.pack.GeyserResourcePackManifest;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -46,6 +50,21 @@ public final class JsonUtils {
 
     public static <T> T fromJson(InputStream stream, Type type) {
         return GeyserImpl.GSON.fromJson(new InputStreamReader(stream), type);
+    }
+
+    public static Gson createGson() {
+        GsonBuilder builder = new GsonBuilder().setPrettyPrinting();
+        try {
+            new Gson().fromJson("{\"version\":[1,0,0],\"uuid\":\"eebb4ea8-a701-11eb-95ba-047d7bb283ba\"}", GeyserResourcePackManifest.Dependency.class);
+        } catch (Throwable e) {
+            // 1.16.5 and 1.17.1 (at minimum) have an outdated Gson version that doesn't support records.
+            // Remove this workaround when all platforms support Gson 2.10+
+            // (Explicitly allow missing component values - the dependencies module for resource packs, for example, can be missing)
+            builder.registerTypeAdapterFactory(RecordTypeAdapterFactory.builder().allowMissingComponentValues().create())
+                // Since this is a record, the above will take precedence unless we explicitly declare it.
+                .registerTypeAdapter(GeyserResourcePackManifest.Version.class, new GeyserResourcePackManifest.Version.VersionDeserializer());
+        }
+        return builder.create();
     }
 
     private JsonUtils() {

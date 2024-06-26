@@ -30,6 +30,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
@@ -46,6 +47,7 @@ public record GeyserResourcePackManifest(@SerializedName("format_version") int f
 
     public record Dependency(UUID uuid, Version version) implements ResourcePackManifest.Dependency { }
 
+    @JsonAdapter(value = Version.VersionDeserializer.class)
     public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {
 
         @Override

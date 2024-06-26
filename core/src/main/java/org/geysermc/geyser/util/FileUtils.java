@@ -30,11 +30,15 @@ import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.gson.Gson;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -65,12 +69,8 @@ public class FileUtils {
     }
 
     public static <T> T loadJson(InputStream src, Class<T> valueType) {
-        return loadJson(GeyserImpl.GSON, src, valueType);
-    }
-
-    public static <T> T loadJson(Gson gson, InputStream src, Class<T> valueType) {
         // Read specifically with UTF-8 to allow any non-UTF-encoded JSON to read
-        return gson.fromJson(new InputStreamReader(src, StandardCharsets.UTF_8), valueType);
+        return GeyserImpl.GSON.fromJson(new InputStreamReader(src, StandardCharsets.UTF_8), valueType);
     }
 
     /**

@@ -20,6 +20,10 @@ dependencies {
     implementation(libs.configurate.yaml)
     api(libs.guava)
 
+    compileOnly(libs.gson.record.factory) {
+        isTransitive = false
+    }
+
     // Fastutil Maps
     implementation(libs.bundles.fastutil)
 
@@ -61,7 +65,7 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
-    testImplementation(libs.gson.runtime)
+    testImplementation(libs.gson.runtime) // Record support
 
     // Annotation Processors
     compileOnly(projects.ap)
