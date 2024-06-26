@@ -25,14 +25,16 @@
 
 package org.geysermc.geyser.pack;
 
-import com.google.gson.TypeAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -51,17 +53,11 @@ public record GeyserResourcePackManifest(@SerializedName("format_version") int f
             return major + "." + minor + "." + patch;
         }
 
-        public static class VersionDeserializer extends TypeAdapter<Version> {
+        public static class VersionDeserializer implements JsonDeserializer<Version> {
             @Override
-            public void write(JsonWriter jsonWriter, Version version) throws IOException {
-            }
-
-            @Override
-            public Version read(JsonReader jsonReader) throws IOException {
-                jsonReader.beginArray();
-                Version version = new Version(jsonReader.nextInt(), jsonReader.nextInt(), jsonReader.nextInt());
-                jsonReader.endArray();
-                return version;
+            public Version deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                JsonArray array = json.getAsJsonArray();
+                return new Version(array.get(0).getAsInt(), array.get(1).getAsInt(), array.get(2).getAsInt());
             }
         }
     }
