@@ -24,6 +24,13 @@ public class PacketCooldownManager {
         setPacketCooldown(TextPacket.class, 1000, 50);
         setPacketCooldown(CommandRequestPacket.class, 1000, 50);
         setPacketCooldown(ModalFormResponsePacket.class, 1000, 50);
+        setPacketCooldown(BlockEntityDataPacket.class, 1000, 40);
+        setPacketCooldown(SetLocalPlayerAsInitializedPacket.class, 1000, 40);
+        setPacketCooldown(BlockPickRequestPacket.class, 1000, 40);
+        setPacketCooldown(EntityPickRequestPacket.class, 1000, 40);
+        setPacketCooldown(BookEditPacket.class, 1000, 40);
+        setPacketCooldown(FilterTextPacket.class, 1000, 40);
+        setPacketCooldown(LecternUpdatePacket.class, 1000, 10);
     }
 
     public void setPacketCooldown(Class<? extends BedrockPacket> packetClass, int cooldownMillis, int maxCount) {

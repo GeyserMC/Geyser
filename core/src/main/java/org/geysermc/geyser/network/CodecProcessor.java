@@ -36,7 +36,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSeri
 import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
-import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.ItemStackRequestSerializer_v407;
+import org.cloudburstmc.protocol.bedrock.codec.v422.serializer.FilterTextSerializer_v422;
 import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
 import org.cloudburstmc.protocol.bedrock.codec.v554.serializer.TextSerializer_v554;
 import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
@@ -121,6 +121,14 @@ class CodecProcessor {
 
             int craftingLayoutIndex = VarInts.readInt(buffer);
             packet.setCraftingLayout(craftingLayoutIndex >= 0 && craftingLayoutIndex < InventoryLayout.VALUES.length ? InventoryLayout.VALUES[craftingLayoutIndex] : InventoryLayout.NONE);
+        }
+    };
+
+    private static final BedrockPacketSerializer<FilterTextPacket> FILTER_TEXT = new FilterTextSerializer_v422() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, FilterTextPacket packet) {
+            packet.setText(helper.readStringMaxLen(buffer, 512));
+            packet.setFromServer(buffer.readBoolean());
         }
     };
 
@@ -309,7 +317,7 @@ class CodecProcessor {
                 // Ignored bidirectional packets
                 codecBuilder.updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER);
             }
-
+            codecBuilder.updateSerializer(FilterTextPacket.class, FILTER_TEXT);
             codecBuilder.updateSerializer(CommandRequestPacket.class, COMMAND_REQUEST_SERIALIZER);
             codecBuilder.updateSerializer(SetPlayerInventoryOptionsPacket.class, SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER);
         if (codec.getProtocolVersion() >= 685) {
