@@ -44,7 +44,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     LoggingPacketHandler(GeyserImpl geyser, GeyserSession session) {
         this.geyser = geyser;
         this.session = session;
-        this.cooldownHandler = new PacketCooldownManager(session, 1000);
+        this.cooldownHandler = new PacketCooldownManager(session);
     }
 
     public boolean handleLimit(BedrockPacket packet) {

@@ -1,25 +1,21 @@
 package org.geysermc.geyser.network;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class PacketCooldownManager {
-    private final Map<String, CooldownSettings> packetCooldownSettings = new HashMap<>();
 
     private final GeyserSession session;
-    @Setter
-    private long cooldownMillisDebug;
-    private long expiryTimeMillisDebug;
+    private final Map<String, CooldownSettings> packetCooldownSettings = new Object2ObjectOpenHashMap<>();
+    private final Map<String, CooldownTracker> activeCooldowns = new Object2ObjectOpenHashMap<>();
 
-    public PacketCooldownManager(GeyserSession session, long cooldownMillisDebug) {
+    public PacketCooldownManager(GeyserSession session) {
         this.session = session;
-        this.setCooldownMillisDebug(cooldownMillisDebug);
-        this.expiryTimeMillisDebug = 0;
 
         setPacketCooldown(LoginPacket.class, -1, 2);
         setPacketCooldown(ResourcePackClientResponsePacket.class, -1, 4);
@@ -33,24 +29,11 @@ public class PacketCooldownManager {
         packetCooldownSettings.put(packetClass.getSimpleName(), new CooldownSettings(cooldownMillis, maxCount));
     }
 
-    private final Map<String, CooldownTracker> activeCooldowns = new HashMap<>();
-
-    private boolean isCooldownActive(BedrockPacket packet) {
-        String packetName = packet.getClass().getSimpleName();
-        CooldownTracker tracker = activeCooldowns.get(packetName);
-        if (tracker != null && tracker.getCount() >= packetCooldownSettings.get(packetName).maxCount()) {
-            if (tracker.getExpiryTime() != -1 && tracker.getExpiryTime() <= System.currentTimeMillis()) {
-                activeCooldowns.remove(packetName);
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void updateCooldown(BedrockPacket packet) {
+    private boolean isCooldown(BedrockPacket packet) {
         String packetName = packet.getClass().getSimpleName();
         CooldownSettings settings = packetCooldownSettings.get(packetName);
+        if (settings == null) return false;
+
         CooldownTracker tracker = activeCooldowns.computeIfAbsent(packetName, k -> {
             CooldownTracker newTracker = new CooldownTracker();
             long cooldownMillis = settings.cooldownMillis();
@@ -62,26 +45,27 @@ public class PacketCooldownManager {
             return newTracker;
         });
         tracker.incrementCount();
+
+        if (tracker.getExpiryTime() != -1 && tracker.getExpiryTime() <= System.currentTimeMillis()) {
+            activeCooldowns.remove(packetName);
+            return false;
+        }
+
+        return tracker.getCount() >= settings.maxCount();
     }
 
-    public boolean handle(BedrockPacket packet) {
+    public void handle(BedrockPacket packet) {
         String packetName = packet.getClass().getSimpleName();
-        if (packetCooldownSettings.containsKey(packetName)) {
-            updateCooldown(packet);
-            if (isCooldownActive(packet)) {
-                if (expiryTimeMillisDebug <= System.currentTimeMillis()) {
-                    CooldownTracker tracker = activeCooldowns.get(packetName);
-                    String message = session.getSocketAddress().getAddress().toString() + " -> Attempted to send too many packets " + packet.getClass().getSimpleName() + " count " + tracker.getCount();
-                    if (session.isLoggedIn()) {
-                        message += " by user " + session.bedrockUsername();
-                    }
-                    session.getGeyser().getLogger().debug(message);
-                }
-                this.expiryTimeMillisDebug = System.currentTimeMillis() + cooldownMillisDebug;
-                return false;
+        if (!isCooldown(packet)) return;
+        if (session.getGeyser().getConfig().isDebugMode()) {
+            CooldownTracker tracker = activeCooldowns.get(packetName);
+            String message = session.getSocketAddress().getAddress().toString() + " -> Attempted to send too many packets " + packetName + " count " + tracker.getCount();
+            if (session.isLoggedIn()) {
+                message += " by user " + session.bedrockUsername();
             }
+            session.getGeyser().getLogger().debug(message);
         }
-        return true;
+        session.disconnect("many Packets " + packetName);
     }
 
     private record CooldownSettings(int cooldownMillis, int maxCount) {

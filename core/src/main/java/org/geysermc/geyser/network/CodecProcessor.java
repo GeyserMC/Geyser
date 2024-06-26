@@ -105,10 +105,6 @@ class CodecProcessor {
         }
     };
 
-
-    /**
-     * The player can cause a packet error themselves, which hackers can exploit to spam legitimate errors
-     */
     private static final BedrockPacketSerializer<SetPlayerInventoryOptionsPacket> SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER = new SetPlayerInventoryOptionsSerializer_v360() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetPlayerInventoryOptionsPacket packet) {
@@ -125,13 +121,6 @@ class CodecProcessor {
 
             int craftingLayoutIndex = VarInts.readInt(buffer);
             packet.setCraftingLayout(craftingLayoutIndex >= 0 && craftingLayoutIndex < InventoryLayout.VALUES.length ? InventoryLayout.VALUES[craftingLayoutIndex] : InventoryLayout.NONE);
-        }
-    };
-
-    private static final BedrockPacketSerializer<ItemStackRequestPacket> ITEM_STACK_REQUEST_SERIALIZER = new ItemStackRequestSerializer_v407() {
-        @Override
-        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, ItemStackRequestPacket packet) {
-            helper.readArray(buffer, packet.getRequests(), helper::readItemStackRequest, 110); // 64 is NOT enough, cloudburst
         }
     };
 
@@ -313,9 +302,7 @@ class CodecProcessor {
             // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
-            // Small limit
-            .updateSerializer(ItemStackRequestPacket.class, ITEM_STACK_REQUEST_SERIALIZER);
+            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
 
 
             if (codec.getProtocolVersion() < 685) {
