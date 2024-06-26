@@ -25,11 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
-import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
-import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
+import com.google.common.base.Suppliers;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -38,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
 import lombok.ToString;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
@@ -45,22 +42,32 @@ import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
+import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
+    /**
+     * Wait until the registries load before getting all the block names.
+     */
+    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(AttributeType::getIdentifier).toList().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -246,7 +253,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> context.getBlockStates();
+            case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
@@ -258,10 +265,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         };
     }
 
-    private static Object handleResource(CommandBuilderContext context, String resource, boolean tags) {
-        return switch (resource) {
+    private static Object handleResource(CommandBuilderContext context, Key resource, boolean tags) {
+        return switch (resource.asString()) {
             case "minecraft:attribute" -> ATTRIBUTES;
-            case "minecraft:enchantment" -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+            case "minecraft:enchantment" -> context.getEnchantments();
             case "minecraft:entity_type" -> context.getEntityTypes();
             case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
             case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
@@ -286,7 +293,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final GeyserSession session;
         private Object biomesWithTags;
         private Object biomesNoTags;
-        private String[] blockStates;
+        private String[] enchantments;
         private String[] entityTypes;
         private String[] itemNames;
         private CommandEnumData teams;
@@ -313,11 +320,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
         }
 
-        private String[] getBlockStates() {
-            if (blockStates != null) {
-                return blockStates;
+        private String[] getEnchantments() {
+            if (enchantments != null) {
+                return enchantments;
             }
-            return (blockStates = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]));
+            return (enchantments = session.getRegistryCache().enchantments().values().stream()
+                    .map(Enchantment::identifier).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {
@@ -469,12 +477,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          */
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
-                String registryKey = properties.getRegistryKey();
-                int identifierSplit = registryKey.indexOf(':');
-                if (identifierSplit != -1) {
-                    return registryKey.substring(identifierSplit);
-                }
-                return registryKey;
+                Key registryKey = properties.getRegistryKey();
+                return registryKey.value();
             }
             return node.getParser().name();
         }

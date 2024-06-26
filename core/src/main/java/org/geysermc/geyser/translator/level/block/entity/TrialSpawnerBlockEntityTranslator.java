@@ -27,22 +27,31 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
 public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
-
+    // Note that it would appear block entity updates don't include the NBT, but we do need it on chunk load.
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {
             return;
         }
 
-        // trial spawners have "spawn_data" instead of "SpawnData"
-        SpawnerBlockEntityTranslator.translateSpawnData(bedrockNbt, javaNbt.getCompound("spawn_data", null));
-
-        // Because trial spawners don't exist on bedrock yet
-        bedrockNbt.put("id", "MobSpawner");
+        NbtMap entityData = javaNbt.getCompound("spawn_data").getCompound("entity");
+        if (entityData.isEmpty()) {
+            return;
+        }
+        NbtMapBuilder spawnData = NbtMap.builder();
+        EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
+        if (definition != null) {
+            spawnData.putString("TypeId", definition.identifier());
+        }
+        spawnData.putInt("Weight", entityData.getInt("Size", 1)); // ??? presumably since these are the only other two extra attributes
+        bedrockNbt.putCompound("spawn_data", spawnData.build());
     }
 }

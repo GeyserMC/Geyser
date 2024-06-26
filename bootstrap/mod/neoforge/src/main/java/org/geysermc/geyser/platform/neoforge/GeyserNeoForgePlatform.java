@@ -26,19 +26,28 @@
 package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.server.MinecraftServer;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class GeyserNeoForgePlatform implements GeyserModPlatform {
+
+    private final ModContainer container;
+
+    public GeyserNeoForgePlatform(ModContainer container) {
+        this.container = container;
+    }
 
     @Override
     public @NonNull PlatformType platformType() {
@@ -62,11 +71,21 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
 
     @Override
     public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
-        return false; // No Floodgate mod for NeoForge yet
+        if (ModList.get().isLoaded("floodgate")) {
+            Path floodgateDataFolder = FMLPaths.CONFIGDIR.get().resolve("floodgate");
+            bootstrap.getGeyserConfig().loadFloodgate(bootstrap, floodgateDataFolder);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
-        return GeyserBootstrap.class.getClassLoader().getResourceAsStream(resource);
+        try {
+            Path path = container.getModInfo().getOwningFile().getFile().findResource(resource);
+            return Files.newInputStream(path);
+        } catch (IOException e) {
+            return null;
+        }
     }
 }

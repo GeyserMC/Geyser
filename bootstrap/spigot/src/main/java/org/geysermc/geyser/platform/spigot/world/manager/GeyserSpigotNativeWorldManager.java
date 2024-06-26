@@ -34,6 +34,7 @@ import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
@@ -52,7 +53,7 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
-            return BlockStateValues.JAVA_AIR_ID;
+            return Block.JAVA_AIR_ID;
         }
         return adapter.getBlockAt(player.getWorld(), x, y, z);
     }

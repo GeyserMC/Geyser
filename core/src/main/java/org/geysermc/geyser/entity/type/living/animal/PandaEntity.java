@@ -123,7 +123,7 @@ public class PandaEntity extends AnimalEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return false;
     }
 

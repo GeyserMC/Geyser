@@ -28,10 +28,11 @@ package org.geysermc.geyser.translator.inventory.furnace;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.level.block.Blocks;
 
 public class FurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslator {
     public FurnaceInventoryTranslator() {
-        super("minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE);
+        super(Blocks.FURNACE, ContainerType.FURNACE);
     }
 
     @Override

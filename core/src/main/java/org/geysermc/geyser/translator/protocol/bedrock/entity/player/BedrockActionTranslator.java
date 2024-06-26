@@ -38,10 +38,11 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
@@ -159,7 +160,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20;
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -178,9 +179,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 // Account for fire - the client likes to hit the block behind.
                 Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, packet.getFace());
-                int blockUp = session.getGeyser().getWorldManager().getBlockAt(session, fireBlockPos);
-                String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockUp, BlockMapping.DEFAULT).getJavaIdentifier();
-                if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                Block block = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
+                if (block == Blocks.FIRE || block == Blocks.SOUL_FIRE) {
                     ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
                             Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
                     session.sendDownstreamGamePacket(startBreakingPacket);
@@ -197,7 +197,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
                 int breakingBlock = session.getBreakingBlock();
                 if (breakingBlock == -1) {
-                    breakingBlock = BlockStateValues.JAVA_AIR_ID;
+                    breakingBlock = Block.JAVA_AIR_ID;
                 }
 
                 Vector3f vectorFloat = vector.toFloat();
@@ -211,7 +211,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket updateBreak = new LevelEventPacket();
                 updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(vectorFloat);
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(breakingBlock, BlockMapping.DEFAULT)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(breakingBlock).block()) * 20;
 
 
                 // If the block is custom, we must keep track of when it should break ourselves
@@ -330,13 +330,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 break;
             case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK: // Used by client to get book from lecterns and items from item frame in creative mode since 1.20.70
-                if (GameProtocol.isPre1_20_70(session)) {
-                    break;
-                }
+                BlockState state = session.getGeyser().getWorldManager().blockAt(session, vector);
                 
-                int interactedBlock = session.getGeyser().getWorldManager().getBlockAt(session, vector);
-                
-                if (BlockStateValues.getLecternBookStates().getOrDefault(interactedBlock, false)) {
+                if (state.getValue(Properties.HAS_BOOK, false)) {
                     session.setDroppingLecternBook(true);
 
                     ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
@@ -350,16 +346,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     break;
                 }
 
-                if (session.getItemFrameCache().containsKey(vector)) {
-                    Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
-
-                    if (itemFrame != null) {
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
-                                InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                        session.sendDownstreamGamePacket(interactPacket);
-                    }
-                    break;
+                Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                if (itemFrame != null) {
+                    ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
+                            InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+                    session.sendDownstreamGamePacket(interactPacket);
                 }
+                break;
         }
     }
 }

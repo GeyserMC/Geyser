@@ -86,7 +86,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.BEACON, new BeaconInventoryTranslator());
             put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
             put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
-            //put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator()); todo Output slot is currently broken
+            put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator());
             put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
             put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(ContainerType.HOPPER, new HopperInventoryTranslator());

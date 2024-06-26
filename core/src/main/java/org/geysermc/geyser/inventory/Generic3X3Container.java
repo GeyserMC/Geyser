@@ -26,6 +26,8 @@
 package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.Generic3X3InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -44,10 +46,10 @@ public class Generic3X3Container extends Container {
     }
 
     @Override
-    public void setUsingRealBlock(boolean usingRealBlock, String javaBlockId) {
-        super.setUsingRealBlock(usingRealBlock, javaBlockId);
+    public void setUsingRealBlock(boolean usingRealBlock, Block block) {
+        super.setUsingRealBlock(usingRealBlock, block);
         if (usingRealBlock) {
-            isDropper = javaBlockId.startsWith("minecraft:dropper");
+            isDropper = block == Blocks.DROPPER;
         }
     }
 }

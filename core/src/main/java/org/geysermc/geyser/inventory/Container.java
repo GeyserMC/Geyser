@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Range;
  */
 @Getter
 public class Container extends Inventory {
-    private final PlayerInventory playerInventory;
+    protected final PlayerInventory playerInventory;
     private final int containerSize;
 
     /**
@@ -83,9 +84,9 @@ public class Container extends Inventory {
      * Will be overwritten for droppers.
      *
      * @param usingRealBlock whether this container is using a real container or not
-     * @param javaBlockId the Java block string of the block, if real
+     * @param block the Java block, if real
      */
-    public void setUsingRealBlock(boolean usingRealBlock, String javaBlockId) {
+    public void setUsingRealBlock(boolean usingRealBlock, Block block) {
         isUsingRealBlock = usingRealBlock;
     }
 }

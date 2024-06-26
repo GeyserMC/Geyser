@@ -25,55 +25,45 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.Filterable;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.WritableBookContent;
-import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
 
     private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
-    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
     private final MinecraftServer server;
 
     public GeyserModWorldManager(MinecraftServer server) {
@@ -119,94 +109,6 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     @Override
     public boolean hasOwnChunkCache() {
         return SharedConstants.getCurrentVersion().getProtocolVersion() == GameProtocol.getJavaProtocolVersion();
-    }
-
-    @Override
-    public boolean shouldExpectLecternHandled(GeyserSession session) {
-        return true;
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
-        server.execute(() -> {
-            ServerPlayer player = getPlayer(session);
-            if (player == null) {
-                return;
-            }
-
-            //noinspection resource - level() is just a getter
-            LevelChunk chunk = player.level().getChunk(x, z);
-            final int chunkBlockX = x << 4;
-            final int chunkBlockZ = z << 4;
-            //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
-            for (int i = 0; i < blockEntityInfos.size(); i++) {
-                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
-                BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
-                        blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
-                sendLecternData(session, blockEntity, true);
-            }
-        });
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int y, int z) {
-        server.execute(() -> {
-            ServerPlayer player = getPlayer(session);
-            if (player == null) {
-                return;
-            }
-            //noinspection resource - level() is just a getter
-            BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(x, y, z));
-            sendLecternData(session, blockEntity, false);
-        });
-    }
-
-    private void sendLecternData(GeyserSession session, BlockEntity blockEntity, boolean isChunkLoad) {
-        if (!(blockEntity instanceof LecternBlockEntity lectern)) {
-            return;
-        }
-
-        int x = blockEntity.getBlockPos().getX();
-        int y = blockEntity.getBlockPos().getY();
-        int z = blockEntity.getBlockPos().getZ();
-
-        if (!lectern.hasBook()) {
-            if (!isChunkLoad) {
-                BlockEntityUtils.updateBlockEntity(session, LecternUtils.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
-            }
-            return;
-        }
-
-        ItemStack book = lectern.getBook();
-        int pageCount = getPageCount(book);
-        boolean hasBookPages = pageCount > 0;
-        NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
-        lecternTag.putInt("page", lectern.getPage() / 2);
-        NbtMapBuilder bookTag = NbtMap.builder()
-                .putByte("Count", (byte) book.getCount())
-                .putShort("Damage", (short) 0)
-                .putString("Name", "minecraft:writable_book");
-        List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-        if (hasBookPages) {
-            List<String> bookPages = getPages(book);
-            for (String page : bookPages) {
-                NbtMapBuilder pageBuilder = NbtMap.builder()
-                        .putString("photoname", "")
-                        .putString("text", page);
-                pages.add(pageBuilder.build());
-            }
-        } else {
-            // Empty page
-            NbtMapBuilder pageBuilder = NbtMap.builder()
-                    .putString("photoname", "")
-                    .putString("text", "");
-            pages.add(pageBuilder.build());
-        }
-
-        bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
-        lecternTag.putCompound("book", bookTag.build());
-        NbtMap blockEntityTag = lecternTag.build();
-        BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
     }
 
     @Override
@@ -263,41 +165,29 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return future;
     }
 
+    @Override
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+        server.execute(() -> {
+            ServerPlayer player = getPlayer(session);
+            if (player == null) {
+                return;
+            }
+
+            BlockPos blockPos = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
+            // Don't create a new block entity if invalid
+            //noinspection resource - level() is just a getter
+            BlockEntity blockEntity = player.level().getChunkAt(blockPos).getBlockEntity(blockPos);
+            if (blockEntity instanceof DecoratedPotBlockEntity pot) {
+                List<String> sherds = pot.getDecorations().ordered()
+                        .stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
+                        .toList();
+                apply.accept(sherds);
+            }
+        });
+    }
+
     private ServerPlayer getPlayer(GeyserSession session) {
         return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
-    }
-
-    private static int getPageCount(ItemStack itemStack) {
-        WrittenBookContent writtenBookContent = itemStack.get(DataComponents.WRITTEN_BOOK_CONTENT);
-        if (writtenBookContent != null) {
-            return writtenBookContent.pages().size();
-        } else {
-            WritableBookContent writableBookContent = itemStack.get(DataComponents.WRITABLE_BOOK_CONTENT);
-            return writableBookContent != null ? writableBookContent.pages().size() : 0;
-        }
-    }
-
-    private static List<String> getPages(ItemStack itemStack) {
-        WrittenBookContent writtenBookContent = itemStack.get(DataComponents.WRITTEN_BOOK_CONTENT);
-        if (writtenBookContent != null) {
-            return writtenBookContent.pages().stream()
-                    .map(Filterable::raw)
-                    .map(GeyserModWorldManager::fromComponent)
-                    .toList();
-        } else {
-            WritableBookContent writableBookContent = itemStack.get(DataComponents.WRITABLE_BOOK_CONTENT);
-            if (writableBookContent == null) {
-                return List.of();
-            }
-            return writableBookContent.pages().stream()
-                    .map(Filterable::raw)
-                    .toList();
-        }
-    }
-
-    private static String fromComponent(Component component) {
-        String json = Component.Serializer.toJson(component, RegistryAccess.EMPTY);
-        return LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty()));
     }
 
     private static net.kyori.adventure.text.Component toKyoriComponent(Component component) {
@@ -309,7 +199,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return patternLayers.layers().stream()
                 .map(layer -> {
                     BannerPatternLayer.BannerPattern pattern = new BannerPatternLayer.BannerPattern(
-                            layer.pattern().value().assetId().toString(), layer.pattern().value().translationKey()
+                            MinecraftKey.key(layer.pattern().value().assetId().toString()), layer.pattern().value().translationKey()
                     );
                     return new BannerPatternLayer(Holder.ofCustom(pattern), layer.color().getId());
                 })

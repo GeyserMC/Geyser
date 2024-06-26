@@ -37,6 +37,7 @@ import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.AnvilInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
@@ -44,8 +45,8 @@ import java.util.Objects;
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
-                "minecraft:chipped_anvil", "minecraft:damaged_anvil");
+        super(3, Blocks.ANVIL, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
+                Blocks.CHIPPED_ANVIL, Blocks.DAMAGED_ANVIL);
     }
 
     @Override

@@ -42,6 +42,7 @@ import java.util.Map;
 public class StoredItemMappings {
     private final ItemMapping banner;
     private final ItemMapping barrier;
+    private final ItemMapping bow;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
     private final ItemMapping egg;
@@ -57,6 +58,7 @@ public class StoredItemMappings {
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, Items.BARRIER);
+        this.bow = load(itemMappings, Items.BOW);
         this.compass = load(itemMappings, Items.COMPASS);
         this.crossbow = load(itemMappings, Items.CROSSBOW);
         this.egg = load(itemMappings, Items.EGG);

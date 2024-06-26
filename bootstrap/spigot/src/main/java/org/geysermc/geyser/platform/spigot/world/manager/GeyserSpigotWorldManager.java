@@ -25,55 +25,52 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.erosion.bukkit.BukkitLecterns;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
+import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * The base world manager to use when there is no supported NMS revision
  */
 public class GeyserSpigotWorldManager extends WorldManager {
     private final Plugin plugin;
-    private final BukkitLecterns lecterns;
 
     public GeyserSpigotWorldManager(Plugin plugin) {
         this.plugin = plugin;
-        this.lecterns = new BukkitLecterns(plugin);
     }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockStateValues.JAVA_AIR_ID;
+            return org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
         if (!world.isChunkLoaded(x >> 4, z >> 4)) {
             // If the chunk isn't loaded, how could we even be here?
-            return BlockStateValues.JAVA_AIR_ID;
+            return org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID;
         }
 
         return getBlockNetworkId(world.getBlockAt(x, y, z));
@@ -84,76 +81,13 @@ public class GeyserSpigotWorldManager extends WorldManager {
             // Terrible behavior, but this is basically what's always been happening behind the scenes anyway.
             CompletableFuture<String> blockData = new CompletableFuture<>();
             Bukkit.getRegionScheduler().execute(this.plugin, block.getLocation(), () -> blockData.complete(block.getBlockData().getAsString()));
-            return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), BlockStateValues.JAVA_AIR_ID);
+            return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
         }
-        return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
+        return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID); // TODO could just make this a BlockState lookup?
     }
 
     @Override
     public boolean hasOwnChunkCache() {
-        return true;
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int y, int z) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return;
-        }
-
-        Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
-        // Run as a task to prevent async issues
-        SchedulerUtils.runTask(this.plugin, () -> sendLecternData(session, block, false), block);
-    }
-
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return;
-        }
-        if (SchedulerUtils.FOLIA) {
-            Chunk chunk = getChunk(bukkitPlayer.getWorld(), x, z);
-            if (chunk == null) {
-                return;
-            }
-            Bukkit.getRegionScheduler().execute(this.plugin, bukkitPlayer.getWorld(), x, z, () ->
-                sendLecternData(session, chunk, blockEntityInfos));
-        } else {
-            Bukkit.getScheduler().runTask(this.plugin, () -> {
-                Chunk chunk = getChunk(bukkitPlayer.getWorld(), x, z);
-                if (chunk == null) {
-                    return;
-                }
-                sendLecternData(session, chunk, blockEntityInfos);
-            });
-        }
-    }
-
-    private @Nullable Chunk getChunk(World world, int x, int z) {
-        if (!world.isChunkLoaded(x, z)) {
-            return null;
-        }
-        return world.getChunkAt(x, z);
-    }
-
-    private void sendLecternData(GeyserSession session, Chunk chunk, List<BlockEntityInfo> blockEntityInfos) {
-        //noinspection ForLoopReplaceableByForEach - avoid constructing Iterator
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
-            Block block = chunk.getBlock(info.getX(), info.getY(), info.getZ());
-            sendLecternData(session, block, true);
-        }
-    }
-
-    private void sendLecternData(GeyserSession session, Block block, boolean isChunkLoad) {
-        NbtMap blockEntityTag = this.lecterns.getLecternData(block, isChunkLoad);
-        if (blockEntityTag != null) {
-            BlockEntityUtils.updateBlockEntity(session, blockEntityTag, BukkitUtils.getVector(block.getLocation()));
-        }
-    }
-
-    @Override
-    public boolean shouldExpectLecternHandled(GeyserSession session) {
         return true;
     }
 
@@ -205,17 +139,31 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     @Override
     public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<@Nullable DataComponents> future = new CompletableFuture<>();
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
-            future.complete(null);
-            return future;
+            return CompletableFuture.completedFuture(null);
         }
+        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
         Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
         // Paper 1.19.3 complains about async access otherwise.
         // java.lang.IllegalStateException: Tile is null, asynchronous access?
-        SchedulerUtils.runTask(this.plugin, () -> future.complete(/*PickBlockUtils.pickBlock(block)*/ null), block); // TODO fix erosion once clear how to handle this
-        return future;
+        SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
+        return future.thenApply(RAW_TRANSFORMER);
+    }
+
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+        Player bukkitPlayer;
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
+            return;
+        }
+        Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+        SchedulerUtils.runTask(this.plugin, () -> {
+            var state = BukkitUtils.getBlockState(block);
+            if (!(state instanceof DecoratedPot pot)) {
+                return;
+            }
+            apply.accept(pot.getShards().stream().map(material -> material.getKey().toString()).toList());
+        }, block);
     }
 
     /**

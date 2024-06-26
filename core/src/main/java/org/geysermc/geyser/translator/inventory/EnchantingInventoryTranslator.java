@@ -36,18 +36,18 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
 import org.geysermc.geyser.inventory.*;
-import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.item.enchantment.Enchantment;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
 import java.util.Arrays;
-import java.util.Locale;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public EnchantingInventoryTranslator() {
-        super(2, "minecraft:enchanting_table", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
+        super(2, Blocks.ENCHANTING_TABLE, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
@@ -72,16 +72,16 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                 // The Bedrock index might need changed, so let's look it up and see.
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
-                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + Enchantment.JavaEnchantment.of(bedrockIndex).name().toLowerCase(Locale.ROOT));
-                    if (enchantment != null) {
+                    Enchantment enchantment = session.getRegistryCache().enchantments().byId(value);
+                    if (enchantment != null && enchantment.bedrockEnchantment() != null) {
                         // Convert the Java enchantment index to Bedrock's
-                        bedrockIndex = enchantment.ordinal();
+                        bedrockIndex = enchantment.bedrockEnchantment().ordinal();
                     } else {
                         // There is no Bedrock enchantment equivalent
                         bedrockIndex = -1;
                     }
                 }
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(value, bedrockIndex);
+                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(bedrockIndex);
                 break;
             case 7:
             case 8:

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -37,10 +35,16 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.*;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 import java.util.*;
 
@@ -321,7 +325,7 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, int chatType, Component targetName, Component sender) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
@@ -330,14 +334,15 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        TextDecoration decoration = session.getRegistryCache().chatTypes().byId(chatType);
-        if (decoration != null) {
+        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().chatTypes()::byId);
+        if (chatType != null && chatType.chat() != null) {
+            var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.
             TranslatableComponent.Builder withDecoration = Component.translatable()
-                    .key(decoration.translationKey())
-                    .style(decoration.style());
-            Set<TextDecoration.Parameter> parameters = decoration.parameters();
+                    .key(chat.translationKey())
+                    .style(TextDecoration.getStyle(chat));
+            List<ChatTypeDecoration.Parameter> parameters = chat.parameters();
             List<Component> args = new ArrayList<>(3);
             if (parameters.contains(TextDecoration.Parameter.TARGET)) {
                 args.add(targetName);
@@ -348,7 +353,7 @@ public class MessageTranslator {
             if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
-            withDecoration.args(args);
+            withDecoration.arguments(args);
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
@@ -385,6 +390,53 @@ public class MessageTranslator {
         }
 
         return false;
+    }
+
+    /**
+     * Normalizes whitespaces - a thing a vanilla client apparently does with commands and chat messages.
+     */
+    public static String normalizeSpace(String string) {
+        if (string == null || string.isEmpty()) {
+            return string;
+        }
+        final int size = string.length();
+        final char[] newChars = new char[size];
+        int count = 0;
+        int whitespacesCount = 0;
+        boolean startWhitespaces = true;
+        for (int i = 0; i < size; i++) {
+            final char actualChar = string.charAt(i);
+            final boolean isWhitespace = Character.isWhitespace(actualChar);
+            if (isWhitespace) {
+                if (whitespacesCount == 0 && !startWhitespaces) {
+                    newChars[count++] = ' ';
+                }
+                whitespacesCount++;
+            } else {
+                startWhitespaces = false;
+                // Replace non-breaking spaces with regular spaces for normalization
+                newChars[count++] = (actualChar == '\u00A0' ? ' ' : actualChar);
+                whitespacesCount = 0;
+            }
+        }
+        if (startWhitespaces) {
+            return "";
+        }
+        return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
+    }
+
+    /**
+     * Deserialize an NbtMap provided from a registry into a string.
+     */
+    // This may be a Component in the future.
+    public static String deserializeDescription(NbtMap tag) {
+        NbtMap description = tag.getCompound("description");
+        String translate = description.getString("translate", null);
+        if (translate == null) {
+            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
+            return "";
+        }
+        return translate;
     }
 
     public static void init() {

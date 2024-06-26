@@ -92,7 +92,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
      * @return a function to create a packet with a specified particle, in the event we need to spawn multiple particles
      * with different offsets.
      */
-    private @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
+    public static @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
             case BLOCK -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
@@ -205,7 +205,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
         }
     }
 
-    private NbtMap buildVec3PositionTag(Vector3f position) {
+    private static NbtMap buildVec3PositionTag(Vector3f position) {
         return NbtMap.builder()
                 .putString("type", "vec3")
                 .putFloat("x", position.getX())
