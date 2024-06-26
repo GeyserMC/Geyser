@@ -43,6 +43,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
+@ConfigSerializable
 public interface GeyserConfig {
     BedrockConfig bedrock();
 

@@ -30,10 +30,10 @@ import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
         Map<String, BiomeEntry> biomeEntries;
 
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/biomes.json")) {
-            biomeEntries = GeyserImpl.GSON.fromJson(new InputStreamReader(stream), biomeEntriesType);
+            biomeEntries = JsonUtils.fromJson(stream, biomeEntriesType);
         } catch (IOException e) {
             throw new AssertionError("Unable to load Bedrock runtime biomes", e);
         }

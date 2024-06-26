@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.util;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.With;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.geysermc.geyser.GeyserImpl;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@ToString
-@EqualsAndHashCode
-@Getter
-@With
-@NoArgsConstructor
-@AllArgsConstructor
-public class GeyserMappingItem {
-    @SerializedName("bedrock_identifier") String bedrockIdentifier;
-    @SerializedName("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @SerializedName("tool_type") String toolType;
-    @SerializedName("tool_tier") String toolTier;
-    @SerializedName("armor_type") String armorType;
-    @SerializedName("protection_value") int protectionValue;
-    @SerializedName("is_edible") boolean edible = false;
-    @SerializedName("is_entity_placer") boolean entityPlacer = false;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+
+public final class JsonUtils {
+
+    public static <T> T fromJson(byte[] bytes, Class<T> type) {
+        return GeyserImpl.GSON.fromJson(new String(bytes, StandardCharsets.UTF_8), type);
+    }
+
+    public static JsonObject fromJson(InputStream stream) {
+        return (JsonObject) new JsonParser().parse(new InputStreamReader(stream));
+    }
+
+    public static <T> T fromJson(InputStream stream, Type type) {
+        return GeyserImpl.GSON.fromJson(new InputStreamReader(stream), type);
+    }
+
+    private JsonUtils() {
+    }
 }

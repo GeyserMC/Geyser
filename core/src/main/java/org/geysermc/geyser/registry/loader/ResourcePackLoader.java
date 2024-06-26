@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -55,6 +57,9 @@ import java.util.zip.ZipFile;
  * Loads {@link ResourcePack}s within a {@link Path} directory, firing the {@link GeyserLoadResourcePacksEvent}.
  */
 public class ResourcePackLoader implements RegistryLoader<Path, Map<String, ResourcePack>> {
+    private static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(GeyserResourcePackManifest.Version.class, new GeyserResourcePackManifest.Version.VersionDeserializer())
+        .create();
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
@@ -135,7 +140,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 }
                 if (name.contains("manifest.json")) {
                     try {
-                        GeyserResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class);
+                        GeyserResourcePackManifest manifest = FileUtils.loadJson(GSON, zip.getInputStream(x), GeyserResourcePackManifest.class);
                         if (manifest.header().uuid() != null) {
                             manifestReference.set(manifest);
                         }

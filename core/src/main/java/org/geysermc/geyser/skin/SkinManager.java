@@ -282,6 +282,7 @@ public class SkinManager {
         }
 
         public static @Nullable GameProfileData loadFromJson(String encodedJson) throws IOException, IllegalArgumentException {
+            // TODO use GameProfile method.
             JsonNode skinObject;
             try {
                 skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));

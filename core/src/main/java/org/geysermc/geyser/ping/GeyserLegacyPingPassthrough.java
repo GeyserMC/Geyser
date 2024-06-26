@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.ping;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.gson.JsonSyntaxException;
 import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
 import io.netty.util.NetUtil;
@@ -34,9 +33,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.util.JsonUtils;
 
-import java.io.*;
-import java.net.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runnable {
@@ -130,11 +139,11 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
                 }
             }
 
-            this.pingInfo = GeyserImpl.JSON_MAPPER.readValue(buffer, GeyserPingInfo.class);
+            this.pingInfo = JsonUtils.fromJson(buffer, GeyserPingInfo.class);
         } catch (SocketTimeoutException | ConnectException ex) {
             this.pingInfo = null;
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
-        } catch (JsonParseException | JsonMappingException ex) {
+        } catch (JsonSyntaxException ex) {
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
         } catch (EOFException e) {
             this.pingInfo = null;
