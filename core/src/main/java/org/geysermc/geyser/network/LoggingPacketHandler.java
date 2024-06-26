@@ -47,18 +47,8 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         this.cooldownHandler = new PacketCooldownManager(session);
     }
 
-    public boolean handleLimit(BedrockPacket packet) {
-        boolean safePacket = this.cooldownHandler.handle(packet);
-        if (!safePacket) {
-            session.disconnect("many Packets " + packet.getClass().getSimpleName());
-        }
-        return !safePacket;
-    }
-
     PacketSignal defaultHandler(BedrockPacket packet) {
-        if (handleLimit(packet)) {
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(packet);
         geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return PacketSignal.HANDLED;
     }

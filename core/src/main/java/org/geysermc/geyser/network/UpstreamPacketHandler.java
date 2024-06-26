@@ -85,9 +85,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     PacketSignal defaultHandler(BedrockPacket packet) {
-        if (handleLimit(packet)) {
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(packet);
         return translateAndDefault(packet);
     }
 
@@ -156,9 +154,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
-        if(this.handleLimit(loginPacket)){
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(loginPacket);
         if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
@@ -210,9 +206,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
-        if (this.handleLimit(packet)) {
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(packet);
         if (packet.getPackIds().size() > this.resourcePackLoadEvent.getPacks().size()) {
             session.disconnect("Packet " + packet.getClass().getSimpleName() + " PackIds max count");
             return PacketSignal.HANDLED;
@@ -281,9 +275,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ModalFormResponsePacket packet) {
-        if(this.handleLimit(packet)){
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(packet);
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return PacketSignal.HANDLED;
     }
@@ -324,9 +316,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        if (this.handleLimit(packet)) {
-            return PacketSignal.HANDLED;
-        }
+        this.cooldownHandler.handle(packet);
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
         if (pack == null) {
