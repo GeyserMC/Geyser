@@ -26,7 +26,10 @@ dependencies {
 
     compileOnlyApi(libs.viaversion)
 
-    implementation(libs.gson.record.factory) // For 1.16.5/1.17.1
+    // For 1.16.5/1.17.1
+    implementation(libs.gson.record.factory) {
+        isTransitive = false
+    }
 }
 
 platformRelocate("it.unimi.dsi.fastutil")

@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -66,6 +68,14 @@ public class FileUtils {
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
                 .setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.AS_EMPTY));
         return objectMapper.readValue(src, valueType);
+    }
+
+    public static <T> T loadConfigNew(File src, Class<T> valueType) throws IOException {
+        YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
+            .file(src)
+            .build();
+        ConfigurationNode node = loader.load();
+        return node.get(valueType);
     }
 
     public static <T> T loadJson(InputStream src, Class<T> valueType) {

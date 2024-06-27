@@ -25,26 +25,21 @@
 
 package org.geysermc.geyser.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@ConfigSerializable
 @SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public class GeyserCustomSkullConfiguration {
-    @JsonProperty("player-usernames")
     private List<String> playerUsernames;
 
-    @JsonProperty("player-uuids")
     private List<String> playerUUIDs;
 
-    @JsonProperty("player-profiles")
     private List<String> playerProfiles;
 
-    @JsonProperty("skin-hashes")
     private List<String> skinHashes;
 
     public List<String> getPlayerUsernames() {
