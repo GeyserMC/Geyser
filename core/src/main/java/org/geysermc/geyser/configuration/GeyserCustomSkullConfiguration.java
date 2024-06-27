@@ -57,4 +57,14 @@ public class GeyserCustomSkullConfiguration {
     public List<String> getPlayerSkinHashes() {
         return Objects.requireNonNullElse(skinHashes, Collections.emptyList());
     }
+
+    @Override
+    public String toString() {
+        return "GeyserCustomSkullConfiguration{" +
+            "playerUsernames=" + playerUsernames +
+            ", playerUUIDs=" + playerUUIDs +
+            ", playerProfiles=" + playerProfiles +
+            ", skinHashes=" + skinHashes +
+            '}';
+    }
 }

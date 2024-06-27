@@ -27,6 +27,7 @@ package org.geysermc.geyser.skin;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
@@ -487,12 +488,12 @@ public class SkinProvider {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 JsonObject node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
-                JsonObject properties = node.getAsJsonObject("properties");
+                JsonArray properties = node.getAsJsonArray("properties");
                 if (properties == null) {
                     GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
                     return null;
                 }
-                return node.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
+                return properties.get(0).getAsJsonObject().get("value").getAsString();
             } catch (Exception e) {
                 GeyserImpl.getInstance().getLogger().debug("Unable to request textures for " + uuid);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
@@ -514,6 +515,7 @@ public class SkinProvider {
             try {
                 // Offline skin, or no present UUID
                 JsonObject node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
+                System.out.println(node);
                 JsonElement id = node.get("id");
                 if (id == null) {
                     GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);

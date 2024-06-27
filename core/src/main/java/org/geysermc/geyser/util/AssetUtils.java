@@ -296,6 +296,15 @@ public final class AssetUtils {
 
         @SerializedName("url")
         private String url;
+
+        @Override
+        public String toString() {
+            return "VersionDownload{" +
+                "sha1='" + sha1 + '\'' +
+                ", size=" + size +
+                ", url='" + url + '\'' +
+                '}';
+        }
     }
 
     @Getter
