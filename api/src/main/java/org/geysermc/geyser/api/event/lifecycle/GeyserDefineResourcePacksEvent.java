@@ -39,7 +39,7 @@ import java.util.UUID;
 public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to clients.
+     * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to clients.
      *
      * @return an unmodifiable list of resource packs that will be sent to clients.
      */
@@ -55,9 +55,9 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a collection of {@link ResourcePack} to be sent to clients.
+     * Registers a collection of {@link ResourcePack}'s to be sent to clients.
      *
-     * @param resourcePacks collection of resourcePack's that will be sent to clients.
+     * @param resourcePacks a collection of resource pack's that will be sent to clients.
      */
     public abstract void registerAll(@NonNull Collection<ResourcePack> resourcePacks);
 

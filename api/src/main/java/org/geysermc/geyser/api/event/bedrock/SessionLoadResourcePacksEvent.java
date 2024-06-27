@@ -43,7 +43,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     }
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to the client.
      *
      * @return an unmodifiable list of resource packs that will be sent to the client.
      */
@@ -59,9 +59,9 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a collection of {@link ResourcePack} to be sent to clients.
+     * Registers a collection of {@link ResourcePack}'s to be sent to clients.
      *
-     * @param resourcePacks collection of resourcePack's that will be sent to clients.
+     * @param resourcePacks collection of resource pack's that will be sent to clients
      */
     public abstract void registerAll(@NonNull Collection<ResourcePack> resourcePacks);
 
