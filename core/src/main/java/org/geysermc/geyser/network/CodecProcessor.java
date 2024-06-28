@@ -127,7 +127,7 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<FilterTextPacket> FILTER_TEXT = new FilterTextSerializer_v422() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, FilterTextPacket packet) {
-            packet.setText(helper.readStringMaxLen(buffer, 512));
+            packet.setText(helper.readStringMaxLen(buffer, 513));
             packet.setFromServer(buffer.readBoolean());
         }
     };
