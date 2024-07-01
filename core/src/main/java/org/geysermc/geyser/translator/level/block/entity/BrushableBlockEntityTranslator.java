@@ -37,7 +37,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 @BlockEntity(type = BlockEntityType.BRUSHABLE_BLOCK)
 public class BrushableBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {

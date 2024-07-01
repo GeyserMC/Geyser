@@ -63,7 +63,8 @@ public enum BedrockMapIcon {
     ICON_SNOWY_VILLAGE(MapIconType.SNOWY_VILLAGE, 20),
     ICON_TAIGA_VILLAGE(MapIconType.TAIGA_VILLAGE, 21),
     ICON_JUNGLE_TEMPLE(MapIconType.JUNGLE_TEMPLE, 22),
-    ICON_SWAMP_HUT(MapIconType.SWAMP_HUT, 23);
+    ICON_SWAMP_HUT(MapIconType.SWAMP_HUT, 23),
+    ICON_TRIAL_CHAMBERS(MapIconType.TRIAL_CHAMBERS, 24);
 
     private static final BedrockMapIcon[] VALUES = values();
 

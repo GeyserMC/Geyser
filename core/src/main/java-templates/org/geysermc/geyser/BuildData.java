@@ -22,3 +22,21 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+
+package org.geysermc.geyser;
+
+// The constants are replaced before compilation
+public class BuildData {
+    public static final String GIT_VERSION = "{{ gitVersion }}";
+    public static final String VERSION = "{{ version }}";
+
+    public static final String BUILD_NUMBER = "{{ buildNumber }}";
+    public static final String BRANCH = "{{ branch }}";
+    public static final String COMMIT = "{{ commit }}";
+    public static final String REPOSITORY = "{{ repository }}";
+    private static final String DEV = "{{ devVersion }}";
+
+    public static boolean isDevBuild() {
+        return Boolean.parseBoolean(DEV);
+    }
+}
