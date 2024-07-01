@@ -133,7 +133,8 @@ public class WebUtils {
 
             // This doesn't seem to be a requirement (anymore?). Logging to debug as it might be interesting though.
             if (type == null || !type.equals("application/zip")) {
-                logger.info(String.format("Application type from remote pack at URL: %s (type: %s)", url, type));
+                logger.warning(String.format("Application type received from remote pack at URL %s uses the content type: %s! This may result in packs not loading " +
+                    "for Bedrock players.", url, type));
             }
 
             Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
