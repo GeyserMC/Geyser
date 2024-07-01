@@ -105,6 +105,10 @@ public class PendingMicrosoftAuthentication {
         }
 
         public void resetRunningFlow() {
+            if (authentication == null) {
+                return;
+            }
+
             // Interrupt the current flow
             this.authentication.cancel(true);
         }

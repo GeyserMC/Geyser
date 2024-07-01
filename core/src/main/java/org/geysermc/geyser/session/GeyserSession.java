@@ -766,7 +766,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
                 getAuthData().xuid()
         );
-        if (task.getAuthentication().isDone()) {
+        if (task.getAuthentication() != null && task.getAuthentication().isDone()) {
             onMicrosoftLoginComplete(task);
         } else {
             task.resetRunningFlow();
