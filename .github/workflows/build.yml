@@ -16,7 +16,6 @@ on:
       - 'LICENSE'
       - 'Jenkinsfile '
       - 'README.md'
-      - 'licenseheader.txt'
 
 jobs:
   build:
