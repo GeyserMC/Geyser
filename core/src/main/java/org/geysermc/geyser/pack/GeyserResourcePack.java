@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.pack;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-public record GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) implements ResourcePack {
+public record GeyserResourcePack(@NonNull PackCodec codec, @NonNull ResourcePackManifest manifest, @NonNull String contentKey) implements ResourcePack {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes

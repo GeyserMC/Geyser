@@ -27,24 +27,23 @@ package org.geysermc.geyser.event.type;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+@Getter
+public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
 
-    @Getter
     private final Map<String, ResourcePack> packs;
 
-    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap) {
-        super(session);
+    public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap) {
         this.packs = packMap;
     }
+
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
         return List.copyOf(packs.values());
