@@ -37,7 +37,6 @@ public class FenceGateSoundInteractionTranslator implements BlockSoundInteractio
     @Override
     public void translate(GeyserSession session, Vector3f position, String identifier) {
         if (identifier.contains("iron")) return;
-        GeyserImpl.getInstance().getLogger().info(identifier);
         boolean open = identifier.contains("open=true");
         String materialIdentifier = getMaterialIdentifier(identifier);
         float volume = 1.0f;
