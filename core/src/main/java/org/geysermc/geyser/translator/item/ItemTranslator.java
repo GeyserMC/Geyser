@@ -33,7 +33,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -146,14 +148,20 @@ public final class ItemTranslator {
         }
 
         Rarity rarity = javaItem.rarity();
+        boolean enchantmentGlint = javaItem.glint();
         if (components != null) {
             Integer rarityIndex = components.get(DataComponentType.RARITY);
             if (rarityIndex != null) {
                 rarity = Rarity.fromId(rarityIndex);
             }
+            Boolean enchantmentGlintOverride = components.get(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE);
+            if (enchantmentGlintOverride != null) {
+                enchantmentGlint = enchantmentGlintOverride;
+            }
         }
 
         String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
+        GeyserImpl.getInstance().getLogger().info("custom name: " + customName + " rarity: " + rarity.getName());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
@@ -170,9 +178,17 @@ public final class ItemTranslator {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
+        // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
+        if (enchantmentGlint) {
+            NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
+            if (!nbtMapBuilder.containsKey("ench")) {
+                nbtMapBuilder.put("ench", NbtList.EMPTY);
+            }
+        }
+
         ItemData.Builder builder = javaItem.translateToBedrock(count, components, bedrockItem, session.getItemMappings());
         // Finalize the Bedrock NBT
-        builder.tag(javaItem.build(session, nbtBuilder));
+        builder.tag(nbtBuilder.build());
         if (bedrockItem.isBlock()) {
             CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
                     bedrockItem.getJavaItem().javaIdentifier(), null);
@@ -430,7 +446,7 @@ public final class ItemTranslator {
             // No custom name, but we need to localize the item's name
             String translationKey = mapping.getTranslationString();
             // Reset formatting since Bedrock defaults to italics
-            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
+            return ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
         }
         // No custom name
         return null;

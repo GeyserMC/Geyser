@@ -65,6 +65,7 @@ public class Item {
     private final int attackDamage;
     private final int maxDamage;
     private final Rarity rarity;
+    private final boolean glint;
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier).asString().intern();
@@ -72,6 +73,7 @@ public class Item {
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
         this.rarity = builder.rarity;
+        this.glint = builder.glint;
     }
 
     public String javaIdentifier() {
@@ -94,7 +96,13 @@ public class Item {
         return stackSize;
     }
 
-    public Rarity rarity() { return rarity; }
+    public Rarity rarity() {
+        return rarity;
+    }
+
+    public boolean glint() {
+        return glint;
+    }
 
     public boolean isValidRepairItem(Item other) {
         return false;
@@ -115,10 +123,6 @@ public class Item {
         ItemTranslator.translateCustomItem(components, builder, mapping);
 
         return builder;
-    }
-
-    public NbtMap build(GeyserSession session, BedrockItemBuilder builder) {
-        return builder.build();
     }
 
     public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
@@ -285,6 +289,7 @@ public class Item {
         private int maxDamage;
         private int attackDamage;
         private Rarity rarity = Rarity.COMMON;
+        private boolean glint = false;
 
         public Builder stackSize(int stackSize) {
             this.stackSize = stackSize;
@@ -304,6 +309,11 @@ public class Item {
 
         public Builder rarity(Rarity rarity) {
             this.rarity = rarity;
+            return this;
+        }
+
+        public Builder glint(boolean glintOverride) {
+            this.glint = glintOverride;
             return this;
         }
 
