@@ -79,7 +79,6 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
@@ -274,7 +273,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
 
+    @Getter
     private boolean loggedIn;
+    @Getter
     private boolean loggingIn;
 
     @Setter
@@ -510,8 +511,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<UUID> emotes;
-
     /**
      * Whether advanced tooltips will be added to the player's items.
      */
@@ -598,13 +597,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.spawned = false;
         this.loggedIn = false;
-
-        if (geyser.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
-            this.emotes = new HashSet<>();
-            geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
-        } else {
-            this.emotes = null;
-        }
 
         this.remoteServer = geyser.defaultRemoteServer();
     }
@@ -1868,23 +1860,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
         }
         this.statistics.putAll(statistics);
-    }
-
-    public void refreshEmotes(List<UUID> emotes) {
-        this.emotes.addAll(emotes);
-        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
-            List<UUID> pieces = new ArrayList<>();
-            for (UUID piece : emotes) {
-                if (!player.getEmotes().contains(piece)) {
-                    pieces.add(piece);
-                }
-                player.getEmotes().add(piece);
-            }
-            EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
-            emoteList.getPieceIds().addAll(pieces);
-            player.sendUpstreamPacket(emoteList);
-        }
     }
 
     public boolean canUseCommandBlocks() {
