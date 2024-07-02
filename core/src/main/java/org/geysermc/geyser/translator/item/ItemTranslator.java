@@ -161,7 +161,6 @@ public final class ItemTranslator {
         }
 
         String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
-        GeyserImpl.getInstance().getLogger().info("custom name: " + customName + " rarity: " + rarity.getName());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
@@ -446,7 +445,7 @@ public final class ItemTranslator {
             // No custom name, but we need to localize the item's name
             String translationKey = mapping.getTranslationString();
             // Reset formatting since Bedrock defaults to italics
-            return ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
+            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
         }
         // No custom name
         return null;
