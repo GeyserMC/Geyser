@@ -27,29 +27,61 @@ package org.geysermc.geyser.entity.type;
 
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
+import java.util.Optional;
 import java.util.UUID;
 
-// Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
-public class TextDisplayEntity extends DisplayBaseEntity {
-    public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+public class DisplayBaseEntity extends Entity {
+
+    private Vector3f baseTranslation;
+    private boolean noBaseTranslation;
+
+    public DisplayBaseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Remove armor stand body
-        this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
-        this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
-    public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue()));
+    @Override
+    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+        // Don't allow the display name to be hidden - messes with our armor stand.
+        // On JE: Hiding the display name still shows the display entity text.
     }
+
+    @Override
+    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // This would usually set EntityDataTypes.NAME, but we are instead using NAME for the text display.
+        // On JE: custom name does not override text display.
+    }
+
+    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
+        this.baseTranslation = translationMeta.getValue();
+        if (this.baseTranslation == null){
+            this.noBaseTranslation = true;
+            return;
+        }
+        if (this.vehicle == null){
+            this.setRiderSeatPosition(this.baseTranslation);
+            this.moveRelative(0, this.baseTranslation.getY(), 0, yaw, pitch, headYaw, false);
+        } else {
+            EntityUtils.updateMountOffset(this, this.vehicle, true, true, false);
+        }
+    }
+
+    public Vector3f getTranslation() {
+        return baseTranslation;
+    }
+
+    public boolean hasTranslation(){
+        return !this.noBaseTranslation;
+    }
+
 }
