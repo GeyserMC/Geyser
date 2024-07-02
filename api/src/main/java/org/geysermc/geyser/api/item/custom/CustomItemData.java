@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -114,6 +115,92 @@ public interface CustomItemData {
      */
     @NonNull Set<String> tags();
 
+    /**
+     * Gets the stack size of the item.
+     *
+     * Returns 0 if not set. When not set (or 0), takes the Java item stack count when based of a vanilla item, or uses 64 when porting a modded item.
+     *
+     * @return the stack size of the item
+     */
+    @NonNegative
+    int stackSize();
+
+    /**
+     * Gets the max damage of the item.
+     *
+     * Returns -1 if not set. When not set (or below 0), takes the Java item max damage when based of a vanilla item, or uses 0 when porting a modded item.
+     *
+     * @return the max damage of the item
+     */
+    int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * Returns 0 if not set. When 0, takes the Java item attack damage when based of a vanilla item, or uses 0 when porting a modded item.
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
+
+    /**
+     * Gets the tool type of the item.
+     *
+     * @return the tool type of the item
+     */
+    @Nullable String toolType();
+
+    /**
+     * Gets the tool tier of the item.
+     *
+     * @return the tool tier of the item
+     */
+    @Nullable String toolTier();
+
+    /**
+     * Gets the armor type of the item.
+     *
+     * @return the armor type of the item
+     */
+    @Nullable String armorType();
+
+    /**
+     * Gets the armor protection value of the item.
+     *
+     * @return the armor protection value of the item
+     */
+    int protectionValue();
+
+    /**
+     * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
+     * normally allow the player to equip it. This is not meant for armor.
+     *
+     * @return if the item is a hat
+     */
+    boolean isHat();
+
+    /**
+     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
+     *
+     * @return if the item is a foil
+     */
+    boolean isFoil();
+
+    /**
+     * Gets if the item is edible.
+     *
+     * @return if the item is edible
+     */
+    boolean isEdible();
+
+    /**
+     * Gets if the food item can always be eaten.
+     *
+     * @return if the item is allowed to be eaten all the time
+     */
+    boolean canAlwaysEat();
+
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -143,6 +230,28 @@ public interface CustomItemData {
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);
+
+        Builder stackSize(@NonNegative int stackSize);
+
+        Builder maxDamage(int maxDamage);
+
+        Builder attackDamage(int attackDamage);
+
+        Builder toolType(@Nullable String toolType);
+
+        Builder toolTier(@Nullable String toolTier);
+
+        Builder armorType(@Nullable String armorType);
+
+        Builder protectionValue(int protectionValue);
+
+        Builder hat(boolean isHat);
+
+        Builder foil(boolean isFoil);
+
+        Builder edible(boolean isEdible);
+
+        Builder canAlwaysEat(boolean canAlwaysEat);
 
         CustomItemData build();
     }
