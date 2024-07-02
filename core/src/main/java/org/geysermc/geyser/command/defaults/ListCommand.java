@@ -26,10 +26,12 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.stream.Collectors;
 
@@ -38,22 +40,18 @@ public class ListCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public ListCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
-
+        super(name, description, permission, TriState.NOT_SET);
         this.geyser = geyser;
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", sender.locale(),
-                geyser.getSessionManager().size(),
-                geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
 
-        sender.sendMessage(message);
-    }
+        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", source.locale(),
+            geyser.getSessionManager().size(),
+            geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
 
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
+        source.sendMessage(message);
     }
 }

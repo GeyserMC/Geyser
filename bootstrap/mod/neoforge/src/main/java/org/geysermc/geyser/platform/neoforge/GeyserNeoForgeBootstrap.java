@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
@@ -35,14 +36,21 @@ import net.neoforged.neoforge.event.GameShuttingDownEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
+import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.neoforge.NeoForgeServerCommandManager;
+
+import java.util.Objects;
 
 @Mod(ModConstants.MOD_ID)
 public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
-
-    private final GeyserNeoForgePermissionHandler permissionHandler = new GeyserNeoForgePermissionHandler();
 
     public GeyserNeoForgeBootstrap(ModContainer container) {
         super(new GeyserNeoForgePlatform(container));
@@ -56,9 +64,25 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
-        NeoForge.EVENT_BUS.addListener(this.permissionHandler::onPermissionGather);
+
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, this::onPermissionGather);
 
         this.onGeyserInitialize();
+
+        var sourceConverter = CommandSourceConverter.layered(
+                CommandSourceStack.class,
+                id -> getServer().getPlayerList().getPlayer(id),
+                Player::createCommandSourceStack,
+                () -> getServer().createCommandSourceStack(),
+                ModCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new NeoForgeServerCommandManager<>(
+                ExecutionCoordinator.simpleCoordinator(),
+                sourceConverter
+        );
+        GeyserNeoForgeCommandRegistry registry = new GeyserNeoForgeCommandRegistry(getGeyser(), cloud);
+        this.setCommandRegistry(registry);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, registry::onPermissionGatherForUndefined);
     }
 
     private void onServerStarted(ServerStartedEvent event) {
@@ -87,13 +111,17 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
         return FMLLoader.getDist().isDedicatedServer();
     }
 
-    @Override
-    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
-        return this.permissionHandler.hasPermission(source, permissionNode);
-    }
+    private void onPermissionGather(PermissionGatherEvent.Nodes event) {
+        getGeyser().eventBus().fire(
+            (GeyserRegisterPermissionsEvent) (permission, defaultValue) -> {
+                Objects.requireNonNull(permission, "permission");
+                Objects.requireNonNull(defaultValue, "permission default for " + permission);
 
-    @Override
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
-        return this.permissionHandler.hasPermission(source, permissionNode, permissionLevel);
+                if (permission.isBlank()) {
+                    return;
+                }
+                PermissionUtils.register(permission, defaultValue, event);
+            }
+        );
     }
 }

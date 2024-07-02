@@ -25,61 +25,59 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
+import com.google.common.base.Predicates;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
-    private final GeyserImpl geyser;
-    private final String baseCommand;
-    private final Map<String, Command> commands;
+    private final String rootCommand;
+    private final Collection<GeyserCommand> commands;
 
-    public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
-                       String baseCommand, Map<String, Command> commands) {
-        super(name, description, permission);
-        this.geyser = geyser;
-        this.baseCommand = baseCommand;
-        this.commands = commands;
-
-        this.setAliases(Collections.singletonList("?"));
+    public HelpCommand(String rootCommand, String name, String description, String permission, Map<String, GeyserCommand> commands) {
+        super(name, description, permission, TriState.TRUE);
+        this.rootCommand = rootCommand;
+        this.commands = commands.values();
+        this.aliases = Collections.singletonList("?");
     }
 
-    /**
-     * Sends the help menu to a command sender. Will not show certain commands depending on the command sender and session.
-     *
-     * @param session The Geyser session of the command sender, if it is a bedrock player. If null, bedrock-only commands will be hidden.
-     * @param sender The CommandSender to send the help message to.
-     * @param args Not used.
-     */
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
+    public String rootCommand() {
+        return rootCommand;
+    }
+
+    @Override
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        execute(context.sender());
+    }
+
+    public void execute(GeyserCommandSource source) {
+        boolean bedrockPlayer = source.connection() != null;
+
+        // todo: pagination
         int page = 1;
         int maxPage = 1;
-        String translationKey = this.baseCommand.equals("geyser") ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
-        String header = GeyserLocale.getPlayerLocaleString(translationKey, sender.locale(), page, maxPage);
-        sender.sendMessage(header);
+        String translationKey = this.rootCommand.equals(DEFAULT_ROOT_COMMAND) ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
+        String header = GeyserLocale.getPlayerLocaleString(translationKey, source.locale(), page, maxPage);
+        source.sendMessage(header);
 
-        this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-            Command cmd = entry.getValue();
-
-            // Standalone hack-in since it doesn't have a concept of permissions
-            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.permission())) {
-                // Only list commands the player can actually run
-                if (cmd.isBedrockOnly() && session == null) {
-                    return;
-                }
-
-                sender.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + entry.getKey() + ChatColor.WHITE + ": " +
-                        GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
-            }
-        });
+        this.commands.stream()
+            .distinct() // remove aliases
+            .filter(bedrockPlayer ? Predicates.alwaysTrue() : cmd -> !cmd.isBedrockOnly()) // remove bedrock only commands if not a bedrock player
+            .filter(cmd -> source.hasPermission(cmd.permission()))
+            .sorted(Comparator.comparing(Command::name))
+            .forEachOrdered(cmd -> {
+                String description = GeyserLocale.getPlayerLocaleString(cmd.description(), source.locale());
+                source.sendMessage(ChatColor.YELLOW + "/" + rootCommand + " " + cmd.name() + ChatColor.WHITE + ": " + description);
+            });
     }
 }

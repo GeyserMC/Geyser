@@ -186,15 +186,6 @@ public abstract class WorldManager {
     }
 
     /**
-     * Checks if the given session's player has a permission
-     *
-     * @param session The session of the player to check the permission of
-     * @param permission The permission node to check
-     * @return True if the player has the requested permission, false if not
-     */
-    public abstract boolean hasPermission(GeyserSession session, String permission);
-
-    /**
      * Returns a list of biome identifiers available on the server.
      */
     public String @Nullable [] getBiomeIdentifiers(boolean withTags) {

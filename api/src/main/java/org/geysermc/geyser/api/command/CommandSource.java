@@ -26,6 +26,10 @@
 package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+
+import java.util.UUID;
 
 /**
  * Represents an instance capable of sending commands.
@@ -63,6 +67,17 @@ public interface CommandSource {
      * @return true if this source is the console
      */
     boolean isConsole();
+
+    /**
+     * @return a Java UUID if this source represents a player, otherwise null
+     */
+    @Nullable UUID playerUuid();
+
+    /**
+     * @return a GeyserConnection if this source represents a Bedrock player that is connected
+     * to this Geyser instance, otherwise null
+     */
+    @Nullable GeyserConnection connection();
 
     /**
      * Returns the locale of the command source.

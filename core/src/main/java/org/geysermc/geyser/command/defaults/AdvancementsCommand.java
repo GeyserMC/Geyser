@@ -25,29 +25,23 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.incendo.cloud.context.CommandContext;
+
+import java.util.Objects;
 
 public class AdvancementsCommand extends GeyserCommand {
+
     public AdvancementsCommand(String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.TRUE, true, true);
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (session != null) {
-            session.getAdvancementsCache().buildAndShowMenuForm();
-        }
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserSession session = Objects.requireNonNull(context.sender().connection());
+        session.getAdvancementsCache().buildAndShowMenuForm();
     }
 }

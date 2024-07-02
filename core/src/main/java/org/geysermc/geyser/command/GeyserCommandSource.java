@@ -25,10 +25,15 @@
 
 package org.geysermc.geyser.command;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
+import java.util.UUID;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -45,5 +50,30 @@ public interface GeyserCommandSource extends CommandSource {
 
     default void sendMessage(Component message) {
         sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
+    }
+
+    default void sendLocaleString(String key, Object... values) {
+        sendMessage(GeyserLocale.getPlayerLocaleString(key, locale(), values));
+    }
+
+    default void sendLocaleString(String key) {
+        sendMessage(GeyserLocale.getPlayerLocaleString(key, locale()));
+    }
+
+    @Override
+    default @Nullable GeyserSession connection() {
+        UUID uuid = playerUuid();
+        if (uuid == null) {
+            return null;
+        }
+        return GeyserImpl.getInstance().connectionByUuid(uuid);
+    }
+
+    /**
+     * @return the underlying platform handle that this source represents.
+     *         If such handle doesn't exist, this itself is returned.
+     */
+    default Object handle() {
+        return this;
     }
 }

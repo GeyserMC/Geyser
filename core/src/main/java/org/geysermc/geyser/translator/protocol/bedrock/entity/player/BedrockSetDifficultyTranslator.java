@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.geysermc.geyser.Permissions;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -39,7 +40,7 @@ public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficul
      */
     @Override
     public void translate(GeyserSession session, SetDifficultyPacket packet) {
-        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Permissions.SERVER_SETTINGS)) {
             if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
                 session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
             }

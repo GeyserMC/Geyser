@@ -35,12 +35,12 @@ import java.util.Map;
 public abstract class GeyserDefineCommandsEventImpl implements GeyserDefineCommandsEvent {
     private final Map<String, Command> commands;
 
-    public GeyserDefineCommandsEventImpl(Map<String, Command> commands) {
-        this.commands = commands;
+    public GeyserDefineCommandsEventImpl(Map<String, ? extends Command> commands) {
+        this.commands = Collections.unmodifiableMap(commands);
     }
 
     @Override
     public @NonNull Map<String, Command> commands() {
-        return Collections.unmodifiableMap(this.commands);
+        return this.commands;
     }
 }

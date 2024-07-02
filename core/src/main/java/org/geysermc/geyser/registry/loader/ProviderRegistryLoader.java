@@ -42,8 +42,8 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
+import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
@@ -67,7 +67,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
         // misc
-        providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Extension) args[0]));
+        providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
 
         providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.Builder());
         providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.Builder());

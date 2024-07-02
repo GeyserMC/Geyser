@@ -50,7 +50,7 @@ public interface GeyserDefineCommandsEvent extends Event {
     /**
      * Gets all the registered built-in {@link Command}s.
      *
-     * @return all the registered built-in commands
+     * @return all the registered built-in commands as an unmodifiable map
      */
     @NonNull
     Map<String, Command> commands();

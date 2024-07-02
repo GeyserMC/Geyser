@@ -25,30 +25,21 @@
 
 package org.geysermc.geyser.platform.mod;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.mod.command.GeyserModCommandExecutor;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -59,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -70,13 +60,15 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     private final GeyserModPlatform platform;
 
+    @Getter
     private GeyserImpl geyser;
     private Path dataFolder;
 
-    @Setter
+    @Setter @Getter
     private MinecraftServer server;
 
-    private GeyserCommandManager geyserCommandManager;
+    @Setter
+    private CommandRegistry commandRegistry;
     private GeyserModConfiguration geyserConfig;
     private GeyserModInjector geyserInjector;
     private final GeyserModLogger geyserLogger = new GeyserModLogger();
@@ -94,10 +86,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
-
-        // Create command manager here, since the permission handler on neo needs it
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
     }
 
     public void onGeyserEnable() {
@@ -129,50 +117,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.geyserInjector = new GeyserModInjector(server, this.platform);
         if (isServer()) {
             this.geyserInjector.initializeLocalChannel(this);
-        }
-
-        // Start command building
-        // Set just "geyser" as the help command
-        GeyserModCommandExecutor helpExecutor = new GeyserModCommandExecutor(geyser,
-                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
-        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
-
-        // Register all subcommands as valid
-        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
-            GeyserModCommandExecutor executor = new GeyserModCommandExecutor(geyser, (GeyserCommand) command.getValue());
-            builder.then(Commands.literal(command.getKey())
-                    .executes(executor)
-                    // Could also test for Bedrock but depending on when this is called it may backfire
-                    .requires(executor::testPermission)
-                    // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
-                    .then(Commands.argument("args", StringArgumentType.greedyString())
-                            .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
-                            .requires(executor::testPermission)));
-        }
-        server.getCommands().getDispatcher().register(builder);
-
-        // Register extension commands
-        for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
-            Map<String, Command> extensionCommands = extensionMapEntry.getValue();
-            if (extensionCommands.isEmpty()) {
-                continue;
-            }
-
-            // Register help command for just "/<extensionId>"
-            GeyserModCommandExecutor extensionHelpExecutor = new GeyserModCommandExecutor(geyser,
-                    (GeyserCommand) extensionCommands.get("help"));
-            LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
-
-            for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
-                GeyserModCommandExecutor executor = new GeyserModCommandExecutor(geyser, (GeyserCommand) command.getValue());
-                extCmdBuilder.then(Commands.literal(command.getKey())
-                        .executes(executor)
-                        .requires(executor::testPermission)
-                        .then(Commands.argument("args", StringArgumentType.greedyString())
-                                .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
-                                .requires(executor::testPermission)));
-            }
-            server.getCommands().getDispatcher().register(extCmdBuilder);
         }
     }
 
@@ -206,8 +150,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     @Override
@@ -235,6 +179,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
+    @SuppressWarnings("ConstantConditions") // Certain IDEA installations think that ip cannot be null
     @NonNull
     @Override
     public String getServerBindAddress() {
@@ -269,10 +214,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
     }
-
-    public abstract boolean hasPermission(@NonNull Player source, @NonNull String permissionNode);
-
-    public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel);
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {

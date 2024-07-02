@@ -118,11 +118,6 @@ public class GeyserWorldManager extends WorldManager {
         return GameMode.SURVIVAL;
     }
 
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        return false;
-    }
-
     @NonNull
     @Override
     public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {

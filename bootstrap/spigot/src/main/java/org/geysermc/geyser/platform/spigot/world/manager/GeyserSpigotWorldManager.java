@@ -129,15 +129,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        Player player = Bukkit.getPlayer(session.javaUuid());
-        if (player != null) {
-            return player.hasPermission(permission);
-        }
-        return false;
-    }
-
-    @Override
     public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
