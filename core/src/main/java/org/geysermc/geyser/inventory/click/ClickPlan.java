@@ -58,11 +58,17 @@ public final class ClickPlan {
     private final InventoryTranslator translator;
     private final Inventory inventory;
     private final int gridSize;
+    private final boolean handleBookRecipe;
 
     public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
+        this(session, translator, inventory, false);
+    }
+
+    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory, boolean handleBookRecipe) {
         this.session = session;
         this.translator = translator;
         this.inventory = inventory;
+        this.handleBookRecipe = handleBookRecipe;
 
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.changedItems = null;
@@ -376,7 +382,7 @@ public final class ClickPlan {
         for (int i = 0; i < gridSize; i++) {
             final int slot = i + 1;
             GeyserItemStack item = getItem(slot);
-            if (!item.isEmpty()) {
+            if (!item.isEmpty() && (!handleBookRecipe || item.getJavaId() != session.getItemMappings().getStoredItems().writtenBook().getJavaItem().javaId())) {
                 // These changes should be broadcasted to the server
                 sub(slot, item, crafted);
             }
