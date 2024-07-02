@@ -60,6 +60,7 @@ import java.util.function.Function;
 
 @Translator(packet = ClientboundLevelParticlesPacket.class)
 public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLevelParticlesPacket> {
+    private static final int MAX_PARTICLES = 100;
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelParticlesPacket packet) {
@@ -71,7 +72,8 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 session.sendUpstreamPacket(particleCreateFunction.apply(position));
             } else {
                 Random random = ThreadLocalRandom.current();
-                for (int i = 0; i < packet.getAmount(); i++) {
+                int amount = Math.min(MAX_PARTICLES, packet.getAmount());
+                for (int i = 0; i < amount; i++) {
                     double offsetX = random.nextGaussian() * (double) packet.getOffsetX();
                     double offsetY = random.nextGaussian() * (double) packet.getOffsetY();
                     double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
