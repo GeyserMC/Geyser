@@ -26,39 +26,41 @@
 package org.geysermc.geyser.translator.sound.block;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 import org.geysermc.geyser.util.SoundUtils;
 
-@SoundTranslator(blocks = {"door"})
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+@SoundTranslator(blocks = {"fence_gate"})
+public class FenceGateSoundInteractionTranslator implements BlockSoundInteractionTranslator {
     @Override
     public void translate(GeyserSession session, Vector3f position, String identifier) {
         if (identifier.contains("iron")) return;
+        GeyserImpl.getInstance().getLogger().info(identifier);
         boolean open = identifier.contains("open=true");
-        boolean trapdoor = identifier.contains("_trapdoor");
         String materialIdentifier = getMaterialIdentifier(identifier);
         float volume = 1.0f;
+        float pitch = 1.0f;
         // Sounds are quieter for wooden trapdoors and bamboo wood doors
-        if ((trapdoor && materialIdentifier.equals("block.wooden")) || (!trapdoor && materialIdentifier.equals("block.bamboo_wood"))) {
+        if (materialIdentifier.equals("block.") || materialIdentifier.equals("block.bamboo_wood_")) {
             volume = 0.9f;
         }
-        String doorType = trapdoor ? "_trapdoor" : "_door";
-        String status = open ? ".open" : ".close";
-        SoundUtils.playSound(session, "minecraft:" + materialIdentifier + doorType + status, position, volume, 1.0f);
+        if (materialIdentifier.equals("block.bamboo_wood_")) {
+            pitch = 1.1f;
+        }
+        String status = open ? "fence_gate.open" : "fence_gate.close";
+        SoundUtils.playSound(session, "minecraft:" + materialIdentifier + status, position, volume, pitch);
     }
 
     private static String getMaterialIdentifier(String identifier) {
-        String type = "block.wooden";
-        if (identifier.contains("copper_")) {
-            type = "block.copper";
-        } else if (identifier.contains("bamboo_")) {
-            type = "block.bamboo_wood";
+        String type = "block.";
+        if (identifier.contains("bamboo_")) {
+            type = "block.bamboo_wood_";
         } else if (identifier.contains("cherry_")) {
-            type = "block.cherry_wood";
+            type = "block.cherry_wood_";
         } else if (identifier.contains("crimson_") || identifier.contains("warped_")) {
-            type = "block.nether_wood";
+            type = "block.nether_wood_";
         }
         return type;
     }
