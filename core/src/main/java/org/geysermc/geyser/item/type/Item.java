@@ -35,6 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -63,12 +64,14 @@ public class Item {
     private final int stackSize;
     private final int attackDamage;
     private final int maxDamage;
+    private final Rarity rarity;
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier).asString().intern();
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
+        this.rarity = builder.rarity;
     }
 
     public String javaIdentifier() {
@@ -90,6 +93,8 @@ public class Item {
     public int maxStackSize() {
         return stackSize;
     }
+
+    public Rarity rarity() { return rarity; }
 
     public boolean isValidRepairItem(Item other) {
         return false;
@@ -279,6 +284,7 @@ public class Item {
         private int stackSize = 64;
         private int maxDamage;
         private int attackDamage;
+        private Rarity rarity = Rarity.COMMON;
 
         public Builder stackSize(int stackSize) {
             this.stackSize = stackSize;
@@ -293,6 +299,11 @@ public class Item {
 
         public Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
+            return this;
+        }
+
+        public Builder rarity(Rarity rarity) {
+            this.rarity = rarity;
             return this;
         }
 

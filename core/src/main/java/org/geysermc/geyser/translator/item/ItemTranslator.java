@@ -41,6 +41,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -144,7 +145,15 @@ public final class ItemTranslator {
             if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
         }
 
-        String customName = getCustomName(session, components, bedrockItem);
+        Rarity rarity = javaItem.rarity();
+        if (components != null) {
+            Integer rarityIndex = components.get(DataComponentType.RARITY);
+            if (rarityIndex != null) {
+                rarity = Rarity.fromId(rarityIndex);
+            }
+        }
+
+        String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
@@ -398,16 +407,6 @@ public final class ItemTranslator {
         } else {
             return definition;
         }
-    }
-
-    /**
-     * Translates the display name of the item
-     * @param session the Bedrock client's session
-     * @param components the components to translate
-     * @param mapping the item entry, in case it requires translation
-     */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping) {
-        return getCustomName(session, components, mapping, 'f');
     }
 
     /**
