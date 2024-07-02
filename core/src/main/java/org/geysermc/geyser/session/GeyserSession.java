@@ -57,7 +57,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -996,7 +995,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             @Override
             public void disconnected(DisconnectedEvent event) {
                 loggingIn = false;
-                loggedIn = false;
 
                 String disconnectMessage;
                 Throwable cause = event.getCause();
@@ -1036,13 +1034,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     } else {
                         GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
                     }
-                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
-                    // This only needs to be "initiated" here when there is an exception, hence the cause clause
-                    GeyserSession.this.disconnect(disconnectMessage);
                     if (geyser.getConfig().isDebugMode()) {
                         cause.printStackTrace();
                     }
                 }
+                if ((!GeyserSession.this.closed && GeyserSession.this.loggedIn) || cause != null) {
+                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
+                    // This needs to be "initiated" here when there is an exception, but also when the Netty connection
+                    // is closed without a disconnect packet - in this case, closed will still be false, but loggedIn
+                    // will also be true as GeyserSession#disconnect will not have been called.
+                    GeyserSession.this.disconnect(disconnectMessage);
+                }
+
+                loggedIn = false;
             }
 
             @Override
@@ -1461,7 +1465,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
-        this.upstream.getCodecHelper().setBlockDefinitions((DefinitionRegistry) this.blockMappings); //FIXME
+        this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();

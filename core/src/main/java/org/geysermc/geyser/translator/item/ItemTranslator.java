@@ -55,6 +55,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.*;
@@ -138,7 +139,7 @@ public final class ItemTranslator {
                 .build();
     }
 
-    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
+    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         boolean hideTooltips = false;
@@ -233,7 +234,7 @@ public final class ItemTranslator {
         Map<ItemAttributeModifiers.EquipmentSlotGroup, List<String>> slotsToModifiers = new HashMap<>();
         for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(entry.getModifier(), language);
+            String loreEntry = attributeToLore(entry.getAttribute(), entry.getModifier(), language);
             if (loreEntry == null) {
                 continue; // invalid or failed
             }
@@ -278,13 +279,13 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(ItemAttributeModifiers.AttributeModifier modifier, String language) {
+    private static String attributeToLore(int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
         double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
         }
 
-        String name = modifier.getId().asMinimalString();
+        String name = AttributeType.Builtin.from(attribute).getIdentifier().asMinimalString();
         // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
         ModifierOperation operation = modifier.getOperation();
@@ -432,12 +433,14 @@ public final class ItemTranslator {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
-            if (customName == null) {
-                customName = components.get(DataComponentType.ITEM_NAME);
-            }
             if (customName != null) {
-                // Get the translated name and prefix it with a reset char
                 return MessageTranslator.convertMessage(customName, session.locale());
+            }
+            customName = components.get(DataComponentType.ITEM_NAME);
+            if (customName != null) {
+                // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
+                // behavior as of 1.21
+                return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
             }
         }
 

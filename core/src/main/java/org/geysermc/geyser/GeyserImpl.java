@@ -115,13 +115,14 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "${gitVersion}";
-    public static final String VERSION = "${version}";
+    public static final String GIT_VERSION = BuildData.GIT_VERSION;
+    public static final String VERSION = BuildData.VERSION;
 
-    public static final String BUILD_NUMBER = "${buildNumber}";
-    public static final String BRANCH = "${branch}";
-    public static final String COMMIT = "${commit}";
-    public static final String REPOSITORY = "${repository}";
+    public static final String BUILD_NUMBER = BuildData.BUILD_NUMBER;
+    public static final String BRANCH = BuildData.BRANCH;
+    public static final String COMMIT = BuildData.COMMIT;
+    public static final String REPOSITORY = BuildData.REPOSITORY;
+    public static final boolean IS_DEV = BuildData.isDevBuild();
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -207,6 +208,12 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
+        if (IS_DEV) {
+            // TODO cloud use language string
+            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
+            logger.info("");
+        }
         logger.info("******************************************");
 
         /* Initialize registries */
@@ -684,9 +691,10 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
-        //noinspection ConstantConditions,MismatchedStringCase - changes in production
+        //noinspection ConstantConditions - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
     }
 
