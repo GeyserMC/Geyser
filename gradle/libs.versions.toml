@@ -1,7 +1,7 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.2"
-erosion = "1.1-20240515.191456-1"
+erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.2"

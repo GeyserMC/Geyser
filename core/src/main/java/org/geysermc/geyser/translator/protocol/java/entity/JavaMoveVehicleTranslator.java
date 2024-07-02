@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveVehiclePacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -39,6 +40,10 @@ public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveV
     public void translate(GeyserSession session, ClientboundMoveVehiclePacket packet) {
         Entity entity = session.getPlayerEntity().getVehicle();
         if (entity == null) return;
+
+        if (entity instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().moveAbsolute(packet.getX(), packet.getY(), packet.getZ());
+        }
 
         entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);
     }

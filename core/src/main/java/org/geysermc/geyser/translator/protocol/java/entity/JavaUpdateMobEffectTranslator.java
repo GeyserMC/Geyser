@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -39,11 +40,14 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
     @Override
     public void translate(GeyserSession session, ClientboundUpdateMobEffectPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (entity == session.getPlayerEntity()) {
-            session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
-        }
         if (entity == null) {
             return;
+        }
+
+        if (entity == session.getPlayerEntity()) {
+            session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
+        } else if (entity instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setEffect(packet.getEffect(), packet.getAmplifier());
         }
 
         int duration = packet.getDuration();

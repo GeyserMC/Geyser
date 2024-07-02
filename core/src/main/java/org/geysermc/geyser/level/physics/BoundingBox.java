@@ -33,6 +33,8 @@ import org.cloudburstmc.math.vector.Vector3d;
 @Data
 @AllArgsConstructor
 public class BoundingBox implements Cloneable {
+    private static final double EPSILON = 1.0E-7;
+
     private double middleX;
     private double middleY;
     private double middleZ;
@@ -57,8 +59,22 @@ public class BoundingBox implements Cloneable {
         sizeZ += Math.abs(z);
     }
 
+    public void expand(double x, double y, double z) {
+        sizeX += x;
+        sizeY += y;
+        sizeZ += z;
+    }
+
+    public void translate(Vector3d translate) {
+        translate(translate.getX(), translate.getY(), translate.getZ());
+    }
+
     public void extend(Vector3d extend) {
         extend(extend.getX(), extend.getY(), extend.getZ());
+    }
+
+    public void expand(double expand) {
+        expand(expand, expand, expand);
     }
 
     public boolean checkIntersection(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
@@ -91,9 +107,9 @@ public class BoundingBox implements Cloneable {
 
     private boolean checkOverlapInAxis(double xOffset, double yOffset, double zOffset, BoundingBox otherBox, Axis axis) {
         return switch (axis) {
-            case X -> Math.abs((middleX + xOffset) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
-            case Y -> Math.abs((middleY + yOffset) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
-            case Z -> Math.abs((middleZ + zOffset) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
+            case X -> (sizeX + otherBox.getSizeX()) - Math.abs((middleX + xOffset) - otherBox.getMiddleX()) * 2 > EPSILON;
+            case Y -> (sizeY + otherBox.getSizeY()) - Math.abs((middleY + yOffset) - otherBox.getMiddleY()) * 2 > EPSILON;
+            case Z -> (sizeZ + otherBox.getSizeZ()) - Math.abs((middleZ + zOffset) - otherBox.getMiddleZ()) * 2 > EPSILON;
         };
     }
 

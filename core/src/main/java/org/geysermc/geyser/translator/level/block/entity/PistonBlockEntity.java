@@ -38,6 +38,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -348,18 +349,31 @@ public class PistonBlockEntity {
             blockMovement = 1f - lastProgress;
         }
 
-        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+        boolean onGround;
+        BoundingBox playerBoundingBox;
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            onGround = session.getPlayerEntity().getVehicle().isOnGround();
+            playerBoundingBox = clientVehicle.getVehicleComponent().getBoundingBox();
+        } else {
+            onGround = session.getPlayerEntity().isOnGround();
+            playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+        }
+
         // Shrink the collision in the other axes slightly, to avoid false positives when pressed up against the side of blocks
         Vector3d shrink = Vector3i.ONE.sub(direction.abs()).toDouble().mul(CollisionManager.COLLISION_TOLERANCE * 2);
-        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() - shrink.getX());
-        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - shrink.getY());
-        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() - shrink.getZ());
+        double sizeX = playerBoundingBox.getSizeX();
+        double sizeY = playerBoundingBox.getSizeY();
+        double sizeZ = playerBoundingBox.getSizeZ();
+
+        playerBoundingBox.setSizeX(sizeX - shrink.getX());
+        playerBoundingBox.setSizeY(sizeY - shrink.getY());
+        playerBoundingBox.setSizeZ(sizeZ - shrink.getZ());
 
         // Resolve collision with the piston head
         BlockState pistonHeadId = Blocks.PISTON_HEAD.defaultBlockState()
                 .withValue(Properties.SHORT, false)
                 .withValue(Properties.FACING, orientation);
-        pushPlayerBlock(pistonHeadId, getPistonHeadPos().toDouble(), blockMovement, playerBoundingBox);
+        pushPlayerBlock(pistonHeadId, getPistonHeadPos().toDouble(), blockMovement, playerBoundingBox, onGround);
 
         // Resolve collision with any attached moving blocks, but skip slime blocks
         // This prevents players from being launched by slime blocks covered by other blocks
@@ -367,7 +381,7 @@ public class PistonBlockEntity {
             BlockState state = entry.getValue();
             if (!state.is(Blocks.SLIME_BLOCK)) {
                 Vector3d blockPos = entry.getKey().toDouble();
-                pushPlayerBlock(state, blockPos, blockMovement, playerBoundingBox);
+                pushPlayerBlock(state, blockPos, blockMovement, playerBoundingBox, onGround);
             }
         }
         // Resolve collision with slime blocks
@@ -375,14 +389,14 @@ public class PistonBlockEntity {
             BlockState state = entry.getValue();
             if (state.is(Blocks.SLIME_BLOCK)) {
                 Vector3d blockPos = entry.getKey().toDouble();
-                pushPlayerBlock(state, blockPos, blockMovement, playerBoundingBox);
+                pushPlayerBlock(state, blockPos, blockMovement, playerBoundingBox, onGround);
             }
         }
 
         // Undo shrink
-        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + shrink.getX());
-        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + shrink.getY());
-        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() + shrink.getZ());
+        playerBoundingBox.setSizeX(sizeX);
+        playerBoundingBox.setSizeY(sizeY);
+        playerBoundingBox.setSizeZ(sizeZ);
     }
 
     /**
@@ -392,20 +406,22 @@ public class PistonBlockEntity {
      * @param playerBoundingBox The player's bounding box
      * @return True if the player attached, otherwise false
      */
-    private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox) {
+    private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox, boolean onGround) {
         if (orientation.isVertical()) {
             return false;
         }
-        return session.getPlayerEntity().isOnGround() && HONEY_BOUNDING_BOX.checkIntersection(blockPos, playerBoundingBox);
+        return onGround && HONEY_BOUNDING_BOX.checkIntersection(blockPos, playerBoundingBox);
     }
 
     /**
      * Launches a player if the player is on the pushing side of the slime block
      *
      * @param blockPos The position of the slime block
-     * @param playerPos The player's position
+     * @param playerBoundingBox The player's bounding box
      */
-    private void applySlimeBlockMotion(Vector3d blockPos, Vector3d playerPos) {
+    private void applySlimeBlockMotion(Vector3d blockPos, BoundingBox playerBoundingBox) {
+        Vector3d playerPos = Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ());
+
         Direction movementDirection = orientation;
         // Invert direction when pulling
         if (action == PistonValueType.PULLING) {
@@ -471,7 +487,7 @@ public class PistonBlockEntity {
         return maxIntersection;
     }
 
-    private void pushPlayerBlock(BlockState state, Vector3d startingPos, double blockMovement, BoundingBox playerBoundingBox) {
+    private void pushPlayerBlock(BlockState state, Vector3d startingPos, double blockMovement, BoundingBox playerBoundingBox, boolean onGround) {
         PistonCache pistonCache = session.getPistonCache();
         Vector3d movement = getMovement().toDouble();
         // Check if the player collides with the movingBlock block entity
@@ -481,12 +497,12 @@ public class PistonBlockEntity {
 
             if (state.is(Blocks.SLIME_BLOCK)) {
                 pistonCache.setPlayerSlimeCollision(true);
-                applySlimeBlockMotion(finalBlockPos, Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ()));
+                applySlimeBlockMotion(finalBlockPos, playerBoundingBox);
             }
         }
 
         Vector3d blockPos = startingPos.add(movement.mul(blockMovement));
-        if (state.is(Blocks.HONEY_BLOCK) && isPlayerAttached(blockPos, playerBoundingBox)) {
+        if (state.is(Blocks.HONEY_BLOCK) && isPlayerAttached(blockPos, playerBoundingBox, onGround)) {
             pistonCache.setPlayerCollided(true);
             pistonCache.setPlayerAttachedToHoney(true);
 
@@ -509,7 +525,7 @@ public class PistonBlockEntity {
 
                     if (state.is(Blocks.SLIME_BLOCK)) {
                         pistonCache.setPlayerSlimeCollision(true);
-                        applySlimeBlockMotion(blockPos, Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ()));
+                        applySlimeBlockMotion(blockPos, playerBoundingBox);
                     }
                 }
             }
@@ -585,7 +601,7 @@ public class PistonBlockEntity {
         movingBlockMap.put(getPistonHeadPos(), this);
 
         Vector3i movement = getMovement();
-        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
         if (orientation == Direction.UP) {
             // Extend the bounding box down, to catch collisions when the player is falling down
             playerBoundingBox.extend(0, -256, 0);
@@ -629,17 +645,19 @@ public class PistonBlockEntity {
             return;
         }
         placedFinalBlocks = true;
+
         Vector3i movement = getMovement();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
         attachedBlocks.forEach((blockPos, state) -> {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
-            if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
+            if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
                 ChunkUtils.updateBlock(session, state, blockPos);
             }
         });
         if (action == PistonValueType.PUSHING) {
             Vector3i pistonHeadPos = getPistonHeadPos().add(movement);
-            if (!SOLID_BOUNDING_BOX.checkIntersection(pistonHeadPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
+            if (!SOLID_BOUNDING_BOX.checkIntersection(pistonHeadPos.toDouble(), playerBoundingBox)) {
                 ChunkUtils.updateBlock(session, Blocks.PISTON_HEAD.defaultBlockState()
                         .withValue(Properties.SHORT, false)
                         .withValue(Properties.FACING, orientation), pistonHeadPos);

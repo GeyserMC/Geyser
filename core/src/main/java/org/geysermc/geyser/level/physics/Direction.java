@@ -38,6 +38,7 @@ public enum Direction {
     EAST(4, Vector3i.UNIT_X, Axis.X, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.EAST);
 
     public static final Direction[] VALUES = values();
+    public static final Direction[] HORIZONTAL = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
     private final int reversedId;
     @Getter

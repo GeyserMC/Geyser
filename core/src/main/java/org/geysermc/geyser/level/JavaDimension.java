@@ -32,8 +32,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
  * Represents the information we store from the current Java dimension
  * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
  *      This controls if they have the shaking effect applied in the dimension.
+ * @param ultrawarm If this dimension is ultrawarm.
+ *      Used when calculating movement in lava for client-side vehicles.
  */
-public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
+public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultrawarm, double worldCoordinateScale) {
 
     public static JavaDimension read(RegistryEntry entry) {
         NbtMap dimension = entry.getData();
@@ -43,9 +45,11 @@ public record JavaDimension(int minY, int maxY, boolean piglinSafe, double world
 
         // Set if piglins/hoglins should shake
         boolean piglinSafe = dimension.getBoolean("piglin_safe");
+        // Entities in lava move faster in ultrawarm dimensions
+        boolean ultrawarm = dimension.getBoolean("ultrawarm");
         // Load world coordinate scale for the world border
         double coordinateScale = dimension.getDouble("coordinate_scale");
 
-        return new JavaDimension(minY, maxY, piglinSafe, coordinateScale);
+        return new JavaDimension(minY, maxY, piglinSafe, ultrawarm, coordinateScale);
     }
 }
