@@ -32,7 +32,7 @@ import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 import org.geysermc.geyser.util.SoundUtils;
 
-@SoundTranslator(blocks = {"fence_gate"})
+@SoundTranslator(blocks = "fence_gate")
 public class FenceGateSoundInteractionTranslator implements BlockSoundInteractionTranslator {
     @Override
     public void translate(GeyserSession session, Vector3f position, String identifier) {

@@ -31,7 +31,7 @@ import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 import org.geysermc.geyser.util.SoundUtils;
 
-@SoundTranslator(blocks = {"door"})
+@SoundTranslator(blocks = "door")
 public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
     @Override
     public void translate(GeyserSession session, Vector3f position, String identifier) {
