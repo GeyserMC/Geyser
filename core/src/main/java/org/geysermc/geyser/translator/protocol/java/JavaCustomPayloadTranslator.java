@@ -40,6 +40,8 @@ import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.java.ServerCustomPayloadEvent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -137,6 +139,11 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 toSend.setPayload(packetData);
 
                 session.sendUpstreamPacket(toSend);
+            });
+        } else {
+            session.ensureInEventLoop(() -> {
+                EventBus eventBus = session.getGeyser().eventBus();
+                eventBus.fire(new ServerCustomPayloadEvent(session, channel, packet.getData()));
             });
         }
     }
