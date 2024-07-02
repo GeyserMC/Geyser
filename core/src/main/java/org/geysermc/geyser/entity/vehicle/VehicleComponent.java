@@ -559,6 +559,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 motion.toDouble(), boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
         );
 
+        correctedMovement = vehicle.getSession().getWorldBorder().correctMovement(boundingBox, correctedMovement);
+
         boundingBox.translate(correctedMovement);
         ctx.loadSurroundingBlocks();
 

@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
@@ -36,7 +37,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
+
+import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
@@ -188,6 +192,59 @@ public class WorldBorder {
     public boolean isWithinWarningBoundaries() {
         Vector3f entityPosition = session.getPlayerEntity().getPosition();
         return entityPosition.getX() > warningMinX && entityPosition.getX() < warningMaxX && entityPosition.getZ() > warningMinZ && entityPosition.getZ() < warningMaxZ;
+    }
+
+    /**
+     * Adjusts the movement of an entity so that it does not cross the world border.
+     *
+     * @param boundingBox bounding box of the entity
+     * @param movement movement of the entity
+     * @return the corrected movement
+     */
+    public Vector3d correctMovement(BoundingBox boundingBox, Vector3d movement) {
+        Vector3d bbMin = boundingBox.getMin();
+        Vector3d bbMax = boundingBox.getMax();
+
+        // If outside border, don't adjust movement
+        if (bbMin.getX() + COLLISION_TOLERANCE < GenericMath.floor(minX)
+                || bbMin.getZ() + COLLISION_TOLERANCE < GenericMath.floor(minZ)
+                || bbMax.getX() - COLLISION_TOLERANCE > GenericMath.ceil(maxX)
+                || bbMax.getZ() - COLLISION_TOLERANCE > GenericMath.ceil(maxZ)) {
+            return movement;
+        }
+
+        double diff; // Difference between edge of bounding box and world border
+        double correctedX = movement.getX();
+        diff = GenericMath.floor(minX) - (bbMin.getX() + movement.getX());
+        if (diff > 0) {
+            correctedX += diff;
+        } else {
+            diff = (bbMax.getX() + movement.getX()) - GenericMath.ceil(maxX);
+            if (diff > 0) {
+                correctedX -= diff;
+            }
+        }
+
+        if (Math.abs(correctedX) < COLLISION_TOLERANCE) {
+            correctedX = 0;
+        }
+
+        double correctedZ = movement.getZ();
+        diff = GenericMath.floor(minZ) - (bbMin.getZ() + movement.getZ());
+        if (diff > 0) {
+            correctedZ += diff;
+        } else {
+            diff = (bbMax.getZ() + movement.getZ()) - GenericMath.ceil(maxZ);
+            if (diff > 0) {
+                correctedZ -= diff;
+            }
+        }
+
+        if (Math.abs(correctedZ) < COLLISION_TOLERANCE) {
+            correctedZ = 0;
+        }
+
+        return Vector3d.from(correctedX, movement.getY(), correctedZ);
     }
 
     /**

@@ -149,11 +149,15 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     @Override
     public void tick() {
         PlayerEntity player = getPlayerPassenger();
+        if (player == null) {
+            return;
+        }
+
         if (player == session.getPlayerEntity()) {
             if (session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }
-        } else if (player != null) { // getHand() for session player seems to always return air
+        } else { // getHand() for session player seems to always return air
             ItemDefinition itemDefinition = session.getItemMappings().getStoredItems().warpedFungusOnAStick().getBedrockDefinition();
             if (player.getHand().getDefinition() == itemDefinition || player.getOffhand().getDefinition() == itemDefinition) {
                 vehicleComponent.tickBoost();
