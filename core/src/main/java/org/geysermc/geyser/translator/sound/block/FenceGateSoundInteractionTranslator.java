@@ -42,7 +42,7 @@ public class FenceGateSoundInteractionTranslator implements BlockSoundInteractio
         String materialIdentifier = getMaterialIdentifier(identifier);
         float volume = 1.0f;
         float pitch = 1.0f;
-        // Sounds are quieter for wooden trapdoors and bamboo wood doors
+        // Sounds are quieter for wooden and bamboo fence gates.
         if (materialIdentifier.equals("block.") || materialIdentifier.equals("block.bamboo_wood_")) {
             volume = 0.9f;
         }
