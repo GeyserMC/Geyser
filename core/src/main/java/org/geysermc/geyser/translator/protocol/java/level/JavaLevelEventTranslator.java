@@ -28,9 +28,16 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.registry.Registries;
@@ -42,10 +49,20 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
-import org.geysermc.mcprotocollib.protocol.data.game.level.event.*;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.BonemealGrowEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.BreakBlockEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.BreakPotionEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.ComposterEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.DragonFireballEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEventType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.RecordEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.SculkBlockChargeEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.SmokeEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.TrialSpawnerDetectEventData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 @Translator(packet = ClientboundLevelEventPacket.class)
@@ -303,22 +320,23 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 if (eventData.getCharge() > 0) {
                     levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE);
                     levelEventPacket.setTag(
-                            NbtMap.builder()
-                                    .putInt("x", packet.getPosition().getX())
-                                    .putInt("y", packet.getPosition().getY())
-                                    .putInt("z", packet.getPosition().getZ())
-                                    .putShort("charge", (short) eventData.getCharge())
-                                    .putShort("facing", encodeFacing(eventData.getBlockFaces())) // TODO check if this is actually correct
-                                    .build()
+                        NbtMap.builder()
+                            .putInt("x", packet.getPosition().getX())
+                            .putInt("y", packet.getPosition().getY())
+                            .putInt("z", packet.getPosition().getZ())
+                            .putShort("charge", (short) eventData.getCharge())
+                            .putShort("facing", encodeFacing(eventData.getBlockFaces())) // TODO check if this is actually correct
+                            .build()
                     );
                 } else {
                     levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE_POP);
+                    levelEventPacket.setTag("");
                     levelEventPacket.setTag(
-                            NbtMap.builder()
-                                    .putInt("x", packet.getPosition().getX())
-                                    .putInt("y", packet.getPosition().getY())
-                                    .putInt("z", packet.getPosition().getZ())
-                                    .build()
+                        NbtMap.builder()
+                            .putInt("x", packet.getPosition().getX())
+                            .putInt("y", packet.getPosition().getY())
+                            .putInt("z", packet.getPosition().getZ())
+                            .build()
                     );
                 }
                 session.sendUpstreamPacket(levelEventPacket);
@@ -328,11 +346,11 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
                 levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCULK_SHRIEK);
                 levelEventPacket.setTag(
-                        NbtMap.builder()
-                                .putInt("originX", packet.getPosition().getX())
-                                .putInt("originY", packet.getPosition().getY())
-                                .putInt("originZ", packet.getPosition().getZ())
-                                .build()
+                    NbtMap.builder()
+                        .putInt("originX", packet.getPosition().getX())
+                        .putInt("originY", packet.getPosition().getY())
+                        .putInt("originZ", packet.getPosition().getZ())
+                        .build()
                 );
                 session.sendUpstreamPacket(levelEventPacket);
 
@@ -346,6 +364,21 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
                 return;
             }
+            // Half of these are listed in MCProtocolLib as Trail instead of Trial for some reason
+            case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER -> {
+                // Particles spawn here
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_DETECTION);
+                effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+            }
+            case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER_OMINOUS -> {
+                // Particles dont spawn here for some reason, only sound plays
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_DETECTION_CHARGED);
+                //effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+            }
+            case PARTICLES_TRIAL_SPAWNER_BECOME_OMINOUS -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_BECOME_CHARGED);
+            case PARTICLES_TRIAL_SPAWNER_SPAWN, PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_SPAWNING);
+            case PARTICLES_TRIAL_SPAWNER_SPAWN_ITEM -> effectPacket.setType(LevelEvent.PARTICLE_TRAIL_SPAWNER_EJECTING);
+
             case SOUND_STOP_JUKEBOX_SONG -> {
                 String bedrockSound = session.getWorldCache().removeActiveRecord(origin);
                 if (bedrockSound == null) {
