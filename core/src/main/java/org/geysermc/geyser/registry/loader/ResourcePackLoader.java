@@ -285,8 +285,12 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 ResourcePack newPack = ResourcePackLoader.readPack(pathPackCodec.path());
                 UUID newUUID = newPack.manifest().header().uuid();
                 if (newUUID.toString().equals(packId)) {
-                    GeyserImpl.getInstance().getLogger().info("Detected a new resource pack version (%s, old version %s) for pack at %s!"
+                    if (packVersion.equals(newPack.manifest().header().version().toString())) {
+                        GeyserImpl.getInstance().getLogger().info("No version or pack change detected: Was the resource pack server down?");
+                    } else {
+                        GeyserImpl.getInstance().getLogger().info("Detected a new resource pack version (%s, old version %s) for pack at %s!"
                             .formatted(packVersion, newPack.manifest().header().version().toString(), url));
+                    }
                 } else {
                     GeyserImpl.getInstance().getLogger().info("Detected a new resource pack at the url %s!".formatted(url));
                 }
@@ -301,8 +305,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                     Path path = geyserUrlPackCodec.getFallback().path();
                     try {
                         GeyserImpl.getInstance().getScheduledThread().schedule(() -> {
-                            deleteFile(path);
                             CACHED_FAILED_PACKS.invalidate(packId);
+                            deleteFile(path);
                         }, 5, TimeUnit.MINUTES);
                     } catch (RejectedExecutionException exception) {
                         // No scheduling here, probably because we're shutting down?
