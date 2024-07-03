@@ -695,7 +695,7 @@ public class GeyserImpl implements GeyserApi {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
-        //noinspection ConstantConditions,MismatchedStringCase - changes in production
+        //noinspection ConstantConditions - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
     }
 

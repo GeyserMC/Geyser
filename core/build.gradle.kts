@@ -89,7 +89,7 @@ sourceSets {
         blossom {
             val info = GitInfo()
             javaSources {
-                property("version", "${info.version} (${info.gitVersion})")
+                property("version", info.version)
                 property("gitVersion", info.gitVersion)
                 property("buildNumber", info.buildNumber.toString())
                 property("branch", info.branch)
