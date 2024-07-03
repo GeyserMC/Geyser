@@ -555,11 +555,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             motion = motion.mul(movementMultiplier);
         }
 
-        Vector3d correctedMovement = vehicle.getSession().getCollisionManager().correctMovement(
-                motion.toDouble(), boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
+        Vector3d correctedMovement = vehicle.getSession().getWorldBorder().correctMovement(boundingBox, motion.toDouble());
+        correctedMovement = vehicle.getSession().getCollisionManager().correctMovement(
+            correctedMovement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
         );
-
-        correctedMovement = vehicle.getSession().getWorldBorder().correctMovement(boundingBox, correctedMovement);
 
         boundingBox.translate(correctedMovement);
         ctx.loadSurroundingBlocks();

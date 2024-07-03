@@ -205,46 +205,43 @@ public class WorldBorder {
         Vector3d bbMin = boundingBox.getMin();
         Vector3d bbMax = boundingBox.getMax();
 
-        // If outside border, don't adjust movement
-        if (bbMin.getX() + COLLISION_TOLERANCE < GenericMath.floor(minX)
-                || bbMin.getZ() + COLLISION_TOLERANCE < GenericMath.floor(minZ)
-                || bbMax.getX() - COLLISION_TOLERANCE > GenericMath.ceil(maxX)
-                || bbMax.getZ() - COLLISION_TOLERANCE > GenericMath.ceil(maxZ)) {
+        double correctedX;
+        if (movement.getX() < 0) {
+            correctedX = -limitMovement(-movement.getX(), bbMin.getX() - GenericMath.floor(minX));
+        } else {
+            correctedX = limitMovement(movement.getX(), GenericMath.ceil(maxX) - bbMax.getX());
+        }
+
+        // Outside of border, don't adjust movement
+        if (Double.isNaN(correctedX)) {
             return movement;
         }
 
-        double diff; // Difference between edge of bounding box and world border
-        double correctedX = movement.getX();
-        diff = GenericMath.floor(minX) - (bbMin.getX() + movement.getX());
-        if (diff > 0) {
-            correctedX += diff;
+        double correctedZ;
+        if (movement.getZ() < 0) {
+            correctedZ = -limitMovement(-movement.getZ(), bbMin.getZ() - GenericMath.floor(minZ));
         } else {
-            diff = (bbMax.getX() + movement.getX()) - GenericMath.ceil(maxX);
-            if (diff > 0) {
-                correctedX -= diff;
-            }
+            correctedZ = limitMovement(movement.getZ(), GenericMath.ceil(maxZ) - bbMax.getZ());
         }
 
-        if (Math.abs(correctedX) < COLLISION_TOLERANCE) {
-            correctedX = 0;
-        }
-
-        double correctedZ = movement.getZ();
-        diff = GenericMath.floor(minZ) - (bbMin.getZ() + movement.getZ());
-        if (diff > 0) {
-            correctedZ += diff;
-        } else {
-            diff = (bbMax.getZ() + movement.getZ()) - GenericMath.ceil(maxZ);
-            if (diff > 0) {
-                correctedZ -= diff;
-            }
-        }
-
-        if (Math.abs(correctedZ) < COLLISION_TOLERANCE) {
-            correctedZ = 0;
+        if (Double.isNaN(correctedZ)) {
+            return movement;
         }
 
         return Vector3d.from(correctedX, movement.getY(), correctedZ);
+    }
+
+    private double limitMovement(double movement, double limit) {
+        if (limit < 0) {
+            // Return NaN to indicate outside of border
+            return Double.NaN;
+        }
+
+        if (limit < COLLISION_TOLERANCE) {
+            return 0;
+        }
+
+        return Math.min(movement, limit);
     }
 
     /**
