@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
@@ -38,16 +39,10 @@ import java.util.UUID;
 
 public class DisplayBaseEntity extends Entity {
 
-    private Vector3f baseTranslation;
-    private boolean noBaseTranslation;
+    private @Nullable Vector3f baseTranslation;
 
     public DisplayBaseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-    }
-
-    @Override
-    protected void initializeMetadata() {
-        super.initializeMetadata();
     }
 
     @Override
@@ -64,24 +59,19 @@ public class DisplayBaseEntity extends Entity {
 
     public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
         this.baseTranslation = translationMeta.getValue();
-        if (this.baseTranslation == null){
-            this.noBaseTranslation = true;
+        if (this.baseTranslation == null) {
             return;
         }
-        if (this.vehicle == null){
+        if (this.vehicle == null) {
             this.setRiderSeatPosition(this.baseTranslation);
             this.moveRelative(0, this.baseTranslation.getY(), 0, yaw, pitch, headYaw, false);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, false);
+            this.updateBedrockMetadata();
         }
     }
 
     public Vector3f getTranslation() {
         return baseTranslation;
     }
-
-    public boolean hasTranslation(){
-        return !this.noBaseTranslation;
-    }
-
 }

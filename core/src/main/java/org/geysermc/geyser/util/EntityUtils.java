@@ -202,11 +202,14 @@ public final class EntityUtils {
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
                 case TEXT_DISPLAY -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
-                        if (!textDisplay.hasTranslation()) return;
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        if (displayTranslation == null) {
+                            return;
+                        }
 
-                        xOffset = textDisplay.getTranslation().getX();
-                        yOffset = textDisplay.getTranslation().getY() + 0.2f;
-                        zOffset = textDisplay.getTranslation().getZ();
+                        xOffset = displayTranslation.getX();
+                        yOffset = displayTranslation.getY() + 0.2f;
+                        zOffset = displayTranslation.getZ();
                     }
                 }
             }
