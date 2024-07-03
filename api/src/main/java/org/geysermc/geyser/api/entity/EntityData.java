@@ -81,4 +81,9 @@ public interface EntityData {
      * @return whether the movement is locked
      */
     boolean isMovementLocked();
+
+    /**
+     * Allows switching the current items in the main and offhand.
+     */
+    void switchHands();
 }
