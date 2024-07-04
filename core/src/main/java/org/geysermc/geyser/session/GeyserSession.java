@@ -487,9 +487,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private float walkSpeed;
 
     @Setter
-    private boolean requestedPacks = false;
-
-    @Setter
     private boolean optionalPackLoaded = false;
     /**
      * Caches current rain status.

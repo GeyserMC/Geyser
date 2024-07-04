@@ -221,6 +221,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean sendPacksRequested = false;
     private boolean haveAllPacksRequested = false;
+    private boolean requestedPackData = false;
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
@@ -228,9 +229,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             case COMPLETED:
                 if (!sendPacksRequested && haveAllPacksRequested && GeyserImpl.getInstance().getConfig().isForceResourcePacks()) {
-                    session.setRequestedPacks(true);
+                    requestedPackData = true;
                 }
-                if (session.isRequestedPacks()) {
+                if (requestedPackData) {
                     session.setOptionalPackLoaded(this.optionalPackLoaded);
                 }
                 geyser.getLogger().debug("Geyser Optional Pack loaded: " + (session.isOptionalPackLoaded() ? "Yes" : "No"));
@@ -245,7 +246,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             case SEND_PACKS:
                 sendPacksRequested = true;
-                session.setRequestedPacks(true);
+                requestedPackData = true;
                 packsToSent.addAll(packet.getPackIds());
                 sendPackDataInfo(packsToSent.pop());
                 break;
@@ -326,7 +327,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        session.setRequestedPacks(true);
+        requestedPackData = true;
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
         PackCodec codec = pack.codec();
