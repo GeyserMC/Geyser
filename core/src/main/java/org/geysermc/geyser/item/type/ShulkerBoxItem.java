@@ -81,7 +81,7 @@ public class ShulkerBoxItem extends BlockItem {
                 } else {
                     // Manual checks for potions/tipped arrows
                     if (boxMapping.getJavaItem() instanceof PotionItem || boxMapping.getJavaItem() instanceof ArrowItem) {
-                        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+                        PotionContents potionContents = boxComponents.get(DataComponentType.POTION_CONTENTS);
                         if (potionContents != null) {
                             Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                             if (potion != null) {
