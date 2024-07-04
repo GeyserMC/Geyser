@@ -145,8 +145,15 @@ public final class BedrockItemBuilder {
      * Creates item NBT to nest within NBT with name, count, and damage set.
      */
     public static NbtMapBuilder createItemNbt(ItemMapping mapping, int count, int damage) {
+        return createItemNbt(mapping.getBedrockIdentifier(), count, damage);
+    }
+
+    /**
+     * Creates item NBT to nest within NBT with name, count, and damage set.
+     */
+    public static NbtMapBuilder createItemNbt(String bedrockIdentifier, int count, int damage) {
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putString("Name", mapping.getBedrockIdentifier());
+        builder.putString("Name", bedrockIdentifier);
         builder.putByte("Count", (byte) count);
         builder.putShort("Damage", (short) damage);
         return builder;
