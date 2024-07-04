@@ -367,7 +367,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
                 return;
             }
-            // Half of these are listed in MCProtocolLib as Trail instead of Trial for some reason
+            // Half of these are listed in Cloudburst as Trail instead of Trial for some reason
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER -> {
                 // Particles spawn here
                 TrialSpawnerDetectEventData eventData = (TrialSpawnerDetectEventData) packet.getData();
