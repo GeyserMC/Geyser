@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -46,6 +47,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.BonemealGrowEventData;
@@ -62,6 +64,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.UnknownLevelEve
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 @Translator(packet = ClientboundLevelEventPacket.class)
@@ -378,13 +381,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 effectPacket.setData(eventData.getDetectedPlayers());
             }
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER_OMINOUS -> {
-                /*
-                    Particles dont spawn here for some reason, only sound plays
-                    This seems to be a bug in v1.21.0 and v1.21.1: see https://bugs.mojang.com/browse/MCPE-181465
-                    If this gets fixed, the positioning should be the same as normal activation.
-                   */
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_DETECTION_CHARGED);
                 effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+                /*
+                    Particles don't spawn here for some reason, only sound plays
+                    This seems to be a bug in v1.21.0 and v1.21.1: see https://bugs.mojang.com/browse/MCPE-181465
+                    If this gets fixed, the spawnOminousTrialSpawnerParticles function can be removed.
+                    The positioning should be the same as normal activation.
+                */
+                spawnOminousTrialSpawnerParticles(session, pos);
             }
             case PARTICLES_TRIAL_SPAWNER_BECOME_OMINOUS -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_BECOME_CHARGED);
             case PARTICLES_TRIAL_SPAWNER_SPAWN, PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> {
@@ -445,5 +450,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             facing |= 1 << 5;
         }
         return facing;
+    }
+    private static void spawnOminousTrialSpawnerParticles(GeyserSession session, Vector3f pos){
+        int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+        SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
+        stringPacket.setIdentifier("minecraft:trial_spawner_detection_ominous");
+        stringPacket.setDimensionId(dimensionId);
+        stringPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+        stringPacket.setMolangVariablesJson(Optional.empty());
+        stringPacket.setUniqueEntityId(-1);
+        session.sendUpstreamPacket(stringPacket);
     }
 }
