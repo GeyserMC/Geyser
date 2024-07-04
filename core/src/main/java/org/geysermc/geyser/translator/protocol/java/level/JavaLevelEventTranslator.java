@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -59,10 +58,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.RecordEventData
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.SculkBlockChargeEventData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.SmokeEventData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.TrialSpawnerDetectEventData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.UnknownLevelEventData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 @Translator(packet = ClientboundLevelEventPacket.class)
@@ -308,6 +307,10 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
+            case ANIMATION_SPAWN_COBWEB -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.ANIMATION_SPAWN_COBWEB);
+            case ANIMATION_VAULT_ACTIVATE -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.ANIMATION_VAULT_ACTIVATE);
+            case ANIMATION_VAULT_DEACTIVATE -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.ANIMATION_VAULT_DEACTIVATE);
+            case ANIMATION_VAULT_EJECT_ITEM -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.ANIMATION_VAULT_EJECT_ITEM);
             case DRIPSTONE_DRIP -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DRIPSTONE_DRIP);
             case PARTICLES_ELECTRIC_SPARK -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
             case PARTICLES_AND_SOUND_WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
@@ -367,18 +370,32 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             // Half of these are listed in MCProtocolLib as Trail instead of Trial for some reason
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER -> {
                 // Particles spawn here
+                TrialSpawnerDetectEventData eventData = (TrialSpawnerDetectEventData) packet.getData();
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_DETECTION);
+                // 1.0 is used here for Y instead of 0.5 to match Java Positioning.
+                // 0.5 is what the BDS uses for positioning.
                 effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+                effectPacket.setData(eventData.getDetectedPlayers());
             }
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER_OMINOUS -> {
-                // Particles dont spawn here for some reason, only sound plays
+                /*
+                    Particles dont spawn here for some reason, only sound plays
+                    This seems to be a bug in v1.21.0 and v1.21.1: see https://bugs.mojang.com/browse/MCPE-181465
+                    If this gets fixed, the positioning should be the same as normal activation.
+                   */
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_DETECTION_CHARGED);
-                //effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+                effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
             }
             case PARTICLES_TRIAL_SPAWNER_BECOME_OMINOUS -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_BECOME_CHARGED);
-            case PARTICLES_TRIAL_SPAWNER_SPAWN, PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_SPAWNING);
+            case PARTICLES_TRIAL_SPAWNER_SPAWN, PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> {
+                // This should be its own class in MCProtocolLib.
+                // if 0, use Orange Flames,
+                // if 1, use Blue Flames for ominous spawners
+                UnknownLevelEventData eventData = (UnknownLevelEventData) packet.getData();
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_SPAWNING);
+                effectPacket.setData(eventData.getData());
+            }
             case PARTICLES_TRIAL_SPAWNER_SPAWN_ITEM -> effectPacket.setType(LevelEvent.PARTICLE_TRAIL_SPAWNER_EJECTING);
-
             case SOUND_STOP_JUKEBOX_SONG -> {
                 String bedrockSound = session.getWorldCache().removeActiveRecord(origin);
                 if (bedrockSound == null) {
