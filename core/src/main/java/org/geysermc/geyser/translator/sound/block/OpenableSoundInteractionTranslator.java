@@ -55,11 +55,12 @@ public class OpenableSoundInteractionTranslator implements BlockSoundInteraction
         if (identifier.contains("_door")) {
             return open ? SoundEvent.DOOR_OPEN : SoundEvent.DOOR_CLOSE;
         }
-        else if (identifier.contains("_trapdoor")){
+        
+        if (identifier.contains("_trapdoor")) {
             return open ? SoundEvent.TRAPDOOR_OPEN : SoundEvent.TRAPDOOR_CLOSE;
         }
-        else { // Fence Gate
-            return open ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE;
-        }
+        
+        // Fence Gate
+        return open ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE;
     }
 }
