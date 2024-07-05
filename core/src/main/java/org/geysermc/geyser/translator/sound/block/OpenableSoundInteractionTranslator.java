@@ -26,40 +26,40 @@
 package org.geysermc.geyser.translator.sound.block;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
-import org.geysermc.geyser.util.SoundUtils;
 
-@SoundTranslator(blocks = "door")
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+@SoundTranslator(blocks = {"door", "fence_gate"})
+public class OpenableSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
+    public void translate(GeyserSession session, Vector3f position, BlockState state) {
+        String identifier = state.toString();
         if (identifier.contains("iron")) return;
-        boolean open = identifier.contains("open=true");
-        boolean trapdoor = identifier.contains("_trapdoor");
-        String materialIdentifier = getMaterialIdentifier(identifier);
-        float volume = 1.0f;
-        // Sounds are quieter for wooden trapdoors and bamboo wood doors
-        if ((trapdoor && materialIdentifier.equals("block.wooden")) || (!trapdoor && materialIdentifier.equals("block.bamboo_wood"))) {
-            volume = 0.9f;
-        }
-        String doorType = trapdoor ? "_trapdoor" : "_door";
-        String status = open ? ".open" : ".close";
-        SoundUtils.playSound(session, "minecraft:" + materialIdentifier + doorType + status, position, volume, 1.0f);
+        SoundEvent event = getSound(identifier.contains("open=true"), identifier);
+        LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
+        levelSoundEventPacket.setPosition(position.add(0.5, 0.5, 0.5));
+        levelSoundEventPacket.setBabySound(false);
+        levelSoundEventPacket.setRelativeVolumeDisabled(false);
+        levelSoundEventPacket.setIdentifier(":");
+        levelSoundEventPacket.setSound(event);
+        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlock(state).getRuntimeId());
+        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 
-    private static String getMaterialIdentifier(String identifier) {
-        String type = "block.wooden";
-        if (identifier.contains("copper_")) {
-            type = "block.copper";
-        } else if (identifier.contains("bamboo_")) {
-            type = "block.bamboo_wood";
-        } else if (identifier.contains("cherry_")) {
-            type = "block.cherry_wood";
-        } else if (identifier.contains("crimson_") || identifier.contains("warped_")) {
-            type = "block.nether_wood";
+    private SoundEvent getSound(boolean open, String identifier) {
+        if (identifier.contains("_door")) {
+            return open ? SoundEvent.DOOR_OPEN : SoundEvent.DOOR_CLOSE;
         }
-        return type;
+        else if (identifier.contains("_trapdoor")){
+            return open ? SoundEvent.TRAPDOOR_OPEN : SoundEvent.TRAPDOOR_CLOSE;
+        }
+        else { // Fence Gate
+            return open ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE;
+        }
     }
 }

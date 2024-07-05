@@ -84,9 +84,9 @@ public final class SoundUtils {
         return identifier;
     }
 
-    private static void sendPlaySoundPacket(GeyserSession session, String bedrockIdentifier, Vector3f position, float volume, float pitch) {
+    private static void playSound(GeyserSession session, String bedrockName, Vector3f position, float volume, float pitch) {
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-        playSoundPacket.setSound(bedrockIdentifier);
+        playSoundPacket.setSound(bedrockName);
         playSoundPacket.setPosition(position);
         playSoundPacket.setVolume(volume);
         playSoundPacket.setPitch(pitch);
@@ -96,35 +96,24 @@ public final class SoundUtils {
     /**
      * Translates and plays a Java Builtin Sound for a Bedrock client
      *
-     * @param session   the Bedrock client session.
+     * @param session the Bedrock client session.
      * @param javaSound the builtin sound to play
-     * @param position  the position
-     * @param pitch     the pitch
+     * @param position the position
+     * @param pitch the pitch
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
-        playSound(session, javaSound.getName(), position, volume, pitch);
-    }
+        String soundIdentifier = removeMinecraftNamespace(javaSound.getName());
 
-    /**
-     * Translates and plays a Java Builtin Sound by identifier for a Bedrock client
-     *
-     * @param session         the Bedrock client session.
-     * @param soundIdentifier the sound identifier to play
-     * @param position        the position
-     * @param pitch           the pitch
-     */
-    public static void playSound(GeyserSession session, String soundIdentifier, Vector3f position, float volume, float pitch) {
-        soundIdentifier = removeMinecraftNamespace(soundIdentifier);
         SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + soundIdentifier + " not found; assuming custom.");
-            sendPlaySoundPacket(session, soundIdentifier, position, volume, pitch);
+            playSound(session, soundIdentifier, position, volume, pitch);
             return;
         }
 
         if (soundMapping.getPlaysound() != null) {
             // We always prefer the PlaySound mapping because we can control volume and pitch
-            sendPlaySoundPacket(session, soundMapping.getPlaysound(), position, volume, pitch);
+            playSound(session, soundMapping.getPlaysound(), position, volume, pitch);
             return;
         }
 
@@ -144,7 +133,7 @@ public final class SoundUtils {
         }
         if (sound == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + soundIdentifier + "' to mappings '" + soundMapping.getBedrock()
-                    + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
+                + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
             return;
         }
 
