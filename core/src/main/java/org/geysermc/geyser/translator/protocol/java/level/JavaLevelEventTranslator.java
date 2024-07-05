@@ -382,11 +382,10 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
                 return;
             }
-            // Half of these are listed in Cloudburst as Trail instead of Trial for some reason
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER -> {
                 // Particles spawn here
                 TrialSpawnerDetectEventData eventData = (TrialSpawnerDetectEventData) packet.getData();
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_DETECTION);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_DETECTION);
                 // 0.75 is used here for Y instead of 0.5 to match Java Positioning.
                 // 0.5 is what the BDS uses for positioning.
                 effectPacket.setPosition(pos.sub(0.5f, 0.75f, 0.5f));
@@ -414,12 +413,12 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 // if 0, use Orange Flames,
                 // if 1, use Blue Flames for ominous spawners
                 UnknownLevelEventData eventData = (UnknownLevelEventData) packet.getData();
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_SPAWNING);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_SPAWNING);
                 effectPacket.setData(eventData.getData());
             }
             case PARTICLES_TRIAL_SPAWNER_SPAWN -> {
                 UnknownLevelEventData eventData = (UnknownLevelEventData) packet.getData();
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_SPAWNING);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_SPAWNING);
                 effectPacket.setData(eventData.getData());
 
                 Random random = ThreadLocalRandom.current();
@@ -430,9 +429,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
                 session.sendUpstreamPacket(playSoundPacket);
             }
-            case PARTICLES_TRIAL_SPAWNER_SPAWN_ITEM -> {
-                effectPacket.setType(LevelEvent.PARTICLE_TRAIL_SPAWNER_EJECTING);
-            }
+            case PARTICLES_TRIAL_SPAWNER_SPAWN_ITEM -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_EJECTING);
             case SOUND_STOP_JUKEBOX_SONG -> {
                 String bedrockSound = session.getWorldCache().removeActiveRecord(origin);
                 if (bedrockSound == null) {
