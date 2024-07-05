@@ -375,14 +375,14 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 // Particles spawn here
                 TrialSpawnerDetectEventData eventData = (TrialSpawnerDetectEventData) packet.getData();
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRAIL_SPAWNER_DETECTION);
-                // 1.0 is used here for Y instead of 0.5 to match Java Positioning.
+                // 0.85 is used here for Y instead of 0.5 to match Java Positioning.
                 // 0.5 is what the BDS uses for positioning.
-                effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+                effectPacket.setPosition(pos.sub(0.5f, 0.85f, 0.5f));
                 effectPacket.setData(eventData.getDetectedPlayers());
             }
             case PARTICLES_TRIAL_SPAWNER_DETECT_PLAYER_OMINOUS -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_DETECTION_CHARGED);
-                effectPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+                effectPacket.setPosition(pos.sub(0.5f, 0.85f, 0.5f));
                 /*
                     Particles don't spawn here for some reason, only sound plays
                     This seems to be a bug in v1.21.0 and v1.21.1: see https://bugs.mojang.com/browse/MCPE-181465
@@ -391,7 +391,13 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 */
                 spawnOminousTrialSpawnerParticles(session, pos);
             }
-            case PARTICLES_TRIAL_SPAWNER_BECOME_OMINOUS -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_BECOME_CHARGED);
+            case PARTICLES_TRIAL_SPAWNER_BECOME_OMINOUS -> {
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_BECOME_CHARGED);
+                effectPacket.setPosition(pos.sub(0.5f, 0.5f, 0.5f));
+                // Same issue as above here
+                spawnOminousTrialSpawnerParticles(session, pos);
+
+            }
             case PARTICLES_TRIAL_SPAWNER_SPAWN, PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> {
                 // This should be its own class in MCProtocolLib.
                 // if 0, use Orange Flames,
@@ -451,12 +457,13 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         }
         return facing;
     }
-    private static void spawnOminousTrialSpawnerParticles(GeyserSession session, Vector3f pos){
+
+    private static void spawnOminousTrialSpawnerParticles(GeyserSession session, Vector3f pos) {
         int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
         stringPacket.setIdentifier("minecraft:trial_spawner_detection_ominous");
         stringPacket.setDimensionId(dimensionId);
-        stringPacket.setPosition(pos.sub(0.5f, 1.0f, 0.5f));
+        stringPacket.setPosition(pos.sub(0.5f, 0.85f, 0.5f));
         stringPacket.setMolangVariablesJson(Optional.empty());
         stringPacket.setUniqueEntityId(-1);
         session.sendUpstreamPacket(stringPacket);
