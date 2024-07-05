@@ -408,7 +408,6 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 effectPacket.setPosition(pos.sub(0.5f, 0.5f, 0.5f));
                 // Same issue as above here
                 spawnOminousTrialSpawnerParticles(session, pos);
-
             }
             case PARTICLES_TRIAL_SPAWNER_SPAWN_MOB_AT -> {
                 // This should be its own class in MCProtocolLib.
