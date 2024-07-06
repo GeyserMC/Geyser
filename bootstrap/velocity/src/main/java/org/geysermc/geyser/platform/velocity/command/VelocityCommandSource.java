@@ -93,7 +93,8 @@ public class VelocityCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+        // Handle blank permissions ourselves, as cloud only handles empty ones
+        return permission.isBlank() || handle.hasPermission(permission);
     }
 
     @Override

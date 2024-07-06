@@ -266,7 +266,8 @@ public class CommandRegistry implements EventRegistrar {
     }
 
     public boolean hasPermission(GeyserCommandSource source, String permission) {
-        return cloud.hasPermission(source, permission);
+        // Handle blank permissions ourselves, as cloud only handles empty ones
+        return permission.isBlank() || cloud.hasPermission(source, permission);
     }
 
     /**

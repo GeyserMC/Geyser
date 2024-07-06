@@ -103,8 +103,12 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
         // GeyserLogger#hasPermission always returns true
         // GeyserSession#hasPermission delegates to this method,
         // which is why this method doesn't just call GeyserCommandSource#hasPermission
-
         if (sender.isConsole()) {
+            return true;
+        }
+
+        // Handle blank permissions ourselves, as cloud only handles empty ones
+        if (permission.isBlank()) {
             return true;
         }
 
