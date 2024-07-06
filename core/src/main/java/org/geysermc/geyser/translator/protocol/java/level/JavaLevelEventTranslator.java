@@ -348,7 +348,6 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     );
                 } else {
                     levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE_POP);
-                    levelEventPacket.setTag("");
                     levelEventPacket.setTag(
                         NbtMap.builder()
                             .putInt("x", packet.getPosition().getX())
