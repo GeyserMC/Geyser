@@ -38,9 +38,9 @@ public class DoorBlock extends Block {
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         // Needed to check whether we must force the client to update the door state.
-        String double_block_half_state = state.getValue(Properties.DOUBLE_BLOCK_HALF);
+        String doubleBlockHalf = state.getValue(Properties.DOUBLE_BLOCK_HALF);
 
-        if (double_block_half_state.equals("lower")) {
+        if (doubleBlockHalf.equals("lower")) {
             BlockState oldBlockState = session.getGeyser().getWorldManager().blockAt(session, position);
             // If these are the same, it means that we already updated the lower door block (manually in the workaround below),
             // and we do not need to update the block in the cache/on the client side using the super.updateBlock() method again.
@@ -52,7 +52,7 @@ public class DoorBlock extends Block {
 
         super.updateBlock(session, state, position);
 
-        if (double_block_half_state.equals("upper")) {
+        if (doubleBlockHalf.equals("upper")) {
             // Update the lower door block as Bedrock client doesn't like door to be closed from the top
             // See https://github.com/GeyserMC/Geyser/issues/4358
             Vector3i belowDoorPosition = position.sub(0, 1, 0);
