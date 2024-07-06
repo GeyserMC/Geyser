@@ -224,10 +224,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(vectorFloat);
 
-                Direction direction = Direction.VALUES[packet.getFace()];
-                spawnBlockBreakParticles(session, direction, vector, BlockState.of(session.getGeyser().getWorldManager().getBlockAt(session, vector)));
+                BlockState blockState = BlockState.of(breakingBlock);
 
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(breakingBlock).block()) * 20;
+                Direction direction = Direction.VALUES[packet.getFace()];
+                spawnBlockBreakParticles(session, direction, vector, blockState);
+
+                double breakTime = BlockUtils.getSessionBreakTime(session, blockState.block()) * 20;
                 // If the block is custom, we must keep track of when it should break ourselves
                 long blockBreakStartTime = session.getBlockBreakStartTime();
                 if (blockBreakStartTime != 0) {
