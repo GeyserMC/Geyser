@@ -62,8 +62,7 @@ public record Enchantment(String identifier,
         String exclusiveSet = data.getString("exclusive_set", null);
         EnchantmentTag exclusiveSetTag = exclusiveSet == null ? null : EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(MinecraftKey.key(exclusiveSet.substring(1)));
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(entry.getId().asString());
-        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(data) : null;
-
+        String description = "";
         return new Enchantment(entry.getId().asString(), effects, ItemTag.ALL_ITEM_TAGS.get(MinecraftKey.key(supportedItems)), maxLevel,
                 description, anvilCost, exclusiveSetTag, bedrockEnchantment);
     }
