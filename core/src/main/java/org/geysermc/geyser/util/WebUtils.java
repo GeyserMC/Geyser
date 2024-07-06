@@ -199,7 +199,7 @@ public class WebUtils {
                 return ((String) attr.get(0)).split(" ");
             }
         } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-            if (geyser.getConfig().isDebugMode()) {
+            if (geyser.config().debugMode()) {
                 geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
                 ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }

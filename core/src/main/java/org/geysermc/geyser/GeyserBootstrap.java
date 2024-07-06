@@ -28,6 +28,7 @@ package org.geysermc.geyser;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
@@ -72,7 +73,16 @@ public interface GeyserBootstrap {
      *
      * @return The current GeyserConfiguration
      */
-    GeyserConfiguration getGeyserConfig();
+    default GeyserConfiguration getGeyserConfig() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the current GeyserConfig
+     *
+     * @return The current GeyserConfig
+     */
+    GeyserConfig config();
 
     /**
      * Returns the current GeyserLogger
@@ -189,4 +199,9 @@ public interface GeyserBootstrap {
      * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
      */
     boolean testFloodgatePluginPresent();
+
+    /**
+     * TEMPORARY - will be removed after The Merge:tm:.
+     */
+    Path getFloodgateKeyPath();
 }

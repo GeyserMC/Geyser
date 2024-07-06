@@ -1,5 +1,6 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
+bstats = "3.0.2"
 cumulus = "1.1.2"
 configurate = "4.2.0-GeyserMC-SNAPSHOT"
 erosion = "1.1-20240515.191456-1"
@@ -129,6 +130,8 @@ protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", 
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+
+bstats = { group = "org.bstats", name = "bstats-base", version.ref = "bstats"}
 
 # plugins
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }

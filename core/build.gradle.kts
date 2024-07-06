@@ -73,6 +73,8 @@ dependencies {
     annotationProcessor(projects.ap)
 
     api(libs.events)
+
+    api(libs.bstats)
 }
 
 tasks.processResources {

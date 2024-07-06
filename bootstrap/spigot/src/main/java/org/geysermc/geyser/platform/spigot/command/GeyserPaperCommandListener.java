@@ -76,7 +76,7 @@ public final class GeyserPaperCommandListener implements Listener {
             return false;
         }
 
-        if (GeyserImpl.getInstance().getConfig().isUseDirectConnection()) {
+        if (GeyserImpl.getInstance().config().asPluginConfig().orElseThrow().useDirectConnection()) {
             InetSocketAddress address = player.getAddress();
             if (address != null) {
                 return address.getPort() != 0;

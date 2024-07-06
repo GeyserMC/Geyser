@@ -122,7 +122,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         int index = ch.pipeline().names().indexOf("encoder");
                         String baseName = index != -1 ? "encoder" : "outbound_config";
 
-                        if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                        if (bootstrap.config().asPluginConfig().orElseThrow().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
                             ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
                         }
                     }
@@ -157,7 +157,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 }
                 break;
             } catch (Exception e) {
-                if (bootstrap.getGeyserConfig().isDebugMode()) {
+                if (bootstrap.config().debugMode()) {
                     bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!");
                     e.printStackTrace();
                 }
@@ -176,8 +176,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
      */
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
         MinecraftProtocol protocol = new MinecraftProtocol();
-        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().address(),
-                bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
+        LocalSession session = new LocalSession(bootstrap.config().java().address(),
+                bootstrap.config().java().port(), this.serverSocketAddress,
                 InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();
         session.disconnect("");

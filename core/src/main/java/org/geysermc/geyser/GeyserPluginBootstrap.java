@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.bungeecord;
+package org.geysermc.geyser;
 
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PostLoginEvent;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.event.EventHandler;
-import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
-import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 
-public final class GeyserBungeeUpdateListener implements Listener {
-
-    @EventHandler
-    public void onPlayerJoin(final PostLoginEvent event) {
-        if (GeyserImpl.getInstance().config().notifyOnNewBedrockUpdate()) {
-            final ProxiedPlayer player = event.getPlayer();
-            if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
-                VersionCheckUtils.checkForGeyserUpdate(() -> new BungeeCommandSource(player));
-            }
-        }
-    }
+/**
+ * Used in any instance where Geyser is directly attached to a server instance of some sort.
+ */
+public interface GeyserPluginBootstrap extends GeyserBootstrap {
+    @Override
+    GeyserPluginConfig config();
 }

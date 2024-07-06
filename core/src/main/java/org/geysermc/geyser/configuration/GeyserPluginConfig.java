@@ -32,6 +32,8 @@ import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
+import java.io.File;
+
 @ConfigSerializable
 public interface GeyserPluginConfig extends GeyserConfig {
     @Override
@@ -88,6 +90,10 @@ public interface GeyserPluginConfig extends GeyserConfig {
             return true; // No need to worry about suspicious behavior flagging the server.
         }
     }
+
+    @Override
+    @Hidden
+    String floodgateKeyFile();
 
     @Comment("""
             Use server API methods to determine the Java server's MOTD and ping passthrough.

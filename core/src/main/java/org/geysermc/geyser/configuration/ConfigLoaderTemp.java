@@ -25,18 +25,21 @@
 
 package org.geysermc.geyser.configuration;
 
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.NodePath;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.function.Consumer;
 
-public class ConfigLoaderTemp {
+import static org.spongepowered.configurate.NodePath.path;
+import static org.spongepowered.configurate.transformation.TransformAction.remove;
+import static org.spongepowered.configurate.transformation.TransformAction.rename;
+
+public final class ConfigLoaderTemp {
     private static final String HEADER = """
             --------------------------------
             Geyser Configuration File
@@ -51,35 +54,81 @@ public class ConfigLoaderTemp {
             In most cases, especially with server hosting providers, further hosting-specific configuration is required.
             --------------------------------""";
 
-    public static <T extends GeyserConfig> T load(Class<T> configClass) throws IOException {
-        var loader = YamlConfigurationLoader.builder()
-                .file(new File("newconfig.yml"))
-                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options.header(HEADER)))
-                .build();
-        ConfigurationNode node = loader.load();
-        // temp fix for node.virtual() being broken
-        var virtual = !Files.exists(Path.of("newconfig.yml"));
+    public static <T extends GeyserConfig> T load(File file, Class<T> configClass) throws IOException {
+        return load(file, configClass, null);
+    }
 
-        // TODO needed or else Configurate breaks
+    public static <T extends GeyserConfig> T load(File file, Class<T> configClass, @Nullable Consumer<CommentedConfigurationNode> transformer) throws IOException {
+        var loader = YamlConfigurationLoader.builder()
+                .file(file)
+                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options
+                    .header(HEADER)
+                    .serializers(builder -> builder.register(new LowercaseEnumSerializer()))))
+                .build();
+        var node = loader.load();
+        // temp fix for node.virtual() being broken
+        boolean virtual = file.exists();
+
+        // Note for Tim? Needed or else Configurate breaks.
         var migrations = ConfigurationTransformation.versionedBuilder()
+            .versionKey("config-version")
                 // Pre-Configurate
                 .addVersion(5, ConfigurationTransformation.builder()
-                        .addAction(NodePath.path("legacyPingPassthrough"), (path, value) -> {
-                            // Invert value
-                            value.set(Boolean.FALSE.equals(value.get(boolean.class)));
-                            return new Object[]{"integratedPingPassthrough"};
-                        })
-                        .addAction(NodePath.path("remote"), (path, value) ->
-                                new Object[]{"java"})
-                        .build())
+                    .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
+                        // Invert value
+                        value.set(!value.getBoolean());
+                        return new Object[]{"integrated-ping-passthrough"};
+                    })
+                    .addAction(path("remote"), rename("java"))
+                    .addAction(path("floodgate-key-file"), (path, value) -> {
+                        // Elimate any legacy config values
+                        if ("public-key.pem".equals(value.getString())) {
+                            value.set("key.pem");
+                        }
+                        return null;
+                    })
+                    .addAction(path("default-locale"), (path, value) -> {
+                        if (value.getString() == null) {
+                            value.set("system");
+                        }
+                        return null;
+                    })
+                    .addAction(path("show-cooldown"), (path, value) -> {
+                        String s = value.getString();
+                        if (s != null) {
+                            switch (s) {
+                                case "true" -> value.set("title");
+                                case "false" -> value.set("disabled");
+                            }
+                        }
+                        return null;
+                    })
+                    .addAction(path("bedrock", "motd1"), rename("primary-motd"))
+                    .addAction(path("bedrock", "motd2"), rename("secondary-motd"))
+                    // Legacy config values
+                    .addAction(path("emote-offhand-workaround"), remove())
+                    .addAction(path("allow-third-party-capes"), remove())
+                    .addAction(path("allow-third-party-ears"), remove())
+                    .addAction(path("general-thread-pool"), remove())
+                    .addAction(path("cache-chunks"), remove())
+                    .build())
                 .build();
 
+        int currentVersion = migrations.version(node);
         migrations.apply(node);
+        int newVersion = migrations.version(node);
 
         T config = node.get(configClass);
-        System.out.println(config);
 
-        loader.save(node);
+        if (virtual || currentVersion != newVersion) {
+            loader.save(node);
+        }
+
+        if (transformer != null) {
+            // Do not let the transformer change the node.
+            transformer.accept(node);
+            config = node.get(configClass);
+        }
 
         return config;
     }

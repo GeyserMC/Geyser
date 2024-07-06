@@ -56,7 +56,6 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
             // If the LAN is opened, starts Geyser.
             GeyserModBootstrap instance = GeyserModBootstrap.getInstance();
             instance.setServer((MinecraftServer) (Object) this);
-            instance.getGeyserConfig().getRemote().setPort(port);
             instance.onGeyserEnable();
             // Ensure player locale has been loaded, in case it's different from Java system language
             GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);

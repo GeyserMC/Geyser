@@ -32,7 +32,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
@@ -86,7 +86,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 return;
             }
         } else {
-            port = geyser.getConfig().getBedrock().broadcastPort();
+            port = geyser.config().bedrock().broadcastPort();
         }
         String ip = fullAddress[0];
 
@@ -114,41 +114,41 @@ public class ConnectionTestCommand extends GeyserCommand {
             return;
         }
 
-        GeyserConfiguration config = geyser.getConfig();
+        GeyserConfig config = geyser.config();
 
         // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
-        if (config.getBedrock().broadcastPort() == config.getBedrock().port()) {
-            if (port != config.getBedrock().port()) {
+        if (config.bedrock().broadcastPort() == config.bedrock().port()) {
+            if (port != config.bedrock().port()) {
                 if (fullAddress.length == 2) {
                     sender.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
-                            + config.getBedrock().port() + ")");
+                            + config.bedrock().port() + ")");
                     sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
-                    if (config.getBedrock().isCloneRemotePort()) {
+                    if (config.asPluginConfig().map(pluginConfig -> pluginConfig.bedrock().cloneRemotePort()).orElse(false)) {
                         sender.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
                     }
                 } else {
                     sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
                             "and the default port 19132 does not match the port in your Geyser configuration ("
-                            + config.getBedrock().port() + ")!");
+                            + config.bedrock().port() + ")!");
                     sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
                 }
             }
         } else {
-            if (config.getBedrock().broadcastPort() != port) {
+            if (config.bedrock().broadcastPort() != port) {
                 sender.sendMessage("The port you are testing with (" + port + ") is not the same as the broadcast port set in your Geyser configuration ("
-                        + config.getBedrock().broadcastPort() + "). ");
+                        + config.bedrock().broadcastPort() + "). ");
                 sender.sendMessage("You ONLY need to change the broadcast port if clients connects with a port different from the port Geyser is running on.");
                 sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `broadcast-port` in the config.");
             }
         }
 
         // Issue: is the `bedrock` `address` in the config different?
-        if (!config.getBedrock().address().equals("0.0.0.0")) {
+        if (!config.bedrock().address().equals("0.0.0.0")) {
             sender.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
         // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
-        if (config.getBedrock().isEnableProxyProtocol()) {
+        if (config.bedrock().enableProxyProtocol()) {
             sender.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }

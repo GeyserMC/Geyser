@@ -74,11 +74,11 @@ public class SkullCache {
 
     public SkullCache(GeyserSession session) {
         this.session = session;
-        this.maxVisibleSkulls = session.getGeyser().getConfig().getMaxVisibleCustomSkulls();
+        this.maxVisibleSkulls = session.getGeyser().config().maxVisibleCustomSkulls();
         this.cullingEnabled = this.maxVisibleSkulls != -1;
 
         // Normal skulls are not rendered beyond 64 blocks
-        int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
+        int distance = Math.min(session.getGeyser().config().customSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
     }
 
@@ -98,7 +98,7 @@ public class SkullCache {
                 }
             } catch (IOException e) {
                 session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
                     e.printStackTrace();
                 }
             }

@@ -55,7 +55,7 @@ public class CustomSkullRegistryPopulator {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
         BlockRegistries.CUSTOM_SKULLS.set(Object2ObjectMaps.emptyMap());
 
-        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (!GeyserImpl.getInstance().config().addNonBedrockItems()) {
             return;
         }
 
@@ -65,7 +65,6 @@ public class CustomSkullRegistryPopulator {
             Path skullConfigPath = bootstrap.getConfigFolder().resolve("custom-skulls.yml");
             File skullConfigFile = FileUtils.fileOrCopiedFromResource(skullConfigPath.toFile(), "custom-skulls.yml", Function.identity(), bootstrap);
             skullConfig = FileUtils.loadConfigNew(skullConfigFile, GeyserCustomSkullConfiguration.class);
-            System.out.println(skullConfig);
         } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
             return;

@@ -48,6 +48,10 @@ public final class JsonUtils {
         return (JsonObject) new JsonParser().parse(new InputStreamReader(stream));
     }
 
+    public static JsonObject parseJson(String s) {
+        return (JsonObject) new JsonParser().parse(s);
+    }
+
     public static <T> T fromJson(InputStream stream, Type type) {
         return GeyserImpl.GSON.fromJson(new InputStreamReader(stream), type);
     }

@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.dump;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.annotations.SerializedName;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -41,7 +40,7 @@ import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
@@ -57,12 +56,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Getter
 public class DumpInfo {
-    @JsonIgnore
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
@@ -71,7 +74,7 @@ public class DumpInfo {
     private final Locale systemLocale;
     private final String systemEncoding;
     private final GitInfo gitInfo;
-    private final GeyserConfiguration config;
+    private final GeyserConfig config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
@@ -92,7 +95,7 @@ public class DumpInfo {
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
-        this.config = GeyserImpl.getInstance().getConfig();
+        this.config = GeyserImpl.getInstance().config();
         this.floodgate = new Floodgate();
 
         String md5Hash = "unknown";
@@ -108,7 +111,7 @@ public class DumpInfo {
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
-            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+            if (GeyserImpl.getInstance().config().debugMode()) {
                 e.printStackTrace();
             }
         }
@@ -280,7 +283,7 @@ public class DumpInfo {
     public record ExtensionInfo(boolean enabled, String name, String version, String apiVersion, String main, List<String> authors) {
     }
 
-    public record GitInfo(String buildNumber, @JsonProperty("git.commit.id.abbrev") String commitHashAbbrev, @JsonProperty("git.commit.id") String commitHash,
-                              @JsonProperty("git.branch") String branchName, @JsonProperty("git.remote.origin.url") String originUrl) {
+    public record GitInfo(String buildNumber, @SerializedName("git.commit.id.abbrev") String commitHashAbbrev, @SerializedName("git.commit.id") String commitHash,
+                              @SerializedName("git.branch") String branchName, @SerializedName("git.remote.origin.url") String originUrl) {
     }
 }

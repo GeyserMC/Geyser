@@ -80,8 +80,8 @@ public class GeyserLocale {
      * Finalize the default locale, now that we know what the default locale should be.
      */
     public static void finalizeDefaultLocale(GeyserImpl geyser) {
-        String newDefaultLocale = geyser.getConfig().getDefaultLocale();
-        if (newDefaultLocale == null) {
+        String newDefaultLocale = geyser.config().defaultLocale();
+        if ("system".equals(newDefaultLocale)) {
             // We want to use the system locale which is already loaded
             return;
         }

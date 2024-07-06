@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.util.CooldownUtils;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
@@ -39,8 +40,9 @@ import org.spongepowered.configurate.interfaces.meta.range.NumericRange;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ConfigSerializable
@@ -49,7 +51,9 @@ public interface GeyserConfig {
 
     JavaConfig java();
 
-    Path floodgateKeyPath();
+    // Cannot be type File yet because we want to hide it in plugin instances.
+    @DefaultString("key.pem")
+    String floodgateKeyFile();
 
     @Comment("""
             For online mode authentication type only.
@@ -108,8 +112,9 @@ public interface GeyserConfig {
             https://cdn.discordapp.com/attachments/613170125696270357/957075682230419466/Screenshot_from_2022-03-25_20-35-08.png
             This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
             This setting can be set to "title", "actionbar" or "false\"""")
-    @DefaultString("title")
-    String showCooldown();
+    default CooldownUtils.CooldownType showCooldown() {
+        return CooldownUtils.CooldownType.TITLE;
+    }
 
     @Comment("Controls if coordinates are shown to players.")
     @DefaultBoolean(true)
@@ -118,9 +123,9 @@ public interface GeyserConfig {
     @Comment("Whether Bedrock players are blocked from performing their scaffolding-style bridging.")
     boolean disableBedrockScaffolding();
 
-    //@DefaultString("disabled")
-    EmoteOffhandWorkaroundOption emoteOffhandWorkaround();
-
+    @Comment("The default locale if we don't have the one the client requested. If set to \"system\", the system's language will be used.")
+    @NonNull
+    @DefaultString("system")
     String defaultLocale();
 
     @Comment("""
@@ -207,13 +212,15 @@ public interface GeyserConfig {
         @Override
         @Comment("The port that will listen for connections")
         @DefaultNumeric(19132)
+        @NumericRange(from = 0, to = 65535)
         int port();
 
         @Override
         @Comment("""
                 The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
-                DO NOT uncomment and change this unless Geyser runs on a different internal port than the one that is used to connect.""")
+                DO NOT change this unless Geyser runs on a different internal port than the one that is used to connect.""")
         @DefaultNumeric(19132)
+        @NumericRange(from = 0, to = 65535)
         int broadcastPort();
 
         void address(String address);
@@ -223,12 +230,20 @@ public interface GeyserConfig {
         void broadcastPort(int broadcastPort);
 
         @Override
+        @Comment("""
+            The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. This is irrelevant if "passthrough-motd" is set to true.
+            If either of these are empty, the respective string will default to "Geyser\"""")
         @DefaultString("Geyser")
         String primaryMotd();
 
         @Override
-        @DefaultString("Another Geyser server.") // TODO migrate or change name
+        @DefaultString("Another Geyser server.")
         String secondaryMotd();
+
+        @Override
+        @Comment("The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.")
+        @DefaultString("Geyser")
+        String serverName();
 
         @Comment("""
                 How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
@@ -237,6 +252,9 @@ public interface GeyserConfig {
         @NumericRange(from = -1, to = 9)
         int compressionLevel();
 
+        @Comment("""
+                Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
+                in front of your Geyser instance.""")
         @DefaultBoolean
         boolean enableProxyProtocol();
 
@@ -245,13 +263,9 @@ public interface GeyserConfig {
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
-        List<String> proxyProtocolWhitelistedIPs();
-
-//        /**
-//         * @return Unmodifiable list of {@link CIDRMatcher}s from {@link #proxyProtocolWhitelistedIPs()}
-//         */
-//        @Exclude
-//        List<CIDRMatcher> whitelistedIPsMatchers();
+        default List<String> proxyProtocolWhitelistedIps() {
+            return Collections.emptyList();
+        }
     }
 
     @ConfigSerializable
@@ -269,6 +283,8 @@ public interface GeyserConfig {
         default AuthType authType() {
             return AuthType.ONLINE;
         }
+
+        void authType(AuthType authType);
 
         @Comment("""
                 Whether to enable PROXY protocol or not while connecting to the server.
@@ -297,17 +313,16 @@ public interface GeyserConfig {
         default boolean resolveSrv() {
             return false;
         }
-
-        void authType(AuthType authType);
     }
 
     @ConfigSerializable
     interface MetricsInfo {
-
+        @Comment("If metrics should be enabled")
         @DefaultBoolean(true)
         boolean enabled();
 
-        default UUID uniqueId() { //TODO rename?
+        @Comment("UUID of server. Don't change!")
+        default UUID uuid() { //TODO rename?
             return UUID.randomUUID();
         }
     }
@@ -333,7 +348,15 @@ public interface GeyserConfig {
     int mtu();
 
     @Comment("Do not change!")
-    default int version() {
+    default int configVersion() {
         return Constants.CONFIG_VERSION;
+    }
+
+    @Exclude
+    default Optional<GeyserPluginConfig> asPluginConfig() {
+        if (this instanceof GeyserPluginConfig config) {
+            return Optional.of(config);
+        }
+        return Optional.empty();
     }
 }

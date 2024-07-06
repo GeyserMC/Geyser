@@ -47,6 +47,8 @@ public final class Constants {
 
     public static final int CONFIG_VERSION = 5;
 
+    public static final int BSTATS_ID = 5273;
+
     static {
         URI wsUri = null;
         try {

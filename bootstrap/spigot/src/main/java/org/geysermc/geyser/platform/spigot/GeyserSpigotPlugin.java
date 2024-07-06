@@ -487,7 +487,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
-            ConfigLoaderTemp.load(GeyserPluginConfig.class);
+            ConfigLoaderTemp.load(new File(getDataFolder(), "config.yml"), GeyserPluginConfig.class);
         } catch (IOException ex) {
             geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();

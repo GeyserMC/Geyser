@@ -27,7 +27,7 @@ package org.geysermc.geyser.network.netty;
 
 import io.netty.channel.ChannelFuture;
 import lombok.Getter;
-import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserPluginBootstrap;
 
 import java.net.SocketAddress;
 
@@ -49,8 +49,8 @@ public abstract class GeyserInjector {
     /**
      * @param bootstrap the bootstrap of the Geyser instance.
      */
-    public void initializeLocalChannel(GeyserBootstrap bootstrap) {
-        if (!bootstrap.getGeyserConfig().isUseDirectConnection()) {
+    public void initializeLocalChannel(GeyserPluginBootstrap bootstrap) {
+        if (!bootstrap.config().useDirectConnection()) {
             bootstrap.getGeyserLogger().debug("Disabling direct injection!");
             return;
         }
@@ -71,9 +71,9 @@ public abstract class GeyserInjector {
     }
 
     /**
-     * The method to implement that is called by {@link #initializeLocalChannel(GeyserBootstrap)} wrapped around a try/catch.
+     * The method to implement that is called by {@link #initializeLocalChannel(GeyserPluginBootstrap)} wrapped around a try/catch.
      */
-    protected abstract void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception;
+    protected abstract void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception;
 
     public void shutdown() {
         if (localChannel != null && localChannel.channel().isOpen()) {
