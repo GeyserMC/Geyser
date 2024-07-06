@@ -51,12 +51,6 @@ public class OpenableSoundInteractionTranslator implements BlockSoundInteraction
         levelSoundEventPacket.setSound(event);
         levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlock(state).getRuntimeId());
         session.sendUpstreamPacket(levelSoundEventPacket);
-        // To ensure that the doors don't do weird double closing sometimes
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEvent.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(-1);
-        session.sendUpstreamPacket(levelEventPacket);
     }
 
     private SoundEvent getSound(boolean open, String identifier) {
