@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfig;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
@@ -67,15 +66,6 @@ public interface GeyserBootstrap {
      * Called when the GeyserBootstrap is shutting down.
      */
     void onGeyserShutdown();
-
-    /**
-     * Returns the current GeyserConfiguration
-     *
-     * @return The current GeyserConfiguration
-     */
-    default GeyserConfiguration getGeyserConfig() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Returns the current GeyserConfig

@@ -36,7 +36,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
@@ -61,7 +60,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Getter
@@ -75,7 +73,6 @@ public class DumpInfo {
     private final String systemEncoding;
     private final GitInfo gitInfo;
     private final GeyserConfig config;
-    private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
     private final HashInfo hashInfo;
@@ -96,7 +93,6 @@ public class DumpInfo {
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         this.config = GeyserImpl.getInstance().config();
-        this.floodgate = new Floodgate();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -230,17 +226,6 @@ public class DumpInfo {
             this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
             this.javaVersions = GameProtocol.getJavaVersions();
             this.javaProtocol = GameProtocol.getJavaProtocolVersion();
-        }
-    }
-
-    @Getter
-    public static class Floodgate {
-        private final Properties gitInfo;
-        private final Object config;
-
-        Floodgate() {
-            this.gitInfo = FloodgateInfoHolder.getGitProperties();
-            this.config = FloodgateInfoHolder.getConfig();
         }
     }
 

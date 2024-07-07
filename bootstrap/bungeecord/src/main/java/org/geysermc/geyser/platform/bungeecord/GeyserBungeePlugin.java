@@ -32,19 +32,20 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.ConfigLoaderTemp;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,13 +57,12 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
+public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
-    private GeyserBungeeConfiguration geyserConfig;
+    private GeyserPluginConfig geyserConfig;
     private GeyserBungeeInjector geyserInjector;
     private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
@@ -95,8 +95,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (!this.loadConfig()) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        this.geyserLogger.setDebug(geyserConfig.debugMode());
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
         this.geyserInjector = new GeyserBungeeInjector(this);
     }
@@ -140,8 +139,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             if (!loadConfig()) {
                 return;
             }
-            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
-            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+            this.geyserLogger.setDebug(geyserConfig.debugMode());
         } else {
             // For consistency with other platforms - create command manager before GeyserImpl#start()
             // This ensures the command events are called before the item/block ones are
@@ -151,7 +149,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
-            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
+            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.bedrock().port()) {
                 try {
                     Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
                     queryField.setAccessible(true);
@@ -169,7 +167,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
+        if (!geyserConfig.integratedPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
@@ -216,8 +214,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserBungeeConfiguration getGeyserConfig() {
-        return geyserConfig;
+    public GeyserPluginConfig config() {
+        return this.geyserConfig;
     }
 
     @Override
@@ -269,11 +267,16 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public boolean testFloodgatePluginPresent() {
-        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            geyserConfig.loadFloodgate(this);
-            return true;
-        }
-        return false;
+        return getProxy().getPluginManager().getPlugin("floodgate") != null;
+    }
+
+    @Override
+    public Path getFloodgateKeyPath() {
+        Plugin floodgate = getProxy().getPluginManager().getPlugin("floodgate");
+        Path geyserDataFolder = getDataFolder().toPath();
+        Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
+
+        return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataFolder, geyserDataFolder, geyserLogger);
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {
@@ -286,14 +289,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
-            if (!getDataFolder().exists()) //noinspection ResultOfMethodCallIgnored
+            if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 getDataFolder().mkdir();
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
+            }
+            this.geyserConfig = ConfigLoaderTemp.load(new File(getDataFolder(), "config.yml"), GeyserPluginConfig.class);
         } catch (IOException ex) {
             geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
             return false;
         }
         return true;

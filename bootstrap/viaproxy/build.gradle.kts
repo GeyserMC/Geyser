@@ -8,6 +8,7 @@ platformRelocate("net.kyori")
 platformRelocate("org.yaml")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("org.cloudburstmc.netty")
+platformRelocate("org.bstats")
 
 // These dependencies are already present on the platform
 provided(libs.viaproxy)

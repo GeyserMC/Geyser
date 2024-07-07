@@ -27,7 +27,7 @@ package org.geysermc.geyser.session.cache;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.CooldownUtils;
 
@@ -72,7 +72,7 @@ public class PreferencesCache {
      * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
      * <br>
      * {@link GeyserSession#isReducedDebugInfo()} is enabled
-     * {@link GeyserConfiguration#isShowCoordinates()} is disabled
+     * {@link GeyserConfig#showCoordinates()} is disabled
      */
     public void updateShowCoordinates() {
         allowShowCoordinates = !session.isReducedDebugInfo() && session.getGeyser().config().showCoordinates();

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
+import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
@@ -60,7 +61,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+    protected void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception {
         Class<?> serverClazz;
         try {
             serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
@@ -122,7 +123,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         int index = ch.pipeline().names().indexOf("encoder");
                         String baseName = index != -1 ? "encoder" : "outbound_config";
 
-                        if (bootstrap.config().asPluginConfig().orElseThrow().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                        if (bootstrap.config().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
                             ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
                         }
                     }

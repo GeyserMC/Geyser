@@ -115,7 +115,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -600,7 +600,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
-     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+     * Only used if {@link GeyserConfig#forwardPlayerPing()} is enabled.
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 

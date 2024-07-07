@@ -25,14 +25,12 @@
 
 package org.geysermc.geyser.configuration;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
+import org.spongepowered.configurate.interfaces.meta.Field;
 import org.spongepowered.configurate.interfaces.meta.Hidden;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
-
-import java.io.File;
 
 @ConfigSerializable
 public interface GeyserPluginConfig extends GeyserConfig {
@@ -54,35 +52,18 @@ public interface GeyserPluginConfig extends GeyserConfig {
     @ConfigSerializable
     interface IntegratedJavaConfig extends JavaConfig {
         @Override
-        @Exclude
-        default String address() {
-            return GeyserImpl.getInstance().getBootstrap().getServerBindAddress();
-        }
+        @Field
+        String address();
 
         @Override
-        default void address(String address) {
-            throw new IllegalStateException();
-        }
+        void address(String address);
 
         @Override
-        @Exclude
-        default int port() {
-            return GeyserImpl.getInstance().getBootstrap().getServerPort();
-        }
+        @Field
+        int port();
 
         @Override
-        default void port(int port) {
-            throw new IllegalStateException();
-        }
-
-//        @Nonnull
-//        @Comment("""
-//                What type of authentication Bedrock players will be checked against when logging into the Java server.
-//                Floodgate allows Bedrock players to join without needing a Java account. It's not recommended to change this.""")
-//        @Override
-//        default AuthType authType() {
-//            return AuthType.FLOODGATE;
-//        }
+        void port(int port);
 
         @Override
         @Exclude

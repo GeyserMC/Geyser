@@ -40,8 +40,8 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.PipelineUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -67,7 +67,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+    protected void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception {
         // TODO - allow Geyser to specify its own listener info properties
         if (proxy.getConfig().getListeners().size() != 1) {
             throw new UnsupportedOperationException("Geyser does not currently support multiple listeners with injection! " +
@@ -142,7 +142,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                         }
                         initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.config().asPluginConfig().orElseThrow().useDirectConnection()) {
+                        if (bootstrap.config().useDirectConnection()) {
                             ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
                                     new GeyserBungeeCompressionDisabler());
                         }
@@ -191,7 +191,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
         this.bungeeChannels = null;
         if (this.localChannel != null) {
             shutdown();
-            initializeLocalChannel(GeyserImpl.getInstance().getBootstrap());
+            initializeLocalChannel((GeyserPluginBootstrap) GeyserImpl.getInstance().getBootstrap());
         }
     }
 }

@@ -42,6 +42,7 @@ platformRelocate("org.yaml") // Broken as of 1.20
 platformRelocate("org.spongepowered")
 platformRelocate("io.leangen.geantyref")
 platformRelocate("marcono1234.gson")
+platformRelocate("org.bstats")
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
