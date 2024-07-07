@@ -67,7 +67,7 @@ public final class GameProtocol {
             .minecraftVersion("1.20.80/1.20.81")
             .build()));
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(DEFAULT_BEDROCK_CODEC.toBuilder()
-            .minecraftVersion("1.21.0/1.20.1")
+            .minecraftVersion("1.21.0/1.21.1")
             .build()));
     }
 
