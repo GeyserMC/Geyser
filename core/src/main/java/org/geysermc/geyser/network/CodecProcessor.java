@@ -47,7 +47,50 @@ import org.cloudburstmc.protocol.bedrock.codec.v685.serializer.TextSerializer_v6
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryLayout;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabLeft;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabRight;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientCacheStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
+import org.cloudburstmc.protocol.bedrock.packet.CodeBuilderSourcePacket;
+import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityFallPacket;
+import org.cloudburstmc.protocol.bedrock.packet.FilterTextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MapCreateLockedCopyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MapInfoRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RefreshEntitlementsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetPlayerInventoryOptionsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TickSyncPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 
 /**
@@ -320,11 +363,11 @@ class CodecProcessor {
             codecBuilder.updateSerializer(FilterTextPacket.class, FILTER_TEXT);
             codecBuilder.updateSerializer(CommandRequestPacket.class, COMMAND_REQUEST_SERIALIZER);
             codecBuilder.updateSerializer(SetPlayerInventoryOptionsPacket.class, SET_PLAYER_INVENTORY_OPTIONS_SERIALIZER);
-        if (codec.getProtocolVersion() >= 685) {
-            codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER);
-        } else {
-            codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER_V554);
-        }
+            if (codec.getProtocolVersion() >= 685) {
+                codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER);
+            } else {
+                codecBuilder.updateSerializer(TextPacket.class, TEXT_SERIALIZER_V554);
+            }
 
             return codecBuilder.build();
     }
