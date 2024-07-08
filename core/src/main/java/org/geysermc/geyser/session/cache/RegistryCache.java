@@ -173,10 +173,7 @@ public final class RegistryCache {
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }
                 // This is what Geyser wants to keep as a value for this registry.
-                T cacheEntry = reader.apply(registryCache.session, key -> entryIdMap.getOrDefault(key, 0), entry);
-                if (cacheEntry instanceof Enchantment) {
-                    System.out.println(cacheEntry);
-                }
+                T cacheEntry = reader.apply(registryCache.session, entryId -> entryIdMap.getOrDefault(entryId, 0), entry);
                 builder.add(i, cacheEntry);
             }
             localCache.reset(builder);

@@ -31,6 +31,8 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
@@ -56,7 +58,10 @@ public record Enchantment(String identifier,
         NbtMap data = entry.getData();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet supportedItems = readHolderSet(data.get("supported_items"), keyIdMapping);
+        HolderSet supportedItems = readHolderSet(data.get("supported_items"), itemId -> {
+            Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(itemId.asString());
+            return Registries.JAVA_ITEMS.get().indexOf(item);
+        });
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");

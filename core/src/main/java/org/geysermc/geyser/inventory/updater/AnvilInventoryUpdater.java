@@ -315,11 +315,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             Enchantment enchantment = entry.getKey();
 
             HolderSet supportedItems = enchantment.supportedItems();
-            int[] supportedItemIds = supportedItems.resolve(key -> session.getTagCache().get(ItemTag.ALL_ITEM_TAGS.get(key)));
+            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(ItemTag.ALL_ITEM_TAGS.get(tagId)));
             boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
 
             HolderSet exclusiveSet = enchantment.exclusiveSet();
-            int[] incompatibleEnchantments = exclusiveSet.resolve(key -> session.getTagCache().get(EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(key)));
+            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(tagId)));
             for (int i : incompatibleEnchantments) {
                 Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
                 if (combinedEnchantments.containsKey(incompatible)) {
