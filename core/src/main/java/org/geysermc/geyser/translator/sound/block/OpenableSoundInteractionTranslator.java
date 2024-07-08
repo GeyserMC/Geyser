@@ -27,21 +27,42 @@ package org.geysermc.geyser.translator.sound.block;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
 @SoundTranslator(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+public class OpenableSoundInteractionTranslator implements BlockSoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
+    public void translate(GeyserSession session, Vector3f position, BlockState state) {
+        String identifier = state.toString();
         if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEvent.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+        SoundEvent event = getSound(identifier.contains("open=true"), identifier);
+        LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
+        levelSoundEventPacket.setPosition(position.add(0.5, 0.5, 0.5));
+        levelSoundEventPacket.setBabySound(false);
+        levelSoundEventPacket.setRelativeVolumeDisabled(false);
+        levelSoundEventPacket.setIdentifier(":");
+        levelSoundEventPacket.setSound(event);
+        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlock(state).getRuntimeId());
+        session.sendUpstreamPacket(levelSoundEventPacket);
+    }
+
+    private SoundEvent getSound(boolean open, String identifier) {
+        if (identifier.contains("_door")) {
+            return open ? SoundEvent.DOOR_OPEN : SoundEvent.DOOR_CLOSE;
+        }
+        
+        if (identifier.contains("_trapdoor")) {
+            return open ? SoundEvent.TRAPDOOR_OPEN : SoundEvent.TRAPDOOR_CLOSE;
+        }
+        
+        // Fence Gate
+        return open ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE;
     }
 }
