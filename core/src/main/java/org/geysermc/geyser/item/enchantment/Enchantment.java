@@ -31,10 +31,10 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.cache.registry.RegistryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -54,27 +54,24 @@ public record Enchantment(String identifier,
                           HolderSet exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
-    public static Enchantment read(Function<Key, Integer> keyIdMapping, RegistryEntry entry) {
-        NbtMap data = entry.getData();
+    public static Enchantment read(RegistryContext context) {
+        NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet supportedItems = readHolderSet(data.get("supported_items"), itemId -> {
-            Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(itemId.asString());
-            return Registries.JAVA_ITEMS.get().indexOf(item);
-        });
+        HolderSet supportedItems = readHolderSet(data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        HolderSet exclusiveSet = readHolderSet(data.getOrDefault("exclusive_set", null), keyIdMapping);
+        HolderSet exclusiveSet = readHolderSet(data.getOrDefault("exclusive_set", null), context::getNetworkId);
 
-        BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(entry.getId().asString());
+        BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
         // TODO - description is a component. So if a hardcoded literal string is given, this will display normally on Java,
         //  but Geyser will attempt to lookup the literal string as translation - and will fail, displaying an empty string as enchantment name.
         String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(data) : null;
 
-        return new Enchantment(entry.getId().asString(), effects, supportedItems, maxLevel,
+        return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
                 description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 

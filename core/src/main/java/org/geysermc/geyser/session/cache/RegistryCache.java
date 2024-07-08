@@ -35,7 +35,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
-import org.cloudburstmc.protocol.common.util.TriFunction;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
@@ -46,6 +45,7 @@ import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.RegistryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
@@ -76,16 +76,16 @@ public final class RegistryCache {
     private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
-        register("chat_type", cache -> cache.chatTypes, ($, n, entry) -> TextDecoration.readChatType(entry));
-        register("dimension_type", cache -> cache.dimensions, ($, n, entry) -> JavaDimension.read(entry));
-        register("enchantment", cache -> cache.enchantments, ($, n, entry) -> Enchantment.read(n, entry));
-        register("jukebox_song", cache -> cache.jukeboxSongs, ($, n, entry) -> JukeboxSong.read(entry));
-        register("painting_variant", cache -> cache.paintings, ($, n, entry) -> PaintingType.getByName(entry.getId()));
-        register("trim_material", cache -> cache.trimMaterials, (session, n, entry) -> TrimRecipe.readTrimMaterial(session, entry));
-        register("trim_pattern", cache -> cache.trimPatterns, (session, n, entry) -> TrimRecipe.readTrimPattern(session, entry));
+        register("chat_type", cache -> cache.chatTypes, TextDecoration::readChatType);
+        register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
+        register("enchantment", cache -> cache.enchantments, Enchantment::read);
+        register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
+        register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
+        register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
+        register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
-        register("banner_pattern", cache -> cache.bannerPatterns, ($, n, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
-        register("wolf_variant", cache -> cache.wolfVariants, ($, n, entry) -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(entry.getId().asString()));
+        register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
+        register("wolf_variant", cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
@@ -149,7 +149,7 @@ public final class RegistryCache {
      * @param reader converts the RegistryEntry NBT into a class file
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, TriFunction<GeyserSession, Function<Key, Integer>, RegistryEntry, T> reader) {
+    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryContext, T> reader) {
         Key registryKey = MinecraftKey.key(registry);
         REGISTRIES.put(registryKey, (registryCache, entries) -> {
             Map<Key, NbtMap> localRegistry = null;
@@ -157,6 +157,8 @@ public final class RegistryCache {
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
 
+            // Store each of the entries resource location IDs and their respective network ID,
+            // used for the key mapper that's currently only used by the Enchantment class
             Map<Key, Integer> entryIdMap = new HashMap<>();
             for (int i = 0; i < entries.size(); i++) {
                 entryIdMap.put(entries.get(i).getId(), i);
@@ -172,8 +174,10 @@ public final class RegistryCache {
                     }
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }
+
+                RegistryContext context = new RegistryContext(entry, entryIdMap, registryCache.session);
                 // This is what Geyser wants to keep as a value for this registry.
-                T cacheEntry = reader.apply(registryCache.session, entryId -> entryIdMap.getOrDefault(entryId, 0), entry);
+                T cacheEntry = reader.apply(context);
                 builder.add(i, cacheEntry);
             }
             localCache.reset(builder);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level;
+package org.geysermc.geyser.session.cache.registry;
 
+import java.util.Map;
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
-/**
- * Represents the information we store from the current Java dimension
- * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
- *      This controls if they have the shaking effect applied in the dimension.
- */
-public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
+public record RegistryContext(RegistryEntry entry, Map<Key, Integer> keyIdMap, GeyserSession session) {
 
-    public static JavaDimension read(RegistryContext entry) {
-        NbtMap dimension = entry.data();
-        int minY = dimension.getInt("min_y");
-        int maxY = dimension.getInt("height");
-        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+    public int getNetworkId(Key registryKey) {
+        return keyIdMap.getOrDefault(registryKey, 0);
+    }
 
-        // Set if piglins/hoglins should shake
-        boolean piglinSafe = dimension.getBoolean("piglin_safe");
-        // Load world coordinate scale for the world border
-        double coordinateScale = dimension.getDouble("coordinate_scale");
+    public Key id() {
+        return entry.getId();
+    }
 
-        return new JavaDimension(minY, maxY, piglinSafe, coordinateScale);
+    // Not annotated as nullable because data should never be null here
+    public NbtMap data() {
+        return entry.getData();
     }
 }
