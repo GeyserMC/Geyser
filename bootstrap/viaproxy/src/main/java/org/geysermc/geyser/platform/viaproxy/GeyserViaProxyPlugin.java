@@ -67,6 +67,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
     private GeyserViaProxyConfiguration config;
     private GeyserImpl geyser;
+    private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
     private IGeyserPingPassthrough pingPassthrough;
 
@@ -131,16 +132,24 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public void onGeyserEnable() {
-        if (GeyserImpl.getInstance().isReloading()) {
+        boolean reloading = geyser.isReloading();
+        if (reloading) {
             if (!this.loadConfig()) {
                 return;
             }
+        } else {
+            // Only initialized once - documented in the Geyser-Standalone bootstrap
+            this.cloud = new StandaloneCloudCommandManager(geyser);
+            this.commandRegistry = new CommandRegistry(geyser, cloud);
         }
 
-        StandaloneCloudCommandManager cloud = new StandaloneCloudCommandManager(geyser);
-        this.commandRegistry = new CommandRegistry(geyser, cloud);
-
         GeyserImpl.start();
+
+        if (!reloading) {
+            // Event must be fired after CommandRegistry has subscribed its listener.
+            // Also, the subscription for the Permissions class is created when Geyser is initialized (by GeyserImpl#start)
+            this.cloud.fireRegisterPermissionsEvent();
+        }
 
         if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
