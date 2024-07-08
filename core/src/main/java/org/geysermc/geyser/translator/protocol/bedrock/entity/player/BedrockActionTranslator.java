@@ -219,17 +219,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 Vector3f vectorFloat = vector.toFloat();
 
-                // Update the break time in the event that player conditions changed (jumping, effects applied)
-                LevelEventPacket updateBreak = new LevelEventPacket();
-                updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-                updateBreak.setPosition(vectorFloat);
-
-                BlockState blockState = BlockState.of(breakingBlock);
-
+                BlockState breakingBlockState = BlockState.of(breakingBlock);
                 Direction direction = Direction.VALUES[packet.getFace()];
-                spawnBlockBreakParticles(session, direction, vector, blockState);
+                spawnBlockBreakParticles(session, direction, vector, breakingBlockState);
 
-                double breakTime = BlockUtils.getSessionBreakTime(session, blockState.block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, breakingBlockState.block()) * 20;
                 // If the block is custom, we must keep track of when it should break ourselves
                 long blockBreakStartTime = session.getBlockBreakStartTime();
                 if (blockBreakStartTime != 0) {
@@ -251,7 +245,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         break;
                     }
                 }
-
+                // Update the break time in the event that player conditions changed (jumping, effects applied)
+                LevelEventPacket updateBreak = new LevelEventPacket();
+                updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
+                updateBreak.setPosition(vectorFloat);
                 updateBreak.setData((int) (65535 / breakTime));
                 session.sendUpstreamPacket(updateBreak);
             }
@@ -369,7 +366,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         }
     }
 
-    private void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i vector, BlockState blockState) {
+    private void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         switch (direction) {
             case UP -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_UP);
@@ -379,7 +376,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case SOUTH -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_SOUTH);
             case WEST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_WEST);
         }
-        levelEventPacket.setPosition(vector.toFloat());
+        levelEventPacket.setPosition(position.toFloat());
         levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
         session.sendUpstreamPacket(levelEventPacket);
     }
