@@ -107,7 +107,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             return true;
         }
 
-        // Handle blank permissions ourselves, as cloud only handles empty ones
+        // An empty or blank permission is treated as a lack of permission requirement
         if (permission.isBlank()) {
             return true;
         }

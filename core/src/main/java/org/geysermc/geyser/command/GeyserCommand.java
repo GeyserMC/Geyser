@@ -91,7 +91,10 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
             throw new IllegalArgumentException("Command cannot be null or blank!");
         }
         if (permission.isBlank()) {
-            permission = ""; // Cloud treats empty permissions as available to everyone, but not blank permissions.
+            // Cloud treats empty permissions as available to everyone, but not blank permissions.
+            // When registering commands, we must convert ALL whitespace permissions into empty ones,
+            // because we cannot override permission checks that Cloud itself performs
+            permission = "";
             permissionDefault = null;
         }
 

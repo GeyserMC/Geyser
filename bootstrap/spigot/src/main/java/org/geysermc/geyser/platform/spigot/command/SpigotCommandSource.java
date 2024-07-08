@@ -100,6 +100,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+        // Don't trust Spigot to handle blank permissions
+        return permission.isBlank() || handle.hasPermission(permission);
     }
 }

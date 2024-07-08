@@ -93,8 +93,7 @@ public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
         // We can't realistically ensure that every permission is registered (calls by API users), so we catch this.
         // This works for our calls, but not for cloud's internal usage. For that case, see above.
         try {
-            // Handle blank permissions ourselves, as cloud only handles empty ones
-            return permission.isBlank() || super.hasPermission(source, permission);
+            return super.hasPermission(source, permission);
         } catch (PermissionNotRegisteredException e) {
             return false;
         }
