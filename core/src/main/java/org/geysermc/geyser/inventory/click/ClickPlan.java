@@ -59,17 +59,20 @@ public final class ClickPlan {
     private final InventoryTranslator translator;
     private final Inventory inventory;
     private final int gridSize;
-    private final boolean handleBookRecipe;
+    /**
+     * The recipe for cloning books requires special handling, this dictates whether that handling should be performed
+     */
+    private final boolean cloneBookRecipe;
 
     public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
         this(session, translator, inventory, false);
     }
 
-    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory, boolean handleBookRecipe) {
+    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory, boolean cloneBookRecipe) {
         this.session = session;
         this.translator = translator;
         this.inventory = inventory;
-        this.handleBookRecipe = handleBookRecipe;
+        this.cloneBookRecipe = cloneBookRecipe;
 
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.changedItems = null;
