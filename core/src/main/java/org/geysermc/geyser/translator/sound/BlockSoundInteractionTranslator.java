@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.sound;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -37,17 +38,16 @@ import java.util.Map;
 /**
  * Sound interaction handler for when a block is right-clicked.
  */
-public interface BlockSoundInteractionTranslator extends SoundInteractionTranslator<String> {
-
+public interface BlockSoundInteractionTranslator extends SoundInteractionTranslator<BlockState> {
     /**
      * Handles the block interaction when a player
      * right-clicks a block.
      *
      * @param session the session interacting with the block
      * @param position the position of the block
-     * @param identifier the identifier of the block
+     * @param state the state of the block
      */
-    static void handleBlockInteraction(GeyserSession session, Vector3f position, String identifier) {
+    static void handleBlockInteraction(GeyserSession session, Vector3f position, BlockState state) {
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
@@ -58,7 +58,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
             if (interactionEntry.getKey().blocks().length != 0) {
                 boolean contains = false;
                 for (String blockIdentifier : interactionEntry.getKey().blocks()) {
-                    if (identifier.contains(blockIdentifier)) {
+                    if (state.toString().contains(blockIdentifier)) {
                         contains = true;
                         break;
                     }
@@ -87,7 +87,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
                     continue;
                 }
             }
-            ((BlockSoundInteractionTranslator) interactionEntry.getValue()).translate(session, position, identifier);
+            ((BlockSoundInteractionTranslator) interactionEntry.getValue()).translate(session, position, state);
         }
     }
 
