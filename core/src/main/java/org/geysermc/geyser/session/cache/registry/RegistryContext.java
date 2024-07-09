@@ -31,6 +31,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
+/**
+ * Used to store context around a single registry entry when reading said entry's NBT.
+ *
+ * @param entry the registry entry being read.
+ * @param keyIdMap a map for each of the resource location's in the registry and their respective network IDs.
+ * @param session the Geyser session.
+ */
 public record RegistryContext(RegistryEntry entry, Map<Key, Integer> keyIdMap, GeyserSession session) {
 
     public int getNetworkId(Key registryKey) {
