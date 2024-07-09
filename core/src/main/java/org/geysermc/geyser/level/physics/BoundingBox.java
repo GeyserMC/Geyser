@@ -94,11 +94,27 @@ public class BoundingBox implements Cloneable {
         return Vector3d.from(x, y, z);
     }
 
+    public double getMin(Axis axis) {
+        return switch (axis) {
+            case X -> middleX - sizeX / 2;
+            case Y -> middleY - sizeY / 2;
+            case Z -> middleZ - sizeZ / 2;
+        };
+    }
+
     public Vector3d getMax() {
         double x = middleX + sizeX / 2;
         double y = middleY + sizeY / 2;
         double z = middleZ + sizeZ / 2;
         return Vector3d.from(x, y, z);
+    }
+
+    public double getMax(Axis axis) {
+        return switch (axis) {
+            case X -> middleX + sizeX / 2;
+            case Y -> middleY + sizeY / 2;
+            case Z -> middleZ + sizeZ / 2;
+        };
     }
 
     public Vector3d getBottomCenter() {

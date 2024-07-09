@@ -824,21 +824,28 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     protected class VehicleContext {
         private Vector3d centerPos;
+        private Vector3d cachePos;
         private BlockState centerBlock;
         private Vector3i supportingBlockPos;
         private BlockPositionIterator blockIter;
         private int[] blocks;
 
         protected void loadSurroundingBlocks() {
-            BoundingBox box = boundingBox.clone();
-            box.expand(2);
-
-            Vector3i min = box.getMin().toInt();
-            Vector3i max = box.getMax().toInt();
-            this.blockIter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
-            this.blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), this.blockIter);
-
             this.centerPos = boundingBox.getBottomCenter();
+
+            // Reuse block cache if vehicle moved less than 1 block
+            if (this.cachePos == null || this.cachePos.distanceSquared(this.centerPos) > 1) {
+                BoundingBox box = boundingBox.clone();
+                box.expand(2);
+
+                Vector3i min = box.getMin().toInt();
+                Vector3i max = box.getMax().toInt();
+                this.blockIter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+                this.blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), this.blockIter);
+
+                this.cachePos = this.centerPos;
+            }
+
             this.centerBlock = getBlock(this.centerPos.toInt());
             this.supportingBlockPos = null;
         }

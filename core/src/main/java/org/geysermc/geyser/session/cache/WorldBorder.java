@@ -37,6 +37,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -202,14 +203,11 @@ public class WorldBorder {
      * @return the corrected movement
      */
     public Vector3d correctMovement(BoundingBox boundingBox, Vector3d movement) {
-        Vector3d bbMin = boundingBox.getMin();
-        Vector3d bbMax = boundingBox.getMax();
-
         double correctedX;
         if (movement.getX() < 0) {
-            correctedX = -limitMovement(-movement.getX(), bbMin.getX() - GenericMath.floor(minX));
+            correctedX = -limitMovement(-movement.getX(), boundingBox.getMin(Axis.X) - GenericMath.floor(minX));
         } else {
-            correctedX = limitMovement(movement.getX(), GenericMath.ceil(maxX) - bbMax.getX());
+            correctedX = limitMovement(movement.getX(), GenericMath.ceil(maxX) - boundingBox.getMax(Axis.X));
         }
 
         // Outside of border, don't adjust movement
@@ -219,9 +217,9 @@ public class WorldBorder {
 
         double correctedZ;
         if (movement.getZ() < 0) {
-            correctedZ = -limitMovement(-movement.getZ(), bbMin.getZ() - GenericMath.floor(minZ));
+            correctedZ = -limitMovement(-movement.getZ(), boundingBox.getMin(Axis.Z) - GenericMath.floor(minZ));
         } else {
-            correctedZ = limitMovement(movement.getZ(), GenericMath.ceil(maxZ) - bbMax.getZ());
+            correctedZ = limitMovement(movement.getZ(), GenericMath.ceil(maxZ) - boundingBox.getMax(Axis.Z));
         }
 
         if (Double.isNaN(correctedZ)) {
