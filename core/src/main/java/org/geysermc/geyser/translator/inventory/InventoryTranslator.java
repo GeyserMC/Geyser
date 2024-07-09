@@ -463,7 +463,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.RECIPE_ID;
 
-                    if (((RecipeItemStackRequestAction) action).getRecipeNetworkId() == InventoryUtils.BOOK_CLONING_RECIPE_ID) {
+                    if (((RecipeItemStackRequestAction) action).getRecipeNetworkId() == session.getBookCloningID()) {
                         // Book copying needs to be handled differently
                         // The original written book is leftover in the crafting grid
                         return translateBookCopyCraftingRequest(session, inventory, request);

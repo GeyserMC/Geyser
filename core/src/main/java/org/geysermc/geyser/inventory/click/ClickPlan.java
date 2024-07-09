@@ -62,17 +62,17 @@ public final class ClickPlan {
     /**
      * The recipe for cloning books requires special handling, this dictates whether that handling should be performed
      */
-    private final boolean cloneBookRecipe;
+    private final boolean handleBookCloneRecipe;
 
     public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
         this(session, translator, inventory, false);
     }
 
-    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory, boolean cloneBookRecipe) {
+    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory, boolean handleBookCloneRecipe) {
         this.session = session;
         this.translator = translator;
         this.inventory = inventory;
-        this.cloneBookRecipe = cloneBookRecipe;
+        this.handleBookCloneRecipe = handleBookCloneRecipe;
 
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.changedItems = null;
@@ -386,7 +386,7 @@ public final class ClickPlan {
         for (int i = 0; i < gridSize; i++) {
             final int slot = i + 1;
             GeyserItemStack item = getItem(slot);
-            if (!item.isEmpty() && item.asItem() == Items.WRITTEN_BOOK) {
+            if (!item.isEmpty()  && (!handleBookCloneRecipe || item.asItem() == Items.WRITTEN_BOOK)) {
                 // These changes should be broadcasted to the server
                 sub(slot, item, crafted);
             }
