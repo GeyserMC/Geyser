@@ -29,7 +29,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
@@ -43,7 +43,7 @@ public record TextDecoration(String translationKey, List<Parameter> parameters, 
         throw new UnsupportedOperationException();
     }
 
-    public static ChatType readChatType(RegistryContext context) {
+    public static ChatType readChatType(RegistryEntryContext context) {
         // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
         // (This note has been passed around through several classes and iterations. It stays as a warning
         // to anyone that dares to try and hardcode registry IDs.)

@@ -45,7 +45,7 @@ import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
@@ -149,7 +149,7 @@ public final class RegistryCache {
      * @param reader converts the RegistryEntry NBT into a class file
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryContext, T> reader) {
+    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
         Key registryKey = MinecraftKey.key(registry);
         REGISTRIES.put(registryKey, (registryCache, entries) -> {
             Map<Key, NbtMap> localRegistry = null;
@@ -175,7 +175,7 @@ public final class RegistryCache {
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }
 
-                RegistryContext context = new RegistryContext(entry, entryIdMap, registryCache.session);
+                RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, registryCache.session);
                 // This is what Geyser wants to keep as a value for this registry.
                 T cacheEntry = reader.apply(context);
                 builder.add(i, cacheEntry);

@@ -27,12 +27,12 @@ package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public record JukeboxSong(String soundEvent, String description) {
 
-    public static JukeboxSong read(RegistryContext context) {
+    public static JukeboxSong read(RegistryEntryContext context) {
         NbtMap data = context.data();
         Object soundEventObject = data.get("sound_event");
         String soundEvent;

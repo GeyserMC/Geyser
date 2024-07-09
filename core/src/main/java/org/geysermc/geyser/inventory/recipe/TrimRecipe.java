@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 /**
@@ -45,7 +45,7 @@ public final class TrimRecipe {
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
-    public static TrimMaterial readTrimMaterial(RegistryContext context) {
+    public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
         // Color is used when hovering over the item
@@ -65,7 +65,7 @@ public final class TrimRecipe {
         return new TrimMaterial(key, legacy.substring(2).trim(), itemMapping.getBedrockIdentifier());
     }
 
-    public static TrimPattern readTrimPattern(RegistryContext context) {
+    public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
         String itemIdentifier = context.data().getString("template_item");

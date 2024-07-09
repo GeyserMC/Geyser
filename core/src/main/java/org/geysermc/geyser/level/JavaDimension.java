@@ -26,7 +26,7 @@
 package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 
 /**
  * Represents the information we store from the current Java dimension
@@ -35,7 +35,7 @@ import org.geysermc.geyser.session.cache.registry.RegistryContext;
  */
 public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
 
-    public static JavaDimension read(RegistryContext entry) {
+    public static JavaDimension read(RegistryEntryContext entry) {
         NbtMap dimension = entry.data();
         int minY = dimension.getInt("min_y");
         int maxY = dimension.getInt("height");

@@ -33,7 +33,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.session.cache.registry.RegistryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashSet;
@@ -54,7 +54,7 @@ public record Enchantment(String identifier,
                           HolderSet exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
-    public static Enchantment read(RegistryContext context) {
+    public static Enchantment read(RegistryEntryContext context) {
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
