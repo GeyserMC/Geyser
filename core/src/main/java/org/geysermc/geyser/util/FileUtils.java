@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -51,26 +46,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FileUtils {
-
-    /**
-     * Load the given YAML file into the given class
-     *
-     * @param src File to load
-     * @param valueType Class to load file into
-     * @param <T> the type
-     * @return The data as the given class
-     * @throws IOException if the config could not be loaded
-     */
+public final class FileUtils {
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory())
-                // Allow inference of single values as arrays
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                .setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.AS_EMPTY));
-        return objectMapper.readValue(src, valueType);
-    }
-
-    public static <T> T loadConfigNew(File src, Class<T> valueType) throws IOException {
         YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
             .file(src)
             .build();
@@ -256,5 +233,8 @@ public class FileUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private FileUtils() {
     }
 }

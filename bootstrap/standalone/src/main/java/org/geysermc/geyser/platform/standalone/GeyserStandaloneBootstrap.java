@@ -38,7 +38,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.configuration.ConfigLoaderTemp;
+import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserRemoteConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -160,7 +160,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public void onGeyserEnable() {
         try {
-            geyserConfig = ConfigLoaderTemp.load(new File(configFilename), GeyserRemoteConfig.class, this::handleArgsConfigOptions);
+            geyserConfig = ConfigLoader.load(new File(configFilename), GeyserRemoteConfig.class, this::handleArgsConfigOptions);
         } catch (IOException ex) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             if (gui == null) {

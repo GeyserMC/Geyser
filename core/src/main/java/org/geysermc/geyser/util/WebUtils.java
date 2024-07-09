@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
@@ -34,7 +33,11 @@ import org.geysermc.geyser.GeyserImpl;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -69,7 +72,7 @@ public class WebUtils {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonNode}.
+     * Makes a web request to the given URL and returns the body as a {@link JsonObject}.
      *
      * @param reqURL URL to fetch
      * @return the response as JSON

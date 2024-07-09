@@ -42,7 +42,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.configuration.ConfigLoaderTemp;
+import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -218,7 +218,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
 
     private boolean loadConfig() {
         try {
-            this.config = ConfigLoaderTemp.load(new File(ROOT_FOLDER, "config.yml"), GeyserPluginConfig.class, node -> {
+            this.config = ConfigLoader.load(new File(ROOT_FOLDER, "config.yml"), GeyserPluginConfig.class, node -> {
                 try {
                     if (!ViaProxy.getConfig().getWildcardDomainHandling().equals(ViaProxyConfig.WildcardDomainHandling.NONE)) { // TODO
                         node.node("java", "forward-host").set(true);

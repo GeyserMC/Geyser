@@ -64,7 +64,7 @@ public class CustomSkullRegistryPopulator {
             GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
             Path skullConfigPath = bootstrap.getConfigFolder().resolve("custom-skulls.yml");
             File skullConfigFile = FileUtils.fileOrCopiedFromResource(skullConfigPath.toFile(), "custom-skulls.yml", Function.identity(), bootstrap);
-            skullConfig = FileUtils.loadConfigNew(skullConfigFile, GeyserCustomSkullConfiguration.class);
+            skullConfig = FileUtils.loadConfig(skullConfigFile, GeyserCustomSkullConfiguration.class);
         } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
             return;

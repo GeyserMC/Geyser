@@ -39,7 +39,7 @@ import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
 import static org.spongepowered.configurate.transformation.TransformAction.rename;
 
-public final class ConfigLoaderTemp {
+public final class ConfigLoader {
     private static final String HEADER = """
             --------------------------------
             Geyser Configuration File
@@ -131,5 +131,8 @@ public final class ConfigLoaderTemp {
         }
 
         return config;
+    }
+
+    private ConfigLoader() {
     }
 }

@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.ping;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -36,7 +33,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * designed for the format received by {@link GeyserLegacyPingPassthrough}.
  */
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserPingInfo {
 
     @Nullable
@@ -58,13 +54,7 @@ public class GeyserPingInfo {
         this.players = new Players(maxPlayers, onlinePlayers);
     }
 
-    @JsonSetter("description")
-    void setDescription(JsonNode description) {
-        this.description = description.toString();
-    }
-
     @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Players {
 
         private int max;

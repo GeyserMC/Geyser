@@ -44,7 +44,7 @@ import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.configuration.ConfigLoaderTemp;
+import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -286,7 +286,7 @@ public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
                 dataFolder.toFile().mkdir();
             }
 
-            this.geyserConfig = ConfigLoaderTemp.load(dataFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
+            this.geyserConfig = ConfigLoader.load(dataFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
             return true;
         } catch (IOException ex) {
             geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);

@@ -33,7 +33,6 @@ dependencies {
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
-platformRelocate("com.fasterxml.jackson")
 // Relocate net.kyori but exclude the component logger
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")

@@ -5,10 +5,11 @@ dependencies {
     compileOnlyApi(libs.velocity.api)
 }
 
-platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 platformRelocate("org.yaml")
+platformRelocate("org.spongepowered")
+platformRelocate("io.leangen.geantyref")
 platformRelocate("org.bstats")
 
 exclude("com.google.*:*")

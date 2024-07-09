@@ -46,7 +46,7 @@ import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.configuration.ConfigLoaderTemp;
+import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
@@ -248,7 +248,7 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
                 //noinspection ResultOfMethodCallIgnored
                 configFolder.toFile().mkdirs();
             }
-            this.geyserConfig = ConfigLoaderTemp.load(configFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
+            this.geyserConfig = ConfigLoader.load(configFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
         } catch (IOException ex) {
             geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
