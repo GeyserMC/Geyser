@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory.click;
 
+import org.geysermc.geyser.item.Items;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -382,7 +383,7 @@ public final class ClickPlan {
         for (int i = 0; i < gridSize; i++) {
             final int slot = i + 1;
             GeyserItemStack item = getItem(slot);
-            if (!item.isEmpty() && (!handleBookRecipe || item.getJavaId() != session.getItemMappings().getStoredItems().writtenBook().getJavaItem().javaId())) {
+            if (!item.isEmpty() && item.asItem() == Items.WRITTEN_BOOK) {
                 // These changes should be broadcasted to the server
                 sub(slot, item, crafted);
             }
