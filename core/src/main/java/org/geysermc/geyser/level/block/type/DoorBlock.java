@@ -40,7 +40,7 @@ public class DoorBlock extends Block {
         // Needed to check whether we must force the client to update the door state.
         String doubleBlockHalf = state.getValue(Properties.DOUBLE_BLOCK_HALF);
 
-        if (doubleBlockHalf.equals("lower")) {
+        if (!session.getGeyser().getWorldManager().hasOwnChunkCache() && doubleBlockHalf.equals("lower")) {
             BlockState oldBlockState = session.getGeyser().getWorldManager().blockAt(session, position);
             // If these are the same, it means that we already updated the lower door block (manually in the workaround below),
             // and we do not need to update the block in the cache/on the client side using the super.updateBlock() method again.
