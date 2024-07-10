@@ -29,7 +29,11 @@ import net.kyori.adventure.key.Key;
 
 public interface Tag {
 
-    Key registry();
+    TagRegistry registry();
 
     Key tag();
+
+    static Tag createTag(TagRegistry registry, Key tagKey) {
+        return registry.getVanillaTags().getOrDefault(tagKey, new NonVanillaTag(registry, tagKey));
+    }
 }

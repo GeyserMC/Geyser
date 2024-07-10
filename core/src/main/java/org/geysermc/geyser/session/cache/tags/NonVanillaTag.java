@@ -27,6 +27,6 @@ package org.geysermc.geyser.session.cache.tags;
 
 import net.kyori.adventure.key.Key;
 
-public record NonVanillaTag(Key registry, Key tag) implements Tag {
+public record NonVanillaTag(TagRegistry registry, Key tag) implements Tag {
 
 }

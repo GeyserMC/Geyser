@@ -25,14 +25,13 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
-
-import java.util.UUID;
-import org.geysermc.geyser.session.cache.tags.VanillaTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 
 public class ChickenEntity extends AnimalEntity {
 
@@ -42,7 +41,7 @@ public class ChickenEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected VanillaTag getFoodTag() {
+    protected Tag getFoodTag() {
         return ItemTag.CHICKEN_FOOD;
     }
 }

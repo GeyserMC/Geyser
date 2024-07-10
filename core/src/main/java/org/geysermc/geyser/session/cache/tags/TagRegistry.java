@@ -25,13 +25,33 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
+import java.util.Map;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.util.Ordered;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.util.MinecraftKey;
 
-public record VanillaTag(TagRegistry registry, Key tag, int geyserId) implements Ordered, Tag {
+@Getter
+public enum TagRegistry {
+    BLOCK("block", BlockTag.ALL_BLOCK_TAGS),
+    ITEM("item", ItemTag.ALL_ITEM_TAGS),
+    ENCHANTMENT("enchantment", EnchantmentTag.ALL_ENCHANTMENT_TAGS);
 
-    @Override
-    public int ordinal() {
-        return geyserId;
+    private final Key registryKey;
+    private final Map<Key, Tag> vanillaTags;
+
+    TagRegistry(String registry, Map<Key, Tag> vanillaTags) {
+        this.registryKey = MinecraftKey.key(registry);
+        this.vanillaTags = vanillaTags;
+    }
+
+    @Nullable
+    public static TagRegistry valueOf(Key registryKey) {
+        for (TagRegistry registry : TagRegistry.values()) {
+            if (registry.registryKey.equals(registryKey)) {
+                return registry;
+            }
+        }
+        return null;
     }
 }

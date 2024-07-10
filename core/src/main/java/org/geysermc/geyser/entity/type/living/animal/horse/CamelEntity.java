@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -35,12 +36,10 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
-import org.geysermc.geyser.session.cache.tags.VanillaTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-
-import java.util.UUID;
 
 public class CamelEntity extends AbstractHorseEntity {
 
@@ -91,7 +90,7 @@ public class CamelEntity extends AbstractHorseEntity {
     }
 
     @Override
-    protected @Nullable VanillaTag getFoodTag() {
+    protected @Nullable Tag getFoodTag() {
         return ItemTag.CAMEL_FOOD;
     }
 

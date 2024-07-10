@@ -25,29 +25,28 @@
 
 package org.geysermc.geyser.session.cache;
 
+import static org.geysermc.geyser.session.cache.tags.BlockTag.ALL_BLOCK_TAGS;
+import static org.geysermc.geyser.session.cache.tags.EnchantmentTag.ALL_ENCHANTMENT_TAGS;
+import static org.geysermc.geyser.session.cache.tags.ItemTag.ALL_ITEM_TAGS;
+
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.ParametersAreNonnullByDefault;
 import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.NonVanillaTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Map;
-
-import static org.geysermc.geyser.session.cache.tags.BlockTag.ALL_BLOCK_TAGS;
-import static org.geysermc.geyser.session.cache.tags.EnchantmentTag.ALL_ENCHANTMENT_TAGS;
-import static org.geysermc.geyser.session.cache.tags.ItemTag.ALL_ITEM_TAGS;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
@@ -55,13 +54,10 @@ import static org.geysermc.geyser.session.cache.tags.ItemTag.ALL_ITEM_TAGS;
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
-    private final Object2IntMap<Key> registryIndexMap = new Object2IntOpenHashMap<>();
     private List<Object2IntMap<Key>> tagIndexMaps = new ArrayList<>();
-    private int[][][] tags = new int[0][][];
+    private int[][][] tags = new int[TagRegistry.values().length][][];
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        this.registryIndexMap.clear();
-
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 
@@ -69,13 +65,16 @@ public final class TagCache {
         this.tags = new int[allTags.size()][][];
 
         int i = 0;
-        for (Key registry : allTags.keySet()) {
-            Map<Key, int[]> registryTags = allTags.get(registry);
-            Map<Key, VanillaTag> vanillaTags = null;
+        for (Key registryKey : allTags.keySet()) {
+            TagRegistry registry = TagRegistry.valueOf(registryKey);
+            if (registry == null) {
+                GeyserImpl.getInstance().getLogger().debug("Not loading tags for registry " + registryKey + " (registry is not defined in TagRegistry enum)");
+                continue;
+            }
 
-            if (registry.equals(MinecraftKey.key("block"))) {
-                vanillaTags = ALL_BLOCK_TAGS;
+            Map<Key, int[]> registryTags = allTags.get(registryKey);
 
+            if (registry == TagRegistry.BLOCK) {
                 // Hack btw
                 int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
                 boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
@@ -83,42 +82,37 @@ public final class TagCache {
                 if (logger.isDebug()) {
                     logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
                 }
-            } else if (registry.equals(MinecraftKey.key("item"))) {
-                vanillaTags = ALL_ITEM_TAGS;
-
+            } else if (registry == TagRegistry.ITEM) {
                 // Hack btw
                 boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
                 session.setEmulatePost1_13Logic(emulatePost1_13Logic);
                 if (logger.isDebug()) {
                     logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
                 }
-            } else if (registry.equals(MinecraftKey.key("enchantment"))) {
-                vanillaTags = ALL_ENCHANTMENT_TAGS;
             }
 
             int[][] registryTagsArray = new int[0][];
-            this.tagIndexMaps.set(i, loadTags(registryTags, registryTagsArray, vanillaTags));
+            this.tagIndexMaps.set(i, loadTags(registryTags, registryTagsArray, registry));
             this.tags[i] = registryTagsArray;
-            this.registryIndexMap.put(registry, i);
             i++;
         }
     }
 
-    private Object2IntMap<Key> loadTags(Map<Key, int[]> packetTags, int[][] tags, @Nullable Map<Key, VanillaTag> vanillaTags) {
-        List<Key> vanillaTagsList = vanillaTags == null ? List.of() : List.copyOf(vanillaTags.keySet());
+    private Object2IntMap<Key> loadTags(Map<Key, int[]> packetTags, int[][] tags, TagRegistry registry) {
+        List<Key> vanillaTagKeys = List.copyOf(registry.getVanillaTags().keySet());
+        int nonVanillaTagAmount = (int) packetTags.keySet().stream().filter(tag -> !vanillaTagKeys.contains(tag)).count();
 
-        // Using Math.max here because we might have more vanilla tags defined than the server sent us
-        List<int[]> tagsBuilder = new ArrayList<>(Math.max(packetTags.size(), vanillaTagsList.size()));
+        List<int[]> tagsBuilder = new ArrayList<>(vanillaTagKeys.size() + nonVanillaTagAmount);
         Object2IntMap<Key> tagIndexMap = new Object2IntOpenHashMap<>();
 
-        int tagIndex = vanillaTagsList.size();
+        int nonVanillaTagIndex = vanillaTagKeys.size();
         for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
             int id;
-            if (vanillaTagsList.contains(tag.getKey())) {
-                id = vanillaTagsList.indexOf(tag.getKey());
+            if (vanillaTagKeys.contains(tag.getKey())) {
+                id = vanillaTagKeys.indexOf(tag.getKey());
             } else {
-                id = tagIndex;
-                tagIndex++;
+                id = nonVanillaTagIndex;
+                nonVanillaTagIndex++;
             }
             tagsBuilder.set(id, tag.getValue());
             tagIndexMap.put(tag.getKey(), id);
@@ -132,6 +126,7 @@ public final class TagCache {
      * @return true if the block tag is present and contains this block mapping's Java ID.
      */
     public boolean is(Tag tag, Block block) {
+        assert tag.registry() == TagRegistry.BLOCK;
         return contains(get(tag), block.javaId());
     }
 
@@ -139,6 +134,7 @@ public final class TagCache {
      * @return true if the item tag is present and contains this item stack's Java ID.
      */
     public boolean is(Tag tag, GeyserItemStack itemStack) {
+        assert tag.registry() == TagRegistry.ITEM;
         return is(tag, itemStack.asItem());
     }
 
@@ -146,20 +142,17 @@ public final class TagCache {
      * @return true if the item tag is present and contains this item's Java ID.
      */
     public boolean is(Tag tag, Item item) {
+        assert tag.registry() == TagRegistry.ITEM;
         return contains(get(tag), item.javaId());
     }
 
     public int[] get(Tag tag) {
-        if (!this.registryIndexMap.containsKey(tag.registry())) {
-            return new int[0];
-        }
-
         if (tag instanceof VanillaTag vanillaTag) {
-            return this.tags[this.registryIndexMap.getInt(tag.registry())][vanillaTag.ordinal()];
+            return this.tags[tag.registry().ordinal()][vanillaTag.ordinal()];
         }
 
-        int registryIndex = this.registryIndexMap.getInt(tag.registry());
-        Object2IntMap<Key> tagIndexMap = tagIndexMaps.get(registryIndex);
+        int registryIndex = tag.registry().ordinal();
+        Object2IntMap<Key> tagIndexMap = this.tagIndexMaps.get(registryIndex);
         if (!tagIndexMap.containsKey(tag.tag())) {
             return new int[0];
         }

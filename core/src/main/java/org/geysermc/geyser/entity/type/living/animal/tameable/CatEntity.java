@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
+import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -34,15 +35,13 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
-import org.geysermc.geyser.session.cache.tags.VanillaTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-
-import java.util.UUID;
 
 public class CatEntity extends TameableEntity {
 
@@ -110,7 +109,7 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
-    protected @Nullable VanillaTag getFoodTag() {
+    protected @Nullable Tag getFoodTag() {
         return ItemTag.CAT_FOOD;
     }
 

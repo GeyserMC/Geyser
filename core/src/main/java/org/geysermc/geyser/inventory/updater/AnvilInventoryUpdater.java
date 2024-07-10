@@ -42,8 +42,8 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
@@ -315,11 +315,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             Enchantment enchantment = entry.getKey();
 
             HolderSet supportedItems = enchantment.supportedItems();
-            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(ItemTag.ALL_ITEM_TAGS.get(tagId)));
+            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(Tag.createTag(TagRegistry.ITEM, tagId)));
             boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
 
             HolderSet exclusiveSet = enchantment.exclusiveSet();
-            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(tagId)));
+            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(Tag.createTag(TagRegistry.ENCHANTMENT, tagId)));
             for (int i : incompatibleEnchantments) {
                 Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
                 if (combinedEnchantments.containsKey(incompatible)) {
