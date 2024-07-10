@@ -65,7 +65,6 @@ public interface ExtensionDescription {
      */
     int humanApiVersion();
 
-
     /**
      * Gets the extension's major api version
      *
