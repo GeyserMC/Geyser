@@ -42,14 +42,12 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
@@ -314,12 +312,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            HolderSet supportedItems = enchantment.supportedItems();
-            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(Tag.createTag(TagRegistry.ITEM, tagId)));
+            int[] supportedItemIds = enchantment.supportedItems().resolve(session, TagRegistry.ITEM);
             boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
 
-            HolderSet exclusiveSet = enchantment.exclusiveSet();
-            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(Tag.createTag(TagRegistry.ENCHANTMENT, tagId)));
+            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session, TagRegistry.ENCHANTMENT);
             for (int i : incompatibleEnchantments) {
                 Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
                 if (combinedEnchantments.containsKey(incompatible)) {

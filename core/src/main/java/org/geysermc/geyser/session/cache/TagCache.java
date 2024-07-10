@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import static org.geysermc.geyser.session.cache.tags.BlockTag.ALL_BLOCK_TAGS;
-import static org.geysermc.geyser.session.cache.tags.EnchantmentTag.ALL_ENCHANTMENT_TAGS;
-import static org.geysermc.geyser.session.cache.tags.ItemTag.ALL_ITEM_TAGS;
-
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;

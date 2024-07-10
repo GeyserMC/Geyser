@@ -25,21 +25,18 @@
 
 package org.geysermc.geyser.item.enchantment;
 
-import java.util.List;
-import java.util.function.Function;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.cache.tags.HolderSet;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 /**
  * @param description only populated if {@link #bedrockEnchantment()} is not null.
@@ -58,12 +55,12 @@ public record Enchantment(String identifier,
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet supportedItems = readHolderSet(data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        HolderSet supportedItems = HolderSet.readHolderSet(data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        HolderSet exclusiveSet = readHolderSet(data.getOrDefault("exclusive_set", null), context::getNetworkId);
+        HolderSet exclusiveSet = HolderSet.readHolderSet(data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
@@ -83,25 +80,5 @@ public record Enchantment(String identifier,
             }
         }
         return Set.copyOf(components); // Also ensures any empty sets are consolidated
-    }
-
-    // TODO holder set util?
-    private static HolderSet readHolderSet(@Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
-        if (holderSet == null) {
-            return new HolderSet(new int[]{});
-        }
-
-        if (holderSet instanceof String stringTag) {
-            // Tag
-            if (stringTag.startsWith("#")) {
-                return new HolderSet(Key.key(stringTag.substring(1))); // Remove '#' at beginning that indicates tag
-            } else {
-                return new HolderSet(new int[]{keyIdMapping.apply(Key.key(stringTag))});
-            }
-        } else if (holderSet instanceof List<?> list) {
-            // Assume the list is a list of strings
-            return new HolderSet(list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
-        }
-        throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
     }
 }
