@@ -83,7 +83,7 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * Allows switching the current items in the main and offhand.
+     * Sends a request to the Java server to switch the items in the main and offhand.
      */
     void switchHands();
 }
