@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+
+import java.util.UUID;
 
 public class ChickenEntity extends AnimalEntity {
 

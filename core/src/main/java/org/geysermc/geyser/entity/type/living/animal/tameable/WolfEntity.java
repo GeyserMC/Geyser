@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -53,6 +50,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+
+import java.util.Collections;
+import java.util.Locale;
+import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
     private byte collarColor = 14; // Red - default
