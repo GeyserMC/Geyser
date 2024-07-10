@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.floodgate.util.WebsocketEventType;
@@ -191,14 +190,14 @@ public final class FloodgateSkinUploader {
         };
     }
 
-    public void uploadSkin(List<SignedJWT> chainData, String clientData) {
+    public void uploadSkin(List<String> chainData, String clientData) {
         if (chainData == null || clientData == null) {
             return;
         }
 
         ObjectNode node = JACKSON.createObjectNode();
         ArrayNode chainDataNode = JACKSON.createArrayNode();
-        chainData.forEach(jwt -> chainDataNode.add(jwt.serialize()));
+        chainData.forEach(chainDataNode::add);
         node.set("chain_data", chainDataNode);
         node.put("client_data", clientData);
 

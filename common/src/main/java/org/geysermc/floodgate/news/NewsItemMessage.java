@@ -26,6 +26,7 @@
 package org.geysermc.floodgate.news;
 
 import com.google.gson.JsonArray;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 // {} is used for things that have to be filled in by the server,
 // {@} is for things that have to be filled in by us
@@ -49,7 +50,7 @@ public enum NewsItemMessage {
         this.messageSplitted = messageFormat.split(" ");
     }
 
-    public static NewsItemMessage getById(int id) {
+    public static @Nullable NewsItemMessage getById(int id) {
         return VALUES.length > id ? VALUES[id] : null;
     }
 

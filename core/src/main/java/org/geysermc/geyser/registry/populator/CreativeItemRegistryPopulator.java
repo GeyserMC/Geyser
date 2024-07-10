@@ -26,7 +26,9 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -34,6 +36,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -59,7 +62,7 @@ public class CreativeItemRegistryPopulator {
 
         // Load creative items
         JsonNode creativeItemEntries;
-        try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
             creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);
@@ -76,10 +79,10 @@ public class CreativeItemRegistryPopulator {
         }
     }
 
-    private static ItemData.Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
+    private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int bedrockBlockRuntimeId = -1;
+        int bedrockBlockRuntimeId;
         NbtMap tag = null;
 
         String identifier = itemNode.get("id").textValue();
@@ -99,11 +102,33 @@ public class CreativeItemRegistryPopulator {
             count = countNode.asInt();
         }
 
+        GeyserBedrockBlock blockDefinition = null;
         JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
+        JsonNode blockStateNode;
         if (blockRuntimeIdNode != null) {
             bedrockBlockRuntimeId = blockRuntimeIdNode.asInt();
             if (bedrockBlockRuntimeId == 0 && !identifier.equals("minecraft:blue_candle")) { // FIXME
                 bedrockBlockRuntimeId = -1;
+            }
+
+            blockDefinition = bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId);
+        } else if ((blockStateNode = itemNode.get("block_state_b64")) != null) {
+            byte[] bytes = Base64.getDecoder().decode(blockStateNode.asText());
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            try {
+                NbtMap stateTag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+
+                // We remove these from the state definition map in
+                // BlockMappings, so we need to remove it from here
+                NbtMapBuilder builder = stateTag.toBuilder();
+                builder.remove("name_hash");
+                builder.remove("network_id");
+                builder.remove("version");
+                builder.remove("block_id");
+
+                blockDefinition = blockMappings.getDefinition(builder.build());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -129,6 +154,6 @@ public class CreativeItemRegistryPopulator {
                 .damage(damage)
                 .count(count)
                 .tag(tag)
-                .blockDefinition(bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId));
+                .blockDefinition(blockDefinition);
     }
 }

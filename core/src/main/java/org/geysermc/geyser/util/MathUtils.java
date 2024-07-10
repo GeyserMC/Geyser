@@ -28,6 +28,12 @@ package org.geysermc.geyser.util;
 public class MathUtils {
     public static final double SQRT_OF_TWO = Math.sqrt(2);
 
+    /**
+     * Wrap the given float degrees to be between -180.0 and 180.0.
+     * 
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180.0 and 180.0
+     */
     public static float wrapDegrees(float degrees) {
         degrees = degrees % 360.0f;
         if (degrees < -180.0f) {
@@ -38,12 +44,54 @@ public class MathUtils {
         return degrees;
     }
 
+    /**
+     * Wrap the given double degrees to be between -180.0 and 180.0.
+     * 
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180.0 and 180.0
+     */
     public static float wrapDegrees(double degrees) {
         return wrapDegrees((float) degrees);
     }
 
+    /**
+     * Wrap the given degrees to be between -180 and 180 as an integer.
+     * 
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180 and 180 as an integer
+     */
     public static int wrapDegreesToInt(float degrees) {
         return (int) wrapDegrees(degrees);
+    }
+
+    /**
+     * Unwrap the given float degrees to be between 0.0 and 360.0.
+     * 
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0.0 and 360.0
+     */
+    public static float unwrapDegrees(float degrees) {
+        return (degrees % 360 + 360) % 360;
+    }
+
+    /**
+     * Unwrap the given double degrees to be between 0.0 and 360.0.
+     * 
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0.0 and 360.0
+     */
+    public static float unwrapDegrees(double degrees) {
+        return unwrapDegrees((float) degrees);
+    }
+
+    /**
+     * Unwrap the given degrees to be between 0 and 360 as an integer.
+     * 
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0 and 360 as an integer
+     */
+    public static int unwrapDegreesToInt(float degrees) {
+        return (int) unwrapDegrees(degrees);
     }
 
     /**
@@ -121,17 +169,6 @@ public class MathUtils {
     }
 
     /**
-     * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
-     * it converts it into a byte anyway.
-     *
-     * @param value The value to convert
-     * @return The converted byte
-     */
-    public static byte getNbtByte(Object value) {
-        return ((Number) value).byteValue();
-    }
-
-    /**
      * Packs a chunk's X and Z coordinates into a single {@code long}.
      *
      * @param x the X coordinate
@@ -140,12 +177,5 @@ public class MathUtils {
      */
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
-    }
-
-    /**
-     * @return the bits per entry used when this number is the maximum amount of entries.
-     */
-    public static int getGlobalPaletteForSize(int size) {
-        return 32 - Integer.numberOfLeadingZeros(size - 1);
     }
 }

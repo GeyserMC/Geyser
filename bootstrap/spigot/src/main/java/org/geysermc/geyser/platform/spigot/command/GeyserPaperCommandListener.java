@@ -39,8 +39,8 @@ import java.util.Map;
 
 public final class GeyserPaperCommandListener implements Listener {
 
+    @SuppressWarnings("UnstableApiUsage")
     @EventHandler
-    @SuppressWarnings("deprecation") // Used to indicate an unstable event
     public void onCommandSend(AsyncPlayerSendCommandsEvent<?> event) {
         // Documentation says to check (event.isAsynchronous() || !event.hasFiredAsync()), but as of Paper 1.18.2
         // event.hasFiredAsync is never true

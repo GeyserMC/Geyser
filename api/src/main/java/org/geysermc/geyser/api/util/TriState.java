@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * This is a way to represent a boolean, but with a non set value added.
- * This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
+ * This class was inspired by adventure's <a href="https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java">TriState</a>
  */
 public enum TriState {
     /**

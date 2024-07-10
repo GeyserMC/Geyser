@@ -31,6 +31,7 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -38,7 +39,6 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import javax.annotation.Nonnull;
 import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -46,7 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class VersionCheckUtils {
-    private static @Nonnull OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static @NonNull OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
     private static final int SUPPORTED_JAVA_VERSION = 17;
 
     public static void checkForOutdatedFloodgate(GeyserLogger logger) {
@@ -125,7 +126,7 @@ public final class VersionCheckUtils {
         });
     }
 
-    public static @Nonnull OptionalInt getLatestBedrockRelease() {
+    public static @NonNull OptionalInt getLatestBedrockRelease() {
         return LATEST_BEDROCK_RELEASE;
     }
 

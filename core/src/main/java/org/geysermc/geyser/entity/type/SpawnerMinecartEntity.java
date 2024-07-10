@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -41,7 +41,7 @@ public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateDefaultBlockMetadata() {
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(BlockStateValues.JAVA_SPAWNER_ID));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(Blocks.SPAWNER.defaultBlockState()));
         dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 }

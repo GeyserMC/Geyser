@@ -31,7 +31,7 @@ import java.nio.file.Path;
 import java.security.Key;
 
 public interface KeyProducer {
-    Key produce();
+    @SuppressWarnings("unused") Key produce();
     Key produceFrom(byte[] keyFileData);
 
     default Key produceFrom(Path keyFileLocation) throws IOException {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.ProtocolState;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -54,19 +55,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
+        return new GeyserPingInfo(
                 LegacyComponentSerializer.legacy('§').serialize(event.getPing().getDescriptionComponent()),
-                new GeyserPingInfo.Players(
-                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
-                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
-                ),
-                new GeyserPingInfo.Version(
-                        event.getPing().getVersion().getName(),
-                        event.getPing().getVersion().getProtocol()
-                )
+                event.getPing().getPlayers().map(ServerPing.Players::getMax).orElse(1),
+                event.getPing().getPlayers().map(ServerPing.Players::getOnline).orElse(0)
         );
-        event.getPing().getPlayers().get().getSample().stream().map(ServerPing.SamplePlayer::getName).forEach(geyserPingInfo.getPlayerList()::add);
-        return geyserPingInfo;
     }
 
     private static class GeyserInboundConnection implements InboundConnection {
@@ -95,6 +88,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         @Override
         public ProtocolVersion getProtocolVersion() {
             return ProtocolVersion.MAXIMUM_VERSION;
+        }
+
+        @Override
+        public ProtocolState getProtocolState() {
+            return ProtocolState.STATUS;
         }
     }
 

@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.ClientCommand;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.notify.EnterCreditsValue;
-import com.github.steveice10.mc.protocol.data.game.level.notify.RainStrengthValue;
-import com.github.steveice10.mc.protocol.data.game.level.notify.RespawnScreenValue;
-import com.github.steveice10.mc.protocol.data.game.level.notify.ThunderStrengthValue;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundGameEventPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.level.notify.EnterCreditsValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.notify.RainStrengthValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.notify.RespawnScreenValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.notify.ThunderStrengthValue;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundGameEventPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -44,6 +44,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundGameEventPacket.class)
 public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEventPacket> {
@@ -105,7 +106,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-                playerGameTypePacket.setGamemode(gameMode.ordinal());
+                playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(gameMode).ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
@@ -130,7 +131,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
                         ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
-                        session.sendDownstreamPacket(javaRespawnPacket);
+                        session.sendDownstreamGamePacket(javaRespawnPacket);
                     }
                     case FIRST_TIME -> {
                         ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
@@ -141,6 +142,8 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 }
                 break;
             case AFFECTED_BY_ELDER_GUARDIAN:
+                // note: There is a ElderGuardianEffectValue that determines if a sound should be made or not,
+                // but that doesn't seem to be controllable on Bedrock Edition
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
                 eventPacket.setData(0);
@@ -167,6 +170,9 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:
+                // DEMO_MESSAGE             - for JE game demo
+                // LEVEL_CHUNKS_LOAD_START  - ???
+                // PUFFERFISH_STING_SOUND   - doesn't exist on bedrock
                 break;
         }
     }

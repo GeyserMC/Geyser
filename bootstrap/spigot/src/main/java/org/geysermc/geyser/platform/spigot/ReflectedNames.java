@@ -29,8 +29,8 @@ import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
 import com.destroystokyo.paper.network.StatusClient;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.util.CachedServerIcon;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 
@@ -40,15 +40,8 @@ import java.net.InetAddress;
 public final class ReflectedNames {
 
     static boolean checkPaperPingEvent() {
-        return classExists("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
-    }
-
-    /**
-     * @return if this class name exists
-     */
-    private static boolean classExists(String clazz) {
         try {
-            Class.forName(clazz);
+            Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
             return true;
         } catch (ClassNotFoundException e) {
             return false;
@@ -59,7 +52,7 @@ public final class ReflectedNames {
         return getConstructor(ServerListPingEvent.class, InetAddress.class, String.class, boolean.class, int.class, int.class) != null;
     }
 
-    static Constructor<PaperServerListPingEvent> getOldPaperPingConstructor() {
+    static @Nullable Constructor<PaperServerListPingEvent> getOldPaperPingConstructor() {
         if (getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, int.class,
                 int.class, String.class, int.class, CachedServerIcon.class) != null) {
             // @NotNull StatusClient client, @NotNull String motd, int numPlayers, int maxPlayers,

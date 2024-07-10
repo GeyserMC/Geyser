@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
@@ -48,7 +49,7 @@ public record GeyserExtensionDescription(@NonNull String id,
                                          @NonNull String version,
                                          @NonNull List<String> authors) implements ExtensionDescription {
 
-    private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader()));
+    private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader(), new LoaderOptions()));
 
     public static final Pattern ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
     public static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z_.-]+$");

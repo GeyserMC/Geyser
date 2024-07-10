@@ -42,6 +42,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class FormCache {
+
+    /**
+     * The magnitude of this doesn't actually matter, but it must be negative so that
+     * BedrockNetworkStackLatencyTranslator can detect the hack.
+     */
+    private static final long MAGIC_FORM_IMAGE_HACK_TIMESTAMP = -1234567890L;
+
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
     private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
@@ -73,7 +80,7 @@ public class FormCache {
         if (form instanceof SimpleForm) {
             NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
             latencyPacket.setFromServer(true);
-            latencyPacket.setTimestamp(-System.currentTimeMillis());
+            latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
             session.scheduleInEventLoop(
                     () -> session.sendUpstreamPacket(latencyPacket),
                     500, TimeUnit.MILLISECONDS

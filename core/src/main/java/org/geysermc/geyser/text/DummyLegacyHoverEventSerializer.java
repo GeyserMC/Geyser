@@ -28,9 +28,9 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.serializer.gson.LegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer;
 import net.kyori.adventure.util.Codec;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -40,29 +40,29 @@ public final class DummyLegacyHoverEventSerializer implements LegacyHoverEventSe
     private final HoverEvent.ShowItem dummyShowItem;
 
     public DummyLegacyHoverEventSerializer() {
-        dummyShowEntity = HoverEvent.ShowEntity.of(Key.key("geysermc", "dummyshowitem"),
+        dummyShowEntity = HoverEvent.ShowEntity.showEntity(Key.key("geysermc", "dummyshowitem"),
                 UUID.nameUUIDFromBytes("entitiesareprettyneat".getBytes(StandardCharsets.UTF_8)));
-        dummyShowItem = HoverEvent.ShowItem.of(Key.key("geysermc", "dummyshowentity"), 0);
+        dummyShowItem = HoverEvent.ShowItem.showItem(Key.key("geysermc", "dummyshowentity"), 0);
     }
 
     @Override
-    public HoverEvent.@NotNull ShowItem deserializeShowItem(@NotNull Component input) {
+    public HoverEvent.@NonNull ShowItem deserializeShowItem(@NonNull Component input) {
         return dummyShowItem;
     }
 
     @Override
-    public HoverEvent.@NotNull ShowEntity deserializeShowEntity(@NotNull Component input,
+    public HoverEvent.@NonNull ShowEntity deserializeShowEntity(@NonNull Component input,
                                                                 Codec.Decoder<Component, String, ? extends RuntimeException> componentDecoder) {
         return dummyShowEntity;
     }
 
     @Override
-    public @NotNull Component serializeShowItem(HoverEvent.@NotNull ShowItem input) {
+    public @NonNull Component serializeShowItem(HoverEvent.@NonNull ShowItem input) {
         return Component.empty();
     }
 
     @Override
-    public @NotNull Component serializeShowEntity(HoverEvent.@NotNull ShowEntity input,
+    public @NonNull Component serializeShowEntity(HoverEvent.@NonNull ShowEntity input,
                                                   Codec.Encoder<Component, String, ? extends RuntimeException> componentEncoder) {
         return Component.empty();
     }

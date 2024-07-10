@@ -25,33 +25,29 @@
 
 package org.geysermc.geyser.translator.sound;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
 import java.util.Map;
 
 /**
  * Sound interaction handler for when a block is right-clicked.
  */
-public interface BlockSoundInteractionTranslator extends SoundInteractionTranslator<String> {
-
+public interface BlockSoundInteractionTranslator extends SoundInteractionTranslator<BlockState> {
     /**
      * Handles the block interaction when a player
      * right-clicks a block.
      *
      * @param session the session interacting with the block
      * @param position the position of the block
-     * @param identifier the identifier of the block
+     * @param state the state of the block
      */
-    static void handleBlockInteraction(GeyserSession session, Vector3f position, String identifier) {
+    static void handleBlockInteraction(GeyserSession session, Vector3f position, BlockState state) {
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
@@ -62,7 +58,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
             if (interactionEntry.getKey().blocks().length != 0) {
                 boolean contains = false;
                 for (String blockIdentifier : interactionEntry.getKey().blocks()) {
-                    if (identifier.contains(blockIdentifier)) {
+                    if (state.toString().contains(blockIdentifier)) {
                         contains = true;
                         break;
                     }
@@ -91,7 +87,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
                     continue;
                 }
             }
-            ((BlockSoundInteractionTranslator) interactionEntry.getValue()).translate(session, position, identifier);
+            ((BlockSoundInteractionTranslator) interactionEntry.getValue()).translate(session, position, state);
         }
     }
 
@@ -104,25 +100,14 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
             return true;
         }
 
-        CompoundTag tag = itemInHand.getNbt();
-        if (tag == null) {
-            // No CanPlaceOn tag can exist
-            return false;
-        }
-        ListTag canPlaceOn = tag.get("CanPlaceOn");
-        if (canPlaceOn == null || canPlaceOn.size() == 0) {
-            return false;
+        var canPlaceOn = itemInHand.getComponent(DataComponentType.CAN_PLACE_ON);
+        if (canPlaceOn == null || canPlaceOn.getPredicates().isEmpty()) {
+            // Component doesn't exist - no restrictions apply.
+            return true;
         }
 
-        String cleanIdentifier = BlockUtils.getCleanIdentifier(blockIdentifier);
-
-        for (Tag t : canPlaceOn) {
-            if (t instanceof StringTag stringTag) {
-                if (cleanIdentifier.equals(stringTag.getValue())) {
-                    // This operation would/could be a success!
-                    return true;
-                }
-            }
+        for (var blockPredicate : canPlaceOn.getPredicates()) {
+            // I don't want to deal with this right now. TODO
         }
 
         // The block in world is not present in the CanPlaceOn tag on the item

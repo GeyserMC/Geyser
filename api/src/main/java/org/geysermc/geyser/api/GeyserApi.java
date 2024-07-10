@@ -30,12 +30,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.api.util.ApiVersion;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 
 import java.nio.file.Path;
@@ -78,6 +80,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @param apiClass the builder class
      * @param <R> the implementation type
      * @param <T> the API type
+     * @throws IllegalArgumentException if there is no provider for the specified API class
      * @return the builder instance
      */
     @NonNull
@@ -135,6 +138,30 @@ public interface GeyserApi extends GeyserApiBase {
     PlatformType platformType();
 
     /**
+     * Gets the version of Java Minecraft that is supported.
+     *
+     * @return the supported version of Java Minecraft
+     */
+    @NonNull
+    MinecraftVersion supportedJavaVersion();
+
+    /**
+     * Gets a list of Bedrock Minecraft versions that are supported.
+     *
+     * @return the list of supported Bedrock Minecraft versions
+     */
+    @NonNull
+    List<MinecraftVersion> supportedBedrockVersions();
+
+    /**
+     * Gets the {@link CommandSource} for the console.
+     *
+     * @return the console command source
+     */
+    @NonNull
+    CommandSource consoleCommandSource();
+
+    /**
      * Gets the current {@link GeyserApiBase} instance.
      *
      * @return the current geyser api instance
@@ -150,6 +177,6 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the current geyser api version
      */
      default ApiVersion geyserApiVersion() {
-        return new ApiVersion(2, 1, 1);
+        return new ApiVersion(2, 4, 1);
      }
 }

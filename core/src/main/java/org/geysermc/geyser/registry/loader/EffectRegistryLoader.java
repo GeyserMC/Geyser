@@ -43,7 +43,7 @@ public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, 
     public void loadFile(String input) {
         if (!loadedFiles.containsKey(input)) {
             JsonNode effects;
-            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input)) {
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
                 effects = GeyserImpl.JSON_MAPPER.readTree(stream);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load registrations for " + input, e);

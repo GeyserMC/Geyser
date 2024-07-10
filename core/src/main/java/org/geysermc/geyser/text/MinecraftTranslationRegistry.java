@@ -26,9 +26,9 @@
 package org.geysermc.geyser.text;
 
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -44,12 +44,12 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
 
     // Exists to maintain compatibility with Velocity's older Adventure version
     @Override
-    public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull String locale) {
+    public @Nullable MessageFormat translate(@NonNull String key, @NonNull String locale) {
         return this.translate(key, null, locale);
     }
 
     @Override
-    protected @Nullable MessageFormat translate(@Nonnull String key, @Nullable String fallback, @Nonnull String locale) {
+    protected @Nullable MessageFormat translate(@NonNull String key, @Nullable String fallback, @NonNull String locale) {
         // Get the locale string
         String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (localeString == null) {
@@ -63,10 +63,17 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
             }
         }
 
+        // replace single quote instances which get lost in MessageFormat otherwise
+        localeString = localeString.replace("'", "''");
+
+        // Wrap all curly brackets with single quote inserts - fixes https://github.com/GeyserMC/Geyser/issues/4662
+        localeString = localeString.replace("{", "'{")
+                .replace("}", "'}");
+
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
         Matcher m = p.matcher(localeString);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int i = 0;
         while (m.find()) {
             m.appendReplacement(sb, "{" + (i++) + "}");
@@ -76,15 +83,14 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         // Replace the `%x$s` with numbered inserts `{x}`
         p = positionalStringReplacement;
         m = p.matcher(sb.toString());
-        sb = new StringBuffer();
+        sb = new StringBuilder();
         while (m.find()) {
             i = Integer.parseInt(m.group(1)) - 1;
             m.appendReplacement(sb, "{" + i + "}");
         }
         m.appendTail(sb);
 
-        // replace single quote instances which get lost in MessageFormat otherwise
         // Locale shouldn't need to be specific - dates for example will not be handled
-        return new MessageFormat(sb.toString().replace("'", "''"), Locale.ROOT);
+        return new MessageFormat(sb.toString(), Locale.ROOT);
     }
 }

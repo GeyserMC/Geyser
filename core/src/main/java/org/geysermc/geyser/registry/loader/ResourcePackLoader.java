@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
+import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -85,6 +86,12 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             // from our own resource pack directory. External projects may have
             // resource packs located at different locations.
             resourcePacks = new ArrayList<>();
+        }
+
+        // Add custom skull pack
+        Path skullResourcePack = SkullResourcePackManager.createResourcePack();
+        if (skullResourcePack != null) {
+            resourcePacks.add(skullResourcePack);
         }
 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
@@ -146,7 +153,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             // Check if a file exists with the same name as the resource pack suffixed by .key,
             // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
-            String contentKey = Files.exists(keyFile) ? Files.readString(path, StandardCharsets.UTF_8) : "";
+            String contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
 
             return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
         } catch (Exception e) {

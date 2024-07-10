@@ -31,10 +31,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 
 public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public CraftingInventoryTranslator() {
-        super(10, "minecraft:crafting_table", ContainerType.WORKBENCH, UIInventoryUpdater.INSTANCE);
+        super(10, Blocks.CRAFTING_TABLE, ContainerType.WORKBENCH, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

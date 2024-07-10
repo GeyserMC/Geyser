@@ -33,39 +33,43 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
-
-import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * An empty subchunk.
-     */
-    public static final byte[] SERIALIZED_CHUNK_DATA;
+
     public static final byte[] EMPTY_BIOME_DATA;
 
+    public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
+
+    public static final int EMPTY_CHUNK_SECTION_SIZE;
+
     static {
+        EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            new GeyserChunkSection(new BlockStorage[0])
+            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
                     .writeToNetwork(byteBuf);
-            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
+
+            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(emptyChunkData);
+
+            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
+
+            emptyChunkData = null;
         } finally {
             byteBuf.release();
         }
@@ -110,18 +114,30 @@ public class ChunkUtils {
      * @param position the position of the block
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
-        updateBlockClientSide(session, blockState, position);
+        updateBlockClientSide(session, BlockState.of(blockState), position);
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
+    }
+
+    /**
+     * Sends a block update to the Bedrock client. If the platform does not have an integrated world manager, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
+    public static void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+        updateBlockClientSide(session, blockState, position);
+        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState.javaId());
     }
 
     /**
      * Updates a block, but client-side only.
      */
-    public static void updateBlockClientSide(GeyserSession session, int blockState, Vector3i position) {
+    public static void updateBlockClientSide(GeyserSession session, BlockState blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
-            if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
+            if (blockState.is(Blocks.AIR)) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(true);
                 // Still update the chunk cache with the new block if updateBlock is called
                 return;
@@ -129,46 +145,7 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        if (BlockStateValues.getSkullVariant(blockState) == -1) {
-            // Skull is gone
-            session.getSkullCache().removeSkull(position);
-        }
-
-        // Prevent moving_piston from being placed
-        // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
-        if (!BlockStateValues.isMovingPiston(blockState)) {
-            BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
-
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setDefinition(definition);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            session.sendUpstreamPacket(updateBlockPacket);
-
-            UpdateBlockPacket waterPacket = new UpdateBlockPacket();
-            waterPacket.setDataLayer(1);
-            waterPacket.setBlockPosition(position);
-            if (BlockRegistries.WATERLOGGED.get().get(blockState)) {
-                waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
-            } else {
-                waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
-            }
-            session.sendUpstreamPacket(waterPacket);
-        }
-
-        BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
-
-        // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
-        // needs to be sent
-        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityUtils.BEDROCK_ONLY_BLOCK_ENTITIES) {
-            if (bedrockOnlyBlockEntity.isBlock(blockState)) {
-                // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
-                break; //No block will be a part of two classes
-            }
-        }
+        blockState.block().updateBlock(session, blockState, position);
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
@@ -190,6 +167,7 @@ public class ChunkUtils {
             byteBuf.readBytes(payload);
 
             LevelChunkPacket data = new LevelChunkPacket();
+            data.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
             data.setChunkX(chunkX);
             data.setChunkZ(chunkZ);
             data.setSubChunksLength(0);
@@ -225,7 +203,7 @@ public class ChunkUtils {
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void loadDimension(GeyserSession session) {
-        JavaDimension dimension = session.getDimensions().get(session.getDimension());
+        JavaDimension dimension = session.getRegistryCache().dimensions().byId(session.getDimension());
         session.setDimensionType(dimension);
         int minY = dimension.minY();
         int maxY = dimension.maxY();

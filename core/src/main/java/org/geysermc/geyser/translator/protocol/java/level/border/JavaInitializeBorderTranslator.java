@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.level.border;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundInitializeBorderPacket;
 import org.cloudburstmc.math.vector.Vector2d;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.border.ClientboundInitializeBorderPacket;
 
 @Translator(packet = ClientboundInitializeBorderPacket.class)
 public class JavaInitializeBorderTranslator extends PacketTranslator<ClientboundInitializeBorderPacket> {

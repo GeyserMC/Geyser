@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -48,8 +50,8 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  * bStats collects some data for plugin authors.
- *
- * Check out https://bStats.org/ to learn more about bStats!
+ * <p>
+ * Check out <a href="https://bStats.org/">bStats</a> to learn more about bStats!
  */
 public class Metrics {
 
@@ -140,7 +142,7 @@ public class Metrics {
             }
             customCharts.add(chart);
         }
-        data.put("customCharts", customCharts);
+        data.set("customCharts", customCharts);
 
         return data;
     }
@@ -233,10 +235,7 @@ public class Metrics {
      * @return The gzipped String.
      * @throws IOException If the compression failed.
      */
-    private static byte[] compress(final String str) throws IOException {
-        if (str == null) {
-            return null;
-        }
+    private static byte @NonNull [] compress(final @NonNull String str) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         GZIPOutputStream gzip = new GZIPOutputStream(outputStream);
         gzip.write(str.getBytes(StandardCharsets.UTF_8));
@@ -264,7 +263,7 @@ public class Metrics {
             this.chartId = chartId;
         }
 
-        private ObjectNode getRequestJsonNode() {
+        private @Nullable ObjectNode getRequestJsonNode() {
             ObjectNode chart = new ObjectMapper().createObjectNode();
             chart.put("chartId", chartId);
             try {
@@ -308,7 +307,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             String value = callable.call();
             if (value == null || value.isEmpty()) {
@@ -339,7 +338,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Integer> map = callable.call();
@@ -383,7 +382,7 @@ public class Metrics {
         }
 
         @Override
-        public ObjectNode getChartData() throws Exception {
+        public @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Map<String, Integer>> map = callable.call();
@@ -432,7 +431,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             int value = callable.call();
             if (value == 0) {
@@ -445,135 +444,4 @@ public class Metrics {
 
     }
 
-    /**
-     * Represents a custom multi line chart.
-     */
-    public static class MultiLineChart extends CustomChart {
-
-        private final Callable<Map<String, Integer>> callable;
-
-        /**
-         * Class constructor.
-         *
-         * @param chartId The id of the chart.
-         * @param callable The callable which is used to request the chart data.
-         */
-        public MultiLineChart(String chartId, Callable<Map<String, Integer>> callable) {
-            super(chartId);
-            this.callable = callable;
-        }
-
-        @Override
-        protected ObjectNode getChartData() throws Exception {
-            ObjectNode data = mapper.createObjectNode();
-            ObjectNode values = mapper.createObjectNode();
-            Map<String, Integer> map = callable.call();
-            if (map == null || map.isEmpty()) {
-                // Null = skip the chart
-                return null;
-            }
-            boolean allSkipped = true;
-            for (Map.Entry<String, Integer> entry : map.entrySet()) {
-                if (entry.getValue() == 0) {
-                    continue; // Skip this invalid
-                }
-                allSkipped = false;
-                values.put(entry.getKey(), entry.getValue());
-            }
-            if (allSkipped) {
-                // Null = skip the chart
-                return null;
-            }
-            data.putPOJO("values", values);
-            return data;
-        }
-
-    }
-
-    /**
-     * Represents a custom simple bar chart.
-     */
-    public static class SimpleBarChart extends CustomChart {
-
-        private final Callable<Map<String, Integer>> callable;
-
-        /**
-         * Class constructor.
-         *
-         * @param chartId The id of the chart.
-         * @param callable The callable which is used to request the chart data.
-         */
-        public SimpleBarChart(String chartId, Callable<Map<String, Integer>> callable) {
-            super(chartId);
-            this.callable = callable;
-        }
-
-        @Override
-        protected ObjectNode getChartData() throws Exception {
-            ObjectNode data = mapper.createObjectNode();
-            ObjectNode values = mapper.createObjectNode();
-            Map<String, Integer> map = callable.call();
-            if (map == null || map.isEmpty()) {
-                // Null = skip the chart
-                return null;
-            }
-            for (Map.Entry<String, Integer> entry : map.entrySet()) {
-                ArrayNode categoryValues = mapper.createArrayNode();
-                categoryValues.add(entry.getValue());
-                values.putPOJO(entry.getKey(), categoryValues);
-            }
-            data.putPOJO("values", values);
-            return data;
-        }
-
-    }
-
-    /**
-     * Represents a custom advanced bar chart.
-     */
-    public static class AdvancedBarChart extends CustomChart {
-
-        private final Callable<Map<String, int[]>> callable;
-
-        /**
-         * Class constructor.
-         *
-         * @param chartId The id of the chart.
-         * @param callable The callable which is used to request the chart data.
-         */
-        public AdvancedBarChart(String chartId, Callable<Map<String, int[]>> callable) {
-            super(chartId);
-            this.callable = callable;
-        }
-
-        @Override
-        protected ObjectNode getChartData() throws Exception {
-            ObjectNode data = mapper.createObjectNode();
-            ObjectNode values = mapper.createObjectNode();
-            Map<String, int[]> map = callable.call();
-            if (map == null || map.isEmpty()) {
-                // Null = skip the chart
-                return null;
-            }
-            boolean allSkipped = true;
-            for (Map.Entry<String, int[]> entry : map.entrySet()) {
-                if (entry.getValue().length == 0) {
-                    continue; // Skip this invalid
-                }
-                allSkipped = false;
-                ArrayNode categoryValues = mapper.createArrayNode();
-                for (int categoryValue : entry.getValue()) {
-                    categoryValues.add(categoryValue);
-                }
-                values.putPOJO(entry.getKey(), categoryValues);
-            }
-            if (allSkipped) {
-                // Null = skip the chart
-                return null;
-            }
-            data.putPOJO("values", values);
-            return data;
-        }
-
-    }
 }

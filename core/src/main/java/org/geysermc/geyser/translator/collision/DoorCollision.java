@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -40,20 +42,18 @@ public class DoorCollision extends BlockCollision {
      */
     private int facing;
 
-    public DoorCollision(String params, BoundingBox[] defaultBoxes) {
+    public DoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-        if (params.contains("facing=north")) {
-            facing = 1;
-        } else if (params.contains("facing=east")) {
-            facing = 2;
-        } else if (params.contains("facing=south")) {
-            facing = 3;
-        } else if (params.contains("facing=west")) {
-            facing = 4;
-        }
+        facing = switch (state.getValue(Properties.HORIZONTAL_FACING)) {
+            case NORTH -> 1;
+            case EAST -> 2;
+            case SOUTH -> 3;
+            case WEST -> 4;
+            default -> throw new IllegalStateException();
+        };
 
         // If the door is open it changes direction
-        if (params.contains("open=true")) {
+        if (state.getValue(Properties.OPEN)) {
             facing = facing % 2 + 1;
         }
     }

@@ -34,7 +34,7 @@ import java.net.InetSocketAddress;
 
 /**
  * Called whenever Geyser gets pinged
- *
+ * <p>
  * This event allows you to modify/obtain the MOTD, maximum player count, and current number of players online,
  * Geyser will reply to the client with what was given.
  */

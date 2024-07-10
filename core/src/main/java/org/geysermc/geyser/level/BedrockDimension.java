@@ -35,7 +35,7 @@ package org.geysermc.geyser.level;
  * @param doUpperHeightWarn whether to warn in the console if the Java dimension height exceeds Bedrock's.
  */
 public record BedrockDimension(int minY, int height, boolean doUpperHeightWarn) {
-    public static BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true);
-    public static BedrockDimension THE_NETHER = new BedrockDimension(0, 128, false);
-    public static BedrockDimension THE_END = new BedrockDimension(0, 256, true);
+    public static final BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true);
+    public static final BedrockDimension THE_NETHER = new BedrockDimension(0, 128, false);
+    public static final BedrockDimension THE_END = new BedrockDimension(0, 256, true);
 }

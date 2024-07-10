@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 import java.util.UUID;
 
@@ -44,12 +43,12 @@ public class AgeableEntity extends CreatureEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Required as of 1.19.3 Java
-        dirtyMetadata.put(EntityDataTypes.SCALE, getAdultSize());
+        setScale(getAdultSize());
     }
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {
         boolean isBaby = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.SCALE, isBaby ? getBabySize() : getAdultSize());
+        setScale(isBaby ? getBabySize() : getAdultSize());
         setFlag(EntityFlag.BABY, isBaby);
 
         setBoundingBoxHeight(definition.height() * (isBaby ? getBabySize() : getAdultSize()));

@@ -25,7 +25,15 @@
 
 package org.geysermc.geyser.api.entity.type.player;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
 public interface GeyserPlayerEntity extends GeyserEntity {
+
+    /**
+     * Gets the position of the player.
+     *
+     * @return the position of the player.
+     */
+    Vector3f position();
 }

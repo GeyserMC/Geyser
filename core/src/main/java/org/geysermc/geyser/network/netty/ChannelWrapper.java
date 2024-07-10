@@ -29,6 +29,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.net.SocketAddress;
 
@@ -259,7 +260,7 @@ public class ChannelWrapper implements Channel {
     }
 
     @Override
-    public int compareTo(Channel o) {
+    public int compareTo(@NonNull Channel o) {
         return source.compareTo(o);
     }
 }

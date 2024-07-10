@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.geyser.util.SignUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.HANGING_SIGN)
 public class HangingSignBlockEntityTranslator extends SignBlockEntityTranslator {

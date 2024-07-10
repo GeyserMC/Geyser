@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * Called on Geyser's startup when looking for custom items. Custom items must be registered through this event.
- *
+ * <p>
  * This event will not be called if the "add non-Bedrock items" setting is disabled in the Geyser config.
  */
 public interface GeyserDefineCustomItemsEvent extends Event {

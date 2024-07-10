@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * Called when commands are defined within Geyser.
- *
+ * <p>
  * This event allows you to register new commands using the {@link #register(Command)}
  * method and retrieve the default commands defined.
  */

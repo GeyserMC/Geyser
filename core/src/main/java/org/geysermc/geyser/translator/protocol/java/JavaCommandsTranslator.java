@@ -25,11 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
-import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
-import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
+import com.google.common.base.Suppliers;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -38,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
 import lombok.ToString;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
@@ -45,22 +42,32 @@ import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
+import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
+    /**
+     * Wait until the registries load before getting all the block names.
+     */
+    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.keySet().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -79,8 +86,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (!a.description().equals(b.description())) return false;
             if (a.paramData().length != b.paramData().length) return false;
             for (int i = 0; i < a.paramData().length; i++) {
-                CommandParamData[] a1 = a.paramData()[i];
-                CommandParamData[] b1 = b.paramData()[i];
+                CommandParamData[] a1 = a.paramData()[i].getOverloads();
+                CommandParamData[] b1 = b.paramData()[i].getOverloads();
                 if (a1.length != b1.length) return false;
 
                 for (int j = 0; j < a1.length; j++) {
@@ -141,7 +148,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandParamData[][] params = getParams(session, nodes[nodeIndex], nodes);
+            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
@@ -179,7 +186,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, entry.getKey().paramData());
+            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
         }
 
@@ -201,7 +208,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -214,12 +221,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             ParamInfo rootParam = new ParamInfo(commandNode, null);
             rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
 
-            List<CommandParamData[]> treeData = rootParam.getTree();
+            List<CommandOverloadData> treeData = rootParam.getTree();
 
-            return treeData.toArray(new CommandParamData[0][]);
+            return treeData.toArray(new CommandOverloadData[0]);
         }
 
-        return new CommandParamData[0][0];
+        return new CommandOverloadData[0];
     }
 
     /**
@@ -246,7 +253,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> context.getBlockStates();
+            case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
@@ -258,10 +265,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         };
     }
 
-    private static Object handleResource(CommandBuilderContext context, String resource, boolean tags) {
-        return switch (resource) {
+    private static Object handleResource(CommandBuilderContext context, Key resource, boolean tags) {
+        return switch (resource.asString()) {
             case "minecraft:attribute" -> ATTRIBUTES;
-            case "minecraft:enchantment" -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+            case "minecraft:enchantment" -> context.getEnchantments();
             case "minecraft:entity_type" -> context.getEntityTypes();
             case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
             case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
@@ -272,7 +279,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements
+    private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
             org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
             ServerDefineCommandsEvent.CommandInfo
     {
@@ -286,7 +293,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final GeyserSession session;
         private Object biomesWithTags;
         private Object biomesNoTags;
-        private String[] blockStates;
+        private String[] enchantments;
         private String[] entityTypes;
         private String[] itemNames;
         private CommandEnumData teams;
@@ -313,11 +320,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
         }
 
-        private String[] getBlockStates() {
-            if (blockStates != null) {
-                return blockStates;
+        private String[] getEnchantments() {
+            if (enchantments != null) {
+                return enchantments;
             }
-            return (blockStates = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]));
+            return (enchantments = session.getRegistryCache().enchantments().values().stream()
+                    .map(Enchantment::identifier).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {
@@ -465,16 +473,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         /**
-         * Mitigates https://github.com/GeyserMC/Geyser/issues/3411. Not a perfect solution.
+         * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
          */
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
-                String registryKey = properties.getRegistryKey();
-                int identifierSplit = registryKey.indexOf(':');
-                if (identifierSplit != -1) {
-                    return registryKey.substring(identifierSplit);
-                }
-                return registryKey;
+                Key registryKey = properties.getRegistryKey();
+                return registryKey.value();
             }
             return node.getParser().name();
         }
@@ -542,25 +546,26 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          *
          * @return List of parameter options arrays for the command
          */
-        public List<CommandParamData[]> getTree() {
-            List<CommandParamData[]> treeParamData = new ArrayList<>();
+        public List<CommandOverloadData> getTree() {
+            List<CommandOverloadData> treeParamData = new ArrayList<>();
 
             for (ParamInfo child : children) {
                 // Get the tree from the child
-                List<CommandParamData[]> childTree = child.getTree();
+                List<CommandOverloadData> childTree = child.getTree();
 
                 // Un-pack the tree append the child node to it and push into the list
-                for (CommandParamData[] subChild : childTree) {
+                for (CommandOverloadData subChildData : childTree) {
+                    CommandParamData[] subChild = subChildData.getOverloads();
                     CommandParamData[] tmpTree = new CommandParamData[subChild.length + 1];
                     tmpTree[0] = child.getParamData();
                     System.arraycopy(subChild, 0, tmpTree, 1, subChild.length);
 
-                    treeParamData.add(tmpTree);
+                    treeParamData.add(new CommandOverloadData(false, tmpTree));
                 }
 
                 // If we have no more child parameters just the child
                 if (childTree.size() == 0) {
-                    treeParamData.add(new CommandParamData[] { child.getParamData() });
+                    treeParamData.add(new CommandOverloadData(false, new CommandParamData[] { child.getParamData() }));
                 }
             }
 

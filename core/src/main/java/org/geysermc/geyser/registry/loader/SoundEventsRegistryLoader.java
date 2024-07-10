@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.geysermc.geyser.GeyserImpl;
@@ -58,20 +58,20 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEve
                 LevelEventTranslator transformer = null;
                 switch (type) {
                     case "soundLevel" -> {
-                        javaEffect = com.github.steveice10.mc.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
+                        javaEffect = org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
                         LevelEventType levelEventType = org.cloudburstmc.protocol.bedrock.data.LevelEvent.valueOf(node.get("name").asText());
                         int data = node.has("data") ? node.get("data").intValue() : 0;
                         transformer = new SoundLevelEventTranslator(levelEventType, data);
                     }
                     case "soundEvent" -> {
-                        javaEffect = com.github.steveice10.mc.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
+                        javaEffect = org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
                         org.cloudburstmc.protocol.bedrock.data.SoundEvent soundEvent = org.cloudburstmc.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
                         String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
                         int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
                         transformer = new SoundEventEventTranslator(soundEvent, identifier, extraData);
                     }
                     case "playSound" -> {
-                        javaEffect = com.github.steveice10.mc.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
+                        javaEffect = org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEventType.valueOf(entry.getKey());
                         String name = node.get("name").asText();
                         float volume = node.has("volume") ? node.get("volume").floatValue() : 1.0f;
                         boolean pitchSub = node.has("pitch_sub") && node.get("pitch_sub").booleanValue();
