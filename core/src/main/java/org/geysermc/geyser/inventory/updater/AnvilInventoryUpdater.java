@@ -27,7 +27,6 @@ package org.geysermc.geyser.inventory.updater;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -42,7 +41,6 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
@@ -312,9 +310,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.getJavaId(), TagRegistry.ITEM);
+            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.getJavaId());
 
-            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session.getTagCache(), TagRegistry.ENCHANTMENT);
+            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session.getTagCache());
             for (int i : incompatibleEnchantments) {
                 Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
                 if (combinedEnchantments.containsKey(incompatible)) {

@@ -31,6 +31,9 @@ import org.geysermc.geyser.util.MinecraftKey;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Lists vanilla block tags.
+ */
 @SuppressWarnings("unused")
 public final class BlockTag {
     public static final Map<Key, Tag> ALL_BLOCK_TAGS = new HashMap<>();

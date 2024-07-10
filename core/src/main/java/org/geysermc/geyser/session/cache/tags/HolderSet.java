@@ -33,39 +33,57 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.cache.TagCache;
 
+/**
+ * Similar to vanilla Minecraft's HolderSets, stores either a tag or a list of IDs (this list can also be represented as a single ID in vanilla HolderSets).
+ *
+ * Use the {@link HolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link HolderSet#resolve} method.
+ */
 @Data
 public final class HolderSet {
 
-    private final @Nullable Key tagId;
+    private final @Nullable Tag tag;
     private final int @Nullable [] holders;
 
     public HolderSet(int @NonNull [] holders) {
-        this.tagId = null;
+        this.tag = null;
         this.holders = holders;
     }
 
-    public HolderSet(@NonNull Key tagId) {
-        this.tagId = tagId;
+    public HolderSet(@NonNull Tag tagId) {
+        this.tag = tagId;
         this.holders = null;
     }
 
-    public int[] resolve(TagCache tagCache, TagRegistry registry) {
+    /**
+     * Resolves the HolderSet. If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache.
+     *
+     * @return the HolderSet turned into a list of network IDs.
+     */
+    public int[] resolve(TagCache tagCache) {
         if (holders != null) {
             return holders;
         }
 
-        return tagCache.get(Tag.createTag(registry, tagId));
+        assert tag != null;
+        return tagCache.get(tag);
     }
 
-    public static HolderSet readHolderSet(@Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
+    /**
+     * Reads a HolderSet from an object from NBT.
+     *
+     * @param registry the registry the HolderSet contains IDs from.
+     * @param holderSet the HolderSet as an object from NBT.
+     * @param keyIdMapping a function that maps resource location IDs in the HolderSet's registry to their network IDs.
+     */
+    public static HolderSet readHolderSet(TagRegistry registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
         if (holderSet == null) {
             return new HolderSet(new int[]{});
         }
 
         if (holderSet instanceof String stringTag) {
-            // Tag
             if (stringTag.startsWith("#")) {
-                return new HolderSet(Key.key(stringTag.substring(1))); // Remove '#' at beginning that indicates tag
+                // Tag
+                return new HolderSet(Tag.createTag(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
             } else if (stringTag.isEmpty()) {
                 return new HolderSet(new int[]{});
             }

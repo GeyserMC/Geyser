@@ -31,6 +31,12 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.util.MinecraftKey;
 
+/**
+ * Lists registries that Geyser stores tags for.
+ *
+ * When wanting to store tags from a new registry, add the registry here, and add a map for all the vanilla tags in the registry. These vanilla tags
+ * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}.
+ */
 @Getter
 public enum TagRegistry {
     BLOCK("block", BlockTag.ALL_BLOCK_TAGS),

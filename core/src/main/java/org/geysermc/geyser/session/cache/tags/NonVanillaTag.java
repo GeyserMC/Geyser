@@ -27,6 +27,9 @@ package org.geysermc.geyser.session.cache.tags;
 
 import net.kyori.adventure.key.Key;
 
+/**
+ * A non-vanilla tag. This can be any key in any of the registries that are stored by Geyser.
+ */
 public record NonVanillaTag(TagRegistry registry, Key tag) implements Tag {
 
 }

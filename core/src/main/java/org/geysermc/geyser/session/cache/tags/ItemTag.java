@@ -31,6 +31,9 @@ import org.geysermc.geyser.util.MinecraftKey;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Lists vanilla item tags.
+ */
 @SuppressWarnings("unused")
 public final class ItemTag {
     public static final Map<Key, Tag> ALL_ITEM_TAGS = new HashMap<>();

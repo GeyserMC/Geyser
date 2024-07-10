@@ -31,6 +31,9 @@ import org.geysermc.geyser.util.MinecraftKey;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Lists vanilla enchantment tags.
+ */
 @SuppressWarnings("unused")
 public final class EnchantmentTag {
     public static final Map<Key, Tag> ALL_ENCHANTMENT_TAGS = new HashMap<>();

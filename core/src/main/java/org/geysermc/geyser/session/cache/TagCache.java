@@ -48,10 +48,11 @@ import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
- * will remain empty, matching Java Edition behavior.
+ * will remain empty, matching Java Edition behavior. Only tags from registries in {@link TagRegistry} are stored.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
+    // Stores the indexes of non-vanilla tag keys in the tags array.
     private List<Object2IntMap<Key>> tagIndexMaps = new ArrayList<>();
     private int[][][] tags = new int[TagRegistry.values().length][][];
 
@@ -147,10 +148,13 @@ public final class TagCache {
     /**
      * @return true if the specified network ID is in the given holder set.
      */
-    public boolean is(HolderSet holderSet, int id, TagRegistry registry) {
-        return contains(holderSet.resolve(this, registry), id);
+    public boolean is(HolderSet holderSet, int id) {
+        return contains(holderSet.resolve(this), id);
     }
 
+    /**
+     * @return the network IDs in the given tag. This can be an empty list. Vanilla tags will be resolved faster than non-vanilla ones.
+     */
     public int[] get(Tag tag) {
         if (tag instanceof VanillaTag vanillaTag) {
             return this.tags[tag.registry().ordinal()][vanillaTag.ordinal()];
