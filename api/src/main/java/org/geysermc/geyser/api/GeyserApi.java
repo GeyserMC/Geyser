@@ -172,7 +172,7 @@ public interface GeyserApi extends GeyserApiBase {
     }
 
     /**
-     * Gets the {@link ApiVersion} Geyser API version
+     * Gets the {@link ApiVersion} representing the current Geyser api version
      *
      * @return the current geyser api version
      */
