@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
@@ -69,7 +70,7 @@ public class BeeEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected VanillaTag getFoodTag() {
         return ItemTag.BEE_FOOD;
     }
 }

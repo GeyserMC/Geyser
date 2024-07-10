@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -95,7 +96,7 @@ public class StriderEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected VanillaTag getFoodTag() {
         return ItemTag.STRIDER_FOOD;
     }
 

@@ -82,7 +82,7 @@ public final class BlockRegistryPopulator {
     @FunctionalInterface
     interface Remapper {
 
-        NbtMap remap(NbtMap tag);
+        NbtMap remap(NbtMap vanillaTag);
     }
 
     public static void populate(Stage stage) {
@@ -108,7 +108,7 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Conversion685_671::remapBlock)
-                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), vanillaTag -> vanillaTag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -163,12 +163,12 @@ public final class BlockRegistryPopulator {
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
             for (int i = 0; i < blockStates.size(); i++) {
-                NbtMap tag = blockStates.get(i);
-                if (blockStateOrderedMap.containsKey(tag)) {
-                    throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
+                NbtMap vanillaTag = blockStates.get(i);
+                if (blockStateOrderedMap.containsKey(vanillaTag)) {
+                    throw new AssertionError("Duplicate block states in Bedrock palette: " + vanillaTag);
                 }
-                GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
-                blockStateOrderedMap.put(tag, block);
+                GeyserBedrockBlock block = new GeyserBedrockBlock(i, vanillaTag);
+                blockStateOrderedMap.put(vanillaTag, block);
                 bedrockRuntimeMap[i] = block;
             }
 
@@ -177,9 +177,9 @@ public final class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 customBlockStateDefinitions = new Object2ObjectOpenHashMap<>(customExtBlockStates.size());
                 for (int i = 0; i < customExtBlockStates.size(); i++) {
-                    NbtMap tag = customBlockStates.get(i);
+                    NbtMap vanillaTag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
-                    GeyserBedrockBlock bedrockBlock = blockStateOrderedMap.get(tag);
+                    GeyserBedrockBlock bedrockBlock = blockStateOrderedMap.get(vanillaTag);
                     customBlockStateDefinitions.put(blockState, bedrockBlock);
 
                     Set<Integer> extendedCollisionjavaIds = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(blockState.block(), null);
@@ -250,9 +250,9 @@ public final class BlockRegistryPopulator {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
                         throw new RuntimeException("""
-                            Unable to find %s Bedrock runtime ID for %s! Original block tag:
+                            Unable to find %s Bedrock runtime ID for %s! Original block vanillaTag:
                             %s
-                            Updated block tag:
+                            Updated block vanillaTag:
                             %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
                     }
                 } else {
@@ -297,7 +297,7 @@ public final class BlockRegistryPopulator {
                     BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);
                 }
 
-                // Get the tag needed for non-empty flower pots
+                // Get the vanillaTag needed for non-empty flower pots
                 if (javaPottable.contains(block)) {
                     // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
                     flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getRuntimeId()));

@@ -35,6 +35,7 @@ import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -48,7 +49,7 @@ public abstract class AnimalEntity extends AgeableEntity {
     }
 
     protected final boolean canEat(GeyserItemStack itemStack) {
-        ItemTag tag = getFoodTag();
+        VanillaTag tag = getFoodTag();
         if (tag == null) {
             return false;
         }
@@ -58,7 +59,7 @@ public abstract class AnimalEntity extends AgeableEntity {
     /**
      * @return the tag associated with this animal for eating food. Null for nothing or different behavior.
      */
-    protected abstract @Nullable ItemTag getFoodTag();
+    protected abstract @Nullable VanillaTag getFoodTag();
 
     @NonNull
     @Override

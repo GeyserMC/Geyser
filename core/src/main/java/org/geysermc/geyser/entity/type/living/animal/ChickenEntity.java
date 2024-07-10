@@ -32,6 +32,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 
 import java.util.UUID;
+import org.geysermc.geyser.session.cache.tags.VanillaTag;
 
 public class ChickenEntity extends AnimalEntity {
 
@@ -41,7 +42,7 @@ public class ChickenEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected VanillaTag getFoodTag() {
         return ItemTag.CHICKEN_FOOD;
     }
 }
