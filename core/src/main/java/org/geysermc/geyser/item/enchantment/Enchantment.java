@@ -32,6 +32,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.HolderSet;
+import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashSet;
@@ -55,12 +56,12 @@ public record Enchantment(String identifier,
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet supportedItems = HolderSet.readHolderSet(data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        HolderSet supportedItems = HolderSet.readHolderSet(TagRegistry.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        HolderSet exclusiveSet = HolderSet.readHolderSet(data.get("exclusive_set"), context::getNetworkId);
+        HolderSet exclusiveSet = HolderSet.readHolderSet(TagRegistry.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
