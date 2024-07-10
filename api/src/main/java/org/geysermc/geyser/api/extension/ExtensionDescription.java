@@ -59,6 +59,14 @@ public interface ExtensionDescription {
     String main();
 
     /**
+     * Gets the extension's human api version
+     *
+     * @return the extension's human api version
+     */
+    int humanApiVersion();
+
+
+    /**
      * Gets the extension's major api version
      *
      * @return the extension's major api version
@@ -73,11 +81,13 @@ public interface ExtensionDescription {
     int minorApiVersion();
 
     /**
-     * Gets the extension's patch api version
-     *
-     * @return the extension's patch api version
+     * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
+     * See <a href="https://gist.github.com/Redned235/a24a593026c11308dbcf73ab6e9d07d1">here</a> for details.
      */
-    int patchApiVersion();
+    @Deprecated(forRemoval = true)
+    default int patchApiVersion() {
+        return minorApiVersion();
+    }
 
     /**
      * Gets the extension's api version.
@@ -85,7 +95,7 @@ public interface ExtensionDescription {
      * @return the extension's api version
      */
     default String apiVersion() {
-        return majorApiVersion() + "." + minorApiVersion() + "." + patchApiVersion();
+        return humanApiVersion() + "." + majorApiVersion() + "." + minorApiVersion();
     }
 
     /**
