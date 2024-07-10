@@ -27,6 +27,8 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -159,7 +161,7 @@ public final class RegistryCache {
 
             // Store each of the entries resource location IDs and their respective network ID,
             // used for the key mapper that's currently only used by the Enchantment class
-            Map<Key, Integer> entryIdMap = new HashMap<>();
+            Object2IntMap<Key> entryIdMap = new Object2IntOpenHashMap<>();
             for (int i = 0; i < entries.size(); i++) {
                 entryIdMap.put(entries.get(i).getId(), i);
             }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.Map;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
@@ -38,7 +39,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
  * @param keyIdMap a map for each of the resource location's in the registry and their respective network IDs.
  * @param session the Geyser session.
  */
-public record RegistryEntryContext(RegistryEntry entry, Map<Key, Integer> keyIdMap, GeyserSession session) {
+public record RegistryEntryContext(RegistryEntry entry, Object2IntMap<Key> keyIdMap, GeyserSession session) {
 
     public int getNetworkId(Key registryKey) {
         return keyIdMap.getOrDefault(registryKey, 0);
