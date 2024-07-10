@@ -34,6 +34,7 @@ platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLo
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform

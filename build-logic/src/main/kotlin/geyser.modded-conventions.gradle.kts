@@ -35,8 +35,11 @@ provided("io.netty", "netty-transport")
 provided("io.netty", "netty-codec")
 provided("io.netty", "netty-resolver-dns")
 provided("io.netty", "netty-resolver-dns-native-macos")
-provided("org.incendo", ".*") // fabric-cloud/neoforge-cloud jij's all cloud depends already
 provided("org.ow2.asm", "asm")
+
+// cloud-fabric/cloud-neoforge jij's all cloud depends already
+provided("org.incendo", ".*")
+provided("io.leangen.geantyref", "geantyref")
 
 architectury {
     minecraft = libs.minecraft.get().version as String

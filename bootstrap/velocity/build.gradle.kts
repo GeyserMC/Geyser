@@ -11,6 +11,7 @@ platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 platformRelocate("org.yaml")
 platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 
 exclude("com.google.*:*")
 
