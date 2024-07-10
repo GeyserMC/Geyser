@@ -58,10 +58,11 @@ public final class TagCache {
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
+        int tagsLoading = (int) allTags.keySet().stream().filter(TagRegistry::shouldLoad).count();
         GeyserLogger logger = session.getGeyser().getLogger();
 
-        this.tagIndexMaps = new ArrayList<>(allTags.size());
-        this.tags = new int[allTags.size()][][];
+        this.tagIndexMaps = new ArrayList<>(tagsLoading);
+        this.tags = new int[tagsLoading][][];
 
         int i = 0;
         for (Key registryKey : allTags.keySet()) {
@@ -91,7 +92,7 @@ public final class TagCache {
             }
 
             int[][] registryTagsArray = new int[0][];
-            this.tagIndexMaps.set(i, loadTags(registryTags, registryTagsArray, registry));
+            this.tagIndexMaps.add(loadTags(registryTags, registryTagsArray, registry));
             this.tags[i] = registryTagsArray;
             i++;
         }
@@ -99,22 +100,18 @@ public final class TagCache {
 
     private Object2IntMap<Key> loadTags(Map<Key, int[]> packetTags, int[][] tags, TagRegistry registry) {
         List<Key> vanillaTagKeys = List.copyOf(registry.getVanillaTags().keySet());
-        int nonVanillaTagAmount = (int) packetTags.keySet().stream().filter(tag -> !vanillaTagKeys.contains(tag)).count();
+        List<Key> nonVanillaTagKeys = packetTags.keySet().stream().filter(tag -> !vanillaTagKeys.contains(tag)).toList();
 
-        List<int[]> tagsBuilder = new ArrayList<>(vanillaTagKeys.size() + nonVanillaTagAmount);
+        List<int[]> tagsBuilder = new ArrayList<>(vanillaTagKeys.size() + nonVanillaTagKeys.size());
         Object2IntMap<Key> tagIndexMap = new Object2IntOpenHashMap<>();
 
-        int nonVanillaTagIndex = vanillaTagKeys.size();
-        for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
-            int id;
-            if (vanillaTagKeys.contains(tag.getKey())) {
-                id = vanillaTagKeys.indexOf(tag.getKey());
-            } else {
-                id = nonVanillaTagIndex;
-                nonVanillaTagIndex++;
-            }
-            tagsBuilder.set(id, tag.getValue());
-            tagIndexMap.put(tag.getKey(), id);
+        for (Key vanillaTagKey : registry.getVanillaTags().keySet()) {
+            tagsBuilder.add(packetTags.getOrDefault(vanillaTagKey, new int[0]));
+        }
+
+        for (Key nonVanillaTagKey : nonVanillaTagKeys) {
+            tagIndexMap.put(nonVanillaTagKey, tagsBuilder.size());
+            tagsBuilder.add(packetTags.get(nonVanillaTagKey));
         }
 
         tagsBuilder.toArray(tags);
@@ -133,7 +130,6 @@ public final class TagCache {
      * @return true if the item tag is present and contains this item stack's Java ID.
      */
     public boolean is(Tag tag, GeyserItemStack itemStack) {
-        assert tag.registry() == TagRegistry.ITEM;
         return is(tag, itemStack.asItem());
     }
 

@@ -51,6 +51,10 @@ public enum TagRegistry {
         this.vanillaTags = vanillaTags;
     }
 
+    public static boolean shouldLoad(Key registryKey) {
+        return valueOf(registryKey) != null;
+    }
+
     @Nullable
     public static TagRegistry valueOf(Key registryKey) {
         for (TagRegistry registry : TagRegistry.values()) {
