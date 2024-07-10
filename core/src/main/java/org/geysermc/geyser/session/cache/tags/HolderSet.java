@@ -31,7 +31,7 @@ import lombok.Data;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TagCache;
 
 @Data
 public final class HolderSet {
@@ -49,12 +49,12 @@ public final class HolderSet {
         this.holders = null;
     }
 
-    public int[] resolve(GeyserSession session, TagRegistry registry) {
+    public int[] resolve(TagCache tagCache, TagRegistry registry) {
         if (holders != null) {
             return holders;
         }
 
-        return session.getTagCache().get(Tag.createTag(registry, tagId));
+        return tagCache.get(Tag.createTag(registry, tagId));
     }
 
     public static HolderSet readHolderSet(@Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {

@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import java.util.HashMap;
-import java.util.Map;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.util.MinecraftKey;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public final class BlockTag {

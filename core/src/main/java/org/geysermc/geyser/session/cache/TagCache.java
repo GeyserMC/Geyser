@@ -27,10 +27,6 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.ParametersAreNonnullByDefault;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -38,11 +34,17 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.HolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
@@ -140,6 +142,13 @@ public final class TagCache {
     public boolean is(Tag tag, Item item) {
         assert tag.registry() == TagRegistry.ITEM;
         return contains(get(tag), item.javaId());
+    }
+
+    /**
+     * @return true if the specified network ID is in the given holder set.
+     */
+    public boolean is(HolderSet holderSet, int id, TagRegistry registry) {
+        return contains(holderSet.resolve(this, registry), id);
     }
 
     public int[] get(Tag tag) {

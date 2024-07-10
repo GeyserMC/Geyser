@@ -312,10 +312,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            int[] supportedItemIds = enchantment.supportedItems().resolve(session, TagRegistry.ITEM);
-            boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
+            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.getJavaId(), TagRegistry.ITEM);
 
-            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session, TagRegistry.ENCHANTMENT);
+            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session.getTagCache(), TagRegistry.ENCHANTMENT);
             for (int i : incompatibleEnchantments) {
                 Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
                 if (combinedEnchantments.containsKey(incompatible)) {
