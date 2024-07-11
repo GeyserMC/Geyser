@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
+import java.util.HashMap;
 import java.util.Map;
-import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -34,34 +34,54 @@ import org.geysermc.geyser.util.MinecraftKey;
 /**
  * Lists registries that Geyser stores tags for.
  *
- * When wanting to store tags from a new registry, add the registry here, and add a map for all the vanilla tags in the registry. These vanilla tags
- * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}.
+ * When wanting to store tags from a new registry, add the registry here, and register all vanilla tags for it using {@link TagRegistry#registerVanillaTag}. These vanilla tags
+ * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}. This class can then have an init method that's called in {@link TagRegistry#init)}, to ensure
+ * that all vanilla tags are registered before any connection is made.
  */
-@Getter
 public enum TagRegistry {
-    BLOCK("block", BlockTag.ALL_BLOCK_TAGS),
-    ITEM("item", ItemTag.ALL_ITEM_TAGS),
-    ENCHANTMENT("enchantment", EnchantmentTag.ALL_ENCHANTMENT_TAGS);
+    BLOCK("block"),
+    ITEM("item"),
+    ENCHANTMENT("enchantment");
 
     private final Key registryKey;
     private final Map<Key, Tag> vanillaTags;
 
-    TagRegistry(String registry, Map<Key, Tag> vanillaTags) {
+    TagRegistry(String registry) {
         this.registryKey = MinecraftKey.key(registry);
-        this.vanillaTags = vanillaTags;
+        this.vanillaTags = new HashMap<>();
+    }
+
+    public Tag registerVanillaTag(Key identifier) {
+        if (vanillaTags.containsKey(identifier)) {
+            throw new IllegalArgumentException("Vanilla tag " + identifier + " was already registered!");
+        }
+
+        Tag tag = new VanillaTag(this, identifier, vanillaTags.size());
+        vanillaTags.put(identifier, tag);
+        return tag;
+    }
+
+    public Map<Key, Tag> getVanillaTags() {
+        return Map.copyOf(vanillaTags);
     }
 
     public static boolean shouldLoad(Key registryKey) {
-        return valueOf(registryKey) != null;
+        return fromKey(registryKey) != null;
     }
 
     @Nullable
-    public static TagRegistry valueOf(Key registryKey) {
+    public static TagRegistry fromKey(Key registryKey) {
         for (TagRegistry registry : TagRegistry.values()) {
             if (registry.registryKey.equals(registryKey)) {
                 return registry;
             }
         }
         return null;
+    }
+
+    public static void init() {
+        BlockTag.init();
+        ItemTag.init();
+        EnchantmentTag.init();
     }
 }

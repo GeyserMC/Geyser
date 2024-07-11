@@ -28,16 +28,11 @@ package org.geysermc.geyser.session.cache.tags;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Lists vanilla enchantment tags.
  */
 @SuppressWarnings("unused")
 public final class EnchantmentTag {
-    public static final Map<Key, Tag> ALL_ENCHANTMENT_TAGS = new HashMap<>();
-
     public static final Tag TOOLTIP_ORDER = register("tooltip_order");
     public static final Tag EXCLUSIVE_SET_ARMOR = register("exclusive_set/armor");
     public static final Tag EXCLUSIVE_SET_BOOTS = register("exclusive_set/boots");
@@ -78,10 +73,10 @@ public final class EnchantmentTag {
     private EnchantmentTag() {}
 
     private static Tag register(String name) {
-        Key identifier = MinecraftKey.key(name);
-        int geyserId = ALL_ENCHANTMENT_TAGS.size();
-        Tag tag = new VanillaTag(TagRegistry.ENCHANTMENT, identifier, geyserId);
-        ALL_ENCHANTMENT_TAGS.put(MinecraftKey.key(name), tag);
-        return tag;
+        return TagRegistry.ENCHANTMENT.registerVanillaTag(MinecraftKey.key(name));
+    }
+
+    public static void init() {
+        // no-op
     }
 }

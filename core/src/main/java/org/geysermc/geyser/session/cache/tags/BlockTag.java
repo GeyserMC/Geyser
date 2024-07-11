@@ -36,8 +36,6 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public final class BlockTag {
-    public static final Map<Key, Tag> ALL_BLOCK_TAGS = new HashMap<>();
-
     public static final Tag WOOL = register("wool");
     public static final Tag PLANKS = register("planks");
     public static final Tag STONE_BRICKS = register("stone_bricks");
@@ -226,10 +224,10 @@ public final class BlockTag {
     private BlockTag() {}
 
     private static Tag register(String name) {
-        Key identifier = MinecraftKey.key(name);
-        int geyserId = ALL_BLOCK_TAGS.size();
-        Tag tag = new VanillaTag(TagRegistry.BLOCK, identifier, geyserId);
-        ALL_BLOCK_TAGS.put(identifier, tag);
-        return tag;
+        return TagRegistry.BLOCK.registerVanillaTag(MinecraftKey.key(name));
+    }
+
+    public static void init() {
+        // no-op
     }
 }
