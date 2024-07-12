@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -139,6 +140,16 @@ public class EntityCache {
 
     public Collection<PlayerEntity> getAllPlayerEntities() {
         return playerEntities.values();
+    }
+
+    public void removeAllPlayerEntities() {
+        PlayerListPacket playerListPacket = new PlayerListPacket();
+        playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
+        for (PlayerEntity otherEntity : playerEntities.values()) {
+            playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
+        }
+        session.sendUpstreamPacket(playerListPacket);
+        playerEntities.clear();
     }
 
     public void addBossBar(UUID uuid, BossBar bossBar) {

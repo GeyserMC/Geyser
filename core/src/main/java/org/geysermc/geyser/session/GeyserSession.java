@@ -87,7 +87,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
@@ -888,18 +887,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             public void packetReceived(Session session, Packet packet) {
                 if (protocol.getState() == ProtocolState.CONFIGURATION) {
                     if (packet instanceof ClientboundFinishConfigurationPacket) {
-                        GeyserSession.this.ensureInEventLoop(() -> {
-                            // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
-                            PlayerListPacket playerListPacket = new PlayerListPacket();
-                            playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-                            for (PlayerEntity otherEntity : GeyserSession.this.getEntityCache().getAllPlayerEntities()) {
-                                playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
-                                GeyserSession.this.getEntityCache().removePlayerEntity(otherEntity.getUuid());
-                            }
-                            GeyserSession.this.sendUpstreamPacket(playerListPacket);
-
-                            GeyserSession.this.sendDownstreamPacket(new ServerboundFinishConfigurationPacket());
-                        });
+                        // Prevent
+                        GeyserSession.this.ensureInEventLoop(() -> GeyserSession.this.sendDownstreamPacket(new ServerboundFinishConfigurationPacket()));
                         return;
                     }
                 }
