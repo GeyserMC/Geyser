@@ -24,13 +24,15 @@ terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
 adapters = "1.13-SNAPSHOT"
+cloud = "2.0.0-rc.2"
+cloud-minecraft = "2.0.0-beta.9"
+cloud-minecraft-modded = "2.0.0-beta.7"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.2.1"
 fabric-loader = "0.15.11"
 fabric-api = "0.100.1+1.21"
-fabric-permissions = "0.2-SNAPSHOT"
 neoforge-minecraft = "21.0.0-beta"
 mixin = "0.8.5"
 minecraft = "1.21"
@@ -85,8 +87,14 @@ jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
+cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
+cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft" }
+cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-minecraft-modded" }
+cloud-neoforge = { group = "org.incendo", name = "cloud-neoforge", version.ref = "cloud-minecraft-modded" }
+
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
 
@@ -95,7 +103,6 @@ minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft
 # Check these on https://modmuss50.me/fabric.html
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
-fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions" }
 
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 

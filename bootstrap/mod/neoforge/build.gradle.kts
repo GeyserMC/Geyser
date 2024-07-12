@@ -1,7 +1,3 @@
-plugins {
-    application
-}
-
 // This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
 // NeoForge's class loader is *really* annoying.
 provided("org.cloudburstmc.math", "api")
@@ -37,10 +33,13 @@ dependencies {
 
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
+
+    modImplementation(libs.cloud.neoforge)
+    include(libs.cloud.neoforge)
 }
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.forge.GeyserNeoForgeMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.neoforge.GeyserNeoForgeMain"
 }
 
 tasks {

@@ -1,7 +1,3 @@
-plugins {
-    application
-}
-
 architectury {
     platformSetupLoomIde()
     fabric()
@@ -38,13 +34,12 @@ dependencies {
     shadow(projects.api) { isTransitive = false }
     shadow(projects.common) { isTransitive = false }
 
-    // Permissions
-    modImplementation(libs.fabric.permissions)
-    include(libs.fabric.permissions)
+    modImplementation(libs.cloud.fabric)
+    include(libs.cloud.fabric)
 }
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.fabric.GeyserFabricMain"
 }
 
 relocate("org.cloudburstmc.netty")
