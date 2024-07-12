@@ -28,8 +28,8 @@ package org.geysermc.geyser.platform.velocity;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.proxy.Player;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
@@ -39,7 +39,7 @@ public final class GeyserVelocityUpdateListener {
     public void onPlayerJoin(PostLoginEvent event) {
         if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
             final Player player = event.getPlayer();
-            if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
+            if (player.hasPermission(Permissions.CHECK_UPDATE)) {
                 VersionCheckUtils.checkForGeyserUpdate(() -> new VelocityCommandSource(player));
             }
         }

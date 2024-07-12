@@ -27,19 +27,22 @@ package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public class BungeeCommandSource implements GeyserCommandSource {
 
-    private final net.md_5.bungee.api.CommandSender handle;
+    private final CommandSender handle;
 
-    public BungeeCommandSource(net.md_5.bungee.api.CommandSender handle) {
+    public BungeeCommandSource(CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
         GeyserLocale.loadGeyserLocale(this.locale());
@@ -73,11 +76,19 @@ public class BungeeCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public @Nullable UUID playerUuid() {
+        if (handle instanceof ProxiedPlayer player) {
+            return player.getUniqueId();
+        }
+        return null;
+    }
+
+    @Override
     public String locale() {
         if (handle instanceof ProxiedPlayer player) {
             Locale locale = player.getLocale();
             if (locale != null) {
-                // Locale can be null early on in the conneciton
+                // Locale can be null early on in the connection
                 return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
             }
         }
@@ -86,6 +97,12 @@ public class BungeeCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+        // Handle blank permissions ourselves, as bungeecord only handles empty ones
+        return permission.isBlank() || handle.hasPermission(permission);
+    }
+
+    @Override
+    public Object handle() {
+        return handle;
     }
 }
