@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
@@ -42,7 +41,6 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,22 +51,20 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 public final class TagCache {
     // Stores the indexes of non-vanilla tag keys in the tags array.
-    private List<Object2IntMap<Key>> tagIndexMaps = new ArrayList<>();
+    private Object2IntMap<Key>[] tagIndexMaps = new Object2IntMap[TagRegistry.values().length];
     private int[][][] tags = new int[TagRegistry.values().length][][];
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
-        int tagsLoading = (int) allTags.keySet().stream().filter(TagRegistry::shouldLoad).count();
         GeyserLogger logger = session.getGeyser().getLogger();
 
-        this.tagIndexMaps = new ArrayList<>(tagsLoading);
-        this.tags = new int[tagsLoading][][];
+        this.tagIndexMaps = new Object2IntMap[TagRegistry.values().length];
+        this.tags = new int[TagRegistry.values().length][][];
 
-        int i = 0;
         for (Key registryKey : allTags.keySet()) {
             TagRegistry registry = TagRegistry.fromKey(registryKey);
             if (registry == null) {
-                GeyserImpl.getInstance().getLogger().debug("Not loading tags for registry " + registryKey + " (registry is not defined in TagRegistry enum)");
+                logger.debug("Not loading tags for registry " + registryKey + " (registry is not defined in TagRegistry enum)");
                 continue;
             }
 
@@ -92,28 +88,29 @@ public final class TagCache {
             }
 
             Object2IntMap<Key> tagIndexMap = new Object2IntOpenHashMap<>();
-            this.tags[i] = loadTags(registryTags, tagIndexMap, registry);
-            this.tagIndexMaps.add(tagIndexMap);
-            i++;
+            this.tags[registry.ordinal()] = loadTags(registryTags, tagIndexMap, registry);
+            this.tagIndexMaps[registry.ordinal()] = tagIndexMap;
         }
     }
 
     private int[][] loadTags(Map<Key, int[]> packetTags, Object2IntMap<Key> tagIndexMap, TagRegistry registry) {
-        List<Key> vanillaTagKeys = List.copyOf(registry.getVanillaTags().keySet());
-        List<Key> nonVanillaTagKeys = packetTags.keySet().stream().filter(tag -> !vanillaTagKeys.contains(tag)).toList();
+        Map<Key, Tag> vanillaTags = registry.getVanillaTags();
+        List<Key> nonVanillaTagKeys = packetTags.keySet().stream().filter(tag -> !vanillaTags.containsKey(tag)).toList();
 
-        List<int[]> tagsBuilder = new ArrayList<>(vanillaTagKeys.size() + nonVanillaTagKeys.size());
+        int[][] tags = new int[vanillaTags.size() + nonVanillaTagKeys.size()][];
 
-        for (Key vanillaTagKey : registry.getVanillaTags().keySet()) {
-            tagsBuilder.add(packetTags.getOrDefault(vanillaTagKey, new int[0]));
+        for (Map.Entry<Key, Tag> vanillaTag : vanillaTags.entrySet()) {
+            tags[((VanillaTag) vanillaTag.getValue()).ordinal()] = packetTags.getOrDefault(vanillaTag.getKey(), new int[0]);
         }
 
+        int tagIndex = vanillaTags.size();
         for (Key nonVanillaTagKey : nonVanillaTagKeys) {
-            tagIndexMap.put(nonVanillaTagKey, tagsBuilder.size());
-            tagsBuilder.add(packetTags.get(nonVanillaTagKey));
+            tags[tagIndex] = packetTags.get(nonVanillaTagKey);
+            tagIndexMap.put(nonVanillaTagKey, tagIndex);
+            tagIndex++;
         }
 
-        return tagsBuilder.toArray(new int[0][]);
+        return tags;
     }
 
     /**
@@ -155,7 +152,7 @@ public final class TagCache {
         }
 
         int registryIndex = tag.registry().ordinal();
-        Object2IntMap<Key> tagIndexMap = this.tagIndexMaps.get(registryIndex);
+        Object2IntMap<Key> tagIndexMap = this.tagIndexMaps[registryIndex];
         if (!tagIndexMap.containsKey(tag.tag())) {
             return new int[0];
         }

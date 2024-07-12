@@ -35,7 +35,7 @@ import org.geysermc.geyser.util.MinecraftKey;
  * Lists registries that Geyser stores tags for.
  *
  * When wanting to store tags from a new registry, add the registry here, and register all vanilla tags for it using {@link TagRegistry#registerVanillaTag}. These vanilla tags
- * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}. This class can then have an init method that's called in {@link TagRegistry#init)}, to ensure
+ * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}. This class can then have an init method that's called in {@link TagRegistry#init}, to ensure
  * that all vanilla tags are registered before any connection is made.
  */
 public enum TagRegistry {

@@ -25,11 +25,7 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.util.MinecraftKey;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Lists vanilla item tags.
