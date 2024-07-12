@@ -709,7 +709,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             try {
                 response = step.refresh(PendingMicrosoftAuthentication.AUTH_CLIENT, step.fromJson(gson.fromJson(authChain, JsonObject.class)));
             } catch (Exception e) {
-                geyser.getLogger().error("Error while attempting to use refresh token for " + bedrockUsername() + "!", e);
+                geyser.getLogger().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
                 return Boolean.FALSE;
             }
 

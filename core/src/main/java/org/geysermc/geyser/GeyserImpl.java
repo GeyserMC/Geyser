@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -38,6 +39,8 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
+import net.raphimc.minecraftauth.step.msa.StepRefreshTokenMsaCode;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -55,7 +58,11 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.*;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -85,7 +92,13 @@ import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.Metrics;
+import org.geysermc.geyser.util.NewsHandler;
+import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
@@ -97,7 +110,14 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -536,6 +556,54 @@ public class GeyserImpl implements GeyserApi {
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
             savedAuthChains = new ConcurrentHashMap<>();
 
+            boolean doWrite = false;
+
+            // Remove after a while - just a migration help
+            //noinspection deprecation
+            File refreshTokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            if (refreshTokensFile.exists()) {
+                TypeReference<Map<String, String>> type = new TypeReference<>() { };
+                Map<String, String> authChainFile = null;
+                try {
+                    authChainFile = JSON_MAPPER.readValue(refreshTokensFile, type);
+                } catch (IOException e) {
+                    // ignored - we'll just delete this file :))
+                }
+
+                if (authChainFile != null) {
+                    List<String> validUsers = config.getSavedUserLogins();
+                    final Gson gson = new Gson();
+                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
+                        String user = entry.getKey();
+                        if (!validUsers.contains(user)) {
+                            continue;
+                        }
+
+                        // Migrate refresh tokens to auth chains
+                        try {
+                            StepFullJavaSession javaSession = PendingMicrosoftAuthentication.REFRESH_TOKEN_UPDATE_AUTH_FLOW.apply(true, 10);
+                            StepFullJavaSession.FullJavaSession fullJavaSession = javaSession.getFromInput(
+                                PendingMicrosoftAuthentication.AUTH_CLIENT,
+                                new StepRefreshTokenMsaCode.RefreshToken(entry.getValue())
+                            );
+
+                            String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
+                            GeyserImpl.getInstance().getLogger().warning("new auth chain: " + authChain);
+                            savedAuthChains.put(user, authChain);
+                        } catch (Exception e) {
+                            GeyserImpl.getInstance().getLogger().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
+                                "They will need to sign in the next time they join Geyser.");
+                        }
+
+                        // Ensure the new additions are written to the file
+                        doWrite = true;
+                    }
+                }
+
+                // Finally: Delete it. Goodbye!
+                //refreshTokensFile.delete();
+            }
+
             File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
             if (authChainsFile.exists()) {
                 TypeReference<Map<String, String>> type = new TypeReference<>() { };
@@ -548,7 +616,6 @@ public class GeyserImpl implements GeyserApi {
                 }
                 if (authChainFile != null) {
                     List<String> validUsers = config.getSavedUserLogins();
-                    boolean doWrite = false;
                     for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
                         String user = entry.getKey();
                         if (!validUsers.contains(user)) {
