@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GeyserSpigotLogger implements GeyserLogger {
     private final Logger logger;
     @Getter @Setter

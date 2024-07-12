@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.erosion;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.erosion.packet.geyserbound.*;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractGeyserboundPacketHandler implements GeyserboundPacketHandler {
     protected final GeyserSession session;

@@ -52,8 +52,8 @@ public class GeyserExtensionManager extends ExtensionManager {
     }
 
     @Override
-    public Extension extension(@NonNull String name) {
-        return this.extensions.get(name);
+    public Extension extension(@NonNull String id) {
+        return this.extensions.get(id);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class GeyserExtensionManager extends ExtensionManager {
         if (!extension.isEnabled()) {
             extension.setEnabled(true);
             GeyserImpl.getInstance().eventBus().register(extension, extension);
-            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.description().name()));
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.name()));
         }
     }
 
@@ -98,7 +98,7 @@ public class GeyserExtensionManager extends ExtensionManager {
             GeyserImpl.getInstance().eventBus().unregisterAll(extension);
 
             extension.setEnabled(false);
-            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.name()));
         }
     }
 
@@ -121,6 +121,6 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     @Override
     public void register(@NonNull Extension extension) {
-        this.extensions.put(extension.name(), extension);
+        this.extensions.put(extension.description().id(), extension);
     }
 }

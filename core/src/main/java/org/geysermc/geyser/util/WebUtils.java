@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@
 package org.geysermc.geyser.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
-import javax.annotation.Nullable;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class WebUtils {
 
@@ -54,7 +55,7 @@ public class WebUtils {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
 
@@ -72,7 +73,7 @@ public class WebUtils {
      */
     public static JsonNode getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
         return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
@@ -87,7 +88,7 @@ public class WebUtils {
     public static void downloadFile(String reqURL, String fileLocation) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", getUserAgent());
             InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
@@ -101,14 +102,14 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param postContent String data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         OutputStream out = con.getOutputStream();
@@ -123,7 +124,7 @@ public class WebUtils {
      *
      * @param con The connection to get the string from
      * @return The body of the returned page
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
         // Send the request (we dont use this but its required for getErrorStream() to work)
@@ -156,28 +157,34 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param fields Form data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         try (OutputStream out = con.getOutputStream()) {
             // Write the form data to the output
             for (Map.Entry<String, String> field : fields.entrySet()) {
-                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8.toString()) + "&").getBytes(StandardCharsets.UTF_8));
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
             }
         }
 
         return connectionToString(con);
     }
 
-    @Nullable
-    public static String[] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
+    /**
+     * Find a SRV record for the given address
+     *
+     * @param geyser Geyser instance
+     * @param remoteAddress Address to find the SRV record for
+     * @return The SRV record or null if not found
+     */
+    public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
             // Searches for a server address and a port from a SRV record of the specified host name
             InitialDirContext ctx = new InitialDirContext();
@@ -193,5 +200,31 @@ public class WebUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Get a stream of lines from the given URL
+     *
+     * @param reqURL URL to fetch
+     * @return Stream of lines from the URL or an empty stream if the request fails
+     */
+    public static Stream<String> getLineStream(String reqURL) {
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+
+            return connectionToString(con).lines();
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
+            return Stream.empty();
+        }
+    }
+
+    public static String getUserAgent() {
+        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }

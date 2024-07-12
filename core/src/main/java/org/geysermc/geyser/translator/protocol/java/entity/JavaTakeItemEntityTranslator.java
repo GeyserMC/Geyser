@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundTakeItemEntityPacket;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TakeItemEntityPacket;
 import org.geysermc.geyser.entity.type.Entity;
@@ -35,6 +33,7 @@ import org.geysermc.geyser.entity.type.ExpOrbEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTakeItemEntityPacket;
 
 /**
  * This packet is called whenever a player picks up an item.

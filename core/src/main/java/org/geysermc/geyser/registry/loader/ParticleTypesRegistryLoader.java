@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;

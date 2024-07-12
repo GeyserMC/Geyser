@@ -25,26 +25,18 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.level.FireworkColor;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -59,80 +51,16 @@ public class FireworkEntity extends Entity {
         if (item == null) {
             return;
         }
-        CompoundTag tag = item.getNbt();
-
-        if (tag == null) {
+        DataComponents components = item.getDataComponents();
+        if (components == null) {
             return;
         }
 
-        // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
-        // https://bugs.mojang.com/browse/MCPE-89115
-        if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
-                || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
-            return;
-        }
-
-        CompoundTag fireworks = tag.get("Fireworks");
-        if (fireworks == null) {
-            // Thank you Mineplex very cool
-            return;
-        }
-
-        NbtMapBuilder fireworksBuilder = NbtMap.builder();
-        if (fireworks.get("Flight") != null) {
-            fireworksBuilder.putByte("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue()));
-        }
-
-        List<NbtMap> explosions = new ArrayList<>();
-        if (fireworks.get("Explosions") != null) {
-            for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
-                CompoundTag effectData = (CompoundTag) effect;
-                NbtMapBuilder effectBuilder = NbtMap.builder();
-
-                if (effectData.get("Type") != null) {
-                    effectBuilder.putByte("FireworkType", MathUtils.getNbtByte(effectData.get("Type").getValue()));
-                }
-
-                if (effectData.get("Colors") != null) {
-                    int[] oldColors = (int[]) effectData.get("Colors").getValue();
-                    byte[] colors = new byte[oldColors.length];
-
-                    int i = 0;
-                    for (int color : oldColors) {
-                        colors[i++] = FireworkColor.fromJavaRGB(color);
-                    }
-
-                    effectBuilder.putByteArray("FireworkColor", colors);
-                }
-
-                if (effectData.get("FadeColors") != null) {
-                    int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
-                    byte[] colors = new byte[oldColors.length];
-
-                    int i = 0;
-                    for (int color : oldColors) {
-                        colors[i++] = FireworkColor.fromJavaRGB(color);
-                    }
-
-                    effectBuilder.putByteArray("FireworkFade", colors);
-                }
-
-                if (effectData.get("Trail") != null) {
-                    effectBuilder.putByte("FireworkTrail", MathUtils.getNbtByte(effectData.get("Trail").getValue()));
-                }
-
-                if (effectData.get("Flicker") != null) {
-                    effectBuilder.putByte("FireworkFlicker", MathUtils.getNbtByte(effectData.get("Flicker").getValue()));
-                }
-
-                explosions.add(effectBuilder.build());
-            }
-        }
-
-        fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
-
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.put("Fireworks", fireworksBuilder.build());
+        // TODO this looked the same, so I'm going to assume it is and (keep below comment if true)
+        // Translate using item methods to get firework NBT for Bedrock
+        BedrockItemBuilder builder = new BedrockItemBuilder();
+        Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, builder);
+        
         dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }
 

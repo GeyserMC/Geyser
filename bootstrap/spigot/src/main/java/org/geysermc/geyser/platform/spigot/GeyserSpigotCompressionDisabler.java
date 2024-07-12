@@ -34,7 +34,7 @@ import org.geysermc.geyser.GeyserImpl;
 /**
  * Disables the compression packet (and the compression handlers from being added to the pipeline) for Geyser clients
  * that won't be receiving the data over the network.
- *
+ * <p>
  * As of 1.8 - 1.17.1, compression is enabled in the Netty pipeline by adding a listener after a packet is written.
  * If we simply "cancel" or don't forward the packet, then the listener is never called.
  */

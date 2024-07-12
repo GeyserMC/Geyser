@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -33,11 +33,12 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 
 import java.util.Locale;
 
@@ -50,7 +51,7 @@ public final class SoundUtils {
      * @param sound the sound name
      * @return a sound event from the given sound
      */
-    private static SoundEvent toSoundEvent(String sound) {
+    public static @Nullable SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
         } catch (Exception ex) {
@@ -132,7 +133,7 @@ public final class SoundUtils {
         }
         if (sound == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + soundIdentifier + "' to mappings '" + soundMapping.getBedrock()
-                    + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
+                + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
             return;
         }
 
@@ -143,10 +144,10 @@ public final class SoundUtils {
             // Minecraft Wiki: 2^(x/12) = Java pitch where x is -12 to 12
             // Java sends the note value as above starting with -12 and ending at 12
             // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
-            soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
+            soundPacket.setExtraData(soundMapping.getExtraData() + (int) (Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
             if (!soundMapping.getIdentifier().equals(":")) {
-                int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.getIdentifier(), BlockStateValues.JAVA_AIR_ID);
+                int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.getIdentifier(), Block.JAVA_AIR_ID);
                 soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(javaId));
             } else {
                 session.getGeyser().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + soundMapping);

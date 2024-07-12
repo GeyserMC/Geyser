@@ -25,6 +25,8 @@
 
 package org.geysermc.floodgate.news;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 public enum NewsItemAction {
     ON_SERVER_STARTED,
     ON_OPERATOR_JOIN,
@@ -33,7 +35,7 @@ public enum NewsItemAction {
 
     private static final NewsItemAction[] VALUES = values();
 
-    public static NewsItemAction getByName(String actionName) {
+    public static @Nullable NewsItemAction getByName(String actionName) {
         for (NewsItemAction type : VALUES) {
             if (type.name().equalsIgnoreCase(actionName)) {
                 return type;

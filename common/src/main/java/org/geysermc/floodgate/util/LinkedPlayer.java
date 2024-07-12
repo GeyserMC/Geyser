@@ -28,6 +28,7 @@ package org.geysermc.floodgate.util;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.UUID;
 
@@ -56,7 +57,7 @@ public final class LinkedPlayer implements Cloneable {
         return new LinkedPlayer(javaUsername, javaUniqueId, bedrockId);
     }
 
-    public static LinkedPlayer fromString(String data) {
+    public static @Nullable LinkedPlayer fromString(String data) {
         String[] split = data.split(";");
         if (split.length != 3) {
             return null;

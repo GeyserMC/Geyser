@@ -47,6 +47,7 @@ public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
     private final int serverPort;
     private final List<PluginInfo> plugins;
 
+    @SuppressWarnings("deprecation")
     GeyserSpigotDumpInfo() {
         super();
         this.platformName = Bukkit.getName();

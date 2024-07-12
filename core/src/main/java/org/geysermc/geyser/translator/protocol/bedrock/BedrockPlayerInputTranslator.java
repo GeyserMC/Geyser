@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -50,7 +50,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );
 
-        session.sendDownstreamPacket(playerInputPacket);
+        session.sendDownstreamGamePacket(playerInputPacket);
 
         // Bedrock only sends movement vehicle packets while moving
         // This allows horses to take damage while standing on magma
@@ -83,7 +83,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                         vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
                         vehicle.getYaw() - 90, vehicle.getPitch()
                 );
-                session.sendDownstreamPacket(moveVehiclePacket);
+                session.sendDownstreamGamePacket(moveVehiclePacket);
             }
         }
     }

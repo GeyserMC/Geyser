@@ -30,11 +30,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.util.CachedServerIcon;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
-import javax.annotation.Nonnull;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -45,17 +46,13 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
 
     private final GeyserSpigotLogger logger;
 
+    @SuppressWarnings("deprecation")
     @Override
-    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
+    public @Nullable GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         try {
             ServerListPingEvent event = new GeyserPingEvent(inetSocketAddress.getAddress(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
-            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(),
-                    new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers()),
-                    new GeyserPingInfo.Version(Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion()) // thanks Spigot for not exposing this, just default to latest
-            );
-            Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
-            return geyserPingInfo;
+            return new GeyserPingInfo(event.getMotd(), event.getMaxPlayers(), event.getNumPlayers());
         } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Bukkit ping passthrough: " + e);
             return null;
@@ -73,7 +70,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
         public void setServerIcon(CachedServerIcon icon) throws IllegalArgumentException, UnsupportedOperationException {
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Iterator<Player> iterator() throws UnsupportedOperationException {
             return Collections.emptyIterator();

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntity;

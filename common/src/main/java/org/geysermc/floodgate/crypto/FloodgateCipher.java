@@ -25,6 +25,7 @@
 
 package org.geysermc.floodgate.crypto;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.util.InvalidFormatException;
 
 import java.security.Key;
@@ -97,7 +98,8 @@ public interface FloodgateCipher {
      * @return the decrypted data in a UTF-8 String
      * @throws Exception when the decrypting failed
      */
-    default String decryptToString(byte[] data) throws Exception {
+    @SuppressWarnings("unused")
+    default @Nullable String decryptToString(byte[] data) throws Exception {
         byte[] decrypted = decrypt(data);
         if (decrypted == null) {
             return null;
@@ -113,6 +115,7 @@ public interface FloodgateCipher {
      * @return the decrypted data in a byte[]
      * @throws Exception when the decrypting failed
      */
+    @SuppressWarnings("unused")
     default byte[] decryptFromString(String data) throws Exception {
         return decrypt(data.getBytes(UTF_8));
     }

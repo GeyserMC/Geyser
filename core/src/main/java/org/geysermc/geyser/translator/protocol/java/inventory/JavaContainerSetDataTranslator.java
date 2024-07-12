@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetDataPacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetDataPacket;
 
 @Translator(packet = ClientboundContainerSetDataPacket.class)
 public class JavaContainerSetDataTranslator extends PacketTranslator<ClientboundContainerSetDataPacket> {

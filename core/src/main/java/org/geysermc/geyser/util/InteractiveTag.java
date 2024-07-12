@@ -70,7 +70,10 @@ public enum InteractiveTag {
     READ,
     WAKE_VILLAGER("wakevillager"),
     BARTER,
-    GIVE_ITEM_TO_ALLAY("allay");
+    GIVE_ITEM_TO_ALLAY("allay"),
+    EQUIP_WOLF_ARMOR("equipwolfarmor"),
+    REMOVE_WOLF_ARMOR("removewolfarmor"),
+    REPAIR_WOLF_ARMOR("repairwolfarmor");
 
     /**
      * The full string that should be passed on to the client.

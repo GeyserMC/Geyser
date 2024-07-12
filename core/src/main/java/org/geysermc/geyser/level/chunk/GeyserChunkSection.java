@@ -34,15 +34,16 @@ public class GeyserChunkSection {
     private static final int CHUNK_SECTION_VERSION = 9;
 
     private final BlockStorage[] storage;
-    private final int sectionY;
+    // Counts up from 00 for y >= 0 and down from FF for y < 0
+    private final int subChunkIndex;
 
-    public GeyserChunkSection(int airBlockId, int sectionY) {
-        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)}, sectionY);
+    public GeyserChunkSection(int airBlockId, int subChunkIndex) {
+        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)}, subChunkIndex);
     }
 
-    public GeyserChunkSection(BlockStorage[] storage, int sectionY) {
+    public GeyserChunkSection(BlockStorage[] storage, int subChunkIndex) {
         this.storage = storage;
-        this.sectionY = sectionY;
+        this.subChunkIndex = subChunkIndex;
     }
 
     public int getFullBlock(int x, int y, int z, int layer) {
@@ -61,7 +62,7 @@ public class GeyserChunkSection {
         buffer.writeByte(CHUNK_SECTION_VERSION);
         buffer.writeByte(this.storage.length);
         // Required for chunk version 9+
-        buffer.writeByte(this.sectionY);
+        buffer.writeByte(this.subChunkIndex);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
         }
@@ -88,12 +89,12 @@ public class GeyserChunkSection {
         return true;
     }
 
-    public GeyserChunkSection copy(int sectionY) {
+    public GeyserChunkSection copy(int subChunkIndex) {
         BlockStorage[] storage = new BlockStorage[this.storage.length];
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new GeyserChunkSection(storage, sectionY);
+        return new GeyserChunkSection(storage, subChunkIndex);
     }
 
     public static int blockPosition(int x, int y, int z) {

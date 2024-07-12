@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;

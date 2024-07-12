@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;

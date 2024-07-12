@@ -30,10 +30,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 
 public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTranslator {
     public GrindstoneInventoryTranslator() {
-        super(3, "minecraft:grindstone[face=floor,facing=north]", ContainerType.GRINDSTONE, UIInventoryUpdater.INSTANCE);
+        super(3, Blocks.GRINDSTONE, ContainerType.GRINDSTONE, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

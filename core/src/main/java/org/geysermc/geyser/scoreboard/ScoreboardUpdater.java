@@ -62,7 +62,7 @@ public final class ScoreboardUpdater extends Thread {
 
     @Override
     public void run() {
-        while (!geyser.isShuttingDown()) {
+        while (!geyser.isShuttingDown() && !geyser.isReloading()) {
             try {
                 long timeTillAction = getTimeTillNextAction();
                 if (timeTillAction > 0) {
@@ -173,6 +173,7 @@ public final class ScoreboardUpdater extends Thread {
     @Getter
     public static final class ScoreboardSession {
         private final GeyserSession session;
+        @SuppressWarnings("WriteOnlyObject")
         private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
         private int packetsPerSecond;
         private long lastUpdate;

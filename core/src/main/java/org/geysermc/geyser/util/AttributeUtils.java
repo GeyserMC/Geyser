@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeModifier;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 
 public class AttributeUtils {
     /**
      * Retrieve the base attribute value with all modifiers applied.
-     * https://minecraft.gamepedia.com/Attribute#Modifiers
+     * <a href="https://minecraft.wiki/w/Attribute#Modifiers">See here</a>
      * @param attribute The attribute to calculate the total value.
      * @return The finished attribute with all modifiers applied.
      */
@@ -45,12 +45,12 @@ public class AttributeUtils {
         }
         double value = base;
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_BASE) {
                 value += base * modifier.getAmount();
             }
         }
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.MULTIPLY) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_TOTAL) {
                 value *= 1.0D + modifier.getAmount();
             }
         }

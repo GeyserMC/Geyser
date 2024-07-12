@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.LinkedHashMap;
 import java.util.Set;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * This class is used to store conditions for a placement filter for a custom block.
@@ -43,7 +43,7 @@ public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull Link
         NORTH,
         SOUTH,
         WEST,
-        EAST;
+        EAST
     }
     
     public enum BlockFilterType {

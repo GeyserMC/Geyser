@@ -30,10 +30,13 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public class VelocityCommandSource implements GeyserCommandSource {
 
@@ -56,7 +59,7 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         handle.sendMessage(LegacyComponentSerializer.legacy('§').deserialize(message));
     }
 
@@ -72,6 +75,14 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public @Nullable UUID playerUuid() {
+        if (handle instanceof Player player) {
+            return player.getUniqueId();
+        }
+        return null;
+    }
+
+    @Override
     public String locale() {
         if (handle instanceof Player) {
             Locale locale = ((Player) handle).getPlayerSettings().getLocale();
@@ -82,6 +93,12 @@ public class VelocityCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+        // Handle blank permissions ourselves, as velocity only handles empty ones
+        return permission.isBlank() || handle.hasPermission(permission);
+    }
+
+    @Override
+    public Object handle() {
+        return handle;
     }
 }

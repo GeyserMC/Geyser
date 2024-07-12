@@ -26,9 +26,11 @@
 package org.geysermc.geyser;
 
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
-import javax.annotation.Nullable;
+import java.util.UUID;
 
 public interface GeyserLogger extends GeyserCommandSource {
 
@@ -119,13 +121,18 @@ public interface GeyserLogger extends GeyserCommandSource {
     }
 
     @Override
-    default void sendMessage(String message) {
+    default void sendMessage(@NonNull String message) {
         info(message);
     }
 
     @Override
     default boolean isConsole() {
         return true;
+    }
+
+    @Override
+    default @Nullable UUID playerUuid() {
+        return null;
     }
 
     @Override

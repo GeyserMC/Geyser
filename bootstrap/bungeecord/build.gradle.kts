@@ -1,20 +1,24 @@
 dependencies {
     api(projects.core)
 
+    implementation(libs.cloud.bungee)
     implementation(libs.adventure.text.serializer.bungeecord)
+    compileOnlyApi(libs.bungeecord.proxy)
 }
 
 platformRelocate("net.md_5.bungee.jni")
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("io.netty.channel.kqueue") // This is not used because relocating breaks natives, but we must include it or else we get ClassDefNotFound
 platformRelocate("net.kyori")
+platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.bungeecord.proxy)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.bungeecord.GeyserBungeeMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.bungeecord.GeyserBungeeMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
@@ -22,6 +26,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
         exclude(dependency("io.netty:netty-handler:.*"))
@@ -32,4 +37,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-codec:.*"))
         exclude(dependency("io.netty:netty-resolver-dns:.*"))
     }
+}
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.add("bungeecord")
 }

@@ -38,7 +38,7 @@ public class AmbientEntity extends MobEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return false;
     }
 }

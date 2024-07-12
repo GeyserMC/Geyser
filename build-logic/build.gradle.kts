@@ -4,14 +4,20 @@ plugins {
 
 repositories {
     gradlePluginPortal()
-    maven("https://repo.opencollab.dev/maven-snapshots")
+
+    maven("https://repo.opencollab.dev/maven-snapshots/")
+    maven("https://maven.fabricmc.net/")
+    maven("https://maven.neoforged.net/releases")
+    maven("https://maven.architectury.dev/")
 }
 
 dependencies {
-    implementation("net.kyori", "indra-common", "3.1.1")
-    implementation("com.github.johnrengelman", "shadow", "7.1.3-SNAPSHOT")
-
-    // Within the gradle plugin classpath, there is a version conflict between loom and some other
-    // plugin for databind. This fixes it: minimum 2.13.2 is required by loom.
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
+    // this is OK as long as the same version catalog is used in the main build and build-logic
+    // see https://github.com/gradle/gradle/issues/15383#issuecomment-779893192
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(libs.indra)
+    implementation(libs.shadow)
+    implementation(libs.architectury.plugin)
+    implementation(libs.architectury.loom)
+    implementation(libs.minotaur)
 }

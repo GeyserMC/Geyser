@@ -1,0 +1,5 @@
+name: "${name}-ViaProxy"
+version: "${version}"
+author: "${author}"
+main: "org.geysermc.geyser.platform.viaproxy.GeyserViaProxyPlugin"
+min-version: "3.2.1"
