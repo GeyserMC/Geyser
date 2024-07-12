@@ -99,6 +99,7 @@ public final class TagCache {
 
         int[][] tags = new int[vanillaTags.size() + nonVanillaTagKeys.size()][];
 
+        // Load all vanilla tags first (whether the server sent them or not), then load all the remaining non-vanilla tags the server might have sent.
         for (Map.Entry<Key, Tag> vanillaTag : vanillaTags.entrySet()) {
             tags[((VanillaTag) vanillaTag.getValue()).ordinal()] = packetTags.getOrDefault(vanillaTag.getKey(), new int[0]);
         }

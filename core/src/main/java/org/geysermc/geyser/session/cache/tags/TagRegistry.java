@@ -65,10 +65,6 @@ public enum TagRegistry {
         return Map.copyOf(vanillaTags);
     }
 
-    public static boolean shouldLoad(Key registryKey) {
-        return fromKey(registryKey) != null;
-    }
-
     @Nullable
     public static TagRegistry fromKey(Key registryKey) {
         for (TagRegistry registry : TagRegistry.values()) {
