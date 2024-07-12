@@ -187,7 +187,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void tick() {
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
-        doTick = !doTick; // Run every 100 ms
+        doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
         }

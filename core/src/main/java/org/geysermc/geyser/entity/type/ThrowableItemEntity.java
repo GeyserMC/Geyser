@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.UUID;
 
@@ -48,6 +48,10 @@ public class ThrowableItemEntity extends ThrowableEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
+        if (session.isFrozen()) {
+            age = 4;
+            checkVisibility();
+        }
     }
 
     private void checkVisibility() {
