@@ -48,6 +48,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -246,13 +247,13 @@ public class LivingEntity extends Entity {
         return freezingPercentage;
     }
 
-    protected void setScale(float scale) {
+    public void setScale(float scale) {
         this.scale = scale;
         applyScale();
     }
 
     private void setAttributeScale(float scale) {
-        this.attributeScale = scale;
+        this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }
 
