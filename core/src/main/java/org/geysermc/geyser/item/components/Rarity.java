@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,3 +22,30 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+
+package org.geysermc.geyser.item.components;
+
+import lombok.Getter;
+
+@Getter
+public enum Rarity {
+    COMMON("common", 'f'),
+    UNCOMMON("uncommon", 'e'),
+    RARE("rare", 'b'),
+    EPIC("epic", 'd');
+
+    private final String name;
+    private final char color;
+
+    Rarity(final String name, char chatColor) {
+        this.name = name;
+        this.color = chatColor;
+    }
+
+    private static final Rarity[] VALUES = values();
+
+    public static Rarity fromId(int id) {
+        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    }
+
+}

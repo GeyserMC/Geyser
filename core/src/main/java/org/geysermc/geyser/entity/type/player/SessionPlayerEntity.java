@@ -27,15 +27,18 @@ package org.geysermc.geyser.entity.type.player;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -69,6 +72,15 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     private int lastAirSupply = getMaxAir();
 
+    /**
+     * Determines if our position is currently out-of-sync with the Java server
+     * due to our workaround for the void floor
+     * <p>
+     * Must be reset when dying, switching worlds, or being teleported out of the void
+     */
+    @Getter @Setter
+    private boolean voidPositionDesynched;
+
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
 
@@ -87,8 +99,23 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (voidPositionDesynched) {
+            if (!isBelowVoidFloor()) {
+                voidPositionDesynched = false; // No need to fix our offset; we've been moved
+            }
+        }
         super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        if (voidPositionDesynched) {
+            if (!isBelowVoidFloor()) {
+                voidPositionDesynched = false; // No need to fix our offset; we've been moved
+            }
+        }
+        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -225,6 +252,9 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
+
+        // We're either respawning or switching worlds, either way, we are no longer desynched
+        this.setVoidPositionDesynched(false);
     }
 
     @Override
@@ -275,5 +305,49 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void resetAir() {
         this.setAirSupply(getMaxAir());
+    }
+
+    private boolean isBelowVoidFloor() {
+        return position.getY() < voidFloorPosition();
+    }
+
+    public int voidFloorPosition() {
+        // The void floor is offset about 40 blocks below the bottom of the world
+        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        return bedrockDimension.minY() - 40;
+    }
+
+    /**
+     * This method handles teleporting the player below or above the Bedrock void floor.
+     * The Java server should never see this desync as we adjust the position that we send to it
+     *
+     * @param up in which direction to teleport - true to resync our position, or false to be
+     *           teleported below the void floor.
+     */
+    public void teleportVoidFloorFix(boolean up) {
+        // Safety to avoid double teleports
+        if ((voidPositionDesynched && !up) || (!voidPositionDesynched && up)) {
+            return;
+        }
+
+        // Work around there being a floor at the bottom of the world and teleport the player below it
+        // Moving from below to above the void floor works fine
+        Vector3f newPosition = this.getPosition();
+        if (up) {
+            newPosition = newPosition.up(4f);
+            voidPositionDesynched = false;
+        } else {
+            newPosition = newPosition.down(4f);
+            voidPositionDesynched = true;
+        }
+
+        this.setPositionManual(newPosition);
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(newPosition);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        session.sendUpstreamPacketImmediately(movePlayerPacket);
     }
 }

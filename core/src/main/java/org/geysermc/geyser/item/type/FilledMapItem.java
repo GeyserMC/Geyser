@@ -51,6 +51,7 @@ public class FilledMapItem extends MapItem {
                 switch (mapColor) {
                     case 3830373 -> builder.damage(3); // Ocean Monument
                     case 5393476 -> builder.damage(4); // Woodland explorer
+                    case 12741452 -> builder.damage(14); // Trial Chamber
                 }
             }
         }

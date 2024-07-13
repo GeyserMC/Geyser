@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.sound.block;
+package org.geysermc.geyser.session.cache.registry;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import java.util.Map;
+import net.kyori.adventure.key.Key;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
-import org.geysermc.geyser.translator.sound.SoundTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
-@SoundTranslator(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+/**
+ * Used to store context around a single registry entry when reading said entry's NBT.
+ *
+ * @param entry the registry entry being read.
+ * @param keyIdMap a map for each of the resource location's in the registry and their respective network IDs.
+ * @param session the Geyser session.
+ */
+public record RegistryEntryContext(RegistryEntry entry, Object2IntMap<Key> keyIdMap, GeyserSession session) {
 
-    @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
-        if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEvent.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+    public int getNetworkId(Key registryKey) {
+        return keyIdMap.getOrDefault(registryKey, 0);
+    }
+
+    public Key id() {
+        return entry.getId();
+    }
+
+    // Not annotated as nullable because data should never be null here
+    public NbtMap data() {
+        return entry.getData();
     }
 }

@@ -29,6 +29,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
@@ -37,7 +38,8 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class BucketSoundInteractionTranslator implements BlockSoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
+    public void translate(GeyserSession session, Vector3f position, BlockState state) {
+        String identifier = state.toString();
         if (!session.isPlacedBucket()) {
             return; // No bucket was really interacted with
         }
