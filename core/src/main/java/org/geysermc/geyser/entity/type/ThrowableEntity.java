@@ -130,7 +130,7 @@ public class ThrowableEntity extends Entity implements Tickable {
                 case SNOWBALL:
                 case EGG:
                 case ENDER_PEARL:
-                    return 0.03f;
+                    return 0.0325f;
                 case LLAMA_SPIT:
                     return 0.06f;
             }

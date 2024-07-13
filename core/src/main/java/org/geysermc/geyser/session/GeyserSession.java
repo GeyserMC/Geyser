@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -560,9 +560,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private MinecraftProtocol protocol;
 
-    private float tickRate = 20.0f;
-
-    private boolean frozen = false;
+    private boolean tickingFrozen = false;
+    @Setter
+    private int stepTicks = 0;
+    private boolean gameShouldUpdate = true;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.geyser = geyser;
@@ -846,7 +847,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / tickRate), Math.round(1000 / tickRate), TimeUnit.MILLISECONDS);
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
         this.protocol.setUseDefaultListeners(false);
 
@@ -1075,11 +1076,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         downstream.connect(false, loginEvent.transferring());
     }
 
-    public void updateTickData(float tickRate, boolean frozen) {
+    public void updateTickingState(float tickRate, boolean frozen) {
         tickThread.cancel(true);
-        this.tickRate = tickRate;
-        this.frozen = frozen;
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / getTickRate()), Math.round(1000 / getTickRate()), TimeUnit.MILLISECONDS);
+        this.tickingFrozen = frozen;
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / tickRate), Math.round(1000 / tickRate), TimeUnit.MILLISECONDS);
     }
 
     public void disconnect(String reason) {
@@ -1208,9 +1208,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 camera().removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
-
-            if (!frozen) {
-                for (Tickable entity : entityCache.getTickableEntities()) {
+            gameShouldUpdate = !tickingFrozen || stepTicks > 0;
+            if (stepTicks > 0) {
+                --stepTicks;
+            }
+            for (Tickable entity : entityCache.getTickableEntities()) {
+                entity.drawTick();
+                if (gameShouldUpdate) {
                     entity.tick();
                 }
             }

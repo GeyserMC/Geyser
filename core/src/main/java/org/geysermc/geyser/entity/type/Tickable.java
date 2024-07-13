@@ -29,5 +29,7 @@ package org.geysermc.geyser.entity.type;
  * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
  */
 public interface Tickable {
+    default void drawTick() {};
     void tick();
+
 }

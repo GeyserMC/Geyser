@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,55 +25,24 @@
 
 package org.geysermc.geyser.entity.type;
 
+
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.UUID;
 
-/**
- * Used as a class for any projectile entity that looks like an item
- */
-public class ThrowableItemEntity extends ThrowableEntity {
-    private boolean invisible;
-
-    public ThrowableItemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+public class EnderEyeEntity extends Entity {
+    public EnderEyeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-        setFlag(EntityFlag.INVISIBLE, true);
-        invisible = false;
     }
+
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Correct sizing
         dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
-    }
-    private void checkVisibility() {
-        Vector3f playerPos = session.getPlayerEntity().getPosition();
-        // Prevent projectiles from blocking the player's screen
-        setInvisible(position.distanceSquared(playerPos) < 9);
-
-        if (invisible != getFlag(EntityFlag.INVISIBLE)) {
-            setFlag(EntityFlag.INVISIBLE, invisible);
-            updateBedrockMetadata();
-        }
-    }
-
-    @Override
-    public void drawTick() {
-        checkVisibility();
-        super.drawTick();
-    }
-
-    @Override
-    protected void setInvisible(boolean value) {
-        invisible = value;
-    }
-
-    public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
     }
 }
