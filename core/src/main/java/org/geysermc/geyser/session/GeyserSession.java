@@ -1076,12 +1076,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         downstream.connect(false, loginEvent.transferring());
     }
 
-    public void updateTickingState(float tickRate, boolean frozen) {
-        tickThread.cancel(true);
-        this.tickingFrozen = frozen;
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / tickRate), Math.round(1000 / tickRate), TimeUnit.MILLISECONDS);
-    }
-
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
@@ -1168,6 +1162,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
         }, duration, timeUnit);
+    }
+
+    public void updateTickingState(float tickRate, boolean frozen) {
+        tickThread.cancel(true);
+        this.tickingFrozen = frozen;
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / tickRate), Math.round(1000 / tickRate), TimeUnit.MILLISECONDS);
     }
 
     /**
