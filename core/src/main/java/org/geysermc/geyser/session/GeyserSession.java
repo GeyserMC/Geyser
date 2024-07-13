@@ -661,7 +661,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributesPacket.setAttributes(Collections.singletonList(
-            GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
+                GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
         upstream.sendPacket(attributesPacket);
 
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
@@ -764,7 +764,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendUpstreamPacket(packet);
 
         final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
-            getAuthData().xuid()
+                getAuthData().xuid()
         );
         task.setOnline(true);
         task.resetTimer();
@@ -805,13 +805,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             GameProfile selectedProfile = service.getSelectedProfile();
             if (selectedProfile == null) {
                 disconnect(GeyserLocale.getPlayerLocaleString(
-                    "geyser.network.remote.invalid_account",
-                    clientData.getLanguageCode()
+                        "geyser.network.remote.invalid_account",
+                        clientData.getLanguageCode()
                 ));
             } else {
                 this.protocol = new MinecraftProtocol(
-                    selectedProfile,
-                    service.getAccessToken()
+                        selectedProfile,
+                        service.getAccessToken()
                 );
                 try {
                     connectDownstream();
@@ -836,7 +836,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         GeyserImpl.getInstance().eventBus().fire(loginEvent);
         if (loginEvent.isCancelled()) {
             String disconnectReason = loginEvent.disconnectReason() == null ?
-                BedrockDisconnectReasons.DISCONNECTED : loginEvent.disconnectReason();
+                    BedrockDisconnectReasons.DISCONNECTED : loginEvent.disconnectReason();
             disconnect(disconnectReason);
             return;
         }
@@ -854,8 +854,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
             downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
-                geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                this.protocol, this.protocol.createHelper());
+                    geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
+                    this.protocol, this.protocol.createHelper());
             this.downstream = new DownstreamSession(downstream);
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
@@ -922,16 +922,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                             }
 
                             encryptedData = cipher.encryptFromString(BedrockData.of(
-                                clientData.getGameVersion(),
-                                authData.name(),
-                                authData.xuid(),
-                                clientData.getDeviceOs().ordinal(),
-                                clientData.getLanguageCode(),
-                                clientData.getUiProfile().ordinal(),
-                                clientData.getCurrentInputMode().ordinal(),
-                                bedrockAddress,
-                                skinUploader.getId(),
-                                skinUploader.getVerifyCode()
+                                    clientData.getGameVersion(),
+                                    authData.name(),
+                                    authData.xuid(),
+                                    clientData.getDeviceOs().ordinal(),
+                                    clientData.getLanguageCode(),
+                                    clientData.getUiProfile().ordinal(),
+                                    clientData.getCurrentInputMode().ordinal(),
+                                    bedrockAddress,
+                                    skinUploader.getId(),
+                                    skinUploader.getVerifyCode()
                             ).toString());
                         } catch (Exception e) {
                             geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
@@ -965,11 +965,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (downstream instanceof LocalSession) {
                     // Connected directly to the server
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.connect_internal",
-                        authData.name(), protocol.getProfile().getName()));
+                            authData.name(), protocol.getProfile().getName()));
                 } else {
                     // Connected to an IP address
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.connect",
-                        authData.name(), protocol.getProfile().getName(), remoteServer.address()));
+                            authData.name(), protocol.getProfile().getName(), remoteServer.address()));
                 }
 
                 UUID uuid = protocol.getProfile().getId();
@@ -1009,10 +1009,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale());
                         // Explain that they may be looking for Floodgate.
                         geyser.getLogger().warning(GeyserLocale.getLocaleStringLog(
-                            geyser.getPlatformType() == PlatformType.STANDALONE ?
-                                "geyser.network.remote.floodgate_explanation_standalone"
-                                : "geyser.network.remote.floodgate_explanation_plugin",
-                            Constants.FLOODGATE_DOWNLOAD_LOCATION
+                                geyser.getPlatformType() == PlatformType.STANDALONE ?
+                                        "geyser.network.remote.floodgate_explanation_standalone"
+                                        : "geyser.network.remote.floodgate_explanation_plugin",
+                                Constants.FLOODGATE_DOWNLOAD_LOCATION
                         ));
                     } else {
                         // Likely that Floodgate is not configured correctly.
@@ -1183,7 +1183,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // A null return value cancels the packet
                 if (position != null) {
                     ServerboundMovePlayerPosPacket packet = new ServerboundMovePlayerPosPacket(playerEntity.isOnGround(),
-                        position.getX(), position.getY(), position.getZ());
+                            position.getX(), position.getY(), position.getZ());
                     sendDownstreamGamePacket(packet);
                 }
                 lastMovementTimestamp = System.currentTimeMillis();
@@ -1328,7 +1328,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void useItem(Hand hand) {
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
-            hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+                hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
     }
 
     /**
@@ -1377,7 +1377,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                Vector3i.ZERO, Direction.DOWN, 0);
+                    Vector3i.ZERO, Direction.DOWN, 0);
             sendDownstreamGamePacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
@@ -1387,7 +1387,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void requestOffhandSwap() {
         ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
-            Direction.DOWN, 0);
+                Direction.DOWN, 0);
         sendDownstreamGamePacket(swapHandsPacket);
     }
 
@@ -1596,7 +1596,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             unconfirmedTeleport.resetUnconfirmedFor();
             geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
             getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
-                unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
+                    unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
         }
     }
 
@@ -1862,8 +1862,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void sendJavaClientSettings() {
         ServerboundClientInformationPacket clientSettingsPacket = new ServerboundClientInformationPacket(locale(),
-            getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
-            HandPreference.RIGHT_HAND, false, true);
+                getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
+                HandPreference.RIGHT_HAND, false, true);
         sendDownstreamPacket(clientSettingsPacket);
     }
 
@@ -1916,8 +1916,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return switch (pose) {
             case SNEAKING -> 1.27f;
             case SWIMMING,
-                FALL_FLYING, // Elytra
-                SPIN_ATTACK -> 0.4f; // Trident spin attack
+                    FALL_FLYING, // Elytra
+                    SPIN_ATTACK -> 0.4f; // Trident spin attack
             case SLEEPING -> 0.2f;
             default -> EntityDefinitions.PLAYER.offset();
         };
