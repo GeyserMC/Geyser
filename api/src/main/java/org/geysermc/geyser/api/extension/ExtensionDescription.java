@@ -59,29 +59,35 @@ public interface ExtensionDescription {
     String main();
 
     /**
-     * Gets the extension's human api version
+     * Represents the human api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
      *
-     * @return the extension's human api version
+     * @return the extension's requested human api version
      */
     int humanApiVersion();
 
     /**
-     * Gets the extension's major api version
+     * Represents the major api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
      *
-     * @return the extension's major api version
+     * @return the extension's requested major api version
      */
     int majorApiVersion();
 
     /**
-     * Gets the extension's minor api version
+     * Represents the minor api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
      *
-     * @return the extension's minor api version
+     * @return the extension's requested minor api version
      */
     int minorApiVersion();
 
     /**
      * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
-     * See <a href="https://gist.github.com/Redned235/a24a593026c11308dbcf73ab6e9d07d1">here</a> for details.
+     * See <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">here</a> for details.
      */
     @Deprecated(forRemoval = true)
     default int patchApiVersion() {
@@ -89,9 +95,7 @@ public interface ExtensionDescription {
     }
 
     /**
-     * Gets the extension's api version.
-     *
-     * @return the extension's api version
+     * Returns the extension's requested Geyser Api version.
      */
     default String apiVersion() {
         return humanApiVersion() + "." + majorApiVersion() + "." + minorApiVersion();

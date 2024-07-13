@@ -172,11 +172,12 @@ public interface GeyserApi extends GeyserApiBase {
     }
 
     /**
-     * Gets the {@link ApiVersion} representing the current Geyser api version
+     * Returns the {@link ApiVersion} representing the current Geyser api version.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
      *
      * @return the current geyser api version
      */
      default ApiVersion geyserApiVersion() {
-        return new ApiVersion(2, 4, 1);
+        return new ApiVersion(BuildData.VERSION);
      }
 }
