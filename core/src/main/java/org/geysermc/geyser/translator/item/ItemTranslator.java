@@ -181,9 +181,7 @@ public final class ItemTranslator {
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
         if (enchantmentGlint) {
             NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
-            if (!nbtMapBuilder.containsKey("ench")) {
-                nbtMapBuilder.put("ench", NbtList.EMPTY);
-            }
+            nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
 
         ItemData.Builder builder = javaItem.translateToBedrock(count, components, bedrockItem, session.getItemMappings());
