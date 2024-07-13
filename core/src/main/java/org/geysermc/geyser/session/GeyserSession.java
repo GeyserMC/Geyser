@@ -1209,7 +1209,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 isInWorldBorderWarningArea = false;
             }
 
-            if (!isFrozen()) {
+            if (!frozen) {
                 for (Tickable entity : entityCache.getTickableEntities()) {
                     entity.tick();
                 }
