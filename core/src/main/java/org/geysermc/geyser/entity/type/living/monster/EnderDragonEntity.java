@@ -30,7 +30,11 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.MobEntity;
@@ -260,7 +264,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     // so we need to manually spawn particles
                     for (int i = 0; i < 8; i++) {
                         SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
-                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
                         spawnParticleEffectPacket.setPosition(head.getPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
                         spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
                         spawnParticleEffectPacket.setMolangVariablesJson(Optional.empty());
