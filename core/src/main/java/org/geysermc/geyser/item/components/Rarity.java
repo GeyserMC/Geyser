@@ -23,28 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level;
+package org.geysermc.geyser.item.components;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import lombok.Getter;
 
-public record JukeboxSong(String soundEvent, String description) {
+@Getter
+public enum Rarity {
+    COMMON("common", 'f'),
+    UNCOMMON("uncommon", 'e'),
+    RARE("rare", 'b'),
+    EPIC("epic", 'd');
 
-    public static JukeboxSong read(RegistryEntryContext context) {
-        NbtMap data = context.data();
-        Object soundEventObject = data.get("sound_event");
-        String soundEvent;
-        if (soundEventObject instanceof NbtMap map) {
-            soundEvent = map.getString("sound_id");
-        } else if (soundEventObject instanceof String string) {
-            soundEvent = string;
-        } else {
-            soundEvent = "";
-            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
-        }
-        String description = MessageTranslator.deserializeDescription(data);
-        return new JukeboxSong(soundEvent, description);
+    private final String name;
+    private final char color;
+
+    Rarity(final String name, char chatColor) {
+        this.name = name;
+        this.color = chatColor;
     }
+
+    private static final Rarity[] VALUES = values();
+
+    public static Rarity fromId(int id) {
+        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    }
+
 }
