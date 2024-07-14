@@ -253,6 +253,12 @@ public class InventoryUtils {
                 .count(1).build();
     }
 
+    public static IntFunction<ItemData> getTotemOfUndying() {
+        return protocolVersion -> ItemData.builder()
+            .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().totem().getBedrockDefinition())
+            .count(1).build();
+    }
+
     /**
      * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
      *
