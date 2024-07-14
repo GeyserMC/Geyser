@@ -40,7 +40,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Objects;
 
@@ -51,7 +50,7 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @Inject(method = "publishServer", at = @At("RETURN"), locals = LocalCapture.NO_CAPTURE)
+    @Inject(method = "publishServer", at = @At("RETURN"))
     private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
