@@ -222,7 +222,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean closingInventory;
 
     @Setter
-    private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
+    private @NonNull InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
