@@ -84,6 +84,7 @@ public interface EntityData {
 
     /**
      * Sends a request to the Java server to switch the items in the main and offhand.
+     * There is no guarantee of the server accepting the request.
      */
     void switchHands();
 }
