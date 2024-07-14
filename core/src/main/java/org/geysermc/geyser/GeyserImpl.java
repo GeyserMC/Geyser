@@ -366,9 +366,10 @@ public class GeyserImpl implements GeyserApi {
                     if (throwable == null) {
                         if ("0.0.0.0".equals(address)) {
                             // basically just hide it in the log because some people get confused and try to change it
-                            address = "";
+                            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_supressed", port));
+                        } else {
+                            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
                         }
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
                     } else {
                         logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
                         if (!"0.0.0.0".equals(address)) {
