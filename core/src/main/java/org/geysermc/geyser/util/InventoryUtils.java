@@ -92,7 +92,7 @@ public class InventoryUtils {
 
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null && translator.prepareInventory(session, inventory)) {
+        if (translator.prepareInventory(session, inventory)) {
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
@@ -115,6 +115,7 @@ public class InventoryUtils {
             ServerboundContainerClosePacket closePacket = new ServerboundContainerClosePacket(inventory.getJavaId());
             session.sendDownstreamGamePacket(closePacket);
             session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         }
     }
 
