@@ -45,7 +45,11 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
@@ -58,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -65,9 +70,11 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
     private final MinecraftServer server;
+    private static GeyserImpl geyser;
 
-    public GeyserModWorldManager(MinecraftServer server) {
+    public GeyserModWorldManager(GeyserImpl geyser, MinecraftServer server) {
         this.server = server;
+        GeyserModWorldManager.geyser = geyser;
     }
 
     @Override
@@ -184,6 +191,23 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 apply.accept(sherds);
             }
         });
+    }
+
+    public static void handleBlockPlace(UUID uuid, Vector3f position, int blockId) {
+        GeyserSession session = geyser.connectionByUuid(uuid);
+        if (session == null) {
+            return;
+        }
+
+        LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
+        placeBlockSoundPacket.setSound(SoundEvent.PLACE);
+        placeBlockSoundPacket.setPosition(position);
+        placeBlockSoundPacket.setBabySound(false);
+        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(blockId));
+        placeBlockSoundPacket.setIdentifier(":");
+        session.sendUpstreamPacket(placeBlockSoundPacket);
+        session.setLastBlockPlacePosition(null);
+        session.setLastBlockPlaced(null);
     }
 
     private ServerPlayer getPlayer(GeyserSession session) {

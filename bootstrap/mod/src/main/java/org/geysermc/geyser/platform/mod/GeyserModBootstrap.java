@@ -122,7 +122,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = new GeyserModWorldManager(server);
+        this.geyserWorldManager = new GeyserModWorldManager(geyser, server);
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*

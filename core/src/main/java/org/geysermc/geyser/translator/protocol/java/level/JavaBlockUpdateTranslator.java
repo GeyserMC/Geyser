@@ -43,7 +43,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
     @Override
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i pos = packet.getEntry().getPosition();
-        boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
+        boolean updatePlacement = !handledByPlatform(session.getGeyser().getPlatformType()) &&
                 !session.getErosionHandler().isActive() && session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
         session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
         if (updatePlacement) {
@@ -52,15 +52,15 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         this.checkInteract(session, packet);
     }
 
-    private boolean checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
+    private void checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
-            return false;
+            return;
         }
         if ((lastPlacePos.getX() != packet.getEntry().getPosition().getX()
                 || lastPlacePos.getY() != packet.getEntry().getPosition().getY()
                 || lastPlacePos.getZ() != packet.getEntry().getPosition().getZ())) {
-            return false;
+            return;
         }
 
         // We need to check if the identifier is the same, else a packet with the sound of what the
@@ -74,7 +74,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         if (!contains) {
             session.setLastBlockPlacePosition(null);
             session.setLastBlockPlaced(null);
-            return false;
+            return;
         }
 
         // This is not sent from the server, so we need to send it this way
@@ -87,7 +87,6 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
         session.setLastBlockPlaced(null);
-        return true;
     }
 
     private void checkInteract(GeyserSession session, ClientboundBlockUpdatePacket packet) {
@@ -103,5 +102,10 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         BlockState state = BlockState.of(packet.getEntry().getBlock());
         session.setInteracting(false);
         BlockSoundInteractionTranslator.handleBlockInteraction(session, lastInteractPos.toFloat(), state);
+    }
+
+    // Spigot simply listens for the block place event, and then there's mixins
+    private boolean handledByPlatform(PlatformType type) {
+        return type == PlatformType.SPIGOT || type == PlatformType.NEOFORGE || type == PlatformType.FABRIC;
     }
 }
