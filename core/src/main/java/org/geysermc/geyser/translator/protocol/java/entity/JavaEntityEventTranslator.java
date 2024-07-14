@@ -46,6 +46,7 @@ import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -161,8 +162,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case TOTEM_OF_UNDYING_MAKE_SOUND:
                 // Bedrock will not play the spinning animation without the item in the hand o.o
                 // Fixes https://github.com/GeyserMC/Geyser/issues/2446
-                boolean itemWorkaround = !session.getPlayerInventory().eitherHandMatchesItem(Items.TOTEM_OF_UNDYING);
-                if (itemWorkaround) {
+                boolean totemItemWorkaround = !session.getPlayerInventory().eitherHandMatchesItem(Items.TOTEM_OF_UNDYING);
+                if (totemItemWorkaround) {
                     InventoryContentPacket offhandPacket = new InventoryContentPacket();
                     offhandPacket.setContainerId(ContainerId.OFFHAND);
                     offhandPacket.setContents(Collections.singletonList(InventoryUtils.getTotemOfUndying().apply(session.getUpstream().getProtocolVersion())));
@@ -181,9 +182,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 // Sent here early to ensure we have the totem in our hand
                 session.sendUpstreamPacket(entityEventPacket);
 
-                if (itemWorkaround) {
+                if (totemItemWorkaround) {
                     // Reset the item again
-                    session.getInventoryTranslator().updateSlot(session, session.getPlayerInventory(), 45);
+                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), 45);
                 }
 
                 return;
