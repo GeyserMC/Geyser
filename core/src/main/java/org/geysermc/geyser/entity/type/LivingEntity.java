@@ -247,7 +247,7 @@ public class LivingEntity extends Entity {
         return freezingPercentage;
     }
 
-    public void setScale(float scale) {
+    protected void setScale(float scale) {
         this.scale = scale;
         applyScale();
     }
