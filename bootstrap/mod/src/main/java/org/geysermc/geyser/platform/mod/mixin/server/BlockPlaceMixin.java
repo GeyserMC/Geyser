@@ -36,7 +36,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -44,11 +47,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(BlockItem.class)
-public class ModBlockPlaceListener {
+public class BlockPlaceMixin {
 
     @Inject(method = "place", locals = LocalCapture.CAPTURE_FAILSOFT, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FF)V"))
     private void geyser$hijackPlaySound(BlockPlaceContext blockPlaceContext, CallbackInfoReturnable<InteractionResult> cir, BlockPlaceContext blockPlaceContext2, BlockState blockState, BlockPos blockPos, Level level, Player player, ItemStack itemStack, BlockState blockState2, SoundType soundType) {
         if (player == null) {
+            return;
+        }
+
+        GeyserSession session = GeyserImpl.getInstance().connectionByUuid(player.getUUID());
+        if (session == null) {
             return;
         }
 
@@ -58,6 +66,14 @@ public class ModBlockPlaceListener {
             blockPos.getZ()
         );
 
-        GeyserModWorldManager.handleBlockPlace(player.getUUID(), position, Block.BLOCK_STATE_REGISTRY.getId(blockState2));
+        LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
+        placeBlockSoundPacket.setSound(SoundEvent.PLACE);
+        placeBlockSoundPacket.setPosition(position);
+        placeBlockSoundPacket.setBabySound(false);
+        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(Block.BLOCK_STATE_REGISTRY.getId(blockState2)));
+        placeBlockSoundPacket.setIdentifier(":");
+        session.sendUpstreamPacket(placeBlockSoundPacket);
+        session.setLastBlockPlacePosition(null);
+        session.setLastBlockPlaced(null);
     }
 }

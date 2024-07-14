@@ -28,8 +28,8 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -43,16 +43,19 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
     @Override
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i pos = packet.getEntry().getPosition();
-        boolean updatePlacement = !handledByPlatform(session.getGeyser().getPlatformType()) &&
-                !session.getErosionHandler().isActive() && session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
+        WorldManager worldManager = session.getGeyser().getWorldManager();
+        // Platforms where Geyser has direct server access don't allow us to detect actual block changes,
+        // hence why those platforms deal with sounds for block placements differently
+        boolean updatePlacement = !worldManager.hasOwnChunkCache() &&
+                !session.getErosionHandler().isActive() && worldManager.getBlockAt(session, pos) != packet.getEntry().getBlock();
         session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
         if (updatePlacement) {
-            this.checkPlace(session, packet);
+            this.checkPlaceSound(session, packet);
         }
         this.checkInteract(session, packet);
     }
 
-    private void checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
+    private void checkPlaceSound(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
             return;
@@ -102,10 +105,5 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         BlockState state = BlockState.of(packet.getEntry().getBlock());
         session.setInteracting(false);
         BlockSoundInteractionTranslator.handleBlockInteraction(session, lastInteractPos.toFloat(), state);
-    }
-
-    // Spigot simply listens for the block place event, and then there's mixins
-    private boolean handledByPlatform(PlatformType type) {
-        return type == PlatformType.SPIGOT || type == PlatformType.NEOFORGE || type == PlatformType.FABRIC;
     }
 }
