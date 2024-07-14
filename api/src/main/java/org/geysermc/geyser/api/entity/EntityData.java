@@ -81,4 +81,10 @@ public interface EntityData {
      * @return whether the movement is locked
      */
     boolean isMovementLocked();
+
+    /**
+     * Sends a request to the Java server to switch the items in the main and offhand.
+     * There is no guarantee of the server accepting the request.
+     */
+    void switchHands();
 }
