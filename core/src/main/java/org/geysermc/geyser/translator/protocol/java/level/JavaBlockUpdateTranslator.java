@@ -28,8 +28,8 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -43,24 +43,27 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
     @Override
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i pos = packet.getEntry().getPosition();
-        boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
-                !session.getErosionHandler().isActive() && session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
+        WorldManager worldManager = session.getGeyser().getWorldManager();
+        // Platforms where Geyser has direct server access don't allow us to detect actual block changes,
+        // hence why those platforms deal with sounds for block placements differently
+        boolean updatePlacement = !worldManager.hasOwnChunkCache() &&
+                !session.getErosionHandler().isActive() && worldManager.getBlockAt(session, pos) != packet.getEntry().getBlock();
         session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
         if (updatePlacement) {
-            this.checkPlace(session, packet);
+            this.checkPlaceSound(session, packet);
         }
         this.checkInteract(session, packet);
     }
 
-    private boolean checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
+    private void checkPlaceSound(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
-            return false;
+            return;
         }
         if ((lastPlacePos.getX() != packet.getEntry().getPosition().getX()
                 || lastPlacePos.getY() != packet.getEntry().getPosition().getY()
                 || lastPlacePos.getZ() != packet.getEntry().getPosition().getZ())) {
-            return false;
+            return;
         }
 
         // We need to check if the identifier is the same, else a packet with the sound of what the
@@ -74,7 +77,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         if (!contains) {
             session.setLastBlockPlacePosition(null);
             session.setLastBlockPlaced(null);
-            return false;
+            return;
         }
 
         // This is not sent from the server, so we need to send it this way
@@ -87,7 +90,6 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
         session.setLastBlockPlaced(null);
-        return true;
     }
 
     private void checkInteract(GeyserSession session, ClientboundBlockUpdatePacket packet) {

@@ -58,6 +58,8 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -252,10 +254,7 @@ public class ItemRegistryPopulator {
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
                         int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
-                        if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
-                            // Fallback
-                            bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
-                        } else {
+                        if (aValidBedrockBlockId != -1 || customBlockItemOverride != null) {
                             // As of 1.16.220, every item requires a block runtime ID attached to it.
                             // This is mostly for identifying different blocks with the same item ID - wool, slabs, some walls.
                             // However, in order for some visuals and crafting to work, we need to send the first matching block state
@@ -266,7 +265,7 @@ public class ItemRegistryPopulator {
                             boolean firstPass = true;
                             // Block states are all grouped together. In the mappings, we store the first block runtime ID in order,
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
-                            Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
+                            int lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
                                 GeyserBedrockBlock bedrockBlockRuntimeId = blockMappings.getVanillaBedrockBlock(i);
                                 NbtMap blockTag = bedrockBlockRuntimeId.getState();
@@ -402,9 +401,10 @@ public class ItemRegistryPopulator {
                     }
                 }
 
-                if (javaOnlyItems.contains(javaItem)) {
+                if (javaOnlyItems.contains(javaItem) || javaItem.rarity() != Rarity.COMMON) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
-                    mappingBuilder = mappingBuilder.translationString((bedrockBlock != null ? "block." : "item.") + entry.getKey().replace(":", "."));
+                    // Or, ensure that we are translating these at all times to account for rarity colouring
+                    mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
                     GeyserImpl.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
 
