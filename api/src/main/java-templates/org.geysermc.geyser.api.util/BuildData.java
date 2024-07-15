@@ -23,9 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.api.util;
 
-// This class is auto-generated.
+/**
+ * Not a public API. For internal use only. May change without notice.
+ * This class is processed before compilation to insert build properties.
+ */
 public class BuildData {
     public static final String VERSION = "{{ version }}";
 }

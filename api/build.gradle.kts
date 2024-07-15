@@ -9,12 +9,13 @@ dependencies {
 }
 
 version = property("version")!!
+val apiVersion = (version as String).removeSuffix("-SNAPSHOT")
 
 sourceSets {
     main {
         blossom {
             javaSources {
-                property("version", version as String)
+                property("version", apiVersion)
             }
         }
     }
