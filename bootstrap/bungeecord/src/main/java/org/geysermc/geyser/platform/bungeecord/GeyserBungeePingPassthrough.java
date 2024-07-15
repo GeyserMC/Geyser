@@ -67,7 +67,9 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         try {
             event = future.get(100, TimeUnit.MILLISECONDS);
         } catch (Throwable cause) {
-            GeyserImpl.getInstance().getLogger().error("Failed to get ping information for " + inetSocketAddress, cause);
+            String address = GeyserImpl.getInstance().getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+
+            GeyserImpl.getInstance().getLogger().error("Failed to get ping information for " + address, cause);
 
             return null;
         }
