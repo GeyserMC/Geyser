@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,6 +38,12 @@ public class JavaFinishConfigurationPacketTranslator extends PacketTranslator<Cl
     @Override
     public void translate(GeyserSession session, ClientboundFinishConfigurationPacket packet) {
         // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
+        PlayerListPacket playerListPacket = new PlayerListPacket();
+        playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
+        for (PlayerEntity otherEntity : session.getEntityCache().getAllPlayerEntities()) {
+            playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
+        }
+        session.sendUpstreamPacket(playerListPacket);
         session.getEntityCache().removeAllPlayerEntities();
     }
 }
