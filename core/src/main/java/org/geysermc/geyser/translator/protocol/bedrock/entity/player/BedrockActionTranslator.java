@@ -121,10 +121,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
             }
             case START_GLIDE -> {
-                stopPlayerFlyingAbilities(session, entity);
-                sendPlayerGlideState(session, entity);
+                // Otherwise gliding will not work in creative
+                ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
+                session.sendDownstreamGamePacket(playerAbilitiesPacket);
+                sendPlayerGlideToggle(session, entity);
             }
-            case STOP_GLIDE -> sendPlayerGlideState(session, entity);
+            case STOP_GLIDE -> sendPlayerGlideToggle(session, entity);
             case START_SNEAK -> {
                 ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamGamePacket(startSneakPacket);
@@ -378,14 +380,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         session.sendUpstreamPacket(levelEventPacket);
     }
 
-    private void sendPlayerGlideState(GeyserSession session, Entity entity) {
+    private void sendPlayerGlideToggle(GeyserSession session, Entity entity) {
         ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
         session.sendDownstreamGamePacket(glidePacket);
-    }
-
-    private void stopPlayerFlyingAbilities(GeyserSession session, Entity entity) {
-        // Otherwise gliding will not work in creative
-        ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
-        session.sendDownstreamGamePacket(playerAbilitiesPacket);
     }
 }
