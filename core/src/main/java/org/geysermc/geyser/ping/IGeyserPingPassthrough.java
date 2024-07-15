@@ -35,7 +35,7 @@ import java.net.InetSocketAddress;
 public interface IGeyserPingPassthrough {
 
     /**
-     * Get the ping information, including the MOTD and player count, from the server
+     * Gets the ping information, including the MOTD and player count, from the server
      *
      * @param inetSocketAddress the ip address of the client pinging the server
      * @return the ping information
