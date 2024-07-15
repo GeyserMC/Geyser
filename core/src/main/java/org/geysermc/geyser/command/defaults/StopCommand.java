@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.Collections;
 
@@ -39,24 +38,13 @@ public class StopCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public StopCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.NOT_SET);
         this.geyser = geyser;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+        this.aliases = Collections.singletonList("shutdown");
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
-            return;
-        }
-
+    public void execute(CommandContext<GeyserCommandSource> context) {
         geyser.getBootstrap().onGeyserShutdown();
-    }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
     }
 }

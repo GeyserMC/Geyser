@@ -3,12 +3,15 @@ dependencies {
     api(projects.core)
 
     compileOnlyApi(libs.velocity.api)
+    api(libs.cloud.velocity)
 }
 
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 platformRelocate("org.yaml")
+platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 
 exclude("com.google.*:*")
 
@@ -38,8 +41,8 @@ exclude("net.kyori:adventure-nbt:*")
 // These dependencies are already present on the platform
 provided(libs.velocity.api)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.velocity.GeyserVelocityMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
