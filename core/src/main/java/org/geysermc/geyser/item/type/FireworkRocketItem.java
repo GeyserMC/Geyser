@@ -27,6 +27,8 @@ package org.geysermc.geyser.item.type;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -41,7 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FireworkRocketItem extends Item {
+public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public FireworkRocketItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
@@ -58,14 +60,16 @@ public class FireworkRocketItem extends Item {
         fireworksNbt.putByte("Flight", (byte) fireworks.getFlightDuration());
 
         List<Fireworks.FireworkExplosion> explosions = fireworks.getExplosions();
-        if (explosions.isEmpty()) {
-            return;
+        if (!explosions.isEmpty()) {
+            List<NbtMap> explosionNbt = new ArrayList<>();
+            for (Fireworks.FireworkExplosion explosion : explosions) {
+                explosionNbt.add(translateExplosionToBedrock(explosion));
+            }
+            fireworksNbt.putList("Explosions", NbtType.COMPOUND, explosionNbt);
+        } else {
+            // This is the default firework
+            fireworksNbt.put("Explosions", NbtList.EMPTY);
         }
-        List<NbtMap> explosionNbt = new ArrayList<>();
-        for (Fireworks.FireworkExplosion explosion : explosions) {
-            explosionNbt.add(translateExplosionToBedrock(explosion));
-        }
-        fireworksNbt.putList("Explosions", NbtType.COMPOUND, explosionNbt);
         builder.putCompound("Fireworks", fireworksNbt.build());
     }
 
@@ -137,5 +141,21 @@ public class FireworkRocketItem extends Item {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder) {
+        if (components != null) {
+            Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
+            if (fireworks != null) {
+                // Already translated
+                return;
+            }
+        }
+
+        NbtMapBuilder fireworksNbt = NbtMap.builder();
+        fireworksNbt.putByte("Flight", (byte) 1);
+        fireworksNbt.put("Explosions", NbtList.EMPTY);
+        builder.putCompound("Fireworks", fireworksNbt.build());
     }
 }
