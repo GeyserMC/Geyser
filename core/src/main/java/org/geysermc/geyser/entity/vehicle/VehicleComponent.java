@@ -62,7 +62,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     private static final float MAX_LOGICAL_FLUID_HEIGHT = 8.0f / BlockStateValues.NUM_FLUID_LEVELS;
     private static final float BASE_SLIPPERINESS_CUBED = 0.6f * 0.6f * 0.6f;
     private static final float MIN_VELOCITY = 0.003f;
-    private static final float CLIMB_SPEED = 0.15f;
 
     protected final T vehicle;
     protected final BoundingBox boundingBox;
@@ -134,12 +133,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
     }
 
-    public Vector3d correctMovement(Vector3d movement) {
-        return vehicle.getSession().getCollisionManager().correctMovement(
-                movement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
-        );
-    }
-
     public void setMoveSpeed(float moveSpeed) {
         this.moveSpeed = moveSpeed;
     }
@@ -156,6 +149,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         this.gravity = MathUtils.constrain(gravity, -1.0, 1.0);
     }
 
+    public Vector3d correctMovement(Vector3d movement) {
+        return vehicle.getSession().getCollisionManager().correctMovement(
+            movement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
+        );
+    }
+
     public void onMount() {
         vehicle.getSession().getPlayerEntity().setVehicleInput(Vector2f.ZERO);
         vehicle.getSession().getPlayerEntity().setVehicleJumpStrength(0);
@@ -165,6 +164,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         //
     }
 
+    /**
+     * Called every session tick while the player is mounted on the vehicle.
+     */
     public void tickVehicle() {
         if (!vehicle.isClientControlled()) {
             return;
@@ -187,6 +189,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
     }
 
+    /**
+     * Adds velocity of all colliding fluids to the vehicle, and returns the height of the fluid to use for movement.
+     *
+     * @param ctx context
+     * @return type and height of fluid to use for movement
+     */
     protected ObjectDoublePair<Fluid> updateFluidMovement(VehicleContext ctx) {
         BoundingBox box = boundingBox.clone();
         box.expand(-0.001);
@@ -199,10 +207,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         double waterHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.WATER, 0.014, min.getY());
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
+        // Apply upward motion if the vehicle is a Strider, and it is submerged in lava
         if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
             Vector3i blockPos = ctx.centerPos().toInt();
-            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox)
-                    || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
+            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
             } else {
                 vehicle.setOnGround(true);
@@ -221,6 +229,16 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return EMPTY_FLUID_PAIR;
     }
 
+    /**
+     * Calculates how deep the vehicle is in a fluid, and applies its velocity.
+     *
+     * @param ctx context
+     * @param iter iterator of colliding blocks
+     * @param fluid type of fluid
+     * @param speed multiplier for fluid motion
+     * @param minY minY of the bounding box used to check for fluid collision; not exactly the same as the vehicle's bounding box
+     * @return height of fluid compared to minY
+     */
     protected double getFluidHeightAndApplyMovement(VehicleContext ctx, BlockPositionIterator iter, Fluid fluid, double speed, double minY) {
         Vector3d totalVelocity = Vector3d.ZERO;
         double maxFluidHeight = 0;
@@ -237,10 +255,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
             double vehicleFluidHeight = blockPos.getY() + worldFluidHeight - minY;
             if (vehicleFluidHeight < 0) {
+                // Vehicle is not submerged in this fluid block
                 continue;
             }
 
-            boolean flowBlocked = worldFluidHeight != 1; // This is only used for determining if a falling fluid should drag the vehicle downwards
+            // flowBlocked is only used when determining if a falling fluid should drag the vehicle downwards.
+            // If this block is not a falling fluid, set to true to avoid unnecessary checks.
+            boolean flowBlocked = worldFluidHeight != 1;
+
             Vector3d velocity = Vector3d.ZERO;
             for (Direction direction : Direction.HORIZONTAL) {
                 Vector3i adjacentBlockPos = blockPos.add(direction.getUnitVector());
@@ -260,6 +282,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                             fluidHeightDiff = getLogicalFluidHeight(fluid, blockId) - (adjacentFluidHeight - MAX_LOGICAL_FLUID_HEIGHT);
                         }
                     } else if (!flowBlocked) {
+                        // No need to check if flow is already blocked from another direction, or if this isn't a falling fluid.
                         flowBlocked = isFlowBlocked(fluid, adjacentBlockId);
                     }
                 }
@@ -398,7 +421,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boolean horizontalCollision = travel(ctx, speed);
 
         if (isClimbing(ctx)) {
-            vehicle.setMotion(getClimbingSpeed(horizontalCollision));
+            Vector3f motion = vehicle.getMotion();
+            vehicle.setMotion(
+                Vector3f.from(
+                    MathUtils.clamp(motion.getX(), -0.15f, 0.15f),
+                    horizontalCollision ? 0.2f : Math.max(motion.getY(), -0.15f),
+                    MathUtils.clamp(motion.getZ(), -0.15f, 0.15f)
+                )
+            );
             // NOT IMPLEMENTED: climbing in powdered snow
         }
 
@@ -435,15 +465,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return true;
     }
 
-    protected Vector3f getClimbingSpeed(boolean horizontalCollision) {
-        Vector3f motion = vehicle.getMotion();
-        return Vector3f.from(
-                MathUtils.clamp(motion.getX(), -CLIMB_SPEED, CLIMB_SPEED),
-                horizontalCollision ? 0.2f : Math.max(motion.getY(), -CLIMB_SPEED),
-                MathUtils.clamp(motion.getZ(), -CLIMB_SPEED, CLIMB_SPEED)
-        );
-    }
-
     protected Vector3f getFluidGravity(double gravity, boolean falling) {
         Vector3f motion = vehicle.getMotion();
         if (gravity != 0 && !vehicle.getFlag(EntityFlag.SPRINTING)) {
@@ -456,6 +477,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return motion;
     }
 
+    /**
+     * Check if any blocks the vehicle is colliding with should multiply movement. (Cobweb, powder snow, berry bush)
+     * <p>
+     * This is different from the speed factor of a block the vehicle is standing on, such as soul sand.
+     *
+     * @param ctx context
+     * @return the multiplier
+     */
     protected @Nullable Vector3f getBlockMovementMultiplier(VehicleContext ctx) {
         BoundingBox box = boundingBox.clone();
         box.expand(-1.0E-7);
@@ -464,6 +493,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         Vector3i max = box.getMax().toInt();
 
         // Iterate xyz backwards
+        // Minecraft iterates forwards but only the last multiplier affects movement
         for (int x = max.getX(); x >= min.getX(); x--) {
             for (int y = max.getY(); y >= min.getY(); y--) {
                 for (int z = max.getZ(); z >= min.getZ(); z--) {
@@ -532,7 +562,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     /**
-     * @return True if there was a horizontal collision
+     * Calculates the next position of the vehicle while checking for collision and adjusting velocity.
+     *
+     * @return true if there was a horizontal collision
      */
     protected boolean travel(VehicleContext ctx, float speed) {
         Vector3f motion = vehicle.getMotion();
@@ -546,22 +578,24 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 Math.abs(motion.getZ()) < MIN_VELOCITY ? 0 : motion.getZ()
         );
 
-        // TODO: isImmobile? set input to 0 and jump to false
-
-        motion = motion.add(getInputVelocity(ctx, speed));
+        // !isImmobile
+        if (vehicle.isAlive()) {
+            motion = motion.add(getInputVelocity(ctx, speed));
+        }
 
         Vector3f movementMultiplier = getBlockMovementMultiplier(ctx);
         if (movementMultiplier != null) {
             motion = motion.mul(movementMultiplier);
         }
 
+        // Check world border before blocks
         Vector3d correctedMovement = vehicle.getSession().getWorldBorder().correctMovement(boundingBox, motion.toDouble());
         correctedMovement = vehicle.getSession().getCollisionManager().correctMovement(
             correctedMovement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
         );
 
         boundingBox.translate(correctedMovement);
-        ctx.loadSurroundingBlocks();
+        ctx.loadSurroundingBlocks(); // Context must be reloaded after vehicle is moved
 
         // Non-zero values indicate a collision on that axis
         Vector3d moveDiff = motion.toDouble().sub(correctedMovement);
@@ -632,6 +666,27 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return false;
     }
 
+    /**
+     * Translates the player's input into velocity.
+     *
+     * @param ctx context
+     * @param speed multiplier for input
+     * @return velocity
+     */
+    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
+        Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
+        input = input.mul(0.98f);
+        input = vehicle.getAdjustedInput(input);
+        input = normalizeInput(input);
+        input = input.mul(speed);
+
+        // Match player rotation
+        float yaw = vehicle.getSession().getPlayerEntity().getYaw();
+        float sin = TrigMath.sin(yaw * TrigMath.DEG_TO_RAD);
+        float cos = TrigMath.cos(yaw * TrigMath.DEG_TO_RAD);
+        return Vector3f.from(input.getX() * cos - input.getY() * sin, 0, input.getY() * cos + input.getX() * sin);
+    }
+
     protected Vector2f normalizeInput(Vector2f input) {
         float lenSquared = input.lengthSquared();
         if (lenSquared < 1.0E-7) {
@@ -642,24 +697,20 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return input;
     }
 
-    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
-        Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
-        input = input.mul(0.98f);
-        input = vehicle.getAdjustedInput(input);
-        input = normalizeInput(input);
-        input = input.mul(speed);
-
-        float yaw = vehicle.getSession().getPlayerEntity().getYaw();
-        float sin = TrigMath.sin(yaw * TrigMath.DEG_TO_RAD);
-        float cos = TrigMath.cos(yaw * TrigMath.DEG_TO_RAD);
-        return Vector3f.from(input.getX() * cos - input.getY() * sin, 0, input.getY() * cos + input.getX() * sin);
-    }
-
+    /**
+     * Gets the rotation to use for the vehicle. This is based on the player's head rotation.
+     */
     protected Vector2f getVehicleRotation() {
         LivingEntity player = vehicle.getSession().getPlayerEntity();
         return Vector2f.from(player.getYaw(), player.getPitch() * 0.5f);
     }
 
+    /**
+     * Sets the new position for the vehicle and sends packets to both the java server and bedrock client.
+     * <p>
+     * This also updates the session's last vehicle move timestamp.
+     * @param javaPos the new java position of the vehicle
+     */
     protected void moveVehicle(Vector3d javaPos) {
         Vector3f bedrockPos = javaPos.toFloat();
         Vector2f rotation = getVehicleRotation();
@@ -769,7 +820,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return result;
     }
 
-    protected BlockState getBlockUnder(VehicleContext ctx, float dist) {
+    /**
+     * Returns the block that is x amount of blocks under the main supporting block.
+     */
+    protected BlockState getBlockUnderSupport(VehicleContext ctx, float dist) {
         Vector3i supportingBlockPos = ctx.supportingBlockPos();
 
         Vector3i blockPos;
@@ -782,12 +836,18 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return ctx.getBlock(blockPos);
     }
 
+    /**
+     * The block to use when determining if the vehicle should bounce after landing. Currently just slime and bed blocks.
+     */
     protected BlockState getLandingBlock(VehicleContext ctx) {
-        return getBlockUnder(ctx, 0.2f);
+        return getBlockUnderSupport(ctx, 0.2f);
     }
 
+    /**
+     * The block to use when calculating slipperiness and speed. If on a slab, this will be the block under the slab.
+     */
     protected BlockState getVelocityBlock(VehicleContext ctx) {
-        return getBlockUnder(ctx, 0.500001f);
+        return getBlockUnderSupport(ctx, 0.500001f);
     }
 
     protected float getVelocityMultiplier(VehicleContext ctx) {
@@ -830,6 +890,11 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         private BlockPositionIterator blockIter;
         private int[] blocks;
 
+        /**
+         * Cache frequently used data and blocks used in movement calculations.
+         * <p>
+         * Can be called multiple times, and must be called at least once before using the VehicleContext.
+         */
         protected void loadSurroundingBlocks() {
             this.centerPos = boundingBox.getBottomCenter();
 

@@ -51,6 +51,8 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     public void startDashCooldown() {
+        // tickVehicle is only called while the vehicle is mounted. Use session ticks to keep
+        // track of time instead of counting down
         this.dashTick = vehicle.getSession().getTicks() + DASH_TICKS;
     }
 
@@ -72,6 +74,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
 
     @Override
     public void onDismount() {
+        // Prevent camel from getting stuck in dash animation
         vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
         vehicle.updateBedrockMetadata();
         super.onDismount();

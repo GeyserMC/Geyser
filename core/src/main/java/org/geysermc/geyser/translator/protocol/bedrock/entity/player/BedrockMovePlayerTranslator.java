@@ -85,6 +85,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             session.sendDownstreamGamePacket(playerRotationPacket);
         } else {
+            // World border collision will be handled by client vehicle
             if (!(entity.getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled())
                     && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
                 return;
