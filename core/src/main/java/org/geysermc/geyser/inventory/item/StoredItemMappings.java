@@ -51,6 +51,7 @@ public class StoredItemMappings {
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
     private final ItemMapping shield;
+    private final ItemMapping totem;
     private final ItemMapping upgradeTemplate;
     private final ItemMapping warpedFungusOnAStick;
     private final ItemMapping wheat;
@@ -69,6 +70,7 @@ public class StoredItemMappings {
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);
         this.shield = load(itemMappings, Items.SHIELD);
+        this.totem = load(itemMappings, Items.TOTEM_OF_UNDYING);
         this.upgradeTemplate = load(itemMappings, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
         this.warpedFungusOnAStick = load(itemMappings, Items.WARPED_FUNGUS_ON_A_STICK);
         this.wheat = load(itemMappings, Items.WHEAT);

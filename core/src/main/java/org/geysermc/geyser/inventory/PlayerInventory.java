@@ -84,6 +84,10 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
+    public boolean eitherHandMatchesItem(@NonNull Item item) {
+        return getItemInHand().asItem() == item || getItemInHand(Hand.OFF_HAND).asItem() == item;
+    }
+
     public void setItemInHand(@NonNull GeyserItemStack item) {
         if (36 + heldItemSlot > this.size) {
             GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");

@@ -27,13 +27,13 @@ package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 public record JukeboxSong(String soundEvent, String description) {
 
-    public static JukeboxSong read(RegistryEntry entry) {
-        NbtMap data = entry.getData();
+    public static JukeboxSong read(RegistryEntryContext context) {
+        NbtMap data = context.data();
         Object soundEventObject = data.get("sound_event");
         String soundEvent;
         if (soundEventObject instanceof NbtMap map) {
@@ -42,7 +42,7 @@ public record JukeboxSong(String soundEvent, String description) {
             soundEvent = string;
         } else {
             soundEvent = "";
-            GeyserImpl.getInstance().getLogger().debug("Sound event for " + entry.getId() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
+            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
         }
         String description = MessageTranslator.deserializeDescription(data);
         return new JukeboxSong(soundEvent, description);
