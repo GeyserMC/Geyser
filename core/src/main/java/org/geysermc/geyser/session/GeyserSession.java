@@ -863,6 +863,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                      new GameProfile(mcProfile.getId(), mcProfile.getName()),
                      mcToken.getAccessToken()
              );
+
              try {
                  connectDownstream();
              } catch (Throwable t) {

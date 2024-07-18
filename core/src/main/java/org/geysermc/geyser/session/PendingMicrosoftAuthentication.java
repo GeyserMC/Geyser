@@ -62,8 +62,6 @@ public class PendingMicrosoftAuthentication {
             .withoutDeviceToken()
             .regularAuthentication(MicrosoftConstants.JAVA_XSTS_RELYING_PARTY)
             .buildMinecraftJavaProfileStep(false);
-
-
     /**
      * For GeyserConnect usage.
      */

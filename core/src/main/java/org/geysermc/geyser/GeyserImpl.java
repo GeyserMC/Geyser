@@ -588,10 +588,8 @@ public class GeyserImpl implements GeyserApi {
                             );
 
                             String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
-                            GeyserImpl.getInstance().getLogger().warning("new auth chain: " + authChain);
                             savedAuthChains.put(user, authChain);
                         } catch (Exception e) {
-                            GeyserImpl.getInstance().getLogger().severe(e.getMessage(), e);
                             GeyserImpl.getInstance().getLogger().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
                                 "They will need to sign in the next time they join Geyser.");
                         }
@@ -615,9 +613,9 @@ public class GeyserImpl implements GeyserApi {
                 } catch (IOException e) {
                     logger.error("Cannot load saved user tokens!", e);
                 }
-                boolean doWrite = false;
                 if (authChainFile != null) {
                     List<String> validUsers = config.getSavedUserLogins();
+                    boolean doWrite = false;
                     for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
                         String user = entry.getKey();
                         if (!validUsers.contains(user)) {
