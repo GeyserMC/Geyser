@@ -99,7 +99,7 @@ public class PendingMicrosoftAuthentication {
         private final String userKey;
         private final int timeoutSec;
         @Getter
-        private CompletableFuture<StepFullJavaSession.FullJavaSession> authentication;
+        private CompletableFuture<StepChainResult> authentication;
 
         private AuthenticationTask(String userKey, int timeoutSec) {
             this.userKey = userKey;
@@ -123,11 +123,11 @@ public class PendingMicrosoftAuthentication {
             authentications.invalidate(userKey);
         }
 
-        public CompletableFuture<StepFullJavaSession.FullJavaSession> performLoginAttempt(boolean offlineAccess, Consumer<StepMsaDeviceCode.MsaDeviceCode> deviceCodeConsumer) {
+        public CompletableFuture<StepChainResult> performLoginAttempt(boolean offlineAccess, Consumer<StepMsaDeviceCode.MsaDeviceCode> deviceCodeConsumer) {
             return authentication = CompletableFuture.supplyAsync(() -> {
                 try {
-                     return AUTH_FLOW.apply(offlineAccess, timeoutSec)
-                             .getFromInput(AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer));
+                    StepFullJavaSession step = AUTH_FLOW.apply(offlineAccess, timeoutSec);
+                    return new StepChainResult(step, step.getFromInput(AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer)));
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
@@ -152,5 +152,8 @@ public class PendingMicrosoftAuthentication {
         private ProxyAuthenticationTask(String userKey, int timeoutSec) {
             super(userKey, timeoutSec);
         }
+    }
+
+    public record StepChainResult(StepFullJavaSession step, StepFullJavaSession.FullJavaSession session) {
     }
 }

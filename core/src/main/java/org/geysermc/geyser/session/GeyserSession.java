@@ -849,14 +849,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
-        return task.getAuthentication().handle((response, ex) -> {
+        return task.getAuthentication().handle((result, ex) -> {
              if (ex != null) {
                  geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                  disconnect(ex.toString());
                  return false;
              }
 
-             StepMCProfile.MCProfile mcProfile = response.getMcProfile();
+             StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
              StepMCToken.MCToken mcToken = mcProfile.getMcToken();
 
              this.protocol = new MinecraftProtocol(
@@ -871,8 +871,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                  return false;
              }
 
-             // Save our refresh token for later use
-             geyser.saveAuthChain(bedrockUsername(), mcToken.getXblXsts().getInitialXblSession().getMsaToken().getRefreshToken());
+             // Save our auth chain for later use
+             geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
              return true;
          }).join();
     }
