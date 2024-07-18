@@ -230,6 +230,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
+    private static final Gson GSON = new Gson();
+
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
     private DownstreamSession downstream;
@@ -620,8 +622,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter @Getter
     private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
 
-    private final Gson gson = new Gson();
-
     private final GeyserCameraData cameraData;
 
     private final GeyserEntityData entityData;
@@ -771,7 +771,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             StepFullJavaSession step = PendingMicrosoftAuthentication.AUTH_FLOW.apply(true, 30);
             StepFullJavaSession.FullJavaSession response;
             try {
-                response = step.refresh(MinecraftAuthLogger.INSTANCE, PendingMicrosoftAuthentication.AUTH_CLIENT, step.fromJson(gson.fromJson(authChain, JsonObject.class)));
+                response = step.refresh(MinecraftAuthLogger.INSTANCE, PendingMicrosoftAuthentication.AUTH_CLIENT, step.fromJson(GSON.fromJson(authChain, JsonObject.class)));
             } catch (Exception e) {
                 geyser.getLogger().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
                 return Boolean.FALSE;
@@ -784,7 +784,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     new GameProfile(mcProfile.getId(), mcProfile.getName()),
                     mcToken.getAccessToken()
             );
-            geyser.saveAuthChain(bedrockUsername(), gson.toJson(step.toJson(response)));
+            geyser.saveAuthChain(bedrockUsername(), GSON.toJson(step.toJson(response)));
             return Boolean.TRUE;
         }).whenComplete((successful, ex) -> {
             if (this.closed) {
