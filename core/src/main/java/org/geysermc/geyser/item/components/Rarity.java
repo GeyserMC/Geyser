@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.ping;
+package org.geysermc.geyser.item.components;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import lombok.Getter;
 
-import java.net.InetSocketAddress;
+@Getter
+public enum Rarity {
+    COMMON("common", 'f'),
+    UNCOMMON("uncommon", 'e'),
+    RARE("rare", 'b'),
+    EPIC("epic", 'd');
 
-/**
- * Interface that retrieves ping passthrough information from the Java server
- */
-public interface IGeyserPingPassthrough {
+    private final String name;
+    private final char color;
 
-    /**
-     * Gets the ping information, including the MOTD and player count, from the server
-     *
-     * @param inetSocketAddress the ip address of the client pinging the server
-     * @return the ping information
-     */
-    @Nullable
-    GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
+    Rarity(final String name, char chatColor) {
+        this.name = name;
+        this.color = chatColor;
+    }
+
+    private static final Rarity[] VALUES = values();
+
+    public static Rarity fromId(int id) {
+        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    }
 
 }

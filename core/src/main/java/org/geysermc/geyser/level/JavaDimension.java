@@ -26,7 +26,7 @@
 package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 
 /**
  * Represents the information we store from the current Java dimension
@@ -35,8 +35,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
  */
 public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
 
-    public static JavaDimension read(RegistryEntry entry) {
-        NbtMap dimension = entry.getData();
+    public static JavaDimension read(RegistryEntryContext entry) {
+        NbtMap dimension = entry.data();
         int minY = dimension.getInt("min_y");
         int maxY = dimension.getInt("height");
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.

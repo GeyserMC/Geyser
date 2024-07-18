@@ -49,7 +49,7 @@ public enum GeyserAttributeType {
     ATTACK_KNOCKBACK("minecraft:generic.attack_knockback", null, 1.5f, Float.MAX_VALUE, 0f),
     ATTACK_SPEED("minecraft:generic.attack_speed", null, 0f, 1024f, 4f),
     MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
-    SCALE("minecraft:generic.scale", null, 0.0625f, 16f, 1f), // Unused. Do we need this?
+    SCALE("minecraft:generic.scale", null, 0.0625f, 16f, 1f),
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
