@@ -39,6 +39,7 @@ import net.raphimc.minecraftauth.util.MicrosoftConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.util.MinecraftAuthLogger;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -127,7 +128,7 @@ public class PendingMicrosoftAuthentication {
             return authentication = CompletableFuture.supplyAsync(() -> {
                 try {
                     StepFullJavaSession step = AUTH_FLOW.apply(offlineAccess, timeoutSec);
-                    return new StepChainResult(step, step.getFromInput(AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer)));
+                    return new StepChainResult(step, step.getFromInput(MinecraftAuthLogger.INSTANCE, AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer)));
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
