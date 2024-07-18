@@ -35,13 +35,16 @@ import net.lenni0451.commons.httpclient.HttpClient;
 import net.raphimc.minecraftauth.MinecraftAuth;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
-import net.raphimc.minecraftauth.step.msa.StepRefreshTokenMsaCode;
 import net.raphimc.minecraftauth.util.MicrosoftConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -60,14 +63,6 @@ public class PendingMicrosoftAuthentication {
             .regularAuthentication(MicrosoftConstants.JAVA_XSTS_RELYING_PARTY)
             .buildMinecraftJavaProfileStep(false);
 
-    public static final BiFunction<Boolean, Integer, StepFullJavaSession> REFRESH_TOKEN_UPDATE_AUTH_FLOW = (offlineAccess, timeoutSec) -> MinecraftAuth.builder()
-        .withClientId(GeyserImpl.OAUTH_CLIENT_ID)
-        .withScope(offlineAccess ? "XboxLive.signin XboxLive.offline_access" : "XboxLive.signin")
-        .withTimeout(timeoutSec)
-        .customMsaCodeStep(StepRefreshTokenMsaCode::new)
-        .withoutDeviceToken()
-        .regularAuthentication(MicrosoftConstants.JAVA_XSTS_RELYING_PARTY)
-        .buildMinecraftJavaProfileStep(false);
 
     /**
      * For GeyserConnect usage.

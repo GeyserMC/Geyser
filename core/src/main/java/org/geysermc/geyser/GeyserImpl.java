@@ -40,7 +40,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
-import net.raphimc.minecraftauth.step.msa.StepRefreshTokenMsaCode;
+import net.raphimc.minecraftauth.step.msa.StepMsaToken;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -96,6 +96,7 @@ import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.Metrics;
+import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
@@ -556,24 +557,22 @@ public class GeyserImpl implements GeyserApi {
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
             savedAuthChains = new ConcurrentHashMap<>();
 
-            boolean doWrite = false;
-
-            // Remove after a while - just a migration help
+            // TODO Remove after a while - just a migration help
             //noinspection deprecation
             File refreshTokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
             if (refreshTokensFile.exists()) {
                 TypeReference<Map<String, String>> type = new TypeReference<>() { };
-                Map<String, String> authChainFile = null;
+                Map<String, String> refreshTokens = null;
                 try {
-                    authChainFile = JSON_MAPPER.readValue(refreshTokensFile, type);
+                    refreshTokens = JSON_MAPPER.readValue(refreshTokensFile, type);
                 } catch (IOException e) {
                     // ignored - we'll just delete this file :))
                 }
 
-                if (authChainFile != null) {
+                if (refreshTokens != null) {
                     List<String> validUsers = config.getSavedUserLogins();
                     final Gson gson = new Gson();
-                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
+                    for (Map.Entry<String, String> entry : refreshTokens.entrySet()) {
                         String user = entry.getKey();
                         if (!validUsers.contains(user)) {
                             continue;
@@ -581,27 +580,29 @@ public class GeyserImpl implements GeyserApi {
 
                         // Migrate refresh tokens to auth chains
                         try {
-                            StepFullJavaSession javaSession = PendingMicrosoftAuthentication.REFRESH_TOKEN_UPDATE_AUTH_FLOW.apply(true, 10);
+                            StepFullJavaSession javaSession = PendingMicrosoftAuthentication.AUTH_FLOW.apply(false, 10);
                             StepFullJavaSession.FullJavaSession fullJavaSession = javaSession.getFromInput(
+                                MinecraftAuthLogger.INSTANCE,
                                 PendingMicrosoftAuthentication.AUTH_CLIENT,
-                                new StepRefreshTokenMsaCode.RefreshToken(entry.getValue())
+                                new StepMsaToken.RefreshToken(entry.getValue())
                             );
 
                             String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
                             GeyserImpl.getInstance().getLogger().warning("new auth chain: " + authChain);
                             savedAuthChains.put(user, authChain);
                         } catch (Exception e) {
+                            GeyserImpl.getInstance().getLogger().severe(e.getMessage(), e);
                             GeyserImpl.getInstance().getLogger().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
                                 "They will need to sign in the next time they join Geyser.");
                         }
 
                         // Ensure the new additions are written to the file
-                        doWrite = true;
+                        scheduleAuthChainsWrite();
                     }
                 }
 
                 // Finally: Delete it. Goodbye!
-                //refreshTokensFile.delete();
+                refreshTokensFile.delete();
             }
 
             File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
@@ -614,6 +615,7 @@ public class GeyserImpl implements GeyserApi {
                 } catch (IOException e) {
                     logger.error("Cannot load saved user tokens!", e);
                 }
+                boolean doWrite = false;
                 if (authChainFile != null) {
                     List<String> validUsers = config.getSavedUserLogins();
                     for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
