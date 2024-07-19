@@ -118,7 +118,9 @@ public final class TagCache {
      * @return true if the block tag is present and contains this block mapping's Java ID.
      */
     public boolean is(Tag tag, Block block) {
-        assert tag.registry() == TagRegistry.BLOCK;
+        if (tag.registry() != TagRegistry.BLOCK) {
+            throw new IllegalArgumentException("Given tag is not a block tag! (tag registry=%s)".formatted(tag.registry()));
+        }
         return contains(get(tag), block.javaId());
     }
 
@@ -133,7 +135,9 @@ public final class TagCache {
      * @return true if the item tag is present and contains this item's Java ID.
      */
     public boolean is(Tag tag, Item item) {
-        assert tag.registry() == TagRegistry.ITEM;
+        if (tag.registry() != TagRegistry.ITEM) {
+            throw new IllegalArgumentException("Given tag is not an item tag! (tag registry=%s)".formatted(tag.registry()));
+        }
         return contains(get(tag), item.javaId());
     }
 

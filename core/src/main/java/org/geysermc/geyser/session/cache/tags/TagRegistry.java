@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.tags;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -44,6 +45,13 @@ public enum TagRegistry {
     ENCHANTMENT("enchantment");
 
     private final Key registryKey;
+
+    /**
+     * A map mapping vanilla tag keys in this registry to a {@link Tag} instance (this is a {@link VanillaTag}).
+     * 
+     * Keys should never be manually added to this map. Rather, {@link TagRegistry#registerVanillaTag} should be used, during Geyser init.
+     */
+    @Getter
     private final Map<Key, Tag> vanillaTags;
 
     TagRegistry(String registry) {
@@ -59,10 +67,6 @@ public enum TagRegistry {
         Tag tag = new VanillaTag(this, identifier, vanillaTags.size());
         vanillaTags.put(identifier, tag);
         return tag;
-    }
-
-    public Map<Key, Tag> getVanillaTags() {
-        return Map.copyOf(vanillaTags);
     }
 
     @Nullable
