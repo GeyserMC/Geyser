@@ -1,4 +1,6 @@
 plugins {
+    // Allow blossom to mark sources root of templates
+    idea
     id("geyser.publish-conventions")
     alias(libs.plugins.blossom) apply true
 }

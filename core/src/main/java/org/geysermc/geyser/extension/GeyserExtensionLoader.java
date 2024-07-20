@@ -195,7 +195,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
                     if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
                         // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
-                        if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.majorApiVersion() == 1) {
+                        if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
                             GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
                                 .formatted(name, description.apiVersion()));
                         } else {
