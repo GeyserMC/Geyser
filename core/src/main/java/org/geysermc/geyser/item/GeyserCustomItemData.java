@@ -55,8 +55,6 @@ public class GeyserCustomItemData implements CustomItemData {
     private final int stackSize;
     private final int maxDamage;
     private final int attackDamage;
-    private final String toolType;
-    private final String toolTier;
     private final String armorType;
     private final int protectionValue;
     private final boolean isHat;
@@ -79,8 +77,6 @@ public class GeyserCustomItemData implements CustomItemData {
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
-        this.toolType = builder.toolType;
-        this.toolTier = builder.toolTier;
         this.armorType = builder.armorType;
         this.protectionValue = builder.protectionValue;
         this.isHat = builder.hat;
@@ -160,16 +156,6 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public String toolType() {
-        return toolType;
-    }
-
-    @Override
-    public String toolTier() {
-        return toolTier;
-    }
-
-    @Override
     public @Nullable String armorType() {
         return armorType;
     }
@@ -214,8 +200,6 @@ public class GeyserCustomItemData implements CustomItemData {
         private int stackSize = 0;
         private int maxDamage = -1;
         private int attackDamage = 0;
-        private String toolType = null;
-        private String toolTier = null;
         private String armorType = null;
         private int protectionValue = 0;
         private boolean hat = false;
@@ -304,18 +288,6 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder attackDamage(int attackDamage) {
             this.attackDamage = attackDamage;
-            return this;
-        }
-
-        @Override
-        public Builder toolType(@Nullable String toolType) {
-            this.toolType = toolType;
-            return this;
-        }
-
-        @Override
-        public Builder toolTier(@Nullable String toolTier) {
-            this.toolTier = toolTier;
             return this;
         }
 

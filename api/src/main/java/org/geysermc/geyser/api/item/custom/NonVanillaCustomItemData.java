@@ -44,6 +44,20 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNull String identifier();
 
     /**
+     * Gets the tool type of the item.
+     *
+     * @return the tool type of the item
+     */
+    @Nullable String toolType();
+
+    /**
+     * Gets the tool tier of the item.
+     *
+     * @return the tool tier of the item
+     */
+    @Nullable String toolTier();
+
+    /**
      * Gets the java item id of the item.
      *
      * @return the java item id of the item
@@ -137,12 +151,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder attackDamage(int attackDamage);
 
         @Override
-        Builder toolType(@Nullable String toolType);
-
-        @Override
-        Builder toolTier(@Nullable String toolTier);
-
-        @Override
         Builder armorType(@Nullable String armorType);
 
         @Override
@@ -171,6 +179,10 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder identifier(@NonNull String identifier);
 
         Builder javaId(@NonNegative int javaId);
+
+        Builder toolType(@Nullable String toolType);
+
+        Builder toolTier(@Nullable String toolTier);
 
         Builder translationString(@Nullable String translationString);
 

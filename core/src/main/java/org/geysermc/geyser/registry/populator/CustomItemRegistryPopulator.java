@@ -176,8 +176,6 @@ public class CustomItemRegistryPopulator {
         String toolType = null;
         if (mapping.getToolType() != null) {
             toolType = mapping.getToolType();
-        } else if (customItemData.toolType() != null) {
-            toolType = customItemData.toolType();
         }
 
         if (toolType != null) {

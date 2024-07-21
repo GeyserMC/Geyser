@@ -40,6 +40,8 @@ import java.util.Set;
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
+    private final String toolType;
+    private final String toolTier;
     private final String translationString;
     private final Set<String> repairMaterials;
     private final boolean isChargeable;
@@ -50,6 +52,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
+        this.toolType = builder.toolType;
+        this.toolTier = builder.toolTier;
         this.translationString = builder.translationString;
         this.repairMaterials = builder.repairMaterials;
         this.isChargeable = builder.chargeable;
@@ -64,6 +68,16 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public int javaId() {
         return javaId;
+    }
+
+    @Override
+    public String toolType() {
+        return toolType;
+    }
+
+    @Override
+    public String toolTier() {
+        return toolTier;
     }
 
     @Override
@@ -89,6 +103,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
+        private String toolType = null;
+        private String toolTier = null;
         private String translationString;
         private Set<String> repairMaterials;
         private boolean chargeable = false;
@@ -166,16 +182,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder toolType(@Nullable String toolType) {
-            return (Builder) super.toolType(toolType);
-        }
-
-        @Override
-        public Builder toolTier(@Nullable String toolTier) {
-            return (Builder) super.toolTier(toolTier);
-        }
-
-        @Override
         public Builder armorType(@Nullable String armorType) {
             return (Builder) super.armorType(armorType);
         }
@@ -214,6 +220,18 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder javaId(int javaId) {
             this.javaId = javaId;
+            return this;
+        }
+
+        @Override
+        public Builder toolType(@Nullable String toolType) {
+            this.toolType = toolType;
+            return this;
+        }
+
+        @Override
+        public Builder toolTier(@Nullable String toolTier) {
+            this.toolTier = toolTier;
             return this;
         }
 

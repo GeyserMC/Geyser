@@ -225,14 +225,6 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.maxDamage(node.get("attack_damage").asInt());
         }
 
-        if (node.has("tool_type")) {
-            customItemData.toolType(node.get("tool_type").asText());
-        }
-
-        if (node.has("tool_tier")) {
-            customItemData.toolTier(node.get("tool_tier").asText());
-        }
-
         if (node.has("armor_type")) {
             customItemData.armorType(node.get("armor_type").asText());
         }

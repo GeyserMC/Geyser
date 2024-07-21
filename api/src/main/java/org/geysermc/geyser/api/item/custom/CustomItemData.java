@@ -145,20 +145,6 @@ public interface CustomItemData {
     int attackDamage();
 
     /**
-     * Gets the tool type of the item.
-     *
-     * @return the tool type of the item
-     */
-    @Nullable String toolType();
-
-    /**
-     * Gets the tool tier of the item.
-     *
-     * @return the tool tier of the item
-     */
-    @Nullable String toolTier();
-
-    /**
      * Gets the armor type of the item.
      *
      * @return the armor type of the item
@@ -236,10 +222,6 @@ public interface CustomItemData {
         Builder maxDamage(int maxDamage);
 
         Builder attackDamage(int attackDamage);
-
-        Builder toolType(@Nullable String toolType);
-
-        Builder toolTier(@Nullable String toolTier);
 
         Builder armorType(@Nullable String armorType);
 
