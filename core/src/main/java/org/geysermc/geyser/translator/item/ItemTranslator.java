@@ -151,8 +151,8 @@ public final class ItemTranslator {
 
         // Fixes fireworks crafting recipe: they always contain a tag
         // TODO remove once all items have their default components
-        if (javaItem instanceof BedrockRequiresTagItem) {
-            ((BedrockRequiresTagItem) javaItem).addRequiredNbt(session, components, nbtBuilder);
+        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
+            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
         }
 
         Rarity rarity = javaItem.rarity();
