@@ -148,7 +148,7 @@ public interface CustomItemData {
      * Gets the armor type of the item.
      *
      * This can be "boots", "leggings", "chestplate", or "helmet", and makes the item able to be equipped into its respective equipment slot.
-     * This should only be set if the Java vanilla/non-vanilla item is able to fit into the specified equipment slot.
+     * This should only be set if the Java item can be placed into the specified equipment slot.
      *
      * @return the armor type of the item
      */
