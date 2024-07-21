@@ -42,7 +42,7 @@ There are a few things Geyser is unable to support due to various differences be
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
 ## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on [Discord](http://discord.geysermc.org/) if
+Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/geysermc) if
 you're interested in helping out with Geyser.
 
 ## Libraries Used:
