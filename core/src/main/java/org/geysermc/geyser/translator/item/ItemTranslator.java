@@ -45,6 +45,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -146,6 +147,12 @@ public final class ItemTranslator {
         if (components != null) {
             javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
             if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
+        }
+
+        // Fixes fireworks crafting recipe: they always contain a tag
+        // TODO remove once all items have their default components
+        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
+            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
         }
 
         Rarity rarity = javaItem.rarity();
