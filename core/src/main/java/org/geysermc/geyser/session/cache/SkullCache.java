@@ -243,8 +243,16 @@ public class SkullCache {
     }
 
     public void clear() {
+        for (Skull skull : skulls.values()) {
+            if (skull.entity != null) {
+                skull.entity.despawnEntity();
+            }
+        }
         skulls.clear();
         inRangeSkulls.clear();
+        for (SkullPlayerEntity skull : unusedSkullEntities) {
+            skull.despawnEntity();
+        }
         unusedSkullEntities.clear();
         totalSkullEntities = 0;
         lastPlayerPosition = null;

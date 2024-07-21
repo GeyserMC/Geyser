@@ -80,7 +80,6 @@ public class CreativeItemRegistryPopulator {
     private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int bedrockBlockRuntimeId;
         NbtMap tag = null;
 
         String identifier = itemNode.get("id").textValue();

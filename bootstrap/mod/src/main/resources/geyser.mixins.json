@@ -4,6 +4,7 @@
   "package": "org.geysermc.geyser.platform.mod.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "server.BlockPlaceMixin",
     "server.ServerConnectionListenerMixin"
   ],
   "server": [

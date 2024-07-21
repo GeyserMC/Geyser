@@ -25,7 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -40,7 +44,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.recipe.*;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -58,7 +66,17 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.SmithingTransfo
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
@@ -190,6 +208,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
                 case CRAFTING_SPECIAL_MAPCLONING -> {
                     craftingDataPacket.getCraftingData().add(MultiRecipeData.of(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), context.getAndIncrementNetId()));
+                }
+                case CRAFTING_SPECIAL_FIREWORK_ROCKET -> {
+                    craftingDataPacket.getCraftingData().add(MultiRecipeData.of(UUID.fromString("00000000-0000-0000-0000-000000000002"), context.getAndIncrementNetId()));
                 }
                 default -> {
                     List<GeyserRecipe> recipes = Registries.RECIPES.get(recipe.getType());
@@ -427,7 +448,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
             // Strip NBT - tools won't appear in the recipe book otherwise
-            output = output.toBuilder().tag(null).build();
+            // output = output.toBuilder().tag(null).build(); // TODO confirm???
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;
@@ -451,7 +472,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
             // Strip NBT - tools won't appear in the recipe book otherwise
-            output = output.toBuilder().tag(null).build();
+            //output = output.toBuilder().tag(null).build(); // TODO confirm this is still true???
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;
@@ -475,7 +496,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
             // See above
-            output = output.toBuilder().tag(null).build();
+            //output = output.toBuilder().tag(null).build();
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;
