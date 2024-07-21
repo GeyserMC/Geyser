@@ -123,6 +123,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -712,16 +713,11 @@ public class GeyserImpl implements GeyserApi {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
-        scheduledThread.shutdown();
-        geyserServer.shutdown();
-        if (skinUploader != null) {
-            skinUploader.close();
-        }
-        newsHandler.shutdown();
-
-        if (this.erosionUnixListener != null) {
-            this.erosionUnixListener.close();
-        }
+        runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(geyserServer, GeyserServer::shutdown);
+        runIfNonNull(skinUploader, FloodgateSkinUploader::close);
+        runIfNonNull(newsHandler, NewsHandler::shutdown);
+        runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         Registries.RESOURCE_PACKS.get().clear();
 
@@ -897,6 +893,12 @@ public class GeyserImpl implements GeyserApi {
         // refreshes the token for us
         if (!Objects.equals(authChain, savedAuthChains.put(bedrockName, authChain))) {
             scheduleAuthChainsWrite();
+        }
+    }
+
+    private <T> void runIfNonNull(T nullable, Consumer<T> consumer) {
+        if (nullable != null) {
+            consumer.accept(nullable);
         }
     }
 
