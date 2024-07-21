@@ -157,7 +157,7 @@ public interface CustomItemData {
     /**
      * Gets the armor protection value of the item.
      *
-     * Only has a function when {@link CustomItemData#armorType)} is set.
+     * Only has a function when {@link CustomItemData#armorType} is set.
      *
      * @return the armor protection value of the item
      */
