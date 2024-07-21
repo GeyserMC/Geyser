@@ -118,7 +118,7 @@ public interface CustomItemData {
     /**
      * Gets the stack size of the item.
      *
-     * Returns 0 if not set. When not set (or 0), takes the Java item stack count when based of a vanilla item, or uses 64 when porting a modded item.
+     * Returns 0 if not set. When not set (or 0), it defaults to the stack count of the Java item when based of a vanilla item, or 64 when registering a non-vanilla item.
      *
      * @return the stack size of the item
      */
@@ -128,7 +128,7 @@ public interface CustomItemData {
     /**
      * Gets the max damage of the item.
      *
-     * Returns -1 if not set. When not set (or below 0), takes the Java item max damage when based of a vanilla item, or uses 0 when porting a modded item.
+     * Returns -1 if not set. When not set (or below 0), it defaults to the maximum damage of the Java item when based of a vanilla item, or uses 0 when registering a non-vanilla item.
      *
      * @return the max damage of the item
      */
@@ -147,12 +147,17 @@ public interface CustomItemData {
     /**
      * Gets the armor type of the item.
      *
+     * This can be "boots", "leggings", "chestplate", or "helmet", and makes the item able to be equipped into its respective equipment slot.
+     * This should only be set if the Java vanilla/non-vanilla item is able to fit into the specified equipment slot.
+     *
      * @return the armor type of the item
      */
     @Nullable String armorType();
 
     /**
      * Gets the armor protection value of the item.
+     *
+     * Only has a function when {@link CustomItemData#armorType)} is set.
      *
      * @return the armor protection value of the item
      */
