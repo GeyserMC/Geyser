@@ -27,7 +27,9 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.bedrock.gui.GuiElement;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.bedrock.gui.GuiData;
 
 import java.util.Set;
 import java.util.UUID;
@@ -150,7 +152,9 @@ public interface CameraData {
      * Hides a {@link GuiElement} on the client's side.
      *
      * @param element the {@link GuiElement} to hide
+     * @deprecated Use {@link GuiData#hideElement(GuiElement...)} instead
      */
+    @Deprecated
     void hideElement(@NonNull GuiElement... element);
 
     /**
@@ -161,20 +165,26 @@ public interface CameraData {
      * If no elements are specified, this will reset all currently hidden elements
      *
      * @param element the {@link GuiElement} to reset
+     * @deprecated Use {@link GuiData#resetElement(GuiElement...)} instead
      */
+    @Deprecated
     void resetElement(@NonNull GuiElement @Nullable... element);
 
     /**
      * Determines whether a {@link GuiElement} is currently hidden.
      *
      * @param element the {@link GuiElement} to check
+     * @deprecated Use {@link GuiData#isHudElementHidden(GuiElement)} instead
      */
+    @Deprecated
     boolean isHudElementHidden(@NonNull GuiElement element);
 
     /**
      * Returns the currently hidden {@link GuiElement}s.
      *
      * @return an unmodifiable view of all currently hidden {@link GuiElement}s
+     * @deprecated Use {@link GuiData#hiddenElements()} instead
      */
+    @Deprecated
     @NonNull Set<GuiElement> hiddenElements();
 }

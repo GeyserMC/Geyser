@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.api.bedrock.gui.GuiData;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -59,6 +60,14 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @return the EntityData for this connection.
      */
     @NonNull EntityData entities();
+
+    /**
+     * Exposes the {@link GuiData} for this connection.
+     * It allows you to hide GUI elements, and send notification toasts.
+     *
+     * @return the GuiData for this connection.
+     */
+    @NonNull GuiData gui();
 
     /**
      * @param javaId the Java entity ID to look up.

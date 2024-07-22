@@ -47,7 +47,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.api.bedrock.camera.GuiElement;
+import org.geysermc.geyser.api.bedrock.gui.GuiElement;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
@@ -301,23 +301,5 @@ public class GeyserCameraData implements CameraData {
     @Override
     public @NonNull Set<GuiElement> hiddenElements() {
         return Collections.unmodifiableSet(hiddenHudElements);
-    }
-
-    /**
-     * Deals with hiding hud elements while in spectator.
-     *
-     * @param currentlySpectator whether the player is currently in spectator mode
-     * @param newGameMode the new GameMode to switch to
-     */
-    public void handleGameModeChange(boolean currentlySpectator, GameMode newGameMode) {
-        if (newGameMode == GameMode.SPECTATOR) {
-            if (!currentlySpectator) {
-                hideElement(SPECTATOR_HIDDEN_ELEMENTS);
-            }
-        } else {
-            if (currentlySpectator) {
-                resetElement(SPECTATOR_HIDDEN_ELEMENTS);
-            }
-        }
     }
 }

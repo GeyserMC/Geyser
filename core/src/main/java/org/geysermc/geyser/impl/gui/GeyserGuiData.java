@@ -71,8 +71,18 @@ public class GeyserGuiData implements GuiData {
     private final Set<GuiElement> hiddenHudElements = new HashSet<>();
 
     @Override
-    public void hideElement(@NotNull @NonNull GuiElement... element) {
+    public void hideElement(@NonNull GuiElement... elements) {
+        Objects.requireNonNull(elements);
+        SetHudPacket packet = new SetHudPacket();
+        packet.setVisibility(HudVisibility.HIDE);
+        Set<HudElement> elementSet = packet.getElements();
 
+        for (GuiElement element : elements) {
+            this.hiddenHudElements.add(element);
+            elementSet.add(HUD_ELEMENT_VALUES[element.id()]);
+        }
+
+        session.sendUpstreamPacket(packet);
     }
 
     @Override

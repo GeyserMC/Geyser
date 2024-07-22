@@ -71,6 +71,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.api.bedrock.gui.GuiData;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -94,6 +95,7 @@ import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
+import org.geysermc.geyser.impl.gui.GeyserGuiData;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -559,6 +561,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserEntityData entityData;
 
+    private final GeyserGuiData guiData;
+
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
@@ -582,8 +587,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
+
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
+        this.guiData = new GeyserGuiData(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -1310,7 +1317,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setGameMode(GameMode newGamemode) {
         boolean currentlySpectator = this.gameMode == GameMode.SPECTATOR;
         this.gameMode = newGamemode;
-        this.cameraData.handleGameModeChange(currentlySpectator, newGamemode);
+        this.guiData.handleGameModeChange(currentlySpectator, newGamemode);
     }
 
     /**
@@ -2021,6 +2028,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull EntityData entities() {
         return this.entityData;
+    }
+
+    @Override
+    public @NonNull GuiData gui() {
+        return this.guiData;
     }
 
     @Override

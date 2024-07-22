@@ -25,36 +25,31 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
+import org.geysermc.geyser.api.bedrock.gui.GuiData;
+
 /**
  * Represent GUI elements on the players HUD display.
- * These can be hidden using {@link CameraData#hideElement(GuiElement...)},
- * and one can reset their visibility using {@link CameraData#resetElement(GuiElement...)}.
+ * These can be hidden using {@link GuiData#hideElement(org.geysermc.geyser.api.bedrock.gui.GuiElement...)},
+ * and one can reset their visibility using {@link GuiData#resetElement(org.geysermc.geyser.api.bedrock.gui.GuiElement...)}.
+ * @deprecated use {@link org.geysermc.geyser.api.bedrock.gui.GuiElement}
  */
-public class GuiElement {
-    public static final GuiElement PAPER_DOLL = new GuiElement(0);
-    public static final GuiElement ARMOR = new GuiElement(1);
-    public static final GuiElement TOOL_TIPS = new GuiElement(2);
-    public static final GuiElement TOUCH_CONTROLS = new GuiElement(3);
-    public static final GuiElement CROSSHAIR = new GuiElement(4);
-    public static final GuiElement HOTBAR = new GuiElement(5);
-    public static final GuiElement HEALTH = new GuiElement(6);
-    public static final GuiElement PROGRESS_BAR = new GuiElement(7);
-    public static final GuiElement FOOD_BAR = new GuiElement(8);
-    public static final GuiElement AIR_BUBBLES_BAR = new GuiElement(9);
-    public static final GuiElement VEHICLE_HEALTH = new GuiElement(10);
-    public static final GuiElement EFFECTS_BAR = new GuiElement(11);
-    public static final GuiElement ITEM_TEXT_POPUP = new GuiElement(12);
+public class GuiElement extends org.geysermc.geyser.api.bedrock.gui.GuiElement {
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement PAPER_DOLL = org.geysermc.geyser.api.bedrock.gui.GuiElement.PAPER_DOLL;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement ARMOR = org.geysermc.geyser.api.bedrock.gui.GuiElement.ARMOR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement TOOL_TIPS = org.geysermc.geyser.api.bedrock.gui.GuiElement.TOOL_TIPS;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement TOUCH_CONTROLS = org.geysermc.geyser.api.bedrock.gui.GuiElement.TOUCH_CONTROLS;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement CROSSHAIR = org.geysermc.geyser.api.bedrock.gui.GuiElement.CROSSHAIR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement HOTBAR = org.geysermc.geyser.api.bedrock.gui.GuiElement.HOTBAR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement HEALTH = org.geysermc.geyser.api.bedrock.gui.GuiElement.HEALTH;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement PROGRESS_BAR = org.geysermc.geyser.api.bedrock.gui.GuiElement.PROGRESS_BAR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement FOOD_BAR = org.geysermc.geyser.api.bedrock.gui.GuiElement.FOOD_BAR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement AIR_BUBBLES_BAR = org.geysermc.geyser.api.bedrock.gui.GuiElement.AIR_BUBBLES_BAR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement VEHICLE_HEALTH = org.geysermc.geyser.api.bedrock.gui.GuiElement.VEHICLE_HEALTH;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement EFFECTS_BAR = org.geysermc.geyser.api.bedrock.gui.GuiElement.EFFECTS_BAR;
+    public static final org.geysermc.geyser.api.bedrock.gui.GuiElement ITEM_TEXT_POPUP = org.geysermc.geyser.api.bedrock.gui.GuiElement.ITEM_TEXT_POPUP;
 
-    private GuiElement(int id) {
-        this.id = id;
-    }
-
-    private final int id;
-
-    /**
-     * Internal use only; don't depend on these values being consistent.
-     */
-    public int id() {
-        return this.id;
+    public GuiElement(int id) {
+        super(id);
     }
 }
+
