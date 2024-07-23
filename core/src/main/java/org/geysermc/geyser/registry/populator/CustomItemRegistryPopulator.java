@@ -151,8 +151,7 @@ public class CustomItemRegistryPopulator {
                 .javaItem(item)
                 .build();
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.displayHandheld(), protocolVersion);
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemId, protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
         return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
@@ -173,16 +172,10 @@ public class CustomItemRegistryPopulator {
                 customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
-        String toolType = null;
         if (mapping.getToolType() != null) {
-            toolType = mapping.getToolType();
-        }
-
-        if (toolType != null) {
-            canDestroyInCreative = computeToolProperties(toolType, itemProperties, componentBuilder,
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder,
                     customItemData.attackDamage() == 0 ? javaItem.attackDamage() : customItemData.attackDamage());
         }
-
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         String armorType = null;
@@ -224,7 +217,13 @@ public class CustomItemRegistryPopulator {
                     computeThrowableProperties(componentBuilder);
         }
 
-        computeRenderOffsets(customItemData.isHat(), customItemData, componentBuilder);
+        // Hardcoded on Java, and should extend to the custom item
+        boolean isHat = (customItemData.isHat() || javaItem.equals(Items.SKELETON_SKULL) || javaItem.equals(Items.WITHER_SKELETON_SKULL)
+                || javaItem.equals(Items.CARVED_PUMPKIN) || javaItem.equals(Items.ZOMBIE_HEAD)
+                || javaItem.equals(Items.PIGLIN_HEAD) || javaItem.equals(Items.DRAGON_HEAD)
+                || javaItem.equals(Items.CREEPER_HEAD) || javaItem.equals(Items.PLAYER_HEAD)
+        );
+        computeRenderOffsets(isHat, customItemData, componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -232,17 +231,16 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
-                                                    int customItemId, boolean displayHandheld, int protocolVersion) {
+    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putString("name", customItemName)
+        builder.putString("name", customItemData.identifier())
                 .putInt("id", customItemId);
 
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
         setupBasicItemInfo(Math.max(customItemData.maxDamage(), 0), customItemData.stackSize() == 0 ? 64 : customItemData.stackSize(),
-                displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
+                customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -498,8 +496,7 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder,
-            int useAnimation, boolean canAlwaysEat) {
+    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int useAnimation, boolean canAlwaysEat) {
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", 32);
         // this dictates that the item will use the eat or drink animation (in the first person) and play eat or drink sounds

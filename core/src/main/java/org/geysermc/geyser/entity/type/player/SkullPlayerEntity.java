@@ -152,7 +152,7 @@ public class SkullPlayerEntity extends PlayerEntity {
                 case EAST -> x -= 0.24f;
             }
         } else {
-            rotation = (180f + (blockState.getValue(Properties.ROTATION_16) * 22.5f)) % 360;
+            rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);

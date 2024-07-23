@@ -44,7 +44,7 @@ import java.util.Set;
 
 @Builder
 @Value
-public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
+public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     GeyserBedrockBlock bedrockAir;
     BlockDefinition bedrockWater;
     BlockDefinition bedrockMovingBlock;
@@ -134,7 +134,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     }
 
     @Override
-    public boolean isRegistered(GeyserBedrockBlock bedrockBlock) {
+    public boolean isRegistered(BlockDefinition bedrockBlock) {
         return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }

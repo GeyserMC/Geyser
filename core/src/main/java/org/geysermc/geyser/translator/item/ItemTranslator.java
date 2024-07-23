@@ -33,7 +33,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -41,7 +43,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -52,6 +56,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.*;
@@ -135,7 +140,7 @@ public final class ItemTranslator {
                 .build();
     }
 
-    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
+    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         boolean hideTooltips = false;
@@ -144,7 +149,26 @@ public final class ItemTranslator {
             if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
         }
 
-        String customName = getCustomName(session, components, bedrockItem);
+        // Fixes fireworks crafting recipe: they always contain a tag
+        // TODO remove once all items have their default components
+        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
+            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
+        }
+
+        Rarity rarity = javaItem.rarity();
+        boolean enchantmentGlint = javaItem.glint();
+        if (components != null) {
+            Integer rarityIndex = components.get(DataComponentType.RARITY);
+            if (rarityIndex != null) {
+                rarity = Rarity.fromId(rarityIndex);
+            }
+            Boolean enchantmentGlintOverride = components.get(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE);
+            if (enchantmentGlintOverride != null) {
+                enchantmentGlint = enchantmentGlintOverride;
+            }
+        }
+
+        String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
@@ -159,6 +183,12 @@ public final class ItemTranslator {
 
         if (session.isAdvancedTooltips() && !hideTooltips) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
+        }
+
+        // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
+        if (enchantmentGlint) {
+            NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
+            nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
 
         ItemData.Builder builder = javaItem.translateToBedrock(count, components, bedrockItem, session.getItemMappings());
@@ -209,7 +239,7 @@ public final class ItemTranslator {
         Map<ItemAttributeModifiers.EquipmentSlotGroup, List<String>> slotsToModifiers = new HashMap<>();
         for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(entry.getModifier(), language);
+            String loreEntry = attributeToLore(entry.getAttribute(), entry.getModifier(), language);
             if (loreEntry == null) {
                 continue; // invalid or failed
             }
@@ -254,13 +284,13 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(ItemAttributeModifiers.AttributeModifier modifier, String language) {
+    private static String attributeToLore(int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
         double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
         }
 
-        String name = modifier.getId().asMinimalString();
+        String name = AttributeType.Builtin.from(attribute).getIdentifier().asMinimalString();
         // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
         ModifierOperation operation = modifier.getOperation();
@@ -401,16 +431,6 @@ public final class ItemTranslator {
     }
 
     /**
-     * Translates the display name of the item
-     * @param session the Bedrock client's session
-     * @param components the components to translate
-     * @param mapping the item entry, in case it requires translation
-     */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping) {
-        return getCustomName(session, components, mapping, 'f');
-    }
-
-    /**
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
@@ -418,12 +438,14 @@ public final class ItemTranslator {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
-            if (customName == null) {
-                customName = components.get(DataComponentType.ITEM_NAME);
-            }
             if (customName != null) {
-                // Get the translated name and prefix it with a reset char
                 return MessageTranslator.convertMessage(customName, session.locale());
+            }
+            customName = components.get(DataComponentType.ITEM_NAME);
+            if (customName != null) {
+                // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
+                // behavior as of 1.21
+                return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
             }
         }
 

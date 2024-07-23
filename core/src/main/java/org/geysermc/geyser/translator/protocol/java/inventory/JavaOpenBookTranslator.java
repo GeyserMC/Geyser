@@ -70,6 +70,7 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
             }
 
             InventoryTranslator translator = InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
+            Objects.requireNonNull(translator, "could not find lectern inventory translator!");
             session.setInventoryTranslator(translator);
 
             // Should never be null

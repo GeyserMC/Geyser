@@ -16,7 +16,6 @@ on:
       - 'LICENSE'
       - 'Jenkinsfile '
       - 'README.md'
-      - 'licenseheader.txt'
 
 jobs:
   build:
@@ -106,6 +105,7 @@ jobs:
       - name: Publish to Modrinth
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
+          CHANGELOG: ${{ steps.metadata.outputs.body }}
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: ./gradlew modrinth

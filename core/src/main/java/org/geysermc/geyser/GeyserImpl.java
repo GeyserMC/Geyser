@@ -55,7 +55,11 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.*;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -85,7 +89,13 @@ import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.Metrics;
+import org.geysermc.geyser.util.NewsHandler;
+import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
@@ -97,11 +107,19 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,13 +133,14 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "${gitVersion}";
-    public static final String VERSION = "${version}";
+    public static final String GIT_VERSION = BuildData.GIT_VERSION;
+    public static final String VERSION = BuildData.VERSION;
 
-    public static final String BUILD_NUMBER = "${buildNumber}";
-    public static final String BRANCH = "${branch}";
-    public static final String COMMIT = "${commit}";
-    public static final String REPOSITORY = "${repository}";
+    public static final String BUILD_NUMBER = BuildData.BUILD_NUMBER;
+    public static final String BRANCH = BuildData.BRANCH;
+    public static final String COMMIT = BuildData.COMMIT;
+    public static final String REPOSITORY = BuildData.REPOSITORY;
+    public static final boolean IS_DEV = BuildData.isDevBuild();
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -207,6 +226,12 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
+        if (IS_DEV) {
+            // TODO cloud use language string
+            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
+            logger.info("");
+        }
         logger.info("******************************************");
 
         /* Initialize registries */
@@ -638,16 +663,11 @@ public class GeyserImpl implements GeyserApi {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
-        scheduledThread.shutdown();
-        geyserServer.shutdown();
-        if (skinUploader != null) {
-            skinUploader.close();
-        }
-        newsHandler.shutdown();
-
-        if (this.erosionUnixListener != null) {
-            this.erosionUnixListener.close();
-        }
+        runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(geyserServer, GeyserServer::shutdown);
+        runIfNonNull(skinUploader, FloodgateSkinUploader::close);
+        runIfNonNull(newsHandler, NewsHandler::shutdown);
+        runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         Registries.RESOURCE_PACKS.get().clear();
 
@@ -684,9 +704,10 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
-        //noinspection ConstantConditions,MismatchedStringCase - changes in production
+        //noinspection ConstantConditions - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
     }
 
@@ -822,6 +843,12 @@ public class GeyserImpl implements GeyserApi {
         // refreshes the token for us
         if (!Objects.equals(refreshToken, savedRefreshTokens.put(bedrockName, refreshToken))) {
             scheduleRefreshTokensWrite();
+        }
+    }
+
+    private <T> void runIfNonNull(T nullable, Consumer<T> consumer) {
+        if (nullable != null) {
+            consumer.accept(nullable);
         }
     }
 

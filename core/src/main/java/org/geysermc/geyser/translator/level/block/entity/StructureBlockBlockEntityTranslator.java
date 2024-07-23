@@ -39,7 +39,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 @BlockEntity(type = BlockEntityType.STRUCTURE_BLOCK)
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {

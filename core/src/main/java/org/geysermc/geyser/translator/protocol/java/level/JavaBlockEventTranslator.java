@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -126,6 +127,26 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             
             blockEntityPacket.setData(builder.build());
             session.sendUpstreamPacket(blockEntityPacket);
+        } else if (value instanceof DecoratedPotValue potValue) {
+            // Decorated pots - wobble wobble
+            // We need to send the sherd data with the client, but we don't really care about latency here so we
+            // can safely get this from the server
+            session.getGeyser().getWorldManager().getDecoratedPotData(session, position, sherds -> {
+                BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
+                blockEntityPacket.setBlockPosition(position);
+
+                NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("DecoratedPot", position);
+                builder.putList("sherds", NbtType.STRING, sherds);
+                builder.putByte("animation", switch (potValue.getWobbleStyle()) {
+                    case POSITIVE -> (byte) 2;
+                    case NEGATIVE -> (byte) 1;
+                });
+
+                blockEntityPacket.setData(builder.build());
+                session.sendUpstreamPacket(blockEntityPacket);
+            });
+        } else if (session.getGeyser().getLogger().isDebug()) {
+            session.getGeyser().getLogger().debug("Unhandled block event packet: " + packet);
         }
     }
 }

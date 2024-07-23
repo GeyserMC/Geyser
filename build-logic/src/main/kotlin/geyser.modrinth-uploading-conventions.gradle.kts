@@ -10,7 +10,7 @@ modrinth {
     projectId.set("geyser")
     versionNumber.set(project.version as String + "-" + System.getenv("BUILD_NUMBER"))
     versionType.set("beta")
-    changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
+    changelog.set(System.getenv("CHANGELOG") ?: "")
     gameVersions.add(libs.minecraft.get().version as String)
     failSilently.set(true)
 

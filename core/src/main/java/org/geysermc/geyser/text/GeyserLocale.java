@@ -259,6 +259,13 @@ public class GeyserLocale {
             // Invalid locale
             return locale;
         }
+
+        // See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes - covers the special case that is norwegian
+        String lowerCaseLocale = locale.toLowerCase(Locale.ROOT);
+        if (lowerCaseLocale.equals("nn_no") || lowerCaseLocale.equals("no_no")) {
+            locale = "nb_NO";
+        }
+
         String language = locale.substring(0, 2);
         String country = locale.substring(3);
         return language.toLowerCase(Locale.ENGLISH) + "_" + country.toUpperCase(Locale.ENGLISH);

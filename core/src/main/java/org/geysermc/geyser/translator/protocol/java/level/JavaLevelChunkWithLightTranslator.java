@@ -398,29 +398,34 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                BlockState blockState = BlockRegistries.BLOCK_STATES.get(section.get(x, y & 0xF, z));
+                BlockState blockState = BlockState.of(section.get(x, y & 0xF, z));
 
                 // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
                 // Also, some properties - like banner base colors - are part of the tag and is processed here.
                 BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
-                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
 
-                // Check for custom skulls
-                if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {
-                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
-                    if (blockDefinition != null) {
-                        int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
-                        int subChunkIndex = (y >> 4) + (bedrockDimension.minY() >> 4);
-                        if (0 <= bedrockSectionY && bedrockSectionY < maxBedrockSectionY) {
-                            // Custom skull is in a section accepted by Bedrock
-                            GeyserChunkSection bedrockSection = sections[bedrockSectionY];
-                            IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
-                            if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
-                                // TODO there has to be a better way to expand the palette .-.
-                                bedrockSection = bedrockSection.copy(subChunkIndex);
-                                sections[bedrockSectionY] = bedrockSection;
+                // The Java server can send block entity data for blocks that aren't actually those blocks.
+                // A Java client ignores these
+                if (type == blockState.block().blockEntityType()) {
+                    bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
+
+                    // Check for custom skulls
+                    if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {
+                        BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
+                        if (blockDefinition != null) {
+                            int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
+                            int subChunkIndex = (y >> 4) + (bedrockDimension.minY() >> 4);
+                            if (0 <= bedrockSectionY && bedrockSectionY < maxBedrockSectionY) {
+                                // Custom skull is in a section accepted by Bedrock
+                                GeyserChunkSection bedrockSection = sections[bedrockSectionY];
+                                IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
+                                if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
+                                    // TODO there has to be a better way to expand the palette .-.
+                                    bedrockSection = bedrockSection.copy(subChunkIndex);
+                                    sections[bedrockSectionY] = bedrockSection;
+                                }
+                                bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
                             }
-                            bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
                         }
                     }
                 }

@@ -23,25 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.sound.block;
+package org.geysermc.geyser;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
-import org.geysermc.geyser.translator.sound.SoundTranslator;
+// The constants are replaced before compilation
+public class BuildData {
+    public static final String GIT_VERSION = "{{ gitVersion }}";
+    public static final String VERSION = "{{ version }}";
 
-@SoundTranslator(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+    public static final String BUILD_NUMBER = "{{ buildNumber }}";
+    public static final String BRANCH = "{{ branch }}";
+    public static final String COMMIT = "{{ commit }}";
+    public static final String REPOSITORY = "{{ repository }}";
+    private static final String DEV = "{{ devVersion }}";
 
-    @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
-        if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEvent.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+    public static boolean isDevBuild() {
+        return Boolean.parseBoolean(DEV);
     }
 }

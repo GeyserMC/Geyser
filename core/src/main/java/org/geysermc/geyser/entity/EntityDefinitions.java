@@ -307,11 +307,11 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
                     .build();
 
-            EntityDefinition<Entity> displayBase = EntityDefinition.inherited(entityBase.factory(), entityBase)
+            EntityDefinition<DisplayBaseEntity> displayBase = EntityDefinition.inherited(DisplayBaseEntity::new, entityBase)
                     .addTranslator(null) // Interpolation delay
                     .addTranslator(null) // Transformation interpolation duration
                     .addTranslator(null) // Position/Rotation interpolation duration
-                    .addTranslator(null) // Translation
+                    .addTranslator(MetadataType.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
                     .addTranslator(null) // Scale
                     .addTranslator(null) // Left rotation
                     .addTranslator(null) // Right rotation
@@ -327,6 +327,7 @@ public final class EntityDefinitions {
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
+                    .offset(-0.5f)
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color

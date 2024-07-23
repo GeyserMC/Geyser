@@ -133,7 +133,7 @@ public final class SoundUtils {
         }
         if (sound == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + soundIdentifier + "' to mappings '" + soundMapping.getBedrock()
-                    + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
+                + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
             return;
         }
 
@@ -144,7 +144,7 @@ public final class SoundUtils {
             // Minecraft Wiki: 2^(x/12) = Java pitch where x is -12 to 12
             // Java sends the note value as above starting with -12 and ending at 12
             // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
-            soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
+            soundPacket.setExtraData(soundMapping.getExtraData() + (int) (Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
             if (!soundMapping.getIdentifier().equals(":")) {
                 int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.getIdentifier(), Block.JAVA_AIR_ID);

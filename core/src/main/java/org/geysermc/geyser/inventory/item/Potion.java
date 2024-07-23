@@ -102,6 +102,15 @@ public enum Potion {
         return new PotionContents(this.ordinal(), -1, Collections.emptyList());
     }
 
+    public static Potion getByJavaIdentifier(String javaIdentifier) {
+        for (Potion potion : VALUES) {
+            if (potion.javaIdentifier.equals(javaIdentifier)) {
+                return potion;
+            }
+        }
+        return null;
+    }
+
     public static @Nullable Potion getByJavaId(int javaId) {
         if (javaId >= 0 && javaId < VALUES.length) {
             return VALUES[javaId];

@@ -25,20 +25,32 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.common.util.TriConsumer;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.inventory.item.Potion;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @BlockEntity(type = BlockEntityType.VAULT)
@@ -67,9 +79,25 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                     .putByte("WasPickedUp", (byte) 0).build());
         } else {
             int count = item.getInt("count");
-            NbtMapBuilder bedrockItem = BedrockItemBuilder.createItemNbt(mapping, count, mapping.getBedrockData());
-            // TODO handle components...
-            bedrockNbt.putCompound("display_item", bedrockItem.build());
+            NbtMap componentsTag = item.getCompound("components");
+            NbtMapBuilder itemAsNbt;
+            if (!componentsTag.isEmpty()) {
+                DataComponents components = new DataComponents(new HashMap<>());
+                for (Map.Entry<String, Object> entry : componentsTag.entrySet()) {
+                    var consumer = DATA_COMPONENT_DECODERS.get(entry.getKey());
+                    if (consumer != null) {
+                        consumer.accept(session, (NbtMap) entry.getValue(), components);
+                    }
+                }
+                ItemData bedrockItem = ItemTranslator.translateToBedrock(session, mapping.getJavaItem(), mapping, count, components).build();
+                itemAsNbt = BedrockItemBuilder.createItemNbt(mapping, bedrockItem.getCount(), bedrockItem.getDamage());
+                if (bedrockItem.getTag() != null) {
+                    itemAsNbt.putCompound("tag", bedrockItem.getTag());
+                }
+            } else {
+                itemAsNbt = BedrockItemBuilder.createItemNbt(mapping, count, mapping.getBedrockData());
+            }
+            bedrockNbt.putCompound("display_item", itemAsNbt.build());
         }
 
         List<int[]> connectedPlayers = sharedData.getList("connected_players", NbtType.INT_ARRAY);
@@ -96,4 +124,27 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
     private static UUID uuidFromIntArray(int[] parts) {
         return new UUID((long) parts[0] << 32 | (parts[1] & 0xFFFFFFFFL), (long) parts[2] << 32 | (parts[3] & 0xFFFFFFFFL));
     }
+
+    // This might be easier to maintain in the long run so items don't have two translate methods.
+    // Also, it's not out of the question that block entities get the data component treatment, likely rendering this useless.
+    // The goal is to just translate the basics so clients know what potion is roughly present, and that any enchantment even exists.
+    private static final Map<String, TriConsumer<GeyserSession, NbtMap, DataComponents>> DATA_COMPONENT_DECODERS = Map.of(
+            "minecraft:potion_contents", (session, tag, components) -> {
+                String potionId = tag.getString("potion");
+                Potion potion = Potion.getByJavaIdentifier(potionId);
+                components.put(DataComponentType.POTION_CONTENTS, potion.toComponent());
+            },
+            "minecraft:enchantments", (session, tag, components) -> { // Enchanted books already have glint. Translating them doesn't matter.
+                NbtMap levels = tag.getCompound("levels");
+                List<Enchantment> enchantmentRegistry = session.getRegistryCache().enchantments().values();
+                Int2ObjectMap<Integer> enchantments = new Int2ObjectOpenHashMap<>(levels.size());
+                for (Map.Entry<String, Object> entry : levels.entrySet()) {
+                    for (int i = 0; i < enchantmentRegistry.size(); i++) {
+                        if (enchantmentRegistry.get(i).identifier().equals(entry.getKey())) {
+                            enchantments.put(i, (Integer) entry.getValue());
+                        }
+                    }
+                }
+                components.put(DataComponentType.ENCHANTMENTS, new ItemEnchantments(enchantments, true));
+            });
 }

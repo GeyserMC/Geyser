@@ -43,9 +43,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemCodecHel
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -207,6 +209,13 @@ public abstract class WorldManager {
     @NonNull
     public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addExtraData) {
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Retrieves decorated pot sherds from the server. Used to ensure the data is not erased on animation sent
+     * through the BlockEntityDataPacket.
+     */
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
     }
 
     protected static final Function<Int2ObjectMap<byte[]>, DataComponents> RAW_TRANSFORMER = map -> {
