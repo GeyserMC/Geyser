@@ -50,6 +50,7 @@ public enum GeyserAttributeType {
     ATTACK_SPEED("minecraft:generic.attack_speed", null, 0f, 1024f, 4f),
     MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
     SCALE("minecraft:generic.scale", null, 0.0625f, 16f, 1f),
+    BLOCK_INTERACTION_RANGE("minecraft:player.block_interaction_range", null, 0.0f, 64f, 4.5f),
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
