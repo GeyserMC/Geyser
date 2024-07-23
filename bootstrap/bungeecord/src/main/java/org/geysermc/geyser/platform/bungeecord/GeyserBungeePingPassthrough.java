@@ -36,6 +36,7 @@ import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
@@ -43,6 +44,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor
 public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, Listener {
@@ -59,7 +61,17 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
                 future.complete(event);
             }
         }));
-        ProxyPingEvent event = future.join();
+
+        ProxyPingEvent event;
+
+        try {
+            event = future.get(100, TimeUnit.MILLISECONDS);
+        } catch (Throwable cause) {
+            String address = GeyserImpl.getInstance().getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+            GeyserImpl.getInstance().getLogger().error("Failed to get ping information for " + address, cause);
+            return null;
+        }
+
         ServerPing response = event.getResponse();
         return new GeyserPingInfo(
                 response.getDescriptionComponent().toLegacyText(),
