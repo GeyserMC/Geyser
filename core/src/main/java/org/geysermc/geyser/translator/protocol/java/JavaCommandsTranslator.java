@@ -169,8 +169,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, not sure what these do apart from break things
-        Set<CommandData.Flag> flags = Set.of();
+        // The command flags, set to NOT_CHEAT, so we can enable achievements by default
+        Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
         // Loop through all the found commands
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
