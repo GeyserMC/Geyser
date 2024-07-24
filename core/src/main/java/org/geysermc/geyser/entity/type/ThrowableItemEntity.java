@@ -46,13 +46,14 @@ public class ThrowableItemEntity extends ThrowableEntity {
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
     }
+
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-
         // Correct sizing
         dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
     }
+
     private void checkVisibility() {
         Vector3f playerPos = session.getPlayerEntity().getPosition();
         // Prevent projectiles from blocking the player's screen
