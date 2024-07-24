@@ -449,7 +449,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
                         // Example vanilla commands: ban-ip, ban, and kick
-                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                        if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
                             optional = false;
                         }
                     }
