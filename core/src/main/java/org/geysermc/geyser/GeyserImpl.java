@@ -562,6 +562,7 @@ public class GeyserImpl implements GeyserApi {
             //noinspection deprecation
             File refreshTokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
             if (refreshTokensFile.exists()) {
+                logger.info("Migrating refresh tokens to auth chains...");
                 TypeReference<Map<String, String>> type = new TypeReference<>() { };
                 Map<String, String> refreshTokens = null;
                 try {
