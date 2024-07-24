@@ -29,7 +29,17 @@ package org.geysermc.geyser.entity.type;
  * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
  */
 public interface Tickable {
-    default void drawTick() {};
-    void tick();
+    /*
+     * This function gets called every tick at all times, even when the server requests that the
+     * game should be frozen. This should be used for updating things that are always
+     * client side updated on Java, regardless of if the server is frozen or not.
+     */
+    default void drawTick() {
+    }
 
+    /*
+     * This function gets called every game tick as long as the
+     * game tick loop isn't frozen.
+     */
+    void tick();
 }

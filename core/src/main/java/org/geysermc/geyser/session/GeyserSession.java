@@ -561,6 +561,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private MinecraftProtocol protocol;
 
     private boolean tickingFrozen = false;
+    /*
+     * The amount of ticks requested by the server that the
+     * game should proceed with, even if game ticking is frozen.
+     */
     @Setter
     private int stepTicks = 0;
     private boolean gameShouldUpdate = true;
@@ -1208,6 +1212,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 camera().removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
+
             gameShouldUpdate = !tickingFrozen || stepTicks > 0;
             if (stepTicks > 0) {
                 --stepTicks;
@@ -1218,6 +1223,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     entity.tick();
                 }
             }
+
             if (armAnimationTicks >= 0) {
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
                 // player's effect status, but the animation can cut short if the duration suddenly decreases
@@ -1643,7 +1649,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Send a packet to the remote server if in the specified state.
      *
-     * @param packet the java edition packet from MCProtocolLib
+     * @param packet        the java edition packet from MCProtocolLib
      * @param intendedState the state the client should be in
      */
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
@@ -1727,7 +1733,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send a gamerule value to the client
      *
      * @param gameRule The gamerule to send
-     * @param value The value of the gamerule
+     * @param value    The value of the gamerule
      */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
