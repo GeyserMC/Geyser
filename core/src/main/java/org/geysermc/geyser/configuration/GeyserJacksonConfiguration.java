@@ -137,7 +137,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean forceResourcePacks = true;
 
     @JsonProperty("xbox-achievements-enabled")
-    private boolean xboxAchievementsEnabled = true;
+    private boolean xboxAchievementsEnabled = false;
 
     @JsonProperty("log-player-ip-addresses")
     private boolean logPlayerIpAddresses = true;

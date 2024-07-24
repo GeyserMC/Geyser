@@ -168,7 +168,7 @@ above-bedrock-nether-building: false
 force-resource-packs: true
 
 # Allows Xbox achievements to be unlocked.
-xbox-achievements-enabled: true
+xbox-achievements-enabled: false
 
 # Whether player IP addresses will be logged by the server.
 log-player-ip-addresses: true
