@@ -874,7 +874,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
              // Save our auth chain for later use
              geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
              return true;
-         }).resultNow();
+         }).getNow(false);
     }
 
     /**
