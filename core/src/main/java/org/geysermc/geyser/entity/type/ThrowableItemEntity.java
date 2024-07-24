@@ -49,6 +49,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
+
         // Correct sizing
         dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
     }
