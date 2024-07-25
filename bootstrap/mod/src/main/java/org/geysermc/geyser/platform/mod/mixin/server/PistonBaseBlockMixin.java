@@ -82,6 +82,7 @@ public class PistonBaseBlockMixin {
 
         for (Map.Entry<UUID, GeyserSession> entry : GeyserImpl.getInstance().getSessionManager().getSessions().entrySet()) {
             Player player = level.getPlayerByUUID(entry.getKey());
+            //noinspection resource
             if (player == null || !player.level().equals(level)) {
                 continue;
             }

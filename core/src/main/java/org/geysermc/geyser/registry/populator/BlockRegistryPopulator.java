@@ -162,7 +162,6 @@ public final class BlockRegistryPopulator {
             // as we no longer send a block palette
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
-            GeyserImpl.getInstance().getLogger().info(blockStates.size() + " block states found");
             for (int i = 0; i < blockStates.size(); i++) {
                 NbtMap tag = blockStates.get(i);
                 if (blockStateOrderedMap.containsKey(tag)) {
