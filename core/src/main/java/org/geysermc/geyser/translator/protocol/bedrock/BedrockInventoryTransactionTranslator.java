@@ -247,8 +247,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        // Note that, before these changes, I could replicate on Paper 1.20.4 and iPad 1.21.2 an instance of block ghosting
-                        // that we had not previously implemented. Might be some sort of ray tracing that is currently unimplemented.
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
                         playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
@@ -284,13 +282,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
+                        // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
+                        int sequence = session.getWorldCache().nextPredictionSequence();
+                        session.getWorldCache().markPositionInSequence(blockPos);
                         ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 packet.getBlockPosition(),
                                 Direction.VALUES[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,
-                                session.getWorldCache().nextPredictionSequence());
+                                sequence);
                         session.sendDownstreamGamePacket(blockPacket);
 
                         Item item = session.getPlayerInventory().getItemInHand().asItem();

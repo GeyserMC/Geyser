@@ -170,6 +170,11 @@ public class Item {
             builder.putInt("RepairCost", repairCost);
         }
 
+        // If the tag exists, it's unbreakable; the value is just weather to show the tooltip. As of Java 1.21
+        if (components.getDataComponents().containsKey(DataComponentType.UNBREAKABLE)) {
+            builder.putByte("Unbreakable", (byte) 1);
+        }
+
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
         builder.putInt("GeyserHash", components.hashCode()); // TODO: don't rely on this
