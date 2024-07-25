@@ -561,9 +561,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private MinecraftProtocol protocol;
 
     private boolean tickingFrozen = false;
-    /*
-     * The amount of ticks requested by the server that the
-     * game should proceed with, even if game ticking is frozen.
+    /**
+     * The amount of ticks requested by the server that the game should proceed with, even if the game tick loop is frozen.
      */
     @Setter
     private int stepTicks = 0;
