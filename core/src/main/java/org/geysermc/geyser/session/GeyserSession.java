@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.session;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.exception.request.RequestException;
-import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -41,22 +40,60 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import net.raphimc.minecraftauth.step.java.StepMCProfile;
+import net.raphimc.minecraftauth.step.java.StepMCToken;
+import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
-import org.cloudburstmc.math.vector.*;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.Ability;
+import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
+import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
+import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
+import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -106,7 +143,22 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
-import org.geysermc.geyser.session.cache.*;
+import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.ChunkCache;
+import org.geysermc.geyser.session.cache.EntityCache;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
+import org.geysermc.geyser.session.cache.FormCache;
+import org.geysermc.geyser.session.cache.LodestoneCache;
+import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.RegistryCache;
+import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.session.cache.StructureBlockCache;
+import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.WorldBorder;
+import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -116,9 +168,15 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.geysermc.geyser.util.MinecraftAuthLogger;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.Session;
-import org.geysermc.mcprotocollib.network.event.session.*;
+import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
+import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
+import org.geysermc.mcprotocollib.network.event.session.PacketErrorEvent;
+import org.geysermc.mcprotocollib.network.event.session.PacketSendingEvent;
+import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
@@ -153,7 +211,16 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -162,6 +229,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
+
+    private static final Gson GSON = new Gson();
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -222,7 +291,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean closingInventory;
 
     @Setter
-    private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
+    private @NonNull InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
@@ -690,7 +759,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
     }
 
-    public void authenticateWithRefreshToken(String refreshToken) {
+    public void authenticateWithAuthChain(String authChain) {
         if (loggedIn) {
             geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
             return;
@@ -699,24 +768,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         loggingIn = true;
 
         CompletableFuture.supplyAsync(() -> {
-            MsaAuthenticationService service = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
-            service.setRefreshToken(refreshToken);
+            StepFullJavaSession step = PendingMicrosoftAuthentication.AUTH_FLOW.apply(true, 30);
+            StepFullJavaSession.FullJavaSession response;
             try {
-                service.login();
-            } catch (RequestException e) {
-                geyser.getLogger().error("Error while attempting to use refresh token for " + bedrockUsername() + "!", e);
+                response = step.refresh(MinecraftAuthLogger.INSTANCE, PendingMicrosoftAuthentication.AUTH_CLIENT, step.fromJson(GSON.fromJson(authChain, JsonObject.class)));
+            } catch (Exception e) {
+                geyser.getLogger().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
                 return Boolean.FALSE;
             }
 
-            GameProfile profile = service.getSelectedProfile();
-            if (profile == null) {
-                // Java account is offline
-                disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                return null;
-            }
+            StepMCProfile.MCProfile mcProfile = response.getMcProfile();
+            StepMCToken.MCToken mcToken = mcProfile.getMcToken();
 
-            protocol = new MinecraftProtocol(profile, service.getAccessToken());
-            geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
+            protocol = new MinecraftProtocol(
+                    new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                    mcToken.getAccessToken()
+            );
+            geyser.saveAuthChain(bedrockUsername(), GSON.toJson(step.toJson(response)));
             return Boolean.TRUE;
         }).whenComplete((successful, ex) -> {
             if (this.closed) {
@@ -761,25 +829,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
                 getAuthData().xuid()
         );
-        task.setOnline(true);
-        task.resetTimer();
-
-        if (task.getAuthentication().isDone()) {
+        if (task.getAuthentication() != null && task.getAuthentication().isDone()) {
             onMicrosoftLoginComplete(task);
         } else {
-            task.getCode(offlineAccess).whenComplete((response, ex) -> {
-                boolean connected = !closed;
-                if (ex != null) {
-                    if (connected) {
-                        geyser.getLogger().error("Failed to get Microsoft auth code", ex);
-                        disconnect(ex.toString());
-                    }
-                    task.cleanup(); // error getting auth code -> clean up immediately
-                } else if (connected) {
-                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-                    task.getAuthentication().whenComplete((r, $) -> onMicrosoftLoginComplete(task));
+            task.resetRunningFlow();
+            task.performLoginAttempt(offlineAccess, code -> {
+                if (!closed) {
+                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, code);
                 }
-            });
+            }).handle((r, e) -> onMicrosoftLoginComplete(task));
         }
     }
 
@@ -791,36 +849,32 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
-        Throwable ex = task.getLoginException();
-        if (ex != null) {
-            geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-            disconnect(ex.toString());
-        } else {
-            MsaAuthenticationService service = task.getMsaAuthenticationService();
-            GameProfile selectedProfile = service.getSelectedProfile();
-            if (selectedProfile == null) {
-                disconnect(GeyserLocale.getPlayerLocaleString(
-                        "geyser.network.remote.invalid_account",
-                        clientData.getLanguageCode()
-                ));
-            } else {
-                this.protocol = new MinecraftProtocol(
-                        selectedProfile,
-                        service.getAccessToken()
-                );
-                try {
-                    connectDownstream();
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    return false;
-                }
+        return task.getAuthentication().handle((result, ex) -> {
+             if (ex != null) {
+                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                 disconnect(ex.toString());
+                 return false;
+             }
 
-                // Save our refresh token for later use
-                geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
-                return true;
-            }
-        }
-        return false;
+             StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
+             StepMCToken.MCToken mcToken = mcProfile.getMcToken();
+
+             this.protocol = new MinecraftProtocol(
+                     new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                     mcToken.getAccessToken()
+             );
+
+             try {
+                 connectDownstream();
+             } catch (Throwable t) {
+                 t.printStackTrace();
+                 return false;
+             }
+
+             // Save our auth chain for later use
+             geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
+             return true;
+         }).getNow(false);
     }
 
     /**
@@ -1103,7 +1157,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
                 if (task != null) {
-                    task.setOnline(false);
+                    task.resetRunningFlow();
                 }
             }
         }
