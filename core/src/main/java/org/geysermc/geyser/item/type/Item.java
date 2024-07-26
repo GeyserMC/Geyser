@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -59,7 +60,7 @@ import java.util.Map;
 
 public class Item {
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
-    private final String javaIdentifier;
+    protected final Key javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
     private final int attackDamage;
@@ -68,7 +69,7 @@ public class Item {
     private final boolean glint;
 
     public Item(String javaIdentifier, Builder builder) {
-        this.javaIdentifier = MinecraftKey.key(javaIdentifier).asString().intern();
+        this.javaIdentifier = MinecraftKey.key(javaIdentifier);
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
@@ -77,7 +78,7 @@ public class Item {
     }
 
     public String javaIdentifier() {
-        return javaIdentifier;
+        return javaIdentifier.asString();
     }
 
     public int javaId() {
@@ -106,6 +107,10 @@ public class Item {
 
     public boolean isValidRepairItem(Item other) {
         return false;
+    }
+
+    public String translationKey() {
+        return "item." + javaIdentifier.namespace() + "." + javaIdentifier.value();
     }
 
     /* Translation methods to Bedrock and back */
