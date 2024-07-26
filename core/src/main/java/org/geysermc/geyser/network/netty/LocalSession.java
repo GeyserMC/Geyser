@@ -35,6 +35,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.codec.PacketCodecHelper;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
+import org.geysermc.mcprotocollib.network.tcp.TcpFlowControlHandler;
 import org.geysermc.mcprotocollib.network.tcp.TcpPacketCodec;
 import org.geysermc.mcprotocollib.network.tcp.TcpPacketSizer;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
@@ -90,6 +91,8 @@ public final class LocalSession extends TcpSession {
 
                     ChannelPipeline pipeline = channel.pipeline();
                     pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this, protocol.getPacketHeader().getLengthSize()));
+
+                    pipeline.addLast("flow-control", new TcpFlowControlHandler());
                     pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
                     pipeline.addLast("manager", LocalSession.this);
 
