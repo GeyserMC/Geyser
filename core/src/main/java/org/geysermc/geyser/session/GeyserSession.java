@@ -1702,7 +1702,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Send a packet to the remote server if in the specified state.
      *
-     * @param packet        the java edition packet from MCProtocolLib
+     * @param packet the java edition packet from MCProtocolLib
      * @param intendedState the state the client should be in
      */
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
