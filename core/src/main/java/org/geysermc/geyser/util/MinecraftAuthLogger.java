@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.ping;
+package org.geysermc.geyser.util;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import net.raphimc.minecraftauth.util.logging.ILogger;
+import org.geysermc.geyser.GeyserImpl;
 
-import java.net.InetSocketAddress;
+public class MinecraftAuthLogger implements ILogger {
 
-/**
- * Interface that retrieves ping passthrough information from the Java server
- */
-public interface IGeyserPingPassthrough {
+    public static final MinecraftAuthLogger INSTANCE = new MinecraftAuthLogger();
 
-    /**
-     * Gets the ping information, including the MOTD and player count, from the server
-     *
-     * @param inetSocketAddress the ip address of the client pinging the server
-     * @return the ping information
-     */
-    @Nullable
-    GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
+    @Override
+    public void info(String message) {
+        GeyserImpl.getInstance().getLogger().debug(message);
+    }
 
+    @Override
+    public void warn(String message) {
+        GeyserImpl.getInstance().getLogger().warning(message);
+    }
+
+    @Override
+    public void error(String message) {
+        GeyserImpl.getInstance().getLogger().error(message);
+    }
 }

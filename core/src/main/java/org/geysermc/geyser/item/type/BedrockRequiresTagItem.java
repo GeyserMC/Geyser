@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.ping;
+package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.net.InetSocketAddress;
+public interface BedrockRequiresTagItem {
 
-/**
- * Interface that retrieves ping passthrough information from the Java server
- */
-public interface IGeyserPingPassthrough {
-
-    /**
-     * Gets the ping information, including the MOTD and player count, from the server
-     *
-     * @param inetSocketAddress the ip address of the client pinging the server
-     * @return the ping information
-     */
-    @Nullable
-    GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
-
+    void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder);
 }

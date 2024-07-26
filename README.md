@@ -14,7 +14,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock 1.20.80 - 1.21.2 and Minecraft Java 1.21
+### Currently supporting Minecraft Bedrock 1.20.80 - 1.21.3 and Minecraft Java 1.21
 
 ## Setting Up
 Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Geyser.
@@ -42,7 +42,7 @@ There are a few things Geyser is unable to support due to various differences be
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
 ## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on [Discord](http://discord.geysermc.org/) if
+Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/geysermc) if
 you're interested in helping out with Geyser.
 
 ## Libraries Used:

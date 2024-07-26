@@ -141,6 +141,10 @@ public class EntityCache {
         return playerEntities.values();
     }
 
+    public void removeAllPlayerEntities() {
+        playerEntities.clear();
+    }
+
     public void addBossBar(UUID uuid, BossBar bossBar) {
         bossBars.put(uuid, bossBar);
         bossBar.addBossBar();
