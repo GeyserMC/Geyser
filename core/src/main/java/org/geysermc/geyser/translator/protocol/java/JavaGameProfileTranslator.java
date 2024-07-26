@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;

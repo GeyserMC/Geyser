@@ -46,10 +46,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                 if (session.remoteServer().authType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
                         if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.bedrockUsername())) {
-                            if (session.getGeyser().refreshTokenFor(session.bedrockUsername()) == null) {
+                            if (session.getGeyser().authChainFor(session.bedrockUsername()) == null) {
                                 LoginEncryptionUtils.buildAndShowConsentWindow(session);
                             } else {
-                                // If the refresh token is not null and we're here, then the refresh token expired
+                                // If the auth chain is not null and we're here, then it expired
                                 // and the expiration form has been cached
                                 session.getFormCache().resendAllForms();
                             }
