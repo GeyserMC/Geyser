@@ -897,7 +897,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Start ticking
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
-        this.protocol.setUseDefaultListeners(false);
+        this.protocol.setUseDefaultListeners(true);
 
         TcpSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
@@ -933,10 +933,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // We'll handle this since we have the registry data on hand
         downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
-
-        // This isn't a great solution, but... we want to make sure the finish configuration packet cannot be sent
-        // before the KnownPacks packet.
-        this.downstream.getSession().addListener(new ClientListener(ProtocolState.LOGIN, loginEvent.transferring()));
 
         downstream.addListener(new SessionAdapter() {
             @Override
