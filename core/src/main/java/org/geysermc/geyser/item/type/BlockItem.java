@@ -28,6 +28,9 @@ package org.geysermc.geyser.item.type;
 import org.geysermc.geyser.level.block.type.Block;
 
 public class BlockItem extends Item {
+    // If item is instanceof ItemNameBlockItem
+    private final boolean treatLikeBlock;
+
     public BlockItem(Builder builder, Block block, Block... otherBlocks) {
         super(block.javaIdentifier().value(), builder);
 
@@ -36,6 +39,7 @@ public class BlockItem extends Item {
         for (Block otherBlock : otherBlocks) {
             registerBlock(otherBlock, this);
         }
+        treatLikeBlock = true;
     }
 
     // Use this constructor if the item name is not the same as its primary block
@@ -46,5 +50,14 @@ public class BlockItem extends Item {
         for (Block otherBlock : otherBlocks) {
             registerBlock(otherBlock, this);
         }
+        treatLikeBlock = false;
+    }
+
+    @Override
+    public String translationKey() {
+        if (!treatLikeBlock) {
+            return super.translationKey();
+        }
+        return "block." + this.javaIdentifier.namespace() + "." + this.javaIdentifier.value();
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.GeyserImpl;
@@ -33,6 +34,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 public class SettingsUtils {
     /**
@@ -96,6 +98,7 @@ public class SettingsUtils {
         }
 
         builder.validResultHandler((response) -> {
+            applyDifficultyFix(session);
             if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
                 if (showCoordinates) {
@@ -134,7 +137,19 @@ public class SettingsUtils {
             }
         });
 
+        builder.closedOrInvalidResultHandler($ -> applyDifficultyFix(session));
+
         return builder.build();
+    }
+
+    private static void applyDifficultyFix(GeyserSession session) {
+        // Peaceful difficulty allows always eating food - hence, we just do not send it to Bedrock.
+        // Since we sent the real difficulty before opening the server settings form, let's restore it to our workaround here
+        if (session.getWorldCache().getDifficulty() == Difficulty.PEACEFUL) {
+            SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
+            setDifficultyPacket.setDifficulty(Difficulty.EASY.ordinal());
+            session.sendUpstreamPacket(setDifficultyPacket);
+        }
     }
 
     private static String translateEntry(String key, String locale) {

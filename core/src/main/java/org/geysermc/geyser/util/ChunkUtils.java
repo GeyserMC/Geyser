@@ -203,8 +203,7 @@ public class ChunkUtils {
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void loadDimension(GeyserSession session) {
-        JavaDimension dimension = session.getRegistryCache().dimensions().byId(session.getDimension());
-        session.setDimensionType(dimension);
+        JavaDimension dimension = session.getDimensionType();
         int minY = dimension.minY();
         int maxY = dimension.maxY();
 
@@ -223,7 +222,7 @@ public class ChunkUtils {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.height()),
-                    session.getDimension()));
+                    session.getRegistryCache().dimensions().byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);

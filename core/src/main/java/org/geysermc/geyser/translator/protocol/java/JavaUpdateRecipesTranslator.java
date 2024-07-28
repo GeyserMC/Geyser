@@ -253,7 +253,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
                     Registries.JAVA_ITEMS.get().get(stoneCuttingRecipeData.getResult().getId())
-                            .javaIdentifier())));
+                        // See RecipeManager#getRecipesFor as of 1.21
+                            .translationKey())));
 
             // Now that it's sorted, let's translate these recipes
             int buttonId = 0;
