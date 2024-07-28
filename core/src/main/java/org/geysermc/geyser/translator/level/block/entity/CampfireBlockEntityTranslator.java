@@ -42,9 +42,10 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         List<NbtMap> items = javaNbt.getList("Items", NbtType.COMPOUND);
         if (items != null) {
+            int i = 1;
             for (NbtMap itemTag : items) {
-                int slot = itemTag.getByte("Slot") + 1;
-                bedrockNbt.put("Item" + slot, getItem(session, itemTag));
+                bedrockNbt.put("Item" + i, getItem(session, itemTag));
+                i++;
             }
         }
     }
@@ -54,7 +55,8 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
         if (mapping == null) {
             mapping = ItemMapping.AIR;
         }
-        NbtMapBuilder tagBuilder = BedrockItemBuilder.createItemNbt(mapping, tag.getInt("count"), mapping.getBedrockData());
+        NbtMapBuilder tagBuilder = BedrockItemBuilder.createItemNbt(mapping, tag.getByte("Count"), mapping.getBedrockData());
+        tagBuilder.put("tag", NbtMap.builder().build()); // I don't think this is necessary... - Camo, 1.20.5/1.20.80
         return tagBuilder.build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.entity.vehicle;
 
-import net.raphimc.minecraftauth.util.logging.ILogger;
-import org.geysermc.geyser.GeyserImpl;
+import org.cloudburstmc.math.TrigMath;
+import org.geysermc.geyser.entity.type.LivingEntity;
 
-public class MinecraftAuthLogger implements ILogger {
+public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> extends VehicleComponent<T> {
+    private int boostLength;
+    private int boostTicks = 1;
 
-    public static final MinecraftAuthLogger INSTANCE = new MinecraftAuthLogger();
-
-    @Override
-    public void info(String message) {
-        GeyserImpl.getInstance().getLogger().debug(message);
+    public BoostableVehicleComponent(T vehicle, float stepHeight) {
+        super(vehicle, stepHeight);
     }
 
-    @Override
-    public void warn(String message) {
-        GeyserImpl.getInstance().getLogger().warning(message);
+    public void startBoost(int boostLength) {
+        this.boostLength = boostLength;
+        this.boostTicks = 1;
     }
 
-    @Override
-    public void error(String message) {
-        GeyserImpl.getInstance().getLogger().error(message);
+    public float getBoostMultiplier() {
+        if (isBoosting()) {
+            return 1.0f + 1.15f * TrigMath.sin((float) boostTicks / (float) boostLength * TrigMath.PI);
+        }
+        return 1.0f;
+    }
+
+    public boolean isBoosting() {
+        return boostTicks <= boostLength;
+    }
+
+    public void tickBoost() {
+        if (isBoosting()) {
+            boostTicks++;
+        }
     }
 }

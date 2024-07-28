@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -60,7 +59,7 @@ import java.util.Map;
 
 public class Item {
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
-    protected final Key javaIdentifier;
+    private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
     private final int attackDamage;
@@ -69,7 +68,7 @@ public class Item {
     private final boolean glint;
 
     public Item(String javaIdentifier, Builder builder) {
-        this.javaIdentifier = MinecraftKey.key(javaIdentifier);
+        this.javaIdentifier = MinecraftKey.key(javaIdentifier).asString().intern();
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
@@ -78,7 +77,7 @@ public class Item {
     }
 
     public String javaIdentifier() {
-        return javaIdentifier.asString();
+        return javaIdentifier;
     }
 
     public int javaId() {
@@ -107,10 +106,6 @@ public class Item {
 
     public boolean isValidRepairItem(Item other) {
         return false;
-    }
-
-    public String translationKey() {
-        return "item." + javaIdentifier.namespace() + "." + javaIdentifier.value();
     }
 
     /* Translation methods to Bedrock and back */
@@ -173,11 +168,6 @@ public class Item {
         Integer repairCost = components.get(DataComponentType.REPAIR_COST);
         if (repairCost != null) {
             builder.putInt("RepairCost", repairCost);
-        }
-
-        // If the tag exists, it's unbreakable; the value is just weather to show the tooltip. As of Java 1.21
-        if (components.getDataComponents().containsKey(DataComponentType.UNBREAKABLE)) {
-            builder.putByte("Unbreakable", (byte) 1);
         }
 
         // Prevents the client from trying to stack items with untranslated components

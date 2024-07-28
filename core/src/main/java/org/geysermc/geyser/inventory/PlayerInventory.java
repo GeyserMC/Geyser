@@ -62,6 +62,16 @@ public class PlayerInventory extends Inventory {
         cursor = newCursor;
     }
 
+    /**
+     * Checks if the player is holding the specified item in either hand
+     *
+     * @param item The item to look for
+     * @return If the player is holding the item in either hand
+     */
+    public boolean isHolding(@NonNull Item item) {
+        return getItemInHand().asItem() == item || getOffhand().asItem() == item;
+    }
+
     public GeyserItemStack getItemInHand(@NonNull Hand hand) {
         return hand == Hand.OFF_HAND ? getOffhand() : getItemInHand();
     }

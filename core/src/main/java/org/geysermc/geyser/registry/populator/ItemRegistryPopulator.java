@@ -167,7 +167,6 @@ public class ItemRegistryPopulator {
             Map<Item, ItemMapping> javaItemToMapping = new Object2ObjectOpenHashMap<>();
 
             List<ItemData> creativeItems = new ArrayList<>();
-            Set<String> noBlockDefinitions = new ObjectOpenHashSet<>();
 
             AtomicInteger creativeNetId = new AtomicInteger();
             CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
@@ -188,9 +187,6 @@ public class ItemRegistryPopulator {
                             bedrockBlockIdOverrides.put(identifier, item.getBlockDefinition());
                         }
                     }
-                } else {
-                    // Item mappings should also NOT have a block definition for these.
-                    noBlockDefinitions.add(item.getDefinition().getIdentifier());
                 }
             });
 
@@ -258,12 +254,7 @@ public class ItemRegistryPopulator {
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
                         int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
-                        if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
-                            // Fallback
-                            if (!noBlockDefinitions.contains(entry.getValue().getBedrockIdentifier())) {
-                                bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
-                            }
-                        } else {
+                        if (aValidBedrockBlockId != -1 || customBlockItemOverride != null) {
                             // As of 1.16.220, every item requires a block runtime ID attached to it.
                             // This is mostly for identifying different blocks with the same item ID - wool, slabs, some walls.
                             // However, in order for some visuals and crafting to work, we need to send the first matching block state

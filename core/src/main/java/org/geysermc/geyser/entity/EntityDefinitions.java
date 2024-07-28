@@ -327,7 +327,6 @@ public final class EntityDefinitions {
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
-                    .offset(-0.5f)
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color
@@ -888,7 +887,7 @@ public final class EntityDefinitions {
                     .type(EntityType.PIG)
                     .heightAndWidth(0.9f)
                     .addTranslator(MetadataType.BOOLEAN, (pigEntity, entityMetadata) -> pigEntity.setFlag(EntityFlag.SADDLED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
-                    .addTranslator(null) // Boost time
+                    .addTranslator(MetadataType.INT, PigEntity::setBoost)
                     .build();
             POLAR_BEAR = EntityDefinition.inherited(PolarBearEntity::new, ageableEntityBase)
                     .type(EntityType.POLAR_BEAR)
@@ -914,7 +913,7 @@ public final class EntityDefinitions {
             STRIDER = EntityDefinition.inherited(StriderEntity::new, ageableEntityBase)
                     .type(EntityType.STRIDER)
                     .height(1.7f).width(0.9f)
-                    .addTranslator(null) // Boost time
+                    .addTranslator(MetadataType.INT, StriderEntity::setBoost)
                     .addTranslator(MetadataType.BOOLEAN, StriderEntity::setCold)
                     .addTranslator(MetadataType.BOOLEAN, StriderEntity::setSaddled)
                     .build();
@@ -955,7 +954,7 @@ public final class EntityDefinitions {
                     .type(EntityType.CAMEL)
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
-                    .addTranslator(null) // Last pose change tick
+                    .addTranslator(MetadataType.LONG, CamelEntity::setLastPoseTick)
                     .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)

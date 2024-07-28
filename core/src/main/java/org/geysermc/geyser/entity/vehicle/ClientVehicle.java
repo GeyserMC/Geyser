@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.entity.vehicle;
 
-import org.geysermc.geyser.level.block.type.Block;
+import org.cloudburstmc.math.vector.Vector2f;
 
-public class BlockItem extends Item {
-    public BlockItem(Builder builder, Block block, Block... otherBlocks) {
-        super(block.javaIdentifier().value(), builder);
+public interface ClientVehicle {
+    VehicleComponent<?> getVehicleComponent();
 
-        // Ensure this item can be looked up by its block(s)
-        registerBlock(block, this);
-        for (Block otherBlock : otherBlocks) {
-            registerBlock(otherBlock, this);
-        }
+    Vector2f getAdjustedInput(Vector2f input);
+
+    float getVehicleSpeed();
+
+    boolean isClientControlled();
+
+    default boolean canWalkOnLava() {
+        return false;
     }
 
-    // Use this constructor if the item name is not the same as its primary block
-    public BlockItem(String javaIdentifier, Builder builder, Block block, Block... otherBlocks) {
-        super(javaIdentifier, builder);
-
-        registerBlock(block, this);
-        for (Block otherBlock : otherBlocks) {
-            registerBlock(otherBlock, this);
-        }
+    default boolean canClimb() {
+        return true;
     }
 }

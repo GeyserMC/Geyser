@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -42,6 +43,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
@@ -65,15 +67,20 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter
     protected final Map<GeyserAttributeType, AttributeData> attributes = new Object2ObjectOpenHashMap<>();
     /**
-     * Java-only attribute
-     */
-    @Getter
-    private double blockInteractionRange = GeyserAttributeType.BLOCK_INTERACTION_RANGE.getDefaultValue();
-    /**
      * Used in PlayerInputTranslator for movement checks.
      */
     @Getter
     private boolean isRidingInFront;
+    /**
+     * Used when emulating client-side vehicles
+     */
+    @Getter
+    private Vector2f vehicleInput = Vector2f.ZERO;
+    /**
+     * Used when emulating client-side vehicles
+     */
+    @Getter
+    private int vehicleJumpStrength;
 
     private int lastAirSupply = getMaxAir();
 
@@ -237,8 +244,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_ATTACK_SPEED) {
             session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
-        } else if (javaAttribute.getType() == AttributeType.Builtin.PLAYER_BLOCK_INTERACTION_RANGE) {
-            this.blockInteractionRange = AttributeUtils.calculateValue(javaAttribute);
         } else {
             super.updateAttribute(javaAttribute, newAttributes);
         }
@@ -302,7 +307,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void resetAttributes() {
         attributes.clear();
         maxHealth = GeyserAttributeType.MAX_HEALTH.getDefaultValue();
-        blockInteractionRange = GeyserAttributeType.BLOCK_INTERACTION_RANGE.getDefaultValue();
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
@@ -313,6 +317,17 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void resetAir() {
         this.setAirSupply(getMaxAir());
+    }
+
+    public void setVehicleInput(Vector2f vehicleInput) {
+        this.vehicleInput = Vector2f.from(
+                MathUtils.clamp(vehicleInput.getX(), -1.0f, 1.0f),
+                MathUtils.clamp(vehicleInput.getY(), -1.0f, 1.0f)
+        );
+    }
+
+    public void setVehicleJumpStrength(int vehicleJumpStrength) {
+        this.vehicleJumpStrength = MathUtils.constrain(vehicleJumpStrength, 0, 100);
     }
 
     private boolean isBelowVoidFloor() {

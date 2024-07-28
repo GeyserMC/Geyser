@@ -25,44 +25,27 @@
 
 package org.geysermc.geyser.session;
 
+import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
+import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import net.lenni0451.commons.httpclient.HttpClient;
-import net.raphimc.minecraftauth.MinecraftAuth;
-import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
-import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
-import net.raphimc.minecraftauth.util.MicrosoftConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.util.MinecraftAuthLogger;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.io.Serial;
+import java.util.concurrent.*;
 
 /**
  * Pending Microsoft authentication task cache.
  * It permits user to exit the server while they authorize Geyser to access their Microsoft account.
  */
 public class PendingMicrosoftAuthentication {
-    public static final HttpClient AUTH_CLIENT = MinecraftAuth.createHttpClient();
-    public static final BiFunction<Boolean, Integer, StepFullJavaSession> AUTH_FLOW = (offlineAccess, timeoutSec) -> MinecraftAuth.builder()
-            .withClientId(GeyserImpl.OAUTH_CLIENT_ID)
-            .withScope(offlineAccess ? "XboxLive.signin XboxLive.offline_access" : "XboxLive.signin")
-            .withTimeout(timeoutSec)
-            .deviceCode()
-            .withoutDeviceToken()
-            .regularAuthentication(MicrosoftConstants.JAVA_XSTS_RELYING_PARTY)
-            .buildMinecraftJavaProfileStep(false);
     /**
      * For GeyserConnect usage.
      */
@@ -74,8 +57,8 @@ public class PendingMicrosoftAuthentication {
                 .build(new CacheLoader<>() {
                     @Override
                     public AuthenticationTask load(@NonNull String userKey) {
-                        return storeServerInformation ? new ProxyAuthenticationTask(userKey, timeoutSeconds)
-                                : new AuthenticationTask(userKey, timeoutSeconds);
+                        return storeServerInformation ? new ProxyAuthenticationTask(userKey, timeoutSeconds * 1000L)
+                                : new AuthenticationTask(userKey, timeoutSeconds * 1000L);
                     }
                 });
     }
@@ -97,23 +80,37 @@ public class PendingMicrosoftAuthentication {
     public class AuthenticationTask {
         private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
 
-        private final String userKey;
-        private final int timeoutSec;
         @Getter
-        private CompletableFuture<StepChainResult> authentication;
+        private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        private final String userKey;
+        private final long timeoutMs;
 
-        private AuthenticationTask(String userKey, int timeoutSec) {
+        private long remainingTimeMs;
+
+        @Setter
+        private boolean online = true;
+
+        @Getter
+        private final CompletableFuture<MsaAuthenticationService> authentication;
+
+        @Getter
+        private volatile Throwable loginException;
+
+        private AuthenticationTask(String userKey, long timeoutMs) {
             this.userKey = userKey;
-            this.timeoutSec = timeoutSec;
+            this.timeoutMs = timeoutMs;
+            this.remainingTimeMs = timeoutMs;
+
+            this.authentication = new CompletableFuture<>();
+            this.authentication.whenComplete((r, ex) -> {
+                this.loginException = ex;
+                // avoid memory leak, in case player doesn't connect again
+                CompletableFuture.delayedExecutor(timeoutMs, TimeUnit.MILLISECONDS).execute(this::cleanup);
+            });
         }
 
-        public void resetRunningFlow() {
-            if (authentication == null) {
-                return;
-            }
-
-            // Interrupt the current flow
-            this.authentication.cancel(true);
+        public void resetTimer() {
+            this.remainingTimeMs = this.timeoutMs;
         }
 
         public void cleanup() {
@@ -124,18 +121,52 @@ public class PendingMicrosoftAuthentication {
             authentications.invalidate(userKey);
         }
 
-        public CompletableFuture<StepChainResult> performLoginAttempt(boolean offlineAccess, Consumer<StepMsaDeviceCode.MsaDeviceCode> deviceCodeConsumer) {
-            return authentication = CompletableFuture.supplyAsync(() -> {
+        public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode(boolean offlineAccess) {
+            // Request the code
+            CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(
+                    () -> tryGetCode(offlineAccess));
+            // Once the code is received, continuously try to request the access token, profile, etc
+            code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
+            return code;
+        }
+
+        /**
+         * @param offlineAccess whether we want a refresh token for later use.
+         */
+        private MsaAuthenticationService.MsCodeResponse tryGetCode(boolean offlineAccess) throws CompletionException {
+            try {
+                return msaAuthenticationService.getAuthCode(offlineAccess);
+            } catch (RequestException e) {
+                throw new CompletionException(e);
+            }
+        }
+
+        private void performLoginAttempt(long lastAttempt) {
+            CompletableFuture.runAsync(() -> {
                 try {
-                    StepFullJavaSession step = AUTH_FLOW.apply(offlineAccess, timeoutSec);
-                    return new StepChainResult(step, step.getFromInput(MinecraftAuthLogger.INSTANCE, AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer)));
+                    msaAuthenticationService.login();
+                } catch (AuthPendingException e) {
+                    long currentAttempt = System.currentTimeMillis();
+                    if (!online) {
+                        // decrement timer only when player's offline
+                        remainingTimeMs -= currentAttempt - lastAttempt;
+                        if (remainingTimeMs <= 0L) {
+                            // time's up
+                            authentication.completeExceptionally(new TaskTimeoutException());
+                            cleanup();
+                            return;
+                        }
+                    }
+                    // try again in 1 second
+                    performLoginAttempt(currentAttempt);
+                    return;
                 } catch (Exception e) {
-                    throw new CompletionException(e);
+                    authentication.completeExceptionally(e);
+                    return;
                 }
-            }, DELAYED_BY_ONE_SECOND).whenComplete((r, ex) -> {
-                // avoid memory leak, in case player doesn't connect again
-                CompletableFuture.delayedExecutor(timeoutSec, TimeUnit.SECONDS).execute(this::cleanup);
-            });
+                // login successful
+                authentication.complete(msaAuthenticationService);
+            }, DELAYED_BY_ONE_SECOND);
         }
 
         @Override
@@ -150,11 +181,22 @@ public class PendingMicrosoftAuthentication {
         private String server;
         private int port;
 
-        private ProxyAuthenticationTask(String userKey, int timeoutSec) {
-            super(userKey, timeoutSec);
+        private ProxyAuthenticationTask(String userKey, long timeoutMs) {
+            super(userKey, timeoutMs);
         }
     }
 
-    public record StepChainResult(StepFullJavaSession step, StepFullJavaSession.FullJavaSession session) {
+    /**
+     * @see PendingMicrosoftAuthentication
+     */
+    public static class TaskTimeoutException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        TaskTimeoutException() {
+            super("It took too long to authorize Geyser to access your Microsoft account. " +
+                    "Please request new code and try again.");
+        }
     }
 }

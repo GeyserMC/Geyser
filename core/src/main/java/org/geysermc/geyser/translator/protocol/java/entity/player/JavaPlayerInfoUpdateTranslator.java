@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.geysermc.mcprotocollib.auth.GameProfile;
+import com.github.steveice10.mc.auth.data.GameProfile;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;

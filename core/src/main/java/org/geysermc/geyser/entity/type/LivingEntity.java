@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -289,6 +290,36 @@ public class LivingEntity extends Entity {
         return super.interact(hand);
     }
 
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public boolean setBoundingBoxHeight(float height) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setHeight(height);
+        }
+
+        return super.setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public void setBoundingBoxWidth(float width) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setWidth(width);
+        }
+
+        super.setBoundingBoxWidth(width);
+    }
+
     /**
      * Checks to see if a nametag interaction would go through.
      */
@@ -401,9 +432,25 @@ public class LivingEntity extends Entity {
                     this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
+                case GENERIC_MOVEMENT_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setMoveSpeed(attributeData.getValue());
+                    }
+                }
+                case GENERIC_STEP_HEIGHT -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setStepHeight((float) AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
+                case GENERIC_GRAVITY ->  {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setGravity(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
                 case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-                case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
                 case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
                 case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
                 case GENERIC_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
