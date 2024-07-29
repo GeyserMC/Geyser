@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -61,7 +62,7 @@ public class DimensionUtils {
     }
 
     public static void switchDimension(GeyserSession session, JavaDimension javaDimension, int bedrockDimension) {
-        JavaDimension previousDimension = session.getDimensionType(); // previous java dimension
+        @Nullable JavaDimension previousDimension = session.getDimensionType(); // previous java dimension; can be null if an online player with no saved auth token logs in.
 
         Entity player = session.getPlayerEntity();
 
@@ -109,7 +110,7 @@ public class DimensionUtils {
         if (isCustomBedrockNetherId()) {
             if (javaDimension.isNetherLike()) {
                 session.camera().sendFog(BEDROCK_FOG_HELL);
-            } else if (previousDimension.isNetherLike()) {
+            } else if (previousDimension != null && previousDimension.isNetherLike()) {
                 session.camera().removeFog(BEDROCK_FOG_HELL);
             }
         }
