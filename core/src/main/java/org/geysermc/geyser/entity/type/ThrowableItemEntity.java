@@ -40,11 +40,13 @@ import java.util.UUID;
  */
 public class ThrowableItemEntity extends ThrowableEntity {
     private boolean invisible;
+    private int age;
 
     public ThrowableItemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
+        age = 0;
     }
 
     @Override
@@ -55,9 +57,11 @@ public class ThrowableItemEntity extends ThrowableEntity {
     }
 
     private void checkVisibility() {
-        Vector3f playerPos = session.getPlayerEntity().getPosition();
+        age++;
+        Vector3f playerPos = session.getPlayerEntity().getPosition().sub(0, session.getPlayerEntity().getDefinition().offset(),0);
+
         // Prevent projectiles from blocking the player's screen
-        setInvisible(position.distanceSquared(playerPos) < 9);
+        setInvisible((age <= 2 && !session.isTickingFrozen()) || (playerPos.distanceSquared(position.add(0, definition.offset(), 0)) < 12.25));
 
         if (invisible != getFlag(EntityFlag.INVISIBLE)) {
             setFlag(EntityFlag.INVISIBLE, invisible);

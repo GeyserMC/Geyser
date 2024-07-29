@@ -50,6 +50,7 @@ public class CooldownUtils {
 
     /**
      * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is the cooldownPreference in {@link PreferencesCache}
+     *
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
@@ -83,6 +84,7 @@ public class CooldownUtils {
 
     /**
      * Keeps updating the cooldown until the bar is complete.
+     *
      * @param session GeyserSession
      * @param sessionPreference The type of cooldown the client prefers
      * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
@@ -102,7 +104,7 @@ public class CooldownUtils {
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
             session.scheduleInEventLoop(() ->
-                    computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+                    computeCooldown(session, sessionPreference, lastHitTime), session.getMillisecondsPerTick(), TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
@@ -115,8 +117,8 @@ public class CooldownUtils {
 
     private static boolean hasCooldown(GeyserSession session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1.5);
-        return cooldown < 1.1;
+        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (session.getMillisecondsPerTick() * 20d), 1.5);
+        return cooldown < 1.0;
     }
 
 
@@ -128,7 +130,7 @@ public class CooldownUtils {
 
     private static String getTitle(GeyserSession session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1);
+        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (session.getMillisecondsPerTick() * 20d), 1);
 
         int darkGrey = (int) Math.floor(10d * cooldown);
         int grey = 10 - darkGrey;
@@ -157,7 +159,6 @@ public class CooldownUtils {
          * Convert the CooldownType string (from config) to the enum, DISABLED on fail
          *
          * @param name CooldownType string
-         *
          * @return The converted CooldownType
          */
         public static CooldownType getByName(String name) {

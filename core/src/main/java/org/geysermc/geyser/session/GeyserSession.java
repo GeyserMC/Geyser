@@ -618,7 +618,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Stores cookies sent by the Java server.
      */
     @Setter
-    @Getter
     private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
 
     private final GeyserCameraData cameraData;
@@ -627,6 +626,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private MinecraftProtocol protocol;
 
+    @Getter
+    private int millisecondsPerTick = 50;
     private boolean tickingFrozen = false;
     /**
      * The amount of ticks requested by the server that the game should proceed with, even if the game tick loop is frozen.
@@ -857,31 +858,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
         return task.getAuthentication().handle((result, ex) -> {
-             if (ex != null) {
-                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                 disconnect(ex.toString());
-                 return false;
-             }
+            if (ex != null) {
+                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                disconnect(ex.toString());
+                return false;
+            }
 
-             StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
-             StepMCToken.MCToken mcToken = mcProfile.getMcToken();
+            StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
+            StepMCToken.MCToken mcToken = mcProfile.getMcToken();
 
-             this.protocol = new MinecraftProtocol(
-                     new GameProfile(mcProfile.getId(), mcProfile.getName()),
-                     mcToken.getAccessToken()
-             );
+            this.protocol = new MinecraftProtocol(
+                    new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                    mcToken.getAccessToken()
+            );
 
-             try {
-                 connectDownstream();
-             } catch (Throwable t) {
-                 t.printStackTrace();
-                 return false;
-             }
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                return false;
+            }
 
-             // Save our auth chain for later use
-             geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
-             return true;
-         }).getNow(false);
+            // Save our auth chain for later use
+            geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
+            return true;
+        }).getNow(false);
     }
 
     /**
@@ -902,7 +903,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, millisecondsPerTick, millisecondsPerTick, TimeUnit.MILLISECONDS);
 
         this.protocol.setUseDefaultListeners(false);
 
@@ -1220,9 +1221,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void updateTickingState(float tickRate, boolean frozen) {
-        tickThread.cancel(true);
+        tickThread.cancel(false);
         this.tickingFrozen = frozen;
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, Math.round(1000 / tickRate), Math.round(1000 / tickRate), TimeUnit.MILLISECONDS);
+        millisecondsPerTick = Math.round(1000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, millisecondsPerTick, millisecondsPerTick, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -1784,7 +1786,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send a gamerule value to the client
      *
      * @param gameRule The gamerule to send
-     * @param value    The value of the gamerule
+     * @param value The value of the gamerule
      */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
