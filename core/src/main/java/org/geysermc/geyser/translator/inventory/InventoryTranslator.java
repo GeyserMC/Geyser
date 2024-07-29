@@ -894,11 +894,11 @@ public abstract class InventoryTranslator {
 
         List<ItemStackResponseContainer> containerEntries = new ArrayList<>();
         for (Map.Entry<ContainerSlotType, List<ItemStackResponseSlot>> entry : containerMap.entrySet()) {
-            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue()));
+            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue(), null));
         }
 
         ItemStackResponseSlot cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
-        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
+        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry), null));
 
         return containerEntries;
     }

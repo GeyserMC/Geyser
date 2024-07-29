@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
+import org.cloudburstmc.protocol.bedrock.codec.v686.Bedrock_v686;
+import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
@@ -43,17 +45,13 @@ import java.util.StringJoiner;
  */
 public final class GameProtocol {
 
-    // Surprise protocol bump WOW
-    private static final BedrockCodec BEDROCK_V686 = Bedrock_v685.CODEC.toBuilder()
-        .protocolVersion(686)
-        .minecraftVersion("1.21.2")
-        .build();
-
     /**
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(BEDROCK_V686);
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v712.CODEC.toBuilder()
+        .minecraftVersion("1.21.20")
+        .build());
 
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -73,9 +71,10 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v685.CODEC.toBuilder()
             .minecraftVersion("1.21.0/1.21.1")
             .build()));
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-            .minecraftVersion("1.21.2/1.21.3")
-            .build());
+        SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v686.CODEC.toBuilder()
+            .minecraftVersion("1.21.2")
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
     /**
