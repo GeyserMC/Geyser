@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "server.BlockPlaceMixin",
+    "server.PistonBaseBlockMixin",
     "server.ServerConnectionListenerMixin"
   ],
   "server": [

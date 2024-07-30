@@ -33,6 +33,7 @@ fabric-api = "0.100.1+1.21"
 fabric-permissions = "0.2-SNAPSHOT"
 neoforge-minecraft = "21.0.0-beta"
 mixin = "0.8.5"
+mixinextras = "0.3.5"
 minecraft = "1.21"
 
 # plugin versions
@@ -89,6 +90,7 @@ folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
+mixinextras = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
 
 minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 
