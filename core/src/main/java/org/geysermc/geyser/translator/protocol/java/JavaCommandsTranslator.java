@@ -169,7 +169,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, set to NOT_CHEAT, so we can enable achievements by default
+        // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
         Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
         // Loop through all the found commands
