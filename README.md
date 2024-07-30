@@ -14,7 +14,10 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock 1.20.80 - 1.21.3 and Minecraft Java 1.21
+## Supported Versions
+Geyser is currently supporting Minecraft Bedrock 1.20.80 - 1.21.3 and Minecraft Java Server 1.21
+
+We do not support older version due to most Minecraft Bedrock clients being automatically updated. Please update to the recent version if your Minecraft version is no longer supported by Geyser.
 
 ## Setting Up
 Take a look [here](https://geysermc.org/wiki/geyser/setup/) for how to set up Geyser.
@@ -45,7 +48,7 @@ you're interested in helping out with Geyser.
 
 ## Libraries Used:
 - [Adventure Text Library](https://github.com/KyoriPowered/adventure)
-- [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
-- [Steveice10's Java Protocol Library](https://github.com/GeyserMC/MCProtocolLib)
+- [CloudburstMC Bedrock Protocol Library](https://github.com/CloudburstMC/Protocol)
+- [GeyserMC's Java Protocol Library](https://github.com/GeyserMC/MCProtocolLib)
 - [TerminalConsoleAppender](https://github.com/Minecrell/TerminalConsoleAppender)
 - [Simple Logging Facade for Java (slf4j)](https://github.com/qos-ch/slf4j)
