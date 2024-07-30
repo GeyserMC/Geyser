@@ -17,13 +17,11 @@ Special thanks to the DragonProxy project for being a trailblazer in protocol tr
 ### Currently supporting Minecraft Bedrock 1.20.80 - 1.21.3 and Minecraft Java 1.21
 
 ## Setting Up
-Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Geyser.
-
-[![YouTube Video](https://img.youtube.com/vi/U7dZZ8w7Gi4/0.jpg)](https://www.youtube.com/watch?v=U7dZZ8w7Gi4)
+Take a look [here](https://geysermc.org/wiki/geyser/setup/) for how to set up Geyser.
 
 ## Links:
 - Website: https://geysermc.org
-- Docs: https://wiki.geysermc.org/geyser/
+- Docs: https://geysermc.org/wiki/geyser/
 - Download: https://geysermc.org/download
 - Discord: https://discord.gg/geysermc
 - Donate: https://opencollective.com/geysermc
@@ -34,7 +32,7 @@ Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Ge
 - Some Entity Flags
 
 ## What can't be fixed
-There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://wiki.geysermc.org/geyser/current-limitations/) page.
+There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://geysermc.org/wiki/geyser/current-limitations/) page.
 
 ## Compiling
 1. Clone the repo to your computer
@@ -48,6 +46,6 @@ you're interested in helping out with Geyser.
 ## Libraries Used:
 - [Adventure Text Library](https://github.com/KyoriPowered/adventure)
 - [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
-- [Steveice10's Java Protocol Library](https://github.com/Steveice10/MCProtocolLib)
+- [Steveice10's Java Protocol Library](https://github.com/GeyserMC/MCProtocolLib)
 - [TerminalConsoleAppender](https://github.com/Minecrell/TerminalConsoleAppender)
 - [Simple Logging Facade for Java (slf4j)](https://github.com/qos-ch/slf4j)
