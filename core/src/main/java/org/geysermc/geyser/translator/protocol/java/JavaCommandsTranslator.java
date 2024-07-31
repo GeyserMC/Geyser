@@ -169,8 +169,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, not sure what these do apart from break things
-        Set<CommandData.Flag> flags = Set.of();
+        // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
+        Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
         // Loop through all the found commands
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
@@ -449,7 +449,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
                         // Example vanilla commands: ban-ip, ban, and kick
-                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                        if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
                             optional = false;
                         }
                     }
