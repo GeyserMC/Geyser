@@ -120,6 +120,8 @@ public interface CustomItemData {
      *
      * Returns 0 if not set. When not set (or 0), it defaults to the stack count of the Java item when based of a vanilla item, or 64 when registering a non-vanilla item.
      *
+     * Note that, to copy Java behaviour, setting the stack size of an item to a value above 1 will set the max damage to 0. If a max damage value above 0 was explicitly set, an exception will be thrown.
+     *
      * @return the stack size of the item
      */
     @NonNegative
@@ -129,6 +131,8 @@ public interface CustomItemData {
      * Gets the max damage of the item.
      *
      * Returns -1 if not set. When not set (or below 0), it defaults to the maximum damage of the Java item when based of a vanilla item, or uses 0 when registering a non-vanilla item.
+     *
+     * Note that, to copy Java behaviour, setting the max damage value of an item to a value above 0 will set the stack size to 1. If a stack size above 1 was explicitly set, an exception will be thrown.
      *
      * @return the max damage of the item
      */

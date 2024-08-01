@@ -275,12 +275,28 @@ public class GeyserCustomItemData implements CustomItemData {
 
         @Override
         public Builder stackSize(int stackSize) {
+            if (stackSize > 1) {
+                if (this.maxDamage > 0) {
+                    throw new IllegalStateException("Stack size cannot be above 1 when max damage is above 0");
+                }
+                // Explicitly set max damage to 0 instead of falling back to the Java vanilla item value
+                this.maxDamage = 0;
+            }
+
             this.stackSize = stackSize;
             return this;
         }
 
         @Override
         public Builder maxDamage(int maxDamage) {
+            if (maxDamage > 0) {
+                if (this.stackSize > 1) {
+                    throw new IllegalStateException("Max damage cannot be above 0 when stack size is above 1");
+                }
+                // Explicitly set stack size to 1 instead of falling back to the Java vanilla item value
+                this.stackSize = 1;
+            }
+
             this.maxDamage = maxDamage;
             return this;
         }

@@ -222,7 +222,7 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         if (node.has("attack_damage")) {
-            customItemData.maxDamage(node.get("attack_damage").asInt());
+            customItemData.attackDamage(node.get("attack_damage").asInt());
         }
 
         if (node.has("armor_type")) {
