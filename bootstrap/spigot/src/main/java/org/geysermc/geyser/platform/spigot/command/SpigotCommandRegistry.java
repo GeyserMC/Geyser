@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.incendo.cloud.CommandManager;
 
 import java.lang.reflect.Field;
 
-public class GeyserSpigotCommandManager extends GeyserCommandManager {
+public class SpigotCommandRegistry extends CommandRegistry {
 
-    private static final CommandMap COMMAND_MAP;
+    private final CommandMap commandMap;
 
-    static {
+    public SpigotCommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
+        super(geyser, cloud);
+
         CommandMap commandMap = null;
         try {
             // Paper-only
@@ -49,24 +54,28 @@ public class GeyserSpigotCommandManager extends GeyserCommandManager {
                 Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
                 cmdMapField.setAccessible(true);
                 commandMap = (CommandMap) cmdMapField.get(Bukkit.getServer());
-            } catch (NoSuchFieldException | IllegalAccessException ex) {
-                ex.printStackTrace();
+            } catch (Exception ex) {
+                geyser.getLogger().error("Failed to get Spigot's CommandMap", ex);
             }
         }
-        COMMAND_MAP = commandMap;
+        this.commandMap = commandMap;
     }
 
-    public GeyserSpigotCommandManager(GeyserImpl geyser) {
-        super(geyser);
-    }
-
+    @NonNull
     @Override
-    public String description(String command) {
-        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
-        return cmd != null ? cmd.getDescription() : "";
-    }
+    public String description(@NonNull String command, @NonNull String locale) {
+        // check if the command is /geyser or an extension command so that we can localize the description
+        String description = super.description(command, locale);
+        if (!description.isBlank()) {
+            return description;
+        }
 
-    public static CommandMap getCommandMap() {
-        return COMMAND_MAP;
+        if (commandMap != null) {
+            Command cmd = commandMap.getCommand(command);
+            if (cmd != null) {
+                return cmd.getDescription();
+            }
+        }
+        return "";
     }
 }

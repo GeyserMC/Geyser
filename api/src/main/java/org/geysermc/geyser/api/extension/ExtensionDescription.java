@@ -59,33 +59,46 @@ public interface ExtensionDescription {
     String main();
 
     /**
-     * Gets the extension's major api version
+     * Represents the human api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
      *
-     * @return the extension's major api version
+     * @return the extension's requested human api version
+     */
+    int humanApiVersion();
+
+    /**
+     * Represents the major api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
+     *
+     * @return the extension's requested major api version
      */
     int majorApiVersion();
 
     /**
-     * Gets the extension's minor api version
+     * Represents the minor api version that the extension requires.
+     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * for more details on the Geyser API version.
      *
-     * @return the extension's minor api version
+     * @return the extension's requested minor api version
      */
     int minorApiVersion();
 
     /**
-     * Gets the extension's patch api version
-     *
-     * @return the extension's patch api version
+     * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
+     * See <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">here</a> for details.
      */
-    int patchApiVersion();
+    @Deprecated(forRemoval = true)
+    default int patchApiVersion() {
+        return minorApiVersion();
+    }
 
     /**
-     * Gets the extension's api version.
-     *
-     * @return the extension's api version
+     * Returns the extension's requested Geyser Api version.
      */
     default String apiVersion() {
-        return majorApiVersion() + "." + minorApiVersion() + "." + patchApiVersion();
+        return humanApiVersion() + "." + majorApiVersion() + "." + minorApiVersion();
     }
 
     /**

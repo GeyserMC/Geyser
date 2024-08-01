@@ -41,7 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -122,7 +122,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        GeyserCommandManager manager = session.getGeyser().commandManager();
+        CommandRegistry registry = session.getGeyser().commandRegistry();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -151,8 +151,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
-                    index -> new HashSet<>()).add(node.getName().toLowerCase());
+            String name = node.getName().toLowerCase(Locale.ROOT);
+            String description = registry.description(name, session.locale());
+            BedrockCommandInfo info = new BedrockCommandInfo(name, description, params);
+            commands.computeIfAbsent(info, $ -> new HashSet<>()).add(name);
         }
 
         var eventBus = session.getGeyser().eventBus();
@@ -169,8 +171,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, not sure what these do apart from break things
-        Set<CommandData.Flag> flags = Set.of();
+        // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
+        Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
         // Loop through all the found commands
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
@@ -449,7 +451,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
                         // Example vanilla commands: ban-ip, ban, and kick
-                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                        if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
                             optional = false;
                         }
                     }

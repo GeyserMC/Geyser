@@ -44,7 +44,9 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void runCommand(String line) {
-        GeyserImpl.getInstance().commandManager().runCommand(this, line);
+        // don't block the terminal!
+        GeyserImpl geyser = GeyserImpl.getInstance();
+        geyser.getScheduledThread().execute(() -> geyser.commandRegistry().runCommand(this, line));
     }
 
     @Override

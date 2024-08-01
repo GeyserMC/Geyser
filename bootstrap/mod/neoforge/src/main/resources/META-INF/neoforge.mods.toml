@@ -11,6 +11,8 @@ authors="GeyserMC"
 description="${description}"
 [[mixins]]
 config = "geyser.mixins.json"
+[[mixins]]
+config = "geyser_neoforge.mixins.json"
 [[dependencies.geyser_neoforge]]
     modId="neoforge"
     type="required"

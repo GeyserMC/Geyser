@@ -26,7 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.google.inject.Inject;
-import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -34,24 +34,28 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
+import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -59,29 +63,28 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     private final ProxyServer proxyServer;
-    private final CommandManager commandManager;
+    private final PluginContainer container;
     private final GeyserVelocityLogger geyserLogger;
-    private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
     private IGeyserPingPassthrough geyserPingPassthrough;
+    private CommandRegistry commandRegistry;
     private GeyserImpl geyser;
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
     @Inject
-    public GeyserVelocityPlugin(ProxyServer server, Logger logger, CommandManager manager) {
-        this.geyserLogger = new GeyserVelocityLogger(logger);
+    public GeyserVelocityPlugin(ProxyServer server, PluginContainer container, Logger logger) {
         this.proxyServer = server;
-        this.commandManager = manager;
+        this.container = container;
+        this.geyserLogger = new GeyserVelocityLogger(logger);
     }
 
     @Override
@@ -117,8 +120,19 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         } else {
-            this.geyserCommandManager = new GeyserCommandManager(geyser);
-            this.geyserCommandManager.init();
+            var sourceConverter = new CommandSourceConverter<>(
+                    CommandSource.class,
+                    id -> proxyServer.getPlayer(id).orElse(null),
+                    proxyServer::getConsoleCommandSource,
+                    VelocityCommandSource::new
+            );
+            CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
+                    container,
+                    proxyServer,
+                    ExecutionCoordinator.simpleCoordinator(),
+                    sourceConverter
+            );
+            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         GeyserImpl.start();
@@ -129,22 +143,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
 
-        // No need to re-register commands when reloading
-        if (GeyserImpl.getInstance().isReloading()) {
-            return;
+        // No need to re-register events
+        if (!GeyserImpl.getInstance().isReloading()) {
+            proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
         }
-
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
-        }
-
-        proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override
@@ -175,8 +177,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override

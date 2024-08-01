@@ -35,9 +35,7 @@ public final class Constants {
     public static final String NEWS_PROJECT_NAME = "geyser";
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://geysermc.org/download#floodgate";
-
     public static final String GEYSER_DOWNLOAD_LOCATION = "https://geysermc.org/download";
-    public static final String UPDATE_PERMISSION = "geyser.update";
 
     @Deprecated
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
