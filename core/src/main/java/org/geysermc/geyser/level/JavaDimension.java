@@ -34,6 +34,9 @@ import org.geysermc.geyser.util.DimensionUtils;
  * Represents the information we store from the current Java dimension
  * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
  *      This controls if they have the shaking effect applied in the dimension.
+ * @param bedrockId the Bedrock dimension ID of this dimension.
+ * As a Java dimension can be null in some login cases (e.g. GeyserConnect), make sure the player
+ * is logged in before utilizing this field.
  */
 public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale, int bedrockId, boolean isNetherLike) {
 
@@ -46,7 +49,7 @@ public record JavaDimension(int minY, int maxY, boolean piglinSafe, double world
         // Set if piglins/hoglins should shake
         boolean piglinSafe = dimension.getBoolean("piglin_safe");
         // Load world coordinate scale for the world border
-        double coordinateScale = dimension.getDouble("coordinate_scale");
+        double coordinateScale = dimension.getNumber("coordinate_scale").doubleValue(); // FIXME see if we can change this in the NBT library itself.
 
         boolean isNetherLike;
         // Cache the Bedrock version of this dimension, and base it off the ID - THE ID CAN CHANGE!!!

@@ -99,7 +99,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet bedrockOnlyBlockEntityIds = new BitSet();
 
-        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension bedrockDimension = session.getBedrockDimension();
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
@@ -509,7 +509,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
-        levelChunkPacket.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
+        levelChunkPacket.setDimension(DimensionUtils.javaToBedrock(session.getBedrockDimension()));
         session.sendUpstreamPacket(levelChunkPacket);
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
