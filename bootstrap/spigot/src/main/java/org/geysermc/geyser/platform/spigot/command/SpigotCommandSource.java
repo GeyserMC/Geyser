@@ -27,17 +27,21 @@ package org.geysermc.geyser.platform.spigot.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.spigot.PaperAdventure;
 import org.geysermc.geyser.text.GeyserLocale;
 
-public class SpigotCommandSource implements GeyserCommandSource {
-    private final org.bukkit.command.CommandSender handle;
+import java.util.UUID;
 
-    public SpigotCommandSource(org.bukkit.command.CommandSender handle) {
+public class SpigotCommandSource implements GeyserCommandSource {
+    private final CommandSender handle;
+
+    public SpigotCommandSource(CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
         GeyserLocale.loadGeyserLocale(locale());
@@ -66,8 +70,21 @@ public class SpigotCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public Object handle() {
+        return handle;
+    }
+
+    @Override
     public boolean isConsole() {
         return handle instanceof ConsoleCommandSender;
+    }
+
+    @Override
+    public @Nullable UUID playerUuid() {
+        if (handle instanceof Player player) {
+            return player.getUniqueId();
+        }
+        return null;
     }
 
     @SuppressWarnings("deprecation")
@@ -83,6 +100,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+        // Don't trust Spigot to handle blank permissions
+        return permission.isBlank() || handle.hasPermission(permission);
     }
 }

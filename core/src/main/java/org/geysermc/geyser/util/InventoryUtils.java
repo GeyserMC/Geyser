@@ -159,7 +159,7 @@ public class InventoryUtils {
     @Nullable
     public static Vector3i findAvailableWorldSpace(GeyserSession session) {
         // Check if a fake block can be placed, either above the player or beneath.
-        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
         Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
         Vector3i position = flatPlayerPosition.add(Vector3i.UP);

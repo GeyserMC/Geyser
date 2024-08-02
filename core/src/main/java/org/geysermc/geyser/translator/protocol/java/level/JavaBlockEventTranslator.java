@@ -43,7 +43,15 @@ import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.*;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.BellValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.BlockValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.ChestValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.DecoratedPotValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.EndGatewayValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.MobSpawnerValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.NoteBlockValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValue;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 
 @Translator(packet = ClientboundBlockEventPacket.class)
@@ -74,16 +82,22 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
 
-            if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) {
-                // Mostly handled in the GeyserPistonEvents class
-                // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
-                // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
+            if (session.getGeyser().getWorldManager().hasOwnChunkCache() || session.getErosionHandler().isActive()) {
+                // Mostly handled in the GeyserPistonEvents class (Spigot) / the PistonBlockBaseMixin (Mod platforms)
+                // However, the retracting event is not fully covered. (Spigot)
+                // Mod platforms only handle pistons moving blocks; not the retracting of pistons.
                 if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                     BlockState pistonBlock = session.getGeyser().getWorldManager().blockAt(session, position);
-                    if (!pistonBlock.is(Blocks.STICKY_PISTON)) {
+
+                    // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
+                    // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
+                    boolean isSticky = isSticky(pistonBlock);
+                    if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT && !isSticky) {
                         return;
                     }
-                    if (action != PistonValueType.CANCELLED_MID_PUSH) {
+
+                    // Only sticky pistons that don't pull any blocks are affected
+                    if (action != PistonValueType.CANCELLED_MID_PUSH && isSticky) {
                         Vector3i blockInFrontPos = position.add(direction.getUnitVector());
                         int blockInFront = session.getGeyser().getWorldManager().getBlockAt(session, blockInFrontPos);
                         if (blockInFront != Block.JAVA_AIR_ID) {
@@ -91,7 +105,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                             return;
                         }
                     }
-                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, true, true));
+                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, isSticky, true));
                     if (blockEntity.getAction() != action) {
                         blockEntity.setAction(action, Object2ObjectMaps.emptyMap());
                     }
@@ -99,7 +113,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             } else {
                 PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> {
                     BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
-                    boolean sticky = state.is(Blocks.STICKY_PISTON);
+                    boolean sticky = isSticky(state);
                     boolean extended = action != PistonValueType.PUSHING;
                     return new PistonBlockEntity(session, pos, direction, sticky, extended);
                 });
@@ -148,5 +162,9 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (session.getGeyser().getLogger().isDebug()) {
             session.getGeyser().getLogger().debug("Unhandled block event packet: " + packet);
         }
+    }
+
+    private static boolean isSticky(BlockState state) {
+        return state.is(Blocks.STICKY_PISTON) || (state.is(Blocks.MOVING_PISTON) && "sticky".equals(state.getValue(Properties.PISTON_TYPE)));
     }
 }
