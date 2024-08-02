@@ -118,7 +118,7 @@ public interface CustomItemData {
     /**
      * Gets the stack size of the item.
      *
-     * <p>Returns 0 if not set. When not set (or 0), Geyser defaults to the stack count of the Java item when based on a vanilla item, or 64 when registering a non-vanilla item.</p>
+     * <p>Returns 0 if not set. When not set, Geyser defaults to the stack count of the Java item when based on a vanilla item, or 64 when registering a non-vanilla item.</p>
      *
      * <p>Note that, to copy Java behaviour, setting the stack size of an item to a value above 1 will set the max damage to 0. If a max damage value above 0 was explicitly set, an exception will be thrown.</p>
      *
@@ -130,7 +130,7 @@ public interface CustomItemData {
     /**
      * Gets the max damage of the item.
      *
-     * <p>Returns -1 if not set. When not set (or below 0), Geyser defaults to the maximum damage of the Java item when based on a vanilla item, or uses 0 when registering a non-vanilla item.</p>
+     * <p>Returns -1 if not set. When not set, Geyser defaults to the maximum damage of the Java item when based on a vanilla item, or uses 0 when registering a non-vanilla item.</p>
      *
      * <p>Note that, to copy Java behaviour, setting the max damage value of an item to a value above 0 will set the stack size to 1. If a stack size above 1 was explicitly set, an exception will be thrown.</p>
      *
