@@ -164,7 +164,30 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
 
             Pattern[] extensionFilters = this.extensionFilters();
-            List<Path> extensionPaths = Files.walk(extensionsDirectory).toList();
+
+            List<Path> extensionUpdatePaths = Files.list(extensionsDirectory.resolve("update")).toList();
+            extensionUpdatePaths.forEach(path -> {
+                if (Files.isDirectory(path)) {
+                    return;
+                }
+
+                for (Pattern filter : extensionFilters) {
+                    if (!filter.matcher(path.getFileName().toString()).matches()) {
+                        return;
+                    }
+                }
+
+                try {
+                    // Try load the description, so we know it's a valid extension
+                    GeyserExtensionDescription description = this.extensionDescription(path);
+
+                    Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                } catch (Throwable e) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
+                }
+            });
+
+            List<Path> extensionPaths = Files.list(extensionsDirectory).toList();
             extensionPaths.forEach(path -> {
                 if (Files.isDirectory(path)) {
                     return;
