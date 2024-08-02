@@ -118,9 +118,9 @@ public interface CustomItemData {
     /**
      * Gets the stack size of the item.
      *
-     * Returns 0 if not set. When not set (or 0), it defaults to the stack count of the Java item when based of a vanilla item, or 64 when registering a non-vanilla item.
+     * <p>Returns 0 if not set. When not set (or 0), Geyser defaults to the stack count of the Java item when based on a vanilla item, or 64 when registering a non-vanilla item.</p>
      *
-     * Note that, to copy Java behaviour, setting the stack size of an item to a value above 1 will set the max damage to 0. If a max damage value above 0 was explicitly set, an exception will be thrown.
+     * <p>Note that, to copy Java behaviour, setting the stack size of an item to a value above 1 will set the max damage to 0. If a max damage value above 0 was explicitly set, an exception will be thrown.</p>
      *
      * @return the stack size of the item
      */
@@ -130,9 +130,9 @@ public interface CustomItemData {
     /**
      * Gets the max damage of the item.
      *
-     * Returns -1 if not set. When not set (or below 0), it defaults to the maximum damage of the Java item when based of a vanilla item, or uses 0 when registering a non-vanilla item.
+     * <p>Returns -1 if not set. When not set (or below 0), Geyser defaults to the maximum damage of the Java item when based on a vanilla item, or uses 0 when registering a non-vanilla item.</p>
      *
-     * Note that, to copy Java behaviour, setting the max damage value of an item to a value above 0 will set the stack size to 1. If a stack size above 1 was explicitly set, an exception will be thrown.
+     * <p>Note that, to copy Java behaviour, setting the max damage value of an item to a value above 0 will set the stack size to 1. If a stack size above 1 was explicitly set, an exception will be thrown.</p>
      *
      * @return the max damage of the item
      */
@@ -142,7 +142,7 @@ public interface CustomItemData {
      * Gets the attack damage of the item.
      * This is purely visual, and only applied to tools
      *
-     * Returns 0 if not set. When 0, takes the Java item attack damage when based of a vanilla item, or uses 0 when porting a modded item.
+     * <p>Returns 0 if not set. When 0, Geyser takes the Java item attack damage when based on a vanilla item, or uses 0 when porting a modded item.</p>
      *
      * @return the attack damage of the item
      */
@@ -151,8 +151,8 @@ public interface CustomItemData {
     /**
      * Gets the armor type of the item.
      *
-     * This can be "boots", "leggings", "chestplate", or "helmet", and makes the item able to be equipped into its respective equipment slot.
-     * This should only be set if the Java item can be placed into the specified equipment slot.
+     * <p>This can be "boots", "leggings", "chestplate", or "helmet", and makes the item able to be equipped into its respective equipment slot.
+     * This should only be set if the Java item can be placed into the specified equipment slot.</p>
      *
      * @return the armor type of the item
      */
@@ -161,7 +161,7 @@ public interface CustomItemData {
     /**
      * Gets the armor protection value of the item.
      *
-     * Only has a function when {@link CustomItemData#armorType} is set.
+     * <p>Only has a function when {@link CustomItemData#armorType} is set.</p>
      *
      * @return the armor protection value of the item
      */

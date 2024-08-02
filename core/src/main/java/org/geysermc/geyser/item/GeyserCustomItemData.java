@@ -275,7 +275,9 @@ public class GeyserCustomItemData implements CustomItemData {
 
         @Override
         public Builder stackSize(int stackSize) {
-            if (stackSize > 1) {
+            if (stackSize < 1) {
+                throw new IllegalArgumentException("Stack size cannot be below 1");
+            } else if (stackSize > 1) {
                 if (this.maxDamage > 0) {
                     throw new IllegalStateException("Stack size cannot be above 1 when max damage is above 0");
                 }
@@ -289,7 +291,9 @@ public class GeyserCustomItemData implements CustomItemData {
 
         @Override
         public Builder maxDamage(int maxDamage) {
-            if (maxDamage > 0) {
+            if (maxDamage < 0) {
+                throw new IllegalArgumentException("Max damage cannot be below 0");
+            } else if (maxDamage > 0) {
                 if (this.stackSize > 1) {
                     throw new IllegalStateException("Max damage cannot be above 0 when stack size is above 1");
                 }
