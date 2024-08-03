@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -38,6 +39,8 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
+import net.raphimc.minecraftauth.step.msa.StepMsaToken;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -55,13 +58,18 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.*;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
@@ -85,7 +93,14 @@ import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.Metrics;
+import org.geysermc.geyser.util.MinecraftAuthLogger;
+import org.geysermc.geyser.util.NewsHandler;
+import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
@@ -97,16 +112,24 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl implements GeyserApi {
+public class GeyserImpl implements GeyserApi, EventRegistrar {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -161,7 +184,7 @@ public class GeyserImpl implements GeyserApi {
 
     private PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
     @Getter(AccessLevel.NONE)
-    private Map<String, String> savedRefreshTokens;
+    private Map<String, String> savedAuthChains;
 
     @Getter
     private static GeyserImpl instance;
@@ -209,9 +232,7 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         if (IS_DEV) {
-            // TODO cloud use language string
-            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
-            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
+            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
             logger.info("");
         }
         logger.info("******************************************");
@@ -243,6 +264,9 @@ public class GeyserImpl implements GeyserApi {
 
             CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
         });
+
+        // Register our general permissions when possible
+        eventBus.subscribe(this, GeyserRegisterPermissionsEvent.class, Permissions::register);
 
         startInstance();
 
@@ -534,37 +558,84 @@ public class GeyserImpl implements GeyserApi {
 
         if (config.getRemote().authType() == AuthType.ONLINE) {
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
-            savedRefreshTokens = new ConcurrentHashMap<>();
+            savedAuthChains = new ConcurrentHashMap<>();
 
-            File tokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
-            if (tokensFile.exists()) {
+            // TODO Remove after a while - just a migration help
+            //noinspection deprecation
+            File refreshTokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            if (refreshTokensFile.exists()) {
+                logger.info("Migrating refresh tokens to auth chains...");
+                TypeReference<Map<String, String>> type = new TypeReference<>() { };
+                Map<String, String> refreshTokens = null;
+                try {
+                    refreshTokens = JSON_MAPPER.readValue(refreshTokensFile, type);
+                } catch (IOException e) {
+                    // ignored - we'll just delete this file :))
+                }
+
+                if (refreshTokens != null) {
+                    List<String> validUsers = config.getSavedUserLogins();
+                    final Gson gson = new Gson();
+                    for (Map.Entry<String, String> entry : refreshTokens.entrySet()) {
+                        String user = entry.getKey();
+                        if (!validUsers.contains(user)) {
+                            continue;
+                        }
+
+                        // Migrate refresh tokens to auth chains
+                        try {
+                            StepFullJavaSession javaSession = PendingMicrosoftAuthentication.AUTH_FLOW.apply(false, 10);
+                            StepFullJavaSession.FullJavaSession fullJavaSession = javaSession.getFromInput(
+                                MinecraftAuthLogger.INSTANCE,
+                                PendingMicrosoftAuthentication.AUTH_CLIENT,
+                                new StepMsaToken.RefreshToken(entry.getValue())
+                            );
+
+                            String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
+                            savedAuthChains.put(user, authChain);
+                        } catch (Exception e) {
+                            GeyserImpl.getInstance().getLogger().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
+                                "They will need to sign in the next time they join Geyser.");
+                        }
+
+                        // Ensure the new additions are written to the file
+                        scheduleAuthChainsWrite();
+                    }
+                }
+
+                // Finally: Delete it. Goodbye!
+                refreshTokensFile.delete();
+            }
+
+            File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
+            if (authChainsFile.exists()) {
                 TypeReference<Map<String, String>> type = new TypeReference<>() { };
 
-                Map<String, String> refreshTokenFile = null;
+                Map<String, String> authChainFile = null;
                 try {
-                    refreshTokenFile = JSON_MAPPER.readValue(tokensFile, type);
+                    authChainFile = JSON_MAPPER.readValue(authChainsFile, type);
                 } catch (IOException e) {
                     logger.error("Cannot load saved user tokens!", e);
                 }
-                if (refreshTokenFile != null) {
+                if (authChainFile != null) {
                     List<String> validUsers = config.getSavedUserLogins();
                     boolean doWrite = false;
-                    for (Map.Entry<String, String> entry : refreshTokenFile.entrySet()) {
+                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
                         String user = entry.getKey();
                         if (!validUsers.contains(user)) {
                             // Perform a write to this file to purge the now-unused name
                             doWrite = true;
                             continue;
                         }
-                        savedRefreshTokens.put(user, entry.getValue());
+                        savedAuthChains.put(user, entry.getValue());
                     }
                     if (doWrite) {
-                        scheduleRefreshTokensWrite();
+                        scheduleAuthChainsWrite();
                     }
                 }
             }
         } else {
-            savedRefreshTokens = null;
+            savedAuthChains = null;
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
@@ -645,16 +716,11 @@ public class GeyserImpl implements GeyserApi {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
-        scheduledThread.shutdown();
-        geyserServer.shutdown();
-        if (skinUploader != null) {
-            skinUploader.close();
-        }
-        newsHandler.shutdown();
-
-        if (this.erosionUnixListener != null) {
-            this.erosionUnixListener.close();
-        }
+        runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(geyserServer, GeyserServer::shutdown);
+        runIfNonNull(skinUploader, FloodgateSkinUploader::close);
+        runIfNonNull(newsHandler, NewsHandler::shutdown);
+        runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         Registries.RESOURCE_PACKS.get().clear();
 
@@ -666,7 +732,6 @@ public class GeyserImpl implements GeyserApi {
         if (isEnabled) {
             this.disable();
         }
-        this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
@@ -704,9 +769,12 @@ public class GeyserImpl implements GeyserApi {
         return this.extensionManager;
     }
 
+    /**
+     * @return the current CommandRegistry in use. The instance may change over the lifecycle of the Geyser runtime.
+     */
     @NonNull
-    public GeyserCommandManager commandManager() {
-        return this.bootstrap.getGeyserCommandManager();
+    public CommandRegistry commandRegistry() {
+        return this.bootstrap.getCommandRegistry();
     }
 
     @Override
@@ -816,11 +884,11 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Nullable
-    public String refreshTokenFor(@NonNull String bedrockName) {
-        return savedRefreshTokens.get(bedrockName);
+    public String authChainFor(@NonNull String bedrockName) {
+        return savedAuthChains.get(bedrockName);
     }
 
-    public void saveRefreshToken(@NonNull String bedrockName, @NonNull String refreshToken) {
+    public void saveAuthChain(@NonNull String bedrockName, @NonNull String authChain) {
         if (!getConfig().getSavedUserLogins().contains(bedrockName)) {
             // Do not save this login
             return;
@@ -828,20 +896,26 @@ public class GeyserImpl implements GeyserApi {
 
         // We can safely overwrite old instances because MsaAuthenticationService#getLoginResponseFromRefreshToken
         // refreshes the token for us
-        if (!Objects.equals(refreshToken, savedRefreshTokens.put(bedrockName, refreshToken))) {
-            scheduleRefreshTokensWrite();
+        if (!Objects.equals(authChain, savedAuthChains.put(bedrockName, authChain))) {
+            scheduleAuthChainsWrite();
         }
     }
 
-    private void scheduleRefreshTokensWrite() {
+    private <T> void runIfNonNull(T nullable, Consumer<T> consumer) {
+        if (nullable != null) {
+            consumer.accept(nullable);
+        }
+    }
+
+    private void scheduleAuthChainsWrite() {
         scheduledThread.execute(() -> {
             // Ensure all writes are handled on the same thread
-            File savedTokens = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            File savedAuthChains = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
             TypeReference<Map<String, String>> type = new TypeReference<>() { };
-            try (FileWriter writer = new FileWriter(savedTokens)) {
+            try (FileWriter writer = new FileWriter(savedAuthChains)) {
                 JSON_MAPPER.writerFor(type)
                         .withDefaultPrettyPrinter()
-                        .writeValue(writer, savedRefreshTokens);
+                        .writeValue(writer, this.savedAuthChains);
             } catch (IOException e) {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }
