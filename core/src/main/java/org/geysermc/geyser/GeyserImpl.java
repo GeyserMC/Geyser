@@ -156,12 +156,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private final SessionManager sessionManager = new SessionManager();
 
-    /**
-     * This is used in GeyserConnect to stop the bedrock server binding to a port
-     */
-    @Setter
-    private static boolean shouldStartListener = true;
-
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
     private NewsHandler newsHandler;
@@ -435,24 +429,22 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }
 
-        if (shouldStartListener) {
-            this.geyserServer = new GeyserServer(this, bedrockThreadCount);
-            this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
-                .whenComplete((avoid, throwable) -> {
-                    if (throwable == null) {
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
-                                String.valueOf(config.getBedrock().port())));
-                    } else {
-                        String address = config.getBedrock().address();
-                        int port = config.getBedrock().port();
-                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
-                        if (!"0.0.0.0".equals(address)) {
-                            logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                            logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
-                        }
+        this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+        this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
+            .whenComplete((avoid, throwable) -> {
+                if (throwable == null) {
+                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
+                            String.valueOf(config.getBedrock().port())));
+                } else {
+                    String address = config.getBedrock().address();
+                    int port = config.getBedrock().port();
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                    if (!"0.0.0.0".equals(address)) {
+                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
                     }
-                }).join();
-        }
+                }
+            }).join();
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
             try {
