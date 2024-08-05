@@ -49,7 +49,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -111,12 +110,6 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     @Override
     public boolean hasOwnChunkCache() {
         return SharedConstants.getCurrentVersion().getProtocolVersion() == GameProtocol.getJavaProtocolVersion();
-    }
-
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        ServerPlayer player = getPlayer(session);
-        return GeyserModBootstrap.getInstance().hasPermission(player, permission);
     }
 
     @Override
