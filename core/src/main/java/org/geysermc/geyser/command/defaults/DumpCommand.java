@@ -63,31 +63,31 @@ public class DumpCommand extends GeyserCommand {
         this.geyser = geyser;
     }
 
-        @Override
-        public void register(CommandManager<GeyserCommandSource> manager) {
-            manager.command(baseBuilder(manager)
-                .optional(ARGUMENTS, stringArrayParser(), SuggestionProvider.blockingStrings((ctx, input) -> {
-                    // parse suggestions here
-                    List<String> inputs = new ArrayList<>();
-                    while (input.hasRemainingInput()) {
-                        inputs.add(input.readStringSkipWhitespace());
-                    }
+    @Override
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        manager.command(baseBuilder(manager)
+            .optional(ARGUMENTS, stringArrayParser(), SuggestionProvider.blockingStrings((ctx, input) -> {
+                // parse suggestions here
+                List<String> inputs = new ArrayList<>();
+                while (input.hasRemainingInput()) {
+                    inputs.add(input.readStringSkipWhitespace());
+                }
 
-                    if (inputs.size() <= 2) {
-                        return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
-                    }
+                if (inputs.size() <= 2) {
+                    return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
+                }
 
-                    // the rest of the input after `geyser dump` is for this argument
-                    inputs = inputs.subList(2, inputs.size());
+                // the rest of the input after `geyser dump` is for this argument
+                inputs = inputs.subList(2, inputs.size());
 
-                    // don't suggest any words they have already typed
-                    List<String> suggestions = new ArrayList<>();
-                    SUGGESTIONS.forEach(suggestions::add);
-                    suggestions.removeAll(inputs);
-                    return suggestions;
-                }))
-                .handler(this::execute));
-        }
+                // don't suggest any words they have already typed
+                List<String> suggestions = new ArrayList<>();
+                SUGGESTIONS.forEach(suggestions::add);
+                suggestions.removeAll(inputs);
+                return suggestions;
+            }))
+            .handler(this::execute));
+    }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
@@ -113,13 +113,15 @@ public class DumpCommand extends GeyserCommand {
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.collecting", source.locale()));
         String dumpData;
         try {
+            DumpInfo dump = new DumpInfo(geyser, addLog);
+
             if (offlineDump) {
                 DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
                 // Make arrays easier to read
                 prettyPrinter.indentArraysWith(new DefaultIndenter("    ", "\n"));
-                dumpData = MAPPER.writer(prettyPrinter).writeValueAsString(new DumpInfo(addLog));
+                dumpData = MAPPER.writer(prettyPrinter).writeValueAsString(dump);
             } else {
-                dumpData = MAPPER.writeValueAsString(new DumpInfo(addLog));
+                dumpData = MAPPER.writeValueAsString(dump);
             }
         } catch (IOException e) {
             source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.collect_error", source.locale()));
