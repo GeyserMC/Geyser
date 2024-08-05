@@ -49,6 +49,8 @@ import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -253,7 +255,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
                     Registries.JAVA_ITEMS.get().get(stoneCuttingRecipeData.getResult().getId())
-                            .javaIdentifier())));
+                        // See RecipeManager#getRecipesFor as of 1.21
+                            .translationKey())));
 
             // Now that it's sorted, let's translate these recipes
             int buttonId = 0;
@@ -442,13 +445,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
 
         List<String> translateShulkerBoxRecipe(GeyserShapelessRecipe recipe) {
-            ItemData output = ItemTranslator.translateToBedrock(session, recipe.result());
+            ItemStack result = recipe.result();
+            ItemData output = ItemTranslator.translateToBedrock(session, result);
             if (!output.isValid()) {
                 // Likely modded item that Bedrock will complain about if it persists
                 return null;
             }
-            // Strip NBT - tools won't appear in the recipe book otherwise
-            // output = output.toBuilder().tag(null).build(); // TODO confirm???
+
+            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            if (!(javaItem instanceof BedrockRequiresTagItem)) {
+                // Strip NBT - tools won't appear in the recipe book otherwise
+                output = output.toBuilder().tag(null).build();
+            }
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;
@@ -466,13 +474,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
 
         List<String> translateShapelessRecipe(GeyserShapelessRecipe recipe) {
-            ItemData output = ItemTranslator.translateToBedrock(session, recipe.result());
+            ItemStack result = recipe.result();
+            ItemData output = ItemTranslator.translateToBedrock(session, result);
             if (!output.isValid()) {
                 // Likely modded item that Bedrock will complain about if it persists
                 return null;
             }
-            // Strip NBT - tools won't appear in the recipe book otherwise
-            //output = output.toBuilder().tag(null).build(); // TODO confirm this is still true???
+
+            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            if (!(javaItem instanceof BedrockRequiresTagItem)) {
+                // Strip NBT - tools won't appear in the recipe book otherwise
+                output = output.toBuilder().tag(null).build();
+            }
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;
@@ -490,13 +503,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
 
         List<String> translateShapedRecipe(GeyserShapedRecipe recipe) {
-            ItemData output = ItemTranslator.translateToBedrock(session, recipe.result());
+            ItemStack result = recipe.result();
+            ItemData output = ItemTranslator.translateToBedrock(session, result);
             if (!output.isValid()) {
                 // Likely modded item that Bedrock will complain about if it persists
                 return null;
             }
-            // See above
-            //output = output.toBuilder().tag(null).build();
+
+            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            if (!(javaItem instanceof BedrockRequiresTagItem)) {
+                // Strip NBT - tools won't appear in the recipe book otherwise
+                output = output.toBuilder().tag(null).build();
+            }
             ItemDescriptorWithCount[][] inputCombinations = combinations(session, recipe.ingredients());
             if (inputCombinations == null) {
                 return null;

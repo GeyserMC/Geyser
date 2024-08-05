@@ -39,7 +39,7 @@ public class JavaSetDefaultSpawnPositionTranslator extends PacketTranslator<Clie
     public void translate(GeyserSession session, ClientboundSetDefaultSpawnPositionPacket packet) {
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
         spawnPositionPacket.setBlockPosition(packet.getPosition());
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         session.sendUpstreamPacket(spawnPositionPacket);
     }

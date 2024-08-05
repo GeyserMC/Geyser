@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -34,9 +33,16 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
+import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.fabric.FabricServerCommandManager;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -70,20 +76,23 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
 
         this.onGeyserInitialize();
+
+        var sourceConverter = CommandSourceConverter.layered(
+                CommandSourceStack.class,
+                id -> getServer().getPlayerList().getPlayer(id),
+                Player::createCommandSourceStack,
+                () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
+                ModCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
+                ExecutionCoordinator.simpleCoordinator(),
+                sourceConverter
+        );
+        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
     }
 
     @Override
     public boolean isServer() {
         return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
-    }
-
-    @Override
-    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
-        return Permissions.check(source, permissionNode);
-    }
-
-    @Override
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
-        return Permissions.check(source, permissionNode, permissionLevel);
     }
 }

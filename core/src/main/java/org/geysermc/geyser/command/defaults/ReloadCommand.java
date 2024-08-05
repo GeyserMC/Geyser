@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,27 +39,17 @@ public class ReloadCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public ReloadCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.NOT_SET);
         this.geyser = geyser;
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            return;
-        }
-
-        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.reload.message", sender.locale());
-
-        sender.sendMessage(message);
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.reload.message", source.locale()));
 
         geyser.getSessionManager().disconnectAll("geyser.commands.reload.kick");
         //FIXME Without the tiny wait, players do not get kicked - same happens when Geyser tries to disconnect all sessions on shutdown
         geyser.getScheduledThread().schedule(geyser::reloadGeyser, 10, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
     }
 }
