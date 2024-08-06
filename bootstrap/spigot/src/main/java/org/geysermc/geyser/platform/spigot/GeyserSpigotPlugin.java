@@ -148,6 +148,22 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
+        try {
+            // Check spigot config for BungeeCord mode
+            if (!Boolean.TRUE.equals(Bukkit.getServer().spigot().getConfig().get("settings.bungeecord"))) {
+                disableOnBackendServers("BungeeCord");
+                return;
+            }
+
+            // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper config
+            if (!Boolean.TRUE.equals(Bukkit.getServer().spigot().getPaperConfig().get("proxies.velocity.enabled"))) {
+                disableOnBackendServers("Velocity");
+                return;
+            }
+        } catch (NoSuchMethodError e) {
+            // no-op
+        }
+
         if (!loadConfig()) {
             return;
         }
@@ -457,5 +473,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         return true;
+    }
+
+    private void disableOnBackendServers(String platform) {
+        geyserLogger.error("*********************************************");
+        geyserLogger.error("");
+        geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy_backend", platform));
+        geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.setup_guide", "https://geysermc.org/wiki/geyser/setup/"));
+        geyserLogger.error("");
+        geyserLogger.error("*********************************************");
+        Bukkit.getPluginManager().disablePlugin(this);
     }
 }
