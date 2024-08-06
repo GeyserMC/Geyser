@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.geysermc.geyser.platform.mod.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "server.BlockPlaceMixin",
+    "server.PistonBaseBlockMixin",
+    "server.ServerConnectionListenerMixin"
+  ],
+  "server": [
+    "server.DedicatedServerMixin"
+  ],
+  "client": [
+    "client.IntegratedServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

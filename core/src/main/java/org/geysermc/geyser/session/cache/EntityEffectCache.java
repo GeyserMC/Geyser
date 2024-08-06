@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import lombok.Getter;
 
 import java.util.EnumSet;

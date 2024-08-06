@@ -25,21 +25,24 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class WrittenBookItem extends WritableBookItem {
+public class WrittenBookItem extends Item {
     public static final int MAXIMUM_PAGE_EDIT_LENGTH = 1024;
-    public static final int MAXIMUM_PAGE_LENGTH = 32768;
     public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
     public static final int MAXIMUM_TITLE_LENGTH = 16;
 
@@ -48,51 +51,24 @@ public class WrittenBookItem extends WritableBookItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        boolean isValid = isValidWrittenBook(tag);
-        if (!isValid) {
-            tag.remove("pages");
-        }
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        super.translateNbtToBedrock(session, tag);
+        WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
+        if (bookContent == null) {
+            return;
+        }
+        List<NbtMap> bedrockPages = new ArrayList<>();
+        for (Filterable<Component> page : bookContent.getPages()) {
+            NbtMapBuilder pageBuilder = NbtMap.builder();
+            pageBuilder.putString("photoname", "");
+            pageBuilder.putString("text", MessageTranslator.convertMessage(session, page.getRaw()));
+            bedrockPages.add(pageBuilder.build());
+        }
+        builder.putList("pages", NbtType.COMPOUND, bedrockPages);
 
-        if (!isValid) {
-            CompoundTag invalidTagPage = new CompoundTag("");
-            invalidTagPage.put(new StringTag("photoname", ""));
-            invalidTagPage.put(new StringTag(
-                    "text",
-                    MessageTranslator.convertMessage(
-                            Component.translatable("book.invalid.tag", NamedTextColor.DARK_RED),
-                            session.locale()
-                    )
-            ));
-            tag.put(new ListTag("pages", List.of(invalidTagPage)));
-        }
-    }
-
-    private boolean isValidWrittenBook(CompoundTag tag) {
-        if (!(tag.get("title") instanceof StringTag title)) {
-            return false;
-        }
-        if (title.getValue().length() > (MAXIMUM_TITLE_LENGTH * 2)) {
-            // Java rejects books with titles more than 2x the maximum length allowed in the input box
-            return false;
-        }
-
-        if (!(tag.get("author") instanceof StringTag)) {
-            return false;
-        }
-
-        if (!(tag.get("pages") instanceof ListTag pages)) {
-            return false;
-        }
-        for (Tag pageTag : pages) {
-            if (pageTag instanceof StringTag page) {
-                if (page.getValue().length() > MAXIMUM_PAGE_LENGTH) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        builder.putString("title", bookContent.getTitle().getRaw())
+                .putString("author", bookContent.getAuthor())
+                .putInt("generation", bookContent.getGeneration());
     }
 }

@@ -25,45 +25,43 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import javax.annotation.Nonnull;
-import java.util.Set;
 import java.util.UUID;
 
 public class ParrotEntity extends TameableEntity {
-    // Note: is the same as chicken. Reuse?
-    private static final Set<Item> TAMING_FOOD = Set.of(Items.WHEAT_SEEDS, Items.MELON_SEEDS, Items.PUMPKIN_SEEDS, Items.BEETROOT_SEEDS);
-
     public ParrotEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return false;
+    @Nullable
+    protected ItemTag getFoodTag() {
+        return null;
     }
 
     private boolean isTameFood(Item item) {
-        return TAMING_FOOD.contains(item);
+        return session.getTagCache().is(ItemTag.PARROT_FOOD, item);
     }
 
     private boolean isPoisonousFood(Item item) {
-        return item == Items.COOKIE;
+        return session.getTagCache().is(ItemTag.PARROT_POISONOUS_FOOD, item);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
         if (!tame && isTameFood(itemInHand.asItem())) {
             return InteractiveTag.FEED;
@@ -76,9 +74,9 @@ public class ParrotEntity extends TameableEntity {
         return super.testMobInteraction(hand, itemInHand);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
         if (!tame && isTameFood(itemInHand.asItem())) {
             return InteractionResult.SUCCESS;

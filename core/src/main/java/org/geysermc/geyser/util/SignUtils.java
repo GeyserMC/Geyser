@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import org.geysermc.geyser.level.block.BlockStateValues;
-
 /**
  * Provides utilities for interacting with signs. Mainly, it deals with the widths of each character.
  * Since Bedrock auto-wraps signs and Java does not, we have to take this into account when translating signs.

@@ -26,11 +26,11 @@
 package org.geysermc.geyser.erosion;
 
 import io.netty.channel.Channel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.erosion.netty.NettyPacketSender;
 import org.geysermc.erosion.packet.ErosionPacketHandler;
 import org.geysermc.erosion.packet.geyserbound.GeyserboundHandshakePacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.Nullable;
 
 public final class GeyserboundHandshakePacketHandler extends AbstractGeyserboundPacketHandler {
 
@@ -66,7 +66,7 @@ public final class GeyserboundHandshakePacketHandler extends AbstractGeyserbound
     }
 
     @Override
-    public ErosionPacketHandler setChannel(Channel channel) {
+    public @Nullable ErosionPacketHandler setChannel(Channel channel) {
         return null;
     }
 }

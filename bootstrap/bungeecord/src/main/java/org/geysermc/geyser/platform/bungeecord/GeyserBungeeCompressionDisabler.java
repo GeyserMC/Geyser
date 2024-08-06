@@ -32,18 +32,26 @@ import net.md_5.bungee.protocol.packet.LoginSuccess;
 import net.md_5.bungee.protocol.packet.SetCompression;
 
 public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapter {
+    private boolean compressionDisabled = false;
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (!(msg instanceof SetCompression)) {
-            if (msg instanceof LoginSuccess) {
-                // We're past the point that compression can be enabled
+            // Fixes https://github.com/GeyserMC/Geyser/issues/4281
+            // The server may send a LoginDisconnect packet after compression is set.
+            if (!compressionDisabled) {
                 if (ctx.pipeline().get("compress") != null) {
                     ctx.pipeline().remove("compress");
+                    compressionDisabled = true;
                 }
                 if (ctx.pipeline().get("decompress") != null) {
                     ctx.pipeline().remove("decompress");
+                    compressionDisabled = true;
                 }
+            }
+
+            if (msg instanceof LoginSuccess) {
+                // We're past the point that compression can be enabled
                 ctx.pipeline().remove(this);
             }
             super.write(ctx, msg, promise);

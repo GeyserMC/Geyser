@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.collision;
 
-import org.cloudburstmc.math.vector.Vector3d;
-import org.cloudburstmc.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -54,14 +54,14 @@ public class BlockCollision {
     /**
      * This is used to control the maximum distance a face of a bounding box can push the player away
      */
-    protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+    protected final double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
 
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
     }
 
     /**
-     * Overridden in classes like SnowCollision and GrassPathCollision when correction code needs to be run before the
+     * Overridden in classes like GrassPathCollision when correction code needs to be run before the
      * main correction
      */
     public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {}

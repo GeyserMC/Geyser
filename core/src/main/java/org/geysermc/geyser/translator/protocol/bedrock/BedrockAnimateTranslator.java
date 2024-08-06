@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -64,7 +64,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
                                 // and Bedrock 1.19.51.
                                 // Note for the future: we should probably largely ignore this packet and instead replicate
                                 // all actions on our end, and send swings where needed.
-                                session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                                session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                                 session.activateArmAnimationTicking();
                             }
                         },
@@ -77,12 +77,12 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
                 session.setSteeringLeft(packet.getRowingTime() > 0.0);
                 ServerboundPaddleBoatPacket steerLeftPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
-                session.sendDownstreamPacket(steerLeftPacket);
+                session.sendDownstreamGamePacket(steerLeftPacket);
             }
             case ROW_RIGHT -> {
                 session.setSteeringRight(packet.getRowingTime() > 0.0);
                 ServerboundPaddleBoatPacket steerRightPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
-                session.sendDownstreamPacket(steerRightPacket);
+                session.sendDownstreamGamePacket(steerRightPacket);
             }
         }
     }

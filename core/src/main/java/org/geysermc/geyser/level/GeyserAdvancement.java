@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement.DisplayData;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement.DisplayData.AdvancementType;
 
 import java.util.List;
 
@@ -61,7 +63,7 @@ public class GeyserAdvancement {
         return this.advancement.getParentId();
     }
 
-    public Advancement.DisplayData getDisplayData() {
+    public DisplayData getDisplayData() {
         return this.advancement.getDisplayData();
     }
 
@@ -69,22 +71,26 @@ public class GeyserAdvancement {
      * @return Purple for challenges and green for normal advancements
      */
     public String getDisplayColor() {
-        Advancement.DisplayData displayData = getDisplayData();
-        return displayData != null && displayData.getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
+        DisplayData displayData = getDisplayData();
+        return displayData != null && displayData.getAdvancementType() == AdvancementType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
     }
 
-    public String getRootId(AdvancementsCache advancementsCache) {
+    public @NonNull String getRootId(AdvancementsCache advancementsCache) {
         if (rootId == null) {
             if (this.advancement.getParentId() == null) {
                 // We are the root ID
                 this.rootId = this.advancement.getId();
             } else {
                 // Go through our cache, and descend until we find the root ID
-                GeyserAdvancement advancement = advancementsCache.getStoredAdvancements().get(this.advancement.getParentId());
-                if (advancement.getParentId() == null) {
-                    this.rootId = advancement.getId();
+                GeyserAdvancement parent = advancementsCache.getStoredAdvancements().get(this.advancement.getParentId());
+                if (parent == null) {
+                    // Parent doesn't exist, is invalid, or couldn't be found for another reason
+                    // So assuming there is no parent and this is the root
+                    this.rootId = this.advancement.getId();
+                } else if (parent.getParentId() == null) {
+                    this.rootId = parent.getId();
                 } else {
-                    this.rootId = advancement.getRootId(advancementsCache);
+                    this.rootId = parent.getRootId(advancementsCache);
                 }
             }
         }

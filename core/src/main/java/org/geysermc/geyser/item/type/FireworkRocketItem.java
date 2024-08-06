@@ -25,130 +25,137 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
-public class FireworkRocketItem extends Item {
+import java.util.ArrayList;
+import java.util.List;
+
+public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public FireworkRocketItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        CompoundTag fireworks = tag.get("Fireworks");
+        Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
         if (fireworks == null) {
             return;
         }
+        NbtMapBuilder fireworksNbt = NbtMap.builder();
+        fireworksNbt.putByte("Flight", (byte) fireworks.getFlightDuration());
 
-        if (fireworks.get("Flight") != null) {
-            fireworks.put(new ByteTag("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue())));
+        List<Fireworks.FireworkExplosion> explosions = fireworks.getExplosions();
+        if (!explosions.isEmpty()) {
+            List<NbtMap> explosionNbt = new ArrayList<>();
+            for (Fireworks.FireworkExplosion explosion : explosions) {
+                explosionNbt.add(translateExplosionToBedrock(explosion));
+            }
+            fireworksNbt.putList("Explosions", NbtType.COMPOUND, explosionNbt);
+        } else {
+            // This is the default firework
+            fireworksNbt.put("Explosions", NbtList.EMPTY);
+        }
+        builder.putCompound("Fireworks", fireworksNbt.build());
+    }
+
+    @Override
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(session, bedrockTag, components, mapping);
+
+        NbtMap fireworksTag = bedrockTag.getCompound("Fireworks");
+        if (!fireworksTag.isEmpty()) {
+            List<NbtMap> explosions = fireworksTag.getList("Explosions", NbtType.COMPOUND);
+            if (!explosions.isEmpty()) {
+                List<Fireworks.FireworkExplosion> javaExplosions = new ArrayList<>();
+                for (NbtMap explosion : explosions) {
+                    Fireworks.FireworkExplosion javaExplosion = translateExplosionToJava(explosion);
+                    if (javaExplosion != null) {
+                        javaExplosions.add(javaExplosion);
+                    }
+                }
+                components.put(DataComponentType.FIREWORKS, new Fireworks(1, javaExplosions));
+            }
+        }
+    }
+
+    static NbtMap translateExplosionToBedrock(Fireworks.FireworkExplosion explosion) {
+        NbtMapBuilder newExplosionData = NbtMap.builder();
+
+        newExplosionData.putByte("FireworkType", (byte) explosion.getShapeId());
+
+        int[] oldColors = explosion.getColors();
+        byte[] colors = new byte[oldColors.length];
+
+        int i = 0;
+        for (int color : oldColors) {
+            colors[i++] = FireworkColor.fromJavaRGB(color);
         }
 
-        ListTag explosions = fireworks.get("Explosions");
-        if (explosions == null) {
-            return;
-        }
-        for (Tag effect : explosions.getValue()) {
-            CompoundTag effectData = (CompoundTag) effect;
-            CompoundTag newEffectData = translateExplosionToBedrock(effectData, "");
+        newExplosionData.putByteArray("FireworkColor", colors);
 
-            explosions.remove(effectData);
-            explosions.add(newEffectData);
+        oldColors = explosion.getFadeColors();
+        colors = new byte[oldColors.length];
+
+        i = 0;
+        for (int color : oldColors) {
+            colors[i++] = FireworkColor.fromJavaRGB(color);
+        }
+
+        newExplosionData.putByteArray("FireworkFade", colors);
+
+        newExplosionData.putBoolean("FireworkTrail", explosion.isHasTrail());
+        newExplosionData.putBoolean("FireworkFlicker", explosion.isHasTwinkle());
+
+        return newExplosionData.build();
+    }
+
+    /**
+     * The only thing that the Bedrock creative inventory has - as of 1.20.80 - is color.
+     */
+    static Fireworks.FireworkExplosion translateExplosionToJava(NbtMap explosion) {
+        byte[] javaColors = explosion.getByteArray("FireworkColor", null);
+        if (javaColors != null) {
+            int[] colors = new int[javaColors.length];
+
+            int i = 0;
+            for (byte color : javaColors) {
+                colors[i++] = FireworkColor.fromBedrockId(color);
+            }
+
+            return new Fireworks.FireworkExplosion(0, colors, IntArrays.EMPTY_ARRAY, false, false);
+        } else {
+            return null;
         }
     }
 
     @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-    }
-
-    static CompoundTag translateExplosionToBedrock(CompoundTag explosion, String newName) {
-        CompoundTag newExplosionData = new CompoundTag(newName);
-
-        if (explosion.get("Type") != null) {
-            newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
-        }
-
-        if (explosion.get("Colors") != null) {
-            int[] oldColors = (int[]) explosion.get("Colors").getValue();
-            byte[] colors = new byte[oldColors.length];
-
-            int i = 0;
-            for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaRGB(color);
+    public void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder) {
+        if (components != null) {
+            Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
+            if (fireworks != null) {
+                // Already translated
+                return;
             }
-
-            newExplosionData.put(new ByteArrayTag("FireworkColor", colors));
         }
 
-        if (explosion.get("FadeColors") != null) {
-            int[] oldColors = (int[]) explosion.get("FadeColors").getValue();
-            byte[] colors = new byte[oldColors.length];
-
-            int i = 0;
-            for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaRGB(color);
-            }
-
-            newExplosionData.put(new ByteArrayTag("FireworkFade", colors));
-        }
-
-        if (explosion.get("Trail") != null) {
-            newExplosionData.put(new ByteTag("FireworkTrail", MathUtils.getNbtByte(explosion.get("Trail").getValue())));
-        }
-
-        if (explosion.get("Flicker") != null) {
-            newExplosionData.put(new ByteTag("FireworkFlicker", MathUtils.getNbtByte(explosion.get("Flicker").getValue())));
-        }
-
-        return newExplosionData;
-    }
-
-    static CompoundTag translateExplosionToJava(CompoundTag explosion, String newName) {
-        CompoundTag newExplosionData = new CompoundTag(newName);
-
-        if (explosion.get("FireworkType") != null) {
-            newExplosionData.put(new ByteTag("Type", MathUtils.getNbtByte(explosion.get("FireworkType").getValue())));
-        }
-
-        if (explosion.get("FireworkColor") != null) {
-            byte[] oldColors = (byte[]) explosion.get("FireworkColor").getValue();
-            int[] colors = new int[oldColors.length];
-
-            int i = 0;
-            for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockId(color);
-            }
-
-            newExplosionData.put(new IntArrayTag("Colors", colors));
-        }
-
-        if (explosion.get("FireworkFade") != null) {
-            byte[] oldColors = (byte[]) explosion.get("FireworkFade").getValue();
-            int[] colors = new int[oldColors.length];
-
-            int i = 0;
-            for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockId(color);
-            }
-
-            newExplosionData.put(new IntArrayTag("FadeColors", colors));
-        }
-
-        if (explosion.get("FireworkTrail") != null) {
-            newExplosionData.put(new ByteTag("Trail", MathUtils.getNbtByte(explosion.get("FireworkTrail").getValue())));
-        }
-
-        if (explosion.get("FireworkFlicker") != null) {
-            newExplosionData.put(new ByteTag("Flicker", MathUtils.getNbtByte(explosion.get("FireworkFlicker").getValue())));
-        }
-
-        return newExplosionData;
+        NbtMapBuilder fireworksNbt = NbtMap.builder();
+        fireworksNbt.putByte("Flight", (byte) 1);
+        fireworksNbt.put("Explosions", NbtList.EMPTY);
+        builder.putCompound("Fireworks", fireworksNbt.build());
     }
 }

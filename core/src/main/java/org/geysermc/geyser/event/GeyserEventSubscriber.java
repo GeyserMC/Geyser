@@ -31,7 +31,6 @@ import org.geysermc.event.PostOrder;
 import org.geysermc.event.subscribe.impl.OwnedSubscriberImpl;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.ExtensionEventSubscriber;
-import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;

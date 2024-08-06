@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/discord/613163671870242838.svg?color=%237289da&label=discord)](https://discord.gg/geysermc)
-[![Crowdin](https://badges.crowdin.net/geyser/localized.svg)](https://translate.geysermc.org/)
+[![Crowdin](https://badges.crowdin.net/e/51361b7f8a01644a238d0fe8f3bddc62/localized.svg)](https://translate.geysermc.org/)
 
 Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
 
@@ -14,16 +14,15 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock 1.20.0 - 1.20.31 and Minecraft Java 1.20/1.20.1.
+## Supported Versions
+Geyser is currently supporting Minecraft Bedrock 1.20.80 - 1.21.3 and Minecraft Java Server 1.21. For more info please see [here](https://geysermc.org/wiki/geyser/supported-versions/).
 
 ## Setting Up
-Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Geyser.
-
-[![YouTube Video](https://img.youtube.com/vi/U7dZZ8w7Gi4/0.jpg)](https://www.youtube.com/watch?v=U7dZZ8w7Gi4)
+Take a look [here](https://geysermc.org/wiki/geyser/setup/) for how to set up Geyser.
 
 ## Links:
 - Website: https://geysermc.org
-- Docs: https://wiki.geysermc.org/geyser/
+- Docs: https://geysermc.org/wiki/geyser/
 - Download: https://geysermc.org/download
 - Discord: https://discord.gg/geysermc
 - Donate: https://opencollective.com/geysermc
@@ -32,10 +31,9 @@ Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Ge
 ## What's Left to be Added/Fixed
 - Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
 - Some Entity Flags
-- Structure block UI
 
 ## What can't be fixed
-There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://wiki.geysermc.org/geyser/current-limitations/) page.
+There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://geysermc.org/wiki/geyser/current-limitations/) page.
 
 ## Compiling
 1. Clone the repo to your computer
@@ -43,12 +41,12 @@ There are a few things Geyser is unable to support due to various differences be
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
 ## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on [Discord](http://discord.geysermc.org/) if
+Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/geysermc) if
 you're interested in helping out with Geyser.
 
 ## Libraries Used:
 - [Adventure Text Library](https://github.com/KyoriPowered/adventure)
-- [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
-- [Steveice10's Java Protocol Library](https://github.com/Steveice10/MCProtocolLib)
+- [CloudburstMC Bedrock Protocol Library](https://github.com/CloudburstMC/Protocol)
+- [GeyserMC's Java Protocol Library](https://github.com/GeyserMC/MCProtocolLib)
 - [TerminalConsoleAppender](https://github.com/Minecrell/TerminalConsoleAppender)
 - [Simple Logging Facade for Java (slf4j)](https://github.com/qos-ch/slf4j)

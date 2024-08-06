@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -45,14 +42,18 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 
 import java.util.OptionalInt;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
-        super(1, new BlockInventoryHolder("minecraft:beacon", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
+        super(1, new BlockInventoryHolder(Blocks.BEACON, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
             protected boolean checkInteractionPosition(GeyserSession session) {
                 // Since we can't fall back to a virtual inventory, let's make opening one easier
@@ -89,12 +90,8 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
 
         // Send a block entity data packet update to the fake beacon inventory
         Vector3i position = inventory.getHolderPosition();
-        NbtMapBuilder builder = NbtMap.builder()
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ())
+        NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Beacon", position)
                 .putString("CustomName", inventory.getTitle())
-                .putString("id", "Beacon")
                 .putInt("primary", beaconContainer.getPrimaryId())
                 .putInt("secondary", beaconContainer.getSecondaryId());
 
@@ -114,12 +111,12 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         // Input a beacon payment
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
     private OptionalInt toJava(int effectChoice) {
-        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
+        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice - 1);
     }
 
     @Override

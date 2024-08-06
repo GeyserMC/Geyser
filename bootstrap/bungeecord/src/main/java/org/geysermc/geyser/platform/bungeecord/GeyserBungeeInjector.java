@@ -39,6 +39,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.PipelineUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.netty.GeyserInjector;
@@ -125,7 +126,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 .channel(LocalServerChannelWrapper.class)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel ch) throws Exception {
+                    protected void initChannel(@NonNull Channel ch) throws Exception {
                         if (proxy.getConfig().getServers() == null) {
                             // Proxy hasn't finished loading all plugins - it loads the config after all plugins
                             // Probably doesn't need to be translatable?

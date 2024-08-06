@@ -37,7 +37,7 @@ import java.util.List;
 public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData implements NonVanillaCustomBlockData {
     private final String namespace;
 
-    GeyserNonVanillaCustomBlockData(NonVanillaCustomBlockDataBuilder builder) {
+    GeyserNonVanillaCustomBlockData(Builder builder) {
         super(builder);
 
         this.namespace = builder.namespace;
@@ -56,58 +56,58 @@ public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData imple
         return this.namespace;
     }
 
-    public static class NonVanillaCustomBlockDataBuilder extends CustomBlockDataBuilder implements NonVanillaCustomBlockData.Builder {
+    public static class Builder extends GeyserCustomBlockData.Builder implements NonVanillaCustomBlockData.Builder {
         private String namespace;
 
         @Override
-        public NonVanillaCustomBlockDataBuilder namespace(@NonNull String namespace) {
+        public Builder namespace(@NonNull String namespace) {
             this.namespace = namespace;
             return this;
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder name(@NonNull String name) {
-            return (NonVanillaCustomBlockDataBuilder) super.name(name);
+        public Builder name(@NonNull String name) {
+            return (Builder) super.name(name);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder includedInCreativeInventory(boolean includedInCreativeInventory) {
-            return (NonVanillaCustomBlockDataBuilder) super.includedInCreativeInventory(includedInCreativeInventory);
+        public Builder includedInCreativeInventory(boolean includedInCreativeInventory) {
+            return (Builder) super.includedInCreativeInventory(includedInCreativeInventory);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder creativeCategory(@Nullable CreativeCategory creativeCategories) {
-            return (NonVanillaCustomBlockDataBuilder) super.creativeCategory(creativeCategories);
+        public Builder creativeCategory(@Nullable CreativeCategory creativeCategories) {
+            return (Builder) super.creativeCategory(creativeCategories);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder creativeGroup(@Nullable String creativeGroup) {
-            return (NonVanillaCustomBlockDataBuilder) super.creativeGroup(creativeGroup);
+        public Builder creativeGroup(@Nullable String creativeGroup) {
+            return (Builder) super.creativeGroup(creativeGroup);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder components(@NonNull CustomBlockComponents components) {
-            return (NonVanillaCustomBlockDataBuilder) super.components(components);
+        public Builder components(@NonNull CustomBlockComponents components) {
+            return (Builder) super.components(components);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder booleanProperty(@NonNull String propertyName) {
-            return (NonVanillaCustomBlockDataBuilder) super.booleanProperty(propertyName);
+        public Builder booleanProperty(@NonNull String propertyName) {
+            return (Builder) super.booleanProperty(propertyName);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder intProperty(@NonNull String propertyName, List<Integer> values) {
-            return (NonVanillaCustomBlockDataBuilder) super.intProperty(propertyName, values);
+        public Builder intProperty(@NonNull String propertyName, List<Integer> values) {
+            return (Builder) super.intProperty(propertyName, values);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder stringProperty(@NonNull String propertyName, List<String> values) {
-            return (NonVanillaCustomBlockDataBuilder) super.stringProperty(propertyName, values);
+        public Builder stringProperty(@NonNull String propertyName, List<String> values) {
+            return (Builder) super.stringProperty(propertyName, values);
         }
 
         @Override
-        public NonVanillaCustomBlockDataBuilder permutations(@NonNull List<CustomBlockPermutation> permutations) {
-            return (NonVanillaCustomBlockDataBuilder) super.permutations(permutations);
+        public Builder permutations(@NonNull List<CustomBlockPermutation> permutations) {
+            return (Builder) super.permutations(permutations);
         }
 
         @Override

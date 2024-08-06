@@ -33,7 +33,6 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
@@ -57,12 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -79,6 +73,7 @@ public class DumpInfo {
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
+    private final int connectionAttempts;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
@@ -86,7 +81,7 @@ public class DumpInfo {
     private final FlagsInfo flagsInfo;
     private final List<ExtensionInfo> extensionInfo;
 
-    public DumpInfo(boolean addLog) {
+    public DumpInfo(GeyserImpl geyser, boolean addLog) {
         this.versionInfo = new VersionInfo();
 
         this.cpuCount = Runtime.getRuntime().availableProcessors();
@@ -96,7 +91,7 @@ public class DumpInfo {
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
-        this.config = GeyserImpl.getInstance().getConfig();
+        this.config = geyser.getConfig();
         this.floodgate = new Floodgate();
 
         String md5Hash = "unknown";
@@ -106,31 +101,37 @@ public class DumpInfo {
             // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
-            // Jenkins uses MD5 for its hash
-            //noinspection UnstableApiUsage
+            // Jenkins uses MD5 for its hash - TODO remove
+            //noinspection UnstableApiUsage,deprecation
             md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
-            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+            if (this.config.isDebugMode()) {
                 e.printStackTrace();
             }
         }
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
-        this.ramInfo = new DumpInfo.RamInfo();
+        this.ramInfo = new RamInfo();
 
         if (addLog) {
-            this.logsInfo = new LogsInfo();
+            this.logsInfo = new LogsInfo(geyser);
         }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
-        for (GeyserSession session : GeyserImpl.getInstance().getSessionManager().getAllSessions()) {
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 
-        this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
+        if (geyser.getGeyserServer() != null) {
+            this.connectionAttempts = geyser.getGeyserServer().getConnectionAttempts();
+        } else {
+            this.connectionAttempts = 0; // Fallback if Geyser failed to fully startup
+        }
+
+        this.bootstrapInfo = geyser.getBootstrap().getDumpInfo();
 
         this.flagsInfo = new FlagsInfo();
 
@@ -202,7 +203,7 @@ public class DumpInfo {
         private boolean checkDockerBasic() {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
-                if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+                if (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0) {
                     String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
                     if (output.contains("docker")) {
@@ -247,10 +248,10 @@ public class DumpInfo {
     public static class LogsInfo {
         private String link;
 
-        public LogsInfo() {
+        public LogsInfo(GeyserImpl geyser) {
             try {
                 Map<String, String> fields = new HashMap<>();
-                fields.put("content", FileUtils.readAllLines(GeyserImpl.getInstance().getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
+                fields.put("content", FileUtils.readAllLines(geyser.getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
 
                 JsonNode logData = GeyserImpl.JSON_MAPPER.readTree(WebUtils.postForm("https://api.mclo.gs/1/log", fields));
 
@@ -259,60 +260,30 @@ public class DumpInfo {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class HashInfo {
-        private final String md5Hash;
-        private final String sha256Hash;
+    public record HashInfo(String md5Hash, String sha256Hash) {
     }
 
-    @Getter
-    public static class RamInfo {
-        private final long free;
-        private final long total;
-        private final long max;
-
-        RamInfo() {
-            this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
-            this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
-            this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
+    public record RamInfo(long free, long total, long max) {
+        public RamInfo() {
+            this(Runtime.getRuntime().freeMemory() / MEGABYTE,
+                    Runtime.getRuntime().totalMemory() / MEGABYTE,
+                    Runtime.getRuntime().maxMemory() / MEGABYTE);
         }
     }
 
     /**
      * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
      */
-    @Getter
-    public static class FlagsInfo {
-        private final List<String> flags;
-
-        FlagsInfo() {
-            this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    public record FlagsInfo(List<String> flags) {
+        public FlagsInfo() {
+            this(ManagementFactory.getRuntimeMXBean().getInputArguments());
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class ExtensionInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String apiVersion;
-        public String main;
-        public List<String> authors;
+    public record ExtensionInfo(boolean enabled, String name, String version, String apiVersion, String main, List<String> authors) {
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class GitInfo {
-        private final String buildNumber;
-        @JsonProperty("git.commit.id.abbrev")
-        private final String commitHashAbbrev;
-        @JsonProperty("git.commit.id")
-        private final String commitHash;
-        @JsonProperty("git.branch")
-        private final String branchName;
-        @JsonProperty("git.remote.origin.url")
-        private final String originUrl;
+    public record GitInfo(String buildNumber, @JsonProperty("git.commit.id.abbrev") String commitHashAbbrev, @JsonProperty("git.commit.id") String commitHash,
+                              @JsonProperty("git.branch") String branchName, @JsonProperty("git.remote.origin.url") String originUrl) {
     }
 }

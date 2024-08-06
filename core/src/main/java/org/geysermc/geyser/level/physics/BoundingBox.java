@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.level.physics;
 
-import org.cloudburstmc.math.vector.Vector3d;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.cloudburstmc.math.vector.Vector3d;
 
 @Data
 @AllArgsConstructor

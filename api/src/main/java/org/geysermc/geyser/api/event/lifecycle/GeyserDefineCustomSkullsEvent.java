@@ -5,7 +5,7 @@ import org.geysermc.event.Event;
 
 /**
  * Called on Geyser's startup when looking for custom skulls. Custom skulls must be registered through this event.
- *
+ * <p>
  * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
  */
 public abstract class GeyserDefineCustomSkullsEvent implements Event {

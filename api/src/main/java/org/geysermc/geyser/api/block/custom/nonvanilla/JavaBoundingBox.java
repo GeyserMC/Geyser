@@ -1,6 +1,4 @@
 package org.geysermc.geyser.api.block.custom.nonvanilla;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-public record JavaBoundingBox(@NonNull double middleX, @NonNull double middleY, @NonNull double middleZ, @NonNull double sizeX, @NonNull double sizeY, @NonNull double sizeZ) {
+public record JavaBoundingBox(double middleX, double middleY, double middleZ, double sizeX, double sizeY, double sizeZ) {
 }

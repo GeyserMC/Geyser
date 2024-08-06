@@ -34,8 +34,8 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +65,9 @@ public class CustomSkull {
     public CustomSkull(String skinHash) {
         this.skinHash = skinHash;
 
-        CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
+        CustomBlockComponents components = new GeyserCustomBlockComponents.Builder()
                 .destructibleByMining(1.5f)
-                .materialInstance("*", new MaterialInstanceBuilder()
+                .materialInstance("*", new GeyserMaterialInstance.Builder()
                         .texture("geyser." + skinHash + "_player_skin")
                         .renderMethod("alpha_test")
                         .faceDimming(true)
@@ -82,7 +82,7 @@ public class CustomSkull {
         addFloorPermutations(permutations);
         addWallPermutations(permutations);
 
-        customBlockData = new GeyserCustomBlockData.CustomBlockDataBuilder()
+        customBlockData = new GeyserCustomBlockData.Builder()
                 .name("player_skull_" + skinHash)
                 .components(components)
                 .intProperty(BITS_A_PROPERTY, IntStream.rangeClosed(0, 6).boxed().toList()) // This gives us exactly 21 block states
@@ -114,8 +114,8 @@ public class CustomSkull {
     }
 
     private void addDefaultPermutation(List<CustomBlockPermutation> permutations) {
-        CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                .geometry(new GeometryComponentBuilder()
+        CustomBlockComponents components = new GeyserCustomBlockComponents.Builder()
+                .geometry(new GeyserGeometryComponent.Builder()
                         .identifier("geometry.geyser.player_skull_hand")
                         .build())
                 .transformation(new TransformationComponent(0, 180, 0))
@@ -131,10 +131,10 @@ public class CustomSkull {
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             for (int i = 0; i < 4; i++) {
                 int floorRotation = 4 * quadrant + i;
-                CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
+                CustomBlockComponents components = new GeyserCustomBlockComponents.Builder()
                         .selectionBox(FLOOR_BOX)
                         .collisionBox(FLOOR_BOX)
-                        .geometry(new GeometryComponentBuilder()
+                        .geometry(new GeyserGeometryComponent.Builder()
                                 .identifier("geometry.geyser.player_skull_floor_" + quadrantNames[i])
                                 .build())
                         .transformation(new TransformationComponent(0, ROTATIONS[quadrant], 0))
@@ -150,10 +150,10 @@ public class CustomSkull {
 
     private void addWallPermutations(List<CustomBlockPermutation> permutations) {
         for (int i = 0; i < 4; i++) {
-            CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
+            CustomBlockComponents components = new GeyserCustomBlockComponents.Builder()
                     .selectionBox(WALL_BOX)
                     .collisionBox(WALL_BOX)
-                    .geometry(new GeometryComponentBuilder()
+                    .geometry(new GeyserGeometryComponent.Builder()
                             .identifier("geometry.geyser.player_skull_wall")
                             .build())
                     .transformation(new TransformationComponent(0, ROTATIONS[i], 0))

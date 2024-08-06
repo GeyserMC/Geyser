@@ -1,15 +1,22 @@
 dependencies {
     annotationProcessor(libs.velocity.api)
     api(projects.core)
+
+    compileOnlyApi(libs.velocity.api)
+    api(libs.cloud.velocity)
 }
 
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
+platformRelocate("org.yaml")
+platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 
 exclude("com.google.*:*")
 
-// Needed because Velocity provides every dependency except netty-resolver-dns 
+// Needed because Velocity provides every dependency except netty-resolver-dns
+exclude("io.netty.incubator:.*")
 exclude("io.netty:netty-transport-native-epoll:*")
 exclude("io.netty:netty-transport-native-unix-common:*")
 exclude("io.netty:netty-transport-native-kqueue:*")
@@ -34,8 +41,8 @@ exclude("net.kyori:adventure-nbt:*")
 // These dependencies are already present on the platform
 provided(libs.velocity.api)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.velocity.GeyserVelocityMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
@@ -54,6 +61,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-transport:.*"))
         exclude(dependency("io.netty:netty-codec:.*"))
         exclude(dependency("io.netty:netty-codec-haproxy:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
         // Exclude all Kyori dependencies except the legacy NBT serializer
@@ -64,4 +72,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("net.kyori:adventure-text-serializer-legacy:.*"))
         exclude(dependency("net.kyori:adventure-nbt:.*"))
     }
+}
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.addAll("velocity")
 }

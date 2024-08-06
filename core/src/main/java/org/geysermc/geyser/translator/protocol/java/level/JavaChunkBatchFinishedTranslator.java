@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -39,6 +39,6 @@ public class JavaChunkBatchFinishedTranslator extends PacketTranslator<Clientbou
         // server just sent a batch of LevelChunkWithLightPackets
         // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
         // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
-        session.sendDownstreamPacket(new ServerboundChunkBatchReceivedPacket(20));
+        session.sendDownstreamGamePacket(new ServerboundChunkBatchReceivedPacket(20));
     }
 }

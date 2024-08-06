@@ -38,7 +38,7 @@ public @interface SoundTranslator {
     /**
      * The identifier(s) that the placed block must contain
      * one of. Leave empty to ignore.
-     *
+     * <p>
      * Only applies to interaction handlers that are an
      * instance of {@link BlockSoundInteractionTranslator}.
      *

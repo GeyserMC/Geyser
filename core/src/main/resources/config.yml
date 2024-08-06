@@ -5,6 +5,10 @@
 #
 # GitHub: https://github.com/GeyserMC/Geyser
 # Discord: https://discord.gg/geysermc
+# Wiki: https://wiki.geysermc.org/
+#
+# NOTICE: See https://wiki.geysermc.org/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+# In most cases, especially with server hosting providers, further hosting-specific configuration is required.
 # --------------------------------
 
 bedrock:
@@ -26,14 +30,17 @@ bedrock:
   # How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
   # the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.
   compression-level: 6
+  # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
+  # DO NOT uncomment and change this unless Geyser runs on a different internal port than the one that is used to connect.
+  # broadcast-port: 19132
   # Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
   # in front of your Geyser instance.
   enable-proxy-protocol: false
   # A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
   # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
   # Keeping this list empty means there is no IP address whitelist.
-  # Both IP addresses and subnets are supported.
-  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
+  # IP addresses, subnets, and links to plain text files are supported.
+  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16", "https://example.com/whitelist.txt" ]
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
@@ -86,12 +93,9 @@ command-suggestions: true
 
 # The following three options enable "ping passthrough" - the MOTD, player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
-passthrough-motd: false
-# Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!
-# This will also show up on sites like MCSrvStatus. <mcsrvstat.us>
-passthrough-protocol-name: false
+passthrough-motd: true
 # Relay the player count and max players from the remote server to Bedrock players.
-passthrough-player-counts: false
+passthrough-player-counts: true
 # Enable LEGACY ping passthrough. There is no need to enable this unless your MOTD or player count does not appear properly.
 # This option does nothing on standalone.
 legacy-ping-passthrough: false
@@ -108,14 +112,6 @@ max-players: 100
 
 # If debug messages should be sent through console
 debug-mode: false
-
-# Allow third party capes to be visible. Currently allowing:
-# OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
-allow-third-party-capes: false
-
-# Allow third party deadmau5 ears to be visible. Currently allowing:
-# MinecraftCapes
-allow-third-party-ears: false
 
 # Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
 # Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
@@ -172,7 +168,6 @@ above-bedrock-nether-building: false
 force-resource-packs: true
 
 # Allows Xbox achievements to be unlocked.
-# THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false
 
 # Whether player IP addresses will be logged by the server.

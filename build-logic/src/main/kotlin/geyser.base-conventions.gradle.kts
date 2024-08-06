@@ -16,14 +16,14 @@ indra {
     mitLicense()
 
     javaVersions {
-        target(16)
+        target(17)
     }
 }
 
 tasks {
     processResources {
-        // Spigot, BungeeCord, Velocity, Fabric
-        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json")) {
+        // Spigot, BungeeCord, Velocity, Fabric, ViaProxy, NeoForge
+        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json", "viaproxy.yml", "META-INF/neoforge.mods.toml")) {
             expand(
                 "id" to "geyser",
                 "name" to "Geyser",

@@ -26,42 +26,27 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_trapdoor$", usesParams = true, passDefaultBoxes = true)
 public class TrapdoorCollision extends BlockCollision {
-    /**
-     * 1 = north
-     * 2 = east
-     * 3 = south
-     * 4 = west
-     * 5 = up
-     * 6 = down
-     */
-    private int facing;
+    private final Direction facing;
 
-    public TrapdoorCollision(String params, BoundingBox[] defaultBoxes) {
+    public TrapdoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-        if (params.contains("open=true")) {
-            if (params.contains("facing=north")) {
-                facing = 1;
-            } else if (params.contains("facing=east")) {
-                facing = 2;
-            } else if (params.contains("facing=south")) {
-                facing = 3;
-            } else if (params.contains("facing=west")) {
-                facing = 4;
-            }
+        if (state.getValue(Properties.OPEN)) {
+            facing = state.getValue(Properties.HORIZONTAL_FACING);
         } else {
-            if (params.contains("half=bottom")) {
-                // Up
-                facing = 5;
+            if (state.getValue(Properties.HALF).equals("bottom")) {
+                facing = Direction.UP;
             } else {
-                // Down
-                facing = 6;
+                facing = Direction.DOWN;
             }
         }
     }
@@ -72,22 +57,22 @@ public class TrapdoorCollision extends BlockCollision {
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
-                case 1: // North
+                case NORTH:
                     playerCollision.setMiddleZ(z + 0.5125);
                     break;
-                case 2: // East
+                case EAST:
                     playerCollision.setMiddleX(x + 0.5125);
                     break;
-                case 3: // South
+                case SOUTH:
                     playerCollision.setMiddleZ(z + 0.4875);
                     break;
-                case 4: // West
+                case WEST:
                     playerCollision.setMiddleX(x + 0.4875);
                     break;
-                case 5:
+                case UP:
                     // Up-facing trapdoors are handled by the step-up check
                     break;
-                case 6: // Down
+                case DOWN:
                     // (top y of trap door) - (trap door thickness) = top y of player
                     playerCollision.setMiddleY(y + 1 - (3.0 / 16.0) - playerCollision.getSizeY() / 2.0 - CollisionManager.COLLISION_TOLERANCE);
                     break;

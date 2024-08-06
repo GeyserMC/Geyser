@@ -39,6 +39,7 @@ import java.lang.reflect.Modifier;
 public final class GeyserSpigotVersionChecker {
     private static final String VIAVERSION_DOWNLOAD_URL = "https://ci.viaversion.com/job/ViaVersion/";
 
+    @SuppressWarnings("deprecation")
     public static void checkForSupportedProtocol(GeyserLogger logger, boolean viaversion) {
         if (viaversion) {
             checkViaVersionSupportedVersions(logger);

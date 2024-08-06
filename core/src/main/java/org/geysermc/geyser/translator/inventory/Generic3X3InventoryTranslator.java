@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
@@ -33,15 +32,17 @@ import org.geysermc.geyser.inventory.Generic3X3Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 /**
  * Droppers and dispensers
  */
 public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator {
     public Generic3X3InventoryTranslator() {
-        super(9, "minecraft:dispenser[facing=north,triggered=false]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
-                "minecraft:dropper");
+        super(9, Blocks.DISPENSER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
+                Blocks.DROPPER);
     }
 
     @Override

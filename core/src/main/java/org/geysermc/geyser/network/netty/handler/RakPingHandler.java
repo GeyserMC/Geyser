@@ -45,7 +45,7 @@ public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
     protected void channelRead0(ChannelHandlerContext ctx, RakPing msg) {
         long guid = ctx.channel().config().getOption(RakChannelOption.RAK_GUID);
 
-        RakPong pong = msg.reply(guid, this.server.onQuery(msg.getSender()).toByteBuf());
+        RakPong pong = msg.reply(guid, this.server.onQuery(ctx.channel(), msg.getSender()).toByteBuf());
         ctx.writeAndFlush(pong);
     }
 }

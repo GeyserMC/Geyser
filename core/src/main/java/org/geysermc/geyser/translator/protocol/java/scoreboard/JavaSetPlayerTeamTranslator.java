@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamAction;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.scoreboard.Scoreboard;

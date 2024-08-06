@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -32,7 +33,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class ChestedHorseEntity extends AbstractHorseEntity {
@@ -47,18 +47,18 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
     }
 
     @Override
-    protected boolean testSaddle(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean testSaddle(@NonNull GeyserItemStack itemInHand) {
         // Not checked here
         return false;
     }
 
     @Override
-    protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean testForChest(@NonNull GeyserItemStack itemInHand) {
         return itemInHand.asItem() == Items.CHEST && !getFlag(EntityFlag.CHESTED);
     }
 
     @Override
-    protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
         // Armor won't work on these
         return false;
     }

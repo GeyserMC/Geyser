@@ -25,10 +25,16 @@
 
 package org.geysermc.geyser.api.extension.exception;
 
+import java.io.Serial;
+
 /**
  * Thrown when an extension is invalid.
  */
 public class InvalidExtensionException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public InvalidExtensionException(Throwable cause) {
         super(cause);
     }

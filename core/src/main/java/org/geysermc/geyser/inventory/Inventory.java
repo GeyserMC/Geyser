@@ -25,22 +25,20 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.jetbrains.annotations.Range;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @ToString
@@ -126,7 +124,7 @@ public abstract class Inventory {
 
     public abstract int getOffsetForHotbar(@Range(from = 0, to = 8) int slot);
 
-    public void setItem(int slot, @Nonnull GeyserItemStack newItem, GeyserSession session) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
             session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
             return;
@@ -137,12 +135,9 @@ public abstract class Inventory {
 
         // Lodestone caching
         if (newItem.asItem() == Items.COMPASS) {
-            CompoundTag nbt = newItem.getNbt();
-            if (nbt != null) {
-                Tag lodestoneTag = nbt.get("LodestoneTracked");
-                if (lodestoneTag instanceof ByteTag) {
-                    session.getLodestoneCache().cacheInventoryItem(newItem);
-                }
+            var tracker = newItem.getComponent(DataComponentType.LODESTONE_TRACKER);
+            if (tracker != null) {
+                session.getLodestoneCache().cacheInventoryItem(newItem, tracker);
             }
         }
     }

@@ -34,8 +34,8 @@ import java.util.logging.Logger;
 public final class GeyserPaperLogger extends GeyserSpigotLogger {
     private final ComponentLogger componentLogger;
 
-    public GeyserPaperLogger(Plugin plugin, Logger logger, boolean debug) {
-        super(logger, debug);
+    public GeyserPaperLogger(Plugin plugin, Logger logger) {
+        super(logger);
         componentLogger = plugin.getComponentLogger();
     }
 

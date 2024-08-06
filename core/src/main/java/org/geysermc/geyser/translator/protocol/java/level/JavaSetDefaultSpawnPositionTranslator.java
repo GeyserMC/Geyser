@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetDefaultSpawnPositionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetDefaultSpawnPositionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetSpawnPositionPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -39,7 +39,7 @@ public class JavaSetDefaultSpawnPositionTranslator extends PacketTranslator<Clie
     public void translate(GeyserSession session, ClientboundSetDefaultSpawnPositionPacket packet) {
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
         spawnPositionPacket.setBlockPosition(packet.getPosition());
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         session.sendUpstreamPacket(spawnPositionPacket);
     }

@@ -72,6 +72,7 @@ public final class BedrockData implements Cloneable {
                 false, subscribeId, verifyCode);
     }
 
+    @SuppressWarnings("unused")
     public static BedrockData fromString(String data) {
         String[] split = data.split("\0");
         if (split.length != EXPECTED_LENGTH) {
@@ -92,6 +93,7 @@ public final class BedrockData implements Cloneable {
                 dataLength);
     }
 
+    @SuppressWarnings("unused")
     public boolean hasPlayerLink() {
         return linkedPlayer != null;
     }

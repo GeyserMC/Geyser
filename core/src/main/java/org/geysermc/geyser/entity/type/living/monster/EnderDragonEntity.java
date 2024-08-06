@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import lombok.Data;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
@@ -42,6 +40,8 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.Optional;
 import java.util.Random;
@@ -148,11 +148,11 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         for (EnderDragonPartEntity part : allParts) {
             part.despawnEntity();
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override
@@ -264,7 +264,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     // so we need to manually spawn particles
                     for (int i = 0; i < 8; i++) {
                         SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
-                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
                         spawnParticleEffectPacket.setPosition(head.getPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
                         spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
                         spawnParticleEffectPacket.setMolangVariablesJson(Optional.empty());

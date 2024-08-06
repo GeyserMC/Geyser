@@ -28,14 +28,14 @@ package org.geysermc.geyser.network;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
@@ -47,8 +47,12 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         this.geyser = geyser;
     }
 
+    public DefaultEventLoopGroup getEventLoopGroup() {
+        return eventLoopGroup;
+    }
+
     @Override
-    public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
+    public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
         try {
             if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
                 InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());
@@ -59,8 +63,11 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
             bedrockServerSession.setLogging(true);
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
+
+            Channel channel = bedrockServerSession.getPeer().getChannel();
+            channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
+
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
-            this.geyser.eventBus().fire(new SessionInitializeEvent(session));
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);

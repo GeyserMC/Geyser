@@ -25,22 +25,29 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerSpawnInfo;
-import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.erosion.Constants;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -56,34 +63,42 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
 
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
+        JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), spawnInfo.getDimension());
-            DimensionUtils.switchDimension(session, fakeDim);
+            int fakeDim = DimensionUtils.getTemporaryDimension(DimensionUtils.javaToBedrock(session.getBedrockDimension()), newDimension.bedrockId());
+            if (fakeDim != newDimension.bedrockId()) {
+                // The player's current dimension and new dimension are the same
+                // We want a dimension switch to clear old chunks out, so switch to a dimension that isn't the one we're currently in.
+                // Another dimension switch will be required to switch back
+                DimensionUtils.fastSwitchDimension(session, fakeDim);
+            }
 
             session.getWorldCache().removeScoreboard();
+
+            // Remove all bossbars
+            session.getEntityCache().removeAllBossBars();
+            // Remove extra hearts, hunger, etc.
+            entity.resetAttributes();
+            entity.resetMetadata();
         }
+
+        session.setDimensionType(newDimension);
         session.setWorldName(spawnInfo.getWorldName());
-        session.setLevels(packet.getWorldNames());
-
+        session.setLevels(Arrays.stream(packet.getWorldNames()).map(Key::asString).toArray(String[]::new));
         session.setGameMode(spawnInfo.getGameMode());
-
-        String newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
-            session.setDimension(newDimension);
-            DimensionUtils.setBedrockDimension(session, newDimension);
+            DimensionUtils.setBedrockDimension(session, newDimension.bedrockId());
             session.connect();
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
-        }
-
-        if (!needsSpawnPacket) {
+        } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
             playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
@@ -106,15 +121,17 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         // as the bedrock client isn't required to send a render distance
         session.sendJavaClientSettings();
 
+        Key register = MinecraftKey.key("register");
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
-            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
+            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, PluginMessageChannels.getFloodgateRegisterData()));
         }
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 
-        if (!newDimension.equals(session.getDimension())) {
+        if (DimensionUtils.javaToBedrock(session.getBedrockDimension()) != newDimension.bedrockId()) {
             DimensionUtils.switchDimension(session, newDimension);
-        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.isNetherLike()) {
             // If the player is spawning into the "fake" nether, send them some fog
-            session.sendFog(DimensionUtils.BEDROCK_FOG_HELL);
+            session.camera().sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
 
         ChunkUtils.loadDimension(session);

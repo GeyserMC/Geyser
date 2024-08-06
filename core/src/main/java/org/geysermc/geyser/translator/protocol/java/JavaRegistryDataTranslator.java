@@ -25,43 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.TextDecoration;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.JavaCodecUtil;
-
-import java.util.Map;
 
 @Translator(packet = ClientboundRegistryDataPacket.class)
 public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegistryDataPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundRegistryDataPacket packet) {
-        Map<String, JavaDimension> dimensions = session.getDimensions();
-        dimensions.clear();
-        JavaDimension.load(packet.getRegistry(), dimensions);
-
-        Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
-        chatTypes.clear();
-        for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
-            // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-            int id = ((IntTag) tag.get("id")).getValue();
-            CompoundTag element = tag.get("element");
-            CompoundTag chat = element.get("chat");
-            TextDecoration textDecoration = null;
-            if (chat != null) {
-                textDecoration = new TextDecoration(chat);
-            }
-            chatTypes.put(id, textDecoration);
-        }
-
-        BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
+        session.getRegistryCache().load(packet);
     }
 }

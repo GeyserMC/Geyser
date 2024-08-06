@@ -39,7 +39,7 @@ public interface JavaBlockState {
      * 
      * @return whether the block state is waterlogged
      */
-    @NonNull boolean waterlogged();
+    boolean waterlogged();
 
     /**
      * Gets the collision of the block state
@@ -53,7 +53,7 @@ public interface JavaBlockState {
      * 
      * @return whether the block state can be broken with hand
      */
-    @NonNull boolean canBreakWithHand();
+    boolean canBreakWithHand();
 
     /**
      * Gets the pick item of the block state
@@ -73,8 +73,11 @@ public interface JavaBlockState {
      * Gets whether the block state has block entity
      * 
      * @return whether the block state has block entity
+     * @deprecated Does not have an effect. If you were using this to
+     * set piston behavior, use {@link #pistonBehavior()} instead.
      */
-    @Nullable boolean hasBlockEntity();
+    @Deprecated(forRemoval = true)
+    boolean hasBlockEntity();
 
     /**
      * Creates a new {@link JavaBlockState.Builder} instance
@@ -94,17 +97,22 @@ public interface JavaBlockState {
 
         Builder blockHardness(@NonNegative float blockHardness);
 
-        Builder waterlogged(@NonNull boolean waterlogged);
+        Builder waterlogged(boolean waterlogged);
 
         Builder collision(@NonNull JavaBoundingBox[] collision);
 
-        Builder canBreakWithHand(@NonNull boolean canBreakWithHand);
+        Builder canBreakWithHand(boolean canBreakWithHand);
 
         Builder pickItem(@Nullable String pickItem);
 
         Builder pistonBehavior(@Nullable String pistonBehavior);
 
-        Builder hasBlockEntity(@Nullable boolean hasBlockEntity);
+        /**
+         * @deprecated Does not have an effect. If you were using this to
+         *      * set piston behavior, use {@link #pistonBehavior(String)} instead.
+         */
+        @Deprecated(forRemoval = true)
+        Builder hasBlockEntity(boolean hasBlockEntity);
 
         JavaBlockState build();
     }
