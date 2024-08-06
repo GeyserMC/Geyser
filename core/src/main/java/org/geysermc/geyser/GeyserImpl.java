@@ -62,13 +62,14 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
@@ -128,7 +129,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl implements GeyserApi {
+public class GeyserImpl implements GeyserApi, EventRegistrar {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -154,12 +155,6 @@ public class GeyserImpl implements GeyserApi {
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
     private final SessionManager sessionManager = new SessionManager();
-
-    /**
-     * This is used in GeyserConnect to stop the bedrock server binding to a port
-     */
-    @Setter
-    private static boolean shouldStartListener = true;
 
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
@@ -231,9 +226,7 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         if (IS_DEV) {
-            // TODO cloud use language string
-            //logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
-            logger.info("You are running a development build of Geyser! Please report any bugs you find on our Discord server: %s".formatted("https://discord.gg/geysermc"));
+            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
             logger.info("");
         }
         logger.info("******************************************");
@@ -265,6 +258,9 @@ public class GeyserImpl implements GeyserApi {
 
             CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
         });
+
+        // Register our general permissions when possible
+        eventBus.subscribe(this, GeyserRegisterPermissionsEvent.class, Permissions::register);
 
         startInstance();
 
@@ -433,24 +429,22 @@ public class GeyserImpl implements GeyserApi {
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }
 
-        if (shouldStartListener) {
-            this.geyserServer = new GeyserServer(this, bedrockThreadCount);
-            this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
-                .whenComplete((avoid, throwable) -> {
-                    if (throwable == null) {
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
-                                String.valueOf(config.getBedrock().port())));
-                    } else {
-                        String address = config.getBedrock().address();
-                        int port = config.getBedrock().port();
-                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
-                        if (!"0.0.0.0".equals(address)) {
-                            logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                            logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
-                        }
+        this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+        this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
+            .whenComplete((avoid, throwable) -> {
+                if (throwable == null) {
+                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
+                            String.valueOf(config.getBedrock().port())));
+                } else {
+                    String address = config.getBedrock().address();
+                    int port = config.getBedrock().port();
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                    if (!"0.0.0.0".equals(address)) {
+                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
                     }
-                }).join();
-        }
+                }
+            }).join();
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
             try {
@@ -730,7 +724,6 @@ public class GeyserImpl implements GeyserApi {
         if (isEnabled) {
             this.disable();
         }
-        this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
@@ -768,9 +761,12 @@ public class GeyserImpl implements GeyserApi {
         return this.extensionManager;
     }
 
+    /**
+     * @return the current CommandRegistry in use. The instance may change over the lifecycle of the Geyser runtime.
+     */
     @NonNull
-    public GeyserCommandManager commandManager() {
-        return this.bootstrap.getGeyserCommandManager();
+    public CommandRegistry commandRegistry() {
+        return this.bootstrap.getCommandRegistry();
     }
 
     @Override

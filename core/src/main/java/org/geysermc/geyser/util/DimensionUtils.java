@@ -179,7 +179,7 @@ public class DimensionUtils {
     }
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {
-        session.getChunkCache().setBedrockDimension(switch (bedrockDimension) {
+        session.setBedrockDimension(switch (bedrockDimension) {
             case BEDROCK_END_ID -> BedrockDimension.THE_END;
             case BEDROCK_DEFAULT_NETHER_ID -> BedrockDimension.THE_NETHER; // JavaDimension *should* be set to BEDROCK_END_ID if the Nether workaround is enabled.
             default -> BedrockDimension.OVERWORLD;

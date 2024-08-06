@@ -17,12 +17,12 @@ dependencies {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
 
+    implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
 
     compileOnly(libs.folia.api)
-    compileOnly(libs.paper.mojangapi)
 
     compileOnlyApi(libs.viaversion)
 }
@@ -33,13 +33,15 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("org.incendo")
+platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.GeyserSpigotMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
