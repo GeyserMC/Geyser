@@ -438,7 +438,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 if (throwable == null) {
                     if ("0.0.0.0".equals(address)) {
                         // basically just hide it in the log because some people get confused and try to change it
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_supressed", port));
+                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_suppressed", port));
                     } else {
                         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
                     }
