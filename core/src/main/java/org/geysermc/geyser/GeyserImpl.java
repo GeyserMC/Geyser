@@ -377,7 +377,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        // Now that other platforms set the Bedrock port, also check the broadcast port
+        // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
         String broadcastPort = System.getProperty("geyserBroadcastPort", "");
         if (!broadcastPort.isEmpty()) {
             int parsedPort;
