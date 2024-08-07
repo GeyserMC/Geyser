@@ -60,7 +60,6 @@ import java.util.*;
 @Getter
 @Setter
 public class Entity implements GeyserEntity {
-
     private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
 
     protected final GeyserSession session;
@@ -68,6 +67,12 @@ public class Entity implements GeyserEntity {
     protected int entityId;
     protected final long geyserId;
     protected UUID uuid;
+    /**
+     * Do not call this setter directly!
+     * This will bypass the scoreboard and setting the metadata
+     */
+    @Setter(AccessLevel.NONE)
+    protected String nametag = "";
 
     protected Vector3f position;
     protected Vector3f motion;
@@ -97,7 +102,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    protected String nametag = "";
+    private String displayName = "";
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -411,15 +416,38 @@ public class Entity implements GeyserEntity {
     }
 
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // the difference between displayName and nametag aren't important for non-living entities and for players,
+        // but the displayName is needed for living entities that are part of a scoreboard team.
+        // For them the nametag is prefix + displayName + suffix
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            nametag = MessageTranslator.convertMessage(name.get(), session.locale());
-            dirtyMetadata.put(EntityDataTypes.NAME, nametag);
-        } else if (!nametag.isEmpty()) {
-            // Clear nametag
-            dirtyMetadata.put(EntityDataTypes.NAME, "");
+            var displayName = MessageTranslator.convertMessage(name.get(), session.locale());
+            this.displayName = displayName;
+            setNametag(displayName, true);
+        } else {
+            this.displayName = "";
+            setNametag(null, true);
         }
     }
+
+    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+        var hide = nametag == null;
+        if (hide) {
+            nametag = "";
+        }
+        var changed = Objects.equals(this.nametag, nametag);
+        this.nametag = nametag;
+        // we only update metadata if the value has changed
+        if (!changed) {
+            return;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        // if nametag (player with team) is hidden for player, so should the score (belowname)
+        scoreVisibility(!hide);
+    }
+
+    protected void scoreVisibility(boolean show) {}
 
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));

@@ -84,4 +84,30 @@ public class ChatColor {
         string = string.replace(WHITE, (char) 0x1b + "[37;1m");
         return string;
     }
+
+    public static String styleOrder(int index) {
+        return switch (index) {
+            case 0 -> BLACK;
+            case 1 -> DARK_BLUE;
+            case 2 -> DARK_GREEN;
+            case 3 -> DARK_AQUA;
+            case 4 -> DARK_RED;
+            case 5 -> DARK_PURPLE;
+            case 6 -> GOLD;
+            case 7 -> GRAY;
+            case 8 -> DARK_GRAY;
+            case 9 -> BLUE;
+            case 10 -> GREEN;
+            case 11 -> AQUA;
+            case 12 -> RED;
+            case 13 -> LIGHT_PURPLE;
+            case 14 -> YELLOW;
+            case 15 -> WHITE;
+            case 16 -> OBFUSCATED;
+            case 17 -> BOLD;
+            case 18 -> STRIKETHROUGH;
+            case 19 -> UNDERLINE;
+            default -> ITALIC;
+        };
+    }
 }

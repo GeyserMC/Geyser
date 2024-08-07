@@ -126,15 +126,35 @@ public class EntityCache {
 
     public void addPlayerEntity(PlayerEntity entity) {
         // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
-        playerEntities.putIfAbsent(entity.getUuid(), entity);
+        var exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
+        if (exists) {
+            return;
+        }
+        // notify scoreboard for new entity
+        session.getWorldCache().getScoreboard().playerRegistered(entity);
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {
         return playerEntities.get(uuid);
     }
 
+    public List<PlayerEntity> getPlayersByName(String name) {
+        var list = new ArrayList<PlayerEntity>();
+        for (PlayerEntity player : playerEntities.values()) {
+            if (name.equals(player.getUsername())) {
+                list.add(player);
+            }
+        }
+        return list;
+    }
+
     public PlayerEntity removePlayerEntity(UUID uuid) {
-        return playerEntities.remove(uuid);
+        var player = playerEntities.remove(uuid);
+        if (player != null) {
+            // notify scoreboard
+            session.getWorldCache().getScoreboard().playerRemoved(player);
+        }
+        return player;
     }
 
     public Collection<PlayerEntity> getAllPlayerEntities() {

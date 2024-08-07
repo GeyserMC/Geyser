@@ -44,8 +44,10 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
@@ -65,11 +67,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.*;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 @Getter
 @Setter
 public class LivingEntity extends Entity {
-
     protected ItemData helmet = ItemData.AIR;
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
@@ -142,6 +144,45 @@ public class LivingEntity extends Entity {
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
         dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+    }
+
+    public void updateNametag(@Nullable Team team) {
+        if (team != null) {
+            String newNametag;
+            if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
+                TeamColor color = team.color();
+                String chatColor = MessageTranslator.toChatColor(color);
+                // We have to emulate what modern Java text already does for us and add the color to each section
+                newNametag = chatColor + team.prefix() + chatColor + getDisplayName() + chatColor + team.suffix();
+            } else {
+                // The name is not visible to the session player; clear name
+                newNametag = "";
+            }
+            setNametag(newNametag, false);
+            return;
+        }
+        // The name has reset, if it was previously something else
+        setNametag(null, false);
+    }
+
+    public void hideNametag() {
+        setNametag("", false);
+    }
+
+    public String teamIdentifier() {
+        return uuid.toString();
+    }
+
+    @Override
+    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+        if (nametag != null && fromDisplayName) {
+            var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
+            if (team != null) {
+                updateNametag(team);
+                return;
+            }
+        }
+        super.setNametag(nametag, fromDisplayName);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
