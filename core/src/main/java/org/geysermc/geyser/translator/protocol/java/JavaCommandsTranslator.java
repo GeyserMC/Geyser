@@ -76,6 +76,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         @Override
         public int hashCode(BedrockCommandInfo o) {
             int paramHash = Arrays.deepHashCode(o.paramData());
+            if ("help".equals(o.name())) {
+                paramHash = 31 * paramHash + 1;
+            }
             return 31 * paramHash + o.description().hashCode();
         }
 
@@ -83,6 +86,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         public boolean equals(BedrockCommandInfo a, BedrockCommandInfo b) {
             if (a == b) return true;
             if (a == null || b == null) return false;
+            if ("help".equals(a.name()) && !"help".equals(b.name())) {
+                // Merging this causes Bedrock to fallback to its own help command
+                // https://github.com/GeyserMC/Geyser/issues/2573
+                return false;
+            }
             if (!a.description().equals(b.description())) return false;
             if (a.paramData().length != b.paramData().length) return false;
             for (int i = 0; i < a.paramData().length; i++) {
