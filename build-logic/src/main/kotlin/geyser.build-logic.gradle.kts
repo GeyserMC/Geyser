@@ -3,9 +3,6 @@ repositories {
 
     mavenCentral()
 
-    // Opencollab repo
-    maven("https://repo.opencollab.dev/main")
-
     // Floodgate, Cumulus etc.
     maven("https://repo.opencollab.dev/main")
 
