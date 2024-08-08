@@ -150,13 +150,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         try {
             // Check spigot config for BungeeCord mode
-            if (Boolean.TRUE.equals(Bukkit.getServer().spigot().getConfig().get("settings.bungeecord"))) {
+            if (Bukkit.getServer().spigot().getConfig().getBoolean("settings.bungeecord")) {
                 disableOnBackendServers("BungeeCord");
                 return;
             }
 
             // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper config
-            if (Boolean.TRUE.equals(Bukkit.getServer().spigot().getPaperConfig().get("proxies.velocity.enabled"))) {
+            if (Bukkit.getServer().spigot().getPaperConfig().getBoolean("proxies.velocity.enabled")) {
                 disableOnBackendServers("Velocity");
                 return;
             }
