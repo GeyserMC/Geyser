@@ -380,18 +380,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
         String broadcastPort = System.getProperty("geyserBroadcastPort", "");
         if (!broadcastPort.isEmpty()) {
-            int parsedPort;
             try {
-                parsedPort = Integer.parseInt(broadcastPort);
+                int parsedPort = Integer.parseInt(broadcastPort);
                 if (parsedPort < 1 || parsedPort > 65535) {
                     throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
                 }
+                config.getBedrock().setBroadcastPort(parsedPort);
+                logger.info("Broadcast port set from system property: " + parsedPort);
             } catch (NumberFormatException e) {
-                logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
-                parsedPort = config.getBedrock().port();
+                logger.error(String.format("Invalid broadcast port from system property: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
             }
-            config.getBedrock().setBroadcastPort(parsedPort);
-            logger.info("Broadcast port set from system property: " + parsedPort);
         }
 
         String remoteAddress = config.getRemote().address();
