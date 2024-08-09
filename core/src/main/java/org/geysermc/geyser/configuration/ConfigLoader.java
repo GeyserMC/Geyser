@@ -124,7 +124,7 @@ public final class ConfigLoader {
 
         T config = node.get(configClass);
 
-        // Serialize the instance to ensure strict field ordering. Additionally, If we serialized back
+        // Serialize the instance to ensure strict field ordering. Additionally, if we serialized back
         // to the old node, existing nodes would only have their value changed, keeping their position
         // at the top of the ordered map, forcing all new nodes to the bottom (regardless of field order).
         // For that reason, we must also create a new node.
