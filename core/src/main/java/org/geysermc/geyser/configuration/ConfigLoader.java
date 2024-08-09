@@ -133,7 +133,7 @@ public final class ConfigLoader {
 
         if (originallyEmpty || currentVersion != newVersion) {
 
-            if (!originallyEmpty && currentVersion != 4) {
+            if (!originallyEmpty && currentVersion > 4) {
                 // Only copy comments over if the file already existed, and we are going to replace it
 
                 // Second case: Version 4 is pre-configurate where there were commented out nodes.
