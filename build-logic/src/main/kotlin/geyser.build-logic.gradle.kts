@@ -30,7 +30,6 @@ repositories {
         mavenContent { releasesOnly() }
     }
 
-
     // ViaVersion
     maven("https://repo.viaversion.com") {
         name = "viaversion"
