@@ -23,7 +23,6 @@ dependencies {
     shadow(libs.protocol.codec) { isTransitive = false }
     shadow(libs.raknet) { isTransitive = false }
     shadow(libs.mcprotocollib) { isTransitive = false }
-    shadow(libs.minecraftauth) { isTransitive = false }
 
     // Since we also relocate cloudburst protocol: shade erosion common
     shadow(libs.erosion.common) { isTransitive = false }
