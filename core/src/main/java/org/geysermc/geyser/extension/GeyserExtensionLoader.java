@@ -169,7 +169,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             List<Path> extensionPaths;
             if (Files.isDirectory(updateDirectory)) {
                 // Get the current extensions and store them in a map
-                Map<String, String> extensionFiles = new HashMap<>();
+                Map<String, Path> extensionFiles = new HashMap<>();
                 extensionPaths = Files.list(extensionsDirectory).toList();
                 extensionPaths.forEach(path -> {
                     if (Files.isDirectory(path)) {
@@ -188,7 +188,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         GeyserExtensionDescription description = this.extensionDescription(path);
 
                         // Store the file name against ID for later use
-                        extensionFiles.put(description.id(), path.getFileName().toString());
+                        extensionFiles.put(description.id(), path.getFileName());
                     } catch (Throwable e) {
                         // no-op
                     }
@@ -214,7 +214,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
                         // Remove the old extension with the same ID if it exists
                         if (extensionFiles.containsKey(description.id())) {
-                            Files.delete(extensionsDirectory.resolve(extensionFiles.get(description.id())));
+                            Files.delete(extensionFiles.get(description.id()));
                         }
 
                         // Overwrite the extension with the new jar
