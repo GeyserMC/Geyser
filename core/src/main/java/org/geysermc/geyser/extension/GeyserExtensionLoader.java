@@ -166,13 +166,17 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             Pattern[] extensionFilters = this.extensionFilters();
 
             Path updateDirectory = extensionsDirectory.resolve("update");
+            List<Path> extensionPaths;
             if (Files.isDirectory(updateDirectory)) {
-                List<Path> extensionUpdatePaths = Files.list(updateDirectory).toList();
-                extensionUpdatePaths.forEach(path -> {
+                // Get the current extensions and store them in a map
+                Map<String, String> extensionFiles = new HashMap<>();
+                extensionPaths = Files.list(extensionsDirectory).toList();
+                extensionPaths.forEach(path -> {
                     if (Files.isDirectory(path)) {
                         return;
                     }
 
+                    // Only look at files that meet the extension filter
                     for (Pattern filter : extensionFilters) {
                         if (!filter.matcher(path.getFileName().toString()).matches()) {
                             return;
@@ -183,6 +187,36 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         // Try load the description, so we know it's a valid extension
                         GeyserExtensionDescription description = this.extensionDescription(path);
 
+                        // Store the file name against ID for later use
+                        extensionFiles.put(description.id(), path.getFileName().toString());
+                    } catch (Throwable e) {
+                        // no-op
+                    }
+                });
+
+                // Perform the updates
+                List<Path> extensionUpdatePaths = Files.list(updateDirectory).toList();
+                extensionUpdatePaths.forEach(path -> {
+                    if (Files.isDirectory(path)) {
+                        return;
+                    }
+
+                    // Only look at files that meet the extension filter
+                    for (Pattern filter : extensionFilters) {
+                        if (!filter.matcher(path.getFileName().toString()).matches()) {
+                            return;
+                        }
+                    }
+
+                    try {
+                        // Try load the description, so we know it's a valid extension
+                        GeyserExtensionDescription description = this.extensionDescription(path);
+
+                        // Remove the old extension with the same ID if it exists
+                        if (extensionFiles.containsKey(description.id())) {
+                            Files.delete(extensionsDirectory.resolve(extensionFiles.get(description.id())));
+                        }
+
                         // Overwrite the extension with the new jar
                         Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
                     } catch (Throwable e) {
@@ -191,7 +225,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 });
             }
 
-            List<Path> extensionPaths = Files.list(extensionsDirectory).toList();
+            extensionPaths = Files.list(extensionsDirectory).toList();
             extensionPaths.forEach(path -> {
                 if (Files.isDirectory(path)) {
                     return;
