@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
+import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
@@ -61,13 +62,16 @@ public final class ConfigLoader {
     public static <T extends GeyserConfig> T load(File file, Class<T> configClass, @Nullable Consumer<CommentedConfigurationNode> transformer) throws IOException {
         var loader = YamlConfigurationLoader.builder()
                 .file(file)
-                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options
+                .indent(2)
+                .nodeStyle(NodeStyle.BLOCK)
+                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options)
+                    .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                     .header(HEADER)
-                    .serializers(builder -> builder.register(new LowercaseEnumSerializer()))))
+                    .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
                 .build();
-        var node = loader.load();
-        // temp fix for node.virtual() being broken
-        boolean virtual = file.exists();
+
+        CommentedConfigurationNode node = loader.load();
+        boolean originallyEmpty = !file.exists() || node.isNull();
 
         // Note for Tim? Needed or else Configurate breaks.
         var migrations = ConfigurationTransformation.versionedBuilder()
@@ -120,14 +124,31 @@ public final class ConfigLoader {
 
         T config = node.get(configClass);
 
-        if (virtual || currentVersion != newVersion) {
-            loader.save(node);
+        // Serialize the instance to ensure strict field ordering. Additionally, If we serialized back
+        // to the old node, existing nodes would only have their value changed, keeping their position
+        // at the top of the ordered map, forcing all new nodes to the bottom (regardless of field order).
+        // For that reason, we must also create a new node.
+        CommentedConfigurationNode newRoot = CommentedConfigurationNode.root(loader.defaultOptions());
+        newRoot.set(config);
+
+        if (originallyEmpty || currentVersion != newVersion) {
+
+            if (!originallyEmpty && currentVersion != 4) {
+                // Only copy comments over if the file already existed, and we are going to replace it
+
+                // Second case: Version 4 is pre-configurate where there were commented out nodes.
+                // These get treated as comments on lower nodes, which produces very undesirable results.
+
+                ConfigurationCommentMover.moveComments(node, newRoot);
+            }
+
+            loader.save(newRoot);
         }
 
         if (transformer != null) {
-            // Do not let the transformer change the node.
-            transformer.accept(node);
-            config = node.get(configClass);
+            // We transform AFTER saving so that these specific transformations aren't applied to file.
+            transformer.accept(newRoot);
+            config = newRoot.get(configClass);
         }
 
         return config;
