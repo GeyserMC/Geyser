@@ -188,7 +188,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         GeyserExtensionDescription description = this.extensionDescription(path);
 
                         // Store the file name against ID for later use
-                        extensionFiles.put(description.id(), path.getFileName());
+                        extensionFiles.put(description.id(), path);
                     } catch (Throwable e) {
                         // no-op
                     }
