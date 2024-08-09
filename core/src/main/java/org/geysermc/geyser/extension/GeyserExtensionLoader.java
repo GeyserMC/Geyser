@@ -213,7 +213,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         GeyserExtensionDescription description = this.extensionDescription(path);
 
                         // Remove the old extension with the same ID if it exists
-                        if (extensionFiles.containsKey(description.id())) {
+                        Path oldExtensionFile = extensionFiles.get(description.id());
+                        if (oldExtensionFile != null && Files.exists(oldExtensionFile)) {
                             Files.delete(extensionFiles.get(description.id()));
                         }
 
