@@ -155,6 +155,9 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
         }
+        if (this.config.getRemote().authType() == AuthType.FLOODGATE) {
+            ViaProxy.getConfig().setPassthroughBungeecordPlayerInfo(true);
+        }
     }
 
     @Override
