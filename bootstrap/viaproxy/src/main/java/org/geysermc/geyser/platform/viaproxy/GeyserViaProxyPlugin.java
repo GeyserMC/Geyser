@@ -132,6 +132,10 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public void onGeyserEnable() {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
         boolean reloading = geyser.isReloading();
         if (reloading) {
             if (!this.loadConfig()) {

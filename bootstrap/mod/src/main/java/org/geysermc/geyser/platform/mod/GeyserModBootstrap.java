@@ -89,6 +89,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     public void onGeyserEnable() {
+        // "Disabling" a mod isn't possible; so if we fail to initialize we need to manually stop here
+        if (geyser == null) {
+            return;
+        }
+
         if (GeyserImpl.getInstance().isReloading()) {
             if (!loadConfig()) {
                 return;
