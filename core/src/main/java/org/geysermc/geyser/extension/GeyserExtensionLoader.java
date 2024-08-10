@@ -190,7 +190,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         // Store the file path against ID for later use
                         extensionFiles.put(description.id(), path);
                     } catch (Throwable e) {
-                        // no-op
+                        // this file will throw again when we actually try to load extensions, and it will be handled there
                     }
                 });
 
