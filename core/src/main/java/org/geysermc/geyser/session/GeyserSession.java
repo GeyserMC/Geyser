@@ -79,6 +79,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -2112,6 +2113,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public int ping() {
         RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
         return (int) Math.floor(rakSessionCodec.getPing());
+    }
+
+    @Override
+    public void closeForm() {
+        // TODO remove once 1.21.2 is lowest supported version
+        if (upstream.getProtocolVersion() >= 686) {
+            sendUpstreamPacket(new ClientboundCloseFormPacket());
+        }
     }
 
     public void addCommandEnum(String name, String enums) {
