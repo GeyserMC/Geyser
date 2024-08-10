@@ -148,13 +148,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         try {
             // Check spigot config for BungeeCord mode
             if (Bukkit.getServer().spigot().getConfig().getBoolean("settings.bungeecord")) {
-                disableOnBackendServers("BungeeCord");
+                warnInvalidProxySetups("BungeeCord");
                 return;
             }
 
             // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper config
             if (Bukkit.getServer().spigot().getPaperConfig().getBoolean("proxies.velocity.enabled")) {
-                disableOnBackendServers("Velocity");
+                warnInvalidProxySetups("Velocity");
                 return;
             }
         } catch (NoSuchMethodError e) {
@@ -477,7 +477,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return true;
     }
 
-    private void disableOnBackendServers(String platform) {
+    private void warnInvalidProxySetups(String platform) {
         geyserLogger.error("*********************************************");
         geyserLogger.error("");
         geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy_backend", platform));
