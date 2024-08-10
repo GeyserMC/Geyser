@@ -81,5 +81,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 modrinth {
     uploadFile.set(tasks.getByPath("shadowJar"))
+    gameVersions.addAll("1.16.5", "1.17", "1.17.1", "1.18", "1.18.1", "1.18.2", "1.19",
+        "1.19.1", "1.19.2", "1.19.3", "1.19.4", "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6")
     loaders.addAll("spigot", "paper")
 }

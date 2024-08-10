@@ -249,6 +249,8 @@ locales/
 /packs/
 /dump.json
 /saved-refresh-tokens.json
+/saved-auth-chains.json
 /custom_mappings/
 /languages/
 /custom-skulls.yml
+/permissions.yml
