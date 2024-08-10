@@ -152,7 +152,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 return;
             }
 
-            // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper config
+            // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper only option
             if (Bukkit.getServer().spigot().getPaperConfig().getBoolean("proxies.velocity.enabled")) {
                 warnInvalidProxySetups("Velocity");
                 return;
