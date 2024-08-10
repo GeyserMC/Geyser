@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.ThrowingBiConsumer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -55,6 +56,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
@@ -163,115 +165,61 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             Map<String, Path> extensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
 
-            Pattern[] extensionFilters = this.extensionFilters();
-
             Path updateDirectory = extensionsDirectory.resolve("update");
-            List<Path> extensionPaths;
             if (Files.isDirectory(updateDirectory)) {
                 // Get the current extensions and store them in a map
                 Map<String, Path> extensionFiles = new HashMap<>();
-                extensionPaths = Files.list(extensionsDirectory).toList();
-                extensionPaths.forEach(path -> {
-                    if (Files.isDirectory(path)) {
-                        return;
-                    }
-
-                    // Only look at files that meet the extension filter
-                    for (Pattern filter : extensionFilters) {
-                        if (!filter.matcher(path.getFileName().toString()).matches()) {
-                            return;
-                        }
-                    }
-
-                    try {
-                        // Try load the description, so we know it's a valid extension
-                        GeyserExtensionDescription description = this.extensionDescription(path);
-
-                        // Store the file path against ID for later use
-                        extensionFiles.put(description.id(), path);
-                    } catch (Throwable e) {
-                        // this file will throw again when we actually try to load extensions, and it will be handled there
-                    }
+                this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
+                    extensionFiles.put(description.id(), path);
+                }, (path, e) -> {
+                    // this file will throw again when we actually try to load extensions, and it will be handled there
                 });
 
-                // Perform the updates
-                List<Path> extensionUpdatePaths = Files.list(updateDirectory).toList();
-                extensionUpdatePaths.forEach(path -> {
-                    if (Files.isDirectory(path)) {
-                        return;
+                this.processExtensionsFolder(updateDirectory, (path, description) -> {
+                    // Remove the old extension with the same ID if it exists
+                    Path oldExtensionFile = extensionFiles.get(description.id());
+                    if (oldExtensionFile != null && Files.exists(oldExtensionFile)) {
+                        Files.delete(extensionFiles.get(description.id()));
                     }
 
-                    // Only look at files that meet the extension filter
-                    for (Pattern filter : extensionFilters) {
-                        if (!filter.matcher(path.getFileName().toString()).matches()) {
-                            return;
-                        }
-                    }
-
-                    try {
-                        // Try load the description, so we know it's a valid extension
-                        GeyserExtensionDescription description = this.extensionDescription(path);
-
-                        // Remove the old extension with the same ID if it exists
-                        Path oldExtensionFile = extensionFiles.get(description.id());
-                        if (oldExtensionFile != null && Files.exists(oldExtensionFile)) {
-                            Files.delete(extensionFiles.get(description.id()));
-                        }
-
-                        // Overwrite the extension with the new jar
-                        Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (Throwable e) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
-                    }
+                    // Overwrite the extension with the new jar
+                    Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                }, (path, e) -> {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
                 });
             }
 
-            extensionPaths = Files.list(extensionsDirectory).toList();
-            extensionPaths.forEach(path -> {
-                if (Files.isDirectory(path)) {
+            this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
+                String name = description.name();
+                String id = description.id();
+                if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
+                    GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                     return;
                 }
 
-                for (Pattern filter : extensionFilters) {
-                    if (!filter.matcher(path.getFileName().toString()).matches()) {
+                // Check whether an extensions' requested api version is compatible
+                ApiVersion.Compatibility compatibility = GeyserApi.api().geyserApiVersion().supportsRequestedVersion(
+                    description.humanApiVersion(),
+                    description.majorApiVersion(),
+                    description.minorApiVersion()
+                );
+
+                if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
+                    // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
+                    if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
+                        GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
+                            .formatted(name, description.apiVersion()));
+                    } else {
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
                         return;
                     }
                 }
 
-                try {
-                    GeyserExtensionDescription description = this.extensionDescription(path);
-
-                    String name = description.name();
-                    String id = description.id();
-                    if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
-                        GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
-                        return;
-                    }
-
-                    // Check whether an extensions' requested api version is compatible
-                    ApiVersion.Compatibility compatibility = GeyserApi.api().geyserApiVersion().supportsRequestedVersion(
-                        description.humanApiVersion(),
-                        description.majorApiVersion(),
-                        description.minorApiVersion()
-                    );
-
-                    if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
-                        // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
-                        if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
-                            GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
-                                .formatted(name, description.apiVersion()));
-                        } else {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
-                            return;
-                        }
-                    }
-
-                    GeyserExtensionContainer container = this.loadExtension(path, description);
-                    extensions.put(id, path);
-                    loadedExtensions.put(id, container);
-                } catch (Throwable e) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
-                }
+                GeyserExtensionContainer container = this.loadExtension(path, description);
+                extensions.put(id, path);
+                loadedExtensions.put(id, container);
+            }, (path, e) -> {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
             });
 
             for (GeyserExtensionContainer container : loadedExtensions.values()) {
@@ -281,6 +229,40 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * Process extension jars in a folder and call the accept or reject consumer based on the result
+     *
+     * @param directory the directory to process
+     * @param accept the consumer to call when an extension is accepted
+     * @param reject the consumer to call when an extension is rejected
+     * @throws IOException if an I/O error occurs
+     */
+    private void processExtensionsFolder(Path directory, ThrowingBiConsumer<Path, GeyserExtensionDescription> accept, BiConsumer<Path, Throwable> reject) throws IOException {
+        List<Path> extensionPaths = Files.list(directory).toList();
+        Pattern[] extensionFilters = this.extensionFilters();
+        extensionPaths.forEach(path -> {
+            if (Files.isDirectory(path)) {
+                return;
+            }
+
+            // Only look at files that meet the extension filter
+            for (Pattern filter : extensionFilters) {
+                if (!filter.matcher(path.getFileName().toString()).matches()) {
+                    return;
+                }
+            }
+
+            try {
+                // Try load the description, so we know it's a valid extension
+                GeyserExtensionDescription description = this.extensionDescription(path);
+
+                accept.acceptThrows(path, description);
+            } catch (Throwable e) {
+                reject.accept(path, e);
+            }
+        });
     }
 
     @Override
