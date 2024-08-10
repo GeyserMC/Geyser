@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -168,17 +169,19 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             Path updateDirectory = extensionsDirectory.resolve("update");
             if (Files.isDirectory(updateDirectory)) {
                 // Get the current extensions and store them in a map
-                Map<String, Path> extensionFiles = new HashMap<>();
-                this.processExtensionsFolder(extensionsDirectory, (path, description) -> extensionFiles.put(description.id(), path), (path, e) -> {
+                Map<String, List<Path>> extensionFiles = new HashMap<>();
+                this.processExtensionsFolder(extensionsDirectory, (path, description) -> extensionFiles.computeIfAbsent(description.id(), k -> new ArrayList<>()).add(path), (path, e) -> {
                     // this file will throw again when we actually try to load extensions, and it will be handled there
                 });
 
                 // Perform the updates
                 this.processExtensionsFolder(updateDirectory, (path, description) -> {
-                    // Remove the old extension with the same ID if it exists
-                    Path oldExtensionFile = extensionFiles.get(description.id());
-                    if (oldExtensionFile != null && Files.exists(oldExtensionFile)) {
-                        Files.delete(extensionFiles.get(description.id()));
+                    // Remove the old extension files with the same ID if it exists
+                    List<Path> oldExtensionFiles = extensionFiles.get(description.id());
+                    if (oldExtensionFiles != null) {
+                        for (Path oldExtensionFile : oldExtensionFiles) {
+                            Files.delete(oldExtensionFile);
+                        }
                     }
 
                     // Overwrite the extension with the new jar
