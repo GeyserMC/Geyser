@@ -58,7 +58,8 @@ public class CooldownUtils {
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
 
-        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20)
+            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Set the times to stay a bit with no fade in nor out
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
@@ -91,7 +92,8 @@ public class CooldownUtils {
      */
     private static void computeCooldown(GeyserSession session, CooldownType sessionPreference, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
-        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
+        if (lastHitTime != session.getLastHitTime())
+            return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
         if (sessionPreference == CooldownType.ACTIONBAR) {
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
@@ -104,7 +106,7 @@ public class CooldownUtils {
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
             session.scheduleInEventLoop(() ->
-                    computeCooldown(session, sessionPreference, lastHitTime), session.getMillisecondsPerTick(), TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+                    computeCooldown(session, sessionPreference, lastHitTime), session.getNanosecondsPerTick(), TimeUnit.NANOSECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);

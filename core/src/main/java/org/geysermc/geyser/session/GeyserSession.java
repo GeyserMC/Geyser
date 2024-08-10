@@ -587,7 +587,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean advancedTooltips = false;
 
     /**
-     * The thread that will run every 50 milliseconds - one Minecraft tick.
+     * The thread that will run every game tick.
      */
     private ScheduledFuture<?> tickThread = null;
 
@@ -628,14 +628,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private MinecraftProtocol protocol;
 
     @Getter
-    private int millisecondsPerTick = 50;
+    private int nanosecondsPerTick = 50000000;
+    @Getter
+    private float millisecondsPerTick = 50.0f;
     private boolean tickingFrozen = false;
     /**
      * The amount of ticks requested by the server that the game should proceed with, even if the game tick loop is frozen.
      */
     @Setter
     private int stepTicks = 0;
-    private boolean gameShouldUpdate = true;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.geyser = geyser;
@@ -904,7 +905,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, millisecondsPerTick, millisecondsPerTick, TimeUnit.MILLISECONDS);
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
 
         this.protocol.setUseDefaultListeners(false);
 
@@ -1224,12 +1225,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void updateTickingState(float tickRate, boolean frozen) {
         tickThread.cancel(false);
         this.tickingFrozen = frozen;
-        millisecondsPerTick = Math.round(1000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, millisecondsPerTick, millisecondsPerTick, TimeUnit.MILLISECONDS);
+        millisecondsPerTick = 1000.0f / tickRate;
+
+        nanosecondsPerTick = MathUtils.ceil(1000000000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
     }
 
     /**
-     * Called every Minecraft tick - 1000/tickRate milliseconds.
+     * Called every Minecraft tick.
      */
     protected void tick() {
         try {
@@ -1267,7 +1270,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 isInWorldBorderWarningArea = false;
             }
 
-            gameShouldUpdate = !tickingFrozen || stepTicks > 0;
+            boolean gameShouldUpdate = !tickingFrozen || stepTicks > 0;
             if (stepTicks > 0) {
                 --stepTicks;
             }
