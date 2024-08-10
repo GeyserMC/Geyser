@@ -169,12 +169,11 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             if (Files.isDirectory(updateDirectory)) {
                 // Get the current extensions and store them in a map
                 Map<String, Path> extensionFiles = new HashMap<>();
-                this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
-                    extensionFiles.put(description.id(), path);
-                }, (path, e) -> {
+                this.processExtensionsFolder(extensionsDirectory, (path, description) -> extensionFiles.put(description.id(), path), (path, e) -> {
                     // this file will throw again when we actually try to load extensions, and it will be handled there
                 });
 
+                // Perform the updates
                 this.processExtensionsFolder(updateDirectory, (path, description) -> {
                     // Remove the old extension with the same ID if it exists
                     Path oldExtensionFile = extensionFiles.get(description.id());
