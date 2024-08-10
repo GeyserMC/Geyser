@@ -27,7 +27,7 @@ package org.geysermc.geyser;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
@@ -82,11 +82,11 @@ public interface GeyserBootstrap {
     GeyserLogger getGeyserLogger();
 
     /**
-     * Returns the current CommandManager
+     * Returns the current CommandRegistry
      *
-     * @return The current CommandManager
+     * @return The current CommandRegistry
      */
-    GeyserCommandManager getGeyserCommandManager();
+    CommandRegistry getCommandRegistry();
 
     /**
      * Returns the current PingPassthrough manager

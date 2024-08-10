@@ -29,10 +29,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.api.Geyser;
+import org.geysermc.api.util.ApiVersion;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
-import org.geysermc.geyser.api.extension.*;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.extension.ExtensionDescription;
+import org.geysermc.geyser.api.extension.ExtensionLoader;
+import org.geysermc.geyser.api.extension.ExtensionLogger;
+import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
@@ -40,7 +45,12 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -176,16 +186,22 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         return;
                     }
 
-                    // Completely different API version
-                    if (description.majorApiVersion() != Geyser.api().majorApiVersion()) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
-                        return;
-                    }
+                    // Check whether an extensions' requested api version is compatible
+                    ApiVersion.Compatibility compatibility = GeyserApi.api().geyserApiVersion().supportsRequestedVersion(
+                        description.humanApiVersion(),
+                        description.majorApiVersion(),
+                        description.minorApiVersion()
+                    );
 
-                    // If the extension requires new API features, being backwards compatible
-                    if (description.minorApiVersion() > Geyser.api().minorApiVersion()) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
-                        return;
+                    if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
+                        // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
+                        if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
+                            GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
+                                .formatted(name, description.apiVersion()));
+                        } else {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
+                            return;
+                        }
                     }
 
                     GeyserExtensionContainer container = this.loadExtension(path, description);
