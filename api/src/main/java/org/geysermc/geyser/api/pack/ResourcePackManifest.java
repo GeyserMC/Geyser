@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -78,6 +79,7 @@ public interface ResourcePackManifest {
      * Gets the settings of the resource pack.
      * This is the text shown in the settings menu of a resource pack.
      */
+    @NonNull
     Collection<? extends Setting> settings();
 
     /**
@@ -196,6 +198,7 @@ public interface ResourcePackManifest {
          *
          * @return the folder name
          */
+        @NonNull
         String folderName();
 
         /**
@@ -205,6 +208,7 @@ public interface ResourcePackManifest {
          *
          * @return the subpack name
          */
+        @NonNull
         String name();
 
         /**
@@ -214,7 +218,7 @@ public interface ResourcePackManifest {
          *
          * @return the memory tier
          */
-
+        @Nullable
         Float memoryTier();
     }
 
@@ -229,6 +233,7 @@ public interface ResourcePackManifest {
          *
          * @return the type
          */
+        @NonNull
         String type();
 
         /**
@@ -236,6 +241,7 @@ public interface ResourcePackManifest {
          *
          * @return the text content
          */
+        @NonNull
         String text();
     }
 
