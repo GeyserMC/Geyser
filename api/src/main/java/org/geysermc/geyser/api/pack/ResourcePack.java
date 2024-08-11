@@ -29,10 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * Represents a resource pack sent to Bedrock clients
+ * Represents a resource pack sent to Bedrock clients.
  * <p>
- * This representation of a resource pack only contains what
- * Geyser requires to send it to the client.
+ * This representation of a resource pack tends to be minimal.
  * <p>
  * Optionally, a content key and/or a subpack name to load can be provided.
  */
