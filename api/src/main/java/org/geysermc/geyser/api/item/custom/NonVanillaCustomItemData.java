@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -142,10 +143,10 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder tags(@Nullable Set<String> tags);
 
         @Override
-        Builder stackSize(@NonNegative int stackSize);
+        Builder stackSize(@Positive int stackSize);
 
         @Override
-        Builder maxDamage(int maxDamage);
+        Builder maxDamage(@NonNegative int maxDamage);
 
         @Override
         Builder attackDamage(int attackDamage);
