@@ -42,7 +42,8 @@ public record GeyserResourcePackManifest(
     Header header,
     Collection<Module> modules,
     Collection<Dependency> dependencies,
-    Collection<Subpack> subpacks
+    Collection<Subpack> subpacks,
+    Collection<Setting> settings
 ) implements ResourcePackManifest {
 
     public record Header(UUID uuid, Version version, String name, String description, @JsonProperty("min_engine_version") Version minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header { }
@@ -52,6 +53,8 @@ public record GeyserResourcePackManifest(
     public record Dependency(UUID uuid, Version version) implements ResourcePackManifest.Dependency { }
 
     public record Subpack(@JsonProperty("folder_name") String folderName, String name, @JsonProperty("memory_tier") Float memoryTier) implements ResourcePackManifest.Subpack { }
+
+    public record Setting(String type, String text) implements ResourcePackManifest.Setting { }
 
     @JsonDeserialize(using = Version.VersionDeserializer.class)
     public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {

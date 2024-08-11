@@ -75,6 +75,12 @@ public interface ResourcePackManifest {
     Collection<? extends Subpack> subpacks();
 
     /**
+     * Gets the settings of the resource pack.
+     * This is the text shown in the settings menu of a resource pack.
+     */
+    Collection<? extends Setting> settings();
+
+    /**
      * Represents the header of a resource pack.
      */
     interface Header {
@@ -203,11 +209,34 @@ public interface ResourcePackManifest {
 
         /**
          * Gets the memory tier of the subpack.
+         * One memory tier requires 0.25 GB of free memory
+         * that a device must have to run a sub-pack.
          *
          * @return the memory tier
          */
 
         Float memoryTier();
+    }
+
+    /**
+     * Represents a setting that is shown client-side that describe what a pack does.
+     * Multiple setting entries are shown in separate paragraphs.
+     */
+    interface Setting {
+
+        /**
+         * The type of the setting. Usually just "label".
+         *
+         * @return the type
+         */
+        String type();
+
+        /**
+         * The text shown for the setting.
+         *
+         * @return the text content
+         */
+        String text();
     }
 
     /**
