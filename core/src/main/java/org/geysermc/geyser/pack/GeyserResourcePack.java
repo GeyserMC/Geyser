@@ -25,14 +25,62 @@
 
 package org.geysermc.geyser.pack;
 
+import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-public record GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) implements ResourcePack {
+@RequiredArgsConstructor
+public class GeyserResourcePack implements ResourcePack {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
     public static final int CHUNK_SIZE = 102400;
+
+    private final PackCodec codec;
+    private final ResourcePackManifest manifest;
+    private String contentKey;
+    private String subpackName;
+
+    public GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
+        this(codec, manifest);
+        this.contentKey = contentKey;
+    }
+
+    @Override
+    public @NonNull PackCodec codec() {
+        return this.codec;
+    }
+
+    @Override
+    public @NonNull ResourcePackManifest manifest() {
+        return this.manifest;
+    }
+
+    @Override
+    public @NonNull String contentKey() {
+        return this.contentKey == null ? "" : this.contentKey;
+    }
+
+    @Override
+    public void contentKey(@Nullable String contentKey) {
+        this.contentKey = contentKey;
+    }
+
+    @Override
+    public @NonNull String subpackName() {
+        return this.subpackName == null ? "" : this.subpackName;
+    }
+
+    @Override
+    public void subpackName(@Nullable String subpackName) {
+        if (manifest.subpacks().stream().anyMatch(subpack -> subpack.name().equals(subpackName))) {
+            this.subpackName = subpackName;
+        } else {
+            throw new IllegalArgumentException("A subpack with the name '" + subpackName + "' does not exist!");
+        }
+    }
 }

@@ -67,6 +67,14 @@ public interface ResourcePackManifest {
     Collection<? extends Dependency> dependencies();
 
     /**
+     * Gets the subpacks of the resource pack.
+     *
+     * @return the subpacks
+     */
+    @NonNull
+    Collection<? extends Subpack> subpacks();
+
+    /**
      * Represents the header of a resource pack.
      */
     interface Header {
@@ -170,6 +178,36 @@ public interface ResourcePackManifest {
          */
         @NonNull
         Version version();
+    }
+
+    /**
+     * Represents a subpack of a resource pack
+     */
+    interface Subpack {
+
+        /**
+         * Gets the folder name of the subpack.
+         *
+         * @return the folder name
+         */
+        String folderName();
+
+        /**
+         * Gets the name of the subpack.
+         * It can be sent to the Bedrock client alongside the pack
+         * to load a particular subpack within a resource pack.
+         *
+         * @return the subpack name
+         */
+        String name();
+
+        /**
+         * Gets the memory tier of the subpack.
+         *
+         * @return the memory tier
+         */
+
+        Float memoryTier();
     }
 
     /**

@@ -205,11 +205,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
-            PackCodec codec = pack.codec();
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.uuid().toString(), header.version().toString(), codec.size(), pack.contentKey(),
-                    "", header.uuid().toString(), false, false));
+                    header.uuid().toString(), header.version().toString(), pack.codec().size(), pack.contentKey(),
+                    pack.subpackName(), header.uuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);

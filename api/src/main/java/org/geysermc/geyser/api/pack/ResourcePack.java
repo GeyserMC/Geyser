@@ -26,12 +26,15 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Represents a resource pack sent to Bedrock clients
  * <p>
  * This representation of a resource pack only contains what
  * Geyser requires to send it to the client.
+ * <p>
+ * Optionally, a content key and/or a subpack name to load can be provided.
  */
 public interface ResourcePack {
 
@@ -58,6 +61,25 @@ public interface ResourcePack {
      */
     @NonNull
     String contentKey();
+
+    /**
+     * Sets the content key of the resource pack. Lack of a content key can be represented by an empty string.
+     */
+    void contentKey(@NonNull String contentKey);
+
+    /**
+     * The subpack to tell Bedrock clients to load. Lack of a subpack to load is represented by an empty string.
+     *
+     * @return the subpack name, or an empty string if not set.
+     */
+    @NonNull
+    String subpackName();
+
+    /**
+     * Sets the subpack name that clients should load.
+     * It must match one of the subpacks that can be found in the manifest.
+     */
+    void subpackName(@Nullable String subpackName);
 
     /**
      * Creates a resource pack with the given {@link PackCodec}.
