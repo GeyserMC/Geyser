@@ -65,7 +65,7 @@ public interface ResourcePack {
     /**
      * Sets the content key of the resource pack. Lack of a content key can be represented by an empty string.
      */
-    void contentKey(@NonNull String contentKey);
+    void contentKey(@Nullable String contentKey);
 
     /**
      * The subpack to tell Bedrock clients to load. Lack of a subpack to load is represented by an empty string.
