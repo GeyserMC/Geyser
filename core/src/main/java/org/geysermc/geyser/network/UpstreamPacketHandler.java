@@ -203,12 +203,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         this.geyser.eventBus().fire(this.resourcePackLoadEvent);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
-            ResourcePackManifest.Header header = pack.manifest().header();
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.uuid().toString(), header.version().toString(), pack.codec().size(), pack.contentKey(),
-                    pack.defaultSubpackName(), header.uuid().toString(), false, false));
-        }
+        resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
@@ -235,7 +230,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case HAVE_ALL_PACKS:
-                // TODO apply pack order here
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not

@@ -25,16 +25,25 @@
 
 package org.geysermc.geyser.pack;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public record GeyserResourcePack(
     PackCodec codec,
     ResourcePackManifest manifest,
     String contentKey,
-    String defaultSubpackName
+    Collection<ResourcePackOption> defaultOptions
 ) implements ResourcePack {
 
     /**
@@ -43,9 +52,8 @@ public record GeyserResourcePack(
     public static final int CHUNK_SIZE = 102400;
 
     public GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
-        this(codec, manifest, contentKey, "");
+        this(codec, manifest, contentKey, new ArrayList<>(List.of(PriorityOption.NORMAL)));
     }
-
 
     public static class Builder implements ResourcePack.Builder {
 
@@ -62,8 +70,8 @@ public record GeyserResourcePack(
 
         private final PackCodec codec;
         private final ResourcePackManifest manifest;
-        private String contentKey;
-        private String defaultSubpackName;
+        private String contentKey = "";
+        private final Collection<ResourcePackOption> defaultOptions = new ArrayList<>(List.of(PriorityOption.NORMAL));
 
         @Override
         public ResourcePackManifest manifest() {
@@ -77,38 +85,29 @@ public record GeyserResourcePack(
 
         @Override
         public String contentKey() {
-            return this.contentKey == null ? "" : this.contentKey;
+            return contentKey;
         }
 
         @Override
-        public String defaultSubpackName() {
-            return this.defaultSubpackName == null ? "" : this.defaultSubpackName;
+        public Collection<ResourcePackOption> defaultOptions() {
+            return Collections.unmodifiableCollection(defaultOptions);
         }
 
-        public Builder contentKey(@Nullable String contentKey) {
+        public Builder contentKey(@NonNull String contentKey) {
+            Objects.requireNonNull(contentKey);
             this.contentKey = contentKey;
             return this;
         }
 
-        public Builder defaultSubpackName(@Nullable String subpackName) {
-            if (manifest.subpacks().stream().anyMatch(subpack -> subpack.name().equals(subpackName))) {
-                this.defaultSubpackName = subpackName;
-            } else {
-                throw new IllegalArgumentException("A subpack with the name '" + subpackName + "' does not exist!");
-            }
+        public Builder defaultOptions(ResourcePackOption... defaultOptions) {
+            this.defaultOptions.addAll(Arrays.stream(defaultOptions).toList());
             return this;
         }
 
         public GeyserResourcePack build() {
-            if (contentKey == null) {
-                contentKey = "";
-            }
-            if (defaultSubpackName == null) {
-                defaultSubpackName = "";
-            }
-
-            return new GeyserResourcePack(codec, manifest, contentKey, defaultSubpackName);
+            GeyserResourcePack pack = new GeyserResourcePack(codec, manifest, contentKey, defaultOptions);
+            defaultOptions.forEach(option -> option.validate(pack));
+            return pack;
         }
     }
-
 }

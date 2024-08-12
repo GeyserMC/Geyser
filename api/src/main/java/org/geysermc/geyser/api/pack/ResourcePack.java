@@ -27,6 +27,9 @@ package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+
+import java.util.Collection;
 
 /**
  * Represents a resource pack sent to Bedrock clients
@@ -63,12 +66,15 @@ public interface ResourcePack {
     String contentKey();
 
     /**
-     * The default subpack to tell Bedrock clients to load. Lack of a subpack to load is represented by an empty string.
+     * Gets the currently set default options of this resource pack.
+     * These can be a priority defining how the Bedrock client applies multiple packs,
+     * or a default subpack.
+     * <p>
+     * These can be overridden in the {@link org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent}
      *
-     * @return the subpack name, or an empty string if not set.
+     * @return a collection of default {@link ResourcePackOption}s
      */
-    @NonNull
-    String defaultSubpackName();
+    Collection<ResourcePackOption> defaultOptions();
 
     /**
      * Creates a resource pack with the given {@link PackCodec}.
@@ -98,18 +104,44 @@ public interface ResourcePack {
      */
     interface Builder {
 
+        /**
+         * @return the {@link ResourcePackManifest} of this resource pack
+         */
         ResourcePackManifest manifest();
 
+        /**
+         * @return the {@link PackCodec} of this resource pack
+         */
         PackCodec codec();
 
+        /**
+         * @return the current content key, or an empty string if not set
+         */
         String contentKey();
 
-        String defaultSubpackName();
-
+        /**
+         * Sets a content key for this resource pack.
+         *
+         * @param contentKey the content key
+         * @return this builder
+         */
         Builder contentKey(@NonNull String contentKey);
 
-        Builder defaultSubpackName(@NonNull String subpackName);
+        /**
+         * @return the current default {@link ResourcePackOption}s
+         */
+        Collection<ResourcePackOption> defaultOptions();
 
+        /**
+         * Sets default options for this resource pack.
+         *
+         * @return this builder
+         */
+        Builder defaultOptions(ResourcePackOption... defaultOptions);
+
+        /**
+         * @return the resource pack
+         */
         ResourcePack build();
     }
 }
