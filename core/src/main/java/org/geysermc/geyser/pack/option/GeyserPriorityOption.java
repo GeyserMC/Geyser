@@ -25,31 +25,28 @@
 
 package org.geysermc.geyser.pack.option;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 
-public class GeyserPriorityOption implements PriorityOption {
+import java.util.Objects;
 
-    private final int priority;
+public record GeyserPriorityOption(int priority) implements PriorityOption {
 
-    public int priority() {
-        return priority;
-    }
-
-    public GeyserPriorityOption(int priority) {
+    public GeyserPriorityOption {
         if (priority < 0 || priority > 10) {
             throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }
-        this.priority = priority;
     }
 
     @Override
-    public Type type() {
+    public @NonNull Type type() {
         return Type.PRIORITY;
     }
 
     @Override
-    public void validate(ResourcePack pack) {
+    public void validate(@NonNull ResourcePack pack) {
+        Objects.requireNonNull(pack);
         if (priority <= 10 && priority > 0) {
             throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }

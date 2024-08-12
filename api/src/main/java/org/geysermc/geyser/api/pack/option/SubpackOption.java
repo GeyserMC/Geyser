@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.pack.option;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
@@ -40,7 +41,7 @@ public interface SubpackOption extends ResourcePackOption {
      * @param subpack the chosen subpack
      * @return a subpack option specifying that subpack
      */
-    static SubpackOption subpack(ResourcePackManifest.Subpack subpack) {
+    static SubpackOption subpack(ResourcePackManifest.@NonNull Subpack subpack) {
         return named(subpack.name());
     }
 
@@ -50,7 +51,7 @@ public interface SubpackOption extends ResourcePackOption {
      * @param subpackName the name of the subpack
      * @return a subpack option specifying a subpack with that name
      */
-    static SubpackOption named(String subpackName) {
+    static SubpackOption named(@NonNull String subpackName) {
         return GeyserApi.api().provider(SubpackOption.class, subpackName);
     }
 

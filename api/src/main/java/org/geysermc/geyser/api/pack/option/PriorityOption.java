@@ -27,6 +27,10 @@ package org.geysermc.geyser.api.pack.option;
 
 import org.geysermc.geyser.api.GeyserApi;
 
+/**
+ * Allows specifying a pack priority that decides the order on how packs are sent to the client.
+ * Multiple resource packs can override each other. The higher the priority, the
+ */
 public interface PriorityOption extends ResourcePackOption {
 
     PriorityOption HIGH = PriorityOption.priority(10);

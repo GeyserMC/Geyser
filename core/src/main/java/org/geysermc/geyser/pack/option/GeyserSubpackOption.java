@@ -25,36 +25,29 @@
 
 package org.geysermc.geyser.pack.option;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
+
+import java.util.Objects;
 
 /**
  * Can be used to specify which subpack from a resource pack a player should load.
  * Available subpacks can be seen in a resource pack manifest {@link ResourcePackManifest#subpacks()}
  */
-public class GeyserSubpackOption implements SubpackOption {
-
-    private final String subpackName;
-
-    public GeyserSubpackOption(String subpackName) {
-        this.subpackName = subpackName;
-    }
+public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
     @Override
-    public Type type() {
+    public @NonNull Type type() {
         return Type.SUBPACK;
     }
 
     @Override
-    public void validate(ResourcePack pack) {
+    public void validate(@NonNull ResourcePack pack) {
+        Objects.requireNonNull(pack);
         if (pack.manifest().subpacks().stream().noneMatch(subpack -> subpack.name().equals(subpackName))) {
             throw new IllegalArgumentException("No subpack with the name %s found!".formatted(subpackName));
         }
-    }
-
-    @Override
-    public String subpackName() {
-        return subpackName;
     }
 }

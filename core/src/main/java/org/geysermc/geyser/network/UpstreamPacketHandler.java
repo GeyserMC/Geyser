@@ -235,15 +235,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case HAVE_ALL_PACKS:
+                // TODO apply pack order here
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
-                for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
-                    ResourcePackManifest.Header header = pack.manifest().header();
-                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.version().toString(), ""));
-                }
+                stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
                     // Allow custom items to work
@@ -306,8 +304,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
+
+        if (pack == null) {
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id (%s) not sent to it!"
+                .formatted(session.bedrockUsername(), packet.getPackId()));
+            session.disconnect("disconnectionScreen.resourcePack");
+            return PacketSignal.HANDLED;
+        }
+
+        ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         PackCodec codec = pack.codec();
 
         data.setChunkIndex(packet.getChunkIndex());
@@ -319,7 +325,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         long remainingSize = codec.size() - offset;
         byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, GeyserResourcePack.CHUNK_SIZE)];
 
-        try (SeekableByteChannel channel = codec.serialize(pack)) {
+        try (SeekableByteChannel channel = codec.serialize()) {
             channel.position(offset);
             channel.read(ByteBuffer.wrap(packData, 0, packData.length));
         } catch (IOException e) {
@@ -341,7 +347,22 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private void sendPackDataInfo(String id) {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
         String[] packID = id.split("_");
+
+        if (packID.length < 2) {
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!"
+                .formatted(session.bedrockUsername(), packID));
+            session.disconnect("disconnectionScreen.resourcePack");
+            return;
+        }
+
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
+
+        if (pack == null) {
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!"
+                .formatted(session.bedrockUsername(), packID[0]));
+            session.disconnect("disconnectionScreen.resourcePack");
+            return;
+        }
         PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();
 

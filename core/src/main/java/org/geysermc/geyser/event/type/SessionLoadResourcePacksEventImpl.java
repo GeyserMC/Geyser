@@ -27,6 +27,7 @@ package org.geysermc.geyser.event.type;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
@@ -37,6 +38,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,6 +56,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     public @NonNull Map<String, ResourcePack> getPacks() {
         return packs;
+    }
+
+    public LinkedList<ResourcePackStackPacket.Entry> orderedPacks() {
+        // TODO sort by priority here
+
+        return new LinkedList<>();
     }
 
     @Override

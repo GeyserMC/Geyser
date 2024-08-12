@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.pack.option;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 
 /**
@@ -33,16 +34,22 @@ import org.geysermc.geyser.api.pack.ResourcePack;
  */
 public interface ResourcePackOption {
 
-    Type type();
+    /**
+     * @return the option type
+     */
+    @NonNull Type type();
 
-    void validate(ResourcePack pack);
+    /**
+     * Used to validate a specific options for a pack.
+     * Some options are not applicable to some packs.
+     *
+     * @param pack the resource pack to validate the option for
+     */
+    void validate(@NonNull ResourcePack pack);
 
     enum Type {
-        SUBPACK("subpack"),
-        PRIORITY("priority");
-
-        Type(String name) {
-        }
+        SUBPACK,
+        PRIORITY
     }
 
 }
