@@ -25,62 +25,90 @@
 
 package org.geysermc.geyser.pack;
 
-import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-@RequiredArgsConstructor
-public class GeyserResourcePack implements ResourcePack {
+public record GeyserResourcePack(
+    PackCodec codec,
+    ResourcePackManifest manifest,
+    String contentKey,
+    String defaultSubpackName
+) implements ResourcePack {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
     public static final int CHUNK_SIZE = 102400;
 
-    private final PackCodec codec;
-    private final ResourcePackManifest manifest;
-    private String contentKey;
-    private String subpackName;
-
     public GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
-        this(codec, manifest);
-        this.contentKey = contentKey;
+        this(codec, manifest, contentKey, "");
     }
 
-    @Override
-    public @NonNull PackCodec codec() {
-        return this.codec;
-    }
 
-    @Override
-    public @NonNull ResourcePackManifest manifest() {
-        return this.manifest;
-    }
+    public static class Builder implements ResourcePack.Builder {
 
-    @Override
-    public @NonNull String contentKey() {
-        return this.contentKey == null ? "" : this.contentKey;
-    }
+        public Builder(PackCodec codec, ResourcePackManifest manifest) {
+            this.codec = codec;
+            this.manifest = manifest;
+        }
 
-    @Override
-    public void contentKey(@Nullable String contentKey) {
-        this.contentKey = contentKey;
-    }
+        public Builder(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
+            this.codec = codec;
+            this.manifest = manifest;
+            this.contentKey = contentKey;
+        }
 
-    @Override
-    public @NonNull String subpackName() {
-        return this.subpackName == null ? "" : this.subpackName;
-    }
+        private final PackCodec codec;
+        private final ResourcePackManifest manifest;
+        private String contentKey;
+        private String defaultSubpackName;
 
-    @Override
-    public void subpackName(@Nullable String subpackName) {
-        if (manifest.subpacks().stream().anyMatch(subpack -> subpack.name().equals(subpackName))) {
-            this.subpackName = subpackName;
-        } else {
-            throw new IllegalArgumentException("A subpack with the name '" + subpackName + "' does not exist!");
+        @Override
+        public ResourcePackManifest manifest() {
+            return manifest;
+        }
+
+        @Override
+        public PackCodec codec() {
+            return codec;
+        }
+
+        @Override
+        public String contentKey() {
+            return this.contentKey == null ? "" : this.contentKey;
+        }
+
+        @Override
+        public String defaultSubpackName() {
+            return this.defaultSubpackName == null ? "" : this.defaultSubpackName;
+        }
+
+        public Builder contentKey(@Nullable String contentKey) {
+            this.contentKey = contentKey;
+            return this;
+        }
+
+        public Builder defaultSubpackName(@Nullable String subpackName) {
+            if (manifest.subpacks().stream().anyMatch(subpack -> subpack.name().equals(subpackName))) {
+                this.defaultSubpackName = subpackName;
+            } else {
+                throw new IllegalArgumentException("A subpack with the name '" + subpackName + "' does not exist!");
+            }
+            return this;
+        }
+
+        public GeyserResourcePack build() {
+            if (contentKey == null) {
+                contentKey = "";
+            }
+            if (defaultSubpackName == null) {
+                defaultSubpackName = "";
+            }
+
+            return new GeyserResourcePack(codec, manifest, contentKey, defaultSubpackName);
         }
     }
+
 }

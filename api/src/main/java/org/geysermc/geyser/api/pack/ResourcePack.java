@@ -26,7 +26,7 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * Represents a resource pack sent to Bedrock clients
@@ -63,23 +63,12 @@ public interface ResourcePack {
     String contentKey();
 
     /**
-     * Sets the content key of the resource pack. Lack of a content key can be represented by an empty string.
-     */
-    void contentKey(@NonNull String contentKey);
-
-    /**
-     * The subpack to tell Bedrock clients to load. Lack of a subpack to load is represented by an empty string.
+     * The default subpack to tell Bedrock clients to load. Lack of a subpack to load is represented by an empty string.
      *
      * @return the subpack name, or an empty string if not set.
      */
     @NonNull
-    String subpackName();
-
-    /**
-     * Sets the subpack name that clients should load.
-     * It must match one of the subpacks that can be found in the manifest.
-     */
-    void subpackName(@Nullable String subpackName);
+    String defaultSubpackName();
 
     /**
      * Creates a resource pack with the given {@link PackCodec}.
@@ -90,5 +79,37 @@ public interface ResourcePack {
     @NonNull
     static ResourcePack create(@NonNull PackCodec codec) {
         return codec.create();
+    }
+
+    /**
+     * Returns a {@link Builder} for a resource pack.
+     * It can be used to set a content key, or a default subpack.
+     *
+     * @param codec the {@link PackCodec} to base the builder on
+     * @return a {@link Builder} to build a resource pack.
+     */
+    static Builder builder(@NonNull PackCodec codec) {
+        return GeyserApi.api().provider(Builder.class, codec);
+    }
+
+    /**
+     * A builder for a resource pack. It allows providing a content key manually, or
+     * setting a default subpack.
+     */
+    interface Builder {
+
+        ResourcePackManifest manifest();
+
+        PackCodec codec();
+
+        String contentKey();
+
+        String defaultSubpackName();
+
+        Builder contentKey(@NonNull String contentKey);
+
+        Builder defaultSubpackName(@NonNull String subpackName);
+
+        ResourcePack build();
     }
 }

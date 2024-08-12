@@ -99,7 +99,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
         for (Path path : event.resourcePacks()) {
             try {
-                GeyserResourcePack pack = readPack(path);
+                GeyserResourcePack pack = readPack(path).build();
                 packMap.put(pack.manifest().header().uuid().toString(), pack);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -113,10 +113,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      * but suffixed by ".key", containing the content key. If such file does not exist, no content key is stored.
      *
      * @param path the file to read from, in ZIP format
-     * @return a {@link ResourcePack} representation
+     * @return a {@link ResourcePack.Builder} representation
      * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
      */
-    public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
+    public static GeyserResourcePack.Builder readPack(Path path) throws IllegalArgumentException {
         if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
             throw new IllegalArgumentException("Resource pack " + path.getFileName() + " must be a .zip or .mcpack file!");
         }
@@ -155,7 +155,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
             String contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
 
-            return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
+            return new GeyserResourcePack.Builder(new GeyserPathPackCodec(path), manifest, contentKey);
         } catch (Exception e) {
             throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }

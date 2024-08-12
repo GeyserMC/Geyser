@@ -25,11 +25,18 @@
 
 package org.geysermc.geyser.event.type;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,10 +44,12 @@ import java.util.UUID;
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
 
     private final Map<String, ResourcePack> packs;
+    private final Map<String, Collection<ResourcePackOption>> options;
 
-    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap) {
+    public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
-        this.packs = packMap;
+        this.packs = new Object2ObjectLinkedOpenHashMap<>(Registries.RESOURCE_PACKS.get());
+        this.options = new HashMap<>();
     }
 
     public @NonNull Map<String, ResourcePack> getPacks() {
@@ -54,16 +63,35 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
+        return register(resourcePack, PriorityOption.NORMAL);
+    }
+
+    @Override
+    public boolean register(@NonNull ResourcePack resourcePack, ResourcePackOption... resourcePackOptions) {
+        for (ResourcePackOption option : resourcePackOptions) {
+            option.validate(resourcePack);
+        }
+
         String packID = resourcePack.manifest().header().uuid().toString();
         if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
             return false;
         }
-        packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
+
+        String uuid = resourcePack.manifest().header().uuid().toString();
+        packs.put(uuid, resourcePack);
+        options.put(uuid, List.of(resourcePackOptions));
         return true;
     }
 
     @Override
+    public Collection<ResourcePackOption> options(UUID resourcePack) {
+        Collection<ResourcePackOption> packOptions = options.get(resourcePack.toString());
+        return packOptions == null ? List.of() : Collections.unmodifiableCollection(packOptions);
+    }
+
+    @Override
     public boolean unregister(@NonNull UUID uuid) {
+        options.remove(uuid.toString());
         return packs.remove(uuid.toString()) != null;
     }
 }

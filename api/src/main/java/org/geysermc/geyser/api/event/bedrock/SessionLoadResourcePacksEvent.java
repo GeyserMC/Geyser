@@ -29,7 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,10 +60,39 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
+     * Registers a {@link ResourcePack} to be sent to the client, but alongside
+     * specific options.
+     *
+     * @param resourcePack a resource pack that will be sent to the client.
+     * @return true if the resource pack was added successfully,
+     *         or false if already present
+     */
+    public abstract boolean register(@NonNull ResourcePack resourcePack, ResourcePackOption... resourcePackOptions);
+
+    /**
+     * Returns the subpack options set for a specific resource pack.
+     *
+     * @param resourcePack the resourcePack for which the options are set
+     * @return a list of {@link ResourcePackOption}
+     */
+    Collection<ResourcePackOption> options(ResourcePack resourcePack) {
+        return options(resourcePack.manifest().header().uuid());
+    }
+
+    /**
+     * Returns the subpack options set for a specific resource pack uuid.
+     *
+     * @param resourcePack the resourcePack for which the options are set
+     * @return a list of {@link ResourcePackOption}
+     */
+    public abstract Collection<ResourcePackOption> options(UUID resourcePack);
+
+    /**
      * Unregisters a resource pack from being sent to the client.
      *
      * @param uuid the UUID of the resource pack
      * @return true whether the resource pack was removed from the list of resource packs.
      */
     public abstract boolean unregister(@NonNull UUID uuid);
+
 }
