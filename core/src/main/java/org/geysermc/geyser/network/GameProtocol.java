@@ -97,6 +97,10 @@ public final class GameProtocol {
         return session.getUpstream().getProtocolVersion() < Bedrock_v685.CODEC.getProtocolVersion();
     }
 
+    public static boolean isPre1_21_2(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v686.CODEC.getProtocolVersion();
+    }
+
     /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.
      *
