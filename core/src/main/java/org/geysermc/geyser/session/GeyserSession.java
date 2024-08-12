@@ -141,6 +141,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -2117,8 +2118,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void closeForm() {
-        // TODO remove once 1.21.2 is lowest supported version
-        if (upstream.getProtocolVersion() >= 686) {
+        if (!GameProtocol.isPre1_21_2(this)) {
             sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
