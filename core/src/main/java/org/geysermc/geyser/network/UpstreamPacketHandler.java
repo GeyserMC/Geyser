@@ -234,7 +234,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
-
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {

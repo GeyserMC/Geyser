@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public record GeyserResourcePack(
     PackCodec codec,
@@ -105,6 +107,15 @@ public record GeyserResourcePack(
         }
 
         public GeyserResourcePack build() {
+            // Check for duplicates
+            Set<ResourcePackOption.Type> types = new HashSet<>();
+            for (ResourcePackOption option : defaultOptions) {
+                if (!types.add(option.type())) {
+                    throw new IllegalArgumentException("Duplicate resource pack option " + option + "!");
+                }
+            }
+            types.clear();
+
             GeyserResourcePack pack = new GeyserResourcePack(codec, manifest, contentKey, defaultOptions);
             defaultOptions.forEach(option -> option.validate(pack));
             return pack;

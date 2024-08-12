@@ -36,8 +36,6 @@ import java.util.Collection;
  * <p>
  * This representation of a resource pack only contains what
  * Geyser requires to send it to the client.
- * <p>
- * Optionally, a content key and/or a subpack name to load can be provided.
  */
 public interface ResourcePack {
 

@@ -43,53 +43,60 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
 
     @Getter
-    private final Map<String, ResourcePack> packs;
-    private final Map<String, Collection<ResourcePackOption>> options = new HashMap<>();
+    private final Map<UUID, ResourcePack> packs;
+    private final Map<UUID, Collection<ResourcePackOption>> options = new HashMap<>();
 
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
         this.packs = new Object2ObjectLinkedOpenHashMap<>(Registries.RESOURCE_PACKS.get());
         this.packs.values().forEach(
-            pack -> options.put(pack.manifest().header().uuid().toString(), pack.defaultOptions())
+            pack -> options.put(pack.manifest().header().uuid(), pack.defaultOptions())
         );
     }
 
     public LinkedList<ResourcePackStackPacket.Entry> orderedPacks() {
-        return packs.values().stream()
+        TreeSet<Map.Entry<ResourcePack, Integer>> sortedPacks = packs.values().stream()
             // Map each ResourcePack to a pair of (ResourcePack, Priority)
             .map(pack -> new AbstractMap.SimpleEntry<>(pack, getPriority(pack)))
-            // Sort by priority in descending order (higher priority first)
-            .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue()))
-            // Extract the ResourcePack from the sorted entries
+            // Sort by priority in descending order
+            .collect(Collectors.toCollection(() -> new TreeSet<>(Map.Entry.comparingByValue(Comparator.naturalOrder()))));
+
+        // Convert the sorted entries to a LinkedList of ResourcePackStackPacket.Entry
+        return sortedPacks.stream()
             .map(entry -> {
-                ResourcePack pack = entry.getKey();
-                ResourcePackManifest.Header header = pack.manifest().header();
-                return new ResourcePackStackPacket.Entry(header.uuid().toString(), header.version().toString(), getSubpackName(header.uuid()));
+                ResourcePackManifest.Header header = entry.getKey().manifest().header();
+                return new ResourcePackStackPacket.Entry(
+                    header.uuid().toString(),
+                    header.version().toString(),
+                    getSubpackName(header.uuid())
+                );
             })
-            // Collect to a LinkedList
             .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // Helper method to get the priority of a ResourcePack
     private int getPriority(ResourcePack pack) {
-        return options.get(pack.manifest().header().uuid().toString()).stream()
-            // Filter to find the PriorityOption
+        return options.get(pack.manifest().header().uuid()).stream()
             .filter(option -> option instanceof PriorityOption)
-            // Map to the priority value
             .mapToInt(option -> ((PriorityOption) option).priority())
-            // Get the highest priority (or a default value, if none found)
-            .max().orElse(PriorityOption.NORMAL.priority());
+            .max()
+            .orElse(PriorityOption.NORMAL.priority());
     }
+
 
     public List<ResourcePacksInfoPacket.Entry> infoPacketEntries() {
         List<ResourcePacksInfoPacket.Entry> entries = new ArrayList<>();
@@ -106,13 +113,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     private String getSubpackName(UUID uuid) {
-        return options.get(uuid.toString()).stream()
+        return options.get(uuid).stream()
             .filter(option -> option instanceof SubpackOption)
             .map(option -> ((SubpackOption) option).subpackName())
             .findFirst()
             .orElse("");  // Return an empty string if none is found
     }
-
 
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
@@ -126,16 +132,22 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public boolean register(@NonNull ResourcePack resourcePack, ResourcePackOption... resourcePackOptions) {
+
+        // Validate options, check for duplicates
+        Set<ResourcePackOption.Type> types = new HashSet<>();
         for (ResourcePackOption option : resourcePackOptions) {
             option.validate(resourcePack);
+            if (!types.add(option.type())) {
+                throw new IllegalArgumentException("Duplicate resource pack option " + option + "!");
+            }
         }
+        types.clear();
 
-        String packID = resourcePack.manifest().header().uuid().toString();
-        if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
+        UUID uuid = resourcePack.manifest().header().uuid();
+        if (packs.containsValue(resourcePack) || packs.containsKey(uuid)) {
             return false;
         }
 
-        String uuid = resourcePack.manifest().header().uuid().toString();
         packs.put(uuid, resourcePack);
         options.put(uuid, List.of(resourcePackOptions));
         return true;
@@ -143,12 +155,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public Collection<ResourcePackOption> options(UUID uuid) {
-        return Collections.unmodifiableCollection(options.get(uuid.toString()));
+        return Collections.unmodifiableCollection(options.get(uuid));
     }
 
     @Override
     public boolean unregister(@NonNull UUID uuid) {
-        options.remove(uuid.toString());
-        return packs.remove(uuid.toString()) != null;
+        options.remove(uuid);
+        return packs.remove(uuid) != null;
     }
 }
