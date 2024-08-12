@@ -61,6 +61,16 @@ public interface GeyserConnection extends Connection, CommandSource {
     @NonNull EntityData entities();
 
     /**
+     * Returns the current ping of the connection.
+     */
+    int ping();
+
+    /**
+     * Closes the currently open form on the client.
+     */
+    void closeForm();
+
+    /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
      * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
@@ -132,9 +142,4 @@ public interface GeyserConnection extends Connection, CommandSource {
     @Deprecated
     @NonNull
     Set<String> fogEffects();
-
-    /**
-     * Returns the current ping of the connection.
-     */
-    int ping();
 }
