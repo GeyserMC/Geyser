@@ -113,6 +113,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserEnable() {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
         if (GeyserImpl.getInstance().isReloading()) {
             if (!loadConfig()) {
                 return;

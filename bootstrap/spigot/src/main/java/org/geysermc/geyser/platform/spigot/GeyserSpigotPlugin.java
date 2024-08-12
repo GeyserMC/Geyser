@@ -117,7 +117,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.13.2"));
             geyserLogger.error("");
             geyserLogger.error("*********************************************");
-            Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
@@ -131,7 +130,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.message", "Paper"));
                 geyserLogger.error("");
                 geyserLogger.error("*********************************************");
-                Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
         }
@@ -144,8 +142,23 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.error("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
             geyserLogger.error("");
             geyserLogger.error("*********************************************");
-            Bukkit.getPluginManager().disablePlugin(this);
             return;
+        }
+
+        try {
+            // Check spigot config for BungeeCord mode
+            if (Bukkit.getServer().spigot().getConfig().getBoolean("settings.bungeecord")) {
+                warnInvalidProxySetups("BungeeCord");
+                return;
+            }
+
+            // Now: Check for velocity mode - deliberately after checking bungeecord because this is a paper only option
+            if (Bukkit.getServer().spigot().getPaperConfig().getBoolean("proxies.velocity.enabled")) {
+                warnInvalidProxySetups("Velocity");
+                return;
+            }
+        } catch (NoSuchMethodError e) {
+            // no-op
         }
 
         if (!loadConfig()) {
@@ -162,6 +175,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        // Disabling the plugin in onLoad() is not supported; we need to manually stop here
+        if (geyser == null) {
+            return;
+        }
+
         // Create command manager early so we can add Geyser extension commands
         var sourceConverter = new CommandSourceConverter<>(
                 CommandSender.class,
@@ -457,5 +475,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         return true;
+    }
+
+    private void warnInvalidProxySetups(String platform) {
+        geyserLogger.error("*********************************************");
+        geyserLogger.error("");
+        geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy_backend", platform));
+        geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.setup_guide", "https://geysermc.org/wiki/geyser/setup/"));
+        geyserLogger.error("");
+        geyserLogger.error("*********************************************");
     }
 }
