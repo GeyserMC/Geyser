@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item;
 
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -43,6 +44,8 @@ import java.util.Set;
 @EqualsAndHashCode
 @ToString
 public class GeyserCustomItemData implements CustomItemData {
+    private static final List<String> VALID_ARMOR_TYPES = List.of("boots", "leggings", "chestplate", "helmet");
+
     private final String name;
     private final CustomItemOptions customItemOptions;
     private final String displayName;
@@ -318,6 +321,9 @@ public class GeyserCustomItemData implements CustomItemData {
 
         @Override
         public Builder armorType(@Nullable String armorType) {
+            if (!VALID_ARMOR_TYPES.contains(armorType)) {
+                throw new IllegalArgumentException("Invalid armor type " + armorType + "! Can be \"boots\", \"leggings\", \"chestplate\", or \"helmet\"");
+            }
             this.armorType = armorType;
             return this;
         }
