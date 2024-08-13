@@ -204,9 +204,9 @@ public class GeyserCustomItemData implements CustomItemData {
         protected Set<String> tags = new HashSet<>();
         private int stackSize = 0;
         private int maxDamage = -1;
-        private int attackDamage = 0;
+        private int attackDamage = -1;
         private String armorType = null;
-        private int protectionValue = 0;
+        private int protectionValue = -1;
         private boolean hat = false;
         private boolean foil = false;
         private boolean edible = false;

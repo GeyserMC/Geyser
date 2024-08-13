@@ -142,11 +142,11 @@ public interface CustomItemData {
      * Gets the attack damage of the item.
      * This is purely visual, and only applied to tools
      *
-     * <p>Returns 0 if not set. When 0, Geyser takes the Java item attack damage when based on a vanilla item, or uses 0 when porting a modded item.</p>
+     * <p>Returns -1 if not set. When not set, Geyser takes the Java item attack damage when based on a vanilla item, or uses 0 when porting a modded item.</p>
      *
      * @return the attack damage of the item
      */
-    @NonNegative int attackDamage();
+    int attackDamage();
 
     /**
      * Gets the armor type of the item.
@@ -161,11 +161,13 @@ public interface CustomItemData {
     /**
      * Gets the armor protection value of the item.
      *
-     * <p>Only has a function when {@link CustomItemData#armorType} is set.</p>
+     * <p>Only has a function when {@link CustomItemData#armorType} is set, or when the Java item is an armor item (when based on a vanilla item).</p>
+     *
+     * <p>Returns -1 if not set. When not set, Geyser takes the Java item protection value when based on a vanilla item, or uses 0 when porting a modded item.</p>
      *
      * @return the armor protection value of the item
      */
-    @NonNegative int protectionValue();
+    int protectionValue();
 
     /**
      * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and

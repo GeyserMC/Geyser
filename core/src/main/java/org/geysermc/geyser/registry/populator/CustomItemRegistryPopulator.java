@@ -182,10 +182,11 @@ public class CustomItemRegistryPopulator {
         int protectionValue = 0;
         if (mapping.getArmorType() != null) {
             armorType = mapping.getArmorType();
-            protectionValue = mapping.getProtectionValue();
+            protectionValue = customItemData.protectionValue() == -1 ? mapping.getProtectionValue() : customItemData.protectionValue();
         } else if (customItemData.armorType() != null) {
             armorType = customItemData.armorType();
-            protectionValue = customItemData.protectionValue();
+            // Using 0 as fallback here because the Java item doesn't have an armor type - so its protection value would be 0
+            protectionValue = customItemData.protectionValue() == -1 ? 0 : customItemData.protectionValue();
         }
 
         if (armorType != null) {
@@ -244,13 +245,13 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder, customItemData.attackDamage());
+            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder, Math.max(0, customItemData.attackDamage()));
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         String armorType = customItemData.armorType();
         if (armorType != null) {
-            computeArmorProperties(armorType, customItemData.protectionValue(), itemProperties, componentBuilder);
+            computeArmorProperties(armorType, Math.max(0, customItemData.protectionValue()), itemProperties, componentBuilder);
         }
 
         if (customItemData.isEdible()) {
