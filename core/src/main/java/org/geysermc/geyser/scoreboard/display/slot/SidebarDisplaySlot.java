@@ -147,7 +147,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             // we need this as long as MCPE-143063 hasn't been fixed.
             // the checks after 'add' are there to prevent removing scores that
             // are going to be removed anyway / don't need to be removed
-            if (add && exists && !(objectiveUpdate || objectiveAdd)) {
+            if (add && exists && !(objectiveUpdate || objectiveAdd) && !score.onlyScoreValueChanged()) {
                 removeScores.add(score.cachedInfo());
             }
         }

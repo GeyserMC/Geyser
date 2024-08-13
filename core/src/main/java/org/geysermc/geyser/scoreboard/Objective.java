@@ -83,7 +83,7 @@ public final class Objective {
     }
 
     public void updateProperties(Component displayNameComponent, ScoreType type, NumberFormat format) {
-        var displayName = MessageTranslator.convertMessage(displayNameComponent, scoreboard.session().locale());
+        var displayName = MessageTranslator.convertMessageRaw(displayNameComponent, scoreboard.session().locale());
         var changed = !Objects.equals(this.displayName, displayName) || this.type != type;
 
         this.displayName = displayName;

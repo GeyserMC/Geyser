@@ -290,6 +290,28 @@ public final class EntityUtils {
         };
     }
 
+    public static String entityTypeName(EntityType type) {
+        var typeName = type.name();
+        var builder = new StringBuilder();
+
+        boolean upNext = true;
+        for (int i = 0; i < typeName.length(); i++) {
+            char c = typeName.charAt(i);
+            if ('_' == c) {
+                upNext = true;
+                continue;
+            }
+
+            // enums are upper case by default
+            if (!upNext) {
+                c = Character.toLowerCase(c);
+            }
+            builder.append(c);
+            upNext = false;
+        }
+        return builder.toString();
+    }
+
     private EntityUtils() {
     }
 }

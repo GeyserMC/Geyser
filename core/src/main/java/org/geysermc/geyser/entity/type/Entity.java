@@ -41,6 +41,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -102,7 +103,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    private String displayName = "";
+    private String displayName;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -131,6 +132,7 @@ public class Entity implements GeyserEntity {
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
+        this.displayName = EntityUtils.entityTypeName(definition.entityType());
 
         this.entityId = entityId;
         this.geyserId = geyserId;
@@ -346,7 +348,7 @@ public class Entity implements GeyserEntity {
      * Sends the Bedrock metadata to the client
      */
     public void updateBedrockMetadata() {
-        if (!valid) {
+        if (!isValid()) {
             return;
         }
 
@@ -415,27 +417,42 @@ public class Entity implements GeyserEntity {
         return 300;
     }
 
+    public String teamIdentifier() {
+        return uuid.toString();
+    }
+
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // the difference between displayName and nametag aren't important for non-living entities and for players,
-        // but the displayName is needed for living entities that are part of a scoreboard team.
-        // For them the nametag is prefix + displayName + suffix
+        // displayName is shown when always display name is enabled. Either with or without team.
+        // That's why there are both a displayName and a nametag variable.
+        // Displayname is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
             var displayName = MessageTranslator.convertMessage(name.get(), session.locale());
             this.displayName = displayName;
             setNametag(displayName, true);
-        } else {
-            this.displayName = "";
-            setNametag(null, true);
+            return;
         }
+
+        // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
+        // maybe we can/should use a translatable here instead?
+        this.displayName = EntityUtils.entityTypeName(definition.entityType());
+        setNametag(null, true);
     }
 
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        var hide = nametag == null;
-        if (hide) {
+        // ensure that the team format is used when nametag changes
+        if (nametag != null && fromDisplayName) {
+            var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
+            if (team != null) {
+                updateNametag(team);
+                return;
+            }
+        }
+
+        if (nametag == null) {
             nametag = "";
         }
-        var changed = Objects.equals(this.nametag, nametag);
+        var changed = !Objects.equals(this.nametag, nametag);
         this.nametag = nametag;
         // we only update metadata if the value has changed
         if (!changed) {
@@ -444,7 +461,29 @@ public class Entity implements GeyserEntity {
 
         dirtyMetadata.put(EntityDataTypes.NAME, nametag);
         // if nametag (player with team) is hidden for player, so should the score (belowname)
-        scoreVisibility(!hide);
+        scoreVisibility(!nametag.isEmpty());
+    }
+
+    public void updateNametag(@Nullable Team team) {
+        // allow LivingEntity+ to have a different visibility check
+        updateNametag(team, true);
+    }
+
+    protected void updateNametag(@Nullable Team team, boolean visible) {
+        if (team != null) {
+            String newNametag;
+            // (team) visibility is LivingEntity+, team displayName is Entity+
+            if (visible) {
+                newNametag = team.displayName(getDisplayName());
+            } else {
+                // The name is not visible to the session player; clear name
+                newNametag = "";
+            }
+            setNametag(newNametag, false);
+            return;
+        }
+        // The name has reset, if it was previously something else
+        setNametag(null, false);
     }
 
     protected void scoreVisibility(boolean show) {}

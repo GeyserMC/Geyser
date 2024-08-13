@@ -50,8 +50,6 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
     public BelownameDisplaySlot(GeyserSession session, Objective objective) {
         super(session, objective, ScoreboardPosition.BELOW_NAME);
-        setAndAddBelownameForExisting();
-        updateType = UpdateType.NOTHING;
     }
 
     @Override
@@ -61,7 +59,13 @@ public class BelownameDisplaySlot extends DisplaySlot {
         // when the objective is added, updated or removed we thus have to update the belowname for every player
         // when an individual score is updated (score or number format) we have to update the individual player
 
-        // add is handled in the constructor and remove is handled in #remove()
+        // remove is handled in #remove()
+        if (updateType == UpdateType.ADD) {
+            for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
+                playerRegistered(player);
+            }
+            return;
+        }
         if (updateType == UpdateType.UPDATE) {
             for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
                 setBelowNameText(player, scoreFor(player.getUsername()));
@@ -116,12 +120,6 @@ public class BelownameDisplaySlot extends DisplaySlot {
     @Override
     public void playerRemoved(PlayerEntity player) {
         displayScores.remove(player.getGeyserId());
-    }
-
-    private void setAndAddBelownameForExisting() {
-        for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
-            playerRegistered(player);
-        }
     }
 
     private void addDisplayScore(ScoreReference reference) {

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.player;
 
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -37,12 +38,14 @@ import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
@@ -61,6 +64,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
@@ -78,7 +82,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     private String username;
 
-    private String cachedScore;
+    private String cachedScore = "";
     private boolean scoreVisible = true;
 
     /**
@@ -106,6 +110,31 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         this.username = username;
         this.nametag = username;
         this.texturesProperty = texturesProperty;
+    }
+
+    /**
+     * Do not use! For testing purposes only
+     */
+    public PlayerEntity(GeyserSession session, long geyserId, UUID uuid, String username) {
+        super(
+            session,
+            -1,
+            geyserId,
+            uuid,
+            EntityDefinition.builder(null).type(EntityType.PLAYER).build(false),
+            Vector3f.ZERO,
+            Vector3f.ZERO,
+            0,
+            0,
+            0
+        );
+        this.username = username;
+        this.nametag = username;
+        this.texturesProperty = null;
+
+        // clear initial metadata
+        dirtyMetadata.apply(new EntityDataMap());
+        setFlagsDirty(false);
     }
 
     @Override
@@ -391,19 +420,26 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             text = "";
         }
 
+        var changed = !Objects.equals(cachedScore, text);
         cachedScore = text;
-        if (scoreVisible) {
+        if (isScoreVisible() && changed) {
             dirtyMetadata.put(EntityDataTypes.SCORE, text);
         }
     }
 
     @Override
     protected void scoreVisibility(boolean show) {
-        var changed = scoreVisible != show;
+        var visibilityChanged = scoreVisible != show;
         scoreVisible = show;
-        if (changed) {
-            dirtyMetadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
+        if (!visibilityChanged) {
+            return;
         }
+        // if the player has no cachedScore, we never have to change the score.
+        // hide = set to "" (does nothing), show = change from "" (does nothing)
+        if (cachedScore.isEmpty()) {
+            return;
+        }
+        dirtyMetadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
     }
 
     @Override

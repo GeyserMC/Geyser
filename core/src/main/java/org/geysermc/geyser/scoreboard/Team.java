@@ -31,8 +31,8 @@ import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
@@ -45,7 +45,7 @@ public final class Team {
     private final String id;
 
     private final Set<String> entities;
-    private final Set<LivingEntity> managedEntities;
+    private final Set<Entity> managedEntities;
     @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     private TeamColor color;
 
@@ -68,23 +68,23 @@ public final class Team {
         this.id = id;
         this.entities = new ObjectOpenHashSet<>();
         this.managedEntities = new ObjectOpenHashSet<>();
+        this.lastUpdate = LAST_UPDATE_DEFAULT;
 
-        addEntitiesNoUpdate(players);
-        // this calls the update
+        // doesn't call entity update
         updateProperties(name, prefix, suffix, visibility, color);
+        // calls entitity update
+        addEntities(players);
         lastUpdate = LAST_UPDATE_DEFAULT;
     }
 
     public void addEntities(String... names) {
-        addAddedEntities(addEntitiesNoUpdate(names));
-    }
-
-    private Set<String> addEntitiesNoUpdate(String... names) {
         Set<String> added = new HashSet<>();
         for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
+            // go to next score if score is already present
+            if (!entities.add(name)) {
+                continue;
             }
+            added.add(name);
             scoreboard.getPlayerToTeam().compute(name, (player, oldTeam) -> {
                 if (oldTeam != null) {
                     // Remove old team from this map, and from the set of players of the old team.
@@ -96,12 +96,12 @@ public final class Team {
         }
 
         if (added.isEmpty()) {
-            return added;
+            return;
         }
         // we don't have to change our updateType,
-        // because the scores itself need updating, not the team
+        // because the scores themselves need updating, not the team
         scoreboard.setTeamFor(this, added);
-        return added;
+        addAddedEntities(added);
     }
 
     public void removeEntities(String... names) {
@@ -120,7 +120,14 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        return prefix + score + suffix;
+        var chatColor = ChatColor.chatColorFor(color);
+        // most sidebar plugins will use the reset color, because they don't want color
+        // skip the unneeded double reset color in that case
+        if (ChatColor.RESET.equals(chatColor)) {
+            chatColor = "";
+        }
+        // also add reset because setting the color does not reset the formatting, unlike Java
+        return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 
     public boolean isVisibleFor(String entity) {
@@ -148,9 +155,9 @@ public final class Team {
         var oldVisible = isVisibleFor(playerName());
         var oldColor = this.color;
 
-        this.name = MessageTranslator.convertMessage(name, session().locale());
-        this.prefix = MessageTranslator.convertMessage(prefix, session().locale());
-        this.suffix = MessageTranslator.convertMessage(suffix, session().locale());
+        this.name = MessageTranslator.convertMessageRaw(name, session().locale());
+        this.prefix = MessageTranslator.convertMessageRaw(prefix, session().locale());
+        this.suffix = MessageTranslator.convertMessageRaw(suffix, session().locale());
         // matches vanilla behaviour, the visibility is not reset (to ALWAYS) if it is null.
         // instead the visibility is not altered
         if (visibility != null) {
@@ -159,24 +166,9 @@ public final class Team {
         this.color = color;
 
         if (lastUpdate == LAST_UPDATE_DEFAULT) {
-            if (entities.isEmpty()) {
-                return;
-            }
-
-            var hidden = false;
-            if (nameTagVisibility != NameTagVisibility.ALWAYS && !isVisibleFor(playerName())) {
-                // while the team has technically changed, we don't mark it as changed because the visibility
-                // doesn't influence any of the display slots
-                hideEntities();
-                hidden = true;
-            }
-
+            // addEntities is called after the initial updateProperties, so no need to do any entity updates here
             if (this.color != TeamColor.RESET || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
                 markChanged();
-                // we've already hidden the entities, so we don't have to update them again
-                if (!hidden) {
-                    updateEntities();
-                }
             }
             return;
         }
@@ -220,36 +212,32 @@ public final class Team {
             refreshAllEntities();
             return;
         }
-        for (LivingEntity entity : managedEntities) {
+        for (Entity entity : managedEntities) {
             entity.updateNametag(null);
             entity.updateBedrockMetadata();
         }
     }
 
-    private void hideEntities() {
-        for (LivingEntity entity : managedEntities) {
-            entity.hideNametag();
-        }
-    }
-
     private void updateEntities() {
-        for (LivingEntity entity : managedEntities) {
+        for (Entity entity : managedEntities) {
             entity.updateNametag(this);
+            entity.updateBedrockMetadata();
         }
     }
 
     private void addAddedEntities(Set<String> names) {
+        // can't contain self if none are added
+        if (names.isEmpty()) {
+            return;
+        }
         var containsSelf = names.contains(playerName());
 
         for (Entity entity : session().getEntityCache().getEntities().values()) {
-            if (!(entity instanceof LivingEntity living)) {
-                continue;
-            }
-            if (names.contains(living.teamIdentifier())) {
-                managedEntities.add(living);
+            if (names.contains(entity.teamIdentifier())) {
+                managedEntities.add(entity);
                 if (!containsSelf) {
-                    living.updateNametag(this);
-                    living.updateBedrockMetadata();
+                    entity.updateNametag(this);
+                    entity.updateBedrockMetadata();
                 }
             }
         }
@@ -281,11 +269,8 @@ public final class Team {
 
     private void refreshAllEntities() {
         for (Entity entity : session().getEntityCache().getEntities().values()) {
-            if (!(entity instanceof LivingEntity living)) {
-                continue;
-            }
-            living.updateNametag(scoreboard.getTeamFor(living.teamIdentifier()));
-            living.updateBedrockMetadata();
+            entity.updateNametag(scoreboard.getTeamFor(entity.teamIdentifier()));
+            entity.updateBedrockMetadata();
         }
     }
 

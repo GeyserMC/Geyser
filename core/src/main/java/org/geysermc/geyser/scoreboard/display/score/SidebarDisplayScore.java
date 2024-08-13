@@ -40,6 +40,7 @@ public final class SidebarDisplayScore extends DisplayScore {
     private ScoreInfo cachedInfo;
     private Team team;
     private String order;
+    private boolean onlyScoreValueChanged;
 
     public SidebarDisplayScore(DisplaySlot slot, long scoreId, ScoreReference reference) {
         super(slot, scoreId, reference);
@@ -81,6 +82,9 @@ public final class SidebarDisplayScore extends DisplayScore {
             finalName = order + ChatColor.RESET + finalName;
         }
 
+        if (cachedInfo != null) {
+            onlyScoreValueChanged = finalName.equals(cachedInfo.getName());
+        }
         cachedInfo = new ScoreInfo(id, slot.objectiveId(), reference.score(), finalName);
     }
 
@@ -127,5 +131,9 @@ public final class SidebarDisplayScore extends DisplayScore {
 
     public boolean exists() {
         return cachedInfo != null;
+    }
+
+    public boolean onlyScoreValueChanged() {
+        return onlyScoreValueChanged;
     }
 }
