@@ -27,6 +27,8 @@ package org.geysermc.geyser.item;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -274,7 +276,7 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder stackSize(int stackSize) {
+        public Builder stackSize(@Positive int stackSize) {
             if (stackSize < 1) {
                 throw new IllegalArgumentException("Stack size cannot be below 1 (" + stackSize + " was given)");
             } else if (stackSize > 1) {
@@ -290,7 +292,7 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder maxDamage(int maxDamage) {
+        public Builder maxDamage(@NonNegative int maxDamage) {
             if (maxDamage < 0) {
                 throw new IllegalArgumentException("Max damage cannot be below 0 (" + maxDamage + " was given)");
             } else if (maxDamage > 0) {
@@ -306,7 +308,10 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder attackDamage(int attackDamage) {
+        public Builder attackDamage(@NonNegative int attackDamage) {
+            if (attackDamage < 0) {
+                throw new IllegalArgumentException("Protection value cannot be below 0 (" + attackDamage + " was given)");
+            }
             this.attackDamage = attackDamage;
             return this;
         }
@@ -318,7 +323,10 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder protectionValue(int protectionValue) {
+        public Builder protectionValue(@NonNegative int protectionValue) {
+            if (protectionValue < 0) {
+                throw new IllegalArgumentException("Protection value cannot be below 0 (" + protectionValue + " was given)");
+            }
             this.protectionValue = protectionValue;
             return this;
         }

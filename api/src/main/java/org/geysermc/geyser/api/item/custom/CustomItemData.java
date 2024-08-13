@@ -125,8 +125,7 @@ public interface CustomItemData {
      *
      * @return the stack size of the item
      */
-    @NonNegative
-    int stackSize();
+    @NonNegative int stackSize();
 
     /**
      * Gets the max damage of the item.
@@ -147,7 +146,7 @@ public interface CustomItemData {
      *
      * @return the attack damage of the item
      */
-    int attackDamage();
+    @NonNegative int attackDamage();
 
     /**
      * Gets the armor type of the item.
@@ -166,7 +165,7 @@ public interface CustomItemData {
      *
      * @return the armor protection value of the item
      */
-    int protectionValue();
+    @NonNegative int protectionValue();
 
     /**
      * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
@@ -231,11 +230,11 @@ public interface CustomItemData {
 
         Builder maxDamage(@NonNegative int maxDamage);
 
-        Builder attackDamage(int attackDamage);
+        Builder attackDamage(@NonNegative int attackDamage);
 
         Builder armorType(@Nullable String armorType);
 
-        Builder protectionValue(int protectionValue);
+        Builder protectionValue(@NonNegative int protectionValue);
 
         Builder hat(boolean isHat);
 

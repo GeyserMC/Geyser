@@ -149,13 +149,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder maxDamage(@NonNegative int maxDamage);
 
         @Override
-        Builder attackDamage(int attackDamage);
+        Builder attackDamage(@NonNegative int attackDamage);
 
         @Override
         Builder armorType(@Nullable String armorType);
 
         @Override
-        Builder protectionValue(int protectionValue);
+        Builder protectionValue(@NonNegative int protectionValue);
 
         @Override
         Builder hat(boolean isHat);

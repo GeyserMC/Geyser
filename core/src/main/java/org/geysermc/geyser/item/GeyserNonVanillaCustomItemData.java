@@ -27,6 +27,8 @@ package org.geysermc.geyser.item;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
@@ -167,17 +169,17 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder stackSize(int stackSize) {
+        public Builder stackSize(@Positive int stackSize) {
             return (Builder) super.stackSize(stackSize);
         }
 
         @Override
-        public Builder maxDamage(int maxDamage) {
+        public Builder maxDamage(@NonNegative int maxDamage) {
             return (Builder) super.maxDamage(maxDamage);
         }
 
         @Override
-        public Builder attackDamage(int attackDamage) {
+        public Builder attackDamage(@NonNegative int attackDamage) {
             return (Builder) super.attackDamage(attackDamage);
         }
 
@@ -187,7 +189,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder protectionValue(int protectionValue) {
+        public Builder protectionValue(@NonNegative int protectionValue) {
             return (Builder) super.protectionValue(protectionValue);
         }
 
