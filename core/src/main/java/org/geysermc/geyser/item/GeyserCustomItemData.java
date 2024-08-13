@@ -25,8 +25,11 @@
 
 package org.geysermc.geyser.item;
 
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -41,6 +44,8 @@ import java.util.Set;
 @EqualsAndHashCode
 @ToString
 public class GeyserCustomItemData implements CustomItemData {
+    private static final List<String> VALID_ARMOR_TYPES = List.of("boots", "leggings", "chestplate", "helmet");
+
     private final String name;
     private final CustomItemOptions customItemOptions;
     private final String displayName;
@@ -52,29 +57,37 @@ public class GeyserCustomItemData implements CustomItemData {
     private final int textureSize;
     private final CustomRenderOffsets renderOffsets;
     private final Set<String> tags;
+    private final int stackSize;
+    private final int maxDamage;
+    private final int attackDamage;
+    private final String armorType;
+    private final int protectionValue;
+    private final boolean isHat;
+    private final boolean isFoil;
+    private final boolean isEdible;
+    private final boolean canAlwaysEat;
 
-    public GeyserCustomItemData(String name,
-                                CustomItemOptions customItemOptions,
-                                String displayName,
-                                String icon,
-                                boolean allowOffhand,
-                                boolean displayHandheld,
-                                OptionalInt creativeCategory,
-                                String creativeGroup,
-                                int textureSize,
-                                CustomRenderOffsets renderOffsets,
-                                Set<String> tags) {
-        this.name = name;
-        this.customItemOptions = customItemOptions;
-        this.displayName = displayName;
-        this.icon = icon;
-        this.allowOffhand = allowOffhand;
-        this.displayHandheld = displayHandheld;
-        this.creativeCategory = creativeCategory;
-        this.creativeGroup = creativeGroup;
-        this.textureSize = textureSize;
-        this.renderOffsets = renderOffsets;
-        this.tags = tags;
+    public GeyserCustomItemData(Builder builder) {
+        this.name = builder.name;
+        this.customItemOptions = builder.customItemOptions;
+        this.displayName = builder.displayName;
+        this.icon = builder.icon;
+        this.allowOffhand = builder.allowOffhand;
+        this.displayHandheld = builder.displayHandheld;
+        this.creativeCategory = builder.creativeCategory;
+        this.creativeGroup = builder.creativeGroup;
+        this.textureSize = builder.textureSize;
+        this.renderOffsets = builder.renderOffsets;
+        this.tags = builder.tags;
+        this.stackSize = builder.stackSize;
+        this.maxDamage = builder.maxDamage;
+        this.attackDamage = builder.attackDamage;
+        this.armorType = builder.armorType;
+        this.protectionValue = builder.protectionValue;
+        this.isHat = builder.hat;
+        this.isFoil = builder.foil;
+        this.isEdible = builder.edible;
+        this.canAlwaysEat = builder.canAlwaysEat;
     }
 
     @Override
@@ -132,6 +145,51 @@ public class GeyserCustomItemData implements CustomItemData {
         return tags;
     }
 
+    @Override
+    public int stackSize() {
+        return stackSize;
+    }
+
+    @Override
+    public int maxDamage() {
+        return maxDamage;
+    }
+
+    @Override
+    public int attackDamage() {
+        return attackDamage;
+    }
+
+    @Override
+    public @Nullable String armorType() {
+        return armorType;
+    }
+
+    @Override
+    public int protectionValue() {
+        return protectionValue;
+    }
+
+    @Override
+    public boolean isHat() {
+        return isHat;
+    }
+
+    @Override
+    public boolean isFoil() {
+        return isFoil;
+    }
+
+    @Override
+    public boolean isEdible() {
+        return isEdible;
+    }
+
+    @Override
+    public boolean canAlwaysEat() {
+        return canAlwaysEat;
+    }
+
     public static class Builder implements CustomItemData.Builder {
         protected String name = null;
         protected CustomItemOptions customItemOptions = null;
@@ -144,6 +202,15 @@ public class GeyserCustomItemData implements CustomItemData {
         protected int textureSize = 16;
         protected CustomRenderOffsets renderOffsets = null;
         protected Set<String> tags = new HashSet<>();
+        private int stackSize = 0;
+        private int maxDamage = -1;
+        private int attackDamage = -1;
+        private String armorType = null;
+        private int protectionValue = -1;
+        private boolean hat = false;
+        private boolean foil = false;
+        private boolean edible = false;
+        private boolean canAlwaysEat = false;
 
         @Override
         public Builder name(@NonNull String name) {
@@ -212,6 +279,89 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
+        public Builder stackSize(@Positive int stackSize) {
+            if (stackSize < 1) {
+                throw new IllegalArgumentException("Stack size cannot be below 1 (" + stackSize + " was given)");
+            } else if (stackSize > 1) {
+                if (this.maxDamage > 0) {
+                    throw new IllegalArgumentException("Stack size cannot be above 1 when max damage is above 0 (" + stackSize + " was given)");
+                }
+                // Explicitly set max damage to 0 instead of falling back to the Java vanilla item value
+                this.maxDamage = 0;
+            }
+
+            this.stackSize = stackSize;
+            return this;
+        }
+
+        @Override
+        public Builder maxDamage(@NonNegative int maxDamage) {
+            if (maxDamage < 0) {
+                throw new IllegalArgumentException("Max damage cannot be below 0 (" + maxDamage + " was given)");
+            } else if (maxDamage > 0) {
+                if (this.stackSize > 1) {
+                    throw new IllegalArgumentException("Max damage cannot be above 0 when stack size is above 1 (" + maxDamage + " was given)");
+                }
+                // Explicitly set stack size to 1 instead of falling back to the Java vanilla item value
+                this.stackSize = 1;
+            }
+
+            this.maxDamage = maxDamage;
+            return this;
+        }
+
+        @Override
+        public Builder attackDamage(@NonNegative int attackDamage) {
+            if (attackDamage < 0) {
+                throw new IllegalArgumentException("Protection value cannot be below 0 (" + attackDamage + " was given)");
+            }
+            this.attackDamage = attackDamage;
+            return this;
+        }
+
+        @Override
+        public Builder armorType(@Nullable String armorType) {
+            if (!VALID_ARMOR_TYPES.contains(armorType)) {
+                throw new IllegalArgumentException("Invalid armor type " + armorType + "! Can be \"boots\", \"leggings\", \"chestplate\", or \"helmet\"");
+            }
+            this.armorType = armorType;
+            return this;
+        }
+
+        @Override
+        public Builder protectionValue(@NonNegative int protectionValue) {
+            if (protectionValue < 0) {
+                throw new IllegalArgumentException("Protection value cannot be below 0 (" + protectionValue + " was given)");
+            }
+            this.protectionValue = protectionValue;
+            return this;
+        }
+
+        @Override
+        public Builder hat(boolean isHat) {
+            this.hat = isHat;
+            return this;
+        }
+
+        @Override
+        public Builder foil(boolean isFoil) {
+            this.foil = isFoil;
+            return this;
+        }
+
+        @Override
+        public Builder edible(boolean isEdible) {
+            this.edible = isEdible;
+            return this;
+        }
+
+        @Override
+        public Builder canAlwaysEat(boolean canAlwaysEat) {
+            this.canAlwaysEat = canAlwaysEat;
+            return this;
+        }
+
+        @Override
         public CustomItemData build() {
             if (this.name == null || this.customItemOptions == null) {
                 throw new IllegalArgumentException("Name and custom item options must be set");
@@ -223,8 +373,8 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
-                    this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
+
+            return new GeyserCustomItemData(this);
         }
     }
 }

@@ -213,6 +213,42 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.tags(tagsSet);
         }
 
+        if (node.has("stack_size")) {
+            customItemData.stackSize(node.get("stack_size").asInt());
+        }
+
+        if (node.has("max_damage")) {
+            customItemData.maxDamage(node.get("max_damage").asInt());
+        }
+
+        if (node.has("attack_damage")) {
+            customItemData.attackDamage(node.get("attack_damage").asInt());
+        }
+
+        if (node.has("armor_type")) {
+            customItemData.armorType(node.get("armor_type").asText());
+        }
+
+        if (node.has("protection_value")) {
+            customItemData.protectionValue(node.get("protection_value").asInt());
+        }
+
+        if (node.has("hat")) {
+            customItemData.hat(node.get("hat").asBoolean());
+        }
+
+        if (node.has("foil")) {
+            customItemData.foil(node.get("foil").asBoolean());
+        }
+
+        if (node.has("edible")) {
+            customItemData.edible(node.get("edible").asBoolean());
+        }
+
+        if (node.has("can_always_eat")) {
+            customItemData.canAlwaysEat(node.get("can_always_eat").asBoolean());
+        }
+
         return customItemData.build();
     }
 

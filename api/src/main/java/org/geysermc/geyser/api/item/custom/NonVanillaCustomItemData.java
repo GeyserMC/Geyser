@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -44,35 +45,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNull String identifier();
 
     /**
-     * Gets the java item id of the item.
-     *
-     * @return the java item id of the item
-     */
-    @NonNegative int javaId();
-
-    /**
-     * Gets the stack size of the item.
-     *
-     * @return the stack size of the item
-     */
-    @NonNegative int stackSize();
-
-    /**
-     * Gets the max damage of the item.
-     *
-     * @return the max damage of the item
-     */
-    int maxDamage();
-
-    /**
-     * Gets the attack damage of the item.
-     * This is purely visual, and only applied to tools
-     *
-     * @return the attack damage of the item
-     */
-    int attackDamage();
-
-    /**
      * Gets the tool type of the item.
      *
      * @return the tool type of the item
@@ -87,18 +59,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String toolTier();
 
     /**
-     * Gets the armor type of the item.
+     * Gets the java item id of the item.
      *
-     * @return the armor type of the item
+     * @return the java item id of the item
      */
-    @Nullable String armorType();
-
-    /**
-     * Gets the armor protection value of the item.
-     *
-     * @return the armor protection value of the item
-     */
-    int protectionValue();
+    @NonNegative int javaId();
 
     /**
      * Gets the item's translation string.
@@ -115,40 +80,18 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable Set<String> repairMaterials();
 
     /**
-     * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
-     * normally allow the player to equip it. This is not meant for armor.
-     *
-     * @return if the item is a hat
-     */
-    boolean isHat();
-
-    /**
-     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
-     *
-     * @return if the item is a foil
-     */
-    boolean isFoil();
-
-    /**
-     * Gets if the item is edible.
-     *
-     * @return if the item is edible
-     */
-    boolean isEdible();
-
-    /**
-     * Gets if the food item can always be eaten.
-     *
-     * @return if the item is allowed to be eaten all the time
-     */
-    boolean canAlwaysEat();
-
-    /**
      * Gets if the item is chargable, like a bow.
      *
      * @return if the item should act like a chargable item
      */
     boolean isChargeable();
+
+    /**
+     * Gets the block the item places.
+     *
+     * @return the block the item places
+     */
+    String block();
 
     /**
      * @deprecated Use {@link #displayHandheld()} instead.
@@ -161,13 +104,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         return displayHandheld();
     }
 
-    /**
-     * Gets the block the item places.
-     *
-     * @return the block the item places
-     */
-    String block();
-
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
@@ -175,54 +111,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     interface Builder extends CustomItemData.Builder {
         @Override
         Builder name(@NonNull String name);
-
-        Builder identifier(@NonNull String identifier);
-
-        Builder javaId(@NonNegative int javaId);
-
-        Builder stackSize(@NonNegative int stackSize);
-
-        Builder maxDamage(int maxDamage);
-
-        Builder attackDamage(int attackDamage);
-
-        Builder toolType(@Nullable String toolType);
-
-        Builder toolTier(@Nullable String toolTier);
-
-        Builder armorType(@Nullable String armorType);
-
-        Builder protectionValue(int protectionValue);
-
-        Builder translationString(@Nullable String translationString);
-
-        Builder repairMaterials(@Nullable Set<String> repairMaterials);
-
-        Builder hat(boolean isHat);
-
-        Builder foil(boolean isFoil);
-
-        Builder edible(boolean isEdible);
-
-        Builder canAlwaysEat(boolean canAlwaysEat);
-
-        Builder chargeable(boolean isChargeable);
-
-        Builder block(String block);
-
-        /**
-         * @deprecated Use {@link #displayHandheld(boolean)} instead.
-         */
-        @Deprecated
-        default Builder tool(boolean isTool) {
-            return displayHandheld(isTool);
-        }
-
-        @Override
-        Builder creativeCategory(int creativeCategory);
-
-        @Override
-        Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
@@ -240,6 +128,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder displayHandheld(boolean displayHandheld);
 
         @Override
+        Builder creativeCategory(int creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
+
+        @Override
         Builder textureSize(int textureSize);
 
         @Override
@@ -247,6 +141,57 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         @Override
         Builder tags(@Nullable Set<String> tags);
+
+        @Override
+        Builder stackSize(@Positive int stackSize);
+
+        @Override
+        Builder maxDamage(@NonNegative int maxDamage);
+
+        @Override
+        Builder attackDamage(@NonNegative int attackDamage);
+
+        @Override
+        Builder armorType(@Nullable String armorType);
+
+        @Override
+        Builder protectionValue(@NonNegative int protectionValue);
+
+        @Override
+        Builder hat(boolean isHat);
+
+        @Override
+        Builder foil(boolean isFoil);
+
+        @Override
+        Builder edible(boolean isEdible);
+
+        @Override
+        Builder canAlwaysEat(boolean canAlwaysEat);
+
+        /**
+         * @deprecated Use {@link #displayHandheld(boolean)} instead.
+         */
+        @Deprecated
+        default Builder tool(boolean isTool) {
+            return displayHandheld(isTool);
+        }
+
+        Builder identifier(@NonNull String identifier);
+
+        Builder javaId(@NonNegative int javaId);
+
+        Builder toolType(@Nullable String toolType);
+
+        Builder toolTier(@Nullable String toolTier);
+
+        Builder translationString(@Nullable String translationString);
+
+        Builder repairMaterials(@Nullable Set<String> repairMaterials);
+
+        Builder chargeable(boolean isChargeable);
+
+        Builder block(String block);
 
         NonVanillaCustomItemData build();
     }

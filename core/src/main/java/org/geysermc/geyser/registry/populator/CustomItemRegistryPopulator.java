@@ -130,8 +130,8 @@ public class CustomItemRegistryPopulator {
         Set<String> repairMaterials = customItemData.repairMaterials();
 
         Item.Builder itemBuilder = Item.builder()
-                .stackSize(customItemData.stackSize())
-                .maxDamage(customItemData.maxDamage());
+                .stackSize(customItemData.stackSize() == 0 ? 64 : customItemData.stackSize())
+                .maxDamage(Math.max(customItemData.maxDamage(), 0));
         Item item = new Item(customIdentifier, itemBuilder) {
             @Override
             public boolean isValidRepairItem(Item other) {
@@ -151,8 +151,7 @@ public class CustomItemRegistryPopulator {
                 .javaItem(item)
                 .build();
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemId, protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
         return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
@@ -167,28 +166,48 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(customItemData.maxDamage() < 0 ? javaItem.maxDamage() : customItemData.maxDamage(),
+                customItemData.stackSize() == 0 ? javaItem.maxStackSize() : customItemData.stackSize(),
+                mapping.getToolType() != null || customItemData.displayHandheld(),
+                customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
-        if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
+        if (mapping.getToolType() != null) {
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder,
+                    customItemData.attackDamage() == 0 ? javaItem.attackDamage() : customItemData.attackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
+        String armorType = null;
+        int protectionValue = 0;
         if (mapping.getArmorType() != null) {
-            computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), itemProperties, componentBuilder);
+            armorType = mapping.getArmorType();
+            protectionValue = customItemData.protectionValue() == -1 ? mapping.getProtectionValue() : customItemData.protectionValue();
+        } else if (customItemData.armorType() != null) {
+            armorType = customItemData.armorType();
+            // Using 0 as fallback here because the Java item doesn't have an armor type - so its protection value would be 0
+            protectionValue = customItemData.protectionValue() == -1 ? 0 : customItemData.protectionValue();
+        }
+
+        if (armorType != null) {
+            computeArmorProperties(armorType, protectionValue, itemProperties, componentBuilder);
         }
 
         if (mapping.getFirstBlockRuntimeId() != null) {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        if (mapping.isEdible()) {
-            computeConsumableProperties(itemProperties, componentBuilder, 1, false);
+        if (mapping.isEdible() || customItemData.isEdible()) {
+            computeConsumableProperties(itemProperties, componentBuilder, 1,
+                    customItemData.canAlwaysEat());
         }
 
         if (mapping.isEntityPlacer()) {
             computeEntityPlacerProperties(componentBuilder);
+        }
+
+        if (customItemData.isFoil()) {
+            itemProperties.putBoolean("foil", true);
         }
 
         switch (mapping.getBedrockIdentifier()) {
@@ -200,7 +219,7 @@ public class CustomItemRegistryPopulator {
         }
 
         // Hardcoded on Java, and should extend to the custom item
-        boolean isHat = (javaItem.equals(Items.SKELETON_SKULL) || javaItem.equals(Items.WITHER_SKELETON_SKULL)
+        boolean isHat = (customItemData.isHat() || javaItem.equals(Items.SKELETON_SKULL) || javaItem.equals(Items.WITHER_SKELETON_SKULL)
                 || javaItem.equals(Items.CARVED_PUMPKIN) || javaItem.equals(Items.ZOMBIE_HEAD)
                 || javaItem.equals(Items.PIGLIN_HEAD) || javaItem.equals(Items.DRAGON_HEAD)
                 || javaItem.equals(Items.CREEPER_HEAD) || javaItem.equals(Items.PLAYER_HEAD)
@@ -213,26 +232,26 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
-                                                    int customItemId, boolean isHat, boolean displayHandheld, int protocolVersion) {
+    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putString("name", customItemName)
+        builder.putString("name", customItemData.identifier())
                 .putInt("id", customItemId);
 
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(Math.max(customItemData.maxDamage(), 0), customItemData.stackSize() == 0 ? 64 : customItemData.stackSize(),
+                customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder, customItemData.attackDamage());
+            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder, Math.max(0, customItemData.attackDamage()));
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         String armorType = customItemData.armorType();
         if (armorType != null) {
-            computeArmorProperties(armorType, customItemData.protectionValue(), itemProperties, componentBuilder);
+            computeArmorProperties(armorType, Math.max(0, customItemData.protectionValue()), itemProperties, componentBuilder);
         }
 
         if (customItemData.isEdible()) {
@@ -247,7 +266,7 @@ public class CustomItemRegistryPopulator {
             computeChargeableProperties(itemProperties, componentBuilder, "minecraft:" + tooltype, protocolVersion);
         }
 
-        computeRenderOffsets(isHat, customItemData, componentBuilder);
+        computeRenderOffsets(customItemData.isHat(), customItemData, componentBuilder);
 
         if (customItemData.isFoil()) {
             itemProperties.putBoolean("foil", true);

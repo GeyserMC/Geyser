@@ -27,6 +27,8 @@ package org.geysermc.geyser.item;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
@@ -40,44 +42,22 @@ import java.util.Set;
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
-    private final int stackSize;
-    private final int maxDamage;
-    private final int attackDamage;
     private final String toolType;
     private final String toolTier;
-    private final String armorType;
-    private final int protectionValue;
     private final String translationString;
     private final Set<String> repairMaterials;
-    private final boolean isHat;
-    private final boolean isFoil;
-    private final boolean isTool;
-    private final boolean isEdible;
-    private final boolean canAlwaysEat;
     private final boolean isChargeable;
     private final String block;
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
-        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.displayHandheld, builder.creativeCategory, builder.creativeGroup,
-                builder.textureSize, builder.renderOffsets, builder.tags);
+        super(builder);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
-        this.stackSize = builder.stackSize;
-        this.maxDamage = builder.maxDamage;
-        this.attackDamage = builder.attackDamage;
         this.toolType = builder.toolType;
         this.toolTier = builder.toolTier;
-        this.armorType = builder.armorType;
-        this.protectionValue = builder.protectionValue;
         this.translationString = builder.translationString;
         this.repairMaterials = builder.repairMaterials;
-        this.isHat = builder.hat;
-        this.isFoil = builder.foil;
-        this.isTool = builder.tool;
-        this.isEdible = builder.edible;
-        this.canAlwaysEat = builder.canAlwaysEat;
         this.isChargeable = builder.chargeable;
         this.block = builder.block;
     }
@@ -93,21 +73,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public int stackSize() {
-        return stackSize;
-    }
-
-    @Override
-    public int maxDamage() {
-        return maxDamage;
-    }
-
-    @Override
-    public int attackDamage() {
-        return attackDamage;
-    }
-
-    @Override
     public String toolType() {
         return toolType;
     }
@@ -118,16 +83,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @Nullable String armorType() {
-        return armorType;
-    }
-
-    @Override
-    public int protectionValue() {
-        return protectionValue;
-    }
-
-    @Override
     public String translationString() {
         return translationString;
     }
@@ -135,26 +90,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public Set<String> repairMaterials() {
         return repairMaterials;
-    }
-
-    @Override
-    public boolean isHat() {
-        return isHat;
-    }
-
-    @Override
-    public boolean isFoil() {
-        return isFoil;
-    }
-
-    @Override
-    public boolean isEdible() {
-        return isEdible;
-    }
-
-    @Override
-    public boolean canAlwaysEat() {
-        return canAlwaysEat;
     }
 
     @Override
@@ -170,28 +105,10 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
-
-        private int stackSize = 64;
-
-        private int maxDamage = 0;
-
-        private int attackDamage = 0;
-
         private String toolType = null;
         private String toolTier = null;
-
-        private String armorType = null;
-        private int protectionValue = 0;
-
         private String translationString;
-
         private Set<String> repairMaterials;
-
-        private boolean hat = false;
-        private boolean foil = false;
-        private boolean tool = false;
-        private boolean edible = false;
-        private boolean canAlwaysEat = false;
         private boolean chargeable = false;
         private String block = null;
 
@@ -207,6 +124,16 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public Builder displayName(@NonNull String displayName) {
+            return (Builder) super.displayName(displayName);
+        }
+
+        @Override
+        public Builder icon(@NonNull String icon) {
+            return (Builder) super.icon(icon);
+        }
+
+        @Override
         public Builder allowOffhand(boolean allowOffhand) {
             return (Builder) super.allowOffhand(allowOffhand);
         }
@@ -217,13 +144,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder displayName(@NonNull String displayName) {
-            return (Builder) super.displayName(displayName);
+        public Builder creativeCategory(int creativeCategory) {
+            return (Builder) super.creativeCategory(creativeCategory);
         }
 
         @Override
-        public Builder icon(@NonNull String icon) {
-            return (Builder) super.icon(icon);
+        public Builder creativeGroup(@Nullable String creativeGroup) {
+            return (Builder) super.creativeGroup(creativeGroup);
         }
 
         @Override
@@ -242,6 +169,51 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public Builder stackSize(@Positive int stackSize) {
+            return (Builder) super.stackSize(stackSize);
+        }
+
+        @Override
+        public Builder maxDamage(@NonNegative int maxDamage) {
+            return (Builder) super.maxDamage(maxDamage);
+        }
+
+        @Override
+        public Builder attackDamage(@NonNegative int attackDamage) {
+            return (Builder) super.attackDamage(attackDamage);
+        }
+
+        @Override
+        public Builder armorType(@Nullable String armorType) {
+            return (Builder) super.armorType(armorType);
+        }
+
+        @Override
+        public Builder protectionValue(@NonNegative int protectionValue) {
+            return (Builder) super.protectionValue(protectionValue);
+        }
+
+        @Override
+        public Builder hat(boolean isHat) {
+            return (Builder) super.hat(isHat);
+        }
+
+        @Override
+        public Builder foil(boolean isFoil) {
+            return (Builder) super.foil(isFoil);
+        }
+
+        @Override
+        public Builder edible(boolean isEdible) {
+            return (Builder) super.edible(isEdible);
+        }
+
+        @Override
+        public Builder canAlwaysEat(boolean canAlwaysEat) {
+            return (Builder) super.canAlwaysEat(canAlwaysEat);
+        }
+
+        @Override
         public Builder identifier(@NonNull String identifier) {
             this.identifier = identifier;
             return this;
@@ -250,24 +222,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder javaId(int javaId) {
             this.javaId = javaId;
-            return this;
-        }
-
-        @Override
-        public Builder stackSize(int stackSize) {
-            this.stackSize = stackSize;
-            return this;
-        }
-
-        @Override
-        public Builder maxDamage(int maxDamage) {
-            this.maxDamage = maxDamage;
-            return this;
-        }
-
-        @Override
-        public NonVanillaCustomItemData.Builder attackDamage(int attackDamage) {
-            this.attackDamage = attackDamage;
             return this;
         }
 
@@ -284,18 +238,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder armorType(@Nullable String armorType) {
-            this.armorType = armorType;
-            return this;
-        }
-
-        @Override
-        public Builder protectionValue(int protectionValue) {
-            this.protectionValue = protectionValue;
-            return this;
-        }
-
-        @Override
         public Builder translationString(@Nullable String translationString) {
             this.translationString = translationString;
             return this;
@@ -304,40 +246,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
-            return this;
-        }
-
-        @Override
-        public Builder creativeCategory(int creativeCategory) {
-            return (Builder) super.creativeCategory(creativeCategory);
-        }
-
-        @Override
-        public Builder creativeGroup(@Nullable String creativeGroup) {
-            return (Builder) super.creativeGroup(creativeGroup);
-        }
-
-        @Override
-        public Builder hat(boolean isHat) {
-            this.hat = isHat;
-            return this;
-        }
-
-        @Override
-        public Builder foil(boolean isFoil) {
-            this.foil = isFoil;
-            return this;
-        }
-
-        @Override
-        public Builder edible(boolean isEdible) {
-            this.edible = isEdible;
-            return this;
-        }
-
-        @Override
-        public Builder canAlwaysEat(boolean canAlwaysEat) {
-            this.canAlwaysEat = canAlwaysEat;
             return this;
         }
 

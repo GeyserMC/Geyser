@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -114,6 +116,88 @@ public interface CustomItemData {
      */
     @NonNull Set<String> tags();
 
+    /**
+     * Gets the stack size of the item.
+     *
+     * <p>Returns 0 if not set. When not set, Geyser defaults to the stack count of the Java item when based on a vanilla item, or 64 when registering a non-vanilla item.</p>
+     *
+     * <p>Note that, to copy Java behaviour, setting the stack size of an item to a value above 1 will set the max damage to 0. If a max damage value above 0 was explicitly set, an exception will be thrown.</p>
+     *
+     * @return the stack size of the item
+     */
+    @NonNegative int stackSize();
+
+    /**
+     * Gets the max damage of the item.
+     *
+     * <p>Returns -1 if not set. When not set, Geyser defaults to the maximum damage of the Java item when based on a vanilla item, or uses 0 when registering a non-vanilla item.</p>
+     *
+     * <p>Note that, to copy Java behaviour, setting the max damage value of an item to a value above 0 will set the stack size to 1. If a stack size above 1 was explicitly set, an exception will be thrown.</p>
+     *
+     * @return the max damage of the item
+     */
+    int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * <p>Returns -1 if not set. When not set, Geyser takes the Java item attack damage when based on a vanilla item, or uses 0 when porting a modded item.</p>
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
+
+    /**
+     * Gets the armor type of the item.
+     *
+     * <p>This can be "boots", "leggings", "chestplate", or "helmet", and makes the item able to be equipped into its respective equipment slot.
+     * This should only be set if the Java item can be placed into the specified equipment slot.</p>
+     *
+     * @return the armor type of the item
+     */
+    @Nullable String armorType();
+
+    /**
+     * Gets the armor protection value of the item.
+     *
+     * <p>Only has a function when {@link CustomItemData#armorType} is set, or when the Java item is an armor item (when based on a vanilla item).</p>
+     *
+     * <p>Returns -1 if not set. When not set, Geyser takes the Java item protection value when based on a vanilla item, or uses 0 when porting a modded item.</p>
+     *
+     * @return the armor protection value of the item
+     */
+    int protectionValue();
+
+    /**
+     * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
+     * normally allow the player to equip it. This is not meant for armor.
+     *
+     * @return if the item is a hat
+     */
+    boolean isHat();
+
+    /**
+     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
+     *
+     * @return if the item is a foil
+     */
+    boolean isFoil();
+
+    /**
+     * Gets if the item is edible.
+     *
+     * @return if the item is edible
+     */
+    boolean isEdible();
+
+    /**
+     * Gets if the food item can always be eaten.
+     *
+     * @return if the item is allowed to be eaten all the time
+     */
+    boolean canAlwaysEat();
+
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -143,6 +227,24 @@ public interface CustomItemData {
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);
+
+        Builder stackSize(@Positive int stackSize);
+
+        Builder maxDamage(@NonNegative int maxDamage);
+
+        Builder attackDamage(@NonNegative int attackDamage);
+
+        Builder armorType(@Nullable String armorType);
+
+        Builder protectionValue(@NonNegative int protectionValue);
+
+        Builder hat(boolean isHat);
+
+        Builder foil(boolean isFoil);
+
+        Builder edible(boolean isEdible);
+
+        Builder canAlwaysEat(boolean canAlwaysEat);
 
         CustomItemData build();
     }
