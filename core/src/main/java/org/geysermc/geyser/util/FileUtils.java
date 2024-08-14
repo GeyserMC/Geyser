@@ -101,6 +101,18 @@ public class FileUtils {
     }
 
     /**
+     * Open the specified file or copy if from resources
+     *
+     * @param file File to open
+     * @param name Name of the resource get if needed
+     * @return File handle of the specified file
+     * @throws IOException if the file failed to copy from resource
+     */
+    public static File fileOrCopiedFromResource(File file, String name, GeyserBootstrap bootstrap) throws IOException {
+        return fileOrCopiedFromResource(file, name, Function.identity(), bootstrap);
+    }
+
+    /**
      * Writes the given data to the specified file on disk
      *
      * @param file File to write to

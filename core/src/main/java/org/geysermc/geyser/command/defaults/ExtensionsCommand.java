@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,22 +41,23 @@ public class ExtensionsCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public ExtensionsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
-
+        super(name, description, permission, TriState.TRUE);
         this.geyser = geyser;
     }
 
     @Override
-    public void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args) {
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+
         // TODO: Pagination
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.extensions.header", sender.locale(), page, maxPage);
-        sender.sendMessage(header);
+        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.extensions.header", source.locale(), page, maxPage);
+        source.sendMessage(header);
 
         this.geyser.extensionManager().extensions().stream().sorted(Comparator.comparing(Extension::name)).forEach(extension -> {
             String extensionName = (extension.isEnabled() ? ChatColor.GREEN : ChatColor.RED) + extension.name();
-            sender.sendMessage("- " + extensionName + ChatColor.RESET + " v" + extension.description().version() + formatAuthors(extension.description().authors()));
+            source.sendMessage("- " + extensionName + ChatColor.RESET + " v" + extension.description().version() + formatAuthors(extension.description().authors()));
         });
     }
 

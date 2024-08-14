@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
@@ -481,7 +480,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
     }
 
     private static void spawnOminousTrialSpawnerParticles(GeyserSession session, Vector3f pos) {
-        int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+        int dimensionId = DimensionUtils.javaToBedrock(session);
         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
         stringPacket.setIdentifier("minecraft:trial_spawner_detection_ominous");
         stringPacket.setDimensionId(dimensionId);

@@ -38,6 +38,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
+import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -108,7 +109,8 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Conversion685_671::remapBlock)
-                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Conversion712_685::remapBlock)
+                .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -129,7 +131,7 @@ public final class BlockRegistryPopulator {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
                     builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
-                    builder.remove("network_id"); // Added in 1.19.80 - ????
+                    builder.remove("network_id"); // Added in 1.19.80
                     builder.remove("block_id"); // Added in 1.20.60
                     //noinspection UnstableApiUsage
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));

@@ -54,6 +54,8 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
@@ -77,6 +79,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -135,8 +138,10 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -381,11 +386,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The dimension of the player.
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
-    @Setter
-    private int dimension = DimensionUtils.OVERWORLD;
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
+    /**
+     * Which dimension Bedrock understands themselves to be in.
+     * This should only be set after the ChangeDimensionPacket is sent, or
+     * right before the StartGamePacket is sent.
+     */
+    @Setter
+    private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
 
     @Setter
     private int breakingBlock;
@@ -1457,8 +1467,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
+    public UUID playerUuid() {
+        return javaUuid(); // CommandSource allows nullable
+    }
+
+    @Override
+    public GeyserSession connection() {
+        return this;
+    }
+
+    @Override
     public String locale() {
         return clientData.getLanguageCode();
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        // for Geyser-Standalone, standalone's permission system will handle it.
+        // for server platforms, the session will be mapped to a server command sender, and the server's api will be used.
+        return geyser.commandRegistry().hasPermission(this, permission);
     }
 
     /**
@@ -1530,7 +1557,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(chunkCache.getBedrockDimension()));
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(bedrockDimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
@@ -1771,17 +1798,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
         upstream.sendPacket(gameRulesChangedPacket);
-    }
-
-    /**
-     * Checks if the given session's player has a permission
-     *
-     * @param permission The permission node to check
-     * @return true if the player has the requested permission, false if not
-     */
-    @Override
-    public boolean hasPermission(String permission) {
-        return geyser.getWorldManager().hasPermission(this, permission);
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();
@@ -2092,6 +2108,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull Set<String> fogEffects() {
         return this.cameraData.fogEffects();
+    }
+
+    @Override
+    public int ping() {
+        RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
+        return (int) Math.floor(rakSessionCodec.getPing());
+    }
+
+    @Override
+    public void closeForm() {
+        if (!GameProtocol.isPre1_21_2(this)) {
+            sendUpstreamPacket(new ClientboundCloseFormPacket());
+        }
     }
 
     public void addCommandEnum(String name, String enums) {
