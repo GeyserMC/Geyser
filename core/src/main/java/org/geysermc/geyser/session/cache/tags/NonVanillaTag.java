@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.session.cache.tags;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
-import org.geysermc.geyser.session.cache.tags.Tag;
+import net.kyori.adventure.key.Key;
 
-import java.util.UUID;
+/**
+ * A non-vanilla tag. This can be any key in any of the registries that are stored by Geyser.
+ */
+public record NonVanillaTag(TagRegistry registry, Key tag) implements Tag {
 
-public class ChickenEntity extends AnimalEntity {
-
-    public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-    }
-
-    @Override
-    @Nullable
-    protected Tag getFoodTag() {
-        return ItemTag.CHICKEN_FOOD;
-    }
 }
