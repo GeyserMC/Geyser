@@ -79,6 +79,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -141,6 +142,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -2133,6 +2135,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public int ping() {
         RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
         return (int) Math.floor(rakSessionCodec.getPing());
+    }
+
+    @Override
+    public void closeForm() {
+        if (!GameProtocol.isPre1_21_2(this)) {
+            sendUpstreamPacket(new ClientboundCloseFormPacket());
+        }
     }
 
     public void addCommandEnum(String name, String enums) {

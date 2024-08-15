@@ -75,6 +75,7 @@ public class LivingEntity extends Entity {
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
     protected ItemData boots = ItemData.AIR;
+    protected ItemData body = ItemData.AIR;
     protected ItemData hand = ItemData.AIR;
     protected ItemData offhand = ItemData.AIR;
 
@@ -111,6 +112,10 @@ public class LivingEntity extends Entity {
 
     public void setChestplate(ItemStack stack) {
         this.chestplate = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setBody(ItemStack stack) {
+        this.body = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setLeggings(ItemStack stack) {
@@ -354,6 +359,7 @@ public class LivingEntity extends Entity {
         armorEquipmentPacket.setChestplate(chestplate);
         armorEquipmentPacket.setLeggings(leggings);
         armorEquipmentPacket.setBoots(boots);
+        armorEquipmentPacket.setBody(body);
 
         session.sendUpstreamPacket(armorEquipmentPacket);
     }
