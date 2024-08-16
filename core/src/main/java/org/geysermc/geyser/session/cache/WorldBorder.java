@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
@@ -36,7 +37,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.level.physics.Axis;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
+
+import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
@@ -188,6 +193,53 @@ public class WorldBorder {
     public boolean isWithinWarningBoundaries() {
         Vector3f entityPosition = session.getPlayerEntity().getPosition();
         return entityPosition.getX() > warningMinX && entityPosition.getX() < warningMaxX && entityPosition.getZ() > warningMinZ && entityPosition.getZ() < warningMaxZ;
+    }
+
+    /**
+     * Adjusts the movement of an entity so that it does not cross the world border.
+     *
+     * @param boundingBox bounding box of the entity
+     * @param movement movement of the entity
+     * @return the corrected movement
+     */
+    public Vector3d correctMovement(BoundingBox boundingBox, Vector3d movement) {
+        double correctedX;
+        if (movement.getX() < 0) {
+            correctedX = -limitMovement(-movement.getX(), boundingBox.getMin(Axis.X) - GenericMath.floor(minX));
+        } else {
+            correctedX = limitMovement(movement.getX(), GenericMath.ceil(maxX) - boundingBox.getMax(Axis.X));
+        }
+
+        // Outside of border, don't adjust movement
+        if (Double.isNaN(correctedX)) {
+            return movement;
+        }
+
+        double correctedZ;
+        if (movement.getZ() < 0) {
+            correctedZ = -limitMovement(-movement.getZ(), boundingBox.getMin(Axis.Z) - GenericMath.floor(minZ));
+        } else {
+            correctedZ = limitMovement(movement.getZ(), GenericMath.ceil(maxZ) - boundingBox.getMax(Axis.Z));
+        }
+
+        if (Double.isNaN(correctedZ)) {
+            return movement;
+        }
+
+        return Vector3d.from(correctedX, movement.getY(), correctedZ);
+    }
+
+    private double limitMovement(double movement, double limit) {
+        if (limit < 0) {
+            // Return NaN to indicate outside of border
+            return Double.NaN;
+        }
+
+        if (limit < COLLISION_TOLERANCE) {
+            return 0;
+        }
+
+        return Math.min(movement, limit);
     }
 
     /**

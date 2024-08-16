@@ -71,9 +71,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
     private GeyserImpl geyser;
 
-    // We can't disable the plugin; hence we need to keep track of it manually
-    private boolean disabled;
-
     @Override
     public void onLoad() {
         onGeyserInitialize();
@@ -98,7 +95,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         if (!this.loadConfig()) {
-            disabled = true;
             return;
         }
         this.geyserLogger.setDebug(geyserConfig.isDebugMode());
@@ -112,7 +108,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        if (disabled) {
+        if (geyser == null) {
             return; // Config did not load properly!
         }
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
