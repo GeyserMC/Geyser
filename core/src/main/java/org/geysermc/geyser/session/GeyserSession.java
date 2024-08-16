@@ -66,6 +66,7 @@ import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
@@ -85,6 +86,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
@@ -1250,8 +1252,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void updateTickingState(float tickRate, boolean frozen) {
         tickThread.cancel(false);
+
         this.tickingFrozen = frozen;
+
+        LevelEventPacket pausePacket = new LevelEventPacket();
+        pausePacket.setType(LevelEvent.GLOBAL_PAUSE);
+        pausePacket.setData(frozen ? 1 : 0);
+        pausePacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(pausePacket);
+
         millisecondsPerTick = 1000.0f / tickRate;
+
+//        LevelEventPacket timestepPacket = new LevelEventPacket();
+//        timestepPacket.setType(LevelEvent.SIM_TIME_SCALE);
+
 
         nanosecondsPerTick = MathUtils.ceil(1000000000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
