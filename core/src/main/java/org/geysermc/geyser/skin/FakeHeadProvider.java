@@ -112,7 +112,13 @@ public class FakeHeadProvider {
             return;
         }
 
-        Map<TextureType, Texture> textures = profile.getTextures(false);
+        Map<TextureType, Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            textures = null;
+        }
 
         if (textures == null || textures.isEmpty()) {
             loadHead(session, entity, profile.getName());
