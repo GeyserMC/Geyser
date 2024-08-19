@@ -37,7 +37,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -230,8 +229,8 @@ public class PistonBlockEntity {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, blockInFront);
         if (state.is(Blocks.PISTON_HEAD)) {
             ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
-        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && state.is(Blocks.AIR)) {
-            // Spigot removes the piston head from the cache, but we need to send the block update ourselves
+        } else if ((session.getGeyser().getWorldManager().hasOwnChunkCache() || session.getErosionHandler().isActive()) && state.is(Blocks.AIR)) {
+            // The platform removes the piston head from the cache, but we need to send the block update ourselves
             ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
         }
     }

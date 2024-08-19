@@ -321,7 +321,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public int voidFloorPosition() {
         // The void floor is offset about 40 blocks below the bottom of the world
-        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension bedrockDimension = session.getBedrockDimension();
         return bedrockDimension.minY() - 40;
     }
 

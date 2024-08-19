@@ -107,7 +107,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -117,7 +117,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof CraftItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -127,7 +127,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof UseItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -137,7 +137,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof PickupItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -147,7 +147,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof DropItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -208,14 +208,8 @@ public class StatisticsUtils {
      * @param language the language to search in
      * @return the full name of the item
      */
-    private static String getItemTranslateKey(String item, String language) {
-        item = item.replace("minecraft:", "item.minecraft.");
-        String translatedItem = MinecraftLocale.getLocaleString(item, language);
-        if (translatedItem.equals(item)) {
-            // Didn't translate; must be a block
-            translatedItem = MinecraftLocale.getLocaleString(item.replace("item.", "block."), language);
-        }
-        return translatedItem;
+    private static String getItemTranslateKey(Item item, String language) {
+        return MinecraftLocale.getLocaleString(item.translationKey(), language);
     }
 
     private static String translate(String keys, String locale) {

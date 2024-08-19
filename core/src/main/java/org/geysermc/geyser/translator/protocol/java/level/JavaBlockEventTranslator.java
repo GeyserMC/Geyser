@@ -82,16 +82,22 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
 
-            if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) {
-                // Mostly handled in the GeyserPistonEvents class
-                // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
-                // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
+            if (session.getGeyser().getWorldManager().hasOwnChunkCache() || session.getErosionHandler().isActive()) {
+                // Mostly handled in the GeyserPistonEvents class (Spigot) / the PistonBlockBaseMixin (Mod platforms)
+                // However, the retracting event is not fully covered. (Spigot)
+                // Mod platforms only handle pistons moving blocks; not the retracting of pistons.
                 if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                     BlockState pistonBlock = session.getGeyser().getWorldManager().blockAt(session, position);
-                    if (!isSticky(pistonBlock)) {
+
+                    // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
+                    // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
+                    boolean isSticky = isSticky(pistonBlock);
+                    if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT && !isSticky) {
                         return;
                     }
-                    if (action != PistonValueType.CANCELLED_MID_PUSH) {
+
+                    // Only sticky pistons that don't pull any blocks are affected
+                    if (action != PistonValueType.CANCELLED_MID_PUSH && isSticky) {
                         Vector3i blockInFrontPos = position.add(direction.getUnitVector());
                         int blockInFront = session.getGeyser().getWorldManager().getBlockAt(session, blockInFrontPos);
                         if (blockInFront != Block.JAVA_AIR_ID) {
@@ -99,7 +105,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                             return;
                         }
                     }
-                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, true, true));
+                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, isSticky, true));
                     if (blockEntity.getAction() != action) {
                         blockEntity.setAction(action, Object2ObjectMaps.emptyMap());
                     }

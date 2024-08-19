@@ -27,12 +27,14 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SettingsUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +47,14 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
         // UUID is null when we're not logged in, which causes the hasPermission check to fail
         if (!session.isLoggedIn()) {
             return;
+        }
+
+        // Peaceful difficulty allows always eating food - hence, we just do not send it to Bedrock.
+        // However, in order for server settings to show it properly, let's revert while we are in the menu!
+        if (session.getWorldCache().getDifficulty() == Difficulty.PEACEFUL) {
+            SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
+            setDifficultyPacket.setDifficulty(Difficulty.PEACEFUL.ordinal());
+            session.sendUpstreamPacket(setDifficultyPacket);
         }
 
         CustomForm form = SettingsUtils.buildForm(session);

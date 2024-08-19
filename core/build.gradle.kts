@@ -51,6 +51,9 @@ dependencies {
     // Adventure text serialization
     api(libs.bundles.adventure)
 
+    // command library
+    api(libs.cloud.core)
+
     api(libs.erosion.common) {
         isTransitive = false
     }
