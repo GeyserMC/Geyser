@@ -33,14 +33,22 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.loader.*;
+import org.geysermc.geyser.pack.GeyserResourcePack;
+import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
+import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
+import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
+import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
+import org.geysermc.geyser.registry.loader.RecipeRegistryLoader;
+import org.geysermc.geyser.registry.loader.RegistryLoaders;
+import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
-import org.geysermc.geyser.registry.loader.RecipeRegistryLoader;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -56,7 +64,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Holds all the common registries in Geyser.
@@ -143,9 +158,9 @@ public final class Registries {
     public static final SimpleMappedRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
+     * A mapped registry holding {@link GeyserResourcePack}'s with the pack uuid as keys.
      */
-    public static final DeferredRegistry<Map<UUID, ResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
+    public static final DeferredRegistry<Map<UUID, GeyserResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.

@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Represents a resource pack sent to Bedrock clients
@@ -62,6 +63,14 @@ public interface ResourcePack {
      */
     @NonNull
     String contentKey();
+
+    /**
+     * @return the resource pack uuid. Shortcut for getting the UUID from the header.
+     */
+    @NonNull
+    default UUID uuid() {
+        return manifest().header().uuid();
+    }
 
     /**
      * Gets the currently set default options of this resource pack.

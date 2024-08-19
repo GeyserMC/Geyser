@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -64,11 +65,29 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * specific options.
      *
      * @param resourcePack a resource pack that will be sent to the client.
-     * @param resourcePackOptions {@link ResourcePackOption}'s that specify how clients load the pack
+     * @param options {@link ResourcePackOption}'s that specify how clients load the pack
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack, ResourcePackOption... resourcePackOptions);
+    public abstract boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption... options);
+
+    /**
+     * Sets {@link ResourcePackOption}'s for a resource pack
+     *
+     * @param resourcePack the resource pack to register the options for
+     * @param options the options to register for the pack
+     * @throws IllegalArgumentException if the pack is not registered.
+     */
+    public abstract void registerOptions(@NonNull ResourcePack resourcePack, @NonNull ResourcePackOption... options);
+
+    /**
+     * Sets {@link ResourcePackOption}'s for a resource pack
+     *
+     * @param uuid the resource pack uuid to register the options for
+     * @param options the options to register for the pack
+     * @throws IllegalArgumentException if the pack is not registered.
+     */
+    public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption... options);
 
     /**
      * Returns the subpack options set for a specific resource pack.
@@ -76,9 +95,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @param resourcePack the resourcePack for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
-    Collection<ResourcePackOption> options(ResourcePack resourcePack) {
-        return options(resourcePack.manifest().header().uuid());
-    }
+    public abstract Collection<ResourcePackOption> options(ResourcePack resourcePack);
 
     /**
      * Returns the subpack options set for a specific resource pack uuid.

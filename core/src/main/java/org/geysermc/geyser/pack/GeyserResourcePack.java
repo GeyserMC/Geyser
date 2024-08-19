@@ -29,23 +29,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+import org.geysermc.geyser.pack.option.OptionHolder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public record GeyserResourcePack(
     PackCodec codec,
     ResourcePackManifest manifest,
     String contentKey,
-    Collection<ResourcePackOption> defaultOptions
+    OptionHolder options
 ) implements ResourcePack {
 
     /**
@@ -53,8 +47,13 @@ public record GeyserResourcePack(
      */
     public static final int CHUNK_SIZE = 102400;
 
+    @Override
+    public Collection<ResourcePackOption> defaultOptions() {
+        return options.immutableValues();
+    }
+
     public GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
-        this(codec, manifest, contentKey, new ArrayList<>(List.of(PriorityOption.NORMAL)));
+        this(codec, manifest, contentKey, new OptionHolder());
     }
 
     public static class Builder implements ResourcePack.Builder {
@@ -73,7 +72,7 @@ public record GeyserResourcePack(
         private final PackCodec codec;
         private final ResourcePackManifest manifest;
         private String contentKey = "";
-        private final Collection<ResourcePackOption> defaultOptions = new ArrayList<>(List.of(PriorityOption.NORMAL));
+        private final OptionHolder optionHolder = new OptionHolder();
 
         @Override
         public ResourcePackManifest manifest() {
@@ -92,7 +91,7 @@ public record GeyserResourcePack(
 
         @Override
         public Collection<ResourcePackOption> defaultOptions() {
-            return Collections.unmodifiableCollection(defaultOptions);
+            return optionHolder.immutableValues();
         }
 
         public Builder contentKey(@NonNull String contentKey) {
@@ -101,23 +100,15 @@ public record GeyserResourcePack(
             return this;
         }
 
-        public Builder defaultOptions(ResourcePackOption... defaultOptions) {
-            this.defaultOptions.addAll(Arrays.stream(defaultOptions).toList());
+        public Builder defaultOptions(@NonNull ResourcePackOption... defaultOptions) {
+            Objects.requireNonNull(defaultOptions);
+            this.optionHolder.add(defaultOptions);
             return this;
         }
 
         public GeyserResourcePack build() {
-            // Check for duplicates
-            Set<ResourcePackOption.Type> types = new HashSet<>();
-            for (ResourcePackOption option : defaultOptions) {
-                if (!types.add(option.type())) {
-                    throw new IllegalArgumentException("Duplicate resource pack option " + option + "!");
-                }
-            }
-            types.clear();
-
-            GeyserResourcePack pack = new GeyserResourcePack(codec, manifest, contentKey, defaultOptions);
-            defaultOptions.forEach(option -> option.validate(pack));
+            GeyserResourcePack pack = new GeyserResourcePack(codec, manifest, contentKey, optionHolder);
+            optionHolder.validateOptions(pack);
             return pack;
         }
     }

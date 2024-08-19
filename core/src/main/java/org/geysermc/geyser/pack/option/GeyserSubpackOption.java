@@ -38,6 +38,8 @@ import java.util.Objects;
  */
 public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
+    public static final GeyserSubpackOption EMPTY = new GeyserSubpackOption("");
+
     @Override
     public @NonNull Type type() {
         return Type.SUBPACK;
