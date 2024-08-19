@@ -132,6 +132,10 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public void onGeyserEnable() {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
         boolean reloading = geyser.isReloading();
         if (reloading) {
             if (!this.loadConfig()) {
@@ -154,6 +158,9 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        }
+        if (this.config.getRemote().authType() == AuthType.FLOODGATE) {
+            ViaProxy.getConfig().setPassthroughBungeecordPlayerInfo(true);
         }
     }
 
