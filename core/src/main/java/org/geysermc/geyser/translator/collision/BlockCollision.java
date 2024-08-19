@@ -166,4 +166,22 @@ public class BlockCollision {
         }
         return offset;
     }
+
+    /**
+     * Checks if this block collision is below the given bounding box.
+     *
+     * @param blockY the y position of the block in the world
+     * @param boundingBox the bounding box to compare
+     * @return true if this block collision is below the bounding box
+     */
+    public boolean isBelow(int blockY, BoundingBox boundingBox) {
+        double minY = boundingBox.getMiddleY() - boundingBox.getSizeY() / 2;
+        for (BoundingBox b : boundingBoxes) {
+            double offset = blockY + b.getMiddleY() + b.getSizeY() / 2 - minY;
+            if (offset > CollisionManager.COLLISION_TOLERANCE) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
