@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.pack.PathPackCodec;
+import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
@@ -58,6 +59,7 @@ import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
 import org.geysermc.geyser.pack.option.GeyserPriorityOption;
 import org.geysermc.geyser.pack.option.GeyserSubpackOption;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
+import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
 import java.nio.file.Path;
@@ -88,6 +90,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
         providers.put(PriorityOption.class, args -> new GeyserPriorityOption((double) args[0]));
         providers.put(SubpackOption.class, args -> new GeyserSubpackOption((String) args[0]));
+        providers.put(UrlPackCodec.class, args -> new GeyserUrlPackCodec((String) args[0]));
 
         // items
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder());

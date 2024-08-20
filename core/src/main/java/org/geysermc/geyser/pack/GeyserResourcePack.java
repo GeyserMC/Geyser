@@ -36,10 +36,10 @@ import java.util.Collection;
 import java.util.Objects;
 
 public record GeyserResourcePack(
-    PackCodec codec,
-    ResourcePackManifest manifest,
-    String contentKey,
-    OptionHolder options
+    @NonNull PackCodec codec,
+    @NonNull ResourcePackManifest manifest,
+    @NonNull String contentKey,
+    @NonNull OptionHolder options
 ) implements ResourcePack {
 
     /**

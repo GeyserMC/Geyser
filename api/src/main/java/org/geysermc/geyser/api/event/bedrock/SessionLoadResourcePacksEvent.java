@@ -45,7 +45,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     }
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to the client.
      *
      * @return an unmodifiable list of resource packs that will be sent to the client.
      */
