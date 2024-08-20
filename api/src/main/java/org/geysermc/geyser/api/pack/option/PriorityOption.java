@@ -34,16 +34,18 @@ import org.geysermc.geyser.api.GeyserApi;
  */
 public interface PriorityOption extends ResourcePackOption {
 
-    PriorityOption HIGH = PriorityOption.priority(10);
+    PriorityOption HIGHEST = PriorityOption.priority(10);
+    PriorityOption HIGH = PriorityOption.priority(8);
     PriorityOption NORMAL = PriorityOption.priority(5);
-    PriorityOption LOW = PriorityOption.priority(0);
+    PriorityOption LOW = PriorityOption.priority(3);
+    PriorityOption LOWEST = PriorityOption.priority(0);
 
     /**
      * The priority of the resource pack
      *
      * @return priority
      */
-    int priority();
+    double priority();
 
     /**
      * Constructs a priority option based on a value between 0 and 10
@@ -51,7 +53,7 @@ public interface PriorityOption extends ResourcePackOption {
      * @param priority an integer that is above 0, but smaller than 10
      * @return the priority option
      */
-    static PriorityOption priority(int priority) {
+    static PriorityOption priority(double priority) {
         if (priority < 0 || priority > 10) {
             throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }

@@ -68,7 +68,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     public LinkedList<ResourcePackStackPacket.Entry> orderedPacks() {
-        TreeSet<Map.Entry<GeyserResourcePack, Integer>> sortedPacks = packs.values().stream()
+        TreeSet<Map.Entry<GeyserResourcePack, Double>> sortedPacks = packs.values().stream()
             // Map each ResourcePack to a pair of (ResourcePack, Priority)
             .map(pack -> new AbstractMap.SimpleEntry<>(pack, getPriority(pack)))
             // Sort by priority in ascending order
@@ -88,11 +88,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     // Helper method to get the priority of a ResourcePack
-    private int getPriority(GeyserResourcePack pack) {
+    private double getPriority(GeyserResourcePack pack) {
         ResourcePackOption option;
         OptionHolder holder = options.get(pack.uuid());
 
         if (holder == null) {
+            // priority is always set
             option = pack.options().get(ResourcePackOption.Type.PRIORITY);
         } else {
             option = options.get(pack.uuid())
@@ -140,11 +141,15 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return register(resourcePack, PriorityOption.NORMAL);
     }
 
-    public void registerOption(@NonNull ResourcePack resourcePack, @NonNull ResourcePackOption option) {
+    private void registerOption(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption... options) {
+        if (options == null) {
+            return;
+        }
+
         GeyserResourcePack pack = validate(resourcePack);
 
         OptionHolder holder = this.options.computeIfAbsent(pack.uuid(), $ -> new OptionHolder());
-        holder.add(option);
+        holder.add(options);
         holder.validateOptions(pack);
     }
 
@@ -160,37 +165,20 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         packs.put(uuid, pack);
 
         // register options
-        OptionHolder holder = new OptionHolder();
-        holder.add(options);
-        holder.validateOptions(pack);
-        this.options.put(uuid, holder);
-
+        registerOption(resourcePack, options);
         return true;
-    }
-
-    @Override
-    public void registerOptions(@NonNull ResourcePack resourcePack, @NonNull ResourcePackOption... options) {
-        validate(resourcePack);
-        registerOptions(resourcePack.uuid());
     }
 
     @Override
     public void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption... options) {
         Objects.requireNonNull(uuid);
+        Objects.requireNonNull(options);
         GeyserResourcePack resourcePack = packs.get(uuid);
         if (resourcePack == null) {
             throw new IllegalArgumentException("Pack with uuid %s not registered yet!".formatted(uuid));
         }
 
-        OptionHolder holder = this.options.computeIfAbsent(uuid, $ -> new OptionHolder());
-        holder.add(options);
-        holder.validateOptions(resourcePack);
-    }
-
-    @Override
-    public Collection<ResourcePackOption> options(@NonNull ResourcePack resourcePack) {
-        validate(resourcePack);
-        return options(resourcePack.uuid());
+        registerOption(resourcePack, options);
     }
 
     @Override

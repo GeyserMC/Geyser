@@ -61,7 +61,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a {@link ResourcePack} to be sent to the client, but alongside
+     * Registers a {@link ResourcePack} to be sent to the client, alongside
      * specific options.
      *
      * @param resourcePack a resource pack that will be sent to the client.
@@ -74,15 +74,6 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Sets {@link ResourcePackOption}'s for a resource pack
      *
-     * @param resourcePack the resource pack to register the options for
-     * @param options the options to register for the pack
-     * @throws IllegalArgumentException if the pack is not registered.
-     */
-    public abstract void registerOptions(@NonNull ResourcePack resourcePack, @NonNull ResourcePackOption... options);
-
-    /**
-     * Sets {@link ResourcePackOption}'s for a resource pack
-     *
      * @param uuid the resource pack uuid to register the options for
      * @param options the options to register for the pack
      * @throws IllegalArgumentException if the pack is not registered.
@@ -90,21 +81,13 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption... options);
 
     /**
-     * Returns the subpack options set for a specific resource pack.
-     *
-     * @param resourcePack the resourcePack for which the options are set
-     * @return a list of {@link ResourcePackOption}
-     */
-    public abstract Collection<ResourcePackOption> options(ResourcePack resourcePack);
-
-    /**
      * Returns the subpack options set for a specific resource pack uuid.
      * These are not modifiable.
      *
-     * @param resourcePack the resourcePack for which the options are set
+     * @param uuid the resourcePack for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
-    public abstract Collection<ResourcePackOption> options(UUID resourcePack);
+    public abstract Collection<ResourcePackOption> options(UUID uuid);
 
     /**
      * Unregisters a resource pack from being sent to the client.

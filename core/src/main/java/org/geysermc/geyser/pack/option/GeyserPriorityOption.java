@@ -31,7 +31,7 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 
 import java.util.Objects;
 
-public record GeyserPriorityOption(int priority) implements PriorityOption {
+public record GeyserPriorityOption(double priority) implements PriorityOption {
 
     public GeyserPriorityOption {
         if (priority < 0 || priority > 10) {
