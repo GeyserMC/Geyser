@@ -11,7 +11,7 @@ modrinth {
     versionNumber.set(project.version as String + "-" + System.getenv("BUILD_NUMBER"))
     versionType.set("beta")
     changelog.set(System.getenv("CHANGELOG") ?: "")
-    gameVersions.add(libs.minecraft.get().version as String)
+    gameVersions.addAll("1.21", libs.minecraft.get().version as String)
     failSilently.set(true)
 
     syncBodyFrom.set(rootProject.file("README.md").readText())

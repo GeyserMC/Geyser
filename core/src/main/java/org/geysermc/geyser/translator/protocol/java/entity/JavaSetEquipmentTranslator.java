@@ -29,6 +29,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -72,9 +73,17 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     livingEntity.setHelmet(stack);
                     armorUpdated = true;
                 }
-                case CHESTPLATE, BODY -> {
-                    // BODY is sent for llamas with a carpet equipped, as of 1.20.5
+                case CHESTPLATE -> {
                     livingEntity.setChestplate(stack);
+                    armorUpdated = true;
+                }
+                case BODY -> {
+                    // BODY is sent for llamas with a carpet equipped, as of 1.20.5
+                    if (GameProtocol.isPre1_21_2(session)) {
+                        livingEntity.setChestplate(stack);
+                    } else {
+                        livingEntity.setBody(stack);
+                    }
                     armorUpdated = true;
                 }
                 case LEGGINGS -> {
