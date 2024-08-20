@@ -131,10 +131,9 @@ public class WebUtils {
                 throw new IllegalArgumentException(String.format("Invalid content length received from remote pack at URL: %s (size: %d)", url, size));
             }
 
-            // This doesn't seem to be a requirement (anymore?). Logging to debug as it might be interesting though.
             if (type == null || !type.equals("application/zip")) {
-                logger.warning(String.format("Application type received from remote pack at URL %s uses the content type: %s! This may result in packs not loading " +
-                    "for Bedrock players.", url, type));
+                throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
+                    "Bedrock Edition only supports the application/zip content type.", url, type));
             }
 
             Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");

@@ -65,7 +65,7 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
 
     /**
      * @param size the amount of slots that the inventory adds alongside the base inventory slots
-     * @param holder the custom block optionHolder
+     * @param holder the custom block holder
      * @param updater updater
      */
     public AbstractBlockInventoryTranslator(int size, InventoryHolder holder, InventoryUpdater updater) {

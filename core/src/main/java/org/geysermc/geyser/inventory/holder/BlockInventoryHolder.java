@@ -168,7 +168,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 return;
             }
         } else {
-            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory optionHolder! ");
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
             if (GeyserImpl.getInstance().getLogger().isDebug()) {
                 GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
                 GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
