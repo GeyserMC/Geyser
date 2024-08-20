@@ -140,7 +140,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     public List<ResourcePackStackPacket.Entry> orderedPacks() {
         TreeSet<Map.Entry<GeyserResourcePack, Double>> sortedPacks = packs.values().stream()
             // Map each ResourcePack to a pair of (GeyserResourcePack, Priority)
-            .map(holder -> new AbstractMap.SimpleEntry<>(holder.pack(), getPriority(holder.pack())))
+            .map(holder -> new AbstractMap.SimpleEntry<>(holder.pack(), priority(holder.pack())))
             // Sort by priority in ascending order
             .collect(Collectors.toCollection(() -> new TreeSet<>(Map.Entry.comparingByValue(Comparator.naturalOrder()))));
 
@@ -188,7 +188,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     // Helper methods to get the options for a ResourcePack
 
-    private double getPriority(GeyserResourcePack pack) {
+    private double priority(GeyserResourcePack pack) {
         OptionHolder holder = options.get(pack.uuid());
         OptionHolder defaultHolder = packs.get(pack.uuid()).optionHolder();
         Objects.requireNonNull(defaultHolder); // should never be null
