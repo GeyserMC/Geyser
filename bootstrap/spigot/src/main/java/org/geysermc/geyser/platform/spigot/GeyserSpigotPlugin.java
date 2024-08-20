@@ -175,8 +175,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        // Disabling the plugin in onLoad() is not supported; we need to manually stop here
+        // Disabling the plugin in onLoad() is not supported; we need to manually stop here and disable ourselves
         if (geyser == null) {
+            Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
