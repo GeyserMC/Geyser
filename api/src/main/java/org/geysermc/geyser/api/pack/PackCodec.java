@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.io.IOException;
@@ -92,30 +91,18 @@ public abstract class PackCodec {
      * @return the new pack provider
      */
     @NonNull
-    public static PackCodec path(@NonNull Path path) {
+    public static PathPackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
 
     /**
-     * Creates a new pack provider from the given url with no content key.
+     * Creates a new pack provider from the given url.
      *
      * @param url the url to create the pack provider from
      * @return the new pack provider
      */
     @NonNull
-    public static PackCodec url(@NonNull String url) {
-        return url(url, null);
-    }
-
-    /**
-     * Creates a new pack provider from the given url and content key.
-     *
-     * @param url the url to create the pack provider from
-     * @param contentKey the content key, leave empty or null if pack is not encrypted
-     * @return the new pack provider
-     */
-    @NonNull
-    public static PackCodec url(@NonNull String url, @Nullable String contentKey) {
-        return GeyserApi.api().provider(UrlPackCodec.class, url, contentKey);
+    public static UrlPackCodec url(@NonNull String url) {
+        return GeyserApi.api().provider(UrlPackCodec.class, url);
     }
 }

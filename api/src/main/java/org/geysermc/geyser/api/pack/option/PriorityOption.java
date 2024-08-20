@@ -32,20 +32,13 @@ import org.geysermc.geyser.api.GeyserApi;
  * Multiple resource packs can override each other. The higher the priority, the "higher" in the stack
  * a pack is, and the more a pack can override other packs.
  */
-public interface PriorityOption extends ResourcePackOption {
+public interface PriorityOption extends ResourcePackOption<Double> {
 
     PriorityOption HIGHEST = PriorityOption.priority(10);
     PriorityOption HIGH = PriorityOption.priority(8);
     PriorityOption NORMAL = PriorityOption.priority(5);
     PriorityOption LOW = PriorityOption.priority(3);
     PriorityOption LOWEST = PriorityOption.priority(0);
-
-    /**
-     * The priority of the resource pack
-     *
-     * @return priority
-     */
-    double priority();
 
     /**
      * Constructs a priority option based on a value between 0 and 10

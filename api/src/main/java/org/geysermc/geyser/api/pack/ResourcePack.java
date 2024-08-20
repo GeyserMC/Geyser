@@ -27,9 +27,7 @@ package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
-import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -71,17 +69,6 @@ public interface ResourcePack {
     default UUID uuid() {
         return manifest().header().uuid();
     }
-
-    /**
-     * Gets the currently set default options of this resource pack.
-     * These can be a priority defining how the Bedrock client applies multiple packs,
-     * or a default subpack.
-     * <p>
-     * These can be overridden in the {@link org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent}
-     *
-     * @return a collection of default {@link ResourcePackOption}s
-     */
-    Collection<ResourcePackOption> defaultOptions();
 
     /**
      * Creates a resource pack with the given {@link PackCodec}.
@@ -133,18 +120,6 @@ public interface ResourcePack {
          * @return this builder
          */
         Builder contentKey(@NonNull String contentKey);
-
-        /**
-         * @return the current default {@link ResourcePackOption}s
-         */
-        Collection<ResourcePackOption> defaultOptions();
-
-        /**
-         * Sets default options for this resource pack.
-         *
-         * @return this builder
-         */
-        Builder defaultOptions(ResourcePackOption... defaultOptions);
 
         /**
          * @return the resource pack

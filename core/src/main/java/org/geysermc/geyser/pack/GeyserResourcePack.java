@@ -29,32 +29,19 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.api.pack.option.ResourcePackOption;
-import org.geysermc.geyser.pack.option.OptionHolder;
 
-import java.util.Collection;
 import java.util.Objects;
 
 public record GeyserResourcePack(
     @NonNull PackCodec codec,
     @NonNull ResourcePackManifest manifest,
-    @NonNull String contentKey,
-    @NonNull OptionHolder options
+    @NonNull String contentKey
 ) implements ResourcePack {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
     public static final int CHUNK_SIZE = 102400;
-
-    @Override
-    public Collection<ResourcePackOption> defaultOptions() {
-        return options.immutableValues();
-    }
-
-    public GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) {
-        this(codec, manifest, contentKey, new OptionHolder());
-    }
 
     public static class Builder implements ResourcePack.Builder {
 
@@ -72,7 +59,6 @@ public record GeyserResourcePack(
         private final PackCodec codec;
         private final ResourcePackManifest manifest;
         private String contentKey = "";
-        private final OptionHolder optionHolder = new OptionHolder();
 
         @Override
         public ResourcePackManifest manifest() {
@@ -89,27 +75,14 @@ public record GeyserResourcePack(
             return contentKey;
         }
 
-        @Override
-        public Collection<ResourcePackOption> defaultOptions() {
-            return optionHolder.immutableValues();
-        }
-
         public Builder contentKey(@NonNull String contentKey) {
             Objects.requireNonNull(contentKey);
             this.contentKey = contentKey;
             return this;
         }
 
-        public Builder defaultOptions(@NonNull ResourcePackOption... defaultOptions) {
-            Objects.requireNonNull(defaultOptions);
-            this.optionHolder.add(defaultOptions);
-            return this;
-        }
-
         public GeyserResourcePack build() {
-            GeyserResourcePack pack = new GeyserResourcePack(codec, manifest, contentKey, optionHolder);
-            optionHolder.validateOptions(pack);
-            return pack;
+            return new GeyserResourcePack(codec, manifest, contentKey);
         }
     }
 }

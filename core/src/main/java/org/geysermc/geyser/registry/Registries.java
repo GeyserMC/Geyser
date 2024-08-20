@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.pack.GeyserResourcePack;
+import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
@@ -160,7 +161,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link GeyserResourcePack}'s with the pack uuid as keys.
      */
-    public static final DeferredRegistry<Map<UUID, GeyserResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
+    public static final DeferredRegistry<Map<UUID, ResourcePackHolder>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.

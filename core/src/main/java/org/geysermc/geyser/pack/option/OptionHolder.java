@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.pack.option;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
@@ -35,9 +37,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackOption> {
+public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackOption<?>> {
 
-    public void add(ResourcePackOption option) {
+    public void add(ResourcePackOption<?> option) {
         if (super.containsKey(option.type())) {
             super.replace(option.type(), option);
         } else {
@@ -45,29 +47,38 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
         }
     }
 
-    public void add(ResourcePackOption... options) {
-        for (ResourcePackOption option : options) {
+    public void add(ResourcePackOption<?>... options) {
+        for (ResourcePackOption<?> option : options) {
             add(option);
         }
     }
 
-    public ResourcePackOption getOrDefault(ResourcePackOption.Type type,
-                                           GeyserResourcePack pack,
-                                           ResourcePackOption defaultValue) {
-        ResourcePackOption option = super.get(type);
+    @SuppressWarnings("unchecked")
+    public static <T> T getWithFallbacks(ResourcePackOption.@NonNull Type type,
+                                         @Nullable OptionHolder holder,
+                                         @NonNull OptionHolder defaultHolder,
+                                         @NonNull T defaultValue) {
+        ResourcePackOption<?> option;
+
+        // First: the optionHolder's option, if it exists
+        if (holder != null) {
+            option = holder.get(type);
+            if (option != null) {
+                return ((ResourcePackOption<T>) option).value();
+            }
+        }
+
+        // Second: check the default optionHolder for the option, if it exists
+        option = defaultHolder.get(type);
         if (option != null) {
-            return option;
+            return ((ResourcePackOption<T>) option).value();
         }
 
-        ResourcePackOption packOption = pack.options().get(type);
-        if (packOption != null) {
-            return packOption;
-        }
-
+        // Finally: Fallback to default
         return defaultValue;
     }
 
-    public void remove(ResourcePackOption option) {
+    public void remove(ResourcePackOption<?> option) {
         super.remove(option.type());
     }
 
@@ -81,26 +92,26 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
     }
 
     /**
-     * @return the options of this option holder in an immutable collection
+     * @return the options of this option optionHolder in an immutable collection
      */
-    public Collection<ResourcePackOption> immutableValues() {
+    public Collection<ResourcePackOption<?>> immutableValues() {
         return Collections.unmodifiableCollection(values());
     }
 
     /**
-     * @return the options of this option holder, with fallbacks to options of a {@link GeyserResourcePack}
+     * @return the options of this option optionHolder, with fallbacks to options of a {@link GeyserResourcePack}
      * if they're not already overridden here
      */
-    public Collection<ResourcePackOption> immutableValues(GeyserResourcePack pack) {
-        if (pack.options().isEmpty()) {
+    public Collection<ResourcePackOption<?>> immutableValues(OptionHolder defaultValues) {
+        if (defaultValues.isEmpty()) {
             return immutableValues();
         }
 
         // Create a map to hold the combined values
-        Map<ResourcePackOption.Type, ResourcePackOption> combinedOptions = new HashMap<>(this);
+        Map<ResourcePackOption.Type, ResourcePackOption<?>> combinedOptions = new HashMap<>(this);
 
         // Add options from the pack if not already overridden by this OptionHolder
-        pack.options().forEach(combinedOptions::putIfAbsent);
+        defaultValues.forEach(combinedOptions::putIfAbsent);
 
         // Return an immutable collection of the combined options
         return Collections.unmodifiableCollection(combinedOptions.values());

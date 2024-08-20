@@ -85,7 +85,7 @@ public record Enchantment(String identifier,
         return Set.copyOf(components); // Also ensures any empty sets are consolidated
     }
 
-    // TODO holder set util?
+    // TODO optionHolder set util?
     private static HolderSet readHolderSet(@Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
         if (holderSet == null) {
             return new HolderSet(new int[]{});

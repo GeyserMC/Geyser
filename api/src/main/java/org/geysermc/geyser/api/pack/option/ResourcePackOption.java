@@ -32,12 +32,17 @@ import org.geysermc.geyser.api.pack.ResourcePack;
  * Represents a resource pack option that can be used to specify how a resource
  * pack is sent to Bedrock clients.
  */
-public interface ResourcePackOption {
+public interface ResourcePackOption<T> {
 
     /**
      * @return the option type
      */
     @NonNull Type type();
+
+    /**
+     * @return the value of the option
+     */
+    @NonNull T value();
 
     /**
      * Used to validate a specific options for a pack.

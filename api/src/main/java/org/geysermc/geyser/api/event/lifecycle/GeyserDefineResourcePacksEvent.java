@@ -26,8 +26,10 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,21 +48,33 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Registers a {@link ResourcePack} to be sent to clients.
+     * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
+     * specific options.
      *
-     * @param resourcePack a resource pack that will be sent to clients.
+     * @param resourcePack a resource pack that will be sent to the client.
+     * @param options {@link ResourcePackOption}'s that specify how clients load the pack
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack);
+    public abstract boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
 
     /**
-     * Registers a collection of {@link ResourcePack}'s to be sent to clients.
+     * Sets {@link ResourcePackOption}'s for a resource pack
      *
-     * @param resourcePacks a collection of resource pack's that will be sent to clients.
+     * @param uuid the resource pack uuid to register the options for
+     * @param options the options to register for the pack
+     * @throws IllegalArgumentException if the pack is not registered.
      */
-    public abstract void registerAll(@NonNull Collection<ResourcePack> resourcePacks);
+    public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
+    /**
+     * Returns the subpack options set for a specific resource pack uuid.
+     * These are not modifiable.
+     *
+     * @param uuid the resourcePack for which the options are set
+     * @return a list of {@link ResourcePackOption}
+     */
+    public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
     /**
      * Unregisters a {@link ResourcePack} from being sent to clients.

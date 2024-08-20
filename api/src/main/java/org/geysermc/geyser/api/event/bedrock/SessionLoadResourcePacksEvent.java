@@ -69,7 +69,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption... options);
+    public abstract boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
 
     /**
      * Sets {@link ResourcePackOption}'s for a resource pack
@@ -78,7 +78,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @param options the options to register for the pack
      * @throws IllegalArgumentException if the pack is not registered.
      */
-    public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption... options);
+    public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
     /**
      * Returns the subpack options set for a specific resource pack uuid.
@@ -87,7 +87,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @param uuid the resourcePack for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
-    public abstract Collection<ResourcePackOption> options(UUID uuid);
+    public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
     /**
      * Unregisters a resource pack from being sent to the client.

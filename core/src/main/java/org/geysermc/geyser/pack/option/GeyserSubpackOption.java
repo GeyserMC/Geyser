@@ -38,16 +38,25 @@ import java.util.Objects;
  */
 public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
-    public static final GeyserSubpackOption EMPTY = new GeyserSubpackOption("");
-
     @Override
     public @NonNull Type type() {
         return Type.SUBPACK;
     }
 
     @Override
+    public @NonNull String value() {
+        return subpackName;
+    }
+
+    @Override
     public void validate(@NonNull ResourcePack pack) {
         Objects.requireNonNull(pack);
+
+        // Allow empty subpack names - they're the same as "none"
+        if (subpackName.isEmpty()) {
+            return;
+        }
+
         if (pack.manifest().subpacks().stream().noneMatch(subpack -> subpack.name().equals(subpackName))) {
             throw new IllegalArgumentException("No subpack with the name %s found!".formatted(subpackName));
         }

@@ -38,6 +38,7 @@ import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
+import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
@@ -67,7 +68,7 @@ import java.util.zip.ZipFile;
 /**
  * Loads {@link ResourcePack}s within a {@link Path} directory, firing the {@link GeyserDefineResourcePacksEventImpl}.
  */
-public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, GeyserResourcePack>> {
+public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, ResourcePackHolder>> {
 
     /**
      * Used to keep track of remote resource packs that the client rejected.
@@ -85,8 +86,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
      * Loop through the packs directory and locate valid resource pack files
      */
     @Override
-    public Map<UUID, GeyserResourcePack> load(Path directory) {
-        Map<UUID, GeyserResourcePack> packMap = new Object2ObjectOpenHashMap<>();
+    public Map<UUID, ResourcePackHolder> load(Path directory) {
+        Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
 
         if (!Files.exists(directory)) {
             try {
@@ -122,20 +123,22 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
         for (Path path : event.resourcePacks()) {
             try {
                 GeyserResourcePack pack = readPack(path).build();
-                packMap.put(pack.uuid(), pack);
+                packMap.put(pack.uuid(), ResourcePackHolder.of(pack));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        // Load all remote resource packs before firing the new event
         packMap.putAll(loadRemotePacks());
+
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
         GeyserImpl.getInstance().eventBus().fire(defineEvent);
         return defineEvent.getPacks();
     }
 
     /**
-     * Reads a resource pack at the given file. Also searches for a file in the same directory, with the same name
+     * Reads a resource pack builder at the given file. Also searches for a file in the same directory, with the same name
      * but suffixed by ".key", containing the content key. If such file does not exist, no content key is stored.
      *
      * @param path the file to read from, in ZIP format
@@ -171,10 +174,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
      * @return a {@link GeyserResourcePack} representation
      * @throws IllegalArgumentException if there was an error reading the pack.
      */
-    public static GeyserResourcePack readPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
+    public static GeyserResourcePack.Builder readPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
         Path path = codec.getFallback().path();
         ResourcePackManifest manifest = readManifest(path, codec.url());
-        return new GeyserResourcePack(codec, manifest, codec.contentKey());
+        return new GeyserResourcePack.Builder(codec, manifest);
     }
 
     private static ResourcePackManifest readManifest(Path path, String packLocation) throws IllegalArgumentException {
@@ -213,28 +216,29 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
         }
     }
 
-    private Map<String, ResourcePack> loadRemotePacks() {
+    private Map<UUID, ResourcePackHolder> loadRemotePacks() {
         GeyserImpl instance = GeyserImpl.getInstance();
         // Unable to make this a static variable, as the test would fail
-        final Path cachedCdnPacksDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
+        final Path cachedDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
-        if (!Files.exists(cachedCdnPacksDirectory)) {
+        if (!Files.exists(cachedDirectory)) {
             try {
-                Files.createDirectories(cachedCdnPacksDirectory);
+                Files.createDirectories(cachedDirectory);
             } catch (IOException e) {
                 instance.getLogger().error("Could not create remote pack cache directory", e);
                 return new Object2ObjectOpenHashMap<>();
             }
         }
 
-        List<String> remotePackUrls = instance.getConfig().getResourcePackUrls();
-        Map<String, ResourcePack> packMap = new Object2ObjectOpenHashMap<>();
+        //List<String> remotePackUrls = instance.getConfig().getResourcePackUrls();
+        List<String> remotePackUrls = List.of();
+        Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
 
         for (String url : remotePackUrls) {
             try {
                 GeyserUrlPackCodec codec = new GeyserUrlPackCodec(url);
-                ResourcePack pack = codec.create();
-                packMap.put(pack.manifest().header().uuid().toString(), pack);
+                GeyserResourcePack pack = codec.create();
+                packMap.put(pack.uuid(), ResourcePackHolder.of(pack));
             } catch (Throwable e) {
                 instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
                 instance.getLogger().error(e.getMessage());
@@ -257,7 +261,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
      *
      * @param codec the codec of the resource pack that wasn't successfully downloaded by a Bedrock client.
      */
-    public static void testRemotePack(GeyserSession session, UrlPackCodec codec, String packId, String packVersion) {
+    public static void testRemotePack(GeyserSession session, UrlPackCodec codec, UUID packId, String packVersion) {
         if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
             String url = codec.url();
             CACHED_FAILED_PACKS.put(url, codec);
@@ -282,9 +286,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
                     return; // Already warned about
                 }
 
-                ResourcePack newPack = ResourcePackLoader.readPack(pathPackCodec.path());
-                UUID newUUID = newPack.manifest().header().uuid();
-                if (newUUID.toString().equals(packId)) {
+                GeyserResourcePack newPack = readPack(pathPackCodec.path()).build();
+                if (newPack.uuid().equals(packId)) {
                     if (packVersion.equals(newPack.manifest().header().version().toString())) {
                         GeyserImpl.getInstance().getLogger().info("No version or pack change detected: Was the resource pack server down?");
                     } else {
@@ -298,14 +301,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
                 // This should be safe to do as we're not directly using registries to read packs.
                 // Instead, they're cached per-session in the SessionLoadResourcePacks event
                 Registries.RESOURCE_PACKS.get().remove(packId);
-                Registries.RESOURCE_PACKS.get().put(newUUID.toString(), newPack);
+                Registries.RESOURCE_PACKS.get().put(newPack.uuid(), ResourcePackHolder.of(newPack));
 
-                if (codec instanceof GeyserUrlPackCodec geyserUrlPackCodec && geyserUrlPackCodec.getFallback() != null) {
-                    // Other implementations could, in theory, not have a fallback
+                if (codec instanceof GeyserUrlPackCodec geyserUrlPackCodec
+                        && geyserUrlPackCodec.getFallback() != null) {
                     Path path = geyserUrlPackCodec.getFallback().path();
                     try {
                         GeyserImpl.getInstance().getScheduledThread().schedule(() -> {
-                            CACHED_FAILED_PACKS.invalidate(packId);
+                            CACHED_FAILED_PACKS.invalidate(codec.url());
                             deleteFile(path);
                         }, 5, TimeUnit.MINUTES);
                     } catch (RejectedExecutionException exception) {
@@ -369,7 +372,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
     public static void clear() {
         Registries.RESOURCE_PACKS.get().clear();
         CACHED_FAILED_PACKS.invalidateAll();
-
     }
 
     public static void cleanupRemotePacks() {
@@ -380,10 +382,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Geyser
 
         int count = 0;
         final long expireTime = (((long) 1000 * 60 * 60)); // one hour
-        for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
-            if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
+        for (File cachedPack : Objects.requireNonNull(cacheFolder.listFiles())) {
+            if (cachedPack.lastModified() < System.currentTimeMillis() - expireTime) {
                 //noinspection ResultOfMethodCallIgnored
-                imageFile.delete();
+                cachedPack.delete();
                 count++;
             }
         }

@@ -27,45 +27,94 @@ package org.geysermc.geyser.event.type;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+import org.geysermc.geyser.pack.GeyserResourcePack;
+import org.geysermc.geyser.pack.ResourcePackHolder;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
 public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
+    private final Map<UUID, ResourcePackHolder> packs;
 
-    private final Map<String, ResourcePack> packs;
-
-    public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap) {
+    public GeyserDefineResourcePacksEventImpl(Map<UUID, ResourcePackHolder> packMap) {
         this.packs = packMap;
     }
 
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
-        return List.copyOf(packs.values());
+        return List.copyOf(packs.values().stream().map(ResourcePackHolder::pack).toList());
     }
 
     @Override
-    public boolean register(@NonNull ResourcePack resourcePack) {
-        String packID = resourcePack.manifest().header().uuid().toString();
-        if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
+    public boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
+        GeyserResourcePack pack = validate(resourcePack);
+
+        UUID uuid = resourcePack.uuid();
+        if (packs.containsKey(uuid)) {
             return false;
         }
-        packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
+
+        ResourcePackHolder holder = ResourcePackHolder.of(pack);
+        packs.put(uuid, holder);
+
+        // register options
+        registerOption(holder, options);
         return true;
     }
 
     @Override
-    public void registerAll(@NonNull Collection<ResourcePack> resourcePacks) {
-        resourcePacks.forEach(this::register);
+    public void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options) {
+        Objects.requireNonNull(uuid);
+        Objects.requireNonNull(options);
+
+        ResourcePackHolder packHolder = packs.get(uuid);
+        if (packHolder == null) {
+            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+        }
+
+        registerOption(packHolder, options);
+    }
+
+    @Override
+    public Collection<ResourcePackOption<?>> options(@NonNull UUID uuid) {
+        Objects.requireNonNull(uuid);
+        ResourcePackHolder packHolder = packs.get(uuid);
+        if (packHolder == null) {
+            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+        }
+
+        return packHolder.optionHolder().immutableValues();
     }
 
     @Override
     public boolean unregister(@NonNull UUID uuid) {
-        return packs.remove(uuid.toString()) != null;
+        return packs.remove(uuid) != null;
+    }
+
+    private void registerOption(@NonNull ResourcePackHolder holder, @Nullable ResourcePackOption<?>... options) {
+        if (options == null) {
+            return;
+        }
+
+        holder.optionHolder().add(options);
+        holder.optionHolder().validateOptions(holder.pack());
+    }
+
+    private GeyserResourcePack validate(@NonNull ResourcePack resourcePack) {
+        Objects.requireNonNull(resourcePack);
+        if (resourcePack instanceof GeyserResourcePack geyserResourcePack) {
+            return geyserResourcePack;
+        } else {
+            throw new IllegalArgumentException("Unknown resource pack implementation: %s".
+                formatted(resourcePack.getClass().getSuperclass().getName()));
+        }
     }
 }

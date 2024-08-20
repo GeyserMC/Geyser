@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.pack;
+package org.geysermc.geyser.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.pack.option.OptionHolder;
 
-/**
- * Represents a pack codec that creates a resource
- * pack from a URL.
- * <p>
- * Due to Bedrock limitations, the URL must:
- * <ul>
- *     <li>be a direct download link to a .zip or .mcpack resource pack</li>
- *     <li>use the application type `application/zip` and set a correct content length</li>
- * </ul>
- */
-public abstract class UrlPackCodec extends PackCodec {
+public record ResourcePackHolder(
+    @NonNull GeyserResourcePack pack,
+    @NonNull OptionHolder optionHolder
+) {
 
-    /**
-     * Gets the URL to the resource pack location.
-     *
-     * @return the URL of the resource pack
-     */
-    @NonNull
-    public abstract String url();
+    public static ResourcePackHolder of(GeyserResourcePack pack) {
+        return new ResourcePackHolder(pack, new OptionHolder());
+    }
 }

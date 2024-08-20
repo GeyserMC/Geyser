@@ -62,6 +62,7 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
+import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
@@ -78,6 +79,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.OptionalInt;
+import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -206,14 +208,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
+        resourcePacksInfo.getCDNEntries().addAll(this.resourcePackLoadEvent.cdnEntries());
 
-        // TODO add url pack entries
-        /*
-        if (pack.codec() instanceof UrlPackCodec urlPackCodec) {
-                resourcePacksInfo.getCDNEntries().add(new ResourcePacksInfoPacket.CDNEntry(
-                        header.uuid() + "_" + header.version(), urlPackCodec.url()));
-        }
-         */
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
@@ -302,21 +298,22 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
+        ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
 
-        if (pack == null) {
+        if (holder == null) {
             GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id (%s) not sent to it!"
                 .formatted(session.bedrockUsername(), packet.getPackId()));
             session.disconnect("disconnectionScreen.resourcePack");
             return PacketSignal.HANDLED;
         }
 
+        ResourcePack pack = holder.pack();
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         PackCodec codec = pack.codec();
 
         // If a remote pack ends up here, that usually implies that a client was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
-            ResourcePackLoader.testRemotePack(session, urlPackCodec, packet.getPackId().toString(), packet.getPackVersion());
+            ResourcePackLoader.testRemotePack(session, urlPackCodec, packet.getPackId(), packet.getPackVersion());
         }
 
         data.setChunkIndex(packet.getChunkIndex());
@@ -332,6 +329,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             channel.position(offset);
             channel.read(ByteBuffer.wrap(packData, 0, packData.length));
         } catch (IOException e) {
+            session.disconnect("disconnectionScreen.resourcePack");
             e.printStackTrace();
         }
 
@@ -358,14 +356,25 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return;
         }
 
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
-
-        if (pack == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!"
-                .formatted(session.bedrockUsername(), packID[0]));
+        UUID packId;
+        try {
+            packId = UUID.fromString(packID[0]);
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack with an invalid id (%s)"
+                .formatted(session.bedrockUsername(), id));
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
+
+        ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packId);
+        if (holder == null) {
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id (%s) not sent to it!"
+                .formatted(session.bedrockUsername(), id));
+            session.disconnect("disconnectionScreen.resourcePack");
+            return;
+        }
+
+        ResourcePack pack = holder.pack();
         PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();
 

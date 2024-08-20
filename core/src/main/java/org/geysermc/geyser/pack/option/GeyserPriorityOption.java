@@ -45,6 +45,11 @@ public record GeyserPriorityOption(double priority) implements PriorityOption {
     }
 
     @Override
+    public @NonNull Double value() {
+        return priority;
+    }
+
+    @Override
     public void validate(@NonNull ResourcePack pack) {
         Objects.requireNonNull(pack);
         if (priority <= 10 && priority > 0) {

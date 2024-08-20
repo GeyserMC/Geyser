@@ -27,10 +27,9 @@ package org.geysermc.geyser.pack.url;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.pack.PathPackCodec;
-import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.io.IOException;
@@ -39,18 +38,12 @@ import java.util.Objects;
 
 public class GeyserUrlPackCodec extends UrlPackCodec {
     private final @NonNull String url;
-    private final @Nullable String contentKey;
     @Getter
     private PathPackCodec fallback;
 
-    public GeyserUrlPackCodec(String url) throws IllegalArgumentException {
-        this(url, null);
-    }
-
-    public GeyserUrlPackCodec(@NonNull String url, @Nullable String contentKey) throws IllegalArgumentException {
-        Objects.requireNonNull(url, "url cannot be null");
+    public GeyserUrlPackCodec(@NonNull String url) throws IllegalArgumentException {
+        Objects.requireNonNull(url);
         this.url = url;
-        this.contentKey = contentKey;
     }
 
     @Override
@@ -66,14 +59,19 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     }
 
     @Override
-    public @NonNull SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+    public @NonNull SeekableByteChannel serialize() throws IOException {
         Objects.requireNonNull(fallback, "must call #create() before attempting to serialize!!");
-        return fallback.serialize(resourcePack);
+        return fallback.serialize();
     }
 
     @Override
     @NonNull
-    public ResourcePack create() {
+    public GeyserResourcePack create() {
+        return createBuilder().build();
+    }
+
+    @Override
+    protected GeyserResourcePack.@NonNull Builder createBuilder() {
         if (this.fallback == null) {
             try {
                 ResourcePackLoader.downloadPack(url, false).whenComplete((pack, throwable) -> {
@@ -84,7 +82,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                     }
                 }).join(); // Needed to ensure that we don't attempt to read a pack before downloading/checking it
             } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to download pack from the url %s (reason: %s)!".formatted(url, e.getMessage()));
+                throw new IllegalArgumentException("Failed to download pack from the url %s (%s)!".formatted(url, e.getMessage()));
             }
         }
 
@@ -94,10 +92,5 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     @Override
     public @NonNull String url() {
         return this.url;
-    }
-
-    @Override
-    public @NonNull String contentKey() {
-        return this.contentKey != null ? contentKey : "";
     }
 }
