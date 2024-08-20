@@ -164,7 +164,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
                 header.uuid().toString(), header.version().toString(), pack.codec().size(), pack.contentKey(),
-                subpackName(pack), header.uuid().toString(), false, false)
+                subpackName(pack), header.uuid().toString(), false, false, false)
             );
         }
 
