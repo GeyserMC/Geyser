@@ -248,7 +248,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
                     int interval = pingPassthroughInterval.getInt();
                     if (interval < 15 && ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().olderThanOrEqualTo(LegacyProtocolVersion.r1_6_4)) {
                         // <= 1.6.4 servers sometimes block incoming connections from an IP address if too many connections are made
-                        node.set(15);
+                        pingPassthroughInterval.set(15);
                     }
                 } catch (SerializationException e) {
                     throw new RuntimeException(e);
