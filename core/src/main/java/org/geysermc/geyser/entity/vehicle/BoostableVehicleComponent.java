@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.sound.block;
+package org.geysermc.geyser.entity.vehicle;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
-import org.geysermc.geyser.translator.sound.SoundTranslator;
+import org.cloudburstmc.math.TrigMath;
+import org.geysermc.geyser.entity.type.LivingEntity;
 
-@SoundTranslator(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
+public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> extends VehicleComponent<T> {
+    private int boostLength;
+    private int boostTicks = 1;
 
-    @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
-        if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEvent.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+    public BoostableVehicleComponent(T vehicle, float stepHeight) {
+        super(vehicle, stepHeight);
+    }
+
+    public void startBoost(int boostLength) {
+        this.boostLength = boostLength;
+        this.boostTicks = 1;
+    }
+
+    public float getBoostMultiplier() {
+        if (isBoosting()) {
+            return 1.0f + 1.15f * TrigMath.sin((float) boostTicks / (float) boostLength * TrigMath.PI);
+        }
+        return 1.0f;
+    }
+
+    public boolean isBoosting() {
+        return boostTicks <= boostLength;
+    }
+
+    public void tickBoost() {
+        if (isBoosting()) {
+            boostTicks++;
+        }
     }
 }

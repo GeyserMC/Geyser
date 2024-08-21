@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
@@ -894,11 +895,11 @@ public abstract class InventoryTranslator {
 
         List<ItemStackResponseContainer> containerEntries = new ArrayList<>();
         for (Map.Entry<ContainerSlotType, List<ItemStackResponseSlot>> entry : containerMap.entrySet()) {
-            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue()));
+            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue(), new FullContainerName(entry.getKey(), 0)));
         }
 
         ItemStackResponseSlot cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
-        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
+        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry), new FullContainerName(ContainerSlotType.CURSOR, 0)));
 
         return containerEntries;
     }

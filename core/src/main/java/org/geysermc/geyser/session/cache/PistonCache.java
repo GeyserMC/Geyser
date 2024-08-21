@@ -33,7 +33,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
@@ -119,6 +121,12 @@ public class PistonCache {
     private void sendPlayerMovement() {
         if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.equals(Vector3f.ZERO)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
+
+            Entity vehicle = playerEntity.getVehicle();
+            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+                return;
+            }
+
             boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
             Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
             playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), isOnGround, true);
@@ -128,6 +136,13 @@ public class PistonCache {
     private void sendPlayerMotion() {
         if (!playerMotion.equals(Vector3f.ZERO)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
+
+            Entity vehicle = playerEntity.getVehicle();
+            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+                vehicle.setMotion(playerMotion);
+                return;
+            }
+
             playerEntity.setMotion(playerMotion);
 
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
@@ -149,10 +164,15 @@ public class PistonCache {
         totalDisplacement = totalDisplacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
 
         Vector3d delta = totalDisplacement.sub(playerDisplacement);
-        // Check if the piston is pushing a player into collision
-        delta = session.getCollisionManager().correctPlayerMovement(delta, true, false);
 
-        session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
+        // Check if the piston is pushing a player into collision
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            delta = clientVehicle.getVehicleComponent().correctMovement(delta);
+            clientVehicle.getVehicleComponent().moveRelative(delta);
+        } else {
+            delta = session.getCollisionManager().correctPlayerMovement(delta, true, false);
+            session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
+        }
 
         playerDisplacement = totalDisplacement;
     }

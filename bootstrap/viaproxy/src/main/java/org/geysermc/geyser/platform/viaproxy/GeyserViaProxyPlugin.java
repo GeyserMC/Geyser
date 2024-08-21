@@ -35,15 +35,17 @@ import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
 import net.raphimc.viaproxy.protocoltranslator.viaproxy.ViaProxyConfig;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -51,7 +53,6 @@ import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListen
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
@@ -68,7 +69,8 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
     private GeyserPluginConfig config;
     private GeyserImpl geyser;
-    private GeyserCommandManager commandManager;
+    private StandaloneCloudCommandManager cloud;
+    private CommandRegistry commandRegistry;
     private IGeyserPingPassthrough pingPassthrough;
 
     @Override
@@ -89,7 +91,9 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
     @EventHandler
     private void onConsoleCommand(final ConsoleCommandEvent event) {
         final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
-        if (this.getGeyserCommandManager().runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()))) {
+        CommandRegistry registry = this.getCommandRegistry();
+        if (registry.rootCommands().contains(command)) {
+            registry.runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()));
             event.setCancelled(true);
         }
     }
@@ -130,20 +134,35 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
 
     @Override
     public void onGeyserEnable() {
-        if (GeyserImpl.getInstance().isReloading()) {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
+        boolean reloading = geyser.isReloading();
+        if (reloading) {
             if (!this.loadConfig()) {
                 return;
             }
+        } else {
+            // Only initialized once - documented in the Geyser-Standalone bootstrap
+            this.cloud = new StandaloneCloudCommandManager(geyser);
+            this.commandRegistry = new CommandRegistry(geyser, cloud);
         }
 
-        this.commandManager = new GeyserCommandManager(this.geyser);
-        this.commandManager.init();
-
         GeyserImpl.start();
+
+        if (!reloading) {
+            // Event must be fired after CommandRegistry has subscribed its listener.
+            // Also, the subscription for the Permissions class is created when Geyser is initialized (by GeyserImpl#start)
+            this.cloud.fireRegisterPermissionsEvent();
+        }
 
         if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        }
+        if (this.config.java().authType() == AuthType.FLOODGATE) {
+            ViaProxy.getConfig().setPassthroughBungeecordPlayerInfo(true);
         }
     }
 
@@ -168,8 +187,8 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.commandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override
@@ -187,7 +206,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
         return new GeyserViaProxyDumpInfo();
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
@@ -216,6 +235,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
         return new File(ROOT_FOLDER, config.floodgateKeyFile()).toPath();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
             this.config = ConfigLoader.load(new File(ROOT_FOLDER, "config.yml"), GeyserPluginConfig.class, node -> {

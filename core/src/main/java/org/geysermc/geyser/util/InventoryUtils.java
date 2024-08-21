@@ -57,6 +57,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import org.jetbrains.annotations.Contract;
@@ -91,7 +92,7 @@ public class InventoryUtils {
 
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null && translator.prepareInventory(session, inventory)) {
+        if (translator.prepareInventory(session, inventory)) {
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
@@ -110,7 +111,11 @@ public class InventoryUtils {
                 inventory.setDisplayed(true);
             }
         } else {
+            // Can occur if we e.g. did not find a spot to put a fake container in
+            ServerboundContainerClosePacket closePacket = new ServerboundContainerClosePacket(inventory.getJavaId());
+            session.sendDownstreamGamePacket(closePacket);
             session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         }
     }
 
@@ -154,7 +159,7 @@ public class InventoryUtils {
     @Nullable
     public static Vector3i findAvailableWorldSpace(GeyserSession session) {
         // Check if a fake block can be placed, either above the player or beneath.
-        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
         Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
         Vector3i position = flatPlayerPosition.add(Vector3i.UP);
@@ -246,6 +251,12 @@ public class InventoryUtils {
         return protocolVersion -> ItemData.builder()
                 .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
                 .count(1).build();
+    }
+
+    public static IntFunction<ItemData> getTotemOfUndying() {
+        return protocolVersion -> ItemData.builder()
+            .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().totem().getBedrockDefinition())
+            .count(1).build();
     }
 
     /**

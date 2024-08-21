@@ -52,8 +52,6 @@ import java.util.function.Consumer;
 
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
-            // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
-            (identifier, data) -> identifier.equals("minecraft:debug_stick"),
             // Bedrock-only as its own item
             (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2,
             // Bedrock-only banner patterns
@@ -85,7 +83,6 @@ public class CreativeItemRegistryPopulator {
     private static ItemData.@Nullable Builder createItemData(JsonObject itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int bedrockBlockRuntimeId;
         NbtMap tag = null;
 
         String identifier = itemNode.get("id").getAsString();
@@ -106,16 +103,8 @@ public class CreativeItemRegistryPopulator {
         }
 
         GeyserBedrockBlock blockDefinition = null;
-        JsonElement blockRuntimeIdNode = itemNode.get("blockRuntimeId");
         JsonElement blockStateNode;
-        if (blockRuntimeIdNode != null) {
-            bedrockBlockRuntimeId = blockRuntimeIdNode.getAsInt();
-            if (bedrockBlockRuntimeId == 0 && !identifier.equals("minecraft:blue_candle")) { // FIXME
-                bedrockBlockRuntimeId = -1;
-            }
-
-            blockDefinition = bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId);
-        } else if ((blockStateNode = itemNode.get("block_state_b64")) != null) {
+        if ((blockStateNode = itemNode.get("block_state_b64")) != null) {
             byte[] bytes = Base64.getDecoder().decode(blockStateNode.getAsString());
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             try {

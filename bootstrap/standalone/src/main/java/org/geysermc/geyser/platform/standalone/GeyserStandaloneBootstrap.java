@@ -37,10 +37,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserRemoteConfig;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -62,7 +63,8 @@ import java.util.Map;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private StandaloneCloudCommandManager cloud;
+    private CommandRegistry commandRegistry;
     private GeyserConfig geyserConfig;
     private final GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -177,13 +179,24 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
 
-        geyserCommandManager = new GeyserCommandManager(geyser);
-        geyserCommandManager.init();
+        boolean reloading = geyser.isReloading();
+        if (!reloading) {
+            // Currently there would be no significant benefit of re-initializing commands. Also, we would have to unsubscribe CommandRegistry.
+            // Fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps.
+            cloud = new StandaloneCloudCommandManager(geyser);
+            commandRegistry = new CommandRegistry(geyser, cloud);
+        }
 
         GeyserImpl.start();
 
+        if (!reloading) {
+            // Event must be fired after CommandRegistry has subscribed its listener.
+            // Also, the subscription for the Permissions class is created when Geyser is initialized.
+            cloud.fireRegisterPermissionsEvent();
+        }
+
         if (gui != null) {
-            gui.enableCommands(geyser.getScheduledThread(), geyserCommandManager);
+            gui.enableCommands(geyser.getScheduledThread(), commandRegistry);
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -210,8 +223,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserDisable() {
-        // We can re-register commands on standalone, so why not
-        GeyserImpl.getInstance().commandManager().getCommands().clear();
         geyser.disable();
     }
 
@@ -232,8 +243,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     @Override

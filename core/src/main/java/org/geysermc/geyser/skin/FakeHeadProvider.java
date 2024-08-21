@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.skin;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.data.GameProfile.Texture;
-import com.github.steveice10.mc.auth.data.GameProfile.TextureModel;
-import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
-import com.github.steveice10.mc.auth.exception.property.PropertyException;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
+import org.geysermc.mcprotocollib.auth.GameProfile.TextureModel;
+import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -113,11 +112,12 @@ public class FakeHeadProvider {
             return;
         }
 
-        Map<TextureType, Texture> textures = null;
+        Map<TextureType, Texture> textures;
         try {
             textures = profile.getTextures(false);
-        } catch (PropertyException e) {
-            session.getGeyser().getLogger().debug("Failed to get textures from GameProfile: " + e);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            textures = null;
         }
 
         if (textures == null || textures.isEmpty()) {

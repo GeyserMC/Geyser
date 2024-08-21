@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -92,14 +93,15 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.setThunder(false);
         }
 
-        int newDimension = spawnInfo.getDimension();
-        if (session.getDimension() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
+        JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());
+        if (session.getDimensionType() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
-            if (DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension)) {
-                int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
-                DimensionUtils.switchDimension(session, fakeDim);
+            if (session.getDimensionType().bedrockId() == newDimension.bedrockId()) {
+                int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimensionType().bedrockId(), newDimension.bedrockId());
+                DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
             session.setWorldName(spawnInfo.getWorldName());
+            session.setWorldTicks(0);
             DimensionUtils.switchDimension(session, newDimension);
 
             ChunkUtils.loadDimension(session);

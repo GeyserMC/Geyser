@@ -130,8 +130,12 @@ public final class TagCache {
         return contains(values, item.javaId());
     }
 
-    public int[] get(EnchantmentTag tag) {
-        return this.enchantments[tag.ordinal()];
+    public int[] get(ItemTag itemTag) {
+        return this.items[itemTag.ordinal()];
+    }
+
+    public int[] get(EnchantmentTag enchantmentTag) {
+        return this.enchantments[enchantmentTag.ordinal()];
     }
 
     private static boolean contains(int[] array, int i) {

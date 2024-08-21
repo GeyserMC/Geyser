@@ -150,7 +150,7 @@ public class GeyserLocale {
         } else {
             if (!validLocalLanguage) {
                 // Don't warn on missing locales if a local file has been found
-                bootstrap.getGeyserLogger().warning("Missing locale: " + locale);
+                bootstrap.getGeyserLogger().debug("Missing locale: " + locale);
             }
         }
 

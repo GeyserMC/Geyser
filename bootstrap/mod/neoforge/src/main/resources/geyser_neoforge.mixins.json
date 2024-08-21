@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.geysermc.geyser.platform.neoforge.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "PermissionNodeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

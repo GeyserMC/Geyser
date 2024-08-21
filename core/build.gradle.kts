@@ -32,11 +32,10 @@ dependencies {
 
     api(libs.bundles.protocol)
 
-    api(libs.mcauthlib)
+    api(libs.minecraftauth)
     api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
-        exclude("com.github.GeyserMC", "packetlib")
-        exclude("com.github.GeyserMC", "mcauthlib")
+        exclude("net.raphimc", "MinecraftAuth")
     }
 
     implementation(libs.raknet) {
@@ -58,6 +57,9 @@ dependencies {
 
     // Adventure text serialization
     api(libs.bundles.adventure)
+
+    // command library
+    api(libs.cloud.core)
 
     api(libs.erosion.common) {
         isTransitive = false
@@ -99,7 +101,7 @@ sourceSets {
         blossom {
             val info = GitInfo()
             javaSources {
-                property("version", "${info.version} (${info.gitVersion})")
+                property("version", info.version)
                 property("gitVersion", info.gitVersion)
                 property("buildNumber", info.buildNumber.toString())
                 property("branch", info.branch)

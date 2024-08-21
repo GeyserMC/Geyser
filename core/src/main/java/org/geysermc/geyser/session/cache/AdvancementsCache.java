@@ -158,7 +158,15 @@ public class AdvancementsCache {
         // Cache language for easier access
         String language = session.locale();
 
-        String earned = isEarned(advancement) ? "yes" : "no";
+        boolean advancementHasProgress = advancement.getRequirements().size() > 1;
+
+        int advancementProgress = getProgress(advancement);
+        int advancementRequirements = advancement.getRequirements().size();
+
+        boolean advancementEarned = advancementRequirements > 0
+                && advancementProgress >= advancementRequirements;
+
+        String earned = advancementEarned ? "yes" : "no";
 
         String description = getColorFromAdvancementFrameType(advancement) + MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language);
         String earnedString = GeyserLocale.getPlayerLocaleString("geyser.advancements.earned", language, MinecraftLocale.getLocaleString("gui." + earned, language));
@@ -171,10 +179,20 @@ public class AdvancementsCache {
         (Description) Mine stone with your new pickaxe
 
         Earned: Yes
+        Progress: 1/4 // When advancement has multiple requirements
         Parent Advancement: Minecraft // If relevant
          */
 
         String content = description + "\n\n§f" + earnedString + "\n";
+
+        if (advancementHasProgress) {
+            // Only display progress with multiple requirements
+            String progress = MinecraftLocale.getLocaleString("advancements.progress", language)
+                    .replaceFirst("%s", String.valueOf(advancementProgress))
+                    .replaceFirst("%s", String.valueOf(advancementRequirements));
+            content += GeyserLocale.getPlayerLocaleString("geyser.advancements.progress", language, progress) + "\n";
+        }
+
         if (!currentAdvancementCategoryId.equals(advancement.getParentId())) {
             // Only display the parent if it is not the category
             content += GeyserLocale.getPlayerLocaleString("geyser.advancements.parentid", language, MessageTranslator.convertMessage(storedAdvancements.get(advancement.getParentId()).getDisplayData().getTitle(), language));
@@ -200,34 +218,44 @@ public class AdvancementsCache {
      * @return true if the advancement has been earned.
      */
     public boolean isEarned(GeyserAdvancement advancement) {
-        boolean earned = false;
-        if (advancement.getRequirements().size() == 0) {
+        if (advancement.getRequirements().isEmpty()) {
             // Minecraft handles this case, so we better as well
             return false;
         }
-        Map<String, Long> progress = storedAdvancementProgress.get(advancement.getId());
-        if (progress != null) {
+        // Progress should never be above requirements count, but you never know
+        return getProgress(advancement) >= advancement.getRequirements().size();
+    }
+
+    /**
+     * Determine the progress on an advancement.
+     *
+     * @param advancement the advancement to determine
+     * @return the progress on the advancement.
+     */
+    public int getProgress(GeyserAdvancement advancement) {
+        if (advancement.getRequirements().isEmpty()) {
+            // Minecraft handles this case
+            return 0;
+        }
+        int progress = 0;
+        Map<String, Long> progressMap = storedAdvancementProgress.get(advancement.getId());
+        if (progressMap != null) {
             // Each advancement's requirement must be fulfilled
             // For example, [[zombie, blaze, skeleton]] means that one of those three categories must be achieved
             // But [[zombie], [blaze], [skeleton]] means that all three requirements must be completed
             for (List<String> requirements : advancement.getRequirements()) {
-                boolean requirementsDone = false;
                 for (String requirement : requirements) {
-                    Long obtained = progress.get(requirement);
+                    Long obtained = progressMap.get(requirement);
                     // -1 means that this particular component required for completing the advancement
                     // has yet to be fulfilled
                     if (obtained != null && !obtained.equals(-1L)) {
-                        requirementsDone = true;
-                        break;
+                        progress++;
                     }
                 }
-                if (!requirementsDone) {
-                    return false;
-                }
             }
-            earned = true;
         }
-        return earned;
+
+        return progress;
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {

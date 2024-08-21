@@ -27,6 +27,7 @@ package org.geysermc.geyser.inventory.updater;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -41,11 +42,14 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
@@ -310,17 +314,18 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input);
-            var exclusiveSet = enchantment.exclusiveSet();
-            if (exclusiveSet != null) {
-                int[] incompatibleEnchantments = session.getTagCache().get(exclusiveSet);
-                for (int i : incompatibleEnchantments) {
-                    Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
-                    if (combinedEnchantments.containsKey(incompatible)) {
-                        canApply = false;
-                        if (!bedrock) {
-                            cost++;
-                        }
+            HolderSet supportedItems = enchantment.supportedItems();
+            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(ItemTag.ALL_ITEM_TAGS.get(tagId)));
+            boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
+
+            HolderSet exclusiveSet = enchantment.exclusiveSet();
+            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(tagId)));
+            for (int i : incompatibleEnchantments) {
+                Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
+                if (combinedEnchantments.containsKey(incompatible)) {
+                    canApply = false;
+                    if (!bedrock) {
+                        cost++;
                     }
                 }
             }

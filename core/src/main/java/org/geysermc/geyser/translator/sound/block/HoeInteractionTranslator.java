@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.sound.block;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
@@ -37,7 +38,8 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class HoeInteractionTranslator implements BlockSoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
+    public void translate(GeyserSession session, Vector3f position, BlockState state) {
+        String identifier = state.toString();
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setPosition(position);
         levelSoundEventPacket.setBabySound(false);
