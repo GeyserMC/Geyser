@@ -84,10 +84,11 @@ public final class GeyserServer {
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
      */
-    private static final int MINECRAFT_VERSION_BYTES_LENGTH = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
+    private static final String PING_VERSION = pingVersion();
+    private static final int PING_VERSION_BYTES_LENGTH = PING_VERSION.getBytes(StandardCharsets.UTF_8).length;
     private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
     /**
-     * The MOTD, sub-MOTD and Minecraft version ({@link #MINECRAFT_VERSION_BYTES_LENGTH}) combined cannot reach this length.
+     * The MOTD, sub-MOTD and Minecraft version ({@link #PING_VERSION_BYTES_LENGTH}) combined cannot reach this length.
      */
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
@@ -316,7 +317,7 @@ public final class GeyserServer {
                 .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
+                .version(PING_VERSION)
                 .ipv4Port(this.broadcastPort)
                 .ipv6Port(this.broadcastPort)
                 .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
@@ -367,15 +368,15 @@ public final class GeyserServer {
         // We don't know why, though
         byte[] motdArray = pong.motd().getBytes(StandardCharsets.UTF_8);
         int subMotdLength = pong.subMotd().getBytes(StandardCharsets.UTF_8).length;
-        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH)) {
+        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH)) {
             // Shorten the sub-MOTD first since that only appears locally
             if (subMotdLength > BRAND_BYTES_LENGTH) {
                 pong.subMotd(GeyserImpl.NAME);
                 subMotdLength = BRAND_BYTES_LENGTH;
             }
-            if (motdArray.length > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
+            if (motdArray.length > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength];
+                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
@@ -388,6 +389,17 @@ public final class GeyserServer {
         }
 
         return pong;
+    }
+
+    private static String pingVersion() {
+        // BedrockPong version is required to not be empty as of 1.16.210.59.
+        // Can only contain . and numbers, so use the latest version instead of sending all
+        var version = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+        var versionSplit = version.split("/");
+        if (versionSplit.length > 1) {
+            version = versionSplit[versionSplit.length - 1];
+        }
+        return version;
     }
 
     /**
