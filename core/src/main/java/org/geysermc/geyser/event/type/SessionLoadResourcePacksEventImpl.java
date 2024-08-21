@@ -188,22 +188,20 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     // Helper methods to get the options for a ResourcePack
 
-    private double priority(GeyserResourcePack pack) {
-        OptionHolder holder = options.get(pack.uuid());
-        OptionHolder defaultHolder = packs.get(pack.uuid()).optionHolder();
+    public <T> T getValue(UUID uuid, ResourcePackOption.Type type, T defaultValue) {
+        OptionHolder holder = options.get(uuid);
+        OptionHolder defaultHolder = packs.get(uuid).optionHolder();
         Objects.requireNonNull(defaultHolder); // should never be null
 
-        return OptionHolder.getWithFallbacks(ResourcePackOption.Type.PRIORITY,
-            holder, defaultHolder, 5);
+        return OptionHolder.getWithFallbacks(type, holder, defaultHolder, defaultValue);
+    }
+
+    private double priority(GeyserResourcePack pack) {
+        return getValue(pack.uuid(), ResourcePackOption.Type.PRIORITY, 5);
     }
 
     private String subpackName(GeyserResourcePack pack) {
-        OptionHolder holder = options.get(pack.uuid());
-        OptionHolder defaultHolder = packs.get(pack.uuid()).optionHolder();
-        Objects.requireNonNull(defaultHolder); // should never be null
-
-        return OptionHolder.getWithFallbacks(ResourcePackOption.Type.SUBPACK,
-            holder, defaultHolder, "");
+        return getValue(pack.uuid(), ResourcePackOption.Type.SUBPACK, "");
     }
 
     // Helper method to validate a pack

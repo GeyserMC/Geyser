@@ -116,10 +116,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             resourcePacks.add(skullResourcePack);
         }
 
-        @SuppressWarnings("deprecation")
+        //noinspection removal
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
+        //noinspection removal
         for (Path path : event.resourcePacks()) {
             try {
                 GeyserResourcePack pack = readPack(path).build();

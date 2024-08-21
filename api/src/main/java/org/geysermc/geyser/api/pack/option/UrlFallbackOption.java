@@ -25,37 +25,26 @@
 
 package org.geysermc.geyser.api.pack.option;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
- * Represents a resource pack option that can be used to specify how a resource
- * pack is sent to Bedrock clients.
+ * Can be used for resource packs using the {@link org.geysermc.geyser.api.pack.UrlPackCodec}.
+ * When a Bedrock client is unable to download a resource pack from a URL, Geyser will, by default,
+ * serve the resource pack over raknet (as packs are served with the {@link org.geysermc.geyser.api.pack.PathPackCodec}).
+ * This option can be used to disable that behavior, and disconnect the player instead.
  */
-public interface ResourcePackOption<T> {
+public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
+
+    UrlFallbackOption TRUE = fallback(true);
+    UrlFallbackOption FALSE = fallback(false);
 
     /**
-     * @return the option type
+     * Whether to fall back to serving packs over the raknet connection
+     * @param fallback whether to fall back
+     * @return a UrlFallbackOption with the specified behavior
      */
-    @NonNull Type type();
-
-    /**
-     * @return the value of the option
-     */
-    @NonNull T value();
-
-    /**
-     * Used to validate a specific options for a pack.
-     * Some options are not applicable to some packs.
-     *
-     * @param pack the resource pack to validate the option for
-     */
-    void validate(@NonNull ResourcePack pack);
-
-    enum Type {
-        SUBPACK,
-        PRIORITY,
-        FALLBACK
+    static UrlFallbackOption fallback(boolean fallback) {
+        return GeyserApi.api().provider(UrlFallbackOption.class, fallback);
     }
 
 }

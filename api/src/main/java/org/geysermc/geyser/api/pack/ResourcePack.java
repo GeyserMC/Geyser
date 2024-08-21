@@ -83,7 +83,7 @@ public interface ResourcePack {
 
     /**
      * Returns a {@link Builder} for a resource pack.
-     * It can be used to set a content key, or a default subpack.
+     * It can be used to set a content key.
      *
      * @param codec the {@link PackCodec} to base the builder on
      * @return a {@link Builder} to build a resource pack.
@@ -93,8 +93,7 @@ public interface ResourcePack {
     }
 
     /**
-     * A builder for a resource pack. It allows providing a content key manually, or
-     * setting a default subpack.
+     * A builder for a resource pack. It allows providing a content key manually.
      */
     interface Builder {
 

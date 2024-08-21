@@ -60,6 +60,7 @@ import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -314,6 +315,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // If a remote pack ends up here, that usually implies that a client was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
             ResourcePackLoader.testRemotePack(session, urlPackCodec, packet.getPackId(), packet.getPackVersion());
+
+            if (!resourcePackLoadEvent.getValue(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
+                session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
+                return PacketSignal.HANDLED;
+            }
         }
 
         data.setChunkIndex(packet.getChunkIndex());
