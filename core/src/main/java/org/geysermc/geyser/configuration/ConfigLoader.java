@@ -34,6 +34,7 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.spongepowered.configurate.NodePath.path;
@@ -104,6 +105,13 @@ public final class ConfigLoader {
                                 case "true" -> value.set("title");
                                 case "false" -> value.set("disabled");
                             }
+                        }
+                        return null;
+                    })
+                    .addAction(path("metrics", "uuid"), (path, value) -> {
+                        if ("generateduuid".equals(value.getString())) {
+                            // Manually copied config without Metrics UUID creation?
+                            return new Object[]{UUID.randomUUID()};
                         }
                         return null;
                     })
