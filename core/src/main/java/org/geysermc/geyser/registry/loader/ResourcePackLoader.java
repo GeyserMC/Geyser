@@ -130,11 +130,16 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             }
         }
 
-        // Load all remote resource packs before firing the new event
-        packMap.putAll(loadRemotePacks());
+        // Load all remote resource packs from the config before firing the new event
+        // TODO configurate
+        //packMap.putAll(loadRemotePacks());
 
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
         GeyserImpl.getInstance().eventBus().fire(defineEvent);
+
+        // After loading the new resource packs: let's clean up the old url packs
+        cleanupRemotePacks();
+
         return defineEvent.getPacks();
     }
 
@@ -248,9 +253,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                 }
             }
         }
-
-        // After loading the new resource packs: let's clean up the old
-        cleanupRemotePacks();
 
         return packMap;
     }

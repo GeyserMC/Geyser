@@ -51,9 +51,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
 
@@ -69,7 +67,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
-        return packs.values().stream().map(ResourcePackHolder::pack).collect(Collectors.toUnmodifiableList());
+        return packs.values().stream().map(ResourcePackHolder::resourcePack).toList();
     }
 
     @Override
@@ -138,13 +136,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     // Methods used internally for e.g. ordered packs, or resource pack entries
 
     public List<ResourcePackStackPacket.Entry> orderedPacks() {
-        TreeSet<Map.Entry<GeyserResourcePack, Double>> sortedPacks = packs.values().stream()
+        return packs.values().stream()
             // Map each ResourcePack to a pair of (GeyserResourcePack, Priority)
             .map(holder -> new AbstractMap.SimpleEntry<>(holder.pack(), priority(holder.pack())))
             // Sort by priority in ascending order
-            .collect(Collectors.toCollection(() -> new TreeSet<>(Map.Entry.comparingByValue(Comparator.naturalOrder()))));
-
-        return sortedPacks.stream()
+            .sorted(Map.Entry.comparingByValue(Comparator.naturalOrder()))
+            // Map the sorted entries to ResourcePackStackPacket.Entry
             .map(entry -> {
                 ResourcePackManifest.Header header = entry.getKey().manifest().header();
                 return new ResourcePackStackPacket.Entry(

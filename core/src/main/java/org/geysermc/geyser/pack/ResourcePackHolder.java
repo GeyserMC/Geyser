@@ -26,6 +26,7 @@
 package org.geysermc.geyser.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.pack.option.OptionHolder;
 
 public record ResourcePackHolder(
@@ -35,5 +36,9 @@ public record ResourcePackHolder(
 
     public static ResourcePackHolder of(GeyserResourcePack pack) {
         return new ResourcePackHolder(pack, new OptionHolder());
+    }
+
+    public ResourcePack resourcePack() {
+        return this.pack;
     }
 }

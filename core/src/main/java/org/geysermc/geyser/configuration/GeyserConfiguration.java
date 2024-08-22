@@ -96,9 +96,6 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
-    // TODO configurate - till then, api only
-    //List<String> getResourcePackUrls();
-
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isXboxAchievementsEnabled();
 

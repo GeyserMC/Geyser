@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Getter
 public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
@@ -51,7 +50,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
 
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
-        return packs.values().stream().map(ResourcePackHolder::pack).collect(Collectors.toUnmodifiableList());
+        return packs.values().stream().map(ResourcePackHolder::resourcePack).toList();
     }
 
     @Override
