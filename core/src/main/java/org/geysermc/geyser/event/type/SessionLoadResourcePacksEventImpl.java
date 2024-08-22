@@ -97,7 +97,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         Objects.requireNonNull(options);
         ResourcePackHolder holder = packs.get(uuid);
         if (holder == null) {
-            throw new IllegalArgumentException("Pack with uuid %s not registered yet!".formatted(uuid));
+            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
         }
 
         registerOption(holder.pack(), options);
@@ -113,6 +113,23 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         OptionHolder optionHolder = options.getOrDefault(uuid, new OptionHolder());
         return optionHolder.immutableValues(packHolder.optionHolder());
+    }
+
+    @Override
+    public @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type) {
+        Objects.requireNonNull(uuid);
+        Objects.requireNonNull(type);
+
+        ResourcePackHolder packHolder = packs.get(uuid);
+        if (packHolder == null) {
+            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+        }
+
+        OptionHolder holder = options.get(uuid);
+        OptionHolder defaultHolder = packHolder.optionHolder();
+        Objects.requireNonNull(defaultHolder); // should never be null
+
+        return OptionHolder.getOptionByType(type, holder, defaultHolder);
     }
 
     @Override

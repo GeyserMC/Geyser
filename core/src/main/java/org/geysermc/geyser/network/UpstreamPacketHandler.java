@@ -302,8 +302,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
 
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id (%s) not sent to it!"
-                .formatted(session.bedrockUsername(), packet.getPackId()));
+            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
+                session.bedrockUsername(), packet.getPackId());
             session.disconnect("disconnectionScreen.resourcePack");
             return PacketSignal.HANDLED;
         }
@@ -356,8 +356,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         String[] packID = id.split("_");
 
         if (packID.length < 2) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!"
-                .formatted(session.bedrockUsername(), packID));
+            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request invalid pack id {1}!",
+                session.bedrockUsername(), packID);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
@@ -366,16 +366,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         try {
             packId = UUID.fromString(packID[0]);
         } catch (IllegalArgumentException e) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack with an invalid id (%s)"
-                .formatted(session.bedrockUsername(), id));
+            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack with an invalid id {1})",
+                session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
 
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packId);
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id (%s) not sent to it!"
-                .formatted(session.bedrockUsername(), id));
+            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
+                session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }

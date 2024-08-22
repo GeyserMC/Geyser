@@ -78,6 +78,25 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
         return defaultValue;
     }
 
+    public static ResourcePackOption<?> getOptionByType(ResourcePackOption.@NonNull Type type,
+                                         @Nullable OptionHolder holder,
+                                         @NonNull OptionHolder defaultHolder) {
+        ResourcePackOption<?> option;
+
+        // First: the optionHolder's option, if it exists
+        if (holder != null) {
+            option = holder.get(type);
+            if (option != null) {
+                return option;
+            }
+        }
+
+        // Second: check the default optionHolder for the option, if it exists;
+        // Or return null if the option isn't set.
+        option = defaultHolder.get(type);
+        return option;
+    }
+
     public void remove(ResourcePackOption<?> option) {
         super.remove(option.type());
     }

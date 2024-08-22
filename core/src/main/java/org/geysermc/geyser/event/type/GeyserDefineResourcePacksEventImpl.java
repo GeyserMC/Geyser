@@ -95,6 +95,19 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
     }
 
     @Override
+    public @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type) {
+        Objects.requireNonNull(uuid);
+        Objects.requireNonNull(type);
+
+        ResourcePackHolder packHolder = packs.get(uuid);
+        if (packHolder == null) {
+            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+        }
+
+        return packHolder.optionHolder().get(type);
+    }
+
+    @Override
     public boolean unregister(@NonNull UUID uuid) {
         return packs.remove(uuid) != null;
     }

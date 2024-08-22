@@ -54,11 +54,11 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Registers a {@link ResourcePack} to be sent to the client.
      *
-     * @param resourcePack a resource pack that will be sent to the client.
+     * @param pack a resource pack that will be sent to the client.
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack);
+    public abstract boolean register(@NonNull ResourcePack pack);
 
     /**
      * Registers a {@link ResourcePack} to be sent to the client, alongside
@@ -88,6 +88,15 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @return a list of {@link ResourcePackOption}
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
+
+    /**
+     * Returns the current option, or null, for a given ResourcePackOption type.
+     *
+     * @param uuid the resource pack for which the option type is set
+     * @param type the {@link ResourcePackOption.Type} of the option to query
+     * @throws IllegalArgumentException if the pack is not registered.
+     */
+    public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
     /**
      * Unregisters a resource pack from being sent to the client.
