@@ -125,8 +125,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (!session.getGeyser().getConfig().isCommandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
-            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
             AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            emptyPacket.getCommands().add(createFakeHelpCommand());
             session.sendUpstreamPacket(emptyPacket);
             return;
         }
@@ -209,10 +210,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         if (!helpAdded) {
             // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
-            CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
-
-            CommandData data = new CommandData("help", "", flags, CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
-            commandData.add(data);
+            commandData.add(createFakeHelpCommand());
         }
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
@@ -299,6 +297,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
             default -> CommandParam.STRING;
         };
+    }
+
+    private CommandData createFakeHelpCommand() {
+        CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
+        return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
 
     /**
