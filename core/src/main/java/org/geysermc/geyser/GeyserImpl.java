@@ -392,6 +392,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
+        // It's set to 0 only if no system property or manual config value was set
+        if (config.getBedrock().broadcastPort() == 0) {
+            config.getBedrock().setBroadcastPort(config.getBedrock().port());
+        }
+
         String remoteAddress = config.getRemote().address();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
