@@ -47,7 +47,7 @@ public final class ScoreboardUpdater extends Thread {
 
     static {
         GeyserConfig config = GeyserImpl.getInstance().config();
-        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
+        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.advanced().scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
         DEBUG_ENABLED = config.debugMode();
     }
 

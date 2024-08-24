@@ -26,7 +26,10 @@
 package org.geysermc.geyser.configuration;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.Constants;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.yaml.NodeStyle;
@@ -34,8 +37,10 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
@@ -56,20 +61,21 @@ public final class ConfigLoader {
             In most cases, especially with server hosting providers, further hosting-specific configuration is required.
             --------------------------------""";
 
+    private static final String ADVANCED_HEADER = """
+            --------------------------------
+            Geyser ADVANCED Configuration File
+            
+            In most cases, you do *not* need to mess with this file to get Geyser running.
+            Tread with caution.
+            --------------------------------
+            """;
+
     public static <T extends GeyserConfig> T load(File file, Class<T> configClass) throws IOException {
         return load(file, configClass, null);
     }
 
     public static <T extends GeyserConfig> T load(File file, Class<T> configClass, @Nullable Consumer<CommentedConfigurationNode> transformer) throws IOException {
-        var loader = YamlConfigurationLoader.builder()
-                .file(file)
-                .indent(2)
-                .nodeStyle(NodeStyle.BLOCK)
-                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options)
-                    .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
-                    .header(HEADER)
-                    .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
-                .build();
+        var loader = createLoader(file, HEADER);
 
         CommentedConfigurationNode node = loader.load();
         boolean originallyEmpty = !file.exists() || node.isNull();
@@ -111,9 +117,20 @@ public final class ConfigLoader {
                     .addAction(path("metrics", "uuid"), (path, value) -> {
                         if ("generateduuid".equals(value.getString())) {
                             // Manually copied config without Metrics UUID creation?
-                            return new Object[]{UUID.randomUUID()};
+                            value.set(UUID.randomUUID());
                         }
                         return null;
+                    })
+                    .addAction(path("remote", "address"), (path, value) -> {
+                        if ("auto".equals(value.getString())) {
+                            // Auto-convert back to localhost
+                            value.set("127.0.0.1");
+                        }
+                        return null;
+                    })
+                    .addAction(path("metrics", "enabled"), (path, value) -> {
+                        // Move to the root, not in the Metrics class.
+                        return new Object[]{"enable-metrics"};
                     })
                     .addAction(path("bedrock", "motd1"), rename("primary-motd"))
                     .addAction(path("bedrock", "motd2"), rename("secondary-motd"))
@@ -139,6 +156,11 @@ public final class ConfigLoader {
         CommentedConfigurationNode newRoot = CommentedConfigurationNode.root(loader.defaultOptions());
         newRoot.set(config);
 
+        // Create the path in a way that Standalone changing the config name will be fine.
+        int extensionIndex = file.getName().lastIndexOf(".");
+        File advancedConfigPath = new File(file.getParent(), file.getName().substring(0, extensionIndex) + "_advanced" + file.getName().substring(extensionIndex));
+        AdvancedConfig advancedConfig = null;
+
         if (originallyEmpty || currentVersion != newVersion) {
 
             if (!originallyEmpty && currentVersion > 4) {
@@ -148,9 +170,14 @@ public final class ConfigLoader {
                 // These get treated as comments on lower nodes, which produces very undesirable results.
 
                 ConfigurationCommentMover.moveComments(node, newRoot);
+            } else if (currentVersion <= 4) {
+                advancedConfig = migrateToAdvancedConfig(advancedConfigPath, node);
             }
 
             loader.save(newRoot);
+        }
+        if (advancedConfig == null) {
+            advancedConfig = loadAdvancedConfig(advancedConfigPath);
         }
 
         if (transformer != null) {
@@ -159,7 +186,67 @@ public final class ConfigLoader {
             config = newRoot.get(configClass);
         }
 
+        config.advanced(advancedConfig);
+
         return config;
+    }
+
+    private static AdvancedConfig migrateToAdvancedConfig(File file, ConfigurationNode configRoot) throws IOException {
+        List<NodePath> copyFromOldConfig = Stream.of("max-visible-custom-skulls", "custom-skull-render-distance", "scoreboard-packet-threshold", "mtu",
+                "floodgate-key-file", "use-direct-connection", "disable-compression")
+            .map(NodePath::path).toList();
+
+        var loader = createLoader(file, ADVANCED_HEADER);
+
+        CommentedConfigurationNode advancedNode = CommentedConfigurationNode.root(loader.defaultOptions());
+        copyFromOldConfig.forEach(path -> {
+            ConfigurationNode node = configRoot.node(path);
+            if (!node.virtual()) {
+                advancedNode.node(path).mergeFrom(node);
+                configRoot.removeChild(path);
+            }
+        });
+
+        ConfigurationNode metricsUuid = configRoot.node("metrics", "uuid");
+        if (!metricsUuid.virtual()) {
+            advancedNode.node("metrics-uuid").set(metricsUuid.get(UUID.class));
+        }
+
+        advancedNode.node("version").set(Constants.ADVANCED_CONFIG_VERSION);
+
+        AdvancedConfig advancedConfig = advancedNode.get(AdvancedConfig.class);
+        // Ensure all fields get populated
+        CommentedConfigurationNode newNode = CommentedConfigurationNode.root(loader.defaultOptions());
+        newNode.set(advancedConfig);
+        loader.save(newNode);
+        return advancedConfig;
+    }
+
+    private static AdvancedConfig loadAdvancedConfig(File file) throws IOException {
+        var loader = createLoader(file, ADVANCED_HEADER);
+        if (file.exists()) {
+            ConfigurationNode node = loader.load();
+            return node.get(AdvancedConfig.class);
+        } else {
+            ConfigurationNode node = CommentedConfigurationNode.root(loader.defaultOptions());
+            node.node("version").set(Constants.ADVANCED_CONFIG_VERSION);
+            AdvancedConfig advancedConfig = node.get(AdvancedConfig.class);
+            node.set(advancedConfig);
+            loader.save(node);
+            return advancedConfig;
+        }
+    }
+
+    private static YamlConfigurationLoader createLoader(File file, String header) {
+        return YamlConfigurationLoader.builder()
+            .file(file)
+            .indent(2)
+            .nodeStyle(NodeStyle.BLOCK)
+            .defaultOptions(options -> InterfaceDefaultOptions.addTo(options)
+                .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
+                .header(header)
+                .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
+            .build();
     }
 
     private ConfigLoader() {

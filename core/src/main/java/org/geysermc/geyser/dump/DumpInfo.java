@@ -39,6 +39,7 @@ import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.configuration.AdvancedConfig;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -73,6 +74,7 @@ public class DumpInfo {
     private final String systemEncoding;
     private final GitInfo gitInfo;
     private final GeyserConfig config;
+    private final AdvancedConfig advancedConfig;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
     private final HashInfo hashInfo;
@@ -93,6 +95,7 @@ public class DumpInfo {
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         this.config = geyser.config();
+        this.advancedConfig = geyser.config().advanced();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";

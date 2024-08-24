@@ -123,7 +123,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         int index = ch.pipeline().names().indexOf("encoder");
                         String baseName = index != -1 ? "encoder" : "outbound_config";
 
-                        if (bootstrap.config().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                        if (bootstrap.config().advanced().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
                             ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
                         }
                     }

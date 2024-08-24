@@ -224,7 +224,7 @@ public final class GeyserServer {
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().mtu());
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
@@ -239,7 +239,7 @@ public final class GeyserServer {
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().mtu())
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().mtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)

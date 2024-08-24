@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
+import org.spongepowered.configurate.interfaces.meta.Field;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
@@ -43,17 +44,12 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @ConfigSerializable
 public interface GeyserConfig {
     BedrockConfig bedrock();
 
     JavaConfig java();
-
-    // Cannot be type File yet because we want to hide it in plugin instances.
-    @DefaultString("key.pem")
-    String floodgateKeyFile();
 
     @Comment("""
             For online mode authentication type only.
@@ -128,24 +124,9 @@ public interface GeyserConfig {
     @DefaultString("system")
     String defaultLocale();
 
-    @Comment("""
-            Specify how many days images will be cached to disk to save downloading them from the internet.
-            A value of 0 is disabled. (Default: 0)""")
-    int cacheImages();
-
     @Comment("Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.")
     @DefaultBoolean(true)
     boolean allowCustomSkulls();
-
-    @Comment("""
-            The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
-            Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.""")
-    @DefaultNumeric(128)
-    int maxVisibleCustomSkulls();
-
-    @Comment("The radius in blocks around the player in which custom skulls are displayed.")
-    @DefaultNumeric(32)
-    int customSkullRenderDistance();
 
     @Comment("""
             Whether to add any items and blocks which normally does not exist in Bedrock Edition.
@@ -187,17 +168,22 @@ public interface GeyserConfig {
     boolean notifyOnNewBedrockUpdate();
 
     @Comment("""
-            Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
-            or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.""")
-    @DefaultString("minecraft:barrier")
-    String unusableSpaceBlock();
-
-    @Comment("""
             bStats is a stat tracker that is entirely anonymous and tracks only basic information
             about Geyser, such as how many people are online, how many servers are using Geyser,
             what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
             https://bstats.org/plugin/server-implementation/GeyserMC""")
-    MetricsInfo metrics();
+    @DefaultBoolean(true)
+    boolean enableMetrics();
+
+    /**
+     * A separate config file added to this class manually.
+     */
+    @Field
+    @NonNull
+    AdvancedConfig advanced();
+
+    @Field
+    void advanced(AdvancedConfig config);
 
     @ConfigSerializable
     interface BedrockConfig extends BedrockListener {
@@ -315,39 +301,14 @@ public interface GeyserConfig {
         }
     }
 
-    @ConfigSerializable
-    interface MetricsInfo {
-        @Comment("If metrics should be enabled")
-        @DefaultBoolean(true)
-        boolean enabled();
-
-        @Comment("UUID of server. Don't change!")
-        default UUID uuid() { //TODO rename?
-            return UUID.randomUUID();
-        }
-    }
-
-    @Comment("""
-            Geyser updates the Scoreboard after every Scoreboard packet, but when Geyser tries to handle
-            a lot of scoreboard packets per second can cause serious lag.
-            This option allows you to specify after how many Scoreboard packets per seconds
-            the Scoreboard updates will be limited to four updates per second.""")
-    @DefaultNumeric(20)
-    int scoreboardPacketThreshold();
-
     @Comment("""
             Allow connections from ProxyPass and Waterdog.
             See https://www.spigotmc.org/wiki/firewall-guide/ for assistance - use UDP instead of TCP.""")
     // if u have offline mode enabled pls be safe
     boolean enableProxyConnections();
 
-    @Comment("""
-            The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
-            1400 is the default.""")
-    @DefaultNumeric(1400)
-    int mtu();
-
     @Comment("Do not change!")
+    @SuppressWarnings("unused")
     default int configVersion() {
         return Constants.CONFIG_VERSION;
     }

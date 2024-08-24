@@ -461,10 +461,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        if (config.metrics().enabled()) {
+        if (config.enableMetrics()) {
             metrics = new MetricsBase(
                 "server-implementation",
-                config.metrics().uuid().toString(),
+                config.advanced().metricsUuid().toString(),
                 Constants.BSTATS_ID,
                 true, // Already checked above.
                 builder -> {

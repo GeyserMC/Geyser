@@ -232,7 +232,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPlugin
 
     @Override
     public Path getFloodgateKeyPath() {
-        return new File(ROOT_FOLDER, config.floodgateKeyFile()).toPath();
+        return new File(ROOT_FOLDER, config.advanced().floodgateKeyFile()).toPath();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
