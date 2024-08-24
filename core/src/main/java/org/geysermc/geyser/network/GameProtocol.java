@@ -50,7 +50,7 @@ public final class GameProtocol {
      * release of the game that Geyser supports.
      */
     public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v712.CODEC.toBuilder()
-        .minecraftVersion("1.21.20")
+        .minecraftVersion("1.21.20/1.21.21")
         .build());
 
     /**
