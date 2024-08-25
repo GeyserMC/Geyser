@@ -91,7 +91,6 @@ public final class LocalSession extends TcpSession {
 
                     ChannelPipeline pipeline = channel.pipeline();
                     pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this, protocol.getPacketHeader().getLengthSize()));
-
                     pipeline.addLast("flow-control", new TcpFlowControlHandler());
                     pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
                     pipeline.addLast("manager", LocalSession.this);
