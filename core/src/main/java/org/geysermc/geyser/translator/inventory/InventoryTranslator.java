@@ -201,6 +201,8 @@ public abstract class InventoryTranslator {
     public ItemStackResponse translateRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         ClickPlan plan = new ClickPlan(session, this, inventory);
         IntSet affectedSlots = new IntOpenHashSet();
+        int pendingOutput = 0;
+
         for (ItemStackRequestAction action : request.getActions()) {
             GeyserItemStack cursor = session.getPlayerInventory().getCursor();
             switch (action.getType()) {
@@ -239,6 +241,51 @@ public abstract class InventoryTranslator {
                             transferAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
+                    }
+
+                    // Handle partial transfer of output slot
+                    if (pendingOutput == 0 && getSlotType(sourceSlot) == SlotType.OUTPUT && transferAction.getCount() < plan.getItem(sourceSlot).getAmount()) {
+                        // Give up if cursor is not empty. Temp slot would require extra logic.
+                        // Cursor as dest should always be full transfer.
+                        if (!plan.getCursor().isEmpty() || isDestCursor) {
+                            return rejectRequest(request);
+                        }
+
+                        // Pickup entire stack from output
+                        pendingOutput = plan.getItem(sourceSlot).getAmount();
+                        plan.add(Click.LEFT, sourceSlot);
+                    }
+
+                    // Continue transferring items from output that is currently stored in the cursor
+                    if (pendingOutput > 0) {
+                        if (getSlotType(sourceSlot) != SlotType.OUTPUT
+                            || transferAction.getCount() > pendingOutput
+                            || isDestCursor) {
+                            return rejectRequest(request);
+                        }
+
+                        // Make sure item can be placed here
+                        GeyserItemStack destItem = plan.getItem(destSlot);
+                        if (!destItem.isEmpty() && !InventoryUtils.canStack(destItem, plan.getCursor())) {
+                            return rejectRequest(request);
+                        }
+
+                        // TODO: Optimize using max stack size
+                        if (pendingOutput == transferAction.getCount()) {
+                            plan.add(Click.LEFT, destSlot);
+                        } else {
+                            for (int i = 0; i < transferAction.getCount(); i++) {
+                                plan.add(Click.RIGHT, destSlot);
+                            }
+                        }
+
+                        pendingOutput -= transferAction.getCount();
+                        if (pendingOutput != plan.getCursor().getAmount()) {
+                            return rejectRequest(request);
+                        }
+
+                        // Skip to next action
+                        continue;
                     }
 
                     if (isSourceCursor && isDestCursor) { //???
@@ -292,7 +339,7 @@ public abstract class InventoryTranslator {
                     } else { //transfer from one slot to another
                         int tempSlot = -1;
                         if (!plan.getCursor().isEmpty()) {
-                            tempSlot = findTempSlot(inventory, cursor, false, sourceSlot, destSlot);
+                            tempSlot = findTempSlot(inventory, cursor, getSlotType(sourceSlot) != SlotType.NORMAL, sourceSlot, destSlot);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -440,6 +487,11 @@ public abstract class InventoryTranslator {
                     return rejectRequest(request);
             }
         }
+
+        if (pendingOutput != 0) {
+            return rejectRequest(request);
+        }
+
         plan.execute(false);
         affectedSlots.addAll(plan.getAffectedSlots());
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
