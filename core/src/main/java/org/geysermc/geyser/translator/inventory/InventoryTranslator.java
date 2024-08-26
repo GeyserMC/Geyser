@@ -202,6 +202,7 @@ public abstract class InventoryTranslator {
         ClickPlan plan = new ClickPlan(session, this, inventory);
         IntSet affectedSlots = new IntOpenHashSet();
         int pendingOutput = 0;
+        int savedTempSlot = -1;
 
         for (ItemStackRequestAction action : request.getActions()) {
             GeyserItemStack cursor = session.getPlayerInventory().getCursor();
@@ -245,10 +246,17 @@ public abstract class InventoryTranslator {
 
                     // Handle partial transfer of output slot
                     if (pendingOutput == 0 && getSlotType(sourceSlot) == SlotType.OUTPUT && transferAction.getCount() < plan.getItem(sourceSlot).getAmount()) {
-                        // Give up if cursor is not empty. Temp slot would require extra logic.
                         // Cursor as dest should always be full transfer.
-                        if (!plan.getCursor().isEmpty() || isDestCursor) {
+                        if (isDestCursor) {
                             return rejectRequest(request);
+                        }
+
+                        if (!plan.getCursor().isEmpty()) {
+                            savedTempSlot = findTempSlot(plan, plan.getCursor(), true);
+                            if (savedTempSlot == -1) {
+                                return rejectRequest(request);
+                            }
+                            plan.add(Click.LEFT, savedTempSlot);
                         }
 
                         // Pickup entire stack from output
@@ -260,6 +268,7 @@ public abstract class InventoryTranslator {
                     if (pendingOutput > 0) {
                         if (getSlotType(sourceSlot) != SlotType.OUTPUT
                             || transferAction.getCount() > pendingOutput
+                            || destSlot == savedTempSlot
                             || isDestCursor) {
                             return rejectRequest(request);
                         }
@@ -282,6 +291,11 @@ public abstract class InventoryTranslator {
                         pendingOutput -= transferAction.getCount();
                         if (pendingOutput != plan.getCursor().getAmount()) {
                             return rejectRequest(request);
+                        }
+
+                        if (pendingOutput == 0 && savedTempSlot != -1) {
+                            plan.add(Click.LEFT, savedTempSlot);
+                            savedTempSlot = -1;
                         }
 
                         // Skip to next action
@@ -318,7 +332,7 @@ public abstract class InventoryTranslator {
                                 return rejectRequest(request);
                             }
                             if (transferAction.getCount() != sourceAmount) {
-                                int tempSlot = findTempSlot(inventory, cursor, false, sourceSlot);
+                                int tempSlot = findTempSlot(plan, cursor, false, sourceSlot);
                                 if (tempSlot == -1) {
                                     return rejectRequest(request);
                                 }
@@ -339,7 +353,7 @@ public abstract class InventoryTranslator {
                     } else { //transfer from one slot to another
                         int tempSlot = -1;
                         if (!plan.getCursor().isEmpty()) {
-                            tempSlot = findTempSlot(inventory, cursor, getSlotType(sourceSlot) != SlotType.NORMAL, sourceSlot, destSlot);
+                            tempSlot = findTempSlot(plan, cursor, getSlotType(sourceSlot) != SlotType.NORMAL, sourceSlot, destSlot);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -588,7 +602,7 @@ public abstract class InventoryTranslator {
                             }
                         } else {
                             GeyserItemStack cursor = session.getPlayerInventory().getCursor();
-                            int tempSlot = findTempSlot(inventory, cursor, true, sourceSlot, destSlot);
+                            int tempSlot = findTempSlot(plan, cursor, true, sourceSlot, destSlot);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -751,7 +765,7 @@ public abstract class InventoryTranslator {
                     int javaSlot = bedrockSlotToJava(transferAction.getDestination());
                     if (isCursor(transferAction.getDestination())) { //TODO
                         if (timesCrafted > 1) {
-                            tempSlot = findTempSlot(inventory, GeyserItemStack.from(output), true);
+                            tempSlot = findTempSlot(plan, GeyserItemStack.from(output), true);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -888,49 +902,68 @@ public abstract class InventoryTranslator {
     }
 
     /**
-     * Try to find a slot that can temporarily store the given item.
+     * Try to find a slot that is preferably empty, or does not stack with a given item.
      * Only looks in the main inventory and hotbar (excluding offhand).
-     * Only slots that are empty or contain a different type of item are valid.
+     * <p>
+     * Slots are searched in the reverse order that the bedrock client uses for quick moving.
      *
-     * @return java id for the temporary slot, or -1 if no viable slot was found
+     * @param plan used to check the simulated inventory
+     * @param item the item to temporarily store
+     * @param emptyOnly if only empty slots should be considered
+     * @param slotBlacklist list of slots to exclude; the items contained in these slots will also be checked for stacking
+     * @return the temp slot, or -1 if no suitable slot was found
      */
-    //TODO: compatibility for simulated inventory (ClickPlan)
-    private static int findTempSlot(Inventory inventory, GeyserItemStack item, boolean emptyOnly, int... slotBlacklist) {
-        int offset = inventory.getJavaId() == 0 ? 1 : 0; //offhand is not a viable temp slot
-        HashSet<GeyserItemStack> itemBlacklist = new HashSet<>(slotBlacklist.length + 1);
-        itemBlacklist.add(item);
+    private static int findTempSlot(ClickPlan plan, GeyserItemStack item, boolean emptyOnly, int... slotBlacklist) {
+        IntSortedSet potentialSlots = new IntLinkedOpenHashSet(PLAYER_INVENTORY_SIZE);
+        int hotbarOffset = plan.getInventory().getOffsetForHotbar(0);
 
-        IntSet potentialSlots = new IntOpenHashSet(36);
-        for (int i = inventory.getSize() - (36 + offset); i < inventory.getSize() - offset; i++) {
+        // Add main inventory slots in reverse
+        for (int i = hotbarOffset - 1; i >= hotbarOffset - 27; i--) {
             potentialSlots.add(i);
         }
+
+        // Add hotbar slots in reverse
+        for (int i = hotbarOffset + 8; i >= hotbarOffset; i--) {
+            potentialSlots.add(i);
+        }
+
         for (int i : slotBlacklist) {
             potentialSlots.remove(i);
-            GeyserItemStack blacklistedItem = inventory.getItem(i);
-            if (!blacklistedItem.isEmpty()) {
-                itemBlacklist.add(blacklistedItem);
+        }
+
+        // Prefer empty slots
+        IntIterator it = potentialSlots.iterator();
+        while (it.hasNext()) {
+            int slot = it.nextInt();
+            if (plan.isEmpty(slot)) {
+                return slot;
             }
         }
 
-        for (int i : potentialSlots) {
-            GeyserItemStack testItem = inventory.getItem(i);
-            if ((emptyOnly && !testItem.isEmpty())) {
+        if (emptyOnly) {
+            return -1;
+        }
+
+        // No empty slots. Look for a slot that does not stack
+        it = potentialSlots.iterator();
+
+        outer:
+        while (it.hasNext()) {
+            int slot = it.nextInt();
+            if (plan.canStack(slot, item)) {
                 continue;
             }
 
-            boolean viable = true;
-            for (GeyserItemStack blacklistedItem : itemBlacklist) {
-                if (InventoryUtils.canStack(testItem, blacklistedItem)) {
-                    viable = false;
-                    break;
+            for (int blacklistedSlot : slotBlacklist) {
+                GeyserItemStack blacklistedItem = plan.getItem(blacklistedSlot);
+                if (plan.canStack(slot, blacklistedItem)) {
+                    continue outer;
                 }
             }
-            if (!viable) {
-                continue;
-            }
-            return i;
+
+            return slot;
         }
-        //could not find a viable temp slot
+
         return -1;
     }
 
