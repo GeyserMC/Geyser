@@ -38,7 +38,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -94,7 +94,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
         if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
+            GeyserLogger.getInstance().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultBooleanValue();
         }
 
@@ -103,7 +103,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
         }
-        GeyserImpl.getInstance().getLogger().debug("Expected a bool for " + gameRule + " but got " + value);
+        GeyserLogger.getInstance().debug("Expected a bool for " + gameRule + " but got " + value);
         return gameRule.getDefaultBooleanValue();
     }
 
@@ -111,7 +111,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
         org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
         if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
+            GeyserLogger.getInstance().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultIntValue();
         }
         Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
@@ -119,7 +119,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Integer intValue) {
             return intValue;
         }
-        GeyserImpl.getInstance().getLogger().debug("Expected an int for " + gameRule + " but got " + value);
+        GeyserLogger.getInstance().debug("Expected an int for " + gameRule + " but got " + value);
         return gameRule.getDefaultIntValue();
     }
 

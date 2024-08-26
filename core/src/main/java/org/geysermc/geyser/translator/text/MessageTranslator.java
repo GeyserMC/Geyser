@@ -37,16 +37,24 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.*;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
+import org.geysermc.geyser.text.MinecraftTranslationRegistry;
+import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -184,8 +192,8 @@ public class MessageTranslator {
 
             return finalLegacy.toString();
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
-            GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
+            GeyserLogger.getInstance().debug(GSON_SERIALIZER.serialize(message));
+            GeyserLogger.getInstance().error("Failed to parse message", e);
 
             return "";
         }
@@ -433,7 +441,7 @@ public class MessageTranslator {
         NbtMap description = tag.getCompound("description");
         String translate = description.getString("translate", null);
         if (translate == null) {
-            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
+            GeyserLogger.getInstance().debug("Don't know how to read description! " + tag);
             return "";
         }
         return translate;

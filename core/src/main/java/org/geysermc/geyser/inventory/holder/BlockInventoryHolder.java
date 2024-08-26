@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -168,10 +168,10 @@ public class BlockInventoryHolder extends InventoryHolder {
                 return;
             }
         } else {
-            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
-            if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
-                GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
+            GeyserLogger.getInstance().warning("Tried to close a non-container inventory in a block inventory holder! ");
+            if (GeyserLogger.getInstance().isDebug()) {
+                GeyserLogger.getInstance().debug("Current inventory: " + inventory);
+                GeyserLogger.getInstance().debug("Open inventory: " + session.getOpenInventory());
             }
             // Try to save ourselves? maybe?
             // https://github.com/GeyserMC/Geyser/issues/4141

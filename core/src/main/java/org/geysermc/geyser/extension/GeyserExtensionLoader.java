@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.util.ApiVersion;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.Extension;
@@ -113,7 +114,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     }
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
-        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.id());
+        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserLogger.getInstance(), description.id());
         return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
     }
 
@@ -182,7 +183,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     String name = description.name();
                     String id = description.id();
                     if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
-                        GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
+                        GeyserLogger.getInstance().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                         return;
                     }
 
@@ -196,10 +197,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
                         // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
                         if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
-                            GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
+                            GeyserLogger.getInstance().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
                                 .formatted(name, description.apiVersion()));
                         } else {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
+                            GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
                             return;
                         }
                     }
@@ -208,7 +209,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     extensions.put(id, path);
                     loadedExtensions.put(id, container);
                 } catch (Throwable e) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
+                    GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
                 }
             });
 

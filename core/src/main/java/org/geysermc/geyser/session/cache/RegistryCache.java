@@ -37,7 +37,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
@@ -141,7 +141,7 @@ public final class RegistryCache {
         if (reader != null) {
             reader.accept(this, packet.getEntries());
         } else {
-            GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
+            GeyserLogger.getInstance().debug("Ignoring registry of type " + packet.getRegistry());
         }
     }
 

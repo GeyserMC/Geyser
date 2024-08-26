@@ -51,6 +51,7 @@ import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandle
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -125,7 +126,7 @@ public final class GeyserServer {
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
-        GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
+        GeyserLogger.getInstance().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
@@ -198,7 +199,7 @@ public final class GeyserServer {
 
             SkinProvider.shutdown();
         } catch (InterruptedException e) {
-            GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
+            GeyserLogger.getInstance().severe("Exception in shutdown process", e);
         }
         for (ChannelFuture f : bootstrapFutures) {
             f.channel().closeFuture().syncUninterruptibly();
@@ -419,7 +420,7 @@ public final class GeyserServer {
             int parsed = value != null ? Integer.parseInt(value) : defaultValue;
 
             if (parsed < 1) {
-                GeyserImpl.getInstance().getLogger().warning(
+                GeyserLogger.getInstance().warning(
                     "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
                 );
                 return defaultValue;
@@ -427,7 +428,7 @@ public final class GeyserServer {
 
             return parsed;
         } catch (NumberFormatException e) {
-            GeyserImpl.getInstance().getLogger().warning(
+            GeyserLogger.getInstance().warning(
                 "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
             );
             return defaultValue;

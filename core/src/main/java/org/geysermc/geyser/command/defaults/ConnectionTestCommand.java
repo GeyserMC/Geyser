@@ -27,6 +27,7 @@ package org.geysermc.geyser.command.defaults;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -155,7 +156,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
 
                 // Issue: does Loopback need applying?
-                if (LoopbackUtil.needsLoopback(GeyserImpl.getInstance().getLogger())) {
+                if (LoopbackUtil.needsLoopback(GeyserLogger.getInstance())) {
                     source.sendMessage("Loopback is not applied on this computer! You will have issues connecting from the same computer. " +
                             "See here for steps on how to resolve: " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/#using-geyser-on-the-same-computer");
                 }

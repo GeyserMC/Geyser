@@ -121,7 +121,7 @@ public final class VersionCheckUtils {
                         .build();
                 sender.sendMessage(message);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
+                GeyserLogger.getInstance().error("Error whilst checking for Geyser update!", e);
             }
         });
     }

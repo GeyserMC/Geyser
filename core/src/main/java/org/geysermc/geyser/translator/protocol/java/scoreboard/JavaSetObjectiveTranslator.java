@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.scoreboard;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.scoreboard.Objective;
@@ -43,7 +42,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @Translator(packet = ClientboundSetObjectivePacket.class)
 public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetObjectivePacket> {
-    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+    private final GeyserLogger logger = GeyserLogger.getInstance();
 
     @Override
     public void translate(GeyserSession session, ClientboundSetObjectivePacket packet) {

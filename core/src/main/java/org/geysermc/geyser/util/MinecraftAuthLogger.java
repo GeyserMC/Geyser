@@ -26,7 +26,7 @@
 package org.geysermc.geyser.util;
 
 import net.raphimc.minecraftauth.util.logging.ILogger;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 public class MinecraftAuthLogger implements ILogger {
 
@@ -34,16 +34,16 @@ public class MinecraftAuthLogger implements ILogger {
 
     @Override
     public void info(String message) {
-        GeyserImpl.getInstance().getLogger().debug(message);
+        GeyserLogger.getInstance().debug(message);
     }
 
     @Override
     public void warn(String message) {
-        GeyserImpl.getInstance().getLogger().warning(message);
+        GeyserLogger.getInstance().warning(message);
     }
 
     @Override
     public void error(String message) {
-        GeyserImpl.getInstance().getLogger().error(message);
+        GeyserLogger.getInstance().error(message);
     }
 }

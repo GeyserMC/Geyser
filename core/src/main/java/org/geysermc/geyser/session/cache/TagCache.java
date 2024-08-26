@@ -89,7 +89,7 @@ public final class TagCache {
     private <T extends Ordered> void loadTags(String type, @Nullable Map<Key, int[]> packetTags, Map<Key, T> allTags, int[][] localValues) {
         if (packetTags == null) {
             Arrays.fill(localValues, IntArrays.EMPTY_ARRAY);
-            GeyserImpl.getInstance().getLogger().debug("Not loading " + type + " tags; they do not exist here.");
+            GeyserLogger.getInstance().debug("Not loading " + type + " tags; they do not exist here.");
             return;
         }
         allTags.forEach((location, tag) -> {
@@ -102,7 +102,7 @@ public final class TagCache {
                 }
             } else {
                 localValues[tag.ordinal()] = IntArrays.EMPTY_ARRAY;
-                GeyserImpl.getInstance().getLogger().debug(type + " tag not found from server: " + location);
+                GeyserLogger.getInstance().debug(type + " tag not found from server: " + location);
             }
         });
     }

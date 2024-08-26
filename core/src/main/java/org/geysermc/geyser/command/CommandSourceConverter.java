@@ -95,7 +95,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
         }
 
         if (!(source instanceof GeyserSession)) {
-            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+            GeyserLogger logger = GeyserLogger.getInstance();
             if (logger.isDebug()) {
                 logger.debug("Falling back to UUID for command sender lookup for a command source that is not a GeyserSession: " + source);
                 Thread.dumpStack();

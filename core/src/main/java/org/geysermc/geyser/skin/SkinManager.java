@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
@@ -245,7 +246,7 @@ public class SkinManager {
             try {
                 return loadFromJson(skinDataValue);
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for tag " + tag);
+                GeyserLogger.getInstance().debug("Something went wrong while processing skin for tag " + tag);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
@@ -270,9 +271,9 @@ public class SkinManager {
                 return loadFromJson(texturesProperty);
             } catch (Exception exception) {
                 if (entity instanceof SkullPlayerEntity skullEntity) {
-                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
+                    GeyserLogger.getInstance().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
                 } else {
-                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
+                    GeyserLogger.getInstance().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
                 }
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
@@ -286,7 +287,7 @@ public class SkinManager {
             try {
                 skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             } catch (IllegalArgumentException e) {
-                GeyserImpl.getInstance().getLogger().debug("Invalid base64 encoded skin entry: " + encodedJson);
+                GeyserLogger.getInstance().debug("Invalid base64 encoded skin entry: " + encodedJson);
                 return null;
             }
 

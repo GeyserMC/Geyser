@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -153,7 +154,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     if (stoneCuttingData.getIngredient().getOptions().length == 0) {
                         if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                            GeyserImpl.getInstance().getLogger().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
+                            GeyserLogger.getInstance().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
                                     recipe.getIdentifier() + " " + Registries.JAVA_ITEMS.get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
                         }
                         continue;
@@ -420,7 +421,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (bedrockDefinition != null) {
             return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
         }
-        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
+        GeyserLogger.getInstance().debug("Unable to find item with identifier " + bedrockId);
         return ItemDescriptorWithCount.EMPTY;
     }
 

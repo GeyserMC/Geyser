@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
@@ -134,7 +135,7 @@ public class CreativeItemRegistryPopulator {
 
         ItemDefinition definition = definitions.get(identifier);
         if (definition == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown item definition with identifier " + identifier + " when loading creative items!");
+            GeyserLogger.getInstance().debug("Unknown item definition with identifier " + identifier + " when loading creative items!");
             return null;
         }
 

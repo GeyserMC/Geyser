@@ -117,7 +117,7 @@ public class PendingMicrosoftAuthentication {
         }
 
         public void cleanup() {
-            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+            GeyserLogger logger = GeyserLogger.getInstance();
             if (logger.isDebug()) {
                 logger.debug("Cleaning up authentication task for " + userKey);
             }

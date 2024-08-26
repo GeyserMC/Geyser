@@ -34,14 +34,23 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.*;
-import org.cloudburstmc.nbt.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
@@ -62,7 +71,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
@@ -154,7 +171,7 @@ public final class BlockRegistryPopulator {
                     CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
-                GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
+                GeyserLogger.getInstance().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
 
                 // The palette is sorted by the FNV1 64-bit hash of the name
                 blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
@@ -343,7 +360,7 @@ public final class BlockRegistryPopulator {
                 for (Map.Entry<JavaBlockState, CustomBlockState> entry : nonVanillaStateOverrides.entrySet()) {
                     GeyserBedrockBlock bedrockDefinition = customBlockStateDefinitions.get(entry.getValue());
                     if (bedrockDefinition == null) {
-                        GeyserImpl.getInstance().getLogger().warning("Unable to find custom block for " + entry.getValue());
+                        GeyserLogger.getInstance().warning("Unable to find custom block for " + entry.getValue());
                         continue;
                     }
 
@@ -445,7 +462,7 @@ public final class BlockRegistryPopulator {
                         if (this.item == null) {
                             this.item = Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
                             if (this.item == null) {
-                                GeyserImpl.getInstance().getLogger().warning("We could not find item " + pickItem
+                                GeyserLogger.getInstance().warning("We could not find item " + pickItem
                                         + " for getting the item for block " + javaBlockState.identifier());
                                 this.item = Items.AIR;
                             }

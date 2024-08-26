@@ -25,17 +25,14 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.*;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.FallingBlockEntity;
+import org.geysermc.geyser.entity.type.FishingHookEntity;
+import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,6 +40,13 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
@@ -72,7 +76,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                    GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
                     return;
                 }
 

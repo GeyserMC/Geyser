@@ -107,6 +107,7 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
@@ -1108,9 +1109,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 }
                 if (cause != null) {
                     if (cause.getMessage() != null) {
-                        GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                        GeyserLogger.getInstance().error(cause.getMessage());
                     } else {
-                        GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
+                        GeyserLogger.getInstance().error("An exception occurred: ", cause);
                     }
                     if (geyser.getConfig().isDebugMode()) {
                         cause.printStackTrace();
