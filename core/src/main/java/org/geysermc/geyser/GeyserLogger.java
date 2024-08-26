@@ -114,6 +114,14 @@ public interface GeyserLogger extends GeyserCommandSource {
     }
 
     /**
+     * Logs a message with parameters if debug mode is enabled.
+     *
+     * @param message the message with placeholders for the objects
+     * @param parameters the parameters for the message
+     */
+    void debug(String message, Object... parameters);
+
+    /**
      * Sets if the logger should print debug messages
      *
      * @param debug if the logger should print debug messages
