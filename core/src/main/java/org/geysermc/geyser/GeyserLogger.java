@@ -31,8 +31,18 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface GeyserLogger extends GeyserCommandSource {
+
+    AtomicReference<GeyserLogger> INSTANCE = new AtomicReference<>();
+
+    /**
+     * Returns the current GeyserLogger instance.
+     */
+    static GeyserLogger getInstance() {
+        return INSTANCE.get();
+    }
 
     /**
      * Logs a severe message to console
