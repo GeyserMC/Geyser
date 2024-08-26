@@ -245,7 +245,8 @@ public abstract class InventoryTranslator {
                     }
 
                     // Handle partial transfer of output slot
-                    if (pendingOutput == 0 && getSlotType(sourceSlot) == SlotType.OUTPUT && transferAction.getCount() < plan.getItem(sourceSlot).getAmount()) {
+                    if (pendingOutput == 0 && !isSourceCursor && getSlotType(sourceSlot) == SlotType.OUTPUT
+                        && transferAction.getCount() < plan.getItem(sourceSlot).getAmount()) {
                         // Cursor as dest should always be full transfer.
                         if (isDestCursor) {
                             return rejectRequest(request);
@@ -266,7 +267,7 @@ public abstract class InventoryTranslator {
 
                     // Continue transferring items from output that is currently stored in the cursor
                     if (pendingOutput > 0) {
-                        if (getSlotType(sourceSlot) != SlotType.OUTPUT
+                        if (isSourceCursor || getSlotType(sourceSlot) != SlotType.OUTPUT
                             || transferAction.getCount() > pendingOutput
                             || destSlot == savedTempSlot
                             || isDestCursor) {
