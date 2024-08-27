@@ -171,6 +171,10 @@ public class ItemRegistryPopulator {
             List<ItemData> creativeItems = new ArrayList<>();
             Set<String> noBlockDefinitions = new ObjectOpenHashSet<>();
 
+            // Fix: Usage of structure blocks/voids in recipes
+            noBlockDefinitions.add("minecraft:structure_block");
+            noBlockDefinitions.add("minecraft:structure_void");
+
             AtomicInteger creativeNetId = new AtomicInteger();
             CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
                 ItemData item = itemBuilder.netId(creativeNetId.incrementAndGet()).build();
