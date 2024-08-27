@@ -61,7 +61,7 @@ public class GeyserVelocityCompressionDisabler extends ChannelDuplexHandler {
                     .getMethod("setCompressionThreshold", int.class);
             enabled = true;
         } catch (Exception e) {
-            GeyserLogger.getInstance().error("Could not initialize compression disabler!", e);
+            GeyserLogger.get().error("Could not initialize compression disabler!", e);
         }
 
         ENABLED = enabled;

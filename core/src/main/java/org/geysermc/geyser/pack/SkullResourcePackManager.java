@@ -76,7 +76,7 @@ public class SkullResourcePackManager {
         try {
             Files.createDirectories(cachePath);
         } catch (IOException e) {
-            GeyserLogger.getInstance().severe("Unable to create directories for player skull resource pack!", e);
+            GeyserLogger.get().severe("Unable to create directories for player skull resource pack!", e);
             return null;
         }
         cleanSkullSkinCache();
@@ -88,22 +88,22 @@ public class SkullResourcePackManager {
             return null;
         }
         if (packFile.exists() && canReusePack(packFile)) {
-            GeyserLogger.getInstance().info("Reusing cached player skull resource pack.");
+            GeyserLogger.get().info("Reusing cached player skull resource pack.");
             return packPath;
         }
 
         // We need to create the resource pack from scratch
-        GeyserLogger.getInstance().info("Creating skull resource pack.");
+        GeyserLogger.get().info("Creating skull resource pack.");
         packFile.delete();
         try (ZipOutputStream zipOS = new ZipOutputStream(Files.newOutputStream(packPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE))) {
             addBaseResources(zipOS);
             addSkinTextures(zipOS);
             addAttachables(zipOS);
-            GeyserLogger.getInstance().info("Finished creating skull resource pack.");
+            GeyserLogger.get().info("Finished creating skull resource pack.");
             return packPath;
         } catch (IOException e) {
-            GeyserLogger.getInstance().severe("Unable to create player skull resource pack!", e);
-            GeyserLogger.getInstance().severe("Bedrock players will see dirt blocks instead of custom skull blocks.");
+            GeyserLogger.get().severe("Unable to create player skull resource pack!", e);
+            GeyserLogger.get().severe("Bedrock players will see dirt blocks instead of custom skull blocks.");
             packFile.delete();
         }
         return null;
@@ -143,7 +143,7 @@ public class SkullResourcePackManager {
 
         ImageIO.write(skullTexture, "png", skinPath.toFile());
         SKULL_SKINS.put(skinHash, skinPath);
-        GeyserLogger.getInstance().debug("Cached player skull to " + skinPath + " for " + skinHash);
+        GeyserLogger.get().debug("Cached player skull to " + skinPath + " for " + skinHash);
     }
 
     public static void cleanSkullSkinCache() {
@@ -162,10 +162,10 @@ public class SkullResourcePackManager {
                 }
             }
             if (removeCount != 0) {
-                GeyserLogger.getInstance().debug("Removed " + removeCount + " unnecessary skull skins.");
+                GeyserLogger.get().debug("Removed " + removeCount + " unnecessary skull skins.");
             }
         } catch (IOException e) {
-            GeyserLogger.getInstance().debug("Unable to clean up skull skin cache.");
+            GeyserLogger.get().debug("Unable to clean up skull skin cache.");
             if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                 e.printStackTrace();
             }
@@ -284,7 +284,7 @@ public class SkullResourcePackManager {
             uuid1 = new UUID(skinHashes.getLong(), skinHashes.getLong());
             uuid2 = new UUID(skinHashes.getLong(), skinHashes.getLong());
         } catch (NoSuchAlgorithmException e) {
-            GeyserLogger.getInstance().severe("Unable to get SHA-256 Message Digest instance! Bedrock players will have to re-downloaded the player skull resource pack after each server restart.", e);
+            GeyserLogger.get().severe("Unable to get SHA-256 Message Digest instance! Bedrock players will have to re-downloaded the player skull resource pack after each server restart.", e);
         }
 
         return Pair.of(uuid1, uuid2);
@@ -308,7 +308,7 @@ public class SkullResourcePackManager {
                 return resourceUUID.isPresent() && uuids.second().equals(resourceUUID.get());
             }
         } catch (IOException e) {
-            GeyserLogger.getInstance().debug("Cached player skull resource pack was invalid! The pack will be recreated.");
+            GeyserLogger.get().debug("Cached player skull resource pack was invalid! The pack will be recreated.");
         }
         return false;
     }

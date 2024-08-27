@@ -42,7 +42,7 @@ public record JukeboxSong(String soundEvent, String description) {
             soundEvent = string;
         } else {
             soundEvent = "";
-            GeyserLogger.getInstance().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
+            GeyserLogger.get().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
         }
         String description = MessageTranslator.deserializeDescription(data);
         return new JukeboxSong(soundEvent, description);

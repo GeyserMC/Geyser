@@ -56,7 +56,7 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
             loginSuccessPacketClass = findLoginSuccessPacket();
             enabled = true;
         } catch (Exception e) {
-            GeyserLogger.getInstance().error("Could not initialize compression disabler!", e);
+            GeyserLogger.get().error("Could not initialize compression disabler!", e);
         }
         COMPRESSION_PACKET_CLASS = compressionPacketClass;
         LOGIN_SUCCESS_PACKET_CLASS = loginSuccessPacketClass;

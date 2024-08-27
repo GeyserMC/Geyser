@@ -383,7 +383,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
                 Enchantment enchantment = session.getRegistryCache().enchantments().byId(entry.getKey());
                 if (enchantment == null) {
-                    GeyserLogger.getInstance().debug("Unknown Java enchantment in anvil: " + entry.getKey());
+                    GeyserLogger.get().debug("Unknown Java enchantment in anvil: " + entry.getKey());
                     continue;
                 }
                 enchantments.put(enchantment, entry.getValue().intValue());

@@ -115,9 +115,9 @@ public final class AssetUtils {
                 VersionInfo versionInfo = GeyserImpl.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
 
                 // Get the client jar for use when downloading the en_us locale
-                GeyserLogger.getInstance().debug(GeyserImpl.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
+                GeyserLogger.get().debug(GeyserImpl.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
                 CLIENT_JAR_INFO = versionInfo.getDownloads().get("client");
-                GeyserLogger.getInstance().debug(GeyserImpl.JSON_MAPPER.writeValueAsString(CLIENT_JAR_INFO));
+                GeyserLogger.get().debug(GeyserImpl.JSON_MAPPER.writeValueAsString(CLIENT_JAR_INFO));
 
                 // Get the assets list
                 JsonNode assets = GeyserImpl.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
@@ -136,7 +136,7 @@ public final class AssetUtils {
                 }
 
             } catch (Exception e) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
             }
             return null;
         });
@@ -145,7 +145,7 @@ public final class AssetUtils {
     public static void downloadAndRunClientJarTasks() {
         if (CLIENT_JAR_INFO == null) {
             // Likely failed to download
-            GeyserLogger.getInstance().debug("Skipping en_US hash check as client jar is null.");
+            GeyserLogger.get().debug("Skipping en_US hash check as client jar is null.");
             return;
         }
 
@@ -172,8 +172,8 @@ public final class AssetUtils {
 
         try {
             // Let the user know we are downloading the JAR
-            GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us"));
-            GeyserLogger.getInstance().debug("Download URL: " + CLIENT_JAR_INFO.getUrl());
+            GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us"));
+            GeyserLogger.get().debug("Download URL: " + CLIENT_JAR_INFO.getUrl());
 
             Path tmpFilePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
             WebUtils.downloadFile(CLIENT_JAR_INFO.getUrl(), tmpFilePath.toString());
@@ -197,9 +197,9 @@ public final class AssetUtils {
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
 
-            GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us.done"));
+            GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us.done"));
         } catch (Exception e) {
-            GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.en_us"), e);
+            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }
     }
 

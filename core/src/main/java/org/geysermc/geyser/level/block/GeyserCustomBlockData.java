@@ -75,7 +75,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
             Object2ObjectMap<String, Object> defaultProperties = new Object2ObjectOpenHashMap<>(this.properties.size());
             for (CustomBlockProperty<?> property : properties.values()) {
                 if (property.values().size() > 16) {
-                    GeyserLogger.getInstance().warning(property.name() + " contains more than 16 values, but BDS specifies it should not. This may break in future versions.");
+                    GeyserLogger.get().warning(property.name() + " contains more than 16 values, but BDS specifies it should not. This may break in future versions.");
                 }
                 if (property.values().stream().distinct().count() != property.values().size()) {
                     throw new IllegalStateException(property.name() + " has duplicate values.");

@@ -57,7 +57,7 @@ public class PotionItem extends Item {
                             .damage(potion.getBedrockId())
                             .count(count);
                 }
-                GeyserLogger.getInstance().debug("Unknown Java potion: " + potionContents.getPotionId());
+                GeyserLogger.get().debug("Unknown Java potion: " + potionContents.getPotionId());
             } else {
                 return ItemData.builder()
                         .definition(customItemDefinition)

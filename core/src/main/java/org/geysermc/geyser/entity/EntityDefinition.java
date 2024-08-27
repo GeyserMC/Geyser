@@ -71,9 +71,9 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         }
 
         if (translator.acceptedType() != metadata.getType()) {
-            GeyserLogger.getInstance().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
+            GeyserLogger.get().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
             if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                GeyserLogger.getInstance().debug(metadata.toString());
+                GeyserLogger.get().debug(metadata.toString());
             }
             return;
         }

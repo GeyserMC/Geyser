@@ -116,7 +116,7 @@ public class FakeHeadProvider {
         try {
             textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
-            GeyserLogger.getInstance().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            GeyserLogger.get().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
             textures = null;
         }
 
@@ -147,7 +147,7 @@ public class FakeHeadProvider {
         CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
         completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
             if (throwable != null) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
             }
             try {
@@ -157,7 +157,7 @@ public class FakeHeadProvider {
                 }
                 loadHead(session, entity, gameProfileData);
             } catch (IOException e) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
             }
         });
     }
@@ -172,7 +172,7 @@ public class FakeHeadProvider {
                 SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity, session));
                 SkinManager.sendSkinPacket(session, entity, mergedSkinData);
             } catch (ExecutionException e) {
-                GeyserLogger.getInstance().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
+                GeyserLogger.get().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
             }
         });
     }
@@ -188,7 +188,7 @@ public class FakeHeadProvider {
 
         SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (throwable != null) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
             }
 

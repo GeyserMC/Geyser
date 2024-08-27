@@ -63,7 +63,7 @@ public class SkullSkinManager extends SkinManager {
                 packet.setTrustedSkin(true);
                 session.sendUpstreamPacket(packet);
             } catch (Exception e) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
             }
 
             if (skinConsumer != null) {
@@ -73,7 +73,7 @@ public class SkullSkinManager extends SkinManager {
 
         GameProfileData data = GameProfileData.from(entity);
         if (data == null) {
-            GeyserLogger.getInstance().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
+            GeyserLogger.get().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
                     " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
             // No texture available, fallback using the UUID
             SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());

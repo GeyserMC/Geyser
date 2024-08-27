@@ -104,7 +104,7 @@ public class FormCache {
             formDefinitions.definitionFor(form)
                     .handleFormResponse(form, response.getFormData());
         } catch (Exception e) {
-            GeyserLogger.getInstance().error("Error while processing form response!", e);
+            GeyserLogger.get().error("Error while processing form response!", e);
         }
     }
 }

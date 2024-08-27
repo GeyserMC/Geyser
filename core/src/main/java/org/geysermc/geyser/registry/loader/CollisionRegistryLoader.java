@@ -63,7 +63,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
     public List<BlockCollision> load(Pair<String, String> input) {
         Map<Class<?>, CollisionInfo> annotationMap = new IdentityHashMap<>();
         for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(CollisionRemapper.class.getName())) {
-            GeyserLogger.getInstance().debug("Found annotated collision translator: " + clazz.getCanonicalName());
+            GeyserLogger.get().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
             CollisionRemapper collisionRemapper = clazz.getAnnotation(CollisionRemapper.class);
             annotationMap.put(clazz, new CollisionInfo(collisionRemapper, Pattern.compile(collisionRemapper.regex())));
@@ -89,7 +89,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         for (int i = 0; i < blockStates.size(); i++) {
             BlockState state = blockStates.get(i);
             if (state == null) {
-                GeyserLogger.getInstance().warning("Missing block state for Java block " + i);
+                GeyserLogger.get().warning("Missing block state for Java block " + i);
                 continue;
             }
 

@@ -82,7 +82,7 @@ public class CrafterContainer extends Container {
 
     public void setSlot(int slot, boolean enabled) {
         if (!isCraftingGrid(slot)) {
-            GeyserLogger.getInstance().warning("Crafter slot out of bounds: " + slot);
+            GeyserLogger.get().warning("Crafter slot out of bounds: " + slot);
             return;
         }
 

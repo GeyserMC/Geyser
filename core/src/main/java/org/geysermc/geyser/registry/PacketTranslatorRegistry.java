@@ -73,7 +73,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         } else {
             if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                 if (!IGNORED_PACKETS.contains(clazz)) {
-                    GeyserLogger.getInstance().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+                    GeyserLogger.get().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             }
 
@@ -89,7 +89,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         try {
             translator.translate(session, packet);
         } catch (Throwable ex) {
-            GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
+            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
             ex.printStackTrace();
         }
     }

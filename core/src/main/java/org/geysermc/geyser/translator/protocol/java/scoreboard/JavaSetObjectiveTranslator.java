@@ -42,7 +42,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @Translator(packet = ClientboundSetObjectivePacket.class)
 public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetObjectivePacket> {
-    private final GeyserLogger logger = GeyserLogger.getInstance();
+    private final GeyserLogger logger = GeyserLogger.get();
 
     @Override
     public void translate(GeyserSession session, ClientboundSetObjectivePacket packet) {

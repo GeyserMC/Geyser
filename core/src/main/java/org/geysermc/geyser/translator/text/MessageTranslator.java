@@ -192,8 +192,8 @@ public class MessageTranslator {
 
             return finalLegacy.toString();
         } catch (Exception e) {
-            GeyserLogger.getInstance().debug(GSON_SERIALIZER.serialize(message));
-            GeyserLogger.getInstance().error("Failed to parse message", e);
+            GeyserLogger.get().debug(GSON_SERIALIZER.serialize(message));
+            GeyserLogger.get().error("Failed to parse message", e);
 
             return "";
         }
@@ -441,7 +441,7 @@ public class MessageTranslator {
         NbtMap description = tag.getCompound("description");
         String translate = description.getString("translate", null);
         if (translate == null) {
-            GeyserLogger.getInstance().debug("Don't know how to read description! " + tag);
+            GeyserLogger.get().debug("Don't know how to read description! " + tag);
             return "";
         }
         return translate;

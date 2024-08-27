@@ -70,7 +70,7 @@ public final class SoundUtils {
         SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
-            GeyserLogger.getInstance().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
+            GeyserLogger.get().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
             return soundIdentifier;
         }
         return soundMapping.getPlaysound();

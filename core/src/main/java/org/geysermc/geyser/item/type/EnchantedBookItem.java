@@ -90,7 +90,7 @@ public class EnchantedBookItem extends Item {
                         }
                     }
                 } else {
-                    GeyserLogger.getInstance().debug("Unknown bedrock enchantment: " + bedrockId);
+                    GeyserLogger.get().debug("Unknown bedrock enchantment: " + bedrockId);
                 }
             }
             if (!javaEnchantments.isEmpty()) {

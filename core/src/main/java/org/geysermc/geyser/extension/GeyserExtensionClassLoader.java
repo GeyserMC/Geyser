@@ -90,7 +90,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
                 // This is used for classes that are not in the extension, but are in other extensions
                 if (checkGlobal) {
                     if (!warnedForExternalClassAccess) {
-                        GeyserLogger.getInstance().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
+                        GeyserLogger.get().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
                                 "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
                         warnedForExternalClassAccess = true;
                     }

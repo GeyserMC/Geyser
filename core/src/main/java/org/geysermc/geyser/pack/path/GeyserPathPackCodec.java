@@ -97,7 +97,7 @@ public class GeyserPathPackCodec extends PathPackCodec {
             }
 
             if (lastModified.toInstant().isAfter(this.lastModified.toInstant())) {
-                GeyserLogger.getInstance().warning("Detected a change in the resource pack " + path + ". This is likely to cause undefined behavior for new clients joining. It is suggested you restart Geyser.");
+                GeyserLogger.get().warning("Detected a change in the resource pack " + path + ". This is likely to cause undefined behavior for new clients joining. It is suggested you restart Geyser.");
                 this.lastModified = lastModified;
                 this.sha256 = null;
                 this.size = -1;

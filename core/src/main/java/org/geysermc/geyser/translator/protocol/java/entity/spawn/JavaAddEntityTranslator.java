@@ -76,7 +76,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
-                    GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                    GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
                     return;
                 }
 

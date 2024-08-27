@@ -85,7 +85,7 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEve
                     soundEffects.put(javaEffect, transformer);
                 }
             } catch (Exception e) {
-                GeyserLogger.getInstance().warning("Failed to map sound effect " + entry.getKey() + " : " + e);
+                GeyserLogger.get().warning("Failed to map sound effect " + entry.getKey() + " : " + e);
             }
         }
         return soundEffects;

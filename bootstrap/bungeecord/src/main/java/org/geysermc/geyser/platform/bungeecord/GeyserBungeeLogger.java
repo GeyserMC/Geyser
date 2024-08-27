@@ -75,11 +75,4 @@ public class GeyserBungeeLogger implements GeyserLogger {
             info(message);
         }
     }
-
-    @Override
-    public void debug(String message, Object... parameters) {
-        if (debug) {
-            info(String.format(message, parameters));
-        }
-    }
 }

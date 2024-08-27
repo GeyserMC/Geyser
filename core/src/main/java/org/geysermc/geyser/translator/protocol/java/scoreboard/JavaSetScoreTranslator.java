@@ -46,7 +46,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     private final GeyserLogger logger;
 
     public JavaSetScoreTranslator() {
-        logger = GeyserLogger.getInstance();
+        logger = GeyserLogger.get();
     }
 
     @Override

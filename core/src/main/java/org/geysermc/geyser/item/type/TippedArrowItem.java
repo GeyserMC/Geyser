@@ -51,7 +51,7 @@ public class TippedArrowItem extends ArrowItem {
                             .damage(potion.tippedArrowId())
                             .count(count);
                 }
-                GeyserLogger.getInstance().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
+                GeyserLogger.get().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
             }
         }
         return super.translateToBedrock(count, components, mapping, mappings);

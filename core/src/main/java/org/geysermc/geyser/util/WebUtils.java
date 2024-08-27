@@ -224,7 +224,7 @@ public class WebUtils {
 
             return connectionToString(con).lines();
         } catch (Exception e) {
-            GeyserLogger.getInstance().error("Error while trying to get a stream from " + reqURL, e);
+            GeyserLogger.get().error("Error while trying to get a stream from " + reqURL, e);
             return Stream.empty();
         }
     }

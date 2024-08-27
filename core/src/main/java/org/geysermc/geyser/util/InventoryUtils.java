@@ -201,10 +201,10 @@ public class InventoryUtils {
         DataComponents components2 = item2.getComponents();
         if (components1 != null && components2 != null) {
             if (components1.hashCode() == components2.hashCode() && !components1.equals(components2)) {
-                GeyserLogger.getInstance().error("DEBUG: DataComponents hash collision");
-                GeyserLogger.getInstance().error("hash: " + components1.hashCode());
-                GeyserLogger.getInstance().error("components1: " + components1);
-                GeyserLogger.getInstance().error("components2: " + components2);
+                GeyserLogger.get().error("DEBUG: DataComponents hash collision");
+                GeyserLogger.get().error("hash: " + components1.hashCode());
+                GeyserLogger.get().error("components1: " + components1);
+                GeyserLogger.get().error("components2: " + components2);
             }
         }
     }
@@ -245,7 +245,7 @@ public class InventoryUtils {
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
-            GeyserLogger.getInstance().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
+            GeyserLogger.get().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
             return mappings.getStoredItems().barrier().getBedrockDefinition();
         } else {
             return itemDefinition;

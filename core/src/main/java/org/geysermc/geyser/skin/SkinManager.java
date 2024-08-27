@@ -246,7 +246,7 @@ public class SkinManager {
             try {
                 return loadFromJson(skinDataValue);
             } catch (IOException e) {
-                GeyserLogger.getInstance().debug("Something went wrong while processing skin for tag " + tag);
+                GeyserLogger.get().debug("Something went wrong while processing skin for tag " + tag);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
@@ -271,9 +271,9 @@ public class SkinManager {
                 return loadFromJson(texturesProperty);
             } catch (Exception exception) {
                 if (entity instanceof SkullPlayerEntity skullEntity) {
-                    GeyserLogger.getInstance().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
+                    GeyserLogger.get().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
                 } else {
-                    GeyserLogger.getInstance().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
+                    GeyserLogger.get().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
                 }
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
@@ -287,7 +287,7 @@ public class SkinManager {
             try {
                 skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             } catch (IllegalArgumentException e) {
-                GeyserLogger.getInstance().debug("Invalid base64 encoded skin entry: " + encodedJson);
+                GeyserLogger.get().debug("Invalid base64 encoded skin entry: " + encodedJson);
                 return null;
             }
 

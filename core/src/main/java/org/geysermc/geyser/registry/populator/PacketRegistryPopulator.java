@@ -40,7 +40,7 @@ public class PacketRegistryPopulator {
         for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(Translator.class)) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
 
-            GeyserLogger.getInstance().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
+            GeyserLogger.get().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
 
             try {
                 if (Packet.class.isAssignableFrom(packet)) {
@@ -54,10 +54,10 @@ public class PacketRegistryPopulator {
 
                     Registries.BEDROCK_PACKET_TRANSLATORS.register(targetPacket, translator);
                 } else {
-                    GeyserLogger.getInstance().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                    GeyserLogger.get().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
                 }
             } catch (Exception e) {
-                GeyserLogger.getInstance().error("Could not instantiate annotated translator " + clazz.getCanonicalName());
+                GeyserLogger.get().error("Could not instantiate annotated translator " + clazz.getCanonicalName());
             }
         }
     }

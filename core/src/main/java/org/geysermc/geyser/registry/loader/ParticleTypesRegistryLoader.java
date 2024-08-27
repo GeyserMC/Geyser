@@ -55,7 +55,7 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
                 JsonNode bedrockId = entry.getValue().get("bedrockId");
                 JsonNode eventType = entry.getValue().get("eventType");
                 if (eventType == null && bedrockId == null) {
-                    GeyserLogger.getInstance().debug("Skipping particle mapping " + key + " because no Bedrock equivalent exists.");
+                    GeyserLogger.get().debug("Skipping particle mapping " + key + " because no Bedrock equivalent exists.");
                     continue;
                 }
 

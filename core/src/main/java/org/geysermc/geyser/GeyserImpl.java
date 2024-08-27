@@ -592,7 +592,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                             String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
                             savedAuthChains.put(user, authChain);
                         } catch (Exception e) {
-                            GeyserLogger.getInstance().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
+                            GeyserLogger.get().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
                                 "They will need to sign in the next time they join Geyser.");
                         }
 
@@ -915,7 +915,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                         .withDefaultPrettyPrinter()
                         .writeValue(writer, this.savedAuthChains);
             } catch (IOException e) {
-                GeyserLogger.getInstance().error("Unable to write saved refresh tokens!", e);
+                GeyserLogger.get().error("Unable to write saved refresh tokens!", e);
             }
         });
     }

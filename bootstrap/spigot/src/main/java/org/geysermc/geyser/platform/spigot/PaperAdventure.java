@@ -79,7 +79,7 @@ public final class PaperAdventure {
                         nativeGsonComponentSerializerDeserializeMethodBound = nativeGsonComponentSerializerDeserializeMethod
                                 .bindTo(nativeGsonComponentSerializerGsonGetter.invoke());
                     } catch (final Throwable throwable) {
-                        GeyserLogger.getInstance().error("Failed to access native GsonComponentSerializer", throwable);
+                        GeyserLogger.get().error("Failed to access native GsonComponentSerializer", throwable);
                     }
                 }
             }
@@ -94,7 +94,7 @@ public final class PaperAdventure {
             try {
                 playerComponentSendMessage = CommandSender.class.getMethod("sendMessage", nativeComponentClass);
             } catch (final NoSuchMethodException e) {
-                if (GeyserLogger.getInstance().isDebug()) {
+                if (GeyserLogger.get().isDebug()) {
                     e.printStackTrace();
                 }
             }
@@ -104,21 +104,21 @@ public final class PaperAdventure {
 
     public static @Nullable Object toNativeComponent(final Component component) {
         if (NATIVE_GSON_COMPONENT_SERIALIZER_DESERIALIZE_METHOD_BOUND == null) {
-            GeyserLogger.getInstance().error("Illegal state where Component serialization was called when it wasn't available!");
+            GeyserLogger.get().error("Illegal state where Component serialization was called when it wasn't available!");
             return null;
         }
 
         try {
             return NATIVE_GSON_COMPONENT_SERIALIZER_DESERIALIZE_METHOD_BOUND.invoke(DefaultComponentSerializer.get().serialize(component));
         } catch (final Throwable throwable) {
-            GeyserLogger.getInstance().error("Failed to create native Component message", throwable);
+            GeyserLogger.get().error("Failed to create native Component message", throwable);
             return null;
         }
     }
 
     public static void sendMessage(final CommandSender sender, final Component component) {
         if (SEND_MESSAGE_COMPONENT == null) {
-            GeyserLogger.getInstance().error("Illegal state where Component sendMessage was called when it wasn't available!");
+            GeyserLogger.get().error("Illegal state where Component sendMessage was called when it wasn't available!");
             return;
         }
 
@@ -127,7 +127,7 @@ public final class PaperAdventure {
             try {
                 SEND_MESSAGE_COMPONENT.invoke(sender, nativeComponent);
             } catch (final InvocationTargetException | IllegalAccessException e) {
-                GeyserLogger.getInstance().error("Failed to send native Component message", e);
+                GeyserLogger.get().error("Failed to send native Component message", e);
             }
         }
     }

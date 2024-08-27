@@ -76,7 +76,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             PermissionConfiguration config = FileUtils.loadConfig(permissionsFile, PermissionConfiguration.class);
             basePermissions.addAll(config.getDefaultPermissions());
         } catch (Exception e) {
-            GeyserLogger.getInstance().error("Failed to load permissions.yml - proceeding without it", e);
+            GeyserLogger.get().error("Failed to load permissions.yml - proceeding without it", e);
         }
     }
 

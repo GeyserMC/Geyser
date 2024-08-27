@@ -149,7 +149,7 @@ public class GeyserModInjector extends GeyserInjector {
                 eventLoopGroup.shutdownGracefully().sync();
                 eventLoopGroup = null;
             } catch (Exception e) {
-                GeyserLogger.getInstance().error("Unable to shut down injector! " + e.getMessage());
+                GeyserLogger.get().error("Unable to shut down injector! " + e.getMessage());
                 e.printStackTrace();
             }
         }

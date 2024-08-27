@@ -114,7 +114,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     }
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
-        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserLogger.getInstance(), description.id());
+        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserLogger.get(), description.id());
         return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
     }
 
@@ -183,7 +183,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     String name = description.name();
                     String id = description.id();
                     if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
-                        GeyserLogger.getInstance().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
+                        GeyserLogger.get().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                         return;
                     }
 
@@ -197,10 +197,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
                         // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
                         if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
-                            GeyserLogger.getInstance().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
+                            GeyserLogger.get().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
                                 .formatted(name, description.apiVersion()));
                         } else {
-                            GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
+                            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
                             return;
                         }
                     }
@@ -209,7 +209,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     extensions.put(id, path);
                     loadedExtensions.put(id, container);
                 } catch (Throwable e) {
-                    GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
+                    GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
                 }
             });
 

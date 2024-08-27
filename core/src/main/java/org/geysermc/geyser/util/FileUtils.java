@@ -252,7 +252,7 @@ public class FileUtils {
                 try {
                     return Class.forName(className);
                 } catch (ClassNotFoundException ex) {
-                    GeyserLogger.getInstance().error("Failed to find class " + className, ex);
+                    GeyserLogger.get().error("Failed to find class " + className, ex);
                     throw new RuntimeException(ex);
                 }
             }).collect(Collectors.toSet());

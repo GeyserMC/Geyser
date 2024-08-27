@@ -435,7 +435,7 @@ public class ItemRegistryPopulator {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     // Or, ensure that we are translating these at all times to account for rarity colouring
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
-                    GeyserLogger.getInstance().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
+                    GeyserLogger.get().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
 
                 // Add the custom item properties, if applicable
@@ -450,7 +450,7 @@ public class ItemRegistryPopulator {
                         String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : Constants.GEYSER_CUSTOM_NAMESPACE + ":" + customItem.name();
                         if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
-                                GeyserLogger.getInstance().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
+                                GeyserLogger.get().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
@@ -536,7 +536,7 @@ public class ItemRegistryPopulator {
                 for (NonVanillaCustomItemData customItem : nonVanillaCustomItems) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
                         if (firstMappingsPass) {
-                            GeyserLogger.getInstance().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping...");
+                            GeyserLogger.get().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping...");
                         }
                         continue;
                     }
@@ -569,7 +569,7 @@ public class ItemRegistryPopulator {
                 ItemDefinition definition = definitions.get(id);
                 if (definition == null) {
                     // Newer item most likely
-                    GeyserLogger.getInstance().debug(
+                    GeyserLogger.get().debug(
                             "Skipping vanilla component " + id + " for protocol " + palette.protocolVersion()
                     );
                     continue;

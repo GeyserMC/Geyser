@@ -174,14 +174,14 @@ public class CustomBlockRegistryPopulator {
         for(Map.Entry<String, CustomBlockState> entry : BLOCK_STATE_OVERRIDES_QUEUE.entrySet()) {
             int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
             if (id == -1) {
-                GeyserLogger.getInstance().warning("Custom block state override for Java Identifier: " +
+                GeyserLogger.get().warning("Custom block state override for Java Identifier: " +
                         entry.getKey() + " could not be registered as it is not a valid block state.");
                 continue;
             }
 
             CustomBlockState oldBlockState = blockStateOverrides.put(id, entry.getValue());
             if (oldBlockState != null) {
-                GeyserLogger.getInstance().warning("Duplicate block state override for Java Identifier: " +
+                GeyserLogger.get().warning("Duplicate block state override for Java Identifier: " +
                         entry.getKey() + " Old override: " + oldBlockState.name() + " New override: " + entry.getValue().name());
             }
         }
@@ -213,17 +213,17 @@ public class CustomBlockRegistryPopulator {
     
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
         if (!blockStateOverrides.isEmpty()) {
-            GeyserLogger.getInstance().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
+            GeyserLogger.get().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
         }
 
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
         if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
-            GeyserLogger.getInstance().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
+            GeyserLogger.get().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
         }
 
         BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
         if (!extendedCollisionBoxes.isEmpty()) {
-            GeyserLogger.getInstance().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
+            GeyserLogger.get().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
         }
     }
 
@@ -233,7 +233,7 @@ public class CustomBlockRegistryPopulator {
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
         if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
-            GeyserLogger.getInstance().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
+            GeyserLogger.get().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
         }
     }
 
@@ -243,7 +243,7 @@ public class CustomBlockRegistryPopulator {
     private static void registration() {
         BlockRegistries.CUSTOM_BLOCKS.set(CUSTOM_BLOCKS.toArray(new CustomBlockData[0]));
         if (!CUSTOM_BLOCKS.isEmpty()) {
-            GeyserLogger.getInstance().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
+            GeyserLogger.get().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
         }
     }
 

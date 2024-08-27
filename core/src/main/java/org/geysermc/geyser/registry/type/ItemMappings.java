@@ -159,7 +159,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             }
         }
 
-        GeyserLogger.getInstance().debug("Missing mapping for bedrock item " + data);
+        GeyserLogger.get().debug("Missing mapping for bedrock item " + data);
         return ItemMapping.AIR;
     }
 

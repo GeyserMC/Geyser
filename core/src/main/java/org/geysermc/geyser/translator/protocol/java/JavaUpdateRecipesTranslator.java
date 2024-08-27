@@ -154,7 +154,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     if (stoneCuttingData.getIngredient().getOptions().length == 0) {
                         if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                            GeyserLogger.getInstance().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
+                            GeyserLogger.get().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
                                     recipe.getIdentifier() + " " + Registries.JAVA_ITEMS.get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
                         }
                         continue;
@@ -421,7 +421,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (bedrockDefinition != null) {
             return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
         }
-        GeyserLogger.getInstance().debug("Unable to find item with identifier " + bedrockId);
+        GeyserLogger.get().debug("Unable to find item with identifier " + bedrockId);
         return ItemDescriptorWithCount.EMPTY;
     }
 

@@ -250,7 +250,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
-            GeyserLogger.getInstance().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[redirectIndex].getName());
+            GeyserLogger.get().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[redirectIndex].getName());
             commandNode = allNodes[redirectIndex];
         }
 

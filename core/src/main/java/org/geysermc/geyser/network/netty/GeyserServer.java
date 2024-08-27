@@ -126,7 +126,7 @@ public final class GeyserServer {
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
-        GeyserLogger.getInstance().debug("Listen thread count: " + listenCount);
+        GeyserLogger.get().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
@@ -199,7 +199,7 @@ public final class GeyserServer {
 
             SkinProvider.shutdown();
         } catch (InterruptedException e) {
-            GeyserLogger.getInstance().severe("Exception in shutdown process", e);
+            GeyserLogger.get().severe("Exception in shutdown process", e);
         }
         for (ChannelFuture f : bootstrapFutures) {
             f.channel().closeFuture().syncUninterruptibly();
@@ -420,7 +420,7 @@ public final class GeyserServer {
             int parsed = value != null ? Integer.parseInt(value) : defaultValue;
 
             if (parsed < 1) {
-                GeyserLogger.getInstance().warning(
+                GeyserLogger.get().warning(
                     "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
                 );
                 return defaultValue;
@@ -428,7 +428,7 @@ public final class GeyserServer {
 
             return parsed;
         } catch (NumberFormatException e) {
-            GeyserLogger.getInstance().warning(
+            GeyserLogger.get().warning(
                 "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
             );
             return defaultValue;

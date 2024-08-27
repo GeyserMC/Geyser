@@ -34,16 +34,16 @@ public class MinecraftAuthLogger implements ILogger {
 
     @Override
     public void info(String message) {
-        GeyserLogger.getInstance().debug(message);
+        GeyserLogger.get().debug(message);
     }
 
     @Override
     public void warn(String message) {
-        GeyserLogger.getInstance().warning(message);
+        GeyserLogger.get().warning(message);
     }
 
     @Override
     public void error(String message) {
-        GeyserLogger.getInstance().error(message);
+        GeyserLogger.get().error(message);
     }
 }

@@ -168,10 +168,10 @@ public class BlockInventoryHolder extends InventoryHolder {
                 return;
             }
         } else {
-            GeyserLogger.getInstance().warning("Tried to close a non-container inventory in a block inventory holder! ");
-            if (GeyserLogger.getInstance().isDebug()) {
-                GeyserLogger.getInstance().debug("Current inventory: " + inventory);
-                GeyserLogger.getInstance().debug("Open inventory: " + session.getOpenInventory());
+            GeyserLogger.get().warning("Tried to close a non-container inventory in a block inventory holder! ");
+            if (GeyserLogger.get().isDebug()) {
+                GeyserLogger.get().debug("Current inventory: " + inventory);
+                GeyserLogger.get().debug("Open inventory: " + session.getOpenInventory());
             }
             // Try to save ourselves? maybe?
             // https://github.com/GeyserMC/Geyser/issues/4141

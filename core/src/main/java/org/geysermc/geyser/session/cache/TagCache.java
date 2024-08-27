@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
@@ -89,7 +88,7 @@ public final class TagCache {
     private <T extends Ordered> void loadTags(String type, @Nullable Map<Key, int[]> packetTags, Map<Key, T> allTags, int[][] localValues) {
         if (packetTags == null) {
             Arrays.fill(localValues, IntArrays.EMPTY_ARRAY);
-            GeyserLogger.getInstance().debug("Not loading " + type + " tags; they do not exist here.");
+            GeyserLogger.get().debug("Not loading " + type + " tags; they do not exist here.");
             return;
         }
         allTags.forEach((location, tag) -> {
@@ -102,7 +101,7 @@ public final class TagCache {
                 }
             } else {
                 localValues[tag.ordinal()] = IntArrays.EMPTY_ARRAY;
-                GeyserLogger.getInstance().debug(type + " tag not found from server: " + location);
+                GeyserLogger.get().debug(type + " tag not found from server: " + location);
             }
         });
     }

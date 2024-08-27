@@ -141,7 +141,7 @@ public final class RegistryCache {
         if (reader != null) {
             reader.accept(this, packet.getEntries());
         } else {
-            GeyserLogger.getInstance().debug("Ignoring registry of type " + packet.getRegistry());
+            GeyserLogger.get().debug("Ignoring registry of type " + packet.getRegistry());
         }
     }
 

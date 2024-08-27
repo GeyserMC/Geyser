@@ -49,9 +49,9 @@ public final class Bootstraps {
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
-            GeyserLogger.getInstance().debug("Kernel version: " + kernelVersion);
+            GeyserLogger.get().debug("Kernel version: " + kernelVersion);
         } catch (Throwable e) {
-            GeyserLogger.getInstance().debug("Could not determine kernel version! " + e.getMessage());
+            GeyserLogger.get().debug("Could not determine kernel version! " + e.getMessage());
             kernelVersion = null;
         }
 
@@ -77,7 +77,7 @@ public final class Bootstraps {
                 bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
             } else {
                 // If this occurs, we guessed wrong and reuseport is not available
-                GeyserLogger.getInstance().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                GeyserLogger.get().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
                 success = false;
             }
             // Now yeet that channel

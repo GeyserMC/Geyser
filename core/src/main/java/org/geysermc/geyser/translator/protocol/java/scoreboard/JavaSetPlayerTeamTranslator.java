@@ -44,7 +44,7 @@ import java.util.Set;
 
 @Translator(packet = ClientboundSetPlayerTeamPacket.class)
 public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
-    private final GeyserLogger logger = GeyserLogger.getInstance();
+    private final GeyserLogger logger = GeyserLogger.get();
 
     @Override
     public void translate(GeyserSession session, ClientboundSetPlayerTeamPacket packet) {

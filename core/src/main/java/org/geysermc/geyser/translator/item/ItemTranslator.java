@@ -498,7 +498,7 @@ public final class ItemTranslator {
             try {
                 textures = profile.getTextures(false);
             } catch (IllegalStateException e) {
-                GeyserLogger.getInstance().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+                GeyserLogger.get().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
                 return null;
             }
 

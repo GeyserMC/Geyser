@@ -1109,9 +1109,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 }
                 if (cause != null) {
                     if (cause.getMessage() != null) {
-                        GeyserLogger.getInstance().error(cause.getMessage());
+                        GeyserLogger.get().error(cause.getMessage());
                     } else {
-                        GeyserLogger.getInstance().error("An exception occurred: ", cause);
+                        GeyserLogger.get().error("An exception occurred: ", cause);
                     }
                     if (geyser.getConfig().isDebugMode()) {
                         cause.printStackTrace();

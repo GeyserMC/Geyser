@@ -44,12 +44,12 @@ public class GeyserExtensionManager extends ExtensionManager {
     private final Map<String, Extension> extensions = new LinkedHashMap<>();
 
     public void init() {
-        GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.loading"));
+        GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.loading"));
 
         loadAllExtensions(this.extensionLoader);
         enableExtensions();
 
-        GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.done", this.extensions.size()));
+        GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.done", this.extensions.size()));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class GeyserExtensionManager extends ExtensionManager {
             try {
                 this.enableExtension(extension);
             } catch (Exception e) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.failed", extension.name()), e);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.failed", extension.name()), e);
                 this.disable(extension);
             }
         }
@@ -75,7 +75,7 @@ public class GeyserExtensionManager extends ExtensionManager {
             try {
                 this.disableExtension(extension);
             } catch (Exception e) {
-                GeyserLogger.getInstance().error(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.failed", extension.name()), e);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.failed", extension.name()), e);
             }
         }
     }
@@ -84,7 +84,7 @@ public class GeyserExtensionManager extends ExtensionManager {
         if (!extension.isEnabled()) {
             extension.setEnabled(true);
             GeyserImpl.getInstance().eventBus().register(extension, extension);
-            GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.name()));
+            GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.name()));
         }
     }
 
@@ -99,7 +99,7 @@ public class GeyserExtensionManager extends ExtensionManager {
             GeyserImpl.getInstance().eventBus().unregisterAll(extension);
 
             extension.setEnabled(false);
-            GeyserLogger.getInstance().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.name()));
+            GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.name()));
         }
     }
 

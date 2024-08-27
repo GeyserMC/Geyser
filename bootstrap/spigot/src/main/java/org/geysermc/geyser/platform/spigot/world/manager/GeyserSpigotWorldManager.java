@@ -94,7 +94,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
         if (bukkitGameRule == null) {
-            GeyserLogger.getInstance().debug("Unknown game rule " + gameRule.getJavaID());
+            GeyserLogger.get().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultBooleanValue();
         }
 
@@ -103,7 +103,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
         }
-        GeyserLogger.getInstance().debug("Expected a bool for " + gameRule + " but got " + value);
+        GeyserLogger.get().debug("Expected a bool for " + gameRule + " but got " + value);
         return gameRule.getDefaultBooleanValue();
     }
 
@@ -111,7 +111,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
         org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
         if (bukkitGameRule == null) {
-            GeyserLogger.getInstance().debug("Unknown game rule " + gameRule.getJavaID());
+            GeyserLogger.get().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultIntValue();
         }
         Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
@@ -119,7 +119,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Integer intValue) {
             return intValue;
         }
-        GeyserLogger.getInstance().debug("Expected an int for " + gameRule + " but got " + value);
+        GeyserLogger.get().debug("Expected an int for " + gameRule + " but got " + value);
         return gameRule.getDefaultIntValue();
     }
 

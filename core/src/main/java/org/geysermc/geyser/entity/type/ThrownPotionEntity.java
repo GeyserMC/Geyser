@@ -69,7 +69,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
                         dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
-                        GeyserLogger.getInstance().debug("Unknown java potion: " + potionContents.getPotionId());
+                        GeyserLogger.get().debug("Unknown java potion: " + potionContents.getPotionId());
                     }
                 }
 

@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -76,7 +75,7 @@ public final class Scoreboard {
 
     public Scoreboard(GeyserSession session) {
         this.session = session;
-        this.logger = GeyserLogger.getInstance();
+        this.logger = GeyserLogger.get();
     }
 
     public void removeScoreboard() {

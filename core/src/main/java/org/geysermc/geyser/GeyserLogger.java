@@ -40,7 +40,7 @@ public interface GeyserLogger extends GeyserCommandSource {
     /**
      * Returns the current GeyserLogger instance.
      */
-    static GeyserLogger getInstance() {
+    static GeyserLogger get() {
         return INSTANCE.get();
     }
 
@@ -119,7 +119,11 @@ public interface GeyserLogger extends GeyserCommandSource {
      * @param message the message with placeholders for the objects
      * @param parameters the parameters for the message
      */
-    void debug(String message, Object... parameters);
+    default void debug(String message, Object... parameters) {
+        if (isDebug()) {
+            debug(String.format(message, parameters));
+        }
+    }
 
     /**
      * Sets if the logger should print debug messages

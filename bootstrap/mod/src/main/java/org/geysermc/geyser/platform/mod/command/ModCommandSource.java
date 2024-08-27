@@ -59,7 +59,7 @@ public class ModCommandSource implements GeyserCommandSource {
         if (source.getEntity() instanceof ServerPlayer) {
             ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
         } else {
-            GeyserLogger.getInstance().info(ChatColor.toANSI(message + ChatColor.RESET));
+            GeyserLogger.get().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
     }
 

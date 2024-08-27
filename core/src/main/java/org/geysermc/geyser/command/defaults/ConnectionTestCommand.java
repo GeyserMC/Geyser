@@ -156,7 +156,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
 
                 // Issue: does Loopback need applying?
-                if (LoopbackUtil.needsLoopback(GeyserLogger.getInstance())) {
+                if (LoopbackUtil.needsLoopback(GeyserLogger.get())) {
                     source.sendMessage("Loopback is not applied on this computer! You will have issues connecting from the same computer. " +
                             "See here for steps on how to resolve: " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/#using-geyser-on-the-same-computer");
                 }

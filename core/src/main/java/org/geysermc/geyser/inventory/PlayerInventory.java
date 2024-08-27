@@ -78,7 +78,7 @@ public class PlayerInventory extends Inventory {
 
     public GeyserItemStack getItemInHand() {
         if (36 + heldItemSlot > this.size) {
-            GeyserLogger.getInstance().debug("Held item slot was larger than expected!");
+            GeyserLogger.get().debug("Held item slot was larger than expected!");
             return GeyserItemStack.EMPTY;
         }
         return items[36 + heldItemSlot];
@@ -90,7 +90,7 @@ public class PlayerInventory extends Inventory {
 
     public void setItemInHand(@NonNull GeyserItemStack item) {
         if (36 + heldItemSlot > this.size) {
-            GeyserLogger.getInstance().debug("Held item slot was larger than expected!");
+            GeyserLogger.get().debug("Held item slot was larger than expected!");
             return;
         }
         items[36 + heldItemSlot] = item;
