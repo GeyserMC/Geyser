@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.util.ApiVersion;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.Extension;
@@ -158,6 +159,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     @Override
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
+        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
         try {
             if (Files.notExists(extensionsDirectory)) {
                 Files.createDirectory(extensionsDirectory);
@@ -189,7 +191,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     // Overwrite the extension with the new jar
                     Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
                 }, (path, e) -> {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
+                    logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
                 });
             }
 
@@ -198,7 +200,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 String name = description.name();
                 String id = description.id();
                 if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
-                    GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
+                    logger.warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                     return;
                 }
 
@@ -212,10 +214,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
                     // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
                     if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
-                        GeyserImpl.getInstance().getLogger().warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
+                        logger.warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
                             .formatted(name, description.apiVersion()));
                     } else {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
+                        logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
                         return;
                     }
                 }
@@ -224,7 +226,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 extensions.put(id, path);
                 loadedExtensions.put(id, container);
             }, (path, e) -> {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
+                logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
             });
 
             // Step 4: Register the extensions
