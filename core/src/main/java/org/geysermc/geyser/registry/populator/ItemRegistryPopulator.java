@@ -172,6 +172,7 @@ public class ItemRegistryPopulator {
             Set<String> noBlockDefinitions = new ObjectOpenHashSet<>();
 
             // Fix: Usage of structure blocks/voids in recipes
+            // https://github.com/GeyserMC/Geyser/issues/2890
             noBlockDefinitions.add("minecraft:structure_block");
             noBlockDefinitions.add("minecraft:structure_void");
 
