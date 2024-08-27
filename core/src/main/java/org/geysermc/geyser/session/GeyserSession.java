@@ -72,6 +72,7 @@ import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
+import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -82,6 +83,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
@@ -384,6 +386,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean sprinting;
 
     /**
+     * The overworld dimension which Bedrock Edition uses.
+     */
+    @Getter
+    private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
+    /**
      * The dimension of the player.
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
@@ -396,7 +403,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * right before the StartGamePacket is sent.
      */
     @Setter
-    private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
+    private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
     @Setter
     private int breakingBlock;
@@ -706,6 +713,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
+        if (this.dimensionType.minY() < BedrockDimension.OVERWORLD.minY() || this.dimensionType.maxY() > BedrockDimension.OVERWORLD.maxY()) {
+            final int minY = Math.max(this.dimensionType.minY(), -512);
+            final int maxY = Math.min(this.dimensionType.maxY(), 512);
+            this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
+            this.bedrockDimension = this.bedrockOverworldDimension;
+
+            final DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5));
+            upstream.sendPacket(dimensionDataPacket);
+        }
+
         startGame();
         sentSpawnPacket = true;
         syncEntityProperties();

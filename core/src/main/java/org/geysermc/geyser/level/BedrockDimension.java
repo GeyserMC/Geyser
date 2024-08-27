@@ -34,8 +34,18 @@ package org.geysermc.geyser.level;
  * @param height The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
  * @param doUpperHeightWarn whether to warn in the console if the Java dimension height exceeds Bedrock's.
  */
-public record BedrockDimension(int minY, int height, boolean doUpperHeightWarn) {
-    public static final BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true);
-    public static final BedrockDimension THE_NETHER = new BedrockDimension(0, 128, false);
-    public static final BedrockDimension THE_END = new BedrockDimension(0, 256, true);
+public record BedrockDimension(int minY, int height, boolean doUpperHeightWarn, int bedrockId) {
+
+    public static final int OVERWORLD_ID = 0;
+    public static final int DEFAULT_NETHER_ID = 1;
+    public static final int END_ID = 2;
+
+    public static final BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true, OVERWORLD_ID);
+    public static final BedrockDimension THE_NETHER = new BedrockDimension(0, 128, false, DEFAULT_NETHER_ID);
+    public static final BedrockDimension THE_END = new BedrockDimension(0, 256, true, END_ID);
+
+    public int maxY() {
+        return minY + height;
+    }
+
 }

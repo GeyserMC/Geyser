@@ -53,10 +53,6 @@ public class DimensionUtils {
 
     public static final String NETHER_IDENTIFIER = "minecraft:the_nether";
 
-    private static final int BEDROCK_OVERWORLD_ID = 0;
-    private static final int BEDROCK_DEFAULT_NETHER_ID = 1;
-    private static final int BEDROCK_END_ID = 2;
-
     public static void switchDimension(GeyserSession session, JavaDimension javaDimension) {
         switchDimension(session, javaDimension, javaDimension.bedrockId());
     }
@@ -180,19 +176,17 @@ public class DimensionUtils {
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {
         session.setBedrockDimension(switch (bedrockDimension) {
-            case BEDROCK_END_ID -> BedrockDimension.THE_END;
-            case BEDROCK_DEFAULT_NETHER_ID -> BedrockDimension.THE_NETHER; // JavaDimension *should* be set to BEDROCK_END_ID if the Nether workaround is enabled.
-            default -> BedrockDimension.OVERWORLD;
+            case BedrockDimension.END_ID -> BedrockDimension.THE_END;
+            case BedrockDimension.DEFAULT_NETHER_ID -> BedrockDimension.THE_NETHER; // JavaDimension *should* be set to BEDROCK_END_ID if the Nether workaround is enabled.
+            default -> session.getBedrockOverworldDimension();
         });
     }
 
     public static int javaToBedrock(BedrockDimension dimension) {
-        if (dimension == BedrockDimension.THE_NETHER) {
+        if (dimension.bedrockId() == BedrockDimension.DEFAULT_NETHER_ID) {
             return BEDROCK_NETHER_ID;
-        } else if (dimension == BedrockDimension.THE_END) {
-            return BEDROCK_END_ID;
-        } else {
-            return BEDROCK_OVERWORLD_ID;
+        }  else {
+            return dimension.bedrockId();
         }
     }
 
@@ -205,8 +199,8 @@ public class DimensionUtils {
     public static int javaToBedrock(String javaDimension) {
         return switch (javaDimension) {
             case NETHER_IDENTIFIER -> BEDROCK_NETHER_ID;
-            case "minecraft:the_end" -> 2;
-            default -> 0;
+            case "minecraft:the_end" -> BedrockDimension.END_ID;
+            default -> BedrockDimension.OVERWORLD_ID;
         };
     }
 
@@ -216,7 +210,7 @@ public class DimensionUtils {
     public static int javaToBedrock(GeyserSession session) {
         JavaDimension dimension = session.getDimensionType();
         if (dimension == null) {
-            return BEDROCK_OVERWORLD_ID;
+            return BedrockDimension.OVERWORLD_ID;
         }
         return dimension.bedrockId();
     }
@@ -229,7 +223,7 @@ public class DimensionUtils {
      */
     public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
         // Change dimension ID to the End to allow for building above Bedrock
-        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? BEDROCK_END_ID : BEDROCK_DEFAULT_NETHER_ID;
+        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? BedrockDimension.END_ID : BedrockDimension.DEFAULT_NETHER_ID;
     }
 
     /**
@@ -243,14 +237,14 @@ public class DimensionUtils {
     public static int getTemporaryDimension(int currentBedrockDimension, int newBedrockDimension) {
         if (isCustomBedrockNetherId()) {
             // Prevents rare instances of Bedrock locking up
-            return newBedrockDimension == BEDROCK_END_ID ? BEDROCK_OVERWORLD_ID : BEDROCK_END_ID;
+            return newBedrockDimension == BedrockDimension.END_ID ? BedrockDimension.OVERWORLD_ID : BedrockDimension.END_ID;
         }
         // Check current Bedrock dimension and not just the Java dimension.
         // Fixes rare instances like https://github.com/GeyserMC/Geyser/issues/3161
-        return currentBedrockDimension == BEDROCK_OVERWORLD_ID ? BEDROCK_DEFAULT_NETHER_ID : BEDROCK_OVERWORLD_ID;
+        return currentBedrockDimension == BedrockDimension.OVERWORLD_ID ? BedrockDimension.DEFAULT_NETHER_ID : BedrockDimension.OVERWORLD_ID;
     }
 
     public static boolean isCustomBedrockNetherId() {
-        return BEDROCK_NETHER_ID == BEDROCK_END_ID;
+        return BEDROCK_NETHER_ID == BedrockDimension.END_ID;
     }
 }
