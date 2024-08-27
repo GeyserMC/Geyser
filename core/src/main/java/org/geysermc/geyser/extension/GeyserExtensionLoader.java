@@ -168,13 +168,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
             Path updateDirectory = extensionsDirectory.resolve("update");
             if (Files.isDirectory(updateDirectory)) {
-                // Get the current extensions and store them in a map
+                // Step 1: Collect the extension files that currently exist so they can be replaced
                 Map<String, List<Path>> extensionFiles = new HashMap<>();
-                this.processExtensionsFolder(extensionsDirectory, (path, description) -> extensionFiles.computeIfAbsent(description.id(), k -> new ArrayList<>()).add(path), (path, e) -> {
+                this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
+                    extensionFiles.computeIfAbsent(description.id(), k -> new ArrayList<>()).add(path);
+                }, (path, e) -> {
                     // this file will throw again when we actually try to load extensions, and it will be handled there
                 });
 
-                // Perform the updates
+                // Step 2: Move the updated/new extensions
                 this.processExtensionsFolder(updateDirectory, (path, description) -> {
                     // Remove the old extension files with the same ID if it exists
                     List<Path> oldExtensionFiles = extensionFiles.get(description.id());
@@ -191,6 +193,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 });
             }
 
+            // Step 3: Load the extensions
             this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
                 String name = description.name();
                 String id = description.id();
@@ -224,6 +227,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
             });
 
+            // Step 4: Register the extensions
             for (GeyserExtensionContainer container : loadedExtensions.values()) {
                 this.extensionContainers.put(container.extension(), container);
                 this.register(container.extension(), extensionManager);
