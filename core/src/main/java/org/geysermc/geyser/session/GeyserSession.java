@@ -718,6 +718,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             final int maxY = Math.min(this.dimensionType.maxY(), 512);
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
             this.bedrockDimension = this.bedrockOverworldDimension;
+            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             final DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
             dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5));
