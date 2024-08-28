@@ -46,12 +46,7 @@ import java.util.Set;
 
 public class DimensionUtils {
 
-    // Changes if the above-bedrock Nether building workaround is applied
-    private static int BEDROCK_NETHER_ID = 1;
-
     public static final String BEDROCK_FOG_HELL = "minecraft:fog_hell";
-
-    public static final String NETHER_IDENTIFIER = "minecraft:the_nether";
 
     public static void switchDimension(GeyserSession session, JavaDimension javaDimension) {
         switchDimension(session, javaDimension, javaDimension.bedrockId());
@@ -103,7 +98,7 @@ public class DimensionUtils {
         // If the bedrock nether height workaround is enabled, meaning the client is told it's in the end dimension,
         // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
         // thinks they are in the end dimension.
-        if (isCustomBedrockNetherId()) {
+        if (BedrockDimension.isCustomBedrockNetherId()) {
             if (javaDimension.isNetherLike()) {
                 session.camera().sendFog(BEDROCK_FOG_HELL);
             } else if (previousDimension != null && previousDimension.isNetherLike()) {
@@ -182,14 +177,6 @@ public class DimensionUtils {
         });
     }
 
-    public static int javaToBedrock(BedrockDimension dimension) {
-        if (dimension.bedrockId() == BedrockDimension.DEFAULT_NETHER_ID) {
-            return BEDROCK_NETHER_ID;
-        }  else {
-            return dimension.bedrockId();
-        }
-    }
-
     /**
      * Map the Java edition dimension IDs to Bedrock edition
      *
@@ -198,7 +185,7 @@ public class DimensionUtils {
      */
     public static int javaToBedrock(String javaDimension) {
         return switch (javaDimension) {
-            case NETHER_IDENTIFIER -> BEDROCK_NETHER_ID;
+            case BedrockDimension.NETHER_IDENTIFIER -> BedrockDimension.BEDROCK_NETHER_ID;
             case "minecraft:the_end" -> BedrockDimension.END_ID;
             default -> BedrockDimension.OVERWORLD_ID;
         };
@@ -216,17 +203,6 @@ public class DimensionUtils {
     }
 
     /**
-     * The Nether dimension in Bedrock does not permit building above Y128 - the Bedrock above the dimension.
-     * This workaround sets the Nether as the End dimension to ignore this limit.
-     *
-     * @param isAboveNetherBedrockBuilding true if we should apply The End workaround
-     */
-    public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
-        // Change dimension ID to the End to allow for building above Bedrock
-        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? BedrockDimension.END_ID : BedrockDimension.DEFAULT_NETHER_ID;
-    }
-
-    /**
      * Gets the fake, temporary dimension we send clients to so we aren't switching to the same dimension without an additional
      * dimension switch.
      *
@@ -235,7 +211,7 @@ public class DimensionUtils {
      * @return the Bedrock fake dimension to transfer to
      */
     public static int getTemporaryDimension(int currentBedrockDimension, int newBedrockDimension) {
-        if (isCustomBedrockNetherId()) {
+        if (BedrockDimension.isCustomBedrockNetherId()) {
             // Prevents rare instances of Bedrock locking up
             return newBedrockDimension == BedrockDimension.END_ID ? BedrockDimension.OVERWORLD_ID : BedrockDimension.END_ID;
         }
@@ -244,7 +220,4 @@ public class DimensionUtils {
         return currentBedrockDimension == BedrockDimension.OVERWORLD_ID ? BedrockDimension.DEFAULT_NETHER_ID : BedrockDimension.OVERWORLD_ID;
     }
 
-    public static boolean isCustomBedrockNetherId() {
-        return BEDROCK_NETHER_ID == BedrockDimension.END_ID;
-    }
 }

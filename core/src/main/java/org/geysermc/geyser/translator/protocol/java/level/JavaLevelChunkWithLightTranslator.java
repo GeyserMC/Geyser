@@ -29,7 +29,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntImmutableList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
@@ -56,7 +61,6 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.ChunkSection;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
@@ -509,7 +513,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
-        levelChunkPacket.setDimension(DimensionUtils.javaToBedrock(session.getBedrockDimension()));
+        levelChunkPacket.setDimension(session.getBedrockDimension().bedrockId());
         session.sendUpstreamPacket(levelChunkPacket);
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {

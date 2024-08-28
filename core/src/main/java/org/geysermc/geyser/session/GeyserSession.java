@@ -173,7 +173,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
@@ -713,15 +712,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        if (this.dimensionType.minY() < BedrockDimension.OVERWORLD.minY() || this.dimensionType.maxY() > BedrockDimension.OVERWORLD.maxY()) {
-            final int minY = Math.max(this.dimensionType.minY(), -512);
-            final int maxY = Math.min(this.dimensionType.maxY(), 512);
+        if (this.dimensionType.bedrockId() == BedrockDimension.OVERWORLD_ID && this.dimensionType.minY() < BedrockDimension.OVERWORLD.minY() || this.dimensionType.maxY() > BedrockDimension.OVERWORLD.maxY()) {
+            int minY = Math.max(this.dimensionType.minY(), -512);
+            int maxY = Math.min(this.dimensionType.maxY(), 512);
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
             this.bedrockDimension = this.bedrockOverworldDimension;
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
-            final DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5));
+            DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -1597,7 +1596,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(bedrockDimension));
+        startGamePacket.setDimensionId(bedrockDimension.bedrockId());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
