@@ -115,7 +115,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                     source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
                             + config.bedrock().port() + ")");
                     source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
-                    if (config.asPluginConfig().map(plugin -> plugin.bedrock().cloneRemotePort()).orElse(false)) {
+                    if (config.bedrock().cloneRemotePort()) {
                         source.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
                     }
                 } else {

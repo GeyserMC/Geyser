@@ -13,8 +13,7 @@ dependencies {
     api(projects.common)
     api(projects.api)
 
-    // Jackson JSON and YAML serialization
-    api(libs.bundles.jackson)
+    api(libs.yaml) // Used for extensions
     annotationProcessor(libs.configurate.`interface`.ap)
     api(libs.configurate.`interface`)
     implementation(libs.configurate.yaml)

@@ -73,6 +73,7 @@ import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
@@ -322,12 +323,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     config.java().address(InetAddress.getLoopbackAddress().getHostAddress());
                 }
             }
-            if (javaPort != -1 && config.asPluginConfig().isEmpty()) {
+            if (javaPort != -1) {
                 config.java().port(javaPort);
             }
 
             boolean forceMatchServerPort = "server".equals(pluginUdpPort);
-            if ((config.asPluginConfig().map(pluginConfig -> pluginConfig.bedrock().cloneRemotePort()).orElse(false) || forceMatchServerPort) && javaPort != -1) {
+            if ((config.bedrock().cloneRemotePort() || forceMatchServerPort) && javaPort != -1) {
                 config.bedrock().port(javaPort);
                 if (forceMatchServerPort) {
                     if (geyserUdpPort.isEmpty()) {
@@ -388,7 +389,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        if (config.asPluginConfig().isEmpty()) {
+        if (!(config instanceof GeyserPluginConfig)) {
             String remoteAddress = config.java().address();
             // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
             if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {

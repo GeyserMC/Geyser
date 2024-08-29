@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.configuration;
 
+import org.spongepowered.configurate.interfaces.meta.Exclude;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
 import org.spongepowered.configurate.interfaces.meta.range.NumericRange;
@@ -37,7 +38,19 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 @ConfigSerializable
 public interface GeyserRemoteConfig extends GeyserConfig {
     @Override
+    RemoteBedrock bedrock();
+
+    @Override
     RemoteConfig java();
+
+    @ConfigSerializable
+    interface RemoteBedrock extends BedrockConfig {
+        @Override
+        @Exclude // We can bring this back if there's a use-case but it's not really justified here.
+        default boolean cloneRemotePort() {
+            return false;
+        }
+    }
 
     @ConfigSerializable
     interface RemoteConfig extends JavaConfig {
@@ -57,5 +70,12 @@ public interface GeyserRemoteConfig extends GeyserConfig {
                 Forward the hostname that the Bedrock client used to connect over to the Java server
                 This is designed to be used for forced hosts on proxies""")
         boolean forwardHostname();
+    }
+
+    @Exclude
+    @Override
+    default boolean integratedPingPassthrough() {
+        // Does nothing here.
+        return false;
     }
 }

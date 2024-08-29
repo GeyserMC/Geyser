@@ -43,7 +43,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @ConfigSerializable
 public interface GeyserConfig {
@@ -83,6 +82,8 @@ public interface GeyserConfig {
     @Comment("Relay the player count and max players from the Java server to Bedrock players.")
     @DefaultBoolean(true)
     boolean passthroughPlayerCounts();
+
+    boolean integratedPingPassthrough();
 
     @Comment("How often to ping the Java server to refresh MOTD and player count, in seconds.")
     @DefaultNumeric(3)
@@ -209,6 +210,12 @@ public interface GeyserConfig {
         @NumericRange(from = 0, to = 65535)
         int broadcastPort();
 
+        @Comment("""
+                Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
+                This option makes the Bedrock port the same as the Java port every time you start the server.""")
+        @DefaultBoolean
+        boolean cloneRemotePort();
+
         void address(String address);
 
         void port(int port);
@@ -311,13 +318,5 @@ public interface GeyserConfig {
     @SuppressWarnings("unused")
     default int configVersion() {
         return Constants.CONFIG_VERSION;
-    }
-
-    @Exclude
-    default Optional<GeyserPluginConfig> asPluginConfig() {
-        if (this instanceof GeyserPluginConfig config) {
-            return Optional.of(config);
-        }
-        return Optional.empty();
     }
 }
