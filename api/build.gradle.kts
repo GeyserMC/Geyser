@@ -3,6 +3,7 @@ plugins {
     idea
     id("geyser.publish-conventions")
     alias(libs.plugins.blossom)
+    alias(libs.plugins.lombok) apply false
 }
 
 dependencies {
