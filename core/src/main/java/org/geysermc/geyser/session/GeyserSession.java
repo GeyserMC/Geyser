@@ -1255,17 +1255,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.tickingFrozen = frozen;
 
-        LevelEventPacket pausePacket = new LevelEventPacket();
-        pausePacket.setType(LevelEvent.GLOBAL_PAUSE);
-        pausePacket.setData(frozen ? 1 : 0);
-        pausePacket.setPosition(Vector3f.ZERO);
-        sendUpstreamPacket(pausePacket);
-
         millisecondsPerTick = 1000.0f / tickRate;
-
-//        LevelEventPacket timestepPacket = new LevelEventPacket();
-//        timestepPacket.setType(LevelEvent.SIM_TIME_SCALE);
-
 
         nanosecondsPerTick = MathUtils.ceil(1000000000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
@@ -1275,6 +1265,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Called every Minecraft tick.
      */
     protected void tick() {
+        LevelEventPacket pause = new LevelEventPacket();
+        pause.setType(LevelEvent.GLOBAL_PAUSE);
+        pause.setData(0);
+        pause.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(pause);
+        LevelEventPacket timestepPacket = new LevelEventPacket();
+        timestepPacket.setType(LevelEvent.S);
+        timestepPacket.setData(Math.round(millisecondsPerTick));
+        timestepPacket.setPosition(Vector3f.from(millisecondsPerTick));
+        sendUpstreamPacket(timestepPacket);
+        LevelEventPacket timescalePacket = new LevelEventPacket();
+        timescalePacket.setType(LevelEvent.SIM_TIME_SCALE);
+        timescalePacket.setData(Math.round(millisecondsPerTick));
+        timescalePacket.setPosition(Vector3f.from(millisecondsPerTick));
+        sendUpstreamPacket(timescalePacket);
         try {
             pistonCache.tick();
             // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
