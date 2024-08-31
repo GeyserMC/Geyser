@@ -61,7 +61,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (entity.getBedPosition() != null) {
             // https://github.com/GeyserMC/Geyser/issues/5001
-            // Bedrock 1.20.22 started sending a MovePlayerPacket as soon as it got into a bed.
+            // Bedrock 1.21.22 started sending a MovePlayerPacket as soon as it got into a bed.
             // This trips up Fabric.
             return;
         }
