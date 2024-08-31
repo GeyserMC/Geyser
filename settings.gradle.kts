@@ -11,7 +11,6 @@ pluginManagement {
         maven("https://maven.architectury.dev/")
         maven("https://maven.neoforged.net/releases")
     }
-    includeBuild("build-logic")
 }
 
 rootProject.name = "geyser-parent"

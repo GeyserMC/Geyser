@@ -142,7 +142,6 @@ architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 
 [plugins]
-lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 
