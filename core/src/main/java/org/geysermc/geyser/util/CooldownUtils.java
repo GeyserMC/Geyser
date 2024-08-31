@@ -59,8 +59,9 @@ public class CooldownUtils {
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
 
-        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20)
+        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
             return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+        }
         // Set the times to stay a bit with no fade in nor out
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
