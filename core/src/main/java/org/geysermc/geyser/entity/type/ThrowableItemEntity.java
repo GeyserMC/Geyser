@@ -49,7 +49,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
-        age = 1;
+        age = 0;
     }
 
     @Override
@@ -64,10 +64,11 @@ public class ThrowableItemEntity extends ThrowableEntity {
 
         // Prevent projectiles from blocking the player's screen
         if (session.isTickingFrozen()) {
+            // This may seem odd, but it matches java edition
             Vector3f playerPos = session.getPlayerEntity().getPosition().sub(0, session.getPlayerEntity().getDefinition().offset(), 0);
             setInvisible(playerPos.distanceSquared(position.add(0, definition.offset(), 0)) < 12.25);
         } else {
-            setInvisible(age <= 2);
+            setInvisible(age < 2);
         }
 
         if (invisible != getFlag(EntityFlag.INVISIBLE)) {

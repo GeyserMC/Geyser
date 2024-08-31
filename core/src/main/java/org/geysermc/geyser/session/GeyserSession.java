@@ -1255,9 +1255,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.tickingFrozen = frozen;
 
+        tickRate = MathUtils.clamp(tickRate, 1.0f, 10000.0f);
+
         millisecondsPerTick = 1000.0f / tickRate;
 
-        nanosecondsPerTick = MathUtils.ceil(1000000000.0f / MathUtils.clamp(tickRate, 1.0f, 10000.0f));
+        nanosecondsPerTick = MathUtils.ceil(1000000000.0f / tickRate);
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
     }
 
@@ -1265,21 +1267,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Called every Minecraft tick.
      */
     protected void tick() {
-        LevelEventPacket pause = new LevelEventPacket();
-        pause.setType(LevelEvent.GLOBAL_PAUSE);
-        pause.setData(0);
-        pause.setPosition(Vector3f.ZERO);
-        sendUpstreamPacket(pause);
-        LevelEventPacket timestepPacket = new LevelEventPacket();
-        timestepPacket.setType(LevelEvent.S);
-        timestepPacket.setData(Math.round(millisecondsPerTick));
-        timestepPacket.setPosition(Vector3f.from(millisecondsPerTick));
-        sendUpstreamPacket(timestepPacket);
-        LevelEventPacket timescalePacket = new LevelEventPacket();
-        timescalePacket.setType(LevelEvent.SIM_TIME_SCALE);
-        timescalePacket.setData(Math.round(millisecondsPerTick));
-        timescalePacket.setPosition(Vector3f.from(millisecondsPerTick));
-        sendUpstreamPacket(timescalePacket);
         try {
             pistonCache.tick();
             // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds

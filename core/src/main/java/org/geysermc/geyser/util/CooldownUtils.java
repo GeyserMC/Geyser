@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import lombok.Getter;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
@@ -106,7 +107,7 @@ public class CooldownUtils {
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
             session.scheduleInEventLoop(() ->
-                    computeCooldown(session, sessionPreference, lastHitTime), session.getNanosecondsPerTick(), TimeUnit.NANOSECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+                    computeCooldown(session, sessionPreference, lastHitTime), (long) restrain(session.getMillisecondsPerTick(), 50), TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
@@ -119,7 +120,8 @@ public class CooldownUtils {
 
     private static boolean hasCooldown(GeyserSession session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (session.getMillisecondsPerTick() * 20d), 1.5);
+        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
+        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
         return cooldown < 1.0;
     }
 
@@ -132,7 +134,8 @@ public class CooldownUtils {
 
     private static String getTitle(GeyserSession session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (session.getMillisecondsPerTick() * 20d), 1);
+        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
+        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
 
         int darkGrey = (int) Math.floor(10d * cooldown);
         int grey = 10 - darkGrey;
