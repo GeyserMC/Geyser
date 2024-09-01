@@ -1,7 +1,6 @@
 plugins {
     `java-library`
     id("net.kyori.indra")
-    id("io.freefair.lombok")
 }
 
 val rootProperties: Map<String, *> = project.rootProject.properties
