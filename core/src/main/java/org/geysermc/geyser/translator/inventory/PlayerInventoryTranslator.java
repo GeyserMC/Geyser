@@ -244,6 +244,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
         PlayerInventory playerInv = session.getPlayerInventory();
         IntSet affectedSlots = new IntOpenHashSet();
+
+        actionLoop:
         for (ItemStackRequestAction action : request.getActions()) {
             switch (action.getType()) {
                 case TAKE, PLACE -> {
@@ -260,15 +262,21 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (playerInv.getCursor().isEmpty()) {
-                            playerInv.setCursor(sourceItem.copy(0), session);
+                            // Bypass stack limit for empty cursor
+                            playerInv.setCursor(sourceItem.copy(transferAmount), session);
+                            sourceItem.sub(transferAmount);
                         } else if (!InventoryUtils.canStack(sourceItem, playerInv.getCursor())) {
                             return rejectRequest(request);
+                        } else {
+                            transferAmount = playerInv.getCursor().add(transferAmount);
+                            sourceItem.sub(transferAmount);
                         }
 
-                        playerInv.getCursor().add(transferAmount);
-                        sourceItem.sub(transferAmount);
-
-                        affectedSlots.add(sourceSlot);
+                        // Don't add to affectedSlots if nothing changed.
+                        // Prevents sendCreativeAction from adjusting stack size.
+                        if (transferAmount > 0) {
+                            affectedSlots.add(sourceSlot);
+                        }
                     } else if (isCursor(transferAction.getSource())) {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         GeyserItemStack sourceItem = playerInv.getCursor();
@@ -278,10 +286,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                             return rejectRequest(request);
                         }
 
-                        inventory.getItem(destSlot).add(transferAmount);
-                        sourceItem.sub(transferAmount);
-
-                        affectedSlots.add(destSlot);
+                        transferAmount = inventory.getItem(destSlot).add(transferAmount);
+                        if (transferAmount > 0) {
+                            sourceItem.sub(transferAmount);
+                            affectedSlots.add(destSlot);
+                        }
                     } else {
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
@@ -292,11 +301,17 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                             return rejectRequest(request);
                         }
 
-                        inventory.getItem(destSlot).add(transferAmount);
-                        sourceItem.sub(transferAmount);
+                        transferAmount = inventory.getItem(destSlot).add(transferAmount);
+                        if (transferAmount > 0) {
+                            sourceItem.sub(transferAmount);
+                            affectedSlots.add(sourceSlot);
+                            affectedSlots.add(destSlot);
+                        }
+                    }
 
-                        affectedSlots.add(sourceSlot);
-                        affectedSlots.add(destSlot);
+                    if (transferAction.getCount() != transferAmount) {
+                        this.refreshPending = true; // Fixes visual bug with cursor
+                        break actionLoop; // Inventory is not what client expects right now
                     }
                 }
                 case SWAP -> {
@@ -361,10 +376,16 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, sourceItem.getItemStack(dropAction.getCount()));
+                    int dropAmount = dropAction.getCount();
+                    if (dropAmount > sourceItem.maxStackSize()) {
+                        dropAmount = sourceItem.maxStackSize();
+                        sourceItem.setAmount(dropAmount);
+                    }
+
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, sourceItem.getItemStack(dropAmount));
                     session.sendDownstreamGamePacket(creativeDropPacket);
 
-                    sourceItem.sub(dropAction.getCount());
+                    sourceItem.sub(dropAmount);
                 }
                 case DESTROY -> {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
@@ -404,9 +425,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     protected ItemStackResponse translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        ItemStack javaCreativeItem = null;
+        GeyserItemStack javaCreativeItem = null;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
+        boolean firstTransfer = true;
+
+        actionLoop:
         for (ItemStackRequestAction action : request.getActions()) {
             switch (action.getType()) {
                 case CRAFT_CREATIVE: {
@@ -456,25 +480,38 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
+                    int transferAmount = Math.min(transferAction.getCount(), javaCreativeItem.maxStackSize());
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
-                            newItemStack.setAmount(transferAction.getCount());
+                            GeyserItemStack newItemStack = javaCreativeItem.copy(transferAmount);
                             session.getPlayerInventory().setCursor(newItemStack, session);
                         } else {
-                            session.getPlayerInventory().getCursor().add(transferAction.getCount());
+                            transferAmount = session.getPlayerInventory().getCursor().add(transferAmount);
                         }
                         //cursor is always included in response
                     } else {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
-                            newItemStack.setAmount(transferAction.getCount());
+                            GeyserItemStack newItemStack = javaCreativeItem.copy(transferAmount);
                             inventory.setItem(destSlot, newItemStack, session);
                         } else {
-                            inventory.getItem(destSlot).add(transferAction.getCount());
+                            // If the player is shift clicking an item with a stack size greater than java edition,
+                            // emulate the action ourselves instead.
+                            if (firstTransfer && inventory.getItem(destSlot).capacity() < transferAmount) {
+                                GeyserItemStack newItemStack = javaCreativeItem.copy(javaCreativeItem.maxStackSize());
+                                emulateCreativeQuickMove(session, inventory, affectedSlots, newItemStack);
+                                this.refreshPending = true;
+                                break actionLoop; // Ignore the rest of the client's actions
+                            }
+
+                            transferAmount = inventory.getItem(destSlot).add(transferAmount);
                         }
                         affectedSlots.add(destSlot);
+                    }
+
+                    firstTransfer = false;
+                    if (transferAmount != transferAction.getCount()) {
+                        this.refreshPending = true;
                     }
                     break;
                 }
@@ -489,14 +526,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    ItemStack dropStack;
-                    if (dropAction.getCount() == javaCreativeItem.getAmount()) {
-                        dropStack = javaCreativeItem;
-                    } else {
-                        // Specify custom count
-                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getDataComponents());
-                    }
-                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, dropStack);
+                    ItemStack dropItem = javaCreativeItem.getItemStack(Math.min(dropAction.getCount(), javaCreativeItem.maxStackSize()));
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, dropItem);
                     session.sendDownstreamGamePacket(creativeDropPacket);
                     break;
                 }
@@ -513,12 +544,45 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
-    private static void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {
+    private void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {
         GeyserItemStack item = inventory.getItem(slot);
+
+        // This does not match java client behaviour, but the java server will ignore creative actions with illegal stack sizes
+        if (item.getAmount() > item.maxStackSize()) {
+            item.setAmount(item.maxStackSize());
+            this.refreshPending = true;
+        }
+
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
         ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket((short)slot, itemStack);
         session.sendDownstreamGamePacket(creativePacket);
+    }
+
+    private static void emulateCreativeQuickMove(GeyserSession session, Inventory inventory, IntSet affectedSlots, GeyserItemStack creativeItem) {
+        int firstEmptySlot = -1; // Leftover stack is stored here
+
+        for (int i = 0; i < 36; i++) {
+            int slot = i < 9 ? i + 36 : i; // First iterate hotbar, then inventory
+            GeyserItemStack slotItem = inventory.getItem(slot);
+
+            if (firstEmptySlot == -1 && slotItem.isEmpty()) {
+                firstEmptySlot = slot;
+            }
+
+            if (InventoryUtils.canStack(slotItem, creativeItem) && slotItem.capacity() > 0) {
+                creativeItem.sub(slotItem.add(creativeItem.getAmount())); // Transfer as much as possible without passing stack capacity
+                affectedSlots.add(slot);
+                if (creativeItem.isEmpty()) {
+                    return;
+                }
+            }
+        }
+
+        if (firstEmptySlot != -1) {
+            inventory.setItem(firstEmptySlot, creativeItem, session);
+            affectedSlots.add(firstEmptySlot);
+        }
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
