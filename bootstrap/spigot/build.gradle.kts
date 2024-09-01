@@ -38,10 +38,9 @@ platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLo
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
+platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 platformRelocate("org.spongepowered")
-platformRelocate("io.leangen.geantyref")
 platformRelocate("marcono1234.gson")
 platformRelocate("org.bstats")
 
