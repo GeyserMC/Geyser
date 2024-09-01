@@ -111,6 +111,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyser == null) {
             return; // Config did not load properly!
         }
+
+        // After Geyser initialize for parity with other platforms.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSender.class,
+            id -> getProxy().getPlayer(id),
+            () -> getProxy().getConsole(),
+            BungeeCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+            this,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
+
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
@@ -150,19 +165,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            var sourceConverter = new CommandSourceConverter<>(
-                    CommandSender.class,
-                    id -> getProxy().getPlayer(id),
-                    () -> getProxy().getConsole(),
-                    BungeeCommandSource::new
-            );
-            CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
-                    this,
-                    ExecutionCoordinator.simpleCoordinator(),
-                    sourceConverter
-            );
-            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         // Force-disable query if enabled, or else Geyser won't enable

@@ -109,6 +109,22 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+
+        // We need to register commands here, rather than in onGeyserEnable which is invoked during the appropriate ListenerBoundEvent.
+        // Reason: players can connect after a listener is bound, and a player join locks registration to the cloud CommandManager.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSource.class,
+            id -> proxyServer.getPlayer(id).orElse(null),
+            proxyServer::getConsoleCommandSource,
+            VelocityCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
+            container,
+            proxyServer,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
     }
 
     @Override
@@ -123,20 +139,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            var sourceConverter = new CommandSourceConverter<>(
-                    CommandSource.class,
-                    id -> proxyServer.getPlayer(id).orElse(null),
-                    proxyServer::getConsoleCommandSource,
-                    VelocityCommandSource::new
-            );
-            CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
-                    container,
-                    proxyServer,
-                    ExecutionCoordinator.simpleCoordinator(),
-                    sourceConverter
-            );
-            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         GeyserImpl.start();
