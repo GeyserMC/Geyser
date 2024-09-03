@@ -42,6 +42,7 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class DimensionUtils {
@@ -56,6 +57,7 @@ public class DimensionUtils {
     private static final int BEDROCK_OVERWORLD_ID = 0;
     private static final int BEDROCK_DEFAULT_NETHER_ID = 1;
     private static final int BEDROCK_END_ID = 2;
+    private static final int BEDROCK_EMPTY_CHUNK_COUNT = Optional.ofNullable(System.getenv("BEDROCK_EMPTY_CHUNK_COUNT")).map(Integer::parseInt).orElse(3);
 
     public static void switchDimension(GeyserSession session, JavaDimension javaDimension) {
         switchDimension(session, javaDimension, javaDimension.bedrockId());
@@ -175,7 +177,8 @@ public class DimensionUtils {
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
-        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 11, true);
+
+        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), BEDROCK_EMPTY_CHUNK_COUNT, true);
     }
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {
