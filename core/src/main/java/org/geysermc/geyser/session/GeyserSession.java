@@ -716,7 +716,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             upstream.sendPacket(componentPacket);
         }
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 8, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
         biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
