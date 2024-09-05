@@ -62,4 +62,9 @@ public class GoatHornItem extends Item {
 
         return itemStack;
     }
+
+    @Override
+    public boolean ignoreDamage() {
+        return true;
+    }
 }

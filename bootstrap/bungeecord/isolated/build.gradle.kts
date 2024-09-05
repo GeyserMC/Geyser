@@ -1,5 +1,6 @@
 plugins {
-    java
+    id("geyser.base-conventions")
+    application
 }
 
 dependencies {

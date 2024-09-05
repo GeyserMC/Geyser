@@ -43,7 +43,7 @@ public class DolphinEntity extends WaterEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return true;
     }
 

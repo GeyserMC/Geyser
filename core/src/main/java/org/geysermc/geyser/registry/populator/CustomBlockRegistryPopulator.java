@@ -53,7 +53,6 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -325,13 +324,11 @@ public class CustomBlockRegistryPopulator {
                 // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically
                 .putInt("molangVersion", 1)
                 .putList("permutations", NbtType.COMPOUND, permutations)
-                .putList("properties", NbtType.COMPOUND, properties);
-
-        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
-            propertyTag.putCompound("vanilla_block_data", NbtMap.builder()
+                .putList("properties", NbtType.COMPOUND, properties)
+                .putCompound("vanilla_block_data", NbtMap.builder()
                     .putInt("block_id", BLOCK_ID.getAndIncrement())
                     .build());
-        }
+
         return new BlockPropertyData(customBlock.identifier(), propertyTag.build());
     }
 

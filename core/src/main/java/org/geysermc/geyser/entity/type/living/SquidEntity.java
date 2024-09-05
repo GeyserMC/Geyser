@@ -122,7 +122,7 @@ public class SquidEntity extends WaterEntity implements Tickable {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return isNotLeashed();
     }
 

@@ -30,6 +30,8 @@ import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
@@ -49,8 +51,14 @@ public class PaintingEntity extends Entity {
         // Wait until we get the metadata needed
     }
 
-    public void setPaintingType(ObjectEntityMetadata<org.geysermc.mcprotocollib.protocol.data.game.entity.type.PaintingType> entityMetadata) {
-        PaintingType type = PaintingType.getByPaintingType(entityMetadata.getValue());
+    public void setPaintingType(ObjectEntityMetadata<Holder<PaintingVariant>> entityMetadata) {
+        if (!entityMetadata.getValue().isId()) {
+            return;
+        }
+        PaintingType type = session.getRegistryCache().paintings().byId(entityMetadata.getValue().id());
+        if (type == null) {
+            return;
+        }
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
@@ -78,8 +86,12 @@ public class PaintingEntity extends Entity {
 
     private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
-        position = position.add(0.5, 0.5, 0.5);
-        double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
+        // ViaVersion already adds the offset for us on older versions,
+        // so no need to do it then otherwise it will be spaced
+        if (session.isEmulatePost1_18Logic()) {
+            position = position.add(0.5, 0.5, 0.5);
+        }
+        double widthOffset = paintingName.getWidth() > 1 && paintingName.getWidth() != 3 ? 0.5 : 0;
         double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
         return switch (direction) {

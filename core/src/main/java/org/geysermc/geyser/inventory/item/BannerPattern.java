@@ -26,7 +26,9 @@
 package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Locale;
 
@@ -72,21 +74,23 @@ public enum BannerPattern {
     SKULL("sku"),
     FLOWER("flo"),
     MOJANG("moj"),
-    PIGLIN("pig");
+    PIGLIN("pig"),
+    FLOW("flw"),
+    GUSTER("gus");
 
     private static final BannerPattern[] VALUES = values();
 
-    private final String javaIdentifier;
+    private final Key javaIdentifier;
     private final String bedrockIdentifier;
 
     BannerPattern(String bedrockIdentifier) {
-        this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
+        this.javaIdentifier = MinecraftKey.key(this.name().toLowerCase(Locale.ROOT));
         this.bedrockIdentifier = bedrockIdentifier;
     }
 
-    public static @Nullable BannerPattern getByJavaIdentifier(String javaIdentifier) {
+    public static @Nullable BannerPattern getByJavaIdentifier(Key key) {
         for (BannerPattern bannerPattern : VALUES) {
-            if (bannerPattern.javaIdentifier.equals(javaIdentifier)) {
+            if (bannerPattern.javaIdentifier.equals(key)) {
                 return bannerPattern;
             }
         }

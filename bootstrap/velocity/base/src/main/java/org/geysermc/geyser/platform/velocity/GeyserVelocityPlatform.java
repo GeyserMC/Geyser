@@ -27,7 +27,12 @@ package org.geysermc.geyser.platform.velocity;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -36,7 +41,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -47,37 +51,32 @@ import org.geysermc.floodgate.isolation.library.LibraryManager;
 import org.geysermc.floodgate.velocity.VelocityPlatform;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
+import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.slf4j.Logger;
 
 public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform {
-    @Inject
-    private Logger logger;
-
-    @Inject
-    private ProxyServer proxyServer;
-
-    @Inject
-    private CommandManager commandManager;
-
-    private GeyserCommandManager geyserCommandManager;
+    private final ProxyServer proxyServer;
+    private final PluginContainer container;
+    private final GeyserVelocityLogger geyserLogger;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
-    private GeyserVelocityLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
-
+    private CommandRegistry commandRegistry;
     private GeyserImpl geyser;
 
     @Getter
@@ -86,26 +85,31 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
     @Inject Injector guice;
     @Inject LibraryManager manager; // don't remove! We don't need it in Geyser, but in Floodgate. Weird Guice stuff
 
-    @Inject PluginContainer container;
+    @Inject
+    public GeyserVelocityPlatform(ProxyServer server, PluginContainer container, Logger logger) {
+        this.proxyServer = server;
+        this.container = container;
+        this.geyserLogger = new GeyserVelocityLogger(logger);
+    }
 
     @Override
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
         if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
-            logger.error("      / \\");
-            logger.error("     /   \\");
-            logger.error("    /  |  \\");
-            logger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
-            logger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            logger.error(" /     o     \\");
-            logger.error("/_____________\\");
+            geyserLogger.error("      / \\");
+            geyserLogger.error("     /   \\");
+            geyserLogger.error("    /  |  \\");
+            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
+            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            geyserLogger.error(" /     o     \\");
+            geyserLogger.error("/_____________\\");
         }
 
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         FloodgatePlatform platform = null;
@@ -115,19 +119,36 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this, platform);
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+
+        // We need to register commands here, rather than in onGeyserEnable which is invoked during the appropriate ListenerBoundEvent.
+        // Reason: players can connect after a listener is bound, and a player join locks registration to the cloud CommandManager.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSource.class,
+            id -> proxyServer.getPlayer(id).orElse(null),
+            proxyServer::getConsoleCommandSource,
+            VelocityCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
+            container,
+            proxyServer,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
     }
 
     @Override
     public void onGeyserEnable() {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
         if (GeyserImpl.getInstance().isReloading()) {
             if (!loadConfig()) {
                 return;
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            this.geyserCommandManager = new GeyserCommandManager(geyser);
-            this.geyserCommandManager.init();
         }
 
         GeyserImpl.start();
@@ -138,22 +159,10 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
 
-        // No need to re-register commands when reloading
-        if (GeyserImpl.getInstance().isReloading()) {
-            return;
+        // No need to re-register events
+        if (!GeyserImpl.getInstance().isReloading()) {
+            proxyServer.getEventManager().register(container, new GeyserVelocityUpdateListener());
         }
-
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
-        }
-
-        proxyServer.getEventManager().register(container, new GeyserVelocityUpdateListener());
     }
 
     @Override
@@ -184,8 +193,8 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override
@@ -235,7 +244,7 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

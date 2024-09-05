@@ -2,7 +2,7 @@
 base-api = "feature-floodgate-merge-1.1.0-SNAPSHOT"
 floodgate = "development-3.0.0-SNAPSHOT"
 cumulus = "1.1.2"
-erosion = "1.0-20230406.174837-8"
+erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.2"
@@ -11,12 +11,12 @@ netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20240411.165033-129"
-protocol-connection = "3.0.0.Beta1-20240411.165033-128"
+protocol-connection = "3.0.0.Beta4-20240828.162251-1"
+protocol-common = "3.0.0.Beta4-20240828.162251-1"
+protocol-codec = "3.0.0.Beta4-20240828.162251-1"
 raknet = "1.0.0.CR3-20240416.144209-1"
-blockstateupdater="1.20.80-20240411.142413-1"
-mcauthlib = "e5b0bcc"
-mcprotocollib = "42ea4a4" # Revert from jitpack after release
+minecraftauth = "4.1.1-20240806.235051-7"
+mcprotocollib = "1.21-20240725.013034-16"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -26,26 +26,29 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.12-SNAPSHOT"
+adapters = "1.13-SNAPSHOT"
+cloud = "2.0.0-rc.2"
+cloud-minecraft = "2.0.0-beta.9"
+cloud-minecraft-modded = "2.0.0-beta.7"
 commodore = "2.2"
 bungeecord = "1.20-R0.3-SNAPSHOT"
 velocity = "3.3.0-SNAPSHOT"
-viaproxy = "3.2.1"
-fabric-minecraft = "1.20.5"
-fabric-loader = "0.15.10"
-fabric-api = "0.97.6+1.20.5"
-fabric-permissions = "0.2-SNAPSHOT"
-neoforge-minecraft = "20.5.0-beta"
+viaproxy = "3.3.2-SNAPSHOT"
+fabric-loader = "0.15.11"
+fabric-api = "0.100.1+1.21"
+neoforge-minecraft = "21.1.1"
 mixin = "0.8.5"
+mixinextras = "0.3.5"
+minecraft = "1.21.1"
 
 # plugin versions
 indra = "3.1.3"
 shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.6-SNAPSHOT"
+architectury-loom = "1.7-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
-blossom = "1.2.0"
+blossom = "2.1.0"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -59,6 +62,7 @@ floodgate-spigot = { module = "org.geysermc.floodgate:spigot-base", version.ref 
 floodgate-velocity = { module = "org.geysermc.floodgate:velocity-base", version.ref = "floodgate" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
+erosion-bukkit-nms = { group = "org.geysermc.erosion", name = "bukkit-nms", version.ref = "erosion" }
 erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
 
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -93,16 +97,23 @@ jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
+cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
+cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft" }
+cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-minecraft-modded" }
+cloud-neoforge = { group = "org.incendo", name = "cloud-neoforge", version.ref = "cloud-minecraft-modded" }
+
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
+mixinextras = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
+
+minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 
 # Check these on https://modmuss50.me/fabric.html
-fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
-fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions" }
 
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
@@ -114,8 +125,8 @@ commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" 
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
-mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.geysermc", name = "mcprotocollib", version.ref = "mcprotocollib" }
+minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
+mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
@@ -123,18 +134,14 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-#protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
-#protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
-#protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
-protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
-protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
+protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-common" }
+protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol-codec" }
+protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
-blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
-
 # plugins
+lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
 shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "shadow" }
 architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
@@ -142,7 +149,6 @@ architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 
 [plugins]
-lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 

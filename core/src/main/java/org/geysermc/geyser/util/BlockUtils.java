@@ -29,10 +29,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.item.Enchantment;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
@@ -41,14 +41,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 public final class BlockUtils {
 
-    private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
+    private static boolean correctTool(GeyserSession session, Block block, String itemToolType) {
         return switch (itemToolType) {
-            case "axe" -> session.getTagCache().is(BlockTag.AXE_EFFECTIVE, blockMapping);
-            case "hoe" -> session.getTagCache().is(BlockTag.HOE_EFFECTIVE, blockMapping);
-            case "pickaxe" -> session.getTagCache().is(BlockTag.PICKAXE_EFFECTIVE, blockMapping);
-            case "shears" -> session.getTagCache().is(BlockTag.LEAVES, blockMapping) || session.getTagCache().is(BlockTag.WOOL, blockMapping);
-            case "shovel" -> session.getTagCache().is(BlockTag.SHOVEL_EFFECTIVE, blockMapping);
-            case "sword" -> blockMapping.getJavaBlockId() == BlockStateValues.JAVA_COBWEB_ID;
+            case "axe" -> session.getTagCache().is(BlockTag.MINEABLE_AXE, block);
+            case "hoe" -> session.getTagCache().is(BlockTag.MINEABLE_HOE, block);
+            case "pickaxe" -> session.getTagCache().is(BlockTag.MINEABLE_PICKAXE, block);
+            case "shears" -> session.getTagCache().is(BlockTag.LEAVES, block) || session.getTagCache().is(BlockTag.WOOL, block);
+            case "shovel" -> session.getTagCache().is(BlockTag.MINEABLE_SHOVEL, block);
+            case "sword" -> block == Blocks.COBWEB;
             default -> {
                 session.getGeyser().getLogger().warning("Unknown tool type: " + itemToolType);
                 yield false;
@@ -71,7 +71,7 @@ public final class BlockUtils {
         };
     }
 
-    private static boolean canToolTierBreakBlock(GeyserSession session, BlockMapping blockMapping, String toolTier) {
+    private static boolean canToolTierBreakBlock(GeyserSession session, Block block, String toolTier) {
         if (toolTier.equals("netherite") || toolTier.equals("diamond")) {
             // As of 1.17, these tiers can mine everything that is mineable
             return true;
@@ -80,15 +80,15 @@ public final class BlockUtils {
         switch (toolTier) {
             // Use intentional fall-throughs to check each tier with this block
             default:
-                if (session.getTagCache().is(BlockTag.NEEDS_STONE_TOOL, blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_STONE_TOOL, block)) {
                     return false;
                 }
             case "stone":
-                if (session.getTagCache().is(BlockTag.NEEDS_IRON_TOOL, blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_IRON_TOOL, block)) {
                     return false;
                 }
             case "iron":
-                if (session.getTagCache().is(BlockTag.NEEDS_DIAMOND_TOOL, blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_DIAMOND_TOOL, block)) {
                     return false;
                 }
         }
@@ -131,9 +131,9 @@ public final class BlockUtils {
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
-        boolean isShearsEffective = session.getTagCache().is(BlockTag.LEAVES, blockMapping) || session.getTagCache().is(BlockTag.WOOL, blockMapping); //TODO called twice
-        boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
+    public static double getBreakTime(GeyserSession session, Block block, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
+        boolean isShearsEffective = session.getTagCache().is(BlockTag.LEAVES, block) || session.getTagCache().is(BlockTag.WOOL, block); //TODO called twice
+        boolean canHarvestWithHand = !block.requiresCorrectToolForDrops();
         String toolType = "";
         String toolTier = "";
         boolean correctTool = false;
@@ -141,17 +141,17 @@ public final class BlockUtils {
         if (item.isTool()) {
             toolType = item.getToolType();
             toolTier = item.getToolTier();
-            correctTool = correctTool(session, blockMapping, toolType);
-            toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
+            correctTool = correctTool(session, block, toolType);
+            toolCanBreak = canToolTierBreakBlock(session, block, toolTier);
         }
 
-        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(components, Enchantment.JavaEnchantment.EFFICIENCY);
+        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(session, components, BedrockEnchantment.EFFICIENCY);
         int hasteLevel = 0;
         int miningFatigueLevel = 0;
 
         if (!isSessionPlayer) {
             // Another entity is currently mining; we have all the information we know
-            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
+            return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                     toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false, true);
         }
 
@@ -160,13 +160,13 @@ public final class BlockUtils {
 
         boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
         boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getComponents(), Enchantment.JavaEnchantment.AQUA_AFFINITY) < 1;
+                ItemUtils.getEnchantmentLevel(session, session.getPlayerInventory().getItem(5).getComponents(), BedrockEnchantment.AQUA_AFFINITY) < 1;
 
-        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
+        return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());
     }
 
-    public static double getSessionBreakTime(GeyserSession session, BlockMapping blockMapping) {
+    public static double getSessionBreakTime(GeyserSession session, Block block) {
         PlayerInventory inventory = session.getPlayerInventory();
         GeyserItemStack item = inventory.getItemInHand();
         ItemMapping mapping = ItemMapping.AIR;
@@ -175,7 +175,7 @@ public final class BlockUtils {
             mapping = item.getMapping(session);
             components = item.getComponents();
         }
-        return getBreakTime(session, blockMapping, mapping, components, true);
+        return getBreakTime(session, block, mapping, components, true);
     }
 
     /**

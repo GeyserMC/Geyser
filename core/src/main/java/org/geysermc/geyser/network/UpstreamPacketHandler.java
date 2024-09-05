@@ -29,7 +29,6 @@ import io.netty.buffer.Unpooled;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
-import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
@@ -54,6 +53,7 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -119,10 +119,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 session.disconnect(disconnectMessage);
                 return false;
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                if (protocolVersion < Bedrock_v622.CODEC.getProtocolVersion()) {
-                    // https://github.com/GeyserMC/Geyser/issues/4378
-                    session.getUpstream().getSession().setCodec(BedrockCompat.CODEC_LEGACY);
-                }
+                // A note on the following line: various older client versions have different forms of DisconnectPacket.
+                // Using only the latest BedrockCompat for such clients leads to inaccurate disconnect messages: https://github.com/GeyserMC/Geyser/issues/4378
+                // This updates the BedrockCompat protocol if necessary:
+                session.getUpstream().getSession().setCodec(BedrockCompat.disconnectCompat(protocolVersion));
+
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return false;
             } else {
@@ -131,6 +132,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         session.getUpstream().getSession().setCodec(packetCodec);
+        // FIXME temporary until 1.20.80 is dropped
+        session.getPlayerEntity().resetAir();
         return true;
     }
 
@@ -188,6 +191,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        // Fire SessionInitializeEvent here as we now know the client data
+        geyser.eventBus().fire(new SessionInitializeEvent(session));
+
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
@@ -203,7 +209,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
                     header.uuid().toString(), header.version().toString(), codec.size(), pack.contentKey(),
-                    "", header.uuid().toString(), false, false));
+                    "", header.uuid().toString(), false, false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -268,10 +274,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean couldLoginUserByName(String bedrockUsername) {
         if (geyser.getConfig().getSavedUserLogins().contains(bedrockUsername)) {
-            String refreshToken = geyser.refreshTokenFor(bedrockUsername);
-            if (refreshToken != null) {
+            String authChain = geyser.authChainFor(bedrockUsername);
+            if (authChain != null) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
-                session.authenticateWithRefreshToken(refreshToken);
+                session.authenticateWithAuthChain(authChain);
                 return true;
             }
         }

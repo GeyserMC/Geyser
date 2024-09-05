@@ -47,6 +47,7 @@ import java.util.function.BiConsumer;
  * metadata translators needed to translate the properties sent from the server. The translators are structured in such
  * a way that inserting a new one (for example in version updates) is convenient.
  *
+ * @param identifier the Bedrock identifier of this entity
  * @param <T> the entity type this definition represents
  */
 public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,

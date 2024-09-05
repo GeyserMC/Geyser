@@ -63,6 +63,13 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
             }
         }
 
+        // replace single quote instances which get lost in MessageFormat otherwise
+        localeString = localeString.replace("'", "''");
+
+        // Wrap all curly brackets with single quote inserts - fixes https://github.com/GeyserMC/Geyser/issues/4662
+        localeString = localeString.replace("{", "'{")
+                .replace("}", "'}");
+
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
         Matcher m = p.matcher(localeString);
@@ -83,8 +90,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         }
         m.appendTail(sb);
 
-        // replace single quote instances which get lost in MessageFormat otherwise
         // Locale shouldn't need to be specific - dates for example will not be handled
-        return new MessageFormat(sb.toString().replace("'", "''"), Locale.ROOT);
+        return new MessageFormat(sb.toString(), Locale.ROOT);
     }
 }

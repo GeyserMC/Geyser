@@ -8,7 +8,7 @@ jobs:
     # Forbid access to secrets nor GH Token perms while building the PR
     permissions: {}
     secrets: {}
-    uses: ./.github/workflows/build-remote.yml
+    uses: GeyserMC/Geyser/.github/workflows/build-remote.yml@master
     with:
       repository: ${{ github.event.pull_request.head.repo.full_name }}
       ref: ${{ github.event.pull_request.head.sha }}
@@ -18,7 +18,17 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing')
     # Allow access to secrets if we are uploading a preview
     secrets: inherit
-    uses: ./.github/workflows/preview.yml
+    uses: GeyserMC/actions/.github/workflows/upload-preview.yml@master
     with:
       build: ${{ github.run_number }}
       version: pr.${{ github.event.pull_request.number }}
+      files: |
+        bungeecord:Geyser-BungeeCord.jar
+        fabric:Geyser-Fabric.jar
+        neoforge:Geyser-NeoForge.jar
+        spigot:Geyser-Spigot.jar
+        standalone:Geyser-Standalone.jar
+        velocity:Geyser-Velocity.jar
+        viaproxy:Geyser-ViaProxy.jar
+      project: geyserpreview
+      runId: ${{ github.run_id }}

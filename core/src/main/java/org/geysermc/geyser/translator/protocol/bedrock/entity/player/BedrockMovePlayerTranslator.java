@@ -25,20 +25,20 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
-import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -58,6 +58,14 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }
+
+        if (entity.getBedPosition() != null) {
+            // https://github.com/GeyserMC/Geyser/issues/5001
+            // Bedrock 1.21.22 started sending a MovePlayerPacket as soon as it got into a bed.
+            // This trips up Fabric.
+            return;
+        }
+
         float yaw = packet.getRotation().getY();
         float pitch = packet.getRotation().getX();
         float headYaw = packet.getRotation().getY();
@@ -85,7 +93,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             session.sendDownstreamGamePacket(playerRotationPacket);
         } else {
-            if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
+            // World border collision will be handled by client vehicle
+            if (!(entity.getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled())
+                    && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
                 return;
             }
 
@@ -93,21 +103,34 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), packet.getMode() == MovePlayerPacket.Mode.TELEPORT);
                 if (position != null) { // A null return value cancels the packet
                     boolean onGround = packet.isOnGround();
+                    boolean isBelowVoid = entity.isVoidPositionDesynched();
 
-                    boolean teleportThroughVoidFloor;
+                    boolean teleportThroughVoidFloor, mustResyncPosition;
                     // Compare positions here for void floor fix below before the player's position variable is set to the packet position
-                    if (entity.getPosition().getY() >= packet.getPosition().getY()) {
+                    if (entity.getPosition().getY() >= packet.getPosition().getY() && !isBelowVoid) {
                         int floorY = position.getFloorY();
-                        // The void floor is offset about 40 blocks below the bottom of the world
-                        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
-                        int voidFloorLocation = bedrockDimension.minY() - 40;
-                        teleportThroughVoidFloor = floorY <= (voidFloorLocation + 2) && floorY >= voidFloorLocation;
-                        if (teleportThroughVoidFloor) {
-                            // https://github.com/GeyserMC/Geyser/issues/3521 - no void floor in Java so we cannot be on the ground.
-                            onGround = false;
-                        }
+                        int voidFloorLocation = entity.voidFloorPosition();
+                        teleportThroughVoidFloor = floorY <= (voidFloorLocation + 1) && floorY >= voidFloorLocation;
                     } else {
                         teleportThroughVoidFloor = false;
+                    }
+
+                    if (teleportThroughVoidFloor || isBelowVoid) {
+                        // https://github.com/GeyserMC/Geyser/issues/3521 - no void floor in Java so we cannot be on the ground.
+                        onGround = false;
+                    }
+
+                    if (isBelowVoid) {
+                        int floorY = position.getFloorY();
+                        int voidFloorLocation = entity.voidFloorPosition();
+                        mustResyncPosition = floorY < voidFloorLocation && floorY >= voidFloorLocation - 1;
+                    } else {
+                        mustResyncPosition = false;
+                    }
+
+                    double yPosition = position.getY();
+                    if (entity.isVoidPositionDesynched()) { // not using the cached variable on purpose
+                        yPosition += 4; // We are de-synched since we had to teleport below the void floor.
                     }
 
                     Packet movePacket;
@@ -115,7 +138,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         // Send rotation updates as well
                         movePacket = new ServerboundMovePlayerPosRotPacket(
                                 onGround,
-                                position.getX(), position.getY(), position.getZ(),
+                                position.getX(), yPosition, position.getZ(),
                                 yaw, pitch
                         );
                         entity.setYaw(yaw);
@@ -123,7 +146,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         entity.setHeadYaw(headYaw);
                     } else {
                         // Rotation did not change; don't send an update with rotation
-                        movePacket = new ServerboundMovePlayerPosPacket(onGround, position.getX(), position.getY(), position.getZ());
+                        movePacket = new ServerboundMovePlayerPosPacket(onGround, position.getX(), yPosition, position.getZ());
                     }
 
                     entity.setPositionManual(packet.getPosition());
@@ -133,16 +156,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     session.sendDownstreamGamePacket(movePacket);
 
                     if (teleportThroughVoidFloor) {
-                        // Work around there being a floor at the bottom of the world and teleport the player below it
-                        // Moving from below to above the void floor works fine
-                        entity.setPosition(entity.getPosition().sub(0, 4f, 0));
-                        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-                        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-                        movePlayerPacket.setPosition(entity.getPosition());
-                        movePlayerPacket.setRotation(entity.getBedrockRotation());
-                        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-                        session.sendUpstreamPacket(movePlayerPacket);
+                        entity.teleportVoidFloorFix(false);
+                    } else if (mustResyncPosition) {
+                        entity.teleportVoidFloorFix(true);
                     }
 
                     session.getSkullCache().updateVisibleSkulls();

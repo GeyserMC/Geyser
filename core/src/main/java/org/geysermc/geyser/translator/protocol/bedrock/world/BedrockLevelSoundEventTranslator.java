@@ -25,20 +25,21 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.world;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 @Translator(packet = LevelSoundEventPacket.class)
 public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
@@ -77,9 +78,9 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
             Vector3f position = packet.getPosition();
             Vector3i blockPosition = Vector3i.from(position.getX(), position.getY(), position.getZ());
 
-            int potentialLectern = session.getGeyser().getWorldManager().getBlockAt(session, blockPosition);
+            BlockState potentialLectern = session.getGeyser().getWorldManager().blockAt(session, blockPosition);
 
-            if (BlockStateValues.getLecternBookStates().getOrDefault(potentialLectern, false)) {
+            if (potentialLectern.getValue(Properties.HAS_BOOK, false)) {
                 session.setDroppingLecternBook(true);
 
                 ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(

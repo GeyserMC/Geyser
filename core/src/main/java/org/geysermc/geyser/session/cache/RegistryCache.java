@@ -27,22 +27,34 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.key.Key;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.JukeboxSong;
+import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
 import java.util.ArrayList;
@@ -50,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
@@ -63,16 +74,38 @@ import java.util.function.ToIntFunction;
 @Accessors(fluent = true)
 @Getter
 public final class RegistryCache {
-    private static final Map<String, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
+    private static final Map<Key, Map<Key, NbtMap>> DEFAULTS;
+    private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
-        register("chat_type", cache -> cache.chatTypes, ($, entry) -> TextDecoration.readChatType(entry));
-        register("dimension_type", cache -> cache.dimensions, ($, entry) -> JavaDimension.read(entry));
+        register("chat_type", cache -> cache.chatTypes, TextDecoration::readChatType);
+        register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
+        register("enchantment", cache -> cache.enchantments, Enchantment::read);
+        register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
+        register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
-        register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
-        register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
+        register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
+        register("wolf_variant", cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
+
+        // Load from MCProtocolLib's classloader
+        NbtMap tag = MinecraftProtocol.loadNetworkCodec();
+        Map<Key, Map<Key, NbtMap>> defaults = new HashMap<>();
+        // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
+        REGISTRIES.forEach((key, $) -> {
+            List<NbtMap> rawValues = tag.getCompound(key.asString())
+                    .getList("value", NbtType.COMPOUND);
+            Map<Key, NbtMap> values = new HashMap<>();
+            for (NbtMap value : rawValues) {
+                Key name = MinecraftKey.key(value.getString("name"));
+                values.put(name, value.getCompound("element"));
+            }
+            // Can make these maps immutable and as efficient as possible after initialization
+            defaults.put(key, Map.copyOf(values));
+        });
+
+        DEFAULTS = Map.copyOf(defaults);
     }
 
     @Getter(AccessLevel.NONE)
@@ -82,16 +115,19 @@ public final class RegistryCache {
      * Java -> Bedrock biome network IDs.
      */
     private int[] biomeTranslations;
-    private final JavaRegistry<TextDecoration> chatTypes = new SimpleJavaRegistry<>();
+    private final JavaRegistry<ChatType> chatTypes = new SimpleJavaRegistry<>();
     /**
      * All dimensions that the client could possibly connect to.
      */
     private final JavaRegistry<JavaDimension> dimensions = new SimpleJavaRegistry<>();
+    private final JavaRegistry<Enchantment> enchantments = new SimpleJavaRegistry<>();
+    private final JavaRegistry<JukeboxSong> jukeboxSongs = new SimpleJavaRegistry<>();
+    private final JavaRegistry<PaintingType> paintings = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimMaterial> trimMaterials = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimPattern> trimPatterns = new SimpleJavaRegistry<>();
 
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
-    private final JavaRegistry<WolfEntity.WolfVariant> wolfVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
@@ -115,16 +151,35 @@ public final class RegistryCache {
      * @param reader converts the RegistryEntry NBT into a class file
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, BiFunction<GeyserSession, RegistryEntry, T> reader) {
-        REGISTRIES.put("minecraft:" + registry, (registryCache, entries) -> {
+    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
+        Key registryKey = MinecraftKey.key(registry);
+        REGISTRIES.put(registryKey, (registryCache, entries) -> {
+            Map<Key, NbtMap> localRegistry = null;
             JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
+
+            // Store each of the entries resource location IDs and their respective network ID,
+            // used for the key mapper that's currently only used by the Enchantment class
+            Object2IntMap<Key> entryIdMap = new Object2IntOpenHashMap<>();
+            for (int i = 0; i < entries.size(); i++) {
+                entryIdMap.put(entries.get(i).getId(), i);
+            }
+
             List<T> builder = new ArrayList<>(entries.size());
             for (int i = 0; i < entries.size(); i++) {
                 RegistryEntry entry = entries.get(i);
+                // If the data is null, that's the server telling us we need to use our default values.
+                if (entry.getData() == null) {
+                    if (localRegistry == null) { // Lazy initialize
+                        localRegistry = DEFAULTS.get(registryKey);
+                    }
+                    entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
+                }
+
+                RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, registryCache.session);
                 // This is what Geyser wants to keep as a value for this registry.
-                T cacheEntry = reader.apply(registryCache.session, entry);
+                T cacheEntry = reader.apply(context);
                 builder.add(i, cacheEntry);
             }
             localCache.reset(builder);
@@ -135,7 +190,7 @@ public final class RegistryCache {
      * @param localCacheFunction the int array to set the final values to.
      */
     private static void register(String registry, BiConsumer<RegistryCache, int[]> localCacheFunction, ToIntFunction<RegistryEntry> reader) {
-        REGISTRIES.put("minecraft:" + registry, (registryCache, entries) -> {
+        REGISTRIES.put(MinecraftKey.key(registry), (registryCache, entries) -> {
             Int2IntMap temp = new Int2IntOpenHashMap();
             int greatestId = 0;
             for (int i = 0; i < entries.size(); i++) {
@@ -155,5 +210,9 @@ public final class RegistryCache {
             }
             localCacheFunction.accept(registryCache, array);
         });
+    }
+
+    public static void init() {
+        // no-op
     }
 }

@@ -33,8 +33,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.VillagerData;
@@ -119,28 +120,31 @@ public class VillagerEntity extends AbstractMerchantEntity {
         }
         
         // The bed block
-        int blockId = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.DEFAULT).getJavaIdentifier();
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, bedPosition);
 
         // Set the correct position offset and rotation when sleeping
         int bedRotation = 0;
         float xOffset = 0;
         float zOffset = 0;
-        if (fullIdentifier.contains("facing=south")) {
-            // bed is facing south
-            bedRotation = 180;
-            zOffset = -.5f;
-        } else if (fullIdentifier.contains("facing=east")) {
-            // bed is facing east
-            bedRotation = 90;
-            xOffset = -.5f;
-        } else if (fullIdentifier.contains("facing=west")) {
-            // bed is facing west
-            bedRotation = 270;
-            xOffset = .5f;
-        } else if (fullIdentifier.contains("facing=north")) {
-            // rotation does not change because north is 0
-            zOffset = .5f;
+        if (state.block() instanceof BedBlock) {
+            switch (state.getValue(Properties.HORIZONTAL_FACING)) {
+                case SOUTH -> {
+                    bedRotation = 180;
+                    zOffset = -.5f;
+                }
+                case EAST -> {
+                    bedRotation = 90;
+                    xOffset = -.5f;
+                }
+                case WEST -> {
+                    bedRotation = 270;
+                    xOffset = .5f;
+                }
+                case NORTH -> {
+                    // rotation does not change because north is 0
+                    zOffset = .5f;
+                }
+            }
         }
 
         setYaw(yaw);

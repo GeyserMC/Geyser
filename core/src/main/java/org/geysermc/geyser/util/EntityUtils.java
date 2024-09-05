@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
@@ -77,6 +78,12 @@ public final class EntityUtils {
             case BAD_OMEN -> 28;
             case HERO_OF_THE_VILLAGE -> 29;
             case DARKNESS -> 30;
+            case TRIAL_OMEN -> 31;
+            case WIND_CHARGED -> 32;
+            case WEAVING -> 33;
+            case OOZING -> 34;
+            case INFESTED -> 35;
+            case RAID_OMEN -> 36;
             default -> effect.ordinal() + 1;
         };
     }
@@ -166,11 +173,7 @@ public final class EntityUtils {
                 case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
                     if (moreThanOneEntity) {
-                        if (rider) {
-                            xOffset = 0.2f;
-                        } else {
-                            xOffset = -0.6f;
-                        }
+                        xOffset = rider ? 0.2f : -0.6f;
                         if (passenger instanceof AnimalEntity) {
                             xOffset += 0.2f;
                         }
@@ -197,6 +200,18 @@ public final class EntityUtils {
                 case CHEST_BOAT -> xOffset = 0.15F;
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+                case TEXT_DISPLAY -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        if (displayTranslation == null) {
+                            return;
+                        }
+
+                        xOffset = displayTranslation.getX();
+                        yOffset = displayTranslation.getY() + 0.2f;
+                        zOffset = displayTranslation.getZ();
+                    }
+                }
             }
             /*
              * Bedrock Differences
@@ -222,8 +237,7 @@ public final class EntityUtils {
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
             }
-            Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-            passenger.setRiderSeatPosition(offset);
+            passenger.setRiderSeatPosition(Vector3f.from(xOffset, yOffset, zOffset));
         }
     }
 

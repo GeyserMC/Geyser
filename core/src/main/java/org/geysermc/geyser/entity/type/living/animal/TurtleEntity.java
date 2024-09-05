@@ -56,7 +56,7 @@ public class TurtleEntity extends AnimalEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return false;
     }
 }

@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
@@ -35,18 +36,21 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
+import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.bungee.BungeeCommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,20 +60,17 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeInjector geyserInjector;
-    private GeyserBungeeLogger geyserLogger;
+    private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
-
     private GeyserImpl geyser;
 
     @Override
@@ -84,28 +85,49 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_20_3");
+            ProtocolConstants.class.getField("MINECRAFT_1_21");
         } catch (NoSuchFieldException e) {
-            getLogger().warning("      / \\");
-            getLogger().warning("     /   \\");
-            getLogger().warning("    /  |  \\");
-            getLogger().warning("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            getLogger().warning("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            getLogger().warning(" /     o     \\");
-            getLogger().warning("/_____________\\");
+            geyserLogger.error("      / \\");
+            geyserLogger.error("     /   \\");
+            geyserLogger.error("    /  |  \\");
+            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            geyserLogger.error(" /     o     \\");
+            geyserLogger.error("/_____________\\");
         }
 
         if (!this.loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this, null);
         this.geyserInjector = new GeyserBungeeInjector(this);
+
+        // Registration of listeners occurs only once
+        this.getProxy().getPluginManager().registerListener(this, new GeyserBungeeUpdateListener());
     }
 
     @Override
     public void onEnable() {
+        if (geyser == null) {
+            return; // Config did not load properly!
+        }
+
+        // After Geyser initialize for parity with other platforms.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSender.class,
+            id -> getProxy().getPlayer(id),
+            () -> getProxy().getConsole(),
+            BungeeCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+            this,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
+
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
@@ -145,11 +167,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            // For consistency with other platforms - create command manager before GeyserImpl#start()
-            // This ensures the command events are called before the item/block ones are
-            this.geyserCommandManager = new GeyserCommandManager(geyser);
-            this.geyserCommandManager.init();
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
@@ -192,16 +209,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.geyserInjector.initializeLocalChannel(this);
-
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
-        }
     }
 
     @Override
@@ -237,8 +244,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override
@@ -303,7 +310,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

@@ -60,6 +60,7 @@ import java.util.function.Function;
 
 @Translator(packet = ClientboundLevelParticlesPacket.class)
 public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLevelParticlesPacket> {
+    private static final int MAX_PARTICLES = 100;
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelParticlesPacket packet) {
@@ -71,7 +72,8 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 session.sendUpstreamPacket(particleCreateFunction.apply(position));
             } else {
                 Random random = ThreadLocalRandom.current();
-                for (int i = 0; i < packet.getAmount(); i++) {
+                int amount = Math.min(MAX_PARTICLES, packet.getAmount());
+                for (int i = 0; i < amount; i++) {
                     double offsetX = random.nextGaussian() * (double) packet.getOffsetX();
                     double offsetY = random.nextGaussian() * (double) packet.getOffsetY();
                     double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
@@ -92,7 +94,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
      * @return a function to create a packet with a specified particle, in the event we need to spawn multiple particles
      * with different offsets.
      */
-    private @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
+    public static @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
             case BLOCK -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
@@ -189,7 +191,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                         return packet;
                     };
                 } else if (particleMapping.identifier() != null) {
-                    int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+                    int dimensionId = DimensionUtils.javaToBedrock(session);
                     return (position) -> {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                         stringPacket.setIdentifier(particleMapping.identifier());
@@ -205,7 +207,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
         }
     }
 
-    private NbtMap buildVec3PositionTag(Vector3f position) {
+    private static NbtMap buildVec3PositionTag(Vector3f position) {
         return NbtMap.builder()
                 .putString("type", "vec3")
                 .putFloat("x", position.getX())

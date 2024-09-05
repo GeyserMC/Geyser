@@ -33,7 +33,6 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundForgetLevelChunkPacket;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Translator(packet = ClientboundForgetLevelChunkPacket.class)
@@ -51,17 +50,6 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
             }
         }
         removedSkulls.forEach(session.getSkullCache()::removeSkull);
-
-        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
-            // Do the same thing with lecterns
-            Iterator<Vector3i> iterator = session.getLecternCache().iterator();
-            while (iterator.hasNext()) {
-                Vector3i position = iterator.next();
-                if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
-                    iterator.remove();
-                }
-            }
-        }
 
         ChunkUtils.sendEmptyChunk(session, packet.getX(), packet.getZ(), false);
     }

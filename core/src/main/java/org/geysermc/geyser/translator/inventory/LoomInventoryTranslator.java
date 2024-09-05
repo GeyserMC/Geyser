@@ -45,6 +45,7 @@ import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -101,7 +102,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     public LoomInventoryTranslator() {
-        super(4, "minecraft:loom[facing=north]", ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
+        super(4, Blocks.LOOM, ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

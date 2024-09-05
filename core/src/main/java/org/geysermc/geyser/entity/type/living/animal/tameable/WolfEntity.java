@@ -33,36 +33,28 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
-    /**
-     * A list of all foods a wolf can eat on Java Edition.
-     * Used to display interactive tag or particles if needed.
-     * TODO generate
-     */
-    private static final Set<Item> WOLF_FOODS = Set.of(Items.PUFFERFISH, Items.TROPICAL_FISH, Items.CHICKEN, Items.COOKED_CHICKEN,
-            Items.PORKCHOP, Items.BEEF, Items.RABBIT, Items.COOKED_PORKCHOP, Items.COOKED_BEEF, Items.ROTTEN_FLESH, Items.MUTTON, Items.COOKED_MUTTON,
-            Items.COOKED_RABBIT);
-
     private byte collarColor = 14; // Red - default
 
     private boolean isCurseOfBinding = false;
@@ -112,12 +104,14 @@ public class WolfEntity extends TameableEntity {
     }
 
     // 1.20.5+
-    public void setWolfVariant(IntEntityMetadata entityMetadata) {
-        WolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(entityMetadata.getPrimitiveValue());
-        if (wolfVariant == null) {
-            wolfVariant = WolfVariant.PALE;
-        }
-        dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
+    public void setWolfVariant(ObjectEntityMetadata<Holder<WolfVariant>> entityMetadata) {
+        entityMetadata.getValue().ifId(id -> {
+            BuiltInWolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(id);
+            if (wolfVariant == null) {
+                wolfVariant = BuiltInWolfVariant.PALE;
+            }
+            dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
+        });
     }
 
     @Override
@@ -129,11 +123,11 @@ public class WolfEntity extends TameableEntity {
     @Override
     public void setChestplate(ItemStack stack) {
         super.setChestplate(stack);
-        isCurseOfBinding = ItemUtils.getEnchantmentLevel(stack.getDataComponents(), Enchantment.JavaEnchantment.BINDING_CURSE) > 0;
+        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
     }
 
@@ -187,7 +181,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     // Ordered by bedrock id
-    public enum WolfVariant {
+    public enum BuiltInWolfVariant {
         PALE,
         ASHEN,
         BLACK,
@@ -198,16 +192,16 @@ public class WolfEntity extends TameableEntity {
         STRIPED,
         WOODS;
 
-        private static final WolfVariant[] VALUES = values();
+        private static final BuiltInWolfVariant[] VALUES = values();
 
         private final String javaIdentifier;
 
-        WolfVariant() {
+        BuiltInWolfVariant() {
             this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
         }
 
-        public static @Nullable WolfVariant getByJavaIdentifier(String javaIdentifier) {
-            for (WolfVariant wolfVariant : VALUES) {
+        public static @Nullable BuiltInWolfVariant getByJavaIdentifier(String javaIdentifier) {
+            for (BuiltInWolfVariant wolfVariant : VALUES) {
                 if (wolfVariant.javaIdentifier.equals(javaIdentifier)) {
                     return wolfVariant;
                 }

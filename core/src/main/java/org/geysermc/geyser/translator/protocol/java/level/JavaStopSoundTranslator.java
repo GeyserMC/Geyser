@@ -47,7 +47,7 @@ public class JavaStopSoundTranslator extends PacketTranslator<ClientboundStopSou
         }
 
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
-        stopSoundPacket.setSoundName(SoundUtils.translatePlaySound(packet.getSound()));
+        stopSoundPacket.setSoundName(SoundUtils.translatePlaySound(packet.getSound().asString()));
         stopSoundPacket.setStoppingAllSound(false);
 
         session.sendUpstreamPacket(stopSoundPacket);

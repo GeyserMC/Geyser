@@ -80,7 +80,10 @@ public class InteractionEntity extends Entity {
     }
 
     public void setHeight(FloatEntityMetadata height) {
-        setBoundingBoxHeight(height.getPrimitiveValue());
+        // Bedrock does *not* like high values being placed here
+        // https://gist.github.com/Owen1212055/f5d59169d3a6a5c32f0c173d57eb199d recommend(s/ed) using the tactic
+        // https://github.com/GeyserMC/Geyser/issues/4688
+        setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
     }
 
     public void setResponse(BooleanEntityMetadata response) {

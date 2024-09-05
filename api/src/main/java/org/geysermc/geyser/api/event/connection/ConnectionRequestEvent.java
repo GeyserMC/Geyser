@@ -50,9 +50,31 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * The IP address of the client attempting to connect
      *
      * @return the IP address of the client attempting to connect
+     * @deprecated Use {@link #inetSocketAddress()} instead
+     */
+    @NonNull @Deprecated(forRemoval = true)
+    public InetSocketAddress getInetSocketAddress() {
+        return ip;
+    }
+
+    /**
+     * The IP address of the proxy handling the connection. It will return null if there is no proxy.
+     *
+     * @return the IP address of the proxy handling the connection
+     * @deprecated Use {@link #proxyIp()} instead
+     */
+    @Nullable @Deprecated(forRemoval = true)
+    public InetSocketAddress getProxyIp() {
+        return proxyIp;
+    }
+
+    /**
+     * The IP address of the client attempting to connect
+     *
+     * @return the IP address of the client attempting to connect
      */
     @NonNull
-    public InetSocketAddress getInetSocketAddress() {
+    public InetSocketAddress inetSocketAddress() {
         return ip;
     }
 
@@ -62,7 +84,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the proxy handling the connection
      */
     @Nullable
-    public InetSocketAddress getProxyIp() {
+    public InetSocketAddress proxyIp() {
         return proxyIp;
     }
 

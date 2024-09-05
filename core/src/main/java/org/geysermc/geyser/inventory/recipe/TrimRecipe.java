@@ -32,9 +32,8 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 /**
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
@@ -46,18 +45,18 @@ public final class TrimRecipe {
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
-    public static TrimMaterial readTrimMaterial(GeyserSession session, RegistryEntry entry) {
-        String key = stripMinecraftNamespace(entry.getId());
+    public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
+        String key = context.id().asMinimalString();
 
         // Color is used when hovering over the item
         // Find the nearest legacy color from the RGB Java gives us to work with
         // Also yes this is a COMPLETE hack but it works ok!!!!!
-        String colorTag = entry.getData().getCompound("description").getString("color");
+        String colorTag = context.data().getCompound("description").getString("color");
         TextColor color = TextColor.fromHexString(colorTag);
         String legacy = MessageTranslator.convertMessage(Component.space().color(color));
 
-        String itemIdentifier = entry.getData().getString("ingredient");
-        ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
+        String itemIdentifier = context.data().getString("ingredient");
+        ItemMapping itemMapping = context.session().getItemMappings().getMapping(itemIdentifier);
         if (itemMapping == null) {
             // This should never happen so not sure what to do here.
             itemMapping = ItemMapping.AIR;
@@ -66,29 +65,16 @@ public final class TrimRecipe {
         return new TrimMaterial(key, legacy.substring(2).trim(), itemMapping.getBedrockIdentifier());
     }
 
-    public static TrimPattern readTrimPattern(GeyserSession session, RegistryEntry entry) {
-        String key = stripMinecraftNamespace(entry.getId());
+    public static TrimPattern readTrimPattern(RegistryEntryContext context) {
+        String key = context.id().asMinimalString();
 
-        String itemIdentifier = entry.getData().getString("template_item");
-        ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
+        String itemIdentifier = context.data().getString("template_item");
+        ItemMapping itemMapping = context.session().getItemMappings().getMapping(itemIdentifier);
         if (itemMapping == null) {
             // This should never happen so not sure what to do here.
             itemMapping = ItemMapping.AIR;
         }
         return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
-    }
-
-    // TODO find a good place for a stripNamespace util method
-    private static String stripMinecraftNamespace(String identifier) {
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            String namespace = identifier.substring(0, i);
-            // Only strip minecraft namespace
-            if (namespace.equals("minecraft")) {
-                return identifier.substring(i + 1);
-            }
-        }
-        return identifier;
     }
 
     private TrimRecipe() {

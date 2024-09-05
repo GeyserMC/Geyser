@@ -123,7 +123,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             if (session.getGameMode() == GameMode.CREATIVE) {
                 slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK.apply(session.getUpstream().getProtocolVersion()));
             } else {
-                slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
+                slotPacket.setItem(inventory.getItem(i).getItemData(session));
             }
 
             session.sendUpstreamPacket(slotPacket);
@@ -423,7 +423,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     // Reference the creative items list we send to the client to know what it's asking of us
                     ItemData creativeItem = creativeItems[creativeId];
-                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem, session.getItemMappings());
+                    javaCreativeItem = ItemTranslator.translateToJava(session, creativeItem);
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
@@ -550,6 +550,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ContainerClosePacket packet = new ContainerClosePacket();
         packet.setServerInitiated(true);
         packet.setId((byte) ContainerId.INVENTORY);
+        packet.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
         session.sendUpstreamPacket(packet);
     }
 

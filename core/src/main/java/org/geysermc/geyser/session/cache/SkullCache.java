@@ -25,18 +25,20 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
@@ -80,7 +82,7 @@ public class SkullCache {
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, int blockState) {
+    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, BlockState blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.uuid = uuid;
         if (!texturesProperty.equals(skull.texturesProperty)) {
@@ -147,7 +149,7 @@ public class SkullCache {
         }
     }
 
-    public Skull updateSkull(Vector3i position, int blockState) {
+    public Skull updateSkull(Vector3i position, BlockState blockState) {
         Skull skull = skulls.get(position);
         if (skull != null) {
             putSkull(position, skull.uuid, skull.texturesProperty, blockState);
@@ -241,24 +243,29 @@ public class SkullCache {
     }
 
     public void clear() {
+        for (Skull skull : skulls.values()) {
+            if (skull.entity != null) {
+                skull.entity.despawnEntity();
+            }
+        }
         skulls.clear();
         inRangeSkulls.clear();
+        for (SkullPlayerEntity skull : unusedSkullEntities) {
+            skull.despawnEntity();
+        }
         unusedSkullEntities.clear();
         totalSkullEntities = 0;
         lastPlayerPosition = null;
     }
 
-    private @Nullable BlockDefinition translateCustomSkull(String skinHash, int blockState) {
+    private @Nullable BlockDefinition translateCustomSkull(String skinHash, BlockState blockState) {
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
-            byte floorRotation = BlockStateValues.getSkullRotation(blockState);
             CustomBlockState customBlockState;
-            if (floorRotation == -1) {
-                // Wall skull
-                int wallDirection = BlockStateValues.getSkullWallDirections().get(blockState);
-                customBlockState = customSkull.getWallBlockState(wallDirection);
+            if (blockState.block() instanceof WallSkullBlock) {
+                customBlockState = customSkull.getWallBlockState(WallSkullBlock.getDegrees(blockState));
             } else {
-                customBlockState = customSkull.getFloorBlockState(floorRotation);
+                customBlockState = customSkull.getFloorBlockState(blockState.getValue(Properties.ROTATION_16));
             }
 
             return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);
@@ -273,7 +280,7 @@ public class SkullCache {
         private String texturesProperty;
         private String skinHash;
 
-        private int blockState;
+        private BlockState blockState;
         private BlockDefinition blockDefinition;
         private SkullPlayerEntity entity;
 

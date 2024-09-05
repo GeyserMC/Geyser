@@ -76,4 +76,9 @@ public class PotionItem extends Item {
         }
         return itemStack;
     }
+
+    @Override
+    public boolean ignoreDamage() {
+        return true;
+    }
 }

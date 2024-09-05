@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,15 +32,23 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
-import java.util.Optional;
 import java.util.UUID;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
-public class TextDisplayEntity extends Entity {
+public class TextDisplayEntity extends DisplayBaseEntity {
     public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        super(session, entityId, geyserId, uuid, definition, position.add(0, definition.offset(), 0), motion, yaw, pitch, headYaw);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
+        super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(position.add(Vector3f.from(0, definition.offset(), 0)), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -49,18 +57,6 @@ public class TextDisplayEntity extends Entity {
         // Remove armor stand body
         this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
         this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
-    }
-
-    @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        // Don't allow the display name to be hidden - messes with our armor stand.
-        // On JE: Hiding the display name still shows the display entity text.
-    }
-
-    @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // This would usually set EntityDataTypes.NAME, but we are instead using NAME for the text display.
-        // On JE: custom name does not override text display.
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {

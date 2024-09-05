@@ -28,14 +28,12 @@ package org.geysermc.geyser.item.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.TippedArrowPotion;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
-
-import java.util.Collections;
 
 public class ArrowItem extends Item {
     public ArrowItem(String javaIdentifier, Builder builder) {
@@ -44,13 +42,18 @@ public class ArrowItem extends Item {
 
     @Override
     public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
+        Potion potion = Potion.getByTippedArrowDamage(itemData.getDamage());
         GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
-        if (tippedArrowPotion != null) {
+        if (potion != null) {
             itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getComponents());
-            PotionContents contents = new PotionContents(tippedArrowPotion.ordinal(), -1, Collections.emptyList());
+            PotionContents contents = potion.toComponent();
             itemStack.getOrCreateComponents().put(DataComponentType.POTION_CONTENTS, contents);
         }
         return itemStack;
+    }
+
+    @Override
+    public boolean ignoreDamage() {
+        return true;
     }
 }

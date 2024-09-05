@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -35,14 +34,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.api.block.custom.component.BoxComponent;
-import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
-import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
-import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
-import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
+import org.geysermc.geyser.api.block.custom.component.*;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockFilterType;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
-import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -60,16 +54,10 @@ import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -131,7 +119,7 @@ public class MappingsReader_v1 extends MappingsReader {
             blocksNode.fields().forEachRemaining(entry -> {
                 if (entry.getValue().isObject()) {
                     try {
-                        String identifier = Identifier.formalize(entry.getKey());
+                        String identifier = MinecraftKey.key(entry.getKey()).asString();
                         CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, entry.getValue());
                         consumer.accept(identifier, customBlockMapping);
                     } catch (Exception e) {

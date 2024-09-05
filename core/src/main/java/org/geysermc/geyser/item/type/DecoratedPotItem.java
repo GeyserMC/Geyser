@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -38,8 +39,8 @@ import java.util.List;
 
 public class DecoratedPotItem extends BlockItem {
 
-    public DecoratedPotItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+    public DecoratedPotItem(Builder builder, Block block, Block... otherBlocks) {
+        super(builder, block, otherBlocks);
     }
 
     @Override

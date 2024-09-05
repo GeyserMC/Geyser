@@ -28,8 +28,10 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.scoreboard.Scoreboard;
@@ -39,6 +41,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.Iterator;
+import java.util.Map;
 
 public final class WorldCache {
     private final GeyserSession session;
@@ -60,6 +63,8 @@ public final class WorldCache {
 
     private int currentSequence;
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
+
+    private final Map<Vector3i, String> activeRecords = new Object2ObjectOpenHashMap<>(1); // Assume the average player won't be listening to many records
 
     @Getter
     @Setter
@@ -180,9 +185,20 @@ public final class WorldCache {
                 // This block may be out of sync with the server
                 // In 1.19.0 Java, you can verify this by trying to mine in spawn protection
                 Vector3i position = entry.getKey();
-                ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().getBlockAt(session, position), position);
+                ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().blockAt(session, position), position);
                 it.remove();
             }
         }
+    }
+
+    public void addActiveRecord(Vector3i pos, String bedrockPlaySound) {
+        this.activeRecords.put(pos, bedrockPlaySound);
+    }
+
+    // Implementation note: positions aren't removed unless the server calls, but this seems to match 1.21 Java
+    // client behavior.
+    @Nullable
+    public String removeActiveRecord(Vector3i pos) {
+        return this.activeRecords.remove(pos);
     }
 }

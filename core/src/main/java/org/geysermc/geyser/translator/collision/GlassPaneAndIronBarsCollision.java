@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -44,24 +46,23 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
      */
     private int facing;
 
-    public GlassPaneAndIronBarsCollision(String params, BoundingBox[] defaultBoxes) {
+    public GlassPaneAndIronBarsCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-        //east=true,north=true,south=true,west=true
-        if (params.contains("north=true") && params.contains("east=true")) {
+        if (state.getValue(Properties.NORTH) && state.getValue(Properties.EAST)) {
             facing = 5;
-        } else if (params.contains("east=true") && params.contains("south=true")) {
+        } else if (state.getValue(Properties.EAST) && state.getValue(Properties.SOUTH)) {
             facing = 6;
-        } else if (params.contains("south=true") && params.contains("west=true")) {
+        } else if (state.getValue(Properties.SOUTH) && state.getValue(Properties.WEST)) {
             facing = 7;
-        } else if (params.contains("west=true") && params.contains("north=true")) {
+        } else if (state.getValue(Properties.WEST) && state.getValue(Properties.NORTH)) {
             facing = 8;
-        } else if (params.contains("north=true")) {
+        } else if (state.getValue(Properties.NORTH)) {
             facing = 1;
-        } else if (params.contains("east=true")) {
+        } else if (state.getValue(Properties.EAST)) {
             facing = 2;
-        } else if (params.contains("south=true")) {
+        } else if (state.getValue(Properties.SOUTH)) {
             facing = 3;
-        } else if (params.contains("west=true")) {
+        } else if (state.getValue(Properties.WEST)) {
             facing = 4;
         }
     }

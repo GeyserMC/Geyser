@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -42,7 +43,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 public class StonecutterInventoryTranslator extends AbstractBlockInventoryTranslator {
     public StonecutterInventoryTranslator() {
-        super(2, "minecraft:stonecutter[facing=north]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
+        super(2, Blocks.STONECUTTER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

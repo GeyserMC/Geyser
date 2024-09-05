@@ -33,6 +33,7 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -162,7 +163,7 @@ public class FishingHookEntity extends ThrowableEntity {
      */
     protected boolean isInAir() {
         int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
-        return block == BlockStateValues.JAVA_AIR_ID;
+        return block == Block.JAVA_AIR_ID;
     }
 
     @Override

@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.CrafterInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -53,7 +54,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     private static final int TRIGGERED = 1; // triggered value
 
     public CrafterInventoryTranslator() {
-        super(10, "minecraft:crafter", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CRAFTER, CrafterInventoryUpdater.INSTANCE);
+        super(10, Blocks.CRAFTER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CRAFTER, CrafterInventoryUpdater.INSTANCE);
     }
 
     @Override

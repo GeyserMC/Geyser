@@ -58,7 +58,7 @@ public class ZoglinEntity extends MonsterEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return isNotLeashed();
     }
 

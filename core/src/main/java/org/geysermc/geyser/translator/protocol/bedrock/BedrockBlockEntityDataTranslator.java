@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -119,7 +120,8 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             String finalState = tag.getString("final_state");
             String joint = tag.getString("joint");
             // last two parameters are priority values that Bedrock doesn't have (yet?)
-            ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos, name, target, pool,
+            ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos,
+                    MinecraftKey.key(name), MinecraftKey.key(target), MinecraftKey.key(pool),
                     finalState, joint, 0, 0);
             session.sendDownstreamGamePacket(jigsawPacket);
         }

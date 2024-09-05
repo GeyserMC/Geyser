@@ -37,10 +37,6 @@ public class GeyserModLogger implements GeyserLogger {
 
     private boolean debug;
 
-    public GeyserModLogger(boolean isDebug) {
-        debug = isDebug;
-    }
-
     @Override
     public void severe(String message) {
         logger.fatal(message);

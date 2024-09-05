@@ -29,22 +29,50 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
-public final class TextDecoration {
-    private final String translationKey;
-    private final Style style;
-    private final Set<Parameter> parameters;
+public record TextDecoration(String translationKey, List<Parameter> parameters, Style deserializedStyle) implements ChatTypeDecoration {
 
-    public TextDecoration(NbtMap tag) {
-        translationKey = tag.getString("translation_key");
+    @Override
+    public NbtMap style() {
+        // Should not ever be called.
+        throw new UnsupportedOperationException();
+    }
 
-        NbtMap styleTag = tag.getCompound("style");
+    public static ChatType readChatType(RegistryEntryContext context) {
+        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
+        // (This note has been passed around through several classes and iterations. It stays as a warning
+        // to anyone that dares to try and hardcode registry IDs.)
+        NbtMap tag = context.data();
+        NbtMap chat = tag.getCompound("chat", null);
+        if (chat != null) {
+            String translationKey = chat.getString("translation_key");
+
+            NbtMap styleTag = chat.getCompound("style");
+            Style style = deserializeStyle(styleTag);
+
+            List<ChatTypeDecoration.Parameter> parameters = new ArrayList<>();
+            List<String> parametersNbt = chat.getList("parameters", NbtType.STRING);
+            for (String parameter : parametersNbt) {
+                parameters.add(ChatTypeDecoration.Parameter.valueOf(parameter.toUpperCase(Locale.ROOT)));
+            }
+            return new ChatType(new TextDecoration(translationKey, parameters, style), null);
+        }
+        return new ChatType(null, null);
+    }
+
+    public static Style getStyle(ChatTypeDecoration decoration) {
+        if (decoration instanceof TextDecoration textDecoration) {
+            return textDecoration.deserializedStyle();
+        }
+        return deserializeStyle(decoration.style());
+    }
+
+    private static Style deserializeStyle(NbtMap styleTag) {
         Style.Builder builder = Style.style();
         if (!styleTag.isEmpty()) {
             String color = styleTag.getString("color", null);
@@ -57,50 +85,6 @@ public final class TextDecoration {
                 builder.decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC);
             }
         }
-        style = builder.build();
-
-        this.parameters = EnumSet.noneOf(Parameter.class);
-        List<String> parameters = tag.getList("parameters", NbtType.STRING);
-        for (String parameter : parameters) {
-            this.parameters.add(Parameter.valueOf(parameter.toUpperCase(Locale.ROOT)));
-        }
-    }
-
-    public String translationKey() {
-        return translationKey;
-    }
-
-    public Style style() {
-        return style;
-    }
-
-    public Set<Parameter> parameters() {
-        return parameters;
-    }
-
-    @Override
-    public String toString() {
-        return "TextDecoration{" +
-                "translationKey='" + translationKey + '\'' +
-                ", style=" + style +
-                ", parameters=" + parameters +
-                '}';
-    }
-
-    public static TextDecoration readChatType(RegistryEntry entry) {
-        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-        NbtMap tag = entry.getData();
-        NbtMap chat = tag.getCompound("chat", null);
-        TextDecoration textDecoration = null;
-        if (chat != null) {
-            textDecoration = new TextDecoration(chat);
-        }
-        return textDecoration;
-    }
-
-    public enum Parameter {
-        CONTENT,
-        SENDER,
-        TARGET
+        return builder.build();
     }
 }

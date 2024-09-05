@@ -145,4 +145,36 @@ public interface CameraData {
      * @return whether the camera is currently locked
      */
     boolean isCameraLocked();
+
+    /**
+     * Hides a {@link GuiElement} on the client's side.
+     *
+     * @param element the {@link GuiElement} to hide
+     */
+    void hideElement(@NonNull GuiElement... element);
+
+    /**
+     * Resets a {@link GuiElement} on the client's side.
+     * This makes the client decide on its own - e.g. based on client settings -
+     * whether to show or hide the gui element.
+     * <p>
+     * If no elements are specified, this will reset all currently hidden elements
+     *
+     * @param element the {@link GuiElement} to reset
+     */
+    void resetElement(@NonNull GuiElement @Nullable... element);
+
+    /**
+     * Determines whether a {@link GuiElement} is currently hidden.
+     *
+     * @param element the {@link GuiElement} to check
+     */
+    boolean isHudElementHidden(@NonNull GuiElement element);
+
+    /**
+     * Returns the currently hidden {@link GuiElement}s.
+     *
+     * @return an unmodifiable view of all currently hidden {@link GuiElement}s
+     */
+    @NonNull Set<GuiElement> hiddenElements();
 }

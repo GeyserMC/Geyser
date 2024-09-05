@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Leashable;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -43,11 +43,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class MobEntity extends LivingEntity {
+public class MobEntity extends LivingEntity implements Leashable {
     /**
      * If another mob is holding this mob by a leash, this variable tracks their Bedrock entity ID.
      */
-    @Getter
     private long leashHolderBedrockId;
 
     public MobEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -65,6 +64,7 @@ public class MobEntity extends LivingEntity {
         setFlag(EntityFlag.NO_AI, (xd & 0x01) == 0x01);
     }
 
+    @Override
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
         dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
@@ -79,10 +79,7 @@ public class MobEntity extends LivingEntity {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-            if (itemStack.asItem() == Items.LEAD && canBeLeashed()) {
-                // We shall leash
-                return InteractiveTag.LEASH;
-            } else if (itemStack.asItem() == Items.NAME_TAG) {
+            if (itemStack.asItem() == Items.NAME_TAG) {
                 InteractionResult result = checkInteractWithNameTag(itemStack);
                 if (result.consumesAction()) {
                     return InteractiveTag.NAME;
@@ -99,9 +96,6 @@ public class MobEntity extends LivingEntity {
         if (!isAlive()) {
             // dead lol
             return InteractionResult.PASS;
-        } else if (leashHolderBedrockId == session.getPlayerEntity().getGeyserId()) {
-            // TODO looks like the client assumes it will go through and removes the attachment itself?
-            return InteractionResult.SUCCESS;
         } else {
             GeyserItemStack itemInHand = session.getPlayerInventory().getItemInHand(hand);
             InteractionResult result = checkPriorityInteractions(itemInHand);
@@ -115,10 +109,7 @@ public class MobEntity extends LivingEntity {
     }
 
     private InteractionResult checkPriorityInteractions(GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.LEAD && canBeLeashed()) {
-            // We shall leash
-            return InteractionResult.SUCCESS;
-        } else if (itemInHand.asItem() == Items.NAME_TAG) {
+        if (itemInHand.asItem() == Items.NAME_TAG) {
             InteractionResult result = checkInteractWithNameTag(itemInHand);
             if (result.consumesAction()) {
                 return result;
@@ -143,12 +134,14 @@ public class MobEntity extends LivingEntity {
         return InteractionResult.PASS;
     }
 
-    protected boolean canBeLeashed() {
+    @Override
+    public boolean canBeLeashed() {
         return isNotLeashed() && !isEnemy();
     }
 
-    protected final boolean isNotLeashed() {
-        return leashHolderBedrockId == -1L;
+    @Override
+    public long leashHolderBedrockId() {
+        return leashHolderBedrockId;
     }
 
     /**
