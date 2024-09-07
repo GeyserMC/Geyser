@@ -130,6 +130,7 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
@@ -258,7 +259,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @NonNull
     @Setter
-    private AbstractGeyserboundPacketHandler erosionHandler;
+    private volatile AbstractGeyserboundPacketHandler erosionHandler;
 
     @Accessors(fluent = true)
     @Setter
@@ -1190,9 +1191,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             tickThread.cancel(false);
         }
 
-        erosionHandler.close();
-
+        // Mark session as closed before cancelling erosion futures
         closed = true;
+        erosionHandler.close();
     }
 
     /**
@@ -1213,6 +1214,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         eventLoop.execute(() -> {
             try {
                 runnable.run();
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
@@ -1230,6 +1233,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (!closed) {
                     runnable.run();
                 }
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
