@@ -433,18 +433,9 @@ public class MessageTranslator {
     /**
      * Deserialize an NbtMap provided from a registry into a string.
      */
-    // This may be a Component in the future.
     public static String deserializeDescription(GeyserSession session, NbtMap tag) {
         NbtMap description = tag.getCompound("description");
         Component parsed = componentFromNbtTag(description);
-        /*
-        String translate = description.getString("translate", null);
-        if (translate == null) {
-            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
-            return "";
-        }
-        */
-
         return convertMessage(session, parsed);
     }
 
