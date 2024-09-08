@@ -33,6 +33,7 @@ import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
@@ -345,16 +346,16 @@ public class MessageTranslator {
             // Though, Bedrock cannot care about the signed stuff.
             TranslatableComponent.Builder withDecoration = Component.translatable()
                     .key(chat.translationKey())
-                    .style(TextDecoration.getStyle(chat));
+                    .style(ChatDecoration.getStyle(chat));
             List<ChatTypeDecoration.Parameter> parameters = chat.parameters();
             List<Component> args = new ArrayList<>(3);
-            if (parameters.contains(TextDecoration.Parameter.TARGET)) {
+            if (parameters.contains(ChatDecoration.Parameter.TARGET)) {
                 args.add(targetName);
             }
-            if (parameters.contains(TextDecoration.Parameter.SENDER)) {
+            if (parameters.contains(ChatDecoration.Parameter.SENDER)) {
                 args.add(sender);
             }
-            if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
+            if (parameters.contains(ChatDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
             withDecoration.arguments(args);
@@ -476,37 +477,12 @@ public class MessageTranslator {
                 component = Component.translatable(key, fallback, args);
             }
 
-            Style.Builder newStyle = Style.style().merge(style);
-
-            if (map.containsKey("color", NbtType.STRING)) {
-                String colorString = map.getString("color");
-                if (colorString.startsWith(TextColor.HEX_PREFIX)) {
-                    newStyle.color(TextColor.fromHexString(colorString));
-                } else {
-                    newStyle.color(NamedTextColor.NAMES.value(colorString));
-                }
-            }
-            if (map.containsKey("bold", NbtType.BYTE)) {
-                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.BOLD, map.getBoolean("bold"));
-            }
-            if (map.containsKey("italic", NbtType.BYTE)) {
-                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, map.getBoolean("italic"));
-            }
-            if (map.containsKey("underlined", NbtType.BYTE)) {
-                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.UNDERLINED, map.getBoolean("underlined"));
-            }
-            if (map.containsKey("strikethrough", NbtType.BYTE)) {
-                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH, map.getBoolean("strikethrough"));
-            }
-            if (map.containsKey("obfuscated", NbtType.BYTE)) {
-                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.OBFUSCATED, map.getBoolean("obfuscated"));
-            }
-
+            Style newStyle = getStyleFromNbtMap(map, style);
             component = component.style(newStyle);
 
             Object extra = map.get("extra");
             if (extra != null) {
-                component = component.append(componentFromNbtTag(extra, newStyle.build()));
+                component = component.append(componentFromNbtTag(extra, newStyle));
             }
 
             return component;
@@ -521,6 +497,40 @@ public class MessageTranslator {
             components.add(componentFromNbtTag(entry, style));
         }
         return components;
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map) {
+        return getStyleFromNbtMap(map, Style.empty());
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map, Style base) {
+        Style.Builder newStyle = Style.style().merge(base);
+
+        if (map.containsKey("color", NbtType.STRING)) {
+            String colorString = map.getString("color");
+            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+                newStyle.color(TextColor.fromHexString(colorString));
+            } else {
+                newStyle.color(NamedTextColor.NAMES.value(colorString));
+            }
+        }
+        if (map.containsKey("bold", NbtType.BYTE)) {
+            newStyle.decoration(TextDecoration.BOLD, map.getBoolean("bold"));
+        }
+        if (map.containsKey("italic", NbtType.BYTE)) {
+            newStyle.decoration(TextDecoration.ITALIC, map.getBoolean("italic"));
+        }
+        if (map.containsKey("underlined", NbtType.BYTE)) {
+            newStyle.decoration(TextDecoration.UNDERLINED, map.getBoolean("underlined"));
+        }
+        if (map.containsKey("strikethrough", NbtType.BYTE)) {
+            newStyle.decoration(TextDecoration.STRIKETHROUGH, map.getBoolean("strikethrough"));
+        }
+        if (map.containsKey("obfuscated", NbtType.BYTE)) {
+            newStyle.decoration(TextDecoration.OBFUSCATED, map.getBoolean("obfuscated"));
+        }
+
+        return newStyle.build();
     }
 
     public static void init() {
