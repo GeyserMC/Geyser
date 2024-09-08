@@ -69,7 +69,7 @@ public record Enchantment(String identifier,
 
         // TODO - description is a component. So if a hardcoded literal string is given, this will display normally on Java,
         //  but Geyser will attempt to lookup the literal string as translation - and will fail, displaying an empty string as enchantment name.
-        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(data) : null;
+        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
 
         return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
                 description, anvilCost, exclusiveSet, bedrockEnchantment);
