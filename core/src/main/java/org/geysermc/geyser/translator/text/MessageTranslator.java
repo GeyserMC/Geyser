@@ -39,6 +39,7 @@ import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -475,35 +476,37 @@ public class MessageTranslator {
                 component = Component.translatable(key, fallback, args);
             }
 
-            String colorString = map.getString("color", "");
-            TextColor color = null;
-            if (!colorString.isEmpty()) {
+            Style.Builder newStyle = Style.style().merge(style);
+
+            if (map.containsKey("color", NbtType.STRING)) {
+                String colorString = map.getString("color");
                 if (colorString.startsWith(TextColor.HEX_PREFIX)) {
-                    color = TextColor.fromHexString(colorString);
+                    newStyle.color(TextColor.fromHexString(colorString));
                 } else {
-                    color = NamedTextColor.NAMES.value(colorString);
+                    newStyle.color(NamedTextColor.NAMES.value(colorString));
                 }
             }
-
-            boolean bold = map.getBoolean("bold", false);
-            boolean italic = map.getBoolean("italic", false);
-            boolean underlined = map.getBoolean("underlined", false);
-            boolean strikethrough = map.getBoolean("strikethrough", false);
-            boolean obfuscated = map.getBoolean("obfuscated", false);
-
-            Style newStyle = style
-                    .color(color)
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.BOLD, bold)
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, italic)
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.UNDERLINED, underlined)
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH, strikethrough)
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.OBFUSCATED, obfuscated);
+            if (map.containsKey("bold", NbtType.BYTE)) {
+                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.BOLD, map.getBoolean("bold"));
+            }
+            if (map.containsKey("italic", NbtType.BYTE)) {
+                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, map.getBoolean("italic"));
+            }
+            if (map.containsKey("underlined", NbtType.BYTE)) {
+                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.UNDERLINED, map.getBoolean("underlined"));
+            }
+            if (map.containsKey("strikethrough", NbtType.BYTE)) {
+                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH, map.getBoolean("strikethrough"));
+            }
+            if (map.containsKey("obfuscated", NbtType.BYTE)) {
+                newStyle.decoration(net.kyori.adventure.text.format.TextDecoration.OBFUSCATED, map.getBoolean("obfuscated"));
+            }
 
             component = component.style(newStyle);
 
             Object extra = map.get("extra");
             if (extra != null) {
-                component = component.append(componentFromNbtTag(extra, newStyle));
+                component = component.append(componentFromNbtTag(extra, newStyle.build()));
             }
 
             return component;
