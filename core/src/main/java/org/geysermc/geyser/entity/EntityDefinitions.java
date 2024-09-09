@@ -93,7 +93,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<EvokerFangsEntity> EVOKER_FANGS;
     public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
     public static final EntityDefinition<ExpOrbEntity> EXPERIENCE_ORB;
-    public static final EntityDefinition<Entity> EYE_OF_ENDER;
+    public static final EntityDefinition<EnderEyeEntity> EYE_OF_ENDER;
     public static final EntityDefinition<FallingBlockEntity> FALLING_BLOCK;
     public static final EntityDefinition<FireballEntity> FIREBALL;
     public static final EntityDefinition<FireworkEntity> FIREWORK_ROCKET;
@@ -250,7 +250,7 @@ public final class EntityDefinitions {
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")
                     .build();
-            EYE_OF_ENDER = EntityDefinition.inherited(Entity::new, entityBase)
+            EYE_OF_ENDER = EntityDefinition.inherited(EnderEyeEntity::new, entityBase)
                     .type(EntityType.EYE_OF_ENDER)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:eye_of_ender_signal")
