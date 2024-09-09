@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
@@ -55,16 +58,18 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
                 if (component.arguments().size() == 2) {
                     // Hack FYI, but it allows Bedrock players to easily understand this information
                     // without it being covered up or saying the night is being slept through.
-                    int numPlayersSleeping = ((Number) component.arguments().get(0).value()).intValue();
-                    int totalPlayersNeeded = ((Number) component.arguments().get(1).value()).intValue();
-                    LevelEventGenericPacket sleepInfoPacket = new LevelEventGenericPacket();
-                    sleepInfoPacket.setType(LevelEvent.SLEEPING_PLAYERS);
-                    sleepInfoPacket.setTag(NbtMap.builder()
-                        .putInt("ableToSleep", totalPlayersNeeded)
-                        .putInt("overworldPlayerCount", totalPlayersNeeded)
-                        .putInt("sleepingPlayerCount", numPlayersSleeping)
-                        .build());
-                    session.sendUpstreamPacket(sleepInfoPacket);
+                    Integer numPlayersSleeping = convertToInt(component.arguments().get(0));
+                    Integer totalPlayersNeeded = convertToInt(component.arguments().get(1));
+                    if (numPlayersSleeping != null && totalPlayersNeeded != null) {
+                        LevelEventGenericPacket sleepInfoPacket = new LevelEventGenericPacket();
+                        sleepInfoPacket.setType(LevelEvent.SLEEPING_PLAYERS);
+                        sleepInfoPacket.setTag(NbtMap.builder()
+                            .putInt("ableToSleep", totalPlayersNeeded)
+                            .putInt("overworldPlayerCount", totalPlayersNeeded)
+                            .putInt("sleepingPlayerCount", numPlayersSleeping)
+                            .build());
+                        session.sendUpstreamPacket(sleepInfoPacket);
+                    }
                 }
             } else if (component.key().equals("sleep.skipping_night")) {
                 LevelEventGenericPacket sleepInfoPacket = new LevelEventGenericPacket();
@@ -96,5 +101,20 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         } else {
             session.getUpstream().queuePostStartGamePacket(textPacket);
         }
+    }
+
+    private static @Nullable Integer convertToInt(TranslationArgument translationArgument) {
+        Object value = translationArgument.value();
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value instanceof TextComponent textComponent) {
+            try {
+                return Integer.parseInt(textComponent.content());
+            } catch (NumberFormatException e) {
+                // Ignore
+            }
+        }
+        return null;
     }
 }

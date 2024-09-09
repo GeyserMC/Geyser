@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCach
 
 plugins {
     application
+    id("geyser.platform-conventions")
 }
 
 val terminalConsoleVersion = "1.2.0"

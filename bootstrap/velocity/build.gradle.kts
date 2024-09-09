@@ -1,3 +1,8 @@
+plugins {
+    id("geyser.platform-conventions")
+    id("geyser.modrinth-uploading-conventions")
+}
+
 dependencies {
     annotationProcessor(libs.velocity.api)
     api(projects.core)

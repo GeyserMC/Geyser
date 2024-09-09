@@ -1,3 +1,8 @@
+plugins {
+    id("geyser.platform-conventions")
+    id("geyser.modrinth-uploading-conventions")
+}
+
 dependencies {
     api(projects.core)
     api(libs.erosion.bukkit.common) {

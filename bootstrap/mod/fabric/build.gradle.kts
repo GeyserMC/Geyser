@@ -1,3 +1,8 @@
+plugins {
+    id("geyser.modded-conventions")
+    id("geyser.modrinth-uploading-conventions")
+}
+
 architectury {
     platformSetupLoomIde()
     fabric()
