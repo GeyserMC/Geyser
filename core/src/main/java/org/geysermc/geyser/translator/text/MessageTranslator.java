@@ -431,7 +431,7 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap provided from a registry into a string.
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
      */
     public static String deserializeDescription(GeyserSession session, NbtMap tag) {
         NbtMap description = tag.getCompound("description");
@@ -447,39 +447,42 @@ public class MessageTranslator {
         if (nbtTag instanceof String literal) {
             return Component.text(literal).style(style);
         } else if (nbtTag instanceof List<?> list) {
-            return Component.join(JoinConfiguration.builder(), componentsFromNbtList(list, style));
+            return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
         } else if (nbtTag instanceof NbtMap map) {
-            Component component = Component.empty();
-            if (map.containsKey("text")) {
-                component = Component.text(map.getString("text"));
-            } else if (map.containsKey("translate")) {
-                String key = map.getString("translate");
-                String fallback = map.getString("fallback", "");
-                List<Component> args = new ArrayList<>();
+            Component component = null;
+            String text = map.getString("text", null);
+            if (text != null) {
+                component = Component.text(text);
+            } else {
+                String translateKey = map.getString("translate", null);
+                if (translateKey != null) {
+                    String fallback = map.getString("fallback", "");
+                    List<Component> args = new ArrayList<>();
 
-                if (map.containsKey("with")) {
                     Object with = map.get("with");
                     if (with instanceof List<?> list) {
                         args = componentsFromNbtList(list, style);
-                    } else {
+                    } else if (with != null) {
                         args.add(componentFromNbtTag(with, style));
                     }
+                    component = Component.translatable(translateKey, fallback, args);
                 }
-                component = Component.translatable(key, fallback, args);
             }
 
-            Style newStyle = getStyleFromNbtMap(map, style);
-            component = component.style(newStyle);
+            if (component != null) {
+                Style newStyle = getStyleFromNbtMap(map, style);
+                component = component.style(newStyle);
 
-            Object extra = map.get("extra");
-            if (extra != null) {
-                component = component.append(componentFromNbtTag(extra, newStyle));
+                Object extra = map.get("extra");
+                if (extra != null) {
+                    component = component.append(componentFromNbtTag(extra, newStyle));
+                }
+
+                return component;
             }
-
-            return component;
         }
 
-        throw new IllegalArgumentException("Expected tag to be a literal string, a list of components, or a component");
+        throw new IllegalArgumentException("Expected tag to be a literal string, a list of components, or a component object with a text/translate key");
     }
 
     private static List<Component> componentsFromNbtList(List<?> list, Style style) {
@@ -491,37 +494,28 @@ public class MessageTranslator {
     }
 
     public static Style getStyleFromNbtMap(NbtMap map) {
-        return getStyleFromNbtMap(map, Style.empty());
+        Style.Builder style = Style.style();
+
+        String colorString = map.getString("color", null);
+        if (colorString != null) {
+            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+                style.color(TextColor.fromHexString(colorString));
+            } else {
+                style.color(NamedTextColor.NAMES.value(colorString));
+            }
+        }
+
+        map.listenForBoolean("bold", value -> style.decoration(TextDecoration.BOLD, value));
+        map.listenForBoolean("italic", value -> style.decoration(TextDecoration.ITALIC, value));
+        map.listenForBoolean("underlined", value -> style.decoration(TextDecoration.UNDERLINED, value));
+        map.listenForBoolean("strikethrough", value -> style.decoration(TextDecoration.STRIKETHROUGH, value));
+        map.listenForBoolean("obfuscated", value -> style.decoration(TextDecoration.OBFUSCATED, value));
+
+        return style.build();
     }
 
     public static Style getStyleFromNbtMap(NbtMap map, Style base) {
-        Style.Builder newStyle = Style.style().merge(base);
-
-        if (map.containsKey("color", NbtType.STRING)) {
-            String colorString = map.getString("color");
-            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
-                newStyle.color(TextColor.fromHexString(colorString));
-            } else {
-                newStyle.color(NamedTextColor.NAMES.value(colorString));
-            }
-        }
-        if (map.containsKey("bold", NbtType.BYTE)) {
-            newStyle.decoration(TextDecoration.BOLD, map.getBoolean("bold"));
-        }
-        if (map.containsKey("italic", NbtType.BYTE)) {
-            newStyle.decoration(TextDecoration.ITALIC, map.getBoolean("italic"));
-        }
-        if (map.containsKey("underlined", NbtType.BYTE)) {
-            newStyle.decoration(TextDecoration.UNDERLINED, map.getBoolean("underlined"));
-        }
-        if (map.containsKey("strikethrough", NbtType.BYTE)) {
-            newStyle.decoration(TextDecoration.STRIKETHROUGH, map.getBoolean("strikethrough"));
-        }
-        if (map.containsKey("obfuscated", NbtType.BYTE)) {
-            newStyle.decoration(TextDecoration.OBFUSCATED, map.getBoolean("obfuscated"));
-        }
-
-        return newStyle.build();
+        return base.merge(getStyleFromNbtMap(map));
     }
 
     public static void init() {
