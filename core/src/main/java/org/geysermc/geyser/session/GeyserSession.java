@@ -2055,7 +2055,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Do not send thunder packet if not raining
         // The bedrock client will start raining automatically when updating thunder strength
         // https://github.com/GeyserMC/Geyser/issues/3679
-        if (isThunder() && !isRaining()) {
+        if (!isRaining()) {
             return;
         }
 
