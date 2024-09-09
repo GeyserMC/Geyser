@@ -55,7 +55,7 @@ public record ChatDecoration(String translationKey, List<Parameter> parameters, 
             String translationKey = chat.getString("translation_key");
 
             NbtMap styleTag = chat.getCompound("style");
-            Style style = deserializeStyle(styleTag);
+            Style style = MessageTranslator.getStyleFromNbtMap(styleTag);
 
             List<ChatTypeDecoration.Parameter> parameters = new ArrayList<>();
             List<String> parametersNbt = chat.getList("parameters", NbtType.STRING);
@@ -71,10 +71,6 @@ public record ChatDecoration(String translationKey, List<Parameter> parameters, 
         if (decoration instanceof ChatDecoration chatDecoration) {
             return chatDecoration.deserializedStyle();
         }
-        return deserializeStyle(decoration.style());
-    }
-
-    private static Style deserializeStyle(NbtMap styleTag) {
-        return MessageTranslator.getStyleFromNbtMap(styleTag);
+        return MessageTranslator.getStyleFromNbtMap(decoration.style());
     }
 }
