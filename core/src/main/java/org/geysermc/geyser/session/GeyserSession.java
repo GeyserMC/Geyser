@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import net.raphimc.minecraftauth.responsehandler.exception.MinecraftRequestException;
 import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
@@ -231,6 +232,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -877,7 +879,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return task.getAuthentication().handle((result, ex) -> {
              if (ex != null) {
                  geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                 disconnect(ex.toString());
+                 if (ex instanceof CompletionException ce
+                     && ce.getCause() instanceof MinecraftRequestException mre
+                     && mre.getResponse().getStatusCode() == 404) {
+                     // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
+                     disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
+                 } else {
+                     disconnect(ex.toString());
+                 }
                  return false;
              }
 
