@@ -570,12 +570,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private float walkSpeed;
 
     /**
-     * Caches current rain status.
+     * Caches current rain strength.
+     * Value between 0 and 1.
      */
     private float rainStrength = 0.0f;
 
     /**
-     * Caches current thunder status.
+     * Caches current thunder strength.
+     * Value between 0 and 1.
      */
     private float thunderStrength = 0.0f;
 
@@ -2014,7 +2016,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param strength value between 0 and 1
      */
     public void updateRain(float strength) {
-        boolean transition = isRaining() ^ strength > 0; // Rain is starting/stopping
+        boolean wasRaining = isRaining();
         this.rainStrength = strength;
 
         LevelEventPacket rainPacket = new LevelEventPacket();
@@ -2023,8 +2025,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         rainPacket.setPosition(Vector3f.ZERO);
         sendUpstreamPacket(rainPacket);
 
-        // Keep thunder and rain in sync
-        if (transition && isThunder()) {
+        // Keep thunder in sync with rain when starting/stopping a storm
+        if ((wasRaining != isRaining()) && isThunder()) {
             if (isRaining()) {
                 LevelEventPacket thunderPacket = new LevelEventPacket();
                 thunderPacket.setType(LevelEvent.START_THUNDERSTORM);
