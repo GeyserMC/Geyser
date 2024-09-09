@@ -572,12 +572,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Caches current rain status.
      */
-    private boolean raining = false;
+    private float rainStrength = 0.0f;
 
     /**
      * Caches current thunder status.
      */
-    private boolean thunder = false;
+    private float thunderStrength = 0.0f;
 
     /**
      * Stores a map of all statistics sent from the server.
@@ -2014,23 +2014,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param strength value between 0 and 1
      */
     public void updateRain(float strength) {
-        this.raining = strength > 0;
+        boolean transition = isRaining() ^ strength > 0; // Rain is starting/stopping
+        this.rainStrength = strength;
 
         LevelEventPacket rainPacket = new LevelEventPacket();
-        rainPacket.setType(this.raining ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
+        rainPacket.setType(isRaining() ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
         rainPacket.setData((int) (strength * 65535));
         rainPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(rainPacket);
 
-        if (this.raining) {
-            sendUpstreamPacket(rainPacket);
-        } else {
-            // The bedrock client might ignore this packet if it is sent in the same tick as another rain packet
-            // https://github.com/GeyserMC/Geyser/issues/3679
-            scheduleInEventLoop(() -> {
-                if (!this.raining) {
-                    sendUpstreamPacket(rainPacket);
-                }
-            }, 100, TimeUnit.MILLISECONDS);
+        // Keep thunder and rain in sync
+        if (transition && isThunder()) {
+            if (isRaining()) {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.START_THUNDERSTORM);
+                thunderPacket.setData((int) (this.thunderStrength * 65535));
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            } else {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                thunderPacket.setData(0);
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            }
         }
     }
 
@@ -2041,24 +2048,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param strength value between 0 and 1
      */
     public void updateThunder(float strength) {
-        this.thunder = strength > 0;
+        this.thunderStrength = strength;
+
+        // Do not send thunder packet if not raining
+        // The bedrock client will start raining automatically when updating thunder strength
+        // https://github.com/GeyserMC/Geyser/issues/3679
+        if (isThunder() && !isRaining()) {
+            return;
+        }
 
         LevelEventPacket thunderPacket = new LevelEventPacket();
-        thunderPacket.setType(this.thunder ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
+        thunderPacket.setType(isThunder() ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
         thunderPacket.setData((int) (strength * 65535));
         thunderPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(thunderPacket);
+    }
 
-        if (this.thunder) {
-            sendUpstreamPacket(thunderPacket);
-        } else {
-            // The bedrock client might ignore this packet if it is sent in the same tick as another thunderstorm packet
-            // https://github.com/GeyserMC/Geyser/issues/3679
-            scheduleInEventLoop(() -> {
-                if (!this.thunder) {
-                    sendUpstreamPacket(thunderPacket);
-                }
-            }, 100, TimeUnit.MILLISECONDS);
-        }
+    public boolean isRaining() {
+        return this.rainStrength > 0;
+    }
+
+    public boolean isThunder() {
+        return this.thunderStrength > 0;
     }
 
     @Override
