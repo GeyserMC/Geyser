@@ -25,37 +25,13 @@
 
 package org.geysermc.geyser.configuration;
 
-import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
-import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
-import org.spongepowered.configurate.interfaces.meta.range.NumericRange;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Used for any instance where the Java server is detached from Geyser.
- */
-@ConfigSerializable
-public interface GeyserRemoteConfig extends GeyserConfig {
-    @Override
-    RemoteConfig java();
-
-    @ConfigSerializable
-    interface RemoteConfig extends JavaConfig {
-        @Override
-        @Comment("The IP address of the Java Edition server.")
-        @DefaultString("127.0.0.1")
-        String address();
-
-        @Override
-        @Comment("The port of the Java Edition server.")
-        @DefaultNumeric(25565)
-        @NumericRange(from = 0, to = 65535)
-        int port();
-
-        @Override
-        @Comment("""
-                Forward the hostname that the Bedrock client used to connect over to the Java server
-                This is designed to be used for forced hosts on proxies""")
-        boolean forwardHostname();
-    }
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PlatformTypeSpecific {
+    boolean forPlugin() default true;
 }

@@ -27,7 +27,6 @@ package org.geysermc.geyser.configuration;
 
 import org.spongepowered.configurate.interfaces.meta.Exclude;
 import org.spongepowered.configurate.interfaces.meta.Field;
-import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -58,13 +57,6 @@ public interface GeyserPluginConfig extends GeyserConfig {
             return true; // No need to worry about suspicious behavior flagging the server.
         }
     }
-
-    @Comment("""
-            Use server API methods to determine the Java server's MOTD and ping passthrough.
-            There is no need to disable this unless your MOTD or player count does not appear properly.""")
-    @DefaultBoolean(true)
-    @Override
-    boolean integratedPingPassthrough();
 
     @Comment("""
             How often to ping the Java server to refresh MOTD and player count, in seconds.

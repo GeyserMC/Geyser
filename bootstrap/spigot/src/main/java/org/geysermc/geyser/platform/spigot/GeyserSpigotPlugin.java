@@ -71,8 +71,6 @@ import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
@@ -165,12 +163,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootst
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.debugMode());
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
         this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
 
-        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
+        this.geyser = GeyserImpl.load(this);
     }
 
     @Override
@@ -229,7 +226,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootst
             if (!loadConfig()) {
                 return;
             }
-            this.geyserLogger.setDebug(this.geyserConfig.debugMode());
         }
 
         GeyserImpl.start();
@@ -362,6 +358,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootst
     }
 
     @Override
+    public PlatformType platformType() {
+        return PlatformType.SPIGOT;
+    }
+
+    @Override
     public GeyserPluginConfig config() {
         return this.geyserConfig;
     }
@@ -463,20 +464,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootst
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
-        // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
-        try {
-            if (!getDataFolder().exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                getDataFolder().mkdir();
-            }
-            this.geyserConfig = ConfigLoader.load(new File(getDataFolder(), "config.yml"), GeyserPluginConfig.class);
-        } catch (IOException ex) {
-            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
+        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
+        if (this.geyserConfig == null) {
             Bukkit.getPluginManager().disablePlugin(this);
             return false;
         }
-
         return true;
     }
 

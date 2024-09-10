@@ -81,22 +81,22 @@ public interface AdvancedConfig {
     int mtu();
 
     @Comment("""
-        Only for plugin versions of Geyser.
         Whether to connect directly into the Java server without creating a TCP connection.
         This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
-        If enabled on plugin versions, the remote address and port sections are ignored
-        If disabled on plugin versions, expect performance decrease and latency increase
+        If enabled, the remote address and port sections are ignored
+        If disabled, expect performance decrease and latency increase
         """)
     @DefaultBoolean(true)
+    @PlatformTypeSpecific
     boolean useDirectConnection();
 
     @Comment("""
-        Only for plugin versions of Geyser.
         Whether Geyser should attempt to disable compression for Bedrock players. This should be a benefit as there is no need to compress data
         when Java packets aren't being handled over the network.
         This requires use-direct-connection to be true.
         """)
     @DefaultBoolean(true)
+    @PlatformTypeSpecific
     boolean disableCompression();
 
     @Comment("Do not touch!")

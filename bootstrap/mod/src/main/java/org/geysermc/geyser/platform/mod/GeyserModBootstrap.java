@@ -35,9 +35,10 @@ import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.GeyserPluginBootstrap;
+import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
-import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -46,7 +47,6 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
@@ -82,8 +82,7 @@ public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.debugMode());
-        this.geyser = GeyserImpl.load(this.platform.platformType(), this);
+        this.geyser = GeyserImpl.load(this);
     }
 
     public void onGeyserEnable() {
@@ -96,7 +95,6 @@ public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
             if (!loadConfig()) {
                 return;
             }
-            this.geyserLogger.setDebug(geyserConfig.debugMode());
         }
 
         GeyserImpl.start();
@@ -139,6 +137,11 @@ public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
             geyserInjector.shutdown();
             this.server = null;
         }
+    }
+
+    @Override
+    public PlatformType platformType() {
+        return this.platform.platformType();
     }
 
     @Override
@@ -226,17 +229,7 @@ public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
-        try {
-            if (!dataFolder.toFile().exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                dataFolder.toFile().mkdir();
-            }
-
-            this.geyserConfig = ConfigLoader.load(dataFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
-            return true;
-        } catch (IOException ex) {
-            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            return false;
-        }
+        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
+        return this.geyserConfig != null;
     }
 }

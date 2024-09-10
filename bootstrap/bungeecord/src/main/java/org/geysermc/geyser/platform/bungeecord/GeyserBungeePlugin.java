@@ -37,11 +37,11 @@ import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.configuration.ConfigLoader;
-import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.ConfigLoader;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -51,8 +51,6 @@ import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.bungee.BungeeCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -97,8 +95,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap 
         if (!this.loadConfig()) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.debugMode());
-        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+        this.geyser = GeyserImpl.load(this);
         this.geyserInjector = new GeyserBungeeInjector(this);
 
         // Registration of listeners occurs only once
@@ -162,7 +159,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap 
             if (!loadConfig()) {
                 return;
             }
-            this.geyserLogger.setDebug(geyserConfig.debugMode());
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
@@ -219,6 +215,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap 
     @Override
     public void onDisable() {
         this.onGeyserShutdown();
+    }
+
+    @Override
+    public PlatformType platformType() {
+        return PlatformType.BUNGEECORD;
     }
 
     @Override
@@ -296,16 +297,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap 
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
-        try {
-            if (!getDataFolder().exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                getDataFolder().mkdir();
-            }
-            this.geyserConfig = ConfigLoader.load(new File(getDataFolder(), "config.yml"), GeyserPluginConfig.class);
-        } catch (IOException ex) {
-            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            return false;
-        }
-        return true;
+        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
+        return this.geyserConfig != null;
     }
 }

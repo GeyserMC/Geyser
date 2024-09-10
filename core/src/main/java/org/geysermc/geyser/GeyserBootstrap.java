@@ -27,6 +27,7 @@ package org.geysermc.geyser;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -66,6 +67,14 @@ public interface GeyserBootstrap {
      * Called when the GeyserBootstrap is shutting down.
      */
     void onGeyserShutdown();
+
+    /**
+     * Returns the platform type this Geyser instance is running on.
+     *
+     * @return The current PlatformType
+     */
+    @NonNull
+    PlatformType platformType();
 
     /**
      * Returns the current GeyserConfig

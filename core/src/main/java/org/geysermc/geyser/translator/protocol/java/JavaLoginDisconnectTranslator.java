@@ -50,7 +50,7 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
         String disconnectMessage;
         if (testForOutdatedServer(disconnectReason)) {
             String locale = session.locale();
-            PlatformType platform = session.getGeyser().getPlatformType();
+            PlatformType platform = session.getGeyser().platformType();
             String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY || platform == PlatformType.VIAPROXY) ?
                     "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
             disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'

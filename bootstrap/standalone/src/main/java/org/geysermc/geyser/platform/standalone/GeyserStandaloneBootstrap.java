@@ -37,11 +37,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserRemoteConfig;
-import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -53,7 +53,6 @@ import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -161,10 +160,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserEnable() {
-        try {
-            geyserConfig = ConfigLoader.load(new File(configFilename), GeyserRemoteConfig.class, this::handleArgsConfigOptions);
-        } catch (IOException ex) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+        this.geyserConfig = new ConfigLoader(this)
+            .transformer(this::handleArgsConfigOptions)
+            .load(GeyserRemoteConfig.class);
+        if (this.geyserConfig == null) {
             if (gui == null) {
                 System.exit(1);
             } else {
@@ -172,12 +171,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 return;
             }
         }
-        geyserLogger.setDebug(geyserConfig.debugMode());
 
         // Allow libraries like Protocol to have their debug information passthrough
         log4jLogger.get().setLevel(geyserConfig.debugMode() ? Level.DEBUG : Level.INFO);
 
-        geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
+        geyser = GeyserImpl.load(this);
 
         boolean reloading = geyser.isReloading();
         if (!reloading) {
@@ -230,6 +228,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public void onGeyserShutdown() {
         geyser.shutdown();
         System.exit(0);
+    }
+
+    @Override
+    public PlatformType platformType() {
+        return PlatformType.STANDALONE;
     }
 
     @Override

@@ -39,7 +39,7 @@ public class BootstrapDumpInfo {
     private final PlatformType platform;
 
     public BootstrapDumpInfo() {
-        this.platform = GeyserImpl.getInstance().getPlatformType();
+        this.platform = GeyserImpl.getInstance().platformType();
     }
 
     @Getter

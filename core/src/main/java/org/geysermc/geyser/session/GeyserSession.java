@@ -1084,7 +1084,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale());
                         // Explain that they may be looking for Floodgate.
                         geyser.getLogger().warning(GeyserLocale.getLocaleStringLog(
-                                geyser.getPlatformType() == PlatformType.STANDALONE ?
+                                geyser.platformType() == PlatformType.STANDALONE ?
                                         "geyser.network.remote.floodgate_explanation_standalone"
                                         : "geyser.network.remote.floodgate_explanation_plugin",
                                 Constants.FLOODGATE_DOWNLOAD_LOCATION
@@ -1092,7 +1092,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     } else {
                         // Likely that Floodgate is not configured correctly.
                         disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", locale());
-                        if (geyser.getPlatformType() == PlatformType.STANDALONE) {
+                        if (geyser.platformType() == PlatformType.STANDALONE) {
                             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.remote.floodgate_login_error_standalone"));
                         }
                     }

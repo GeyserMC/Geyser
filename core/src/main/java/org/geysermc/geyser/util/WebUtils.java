@@ -233,6 +233,6 @@ public class WebUtils {
     }
 
     public static String getUserAgent() {
-        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
+        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }

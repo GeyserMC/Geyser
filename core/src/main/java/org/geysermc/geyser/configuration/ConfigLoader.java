@@ -26,18 +26,23 @@
 package org.geysermc.geyser.configuration;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
+import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -70,15 +75,58 @@ public final class ConfigLoader {
             --------------------------------
             """;
 
-    public static <T extends GeyserConfig> T load(File file, Class<T> configClass) throws IOException {
-        return load(file, configClass, null);
+    private final GeyserBootstrap bootstrap;
+    private @Nullable Consumer<CommentedConfigurationNode> transformer;
+    private File configFile;
+
+    public ConfigLoader(GeyserBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
+        configFile = new File(bootstrap.getConfigFolder().toFile(), "config.yml");
     }
 
-    public static <T extends GeyserConfig> T load(File file, Class<T> configClass, @Nullable Consumer<CommentedConfigurationNode> transformer) throws IOException {
-        var loader = createLoader(file, HEADER);
+    /**
+     * Creates the directory as indicated by {@link GeyserBootstrap#getConfigFolder()}
+     */
+    @This
+    public ConfigLoader createFolder() {
+        Path dataFolder = this.bootstrap.getConfigFolder();
+        if (!dataFolder.toFile().exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            dataFolder.toFile().mkdir();
+        }
+        return this;
+    }
+
+    @This
+    public ConfigLoader transformer(Consumer<CommentedConfigurationNode> transformer) {
+        this.transformer = transformer;
+        return this;
+    }
+
+    @This
+    public ConfigLoader configFile(File configFile) {
+        this.configFile = configFile;
+        return this;
+    }
+
+    /**
+     * @return null if the config failed to load.
+     */
+    @Nullable
+    public <T extends GeyserConfig> T load(Class<T> configClass) {
+        try {
+            return load0(configClass);
+        } catch (IOException ex) {
+            bootstrap.getGeyserLogger().error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            return null;
+        }
+    }
+
+    private <T extends GeyserConfig> T load0(Class<T> configClass) throws IOException {
+        var loader = createLoader(configFile, HEADER);
 
         CommentedConfigurationNode node = loader.load();
-        boolean originallyEmpty = !file.exists() || node.isNull();
+        boolean originallyEmpty = !configFile.exists() || node.isNull();
 
         // Note for Tim? Needed or else Configurate breaks.
         var migrations = ConfigurationTransformation.versionedBuilder()
@@ -157,8 +205,8 @@ public final class ConfigLoader {
         newRoot.set(config);
 
         // Create the path in a way that Standalone changing the config name will be fine.
-        int extensionIndex = file.getName().lastIndexOf(".");
-        File advancedConfigPath = new File(file.getParent(), file.getName().substring(0, extensionIndex) + "_advanced" + file.getName().substring(extensionIndex));
+        int extensionIndex = configFile.getName().lastIndexOf(".");
+        File advancedConfigPath = new File(configFile.getParent(), configFile.getName().substring(0, extensionIndex) + "_advanced" + configFile.getName().substring(extensionIndex));
         AdvancedConfig advancedConfig = null;
 
         if (originallyEmpty || currentVersion != newVersion) {
@@ -188,13 +236,15 @@ public final class ConfigLoader {
 
         config.advanced(advancedConfig);
 
+        bootstrap.getGeyserLogger().setDebug(config.debugMode());
+
         return config;
     }
 
-    private static AdvancedConfig migrateToAdvancedConfig(File file, ConfigurationNode configRoot) throws IOException {
-        List<NodePath> copyFromOldConfig = Stream.of("max-visible-custom-skulls", "custom-skull-render-distance", "scoreboard-packet-threshold", "mtu",
+    private AdvancedConfig migrateToAdvancedConfig(File file, ConfigurationNode configRoot) throws IOException {
+        Stream<NodePath> copyFromOldConfig = Stream.of("max-visible-custom-skulls", "custom-skull-render-distance", "scoreboard-packet-threshold", "mtu",
                 "floodgate-key-file", "use-direct-connection", "disable-compression")
-            .map(NodePath::path).toList();
+            .map(NodePath::path);
 
         var loader = createLoader(file, ADVANCED_HEADER);
 
@@ -222,7 +272,7 @@ public final class ConfigLoader {
         return advancedConfig;
     }
 
-    private static AdvancedConfig loadAdvancedConfig(File file) throws IOException {
+    private AdvancedConfig loadAdvancedConfig(File file) throws IOException {
         var loader = createLoader(file, ADVANCED_HEADER);
         if (file.exists()) {
             ConfigurationNode node = loader.load();
@@ -237,18 +287,38 @@ public final class ConfigLoader {
         }
     }
 
-    private static YamlConfigurationLoader createLoader(File file, String header) {
+    private YamlConfigurationLoader createLoader(File file, String header) {
         return YamlConfigurationLoader.builder()
             .file(file)
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
-            .defaultOptions(options -> InterfaceDefaultOptions.addTo(options)
+            .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder ->
+                    builder.addProcessor(ExcludePlatform.class, excludePlatform(bootstrap.platformType().platformName()))
+                        .addProcessor(PlatformTypeSpecific.class, platformTypeSpecific(bootstrap.platformType() != PlatformType.STANDALONE)))
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                 .header(header)
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
             .build();
     }
+    
+    private static Processor.Factory<ExcludePlatform, Object> excludePlatform(String thisPlatform) {
+        return (data, fieldType) -> (value, destination) -> {
+            for (String platform : data.platforms()) {
+                if (thisPlatform.equals(platform)) {
+                    //noinspection DataFlowIssue
+                    destination.parent().removeChild(destination.key());
+                    break;
+                }
+            }
+        };
+    }
 
-    private ConfigLoader() {
+    private static Processor.Factory<PlatformTypeSpecific, Object> platformTypeSpecific(boolean thisConfigPlugin) {
+        return (data, fieldType) -> (value, destination) -> {
+            if (data.forPlugin() != thisConfigPlugin) {
+                //noinspection DataFlowIssue
+                destination.parent().removeChild(destination.key());
+            }
+        };
     }
 }

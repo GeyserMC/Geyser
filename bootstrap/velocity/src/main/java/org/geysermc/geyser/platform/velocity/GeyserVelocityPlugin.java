@@ -42,15 +42,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserPluginBootstrap;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.configuration.ConfigLoader;
-import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.ConfigLoader;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -62,7 +59,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -107,9 +103,8 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.debugMode());
 
-        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+        this.geyser = GeyserImpl.load(this);
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
 
         // We need to register commands here, rather than in onGeyserEnable which is invoked during the appropriate ListenerBoundEvent.
@@ -139,7 +134,6 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
             if (!loadConfig()) {
                 return;
             }
-            this.geyserLogger.setDebug(geyserConfig.debugMode());
         }
 
         GeyserImpl.start();
@@ -171,6 +165,11 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+    }
+
+    @Override
+    public PlatformType platformType() {
+        return PlatformType.VELOCITY;
     }
 
     @Override
@@ -253,17 +252,7 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
-        try {
-            if (!configFolder.toFile().exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                configFolder.toFile().mkdirs();
-            }
-            this.geyserConfig = ConfigLoader.load(configFolder.resolve("config.yml").toFile(), GeyserPluginConfig.class);
-        } catch (IOException ex) {
-            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return false;
-        }
-        return true;
+        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
+        return this.geyserConfig != null;
     }
 }

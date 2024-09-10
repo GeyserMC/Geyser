@@ -167,7 +167,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private ScheduledExecutorService scheduledThread;
 
     private GeyserServer geyserServer;
-    private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
     private final EventBus<EventRegistrar> eventBus;
@@ -193,12 +192,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Setter
     private boolean isEnabled;
 
-    private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
+    private GeyserImpl(GeyserBootstrap bootstrap) {
         instance = this;
 
         Geyser.set(this);
 
-        this.platformType = platformType;
         this.bootstrap = bootstrap;
 
         /* Initialize event bus */
@@ -270,7 +268,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         message += " " + GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
         logger.info(message);
 
-        if (platformType == PlatformType.STANDALONE) {
+        if (platformType() == PlatformType.STANDALONE) {
             if (config.java().authType() != AuthType.FLOODGATE) {
                 // If the auth-type is Floodgate, then this Geyser instance is probably owned by the Java server
                 logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
@@ -306,7 +304,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         boolean portPropertyApplied = false;
         String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
 
-        if (platformType != PlatformType.STANDALONE) {
+        if (platformType() != PlatformType.STANDALONE) {
             int javaPort = bootstrap.getServerPort();
             String serverAddress = bootstrap.getServerBindAddress();
             if (!serverAddress.isEmpty() && !"0.0.0.0".equals(serverAddress)) {
@@ -360,7 +358,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
 
 
-            if (platformType != PlatformType.VIAPROXY) {
+            if (platformType() != PlatformType.VIAPROXY) {
                 boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
                 if (config.java().authType() == AuthType.FLOODGATE && !floodgatePresent) {
                     logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
@@ -496,7 +494,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new SimplePie("platform", platformType::platformName));
+            metrics.addCustomChart(new SimplePie("platform", platformType()::platformName));
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
@@ -532,7 +530,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType.platformName(), 1);
+                platformMap.put(platformType().platformName(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new DrilldownPie("minecraftServerVersion", () -> {
@@ -840,7 +838,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Override
     @NonNull
     public PlatformType platformType() {
-        return platformType;
+        return bootstrap.platformType();
     }
 
     @Override
@@ -871,9 +869,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         return Integer.parseInt(BUILD_NUMBER);
     }
 
-    public static GeyserImpl load(PlatformType platformType, GeyserBootstrap bootstrap) {
+    public static GeyserImpl load(GeyserBootstrap bootstrap) {
         if (instance == null) {
-            return new GeyserImpl(platformType, bootstrap);
+            return new GeyserImpl(bootstrap);
         }
 
         return instance;
