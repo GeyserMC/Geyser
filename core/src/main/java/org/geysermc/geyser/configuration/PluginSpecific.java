@@ -30,8 +30,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Add to a config value to indicate this field is only for plugin versions of Geyser,
+ * or vice-versa.
+ */
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PlatformTypeSpecific {
+public @interface PluginSpecific {
     boolean forPlugin() default true;
 }

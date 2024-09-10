@@ -87,7 +87,7 @@ public interface AdvancedConfig {
         If disabled, expect performance decrease and latency increase
         """)
     @DefaultBoolean(true)
-    @PlatformTypeSpecific
+    @PluginSpecific
     boolean useDirectConnection();
 
     @Comment("""
@@ -96,7 +96,7 @@ public interface AdvancedConfig {
         This requires use-direct-connection to be true.
         """)
     @DefaultBoolean(true)
-    @PlatformTypeSpecific
+    @PluginSpecific
     boolean disableCompression();
 
     @Comment("Do not touch!")

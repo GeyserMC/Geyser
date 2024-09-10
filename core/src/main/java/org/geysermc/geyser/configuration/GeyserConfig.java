@@ -87,7 +87,7 @@ public interface GeyserConfig {
             Use server API methods to determine the Java server's MOTD and ping passthrough.
             There is no need to disable this unless your MOTD or player count does not appear properly.""")
     @DefaultBoolean(true)
-    @PlatformTypeSpecific
+    @PluginSpecific
     boolean integratedPingPassthrough();
 
     @Comment("How often to ping the Java server to refresh MOTD and player count, in seconds.")
@@ -219,7 +219,7 @@ public interface GeyserConfig {
                 Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
                 This option makes the Bedrock port the same as the Java port every time you start the server.""")
         @DefaultBoolean
-        @PlatformTypeSpecific
+        @PluginSpecific
         boolean cloneRemotePort();
 
         void address(String address);

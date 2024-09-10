@@ -294,7 +294,7 @@ public final class ConfigLoader {
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder ->
                     builder.addProcessor(ExcludePlatform.class, excludePlatform(bootstrap.platformType().platformName()))
-                        .addProcessor(PlatformTypeSpecific.class, platformTypeSpecific(bootstrap.platformType() != PlatformType.STANDALONE)))
+                        .addProcessor(PluginSpecific.class, integrationSpecific(bootstrap.platformType() != PlatformType.STANDALONE)))
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                 .header(header)
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
@@ -313,7 +313,7 @@ public final class ConfigLoader {
         };
     }
 
-    private static Processor.Factory<PlatformTypeSpecific, Object> platformTypeSpecific(boolean thisConfigPlugin) {
+    private static Processor.Factory<PluginSpecific, Object> integrationSpecific(boolean thisConfigPlugin) {
         return (data, fieldType) -> (value, destination) -> {
             if (data.forPlugin() != thisConfigPlugin) {
                 //noinspection DataFlowIssue
