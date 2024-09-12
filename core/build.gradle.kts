@@ -3,6 +3,7 @@ plugins {
     idea
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
 }
 
 dependencies {
@@ -103,9 +104,6 @@ sourceSets {
     }
 }
 
-fun buildNumber(): Int =
-    (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
-
 fun isDevBuild(branch: String, repository: String): Boolean {
     return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
 }
@@ -139,7 +137,7 @@ inner class GitInfo {
 
         buildNumber = buildNumber()
         isDev = isDevBuild(branch, repository)
-        val projectVersion = if (isDev) project.version else project.version.toString().replace("SNAPSHOT", "b${buildNumber}")
+        val projectVersion = if (isDev) project.version else projectVersion(project)
         version = "$projectVersion ($gitVersion)"
     }
 }

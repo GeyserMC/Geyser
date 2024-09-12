@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import net.raphimc.minecraftauth.responsehandler.exception.MinecraftRequestException;
 import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
@@ -66,6 +67,7 @@ import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
@@ -85,6 +87,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
@@ -130,6 +133,7 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
@@ -228,6 +232,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -258,7 +263,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @NonNull
     @Setter
-    private AbstractGeyserboundPacketHandler erosionHandler;
+    private volatile AbstractGeyserboundPacketHandler erosionHandler;
 
     @Accessors(fluent = true)
     @Setter
@@ -567,16 +572,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private float walkSpeed;
 
     /**
-     * Caches current rain status.
+     * Caches current rain strength.
+     * Value between 0 and 1.
      */
-    @Setter
-    private boolean raining = false;
+    private float rainStrength = 0.0f;
 
     /**
-     * Caches current thunder status.
+     * Caches current thunder strength.
+     * Value between 0 and 1.
      */
-    @Setter
-    private boolean thunder = false;
+    private float thunderStrength = 0.0f;
 
     /**
      * Stores a map of all statistics sent from the server.
@@ -876,7 +881,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return task.getAuthentication().handle((result, ex) -> {
              if (ex != null) {
                  geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                 disconnect(ex.toString());
+                 if (ex instanceof CompletionException ce
+                     && ce.getCause() instanceof MinecraftRequestException mre
+                     && mre.getResponse().getStatusCode() == 404) {
+                     // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
+                     disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
+                 } else {
+                     disconnect(ex.toString());
+                 }
                  return false;
              }
 
@@ -1172,9 +1184,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             tickThread.cancel(false);
         }
 
-        erosionHandler.close();
-
+        // Mark session as closed before cancelling erosion futures
         closed = true;
+        erosionHandler.close();
     }
 
     /**
@@ -1195,6 +1207,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         eventLoop.execute(() -> {
             try {
                 runnable.run();
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
@@ -1212,6 +1226,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (!closed) {
                     runnable.run();
                 }
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
@@ -1982,6 +1998,71 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             case SLEEPING -> 0.2f;
             default -> EntityDefinitions.PLAYER.offset();
         };
+    }
+
+    /**
+     * Sends a packet to update rain strength.
+     * Stops rain if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateRain(float strength) {
+        boolean wasRaining = isRaining();
+        this.rainStrength = strength;
+
+        LevelEventPacket rainPacket = new LevelEventPacket();
+        rainPacket.setType(isRaining() ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
+        rainPacket.setData((int) (strength * 65535));
+        rainPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(rainPacket);
+
+        // Keep thunder in sync with rain when starting/stopping a storm
+        if ((wasRaining != isRaining()) && isThunder()) {
+            if (isRaining()) {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.START_THUNDERSTORM);
+                thunderPacket.setData((int) (this.thunderStrength * 65535));
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            } else {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                thunderPacket.setData(0);
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            }
+        }
+    }
+
+    /**
+     * Sends a packet to update thunderstorm strength.
+     * Stops thunderstorm if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateThunder(float strength) {
+        this.thunderStrength = strength;
+
+        // Do not send thunder packet if not raining
+        // The bedrock client will start raining automatically when updating thunder strength
+        // https://github.com/GeyserMC/Geyser/issues/3679
+        if (!isRaining()) {
+            return;
+        }
+
+        LevelEventPacket thunderPacket = new LevelEventPacket();
+        thunderPacket.setType(isThunder() ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
+        thunderPacket.setData((int) (strength * 65535));
+        thunderPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(thunderPacket);
+    }
+
+    public boolean isRaining() {
+        return this.rainStrength > 0;
+    }
+
+    public boolean isThunder() {
+        return this.thunderStrength > 0;
     }
 
     @Override

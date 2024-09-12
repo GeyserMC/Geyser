@@ -26,16 +26,21 @@
 package org.geysermc.geyser.translator.text;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -341,16 +346,16 @@ public class MessageTranslator {
             // Though, Bedrock cannot care about the signed stuff.
             TranslatableComponent.Builder withDecoration = Component.translatable()
                     .key(chat.translationKey())
-                    .style(TextDecoration.getStyle(chat));
+                    .style(ChatDecoration.getStyle(chat));
             List<ChatTypeDecoration.Parameter> parameters = chat.parameters();
             List<Component> args = new ArrayList<>(3);
-            if (parameters.contains(TextDecoration.Parameter.TARGET)) {
+            if (parameters.contains(ChatDecoration.Parameter.TARGET)) {
                 args.add(targetName);
             }
-            if (parameters.contains(TextDecoration.Parameter.SENDER)) {
+            if (parameters.contains(ChatDecoration.Parameter.SENDER)) {
                 args.add(sender);
             }
-            if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
+            if (parameters.contains(ChatDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
             withDecoration.arguments(args);
@@ -426,17 +431,91 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap provided from a registry into a string.
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
      */
-    // This may be a Component in the future.
-    public static String deserializeDescription(NbtMap tag) {
+    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
         NbtMap description = tag.getCompound("description");
-        String translate = description.getString("translate", null);
-        if (translate == null) {
-            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
-            return "";
+        Component parsed = componentFromNbtTag(description);
+        return convertMessage(session, parsed);
+    }
+
+    public static Component componentFromNbtTag(Object nbtTag) {
+        return componentFromNbtTag(nbtTag, Style.empty());
+    }
+
+    private static Component componentFromNbtTag(Object nbtTag, Style style) {
+        if (nbtTag instanceof String literal) {
+            return Component.text(literal).style(style);
+        } else if (nbtTag instanceof List<?> list) {
+            return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
+        } else if (nbtTag instanceof NbtMap map) {
+            Component component = null;
+            String text = map.getString("text", null);
+            if (text != null) {
+                component = Component.text(text);
+            } else {
+                String translateKey = map.getString("translate", null);
+                if (translateKey != null) {
+                    String fallback = map.getString("fallback", "");
+                    List<Component> args = new ArrayList<>();
+
+                    Object with = map.get("with");
+                    if (with instanceof List<?> list) {
+                        args = componentsFromNbtList(list, style);
+                    } else if (with != null) {
+                        args.add(componentFromNbtTag(with, style));
+                    }
+                    component = Component.translatable(translateKey, fallback, args);
+                }
+            }
+
+            if (component != null) {
+                Style newStyle = getStyleFromNbtMap(map, style);
+                component = component.style(newStyle);
+
+                Object extra = map.get("extra");
+                if (extra != null) {
+                    component = component.append(componentFromNbtTag(extra, newStyle));
+                }
+
+                return component;
+            }
         }
-        return translate;
+
+        throw new IllegalArgumentException("Expected tag to be a literal string, a list of components, or a component object with a text/translate key");
+    }
+
+    private static List<Component> componentsFromNbtList(List<?> list, Style style) {
+        List<Component> components = new ArrayList<>();
+        for (Object entry : list) {
+            components.add(componentFromNbtTag(entry, style));
+        }
+        return components;
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map) {
+        Style.Builder style = Style.style();
+
+        String colorString = map.getString("color", null);
+        if (colorString != null) {
+            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+                style.color(TextColor.fromHexString(colorString));
+            } else {
+                style.color(NamedTextColor.NAMES.value(colorString));
+            }
+        }
+
+        map.listenForBoolean("bold", value -> style.decoration(TextDecoration.BOLD, value));
+        map.listenForBoolean("italic", value -> style.decoration(TextDecoration.ITALIC, value));
+        map.listenForBoolean("underlined", value -> style.decoration(TextDecoration.UNDERLINED, value));
+        map.listenForBoolean("strikethrough", value -> style.decoration(TextDecoration.STRIKETHROUGH, value));
+        map.listenForBoolean("obfuscated", value -> style.decoration(TextDecoration.OBFUSCATED, value));
+
+        return style.build();
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map, Style base) {
+        return base.merge(getStyleFromNbtMap(map));
     }
 
     public static void init() {

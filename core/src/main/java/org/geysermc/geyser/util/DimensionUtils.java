@@ -28,11 +28,9 @@ package org.geysermc.geyser.util;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.packet.ChangeDimensionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
@@ -89,18 +87,8 @@ public class DimensionUtils {
         entityEffects.clear();
 
         // Always reset weather, as it sometimes suddenly starts raining. See https://github.com/GeyserMC/Geyser/issues/3679
-        LevelEventPacket stopRainPacket = new LevelEventPacket();
-        stopRainPacket.setType(LevelEvent.STOP_RAINING);
-        stopRainPacket.setData(0);
-        stopRainPacket.setPosition(Vector3f.ZERO);
-        session.sendUpstreamPacket(stopRainPacket);
-        session.setRaining(false);
-        LevelEventPacket stopThunderPacket = new LevelEventPacket();
-        stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
-        stopThunderPacket.setData(0);
-        stopThunderPacket.setPosition(Vector3f.ZERO);
-        session.sendUpstreamPacket(stopThunderPacket);
-        session.setThunder(false);
+        session.updateRain(0);
+        session.updateThunder(0);
 
         finalizeDimensionSwitch(session, player);
 
