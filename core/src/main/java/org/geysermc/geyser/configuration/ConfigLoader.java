@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.configuration;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.Constants;
@@ -75,13 +76,22 @@ public final class ConfigLoader {
             --------------------------------
             """;
 
-    private final GeyserBootstrap bootstrap;
+    /**
+     * Only nullable for testing.
+     */
+    private final @Nullable GeyserBootstrap bootstrap;
     private @Nullable Consumer<CommentedConfigurationNode> transformer;
     private File configFile;
 
     public ConfigLoader(GeyserBootstrap bootstrap) {
         this.bootstrap = bootstrap;
         configFile = new File(bootstrap.getConfigFolder().toFile(), "config.yml");
+    }
+
+    @VisibleForTesting
+    ConfigLoader(File file) {
+        this.bootstrap = null;
+        configFile = file;
     }
 
     /**
@@ -236,7 +246,9 @@ public final class ConfigLoader {
 
         config.advanced(advancedConfig);
 
-        bootstrap.getGeyserLogger().setDebug(config.debugMode());
+        if (this.bootstrap != null) { // Null for testing only.
+            this.bootstrap.getGeyserLogger().setDebug(config.debugMode());
+        }
 
         return config;
     }
@@ -292,9 +304,12 @@ public final class ConfigLoader {
             .file(file)
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
-            .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder ->
-                    builder.addProcessor(ExcludePlatform.class, excludePlatform(bootstrap.platformType().platformName()))
-                        .addProcessor(PluginSpecific.class, integrationSpecific(bootstrap.platformType() != PlatformType.STANDALONE)))
+            .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
+                    if (this.bootstrap != null) { // Testing only.
+                        builder.addProcessor(ExcludePlatform.class, excludePlatform(bootstrap.platformType().platformName()))
+                            .addProcessor(PluginSpecific.class, integrationSpecific(bootstrap.platformType() != PlatformType.STANDALONE));
+                    }
+                })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                 .header(header)
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
