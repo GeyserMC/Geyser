@@ -958,7 +958,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
 
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
-            downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
         }
         if (geyser.getConfig().isForwardPlayerPing()) {
