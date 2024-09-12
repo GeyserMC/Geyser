@@ -179,6 +179,7 @@ public interface GeyserConfig {
             what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
             https://bstats.org/plugin/server-implementation/GeyserMC""")
     @DefaultBoolean(true)
+    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // bStats platform versions used
     boolean enableMetrics();
 
     /**

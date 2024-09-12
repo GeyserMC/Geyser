@@ -67,6 +67,7 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativ
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
@@ -460,6 +461,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootst
         Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
         return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataFolder, geyserDataFolder, geyserLogger);
+    }
+
+    @Override
+    public MetricsPlatform createMetricsPlatform() {
+        return new SpigotMetrics(this);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

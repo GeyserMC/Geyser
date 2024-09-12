@@ -34,6 +34,8 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
+import org.geysermc.geyser.util.metrics.ProvidedMetricsPlatform;
 
 import java.io.InputStream;
 import java.net.SocketAddress;
@@ -203,4 +205,9 @@ public interface GeyserBootstrap {
      * TEMPORARY - will be removed after The Merge:tm:.
      */
     Path getFloodgateKeyPath();
+
+    @Nullable
+    default MetricsPlatform createMetricsPlatform() {
+        return new ProvidedMetricsPlatform();
+    }
 }

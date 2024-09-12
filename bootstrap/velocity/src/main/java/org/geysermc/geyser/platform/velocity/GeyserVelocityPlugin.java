@@ -54,11 +54,13 @@ import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -248,6 +250,19 @@ public class GeyserVelocityPlugin implements GeyserPluginBootstrap {
         Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
         Path floodgateDataPath = floodgate.isPresent() ? Paths.get("plugins/floodgate/") : null;
         return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataPath, configFolder, geyserLogger);
+    }
+
+    @Override
+    public MetricsPlatform createMetricsPlatform() {
+        try {
+            return new VelocityMetrics(this.configFolder);
+        } catch (IOException e) {
+            this.geyserLogger.debug("Integrated bStats support failed to load.");
+            if (this.config().debugMode()) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

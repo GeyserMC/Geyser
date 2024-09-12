@@ -47,10 +47,12 @@ import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.bungee.BungeeCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -286,6 +288,19 @@ public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap 
         Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
         return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataFolder, geyserDataFolder, geyserLogger);
+    }
+
+    @Override
+    public MetricsPlatform createMetricsPlatform() {
+        try {
+            return new BungeeMetrics(this);
+        } catch (IOException e) {
+            this.geyserLogger.debug("Integrated bStats support failed to load.");
+            if (this.config().debugMode()) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {

@@ -103,6 +103,7 @@ import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
@@ -465,10 +466,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        if (config.enableMetrics()) {
+        MetricsPlatform metricsPlatform = bootstrap.createMetricsPlatform();
+        if (metricsPlatform != null && metricsPlatform.enabled()) {
             metrics = new MetricsBase(
                 "server-implementation",
-                config.advanced().metricsUuid().toString(),
+                metricsPlatform.serverUuid(),
                 Constants.BSTATS_ID,
                 true, // Already checked above.
                 builder -> {
@@ -488,9 +490,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 () -> true,
                 logger::error,
                 logger::info,
-                config.debugMode(),
-                config.debugMode(),
-                config.debugMode());
+                metricsPlatform.logFailedRequests(),
+                metricsPlatform.logSentData(),
+                metricsPlatform.logResponseStatusText());
             metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));

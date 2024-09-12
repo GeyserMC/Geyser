@@ -100,6 +100,7 @@ public interface AdvancedConfig {
     boolean disableCompression();
 
     @Comment("Do not touch!")
+    @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // bStats platform versions used
     default UUID metricsUuid() {
         return UUID.randomUUID();
     }
