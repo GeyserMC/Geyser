@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.enchantment;
 
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
@@ -33,13 +34,14 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 /**
  * @param description only populated if {@link #bedrockEnchantment()} is not null.
@@ -86,21 +88,21 @@ public record Enchantment(String identifier,
     }
 
     // TODO holder set util?
-    private static HolderSet readHolderSet(@Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
+    private static HolderSet readHolderSet(@Nullable Object holderSet, ToIntFunction<Key> keyIdMapping) {
         if (holderSet == null) {
-            return new HolderSet(new int[]{});
+            return new HolderSet(IntArrays.EMPTY_ARRAY);
         }
 
         if (holderSet instanceof String stringTag) {
             // Tag
             if (stringTag.startsWith("#")) {
-                return new HolderSet(Key.key(stringTag.substring(1))); // Remove '#' at beginning that indicates tag
+                return new HolderSet(MinecraftKey.key(stringTag.substring(1))); // Remove '#' at beginning that indicates tag
             } else {
-                return new HolderSet(new int[]{keyIdMapping.apply(Key.key(stringTag))});
+                return new HolderSet(new int[]{keyIdMapping.applyAsInt(MinecraftKey.key(stringTag))});
             }
         } else if (holderSet instanceof List<?> list) {
             // Assume the list is a list of strings
-            return new HolderSet(list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
+            return new HolderSet(list.stream().map(o -> (String) o).map(Key::key).mapToInt(keyIdMapping).toArray());
         }
         throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
     }
