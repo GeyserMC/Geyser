@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.item.enchantment;
 
-import java.util.List;
-import java.util.function.Function;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
@@ -35,11 +33,13 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import java.util.function.Function;
 
 /**
  * @param description only populated if {@link #bedrockEnchantment()} is not null.
