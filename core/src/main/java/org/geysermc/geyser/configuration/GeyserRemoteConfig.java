@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.configuration;
 
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
 import org.spongepowered.configurate.interfaces.meta.range.NumericRange;
@@ -44,6 +45,7 @@ public interface GeyserRemoteConfig extends GeyserConfig {
         @Override
         @Comment("The IP address of the Java Edition server.")
         @DefaultString("127.0.0.1")
+        @AsteriskSerializer.Asterisk
         String address();
 
         @Override

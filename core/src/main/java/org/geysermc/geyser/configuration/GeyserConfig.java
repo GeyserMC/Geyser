@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
 import org.spongepowered.configurate.interfaces.meta.Field;
@@ -200,6 +201,7 @@ public interface GeyserConfig {
                 Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.""")
         @NonNull
         @DefaultString("0.0.0.0")
+        @AsteriskSerializer.Asterisk
         String address();
 
         @Override

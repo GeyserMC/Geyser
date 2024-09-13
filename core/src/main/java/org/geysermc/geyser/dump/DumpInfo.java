@@ -40,13 +40,17 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.configuration.AdvancedConfig;
-import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.util.CpuUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,8 +77,8 @@ public class DumpInfo {
     private final Locale systemLocale;
     private final String systemEncoding;
     private final GitInfo gitInfo;
-    private final GeyserConfig config;
-    private final AdvancedConfig advancedConfig;
+    private Object config;
+    private Object advancedConfig;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
     private final HashInfo hashInfo;
@@ -94,8 +98,24 @@ public class DumpInfo {
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
-        this.config = geyser.config();
-        this.advancedConfig = geyser.config().advanced();
+        try {
+            // Workaround for JsonAdapter not being allowed on methods
+            ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
+                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
+                .shouldCopyDefaults(false);
+
+            ConfigurationNode configNode = CommentedConfigurationNode.root(options);
+            configNode.set(geyser.config());
+            this.config = configNode.get(geyser.config().getClass());
+
+            ConfigurationNode advancedConfigNode = CommentedConfigurationNode.root(options);
+            advancedConfigNode.set(geyser.config().advanced());
+            this.advancedConfig = advancedConfigNode.get(AdvancedConfig.class);
+        } catch (SerializationException e) {
+            if (geyser.config().debugMode()) {
+                e.printStackTrace();
+            }
+        }
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -110,7 +130,7 @@ public class DumpInfo {
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
-            if (this.config.debugMode()) {
+            if (geyser.config().debugMode()) {
                 e.printStackTrace();
             }
         }

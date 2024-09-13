@@ -29,7 +29,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import org.spongepowered.configurate.objectmapping.meta.Processor;
+import org.spongepowered.configurate.serialize.SerializationException;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
 
@@ -47,7 +53,7 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         return new JsonPrimitive("***");
     }
 
-    private boolean isSensitiveIp(String ip) {
+    private static boolean isSensitiveIp(String ip) {
         for (String address : NON_SENSITIVE_ADDRESSES) {
             if (address.equalsIgnoreCase(ip)) {
                 return false;
@@ -64,5 +70,22 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         }
 
         return true;
+    }
+
+    public static Processor.Factory<Asterisk, String> CONFIGURATE_SERIALIZER = (data, fieldType) -> (value, destination) -> {
+        if (showSensitive || !isSensitiveIp(value)) {
+            return;
+        }
+        try {
+            destination.set("***");
+        } catch (SerializationException e) {
+            throw new RuntimeException(e); // Error over silently printing an IP address.
+        }
+    };
+
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Asterisk {
+
     }
 }

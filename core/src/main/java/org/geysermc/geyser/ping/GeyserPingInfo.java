@@ -25,8 +25,15 @@
 
 package org.geysermc.geyser.ping;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.annotations.JsonAdapter;
 import lombok.Data;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.lang.reflect.Type;
 
 /**
  * The structure of this class and its nested classes are specifically
@@ -36,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class GeyserPingInfo {
 
     @Nullable
+    @JsonAdapter(DescriptionDeserializer.class)
     private String description;
 
     private Players players;
@@ -67,6 +75,16 @@ public class GeyserPingInfo {
         public Players(int max, int online) {
             this.max = max;
             this.online = online;
+        }
+    }
+
+    /**
+     * So GSON does not complain how we are treating Description - it will be converted to a proper Component later.
+     */
+    private static final class DescriptionDeserializer implements JsonDeserializer<String> {
+        @Override
+        public String deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return json.toString();
         }
     }
 }
