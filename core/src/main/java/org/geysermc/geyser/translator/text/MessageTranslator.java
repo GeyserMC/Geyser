@@ -40,18 +40,25 @@ import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.*;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.ChatDecoration;
+import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
+import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -434,7 +441,7 @@ public class MessageTranslator {
      * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
      */
     public static String deserializeDescription(GeyserSession session, NbtMap tag) {
-        NbtMap description = tag.getCompound("description");
+        Object description = tag.get("description");
         Component parsed = componentFromNbtTag(description);
         return convertMessage(session, parsed);
     }
@@ -482,7 +489,8 @@ public class MessageTranslator {
             }
         }
 
-        throw new IllegalArgumentException("Expected tag to be a literal string, a list of components, or a component object with a text/translate key");
+        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
+        return Component.empty();
     }
 
     private static List<Component> componentsFromNbtList(List<?> list, Style style) {

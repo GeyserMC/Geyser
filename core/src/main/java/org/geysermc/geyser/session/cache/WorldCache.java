@@ -34,6 +34,7 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater.ScoreboardSession;
 import org.geysermc.geyser.session.GeyserSession;
@@ -69,6 +70,8 @@ public final class WorldCache {
     @Getter
     @Setter
     private boolean editingSignOnFront;
+
+    private final Object2IntMap<Item> activeCooldowns = new Object2IntOpenHashMap<>(2);
 
     public WorldCache(GeyserSession session) {
         this.session = session;
@@ -200,5 +203,33 @@ public final class WorldCache {
     @Nullable
     public String removeActiveRecord(Vector3i pos) {
         return this.activeRecords.remove(pos);
+    }
+
+    public void setCooldown(Item item, int ticks) {
+        if (ticks == 0) {
+            // As of Java 1.21
+            this.activeCooldowns.removeInt(item);
+            return;
+        }
+        this.activeCooldowns.put(item, session.getTicks() + ticks);
+    }
+
+    public boolean hasCooldown(Item item) {
+        return this.activeCooldowns.containsKey(item);
+    }
+
+    public void tick() {
+        // Implementation note: technically we could empty the field during hasCooldown checks,
+        // but we don't want the cooldown field to balloon in size from overuse.
+        if (!this.activeCooldowns.isEmpty()) {
+            int ticks = session.getTicks();
+            Iterator<Object2IntMap.Entry<Item>> it = Object2IntMaps.fastIterator(this.activeCooldowns);
+            while (it.hasNext()) {
+                Object2IntMap.Entry<Item> entry = it.next();
+                if (entry.getIntValue() <= ticks) {
+                    it.remove();
+                }
+            }
+        }
     }
 }
