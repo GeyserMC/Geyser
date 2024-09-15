@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -76,21 +73,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         session.setGameMode(spawnInfo.getGameMode());
 
         if (session.isRaining()) {
-            LevelEventPacket stopRainPacket = new LevelEventPacket();
-            stopRainPacket.setType(LevelEvent.STOP_RAINING);
-            stopRainPacket.setData(0);
-            stopRainPacket.setPosition(Vector3f.ZERO);
-            session.sendUpstreamPacket(stopRainPacket);
-            session.setRaining(false);
+            session.updateRain(0);
         }
 
         if (session.isThunder()) {
-            LevelEventPacket stopThunderPacket = new LevelEventPacket();
-            stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
-            stopThunderPacket.setData(0);
-            stopThunderPacket.setPosition(Vector3f.ZERO);
-            session.sendUpstreamPacket(stopThunderPacket);
-            session.setThunder(false);
+            session.updateThunder(0);
         }
 
         JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());

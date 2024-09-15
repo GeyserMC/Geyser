@@ -23,28 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level;
+package org.geysermc.geyser.erosion;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import java.io.Serial;
+import java.util.concurrent.CancellationException;
 
-public record JukeboxSong(String soundEvent, String description) {
-
-    public static JukeboxSong read(RegistryEntryContext context) {
-        NbtMap data = context.data();
-        Object soundEventObject = data.get("sound_event");
-        String soundEvent;
-        if (soundEventObject instanceof NbtMap map) {
-            soundEvent = map.getString("sound_id");
-        } else if (soundEventObject instanceof String string) {
-            soundEvent = string;
-        } else {
-            soundEvent = "";
-            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
-        }
-        String description = MessageTranslator.deserializeDescription(context.session(), data);
-        return new JukeboxSong(soundEvent, description);
-    }
+public class ErosionCancellationException extends CancellationException {
+    @Serial
+    private static final long serialVersionUID = 1L;
 }

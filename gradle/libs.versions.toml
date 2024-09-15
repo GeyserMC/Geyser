@@ -10,9 +10,9 @@ netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta3-20240819.124045-12"
-protocol-common = "3.0.0.Beta3-20240819.124045-10"
-protocol-codec = "3.0.0.Beta3-20240819.124045-13"
+protocol-connection = "3.0.0.Beta4-20240828.162251-1"
+protocol-common = "3.0.0.Beta4-20240828.162251-1"
+protocol-codec = "3.0.0.Beta4-20240828.162251-1"
 raknet = "1.0.0.CR3-20240416.144209-1"
 minecraftauth = "4.1.1-20240806.235051-7"
 mcprotocollib = "1.21-20240725.013034-16"
@@ -134,6 +134,7 @@ protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-con
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
 # plugins
+lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
 shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "shadow" }
 architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
@@ -141,7 +142,6 @@ architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 
 [plugins]
-lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 

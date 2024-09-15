@@ -1,3 +1,7 @@
+plugins {
+    id("geyser.modded-conventions")
+}
+
 architectury {
     common("neoforge", "fabric")
 }
