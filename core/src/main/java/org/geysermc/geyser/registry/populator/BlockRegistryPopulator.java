@@ -39,6 +39,7 @@ import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
+import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -110,7 +111,40 @@ public final class BlockRegistryPopulator {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Conversion685_671::remapBlock)
                 .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Conversion712_685::remapBlock)
-                .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), Conversion729_712::remapBlock)
+                .put(ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()), tag -> { // TODO: Remove me when mappings is updated
+                    if(Objects.equals(tag.getString("name"), "minecraft:sponge")) {
+                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                        builder.remove("sponge_type");
+                        NbtMap states = builder.build();
+                        return tag.toBuilder().putString("name", "minecraft:sponge").putCompound("states", states).build();
+                    }
+                    if(Objects.equals(tag.getString("name"), "minecraft:tnt")) {
+                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                        builder.remove("allow_underwater_bit");
+                        NbtMap states = builder.build();
+                        return tag.toBuilder().putString("name", "minecraft:tnt").putCompound("states", states).build();
+                    }
+                    if(Objects.equals(tag.getString("name"), "minecraft:cobblestone_wall")) {
+                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                        builder.remove("wall_block_type");
+                        NbtMap states = builder.build();
+                        return tag.toBuilder().putString("name", "minecraft:cobblestone_wall").putCompound("states", states).build();
+                    }
+                    if(Objects.equals(tag.getString("name"), "minecraft:purpur_block")) {
+                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                        builder.remove("chisel_type");
+                        NbtMap states = builder.build();
+                        return tag.toBuilder().putString("name", "minecraft:purpur_block").putCompound("states", states).build();
+                    }
+                    if(Objects.equals(tag.getString("name"), "minecraft:structure_void")) {
+                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                        builder.remove("structure_void_type");
+                        NbtMap states = builder.build();
+                        return tag.toBuilder().putString("name", "minecraft:structure_void").putCompound("states", states).build();
+                    }
+                    return tag;
+                })
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
