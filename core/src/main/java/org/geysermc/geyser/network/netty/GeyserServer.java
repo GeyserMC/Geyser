@@ -144,11 +144,6 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        // It's set to 0 only if no system property or manual config value was set
-        if (geyser.getConfig().getBedrock().broadcastPort() == 0) {
-            geyser.getConfig().getBedrock().setBroadcastPort(geyser.getConfig().getBedrock().port());
-        }
-
         this.broadcastPort = geyser.getConfig().getBedrock().broadcastPort();
     }
 

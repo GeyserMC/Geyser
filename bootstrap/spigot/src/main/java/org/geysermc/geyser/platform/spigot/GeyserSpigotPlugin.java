@@ -181,7 +181,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        // Create command manager early so we can add Geyser extension commands
+        // Register commands after Geyser initialization, but before the server starts.
         var sourceConverter = new CommandSourceConverter<>(
                 CommandSender.class,
                 Bukkit::getPlayer,

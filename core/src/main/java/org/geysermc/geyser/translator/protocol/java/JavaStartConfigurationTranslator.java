@@ -23,28 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundStartConfigurationPacket;
 
-public record JukeboxSong(String soundEvent, String description) {
+@Translator(packet = ClientboundStartConfigurationPacket.class)
+public class JavaStartConfigurationTranslator extends PacketTranslator<ClientboundStartConfigurationPacket> {
 
-    public static JukeboxSong read(RegistryEntryContext context) {
-        NbtMap data = context.data();
-        Object soundEventObject = data.get("sound_event");
-        String soundEvent;
-        if (soundEventObject instanceof NbtMap map) {
-            soundEvent = map.getString("sound_id");
-        } else if (soundEventObject instanceof String string) {
-            soundEvent = string;
-        } else {
-            soundEvent = "";
-            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
+    @Override
+    public void translate(GeyserSession session, ClientboundStartConfigurationPacket packet) {
+        var erosionHandler = session.getErosionHandler();
+        if (erosionHandler.isActive()) {
+            // Set new handler before closing
+            session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
+            erosionHandler.close();
         }
-        String description = MessageTranslator.deserializeDescription(context.session(), data);
-        return new JukeboxSong(soundEvent, description);
+    }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        // Execute outside of event loop to cancel any pending erosion futures
+        return false;
     }
 }

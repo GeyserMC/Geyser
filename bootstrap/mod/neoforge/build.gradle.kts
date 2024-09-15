@@ -1,12 +1,17 @@
-// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
-// NeoForge's class loader is *really* annoying.
-provided("org.cloudburstmc.math", "api")
-provided("com.google.errorprone", "error_prone_annotations")
+plugins {
+    id("geyser.modded-conventions")
+    id("geyser.modrinth-uploading-conventions")
+}
 
 architectury {
     platformSetupLoomIde()
     neoForge()
 }
+
+// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
+// NeoForge's class loader is *really* annoying.
+provided("org.cloudburstmc.math", "api")
+provided("com.google.errorprone", "error_prone_annotations")
 
 val includeTransitive: Configuration = configurations.getByName("includeTransitive")
 
