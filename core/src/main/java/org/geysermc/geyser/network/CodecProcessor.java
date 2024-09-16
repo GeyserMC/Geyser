@@ -288,25 +288,27 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
-        boolean is729 = codec.getProtocolVersion() == 729;
-        boolean isPre712 = codec.getProtocolVersion() < 712;
+        boolean is729 = codec.getProtocolVersion() >= 729;
+        boolean is712 = codec.getProtocolVersion() >= 712;
 
         BedrockPacketSerializer<InventoryContentPacket> inventoryContentPacketBedrockPacketSerializer;
         if (is729) {
             inventoryContentPacketBedrockPacketSerializer = INVENTORY_CONTENT_SERIALIZER_V729;
-        } else if (isPre712) {
-            inventoryContentPacketBedrockPacketSerializer = INVENTORY_CONTENT_SERIALIZER_V407;
-        } else {
+        } else if (is712) {
             inventoryContentPacketBedrockPacketSerializer = INVENTORY_CONTENT_SERIALIZER_V712;
+        } else {
+            inventoryContentPacketBedrockPacketSerializer = INVENTORY_CONTENT_SERIALIZER_V407;
         }
+
         BedrockPacketSerializer<InventorySlotPacket> inventorySlotPacketBedrockPacketSerializer;
         if (is729) {
             inventorySlotPacketBedrockPacketSerializer = INVENTORY_SLOT_SERIALIZER_V729;
-        } else if (isPre712) {
-            inventorySlotPacketBedrockPacketSerializer = INVENTORY_SLOT_SERIALIZER_V407;
-        } else {
+        } else if (is712) {
             inventorySlotPacketBedrockPacketSerializer = INVENTORY_SLOT_SERIALIZER_V712;
+        } else {
+            inventorySlotPacketBedrockPacketSerializer = INVENTORY_SLOT_SERIALIZER_V407;
         }
+
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
@@ -339,7 +341,7 @@ class CodecProcessor {
             .updateSerializer(InventorySlotPacket.class, inventorySlotPacketBedrockPacketSerializer)
             // Ignored only when serverbound
             .updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER)
-            .updateSerializer(MobArmorEquipmentPacket.class, isPre712 ? MOB_ARMOR_EQUIPMENT_SERIALIZER_V291 : MOB_ARMOR_EQUIPMENT_SERIALIZER_V712)
+            .updateSerializer(MobArmorEquipmentPacket.class, is712 ? MOB_ARMOR_EQUIPMENT_SERIALIZER_V291 : MOB_ARMOR_EQUIPMENT_SERIALIZER_V712)
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
