@@ -146,7 +146,6 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V729 = new InventoryContentSerializer_v729() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            packet.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null)); // TODO: Remove me for correct FullContainerName
             super.serialize(buffer, helper, packet);
         }
 
@@ -179,7 +178,6 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V729 = new InventorySlotSerializer_v729() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            packet.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null)); // TODO: Remove me for correct FullContainerName
             super.serialize(buffer, helper, packet);
         }
 
@@ -188,8 +186,6 @@ class CodecProcessor {
             throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
-
-
 
     /**
      * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
