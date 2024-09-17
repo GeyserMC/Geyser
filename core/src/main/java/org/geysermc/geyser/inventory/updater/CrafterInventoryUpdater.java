@@ -49,7 +49,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ItemData[] bedrockItems;
         InventoryContentPacket contentPacket;
-        
+
         // crafter grid - but excluding the result slot
         bedrockItems = new ItemData[CrafterInventoryTranslator.GRID_SIZE];
         for (int i = 0; i < bedrockItems.length; i++) {
