@@ -113,35 +113,36 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Conversion712_685::remapBlock)
                 .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), Conversion729_712::remapBlock)
                 .put(ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()), tag -> { // TODO: Remove me when mappings is updated
-                    if(Objects.equals(tag.getString("name"), "minecraft:sponge")) {
+                    String name = tag.getString("name");
+                    if ("minecraft:sponge".equals(name)) {
                         NbtMapBuilder builder = tag.getCompound("states").toBuilder();
                         builder.remove("sponge_type");
                         NbtMap states = builder.build();
-                        return tag.toBuilder().putString("name", "minecraft:sponge").putCompound("states", states).build();
+                        return tag.toBuilder().putCompound("states", states).build();
                     }
-                    if(Objects.equals(tag.getString("name"), "minecraft:tnt")) {
+                    if ("minecraft:tnt".equals(name)) {
                         NbtMapBuilder builder = tag.getCompound("states").toBuilder();
                         builder.remove("allow_underwater_bit");
                         NbtMap states = builder.build();
-                        return tag.toBuilder().putString("name", "minecraft:tnt").putCompound("states", states).build();
+                        return tag.toBuilder().putCompound("states", states).build();
                     }
-                    if(Objects.equals(tag.getString("name"), "minecraft:cobblestone_wall")) {
+                    if ("minecraft:cobblestone_wall".equals(name)) {
                         NbtMapBuilder builder = tag.getCompound("states").toBuilder();
                         builder.remove("wall_block_type");
                         NbtMap states = builder.build();
-                        return tag.toBuilder().putString("name", "minecraft:cobblestone_wall").putCompound("states", states).build();
+                        return tag.toBuilder().putCompound("states", states).build();
                     }
-                    if(Objects.equals(tag.getString("name"), "minecraft:purpur_block")) {
+                    if ("minecraft:purpur_block".equals(name)) {
                         NbtMapBuilder builder = tag.getCompound("states").toBuilder();
                         builder.remove("chisel_type");
                         NbtMap states = builder.build();
-                        return tag.toBuilder().putString("name", "minecraft:purpur_block").putCompound("states", states).build();
+                        return tag.toBuilder().putCompound("states", states).build();
                     }
-                    if(Objects.equals(tag.getString("name"), "minecraft:structure_void")) {
+                    if ("minecraft:structure_void".equals(name)) {
                         NbtMapBuilder builder = tag.getCompound("states").toBuilder();
                         builder.remove("structure_void_type");
                         NbtMap states = builder.build();
-                        return tag.toBuilder().putString("name", "minecraft:structure_void").putCompound("states", states).build();
+                        return tag.toBuilder().putCompound("states", states).build();
                     }
                     return tag;
                 })

@@ -61,18 +61,16 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         session.sendUpstreamPacket(contentPacket);
 
         // inventory and hotbar
-        ItemData[] bedrockItems2;
-        InventoryContentPacket contentPacket2;
-        bedrockItems2 = new ItemData[36];
+        bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
             final int offset = i < 9 ? 27 : -9;
-            bedrockItems2[i] = inventory.getItem(CrafterInventoryTranslator.GRID_SIZE + i + offset).getItemData(session);
+            bedrockItems[i] = inventory.getItem(CrafterInventoryTranslator.GRID_SIZE + i + offset).getItemData(session);
         }
-        contentPacket2 = new InventoryContentPacket();
-        contentPacket2.setContainerId(ContainerId.INVENTORY);
-        contentPacket2.setContents(Arrays.asList(bedrockItems2));
-        contentPacket2.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        session.sendUpstreamPacket(contentPacket2);
+        contentPacket = new InventoryContentPacket();
+        contentPacket.setContainerId(ContainerId.INVENTORY);
+        contentPacket.setContents(Arrays.asList(bedrockItems));
+        contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        session.sendUpstreamPacket(contentPacket);
 
         // Crafter result - it doesn't come after the grid, as explained elsewhere.
         updateSlot(translator, session, inventory, CrafterInventoryTranslator.JAVA_RESULT_SLOT);
