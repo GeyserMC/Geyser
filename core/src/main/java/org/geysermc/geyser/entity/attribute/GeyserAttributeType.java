@@ -37,7 +37,7 @@ public enum GeyserAttributeType {
     // Universal Attributes
     FOLLOW_RANGE("minecraft:generic.follow_range", "minecraft:follow_range", 0f, 2048f, 32f),
     KNOCKBACK_RESISTANCE("minecraft:generic.knockback_resistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
-    MOVEMENT_SPEED("minecraft:generic.movement_speed", "minecraft:movement", 0f, Float.MAX_VALUE, 0.1f),
+    MOVEMENT_SPEED("minecraft:generic.movement_speed", "minecraft:movement", 0f, 1024f, 0.1f),
     FLYING_SPEED("minecraft:generic.flying_speed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
     ATTACK_DAMAGE("minecraft:generic.attack_damage", "minecraft:attack_damage", 0f, 2048f, 1f),
     HORSE_JUMP_STRENGTH("minecraft:horse.jump_strength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
