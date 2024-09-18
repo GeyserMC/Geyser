@@ -39,93 +39,90 @@ import java.util.Map;
 
 public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackOption<?>> {
 
-    public void add(ResourcePackOption<?> option) {
-        if (super.containsKey(option.type())) {
-            super.replace(option.type(), option);
-        } else {
-            super.put(option.type(), option);
-        }
+    public OptionHolder() {
+        super();
     }
 
-    public void add(ResourcePackOption<?>... options) {
+    // Used when adding resource packs initially to ensure that a priority option is always set
+    // It is however NOT used for session-options, as then the "normal" prio might override
+    // the resource pack option
+    public OptionHolder(PriorityOption option) {
+        super();
+        put(option.type(), option);
+    }
+
+    public void validateAndAdd(ResourcePack pack, ResourcePackOption<?>... options) {
         for (ResourcePackOption<?> option : options) {
-            add(option);
+            // Validate before adding
+            option.validate(pack);
+
+            // Ensure that we do not have duplicate types.
+            if (super.containsKey(option.type())) {
+                super.replace(option.type(), option);
+            } else {
+                super.put(option.type(), option);
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T getWithFallbacks(ResourcePackOption.@NonNull Type type,
-                                         @Nullable OptionHolder holder,
-                                         @NonNull OptionHolder defaultHolder,
-                                         @NonNull T defaultValue) {
+    public static <T> T valueOrFallback(ResourcePackOption.@NonNull Type type,
+                                        @Nullable OptionHolder sessionPackOptions,
+                                        @NonNull OptionHolder resourcePackOptions,
+                                        @NonNull T defaultValue) {
         ResourcePackOption<?> option;
 
-        // First: the optionHolder's option, if it exists
-        if (holder != null) {
-            option = holder.get(type);
+        // First: the session's options, if they exist
+        if (sessionPackOptions != null) {
+            option = sessionPackOptions.get(type);
             if (option != null) {
-                return ((ResourcePackOption<T>) option).value();
+                return (T) option.value();
             }
         }
 
-        // Second: check the default optionHolder for the option, if it exists
-        option = defaultHolder.get(type);
+        // Second: check the resource pack options
+        option = resourcePackOptions.get(type);
         if (option != null) {
-            return ((ResourcePackOption<T>) option).value();
+            return (T) option.value();
         }
 
-        // Finally: Fallback to default
+        // Finally: return default
         return defaultValue;
     }
 
-    public static ResourcePackOption<?> getOptionByType(ResourcePackOption.@NonNull Type type,
-                                         @Nullable OptionHolder holder,
-                                         @NonNull OptionHolder defaultHolder) {
-        ResourcePackOption<?> option;
+    public static @Nullable ResourcePackOption<?> optionByType(ResourcePackOption.@NonNull Type type,
+                                                     @Nullable OptionHolder sessionPackOptions,
+                                                     @NonNull OptionHolder resourcePackOptions) {
 
-        // First: the optionHolder's option, if it exists
-        if (holder != null) {
-            option = holder.get(type);
+        // First: the session-specific options, if these exist
+        if (sessionPackOptions != null) {
+            ResourcePackOption<?> option = sessionPackOptions.get(type);
             if (option != null) {
                 return option;
             }
         }
 
-        // Second: check the default optionHolder for the option, if it exists;
+        // Second: check the default holder for the option, if it exists;
         // Or return null if the option isn't set.
-        option = defaultHolder.get(type);
-        return option;
+        return resourcePackOptions.get(type);
     }
 
     public void remove(ResourcePackOption<?> option) {
         super.remove(option.type());
     }
 
-    public OptionHolder() {
-        super();
-        add(PriorityOption.NORMAL);
-    }
-
-    public void validateOptions(ResourcePack pack) {
-        values().forEach(option -> option.validate(pack));
-    }
-
     /**
-     * @return the options of this option optionHolder in an immutable collection
+     * @return the options of this holder in an immutable collection
      */
     public Collection<ResourcePackOption<?>> immutableValues() {
         return Collections.unmodifiableCollection(values());
     }
 
     /**
-     * @return the options of this option optionHolder, with fallbacks to options of a {@link GeyserResourcePack}
+     * @return the options of this option holder, with fallbacks to options of a {@link GeyserResourcePack}
      * if they're not already overridden here
      */
     public Collection<ResourcePackOption<?>> immutableValues(OptionHolder defaultValues) {
-        if (defaultValues.isEmpty()) {
-            return immutableValues();
-        }
-
         // Create a map to hold the combined values
         Map<ResourcePackOption.Type, ResourcePackOption<?>> combinedOptions = new HashMap<>(this);
 

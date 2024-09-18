@@ -55,14 +55,24 @@ import java.util.UUID;
 
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
 
+    /**
+     * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
+     * during the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
+     */
     @Getter
     private final Map<UUID, ResourcePackHolder> packs;
-    private final Map<UUID, OptionHolder> options;
+
+    /**
+     * The additional, per-session options for the resource packs of this session.
+     * These options are prioritized over the "default" options registered
+     * in the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}
+     */
+    private final Map<UUID, OptionHolder> sessionPackOptionOverrides;
 
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
         this.packs = new Object2ObjectLinkedOpenHashMap<>(Registries.RESOURCE_PACKS.get());
-        this.options = new Object2ObjectOpenHashMap<>();
+        this.sessionPackOptionOverrides = new Object2ObjectOpenHashMap<>();
     }
 
     @Override
@@ -84,20 +94,18 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             return false;
         }
 
+        registerOption(pack, options);
         packs.put(uuid, ResourcePackHolder.of(pack));
-
-        // register options
-        registerOption(resourcePack, options);
         return true;
     }
 
     @Override
     public void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options) {
-        Objects.requireNonNull(uuid);
-        Objects.requireNonNull(options);
+        Objects.requireNonNull(uuid, "uuid cannot be null");
+        Objects.requireNonNull(options, "options cannot be null");
         ResourcePackHolder holder = packs.get(uuid);
         if (holder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to register options");
         }
 
         registerOption(holder.pack(), options);
@@ -108,10 +116,16 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         Objects.requireNonNull(uuid);
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide options");
         }
 
-        OptionHolder optionHolder = options.getOrDefault(uuid, new OptionHolder());
+        OptionHolder optionHolder = sessionPackOptionOverrides.get(uuid);
+        if (optionHolder == null) {
+            // Not creating a new option holder here since it would
+            // override the default priority option
+            return packHolder.optionHolder().immutableValues();
+        }
+
         return optionHolder.immutableValues(packHolder.optionHolder());
     }
 
@@ -122,32 +136,29 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide option");
         }
 
-        OptionHolder holder = options.get(uuid);
+        @Nullable OptionHolder additionalOptions = sessionPackOptionOverrides.get(uuid);
         OptionHolder defaultHolder = packHolder.optionHolder();
         Objects.requireNonNull(defaultHolder); // should never be null
 
-        return OptionHolder.getOptionByType(type, holder, defaultHolder);
+        return OptionHolder.optionByType(type, additionalOptions, defaultHolder);
     }
 
     @Override
     public boolean unregister(@NonNull UUID uuid) {
-        options.remove(uuid);
+        sessionPackOptionOverrides.remove(uuid);
         return packs.remove(uuid) != null;
     }
 
-    private void registerOption(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
+    private void registerOption(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {
         if (options == null) {
             return;
         }
 
-        GeyserResourcePack pack = validate(resourcePack);
-
-        OptionHolder holder = this.options.computeIfAbsent(pack.uuid(), $ -> new OptionHolder());
-        holder.add(options);
-        holder.validateOptions(pack);
+        OptionHolder holder = this.sessionPackOptionOverrides.computeIfAbsent(pack.uuid(), $ -> new OptionHolder());
+        holder.validateAndAdd(pack, options);
     }
 
     // Methods used internally for e.g. ordered packs, or resource pack entries
@@ -190,10 +201,11 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         for (ResourcePackHolder holder : this.packs.values()) {
             GeyserResourcePack pack = holder.pack();
-            ResourcePackManifest.Header header = pack.manifest().header();
             if (pack.codec() instanceof UrlPackCodec urlPackCodec) {
+                ResourcePackManifest.Header header = pack.manifest().header();
                 entries.add(new ResourcePacksInfoPacket.CDNEntry(
-                    header.uuid() + "_" + header.version(), urlPackCodec.url()));
+                    header.uuid() + "_" + header.version(), urlPackCodec.url())
+                );
             }
         }
 
@@ -202,20 +214,20 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     // Helper methods to get the options for a ResourcePack
 
-    public <T> T getValue(UUID uuid, ResourcePackOption.Type type, T defaultValue) {
-        OptionHolder holder = options.get(uuid);
+    public <T> T value(UUID uuid, ResourcePackOption.Type type, T defaultValue) {
+        OptionHolder holder = sessionPackOptionOverrides.get(uuid);
         OptionHolder defaultHolder = packs.get(uuid).optionHolder();
         Objects.requireNonNull(defaultHolder); // should never be null
 
-        return OptionHolder.getWithFallbacks(type, holder, defaultHolder, defaultValue);
+        return OptionHolder.valueOrFallback(type, holder, defaultHolder, defaultValue);
     }
 
     private double priority(GeyserResourcePack pack) {
-        return getValue(pack.uuid(), ResourcePackOption.Type.PRIORITY, 5);
+        return value(pack.uuid(), ResourcePackOption.Type.PRIORITY, PriorityOption.NORMAL.value());
     }
 
     private String subpackName(GeyserResourcePack pack) {
-        return getValue(pack.uuid(), ResourcePackOption.Type.SUBPACK, "");
+        return value(pack.uuid(), ResourcePackOption.Type.SUBPACK, "");
     }
 
     // Helper method to validate a pack

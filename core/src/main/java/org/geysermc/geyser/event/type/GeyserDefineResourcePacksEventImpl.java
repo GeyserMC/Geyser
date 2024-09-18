@@ -63,10 +63,8 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         }
 
         ResourcePackHolder holder = ResourcePackHolder.of(pack);
-        packs.put(uuid, holder);
-
-        // register options
         registerOption(holder, options);
+        packs.put(uuid, holder);
         return true;
     }
 
@@ -75,12 +73,12 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         Objects.requireNonNull(uuid);
         Objects.requireNonNull(options);
 
-        ResourcePackHolder packHolder = packs.get(uuid);
-        if (packHolder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+        ResourcePackHolder holder = packs.get(uuid);
+        if (holder == null) {
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to register options");
         }
 
-        registerOption(packHolder, options);
+        registerOption(holder, options);
     }
 
     @Override
@@ -88,7 +86,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         Objects.requireNonNull(uuid);
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide options");
         }
 
         return packHolder.optionHolder().immutableValues();
@@ -101,7 +99,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
 
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("ResourcePack with " + uuid + " not found, unable to provide options");
+            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide option");
         }
 
         return packHolder.optionHolder().get(type);
@@ -117,8 +115,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
             return;
         }
 
-        holder.optionHolder().add(options);
-        holder.optionHolder().validateOptions(holder.pack());
+        holder.optionHolder().validateAndAdd(holder.pack(), options);
     }
 
     private GeyserResourcePack validate(@NonNull ResourcePack resourcePack) {
@@ -126,7 +123,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         if (resourcePack instanceof GeyserResourcePack geyserResourcePack) {
             return geyserResourcePack;
         } else {
-            throw new IllegalArgumentException("Unknown resource pack implementation: %s".
+            throw new IllegalArgumentException("unknown resource pack implementation: %s".
                 formatted(resourcePack.getClass().getSuperclass().getName()));
         }
     }

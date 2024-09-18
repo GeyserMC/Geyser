@@ -316,7 +316,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (codec instanceof UrlPackCodec urlPackCodec) {
             ResourcePackLoader.testRemotePack(session, urlPackCodec, packet.getPackId(), packet.getPackVersion());
 
-            if (!resourcePackLoadEvent.getValue(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
+            if (!resourcePackLoadEvent.value(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
                 session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
                 return PacketSignal.HANDLED;
             }
