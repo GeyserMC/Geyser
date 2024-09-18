@@ -12,7 +12,8 @@ public class Conversion729_712 {
     private static final List<String> NEW_WALL_BLOCKS = List.of("minecraft:cobblestone_wall", "minecraft:mossy_cobblestone_wall", "minecraft:granite_wall", "minecraft:diorite_wall", "minecraft:andesite_wall", "minecraft:sandstone_wall", "minecraft:brick_wall", "minecraft:stone_brick_wall", "minecraft:mossy_stone_brick_wall", "minecraft:nether_brick_wall", "minecraft:end_stone_brick_wall", "minecraft:prismarine_wall", "minecraft:red_sandstone_wall", "minecraft:red_nether_brick_wall");
     private static final List<String> NEW_SPONGE_BLOCKS = List.of("minecraft:sponge", "minecraft:wet_sponge");
     private static final List<String> NEW_TNT_BLOCKS = List.of("minecraft:tnt", "minecraft:underwater_tnt");
-    private static final List<String> NEW_BLOCKS = Stream.of(NEW_PURPUR_BLOCKS, NEW_WALL_BLOCKS, NEW_SPONGE_BLOCKS, NEW_TNT_BLOCKS).flatMap(List::stream).toList();
+    private static final List<String> STRUCTURE_VOID = List.of("minecraft:structure_void");
+    private static final List<String> NEW_BLOCKS = Stream.of(NEW_PURPUR_BLOCKS, NEW_WALL_BLOCKS, NEW_SPONGE_BLOCKS, NEW_TNT_BLOCKS, STRUCTURE_VOID).flatMap(List::stream).toList();
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         String identifier = mapping.getBedrockIdentifier();
@@ -88,7 +89,7 @@ public class Conversion729_712 {
 
             switch (name) {
                 case "minecraft:cobblestone_wall" -> wallType = "cobblestone";
-                case "minecraft:mossy_cobblestone_wall" -> wallType = "mossy";
+                case "minecraft:mossy_cobblestone_wall" -> wallType = "mossy_cobblestone";
                 case "minecraft:granite_wall" -> wallType = "granite";
                 case "minecraft:diorite_wall" -> wallType = "diorite";
                 case "minecraft:andesite_wall" -> wallType = "andesite";
@@ -97,7 +98,7 @@ public class Conversion729_712 {
                 case "minecraft:stone_brick_wall" -> wallType = "stone_brick";
                 case "minecraft:mossy_stone_brick_wall" -> wallType = "mossy_stone_brick";
                 case "minecraft:nether_brick_wall" -> wallType = "nether_brick";
-                case "minecraft:end_stone_brick_wall" -> wallType = "end_stone_brick";
+                case "minecraft:end_stone_brick_wall" -> wallType = "end_brick";
                 case "minecraft:prismarine_wall" -> wallType = "prismarine";
                 case "minecraft:red_sandstone_wall" -> wallType = "red_sandstone";
                 case "minecraft:red_nether_brick_wall" -> wallType = "red_nether_brick";
@@ -134,6 +135,15 @@ public class Conversion729_712 {
                     .build();
 
             return tag.toBuilder().putString("name", replacement).putCompound("states", states).build();
+        }
+
+        if (STRUCTURE_VOID.contains(name)) {
+            NbtMap states = tag.getCompound("states")
+                .toBuilder()
+                .putString("structure_void_type", "air")
+                .build();
+
+            return tag.toBuilder().putCompound("states", states).build();
         }
 
         return tag;
