@@ -54,7 +54,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Registers a {@link ResourcePack} to be sent to the client.
      *
-     * @param pack a resource pack that will be sent to the client.
+     * @param pack a resource pack that will be sent to the client
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
@@ -84,7 +84,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * Returns the subpack options set for a specific resource pack uuid.
      * These are not modifiable.
      *
-     * @param uuid the resourcePack for which the options are set
+     * @param uuid the resource pack for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);

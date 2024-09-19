@@ -87,14 +87,18 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
-        GeyserResourcePack pack = validate(resourcePack);
+        Objects.requireNonNull(resourcePack);
+        if (!(resourcePack instanceof GeyserResourcePack pack)) {
+            throw new IllegalArgumentException("Unknown resource pack implementation: %s".
+                formatted(resourcePack.getClass().getSuperclass().getName()));
+        }
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
             return false;
         }
 
-        registerOption(pack, options);
+        attemptRegisterOptions(pack, options);
         packs.put(uuid, ResourcePackHolder.of(pack));
         return true;
     }
@@ -108,7 +112,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to register options");
         }
 
-        registerOption(holder.pack(), options);
+        attemptRegisterOptions(holder.pack(), options);
     }
 
     @Override
@@ -152,7 +156,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return packs.remove(uuid) != null;
     }
 
-    private void registerOption(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {
+    private void attemptRegisterOptions(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {
         if (options == null) {
             return;
         }
@@ -228,17 +232,5 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private String subpackName(GeyserResourcePack pack) {
         return value(pack.uuid(), ResourcePackOption.Type.SUBPACK, "");
-    }
-
-    // Helper method to validate a pack
-
-    private GeyserResourcePack validate(@NonNull ResourcePack resourcePack) {
-        Objects.requireNonNull(resourcePack);
-        if (resourcePack instanceof GeyserResourcePack geyserResourcePack) {
-            return geyserResourcePack;
-        } else {
-            throw new IllegalArgumentException("Unknown resource pack implementation: %s".
-                formatted(resourcePack.getClass().getSuperclass().getName()));
-        }
     }
 }

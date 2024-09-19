@@ -69,6 +69,7 @@ public interface ResourcePackManifest {
 
     /**
      * Gets the subpacks of the resource pack.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/utilizingsubpacks">Microsoft's docs</a> for more information.
      *
      * @return the subpacks
      */
@@ -189,12 +190,13 @@ public interface ResourcePackManifest {
     }
 
     /**
-     * Represents a subpack of a resource pack
+     * Represents a subpack of a resource pack.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/utilizingsubpacks">Micoroft's docs</a> for more information.
      */
     interface Subpack {
 
         /**
-         * Gets the folder name of the subpack.
+         * Gets the folder name of this subpack.
          *
          * @return the folder name
          */
@@ -202,7 +204,7 @@ public interface ResourcePackManifest {
         String folderName();
 
         /**
-         * Gets the name of the subpack.
+         * Gets the name of this subpack. Required for each sub pack to be valid.
          * It can be sent to the Bedrock client alongside the pack
          * to load a particular subpack within a resource pack.
          *
@@ -212,9 +214,9 @@ public interface ResourcePackManifest {
         String name();
 
         /**
-         * Gets the memory tier of the subpack.
-         * One memory tier requires 0.25 GB of free memory
-         * that a device must have to run a sub-pack.
+         * Gets the memory tier of this Subpack, representing how much RAM a device must have to run it.
+         * Each memory tier requires 0.25 GB of RAM. For example, a memory tier of 0 is no requirement,
+         * and a memory tier of 4 requires 1GB of RAM.
          *
          * @return the memory tier
          */

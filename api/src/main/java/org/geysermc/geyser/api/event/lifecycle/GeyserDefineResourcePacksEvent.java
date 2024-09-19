@@ -49,7 +49,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
      * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
-     * specific options.
+     * {@link ResourcePackOption} options specifying how it will be applied on clients.
      *
      * @param pack a resource pack that will be sent to the client.
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
@@ -71,7 +71,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      * Returns the subpack options set for a specific resource pack uuid.
      * These are not modifiable.
      *
-     * @param uuid the resourcePack for which the options are set
+     * @param uuid the resource pack uuid for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
@@ -88,7 +88,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     /**
      * Unregisters a {@link ResourcePack} from being sent to clients.
      *
-     * @param uuid the UUID of the resource pack to remove.
+     * @param uuid the uuid of the resource pack to remove.
      * @return true whether the resource pack was removed successfully.
      */
     public abstract boolean unregister(@NonNull UUID uuid);
