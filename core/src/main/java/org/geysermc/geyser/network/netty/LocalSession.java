@@ -155,9 +155,7 @@ public final class LocalSession extends TcpSession {
             HAProxyProtocolVersion.V2, HAProxyCommand.PROXY, proxiedProtocol,
             clientAddress.getAddress().getHostAddress(), remoteAddress.getAddress().getHostAddress(),
             clientAddress.getPort(), remoteAddress.getPort()
-        )).addListener(future -> {
-            channel.pipeline().remove("proxy-protocol-encoder");
-        });
+        )).addListener(future -> channel.pipeline().remove("proxy-protocol-encoder"));
     }
 
     /**
