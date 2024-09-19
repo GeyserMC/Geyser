@@ -48,6 +48,8 @@ import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
 import org.geysermc.mcprotocollib.network.tcp.FlushHandler;
 import org.geysermc.mcprotocollib.network.tcp.TcpFlowControlHandler;
 import org.geysermc.mcprotocollib.network.tcp.TcpPacketCodec;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketCompression;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketEncryptor;
 import org.geysermc.mcprotocollib.network.tcp.TcpPacketSizer;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
@@ -104,7 +106,9 @@ public final class LocalSession extends TcpSession {
                 pipeline.addLast("read-timeout", new ReadTimeoutHandler(getFlag(BuiltinFlags.READ_TIMEOUT, 30)));
                 pipeline.addLast("write-timeout", new WriteTimeoutHandler(getFlag(BuiltinFlags.WRITE_TIMEOUT, 0)));
 
+                pipeline.addLast("encryption", new TcpPacketEncryptor());
                 pipeline.addLast("sizer", new TcpPacketSizer(protocol.getPacketHeader(), getCodecHelper()));
+                pipeline.addLast("compression", new TcpPacketCompression(getCodecHelper()));
 
                 pipeline.addLast("flow-control", new TcpFlowControlHandler());
                 pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
