@@ -54,7 +54,7 @@ public enum GeyserAttributeType {
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
-    EXHAUSTION(null, "minecraft:player.exhaustion", 0f, 5f, 0f),
+    EXHAUSTION(null, "minecraft:player.exhaustion", 0f, 20f, 0f),
     EXPERIENCE(null, "minecraft:player.experience", 0f, 1f, 0f),
     EXPERIENCE_LEVEL(null, "minecraft:player.level", 0f, 24791.00f, 0f),
     HEALTH(null, "minecraft:health", 0f, 1024f, 20f),

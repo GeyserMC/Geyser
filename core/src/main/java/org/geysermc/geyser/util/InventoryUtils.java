@@ -32,6 +32,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
@@ -180,6 +182,7 @@ public class InventoryUtils {
         cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
         cursorPacket.setItem(session.getPlayerInventory().getCursor().getItemData(session));
+        cursorPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(cursorPacket);
     }
 

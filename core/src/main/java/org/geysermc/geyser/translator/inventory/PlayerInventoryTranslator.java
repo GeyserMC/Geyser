@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
@@ -83,6 +84,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
         inventoryContentPacket.setContents(Arrays.asList(contents));
+        inventoryContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
@@ -99,12 +101,14 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
+        armorContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
+        offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -126,6 +130,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
             }
 
+            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -162,11 +167,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setSlot(slot + 27);
             }
             slotPacket.setItem(bedrockItem);
+            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
             offhandPacket.setContents(Collections.singletonList(bedrockItem));
+            offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(offhandPacket);
         }
     }
