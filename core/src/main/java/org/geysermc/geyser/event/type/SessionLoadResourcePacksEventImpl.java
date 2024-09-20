@@ -125,8 +125,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         OptionHolder optionHolder = sessionPackOptionOverrides.get(uuid);
         if (optionHolder == null) {
-            // Not creating a new option holder here since it would
-            // override the default priority option
+            // No need to create a new session option holder
             return packHolder.optionHolder().immutableValues();
         }
 
