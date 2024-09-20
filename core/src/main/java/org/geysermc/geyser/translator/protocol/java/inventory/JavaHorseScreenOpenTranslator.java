@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -140,7 +142,9 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         } else {
             inventoryTranslator = new HorseInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
-            slots.add(ARMOR_SLOT);
+            if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
+                slots.add(ARMOR_SLOT);
+            }
         }
 
         // Build the NbtMap that sets the icons for Bedrock (e.g. sets the saddle outline on the saddle slot)

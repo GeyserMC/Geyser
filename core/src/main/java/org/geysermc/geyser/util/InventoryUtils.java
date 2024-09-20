@@ -32,6 +32,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
@@ -159,7 +161,7 @@ public class InventoryUtils {
     @Nullable
     public static Vector3i findAvailableWorldSpace(GeyserSession session) {
         // Check if a fake block can be placed, either above the player or beneath.
-        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
         Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
         Vector3i position = flatPlayerPosition.add(Vector3i.UP);
@@ -180,6 +182,7 @@ public class InventoryUtils {
         cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
         cursorPacket.setItem(session.getPlayerInventory().getCursor().getItemData(session));
+        cursorPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(cursorPacket);
     }
 
