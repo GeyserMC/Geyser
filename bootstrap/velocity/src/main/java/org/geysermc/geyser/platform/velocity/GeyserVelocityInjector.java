@@ -35,7 +35,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.local.LocalAddress;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.GeyserPluginBootstrap;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 
@@ -52,7 +52,7 @@ public class GeyserVelocityInjector extends GeyserInjector {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception {
+    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         Field cm = proxy.getClass().getDeclaredField("cm");
         cm.setAccessible(true);
         Object connectionManager = cm.get(proxy);

@@ -34,8 +34,8 @@ import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -62,7 +62,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class GeyserBungeePlugin extends Plugin implements GeyserPluginBootstrap {
+public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private CommandRegistry commandRegistry;
     private GeyserPluginConfig geyserConfig;

@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import org.geysermc.geyser.GeyserPluginBootstrap;
-import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.local.LocalAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
@@ -38,6 +40,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -61,7 +64,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception {
+    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         Class<?> serverClazz;
         try {
             serverClazz = Class.forName("net.minecraft.server.MinecraftServer");

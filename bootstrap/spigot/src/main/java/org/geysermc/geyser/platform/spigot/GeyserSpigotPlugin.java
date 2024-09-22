@@ -43,8 +43,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
@@ -77,7 +77,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-public class GeyserSpigotPlugin extends JavaPlugin implements GeyserPluginBootstrap {
+public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private CommandRegistry commandRegistry;
     private GeyserPluginConfig geyserConfig;

@@ -32,9 +32,9 @@ import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.ConfigLoader;
@@ -52,7 +52,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 
 @RequiredArgsConstructor
-public abstract class GeyserModBootstrap implements GeyserPluginBootstrap {
+public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Getter
     private static GeyserModBootstrap instance;

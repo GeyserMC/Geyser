@@ -38,7 +38,6 @@ import net.minecraft.server.network.ServerConnectionListener;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
@@ -64,7 +63,7 @@ public class GeyserModInjector extends GeyserInjector {
     }
 
     @Override
-    protected void initializeLocalChannel0(GeyserPluginBootstrap bootstrap) throws Exception {
+    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         ServerConnectionListener connection = this.server.getConnection();
 
         // Find the channel that Minecraft uses to listen to connections

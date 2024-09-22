@@ -36,9 +36,9 @@ import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
 import net.raphimc.viaproxy.protocoltranslator.viaproxy.ViaProxyConfig;
 import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.GeyserPluginBootstrap;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -61,7 +61,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserPluginBootstrap, EventRegistrar {
+public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap, EventRegistrar {
 
     private static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
