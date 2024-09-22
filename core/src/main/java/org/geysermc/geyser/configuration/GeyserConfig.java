@@ -160,7 +160,8 @@ public interface GeyserConfig {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @Comment("""
             Allows Xbox achievements to be unlocked.
-            THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.""")
+            If a player types in an unknown command, they will receive a message that states cheats are disabled.
+            Otherwise, commands work as expected.""")
     boolean xboxAchievementsEnabled();
 
     @Comment("Whether player IP addresses will be logged by the server.")
