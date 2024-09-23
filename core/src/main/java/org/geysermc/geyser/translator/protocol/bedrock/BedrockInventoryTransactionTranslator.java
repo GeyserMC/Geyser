@@ -31,6 +31,7 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -42,6 +43,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetIte
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
@@ -75,12 +77,15 @@ import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -373,6 +378,22 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 break;
                             } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().writtenBook().getBedrockDefinition()) {
                                 session.setCurrentBook(packet.getItemInHand());
+                            } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.GOAT_HORN) {
+                                // Temporary workaround while we don't have full item/block use tracking.
+                                if (!session.getWorldCache().hasCooldown(Items.GOAT_HORN)) {
+                                    Holder<Instrument> instrument = session.getPlayerInventory()
+                                        .getItemInHand()
+                                        .getComponent(DataComponentType.INSTRUMENT);
+                                    if (instrument != null && instrument.isId()) {
+                                        // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
+                                        LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
+                                        soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.id()));
+                                        soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                        soundPacket.setIdentifier("minecraft:player");
+                                        soundPacket.setExtraData(-1);
+                                        session.sendUpstreamPacket(soundPacket);
+                                    }
+                                }
                             }
                         }
 

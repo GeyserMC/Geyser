@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipment
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSerializer_v291;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityMotionSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
@@ -43,6 +42,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSe
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.InventoryContentSerializer_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.InventorySlotSerializer_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.MobArmorEquipmentSerializer_v712;
+import org.cloudburstmc.protocol.bedrock.codec.v729.serializer.InventoryContentSerializer_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v729.serializer.InventorySlotSerializer_v729;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -139,6 +140,13 @@ class CodecProcessor {
         }
     };
 
+    private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V729 = new InventoryContentSerializer_v729() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+        }
+    };
+
     /**
      * Serializer that throws an exception when trying to deserialize InventorySlotPacket since server-auth inventory is used.
      */
@@ -153,6 +161,13 @@ class CodecProcessor {
      * Serializer that throws an exception when trying to deserialize InventorySlotPacket since server-auth inventory is used.
      */
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V712 = new InventorySlotSerializer_v712() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V729 = new InventorySlotSerializer_v729() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
             throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
@@ -214,16 +229,7 @@ class CodecProcessor {
     };
 
     /**
-     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v291.
-     */
-    private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER_V291 = new SetEntityMotionSerializer_v291() {
-        @Override
-        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {
-        }
-    };
-
-    /**
-     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v662.
+     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client.
      */
     private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER = new SetEntityMotionSerializer_v662() {
         @Override
@@ -256,8 +262,27 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
-        boolean isPre712 = codec.getProtocolVersion() < 712;
-        
+        boolean is729OrAbove = codec.getProtocolVersion() >= 729;
+        boolean is712OrAbove = codec.getProtocolVersion() >= 712;
+
+        BedrockPacketSerializer<InventoryContentPacket> inventoryContentSerializer;
+        if (is729OrAbove) {
+            inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V729;
+        } else if (is712OrAbove) {
+            inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V712;
+        } else {
+            inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V407;
+        }
+
+        BedrockPacketSerializer<InventorySlotPacket> inventorySlotSerializer;
+        if (is729OrAbove) {
+            inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V729;
+        } else if (is712OrAbove) {
+            inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V712;
+        } else {
+            inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V407;
+        }
+
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
@@ -286,11 +311,11 @@ class CodecProcessor {
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
             .updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER)
             // Illegal when serverbound due to Geyser specific setup
-            .updateSerializer(InventoryContentPacket.class, isPre712 ? INVENTORY_CONTENT_SERIALIZER_V407 : INVENTORY_CONTENT_SERIALIZER_V712)
-            .updateSerializer(InventorySlotPacket.class, isPre712 ? INVENTORY_SLOT_SERIALIZER_V407 : INVENTORY_SLOT_SERIALIZER_V712)
+            .updateSerializer(InventoryContentPacket.class, inventoryContentSerializer)
+            .updateSerializer(InventorySlotPacket.class, inventorySlotSerializer)
             // Ignored only when serverbound
             .updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER)
-            .updateSerializer(MobArmorEquipmentPacket.class, isPre712 ? MOB_ARMOR_EQUIPMENT_SERIALIZER_V291 : MOB_ARMOR_EQUIPMENT_SERIALIZER_V712)
+            .updateSerializer(MobArmorEquipmentPacket.class, is712OrAbove ? MOB_ARMOR_EQUIPMENT_SERIALIZER_V712 : MOB_ARMOR_EQUIPMENT_SERIALIZER_V291)
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
