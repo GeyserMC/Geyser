@@ -138,7 +138,6 @@ public final class ConfigLoader {
         CommentedConfigurationNode node = loader.load();
         boolean originallyEmpty = !configFile.exists() || node.isNull();
 
-        // Note for Tim? Needed or else Configurate breaks.
         var migrations = ConfigurationTransformation.versionedBuilder()
             .versionKey("config-version")
                 // Pre-Configurate
@@ -192,12 +191,6 @@ public final class ConfigLoader {
                     })
                     .addAction(path("bedrock", "motd1"), rename("primary-motd"))
                     .addAction(path("bedrock", "motd2"), rename("secondary-motd"))
-                    // Legacy config values
-                    .addAction(path("emote-offhand-workaround"), remove())
-                    .addAction(path("allow-third-party-capes"), remove())
-                    .addAction(path("allow-third-party-ears"), remove())
-                    .addAction(path("general-thread-pool"), remove())
-                    .addAction(path("cache-chunks"), remove())
                     .build())
                 .build();
 

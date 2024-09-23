@@ -56,7 +56,7 @@ public interface AdvancedConfig {
     int customSkullRenderDistance();
 
     @Comment("""
-            Specify how many days images will be cached to disk to save downloading them from the internet.
+            Specify how many days player skin images will be cached to disk to save downloading them from the internet.
             A value of 0 is disabled. (Default: 0)""")
     int cacheImages();
 
