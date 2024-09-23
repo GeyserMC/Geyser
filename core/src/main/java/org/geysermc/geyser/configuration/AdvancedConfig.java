@@ -68,7 +68,7 @@ public interface AdvancedConfig {
 
     @Comment("""
             Geyser updates the Scoreboard after every Scoreboard packet, but when Geyser tries to handle
-            a lot of scoreboard packets per second can cause serious lag.
+            a lot of scoreboard packets per second, this can cause serious lag.
             This option allows you to specify after how many Scoreboard packets per seconds
             the Scoreboard updates will be limited to four updates per second.""")
     @DefaultNumeric(20)

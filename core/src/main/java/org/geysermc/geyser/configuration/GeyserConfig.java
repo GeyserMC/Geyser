@@ -53,7 +53,7 @@ public interface GeyserConfig {
 
     @Comment("""
             For online mode authentication type only.
-            Stores a list of Bedrock players that should have their Java Edition account saved after login.
+            Stores a list of Bedrock player usernames that should have their Java Edition account saved after login.
             This saves a token that can be reused to authenticate the player later. This does not save emails or passwords,
             but you should still be cautious when adding to this list and giving others access to this Geyser instance's files.
             Removing a name from this list will delete its cached login information on the next Geyser startup.
@@ -281,7 +281,7 @@ public interface GeyserConfig {
         @Override
         @Comment("""
                 What type of authentication Bedrock players will be checked against when logging into the Java server.
-                Can be floodgate (see https://wiki.geysermc.org/floodgate/), online, or offline.""")
+                Can be "floodgate" (see https://wiki.geysermc.org/floodgate/), "online", or "offline".""")
         @NonNull
         default AuthType authType() {
             return AuthType.ONLINE;
