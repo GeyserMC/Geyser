@@ -199,7 +199,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public int getServerPort() {
-        // TODO test
         return ((GeyserServerPortGetter) server).geyser$getServerPort();
     }
 

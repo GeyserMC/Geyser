@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.util.metrics;
 
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.PlatformType;
+
 public interface MetricsPlatform {
     boolean enabled();
 
@@ -35,4 +38,11 @@ public interface MetricsPlatform {
     boolean logSentData();
 
     boolean logResponseStatusText();
+
+    default boolean disableRelocateCheck() {
+        PlatformType platformType = GeyserImpl.getInstance().platformType();
+        return platformType == PlatformType.FABRIC ||
+            platformType == PlatformType.NEOFORGE ||
+            platformType == PlatformType.STANDALONE;
+    }
 }

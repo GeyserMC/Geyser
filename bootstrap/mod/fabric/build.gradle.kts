@@ -21,7 +21,7 @@ dependencies {
     shadow(projects.core) { isTransitive = false }
     includeTransitive(projects.core)
 
-    // These are NOT transitively included, and instead shadowed + relocated.
+    // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
     // Avoids fabric complaining about non-SemVer versioning
     shadow(libs.protocol.connection) { isTransitive = false }
     shadow(libs.protocol.common) { isTransitive = false }
@@ -46,8 +46,6 @@ tasks.withType<Jar> {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
-relocate("com.github.steveice10.mc.auth")
-platformRelocate("org.bstats")
 
 tasks {
     remapJar {

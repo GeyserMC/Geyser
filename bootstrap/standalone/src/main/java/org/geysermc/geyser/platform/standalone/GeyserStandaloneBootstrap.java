@@ -82,8 +82,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
         }
 
-        System.setProperty("bstats.relocatecheck", "false");
-
         GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
         // Set defaults
         boolean useGuiOpts = bootstrap.useGui;
