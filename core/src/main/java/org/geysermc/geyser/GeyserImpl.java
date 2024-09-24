@@ -492,7 +492,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 logger::info,
                 metricsPlatform.logFailedRequests(),
                 metricsPlatform.logSentData(),
-                metricsPlatform.logResponseStatusText());
+                metricsPlatform.logResponseStatusText(),
+                metricsPlatform.disableRelocateCheck()
+            );
             metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));
