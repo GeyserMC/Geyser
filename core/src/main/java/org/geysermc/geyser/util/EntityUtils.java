@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -38,6 +39,8 @@ import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -290,26 +293,18 @@ public final class EntityUtils {
         };
     }
 
-    public static String entityTypeName(EntityType type) {
-        var typeName = type.name();
-        var builder = new StringBuilder();
+    private static String translatedEntityName(String namespace, String name, GeyserSession session) {
+        return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
+    }
 
-        boolean upNext = true;
-        for (int i = 0; i < typeName.length(); i++) {
-            char c = typeName.charAt(i);
-            if ('_' == c) {
-                upNext = true;
-                continue;
-            }
+    public static String translatedEntityName(Key type, GeyserSession session) {
+        return translatedEntityName(type.namespace(), type.value(), session);
+    }
 
-            // enums are upper case by default
-            if (!upNext) {
-                c = Character.toLowerCase(c);
-            }
-            builder.append(c);
-            upNext = false;
-        }
-        return builder.toString();
+    public static String translatedEntityName(EntityType type, GeyserSession session) {
+        // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
+        var typeName = type.name().toLowerCase(Locale.ROOT);
+        return translatedEntityName("minecraft", typeName, session);
     }
 
     private EntityUtils() {

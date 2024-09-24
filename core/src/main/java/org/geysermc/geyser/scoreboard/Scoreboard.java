@@ -252,10 +252,6 @@ public final class Scoreboard {
         return objectives.get(objectiveName);
     }
 
-    public Collection<Objective> getObjectives() {
-        return objectives.values();
-    }
-
     public void removeObjective(Objective objective) {
         objectives.remove(objective.getObjectiveName());
         for (DisplaySlot slot : objective.getActiveSlots()) {

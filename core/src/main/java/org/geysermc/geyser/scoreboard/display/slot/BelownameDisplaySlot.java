@@ -162,7 +162,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
         if (numberFormat instanceof BlankFormat) {
             numberString = "";
         } else if (numberFormat instanceof FixedFormat fixedFormat) {
-            numberString = MessageTranslator.convertMessage(fixedFormat.getValue());
+            numberString = MessageTranslator.convertMessage(fixedFormat.getValue(), session.locale());
         } else if (numberFormat instanceof StyledFormat styledFormat) {
             NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
             styledAmount.putString("text", String.valueOf(score));

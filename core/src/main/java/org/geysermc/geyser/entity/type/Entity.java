@@ -132,7 +132,7 @@ public class Entity implements GeyserEntity {
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
-        this.displayName = EntityUtils.entityTypeName(definition.entityType());
+        this.displayName = standardDisplayName();
 
         this.entityId = entityId;
         this.geyserId = geyserId;
@@ -435,8 +435,12 @@ public class Entity implements GeyserEntity {
 
         // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
         // maybe we can/should use a translatable here instead?
-        this.displayName = EntityUtils.entityTypeName(definition.entityType());
+        this.displayName = standardDisplayName();
         setNametag(null, true);
+    }
+
+    protected String standardDisplayName() {
+        return EntityUtils.translatedEntityName(definition.entityType(), session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {

@@ -72,7 +72,7 @@ public final class Team {
 
         // doesn't call entity update
         updateProperties(name, prefix, suffix, visibility, color);
-        // calls entitity update
+        // calls entity update
         addEntities(players);
         lastUpdate = LAST_UPDATE_DEFAULT;
     }
@@ -288,14 +288,6 @@ public final class Team {
 
     public TeamColor color() {
         return color;
-    }
-
-    public String prefix() {
-        return prefix;
-    }
-
-    public String suffix() {
-        return suffix;
     }
 
     public long lastUpdate() {
