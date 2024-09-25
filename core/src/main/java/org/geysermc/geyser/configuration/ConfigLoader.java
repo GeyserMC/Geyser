@@ -209,7 +209,7 @@ public final class ConfigLoader {
 
         // Create the path in a way that Standalone changing the config name will be fine.
         int extensionIndex = configFile.getName().lastIndexOf(".");
-        File advancedConfigPath = new File(configFile.getParent(), configFile.getName().substring(0, extensionIndex) + "_advanced" + configFile.getName().substring(extensionIndex));
+        File advancedConfigPath = new File(configFile.getParent(), configFile.getName().substring(0, extensionIndex) + "-advanced" + configFile.getName().substring(extensionIndex));
         AdvancedConfig advancedConfig = null;
 
         if (originallyEmpty || currentVersion != newVersion) {
