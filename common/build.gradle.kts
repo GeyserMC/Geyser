@@ -1,5 +1,6 @@
 plugins {
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
 }
 
 dependencies {

@@ -57,5 +57,7 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
             bedrockPacket.setCooldownDuration(packet.getCooldownTicks());
             session.sendUpstreamPacket(bedrockPacket);
         }
+
+        session.getWorldCache().setCooldown(item, packet.getCooldownTicks());
     }
 }

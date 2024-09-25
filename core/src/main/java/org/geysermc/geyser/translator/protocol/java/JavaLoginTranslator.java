@@ -58,11 +58,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         SessionPlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
-        if (session.getErosionHandler().isActive()) {
-            session.getErosionHandler().close();
-            session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
-        }
-
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
         JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());
 

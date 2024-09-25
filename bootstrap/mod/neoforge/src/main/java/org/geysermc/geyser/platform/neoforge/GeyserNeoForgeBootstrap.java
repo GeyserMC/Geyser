@@ -82,6 +82,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
         );
         GeyserNeoForgeCommandRegistry registry = new GeyserNeoForgeCommandRegistry(getGeyser(), cloud);
         this.setCommandRegistry(registry);
+        // An auxiliary listener for registering undefined permissions belonging to commands. See javadocs for more info.
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, registry::onPermissionGatherForUndefined);
     }
 
