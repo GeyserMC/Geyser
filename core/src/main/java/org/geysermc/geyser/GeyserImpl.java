@@ -406,7 +406,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 }
             }
         } else if (!config.advanced().useDirectConnection()) {
-            logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be enabled.");
+            logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
 
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
