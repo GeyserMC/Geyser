@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.level;
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
@@ -34,7 +33,6 @@ import lombok.ToString;
  * the client.
  */
 @ToString
-@EqualsAndHashCode
 public class BedrockDimension {
 
     public static final int OVERWORLD_ID = 0;

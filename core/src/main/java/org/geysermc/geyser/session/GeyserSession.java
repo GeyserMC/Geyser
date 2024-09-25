@@ -392,7 +392,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * The overworld dimension which Bedrock Edition uses.
      */
-    @Getter
     private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
     /**
      * The dimension of the player.
