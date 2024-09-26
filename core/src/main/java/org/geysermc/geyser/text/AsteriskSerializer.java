@@ -79,7 +79,7 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         try {
             destination.set("***");
         } catch (SerializationException e) {
-            throw new RuntimeException(e); // Error over silently printing an IP address.
+            throw new RuntimeException("Unable to censor IP address", e); // Error over silently printing an IP address.
         }
     };
 
