@@ -302,8 +302,11 @@ public final class EntityUtils {
     }
 
     public static String translatedEntityName(EntityType type, GeyserSession session) {
+        if (type == EntityType.PLAYER) {
+            return "Player"; // the player's name is always shown instead
+        }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
-        var typeName = type.name().toLowerCase(Locale.ROOT);
+        String typeName = type.name().toLowerCase(Locale.ROOT);
         return translatedEntityName("minecraft", typeName, session);
     }
 

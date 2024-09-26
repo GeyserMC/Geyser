@@ -68,6 +68,10 @@ public class EntityCache {
         if (cacheEntity(entity)) {
             entity.spawnEntity();
 
+            // start tracking newly spawned entities.
+            // This is however not called for players, that's done in addPlayerEntity
+            session.getWorldCache().getScoreboard().entityRegistered(entity);
+
             if (entity instanceof Tickable) {
                 // Start ticking it
                 tickableEntities.add((Tickable) entity);
@@ -86,21 +90,24 @@ public class EntityCache {
     }
 
     public void removeEntity(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
         if (entity instanceof PlayerEntity player) {
             session.getPlayerWithCustomHeads().remove(player.getUuid());
         }
 
-        if (entity != null) {
-            if (entity.isValid()) {
-                entity.despawnEntity();
-            }
+        if (entity.isValid()) {
+            entity.despawnEntity();
+        }
+        entities.remove(entityIdTranslations.remove(entity.getEntityId()));
 
-            long geyserId = entityIdTranslations.remove(entity.getEntityId());
-            entities.remove(geyserId);
+        // don't track the entity anymore, now that it's removed
+        session.getWorldCache().getScoreboard().entityRemoved(entity);
 
-            if (entity instanceof Tickable) {
-                tickableEntities.remove(entity);
-            }
+        if (entity instanceof Tickable) {
+            tickableEntities.remove(entity);
         }
     }
 
@@ -130,8 +137,12 @@ public class EntityCache {
         if (exists) {
             return;
         }
+
         // notify scoreboard for new entity
-        session.getWorldCache().getScoreboard().playerRegistered(entity);
+        var scoreboard = session.getWorldCache().getScoreboard();
+        scoreboard.playerRegistered(entity);
+        // spawnPlayer's entityRegistered is not called for players
+        scoreboard.entityRegistered(entity);
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {

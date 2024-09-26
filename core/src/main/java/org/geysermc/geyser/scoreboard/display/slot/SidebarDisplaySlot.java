@@ -78,7 +78,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                     return new SidebarDisplayScore(this, objective.getScoreboard().nextId(), reference);
                 }).collect(Collectors.toList());
 
-        // in newDisplayScores we removed the items that were already present,
+        // in newDisplayScores we removed the items that were already present from displayScores,
         // meaning that the items that remain are items that are no longer displayed
         for (var score : this.displayScores) {
             removeScores.add(score.cachedInfo());
@@ -164,7 +164,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
     @Override
     public void addScore(ScoreReference reference) {
-        // we handle them a bit different, we sort the scores and we add them ourselves
+        // we handle them a bit different: we sort the scores, and we add them ourselves
     }
 
     @Override

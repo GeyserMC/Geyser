@@ -132,12 +132,12 @@ public class Entity implements GeyserEntity {
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
+        this.definition = definition;
         this.displayName = standardDisplayName();
 
         this.entityId = entityId;
         this.geyserId = geyserId;
         this.uuid = uuid;
-        this.definition = definition;
         this.motion = motion;
         this.yaw = yaw;
         this.pitch = pitch;

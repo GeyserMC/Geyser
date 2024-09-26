@@ -75,7 +75,7 @@ public final class SidebarDisplayScore extends DisplayScore {
             numberFormat = objective.getNumberFormat();
         }
         if (numberFormat instanceof FixedFormat fixedFormat) {
-            finalName += " " + ChatColor.RESET + MessageTranslator.convertMessage(fixedFormat.getValue());
+            finalName += " " + ChatColor.RESET + MessageTranslator.convertMessage(fixedFormat.getValue(), objective.getScoreboard().session().locale());
         }
 
         if (order != null) {

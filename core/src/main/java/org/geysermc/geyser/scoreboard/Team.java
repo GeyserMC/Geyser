@@ -225,6 +225,21 @@ public final class Team {
         }
     }
 
+    public void onEntitySpawn(Entity entity) {
+        // I've basically ported addAddedEntities
+        if (entities.contains(entity.teamIdentifier())) {
+            managedEntities.add(entity);
+            // onEntitySpawn includes all entities but players, so it cannot contain self
+            entity.updateNametag(this);
+            entity.updateBedrockMetadata();
+        }
+    }
+
+    public void onEntityRemove(Entity entity) {
+        // we don't have to update anything, since the player is removed.
+        managedEntities.remove(entity);
+    }
+
     private void addAddedEntities(Set<String> names) {
         // can't contain self if none are added
         if (names.isEmpty()) {

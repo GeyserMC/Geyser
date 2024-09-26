@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.scoreboard.display.slot.BelownameDisplaySlot;
 import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
@@ -299,6 +300,20 @@ public final class Scoreboard {
     public void playerRemoved(PlayerEntity player) {
         for (DisplaySlot slot : objectiveSlots.values()) {
             slot.playerRemoved(player);
+        }
+    }
+
+    public void entityRegistered(Entity entity) {
+        var team = getTeamFor(entity.teamIdentifier());
+        if (team != null) {
+            team.onEntitySpawn(entity);
+        }
+    }
+
+    public void entityRemoved(Entity entity) {
+        var team = getTeamFor(entity.teamIdentifier());
+        if (team != null) {
+            team.onEntityRemove(entity);
         }
     }
 
