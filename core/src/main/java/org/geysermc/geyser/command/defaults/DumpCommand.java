@@ -28,7 +28,6 @@ package org.geysermc.geyser.command.defaults;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -37,6 +36,7 @@ import org.geysermc.geyser.dump.DumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -145,7 +145,7 @@ public class DumpCommand extends GeyserCommand {
             JsonObject responseNode;
             try {
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
-                responseNode = (JsonObject) new JsonParser().parse(response);
+                responseNode = JsonUtils.parseJson(response);
             } catch (IOException e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", source.locale()));
                 geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);

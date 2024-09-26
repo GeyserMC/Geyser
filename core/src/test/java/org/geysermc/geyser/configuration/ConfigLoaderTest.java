@@ -53,7 +53,6 @@ public class ConfigLoaderTest {
 
         File file = tempDirectory.resolve("config.yml").toFile();
 
-        // Sorry Konicai...
         forAllConfigs(type -> {
             new ConfigLoader(file).transformer(n -> this.config1 = n.copy()).load(type);
             long initialModification = file.lastModified();

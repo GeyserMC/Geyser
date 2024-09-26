@@ -28,18 +28,22 @@ package org.geysermc.geyser.dump;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.configuration.AdvancedConfig;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
@@ -106,12 +110,13 @@ public class DumpInfo {
 
             ConfigurationNode configNode = CommentedConfigurationNode.root(options);
             configNode.set(geyser.config());
-            this.config = configNode.get(geyser.config().getClass());
+            this.config = toGson(configNode);
 
             ConfigurationNode advancedConfigNode = CommentedConfigurationNode.root(options);
             advancedConfigNode.set(geyser.config().advanced());
-            this.advancedConfig = advancedConfigNode.get(AdvancedConfig.class);
+            this.advancedConfig = toGson(advancedConfigNode);
         } catch (SerializationException e) {
+            e.printStackTrace();
             if (geyser.config().debugMode()) {
                 e.printStackTrace();
             }
@@ -161,6 +166,36 @@ public class DumpInfo {
         this.extensionInfo = new ArrayList<>();
         for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
             this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().apiVersion(), extension.description().main(), extension.description().authors()));
+        }
+    }
+
+    private JsonElement toGson(ConfigurationNode node) {
+        if (node.isMap()) {
+            JsonObject object = new JsonObject();
+            node.childrenMap().forEach((key, value) -> {
+                JsonElement json = toGson(value);
+                object.add(key.toString(), json);
+            });
+            return object;
+        } else if (node.isList()) {
+            JsonArray array = new JsonArray();
+            node.childrenList().forEach(childNode -> array.add(toGson(childNode)));
+            return array;
+        } else {
+            return convertRawScalar(node);
+        }
+    }
+
+    private JsonElement convertRawScalar(ConfigurationNode node) {
+        final @Nullable Object value = node.rawScalar();
+        if (value == null) {
+            return JsonNull.INSTANCE;
+        } else if (value instanceof Number n) {
+            return new JsonPrimitive(n);
+        } else if (value instanceof Boolean b) {
+            return new JsonPrimitive(b);
+        } else {
+            return new JsonPrimitive(value.toString());
         }
     }
 

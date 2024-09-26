@@ -32,7 +32,9 @@ dependencies {
 
     api(libs.bundles.protocol)
 
-    api(libs.minecraftauth)
+    api(libs.minecraftauth) {
+        exclude("com.google.code.gson", "gson")
+    }
     api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
         exclude("net.raphimc", "MinecraftAuth")
