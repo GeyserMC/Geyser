@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.AsteriskSerializer;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
 import org.spongepowered.configurate.interfaces.meta.Field;
@@ -128,7 +129,7 @@ public interface GeyserConfig {
 
     @Comment("The default locale if we don't have the one the client requested. If set to \"system\", the system's language will be used.")
     @NonNull
-    @DefaultString("system")
+    @DefaultString(GeyserLocale.SYSTEM_LOCALE)
     String defaultLocale();
 
     @Comment("Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.")

@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class GeyserLocale {
+    public static final String SYSTEM_LOCALE = "system";
 
     /**
      * If we determine the default locale that the user wishes to use, use that locale
@@ -81,7 +82,7 @@ public class GeyserLocale {
      */
     public static void finalizeDefaultLocale(GeyserImpl geyser) {
         String newDefaultLocale = geyser.config().defaultLocale();
-        if ("system".equals(newDefaultLocale)) {
+        if (SYSTEM_LOCALE.equals(newDefaultLocale)) {
             // We want to use the system locale which is already loaded
             return;
         }
