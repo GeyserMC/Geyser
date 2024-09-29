@@ -716,11 +716,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        if (this.dimensionType.bedrockId() == BedrockDimension.OVERWORLD_ID && this.dimensionType.minY() < BedrockDimension.OVERWORLD.minY() || this.dimensionType.maxY() > BedrockDimension.OVERWORLD.maxY()) {
-            int minY = Math.max(this.dimensionType.minY(), -512);
-            int maxY = Math.min(this.dimensionType.maxY(), 512);
+        int minY = this.dimensionType.minY();
+        int maxY = this.dimensionType.maxY();
+        for (JavaDimension javaDimension : this.getRegistryCache().dimensions().values()) {
+            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                minY = Math.min(minY, this.dimensionType.minY());
+                maxY = Math.max(maxY, this.dimensionType.maxY());
+            }
+        }
+        minY = Math.max(minY, -512);
+        maxY = Math.min(maxY, 512);
+
+        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+            final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
-            this.bedrockDimension = this.bedrockOverworldDimension;
+            if (isInOverworld) {
+                this.bedrockDimension = this.bedrockOverworldDimension;
+            }
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
