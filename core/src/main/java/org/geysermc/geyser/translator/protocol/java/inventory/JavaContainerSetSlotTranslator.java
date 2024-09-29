@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
@@ -180,6 +182,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setContainerId(ContainerId.UI);
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ItemData.AIR);
+                    slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }
@@ -212,6 +215,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setContainerId(ContainerId.UI);
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ingredients[index]);
+                    slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }
