@@ -720,8 +720,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         int maxY = this.dimensionType.maxY();
         for (JavaDimension javaDimension : this.getRegistryCache().dimensions().values()) {
             if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
-                minY = Math.min(minY, this.dimensionType.minY());
-                maxY = Math.max(maxY, this.dimensionType.maxY());
+                minY = Math.min(minY, javaDimension.minY());
+                maxY = Math.max(maxY, javaDimension.maxY());
             }
         }
         minY = Math.max(minY, -512);
