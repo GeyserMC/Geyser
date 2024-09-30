@@ -91,7 +91,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            if (session.getGeyser().getConfig().isDebugMode()) {
+            if (session.getGeyser().config().debugMode()) {
                 session.getGeyser().getLogger().debug("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             }
             return;
