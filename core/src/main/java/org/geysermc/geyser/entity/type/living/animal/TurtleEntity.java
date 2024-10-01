@@ -56,6 +56,17 @@ public class TurtleEntity extends AnimalEntity {
     }
 
     @Override
+    protected float getAdultSize() {
+        return super.getAdultSize() * 0.7f;
+    }
+
+    @Override
+    protected float getBabySize() {
+        // 0.3f is Java scale, plus Bedrock difference
+        return 0.3f * 0.5f;
+    }
+
+    @Override
     public boolean canBeLeashed() {
         return false;
     }
