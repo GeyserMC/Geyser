@@ -28,11 +28,9 @@ package org.geysermc.geyser.util;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.packet.ChangeDimensionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
@@ -42,6 +40,7 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class DimensionUtils {
@@ -56,6 +55,7 @@ public class DimensionUtils {
     private static final int BEDROCK_OVERWORLD_ID = 0;
     private static final int BEDROCK_DEFAULT_NETHER_ID = 1;
     private static final int BEDROCK_END_ID = 2;
+    private static final int BEDROCK_EMPTY_CHUNK_COUNT = Optional.ofNullable(System.getenv("BEDROCK_EMPTY_CHUNK_COUNT")).map(Integer::parseInt).orElse(3);
 
     public static void switchDimension(GeyserSession session, JavaDimension javaDimension) {
         switchDimension(session, javaDimension, javaDimension.bedrockId());
@@ -89,18 +89,8 @@ public class DimensionUtils {
         entityEffects.clear();
 
         // Always reset weather, as it sometimes suddenly starts raining. See https://github.com/GeyserMC/Geyser/issues/3679
-        LevelEventPacket stopRainPacket = new LevelEventPacket();
-        stopRainPacket.setType(LevelEvent.STOP_RAINING);
-        stopRainPacket.setData(0);
-        stopRainPacket.setPosition(Vector3f.ZERO);
-        session.sendUpstreamPacket(stopRainPacket);
-        session.setRaining(false);
-        LevelEventPacket stopThunderPacket = new LevelEventPacket();
-        stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
-        stopThunderPacket.setData(0);
-        stopThunderPacket.setPosition(Vector3f.ZERO);
-        session.sendUpstreamPacket(stopThunderPacket);
-        session.setThunder(false);
+        session.updateRain(0);
+        session.updateThunder(0);
 
         finalizeDimensionSwitch(session, player);
 
@@ -175,7 +165,8 @@ public class DimensionUtils {
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
-        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
+
+        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), BEDROCK_EMPTY_CHUNK_COUNT, true);
     }
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {

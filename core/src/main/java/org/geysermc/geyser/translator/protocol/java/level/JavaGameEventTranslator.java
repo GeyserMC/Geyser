@@ -33,9 +33,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.notify.RespawnScreenV
 import org.geysermc.mcprotocollib.protocol.data.game.level.notify.ThunderStrengthValue;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundGameEventPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -48,9 +46,6 @@ import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundGameEventPacket.class)
 public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEventPacket> {
-    // Strength of rainstorms and thunderstorms is a 0-1 float on Java, while on Bedrock it is a 0-65535 int
-    private static final int MAX_STORM_STRENGTH = 65535;
-
     @Override
     public void translate(GeyserSession session, ClientboundGameEventPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
@@ -65,42 +60,20 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             // As a result many developers use these packets for the opposite of what their names implies
             // Behavior last verified with Java 1.19.4 and Bedrock 1.19.71
             case START_RAIN:
-                LevelEventPacket stopRainPacket = new LevelEventPacket();
-                stopRainPacket.setType(LevelEvent.STOP_RAINING);
-                stopRainPacket.setData(0);
-                stopRainPacket.setPosition(Vector3f.ZERO);
-                session.sendUpstreamPacket(stopRainPacket);
-                session.setRaining(false);
+                session.updateRain(0);
                 break;
             case STOP_RAIN:
-                LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setType(LevelEvent.START_RAINING);
-                startRainPacket.setData(MAX_STORM_STRENGTH);
-                startRainPacket.setPosition(Vector3f.ZERO);
-                session.sendUpstreamPacket(startRainPacket);
-                session.setRaining(true);
+                session.updateRain(1);
                 break;
             case RAIN_STRENGTH:
-                float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
-                boolean isCurrentlyRaining = rainStrength > 0f;
-                LevelEventPacket changeRainPacket = new LevelEventPacket();
-                changeRainPacket.setType(isCurrentlyRaining ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
                 // This is the rain strength on LevelEventType.START_RAINING, but can be any value on LevelEventType.STOP_RAINING
-                changeRainPacket.setData((int) (rainStrength * MAX_STORM_STRENGTH));
-                changeRainPacket.setPosition(Vector3f.ZERO);
-                session.sendUpstreamPacket(changeRainPacket);
-                session.setRaining(isCurrentlyRaining);
+                float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
+                session.updateRain(rainStrength);
                 break;
             case THUNDER_STRENGTH:
                 // See above, same process
                 float thunderStrength = ((ThunderStrengthValue) packet.getValue()).getStrength();
-                boolean isCurrentlyThundering = thunderStrength > 0f;
-                LevelEventPacket changeThunderPacket = new LevelEventPacket();
-                changeThunderPacket.setType(isCurrentlyThundering ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
-                changeThunderPacket.setData((int) (thunderStrength * MAX_STORM_STRENGTH));
-                changeThunderPacket.setPosition(Vector3f.ZERO);
-                session.sendUpstreamPacket(changeThunderPacket);
-                session.setThunder(isCurrentlyThundering);
+                session.updateThunder(thunderStrength);
                 break;
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
