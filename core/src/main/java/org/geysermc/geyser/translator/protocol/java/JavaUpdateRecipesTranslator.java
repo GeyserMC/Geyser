@@ -25,11 +25,25 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -67,21 +81,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapelessRecipe
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.SmithingTransformRecipeData;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
@@ -154,7 +153,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     if (stoneCuttingData.getIngredient().getOptions().length == 0) {
                         if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                             GeyserImpl.getInstance().getLogger().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
-                                    recipe.getIdentifier() + " " + Registries.JAVA_ITEMS.get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
+                                    recipe.getIdentifier() + " " + Registries.javaItems().get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
                         }
                         continue;
                     }
@@ -215,7 +214,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     craftingDataPacket.getCraftingData().add(MultiRecipeData.of(UUID.fromString("00000000-0000-0000-0000-000000000002"), context.getAndIncrementNetId()));
                 }
                 default -> {
-                    List<GeyserRecipe> recipes = Registries.RECIPES.get(recipe.getType());
+                    List<GeyserRecipe> recipes = Registries.recipes().get(recipe.getType());
                     if (recipes != null) {
                         List<String> bedrockRecipeIds = new ArrayList<>();
                         if (recipe.getType() == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
@@ -247,14 +246,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
+        craftingDataPacket.getPotionMixData().addAll(Registries.potionMixes().forVersion(session.getUpstream().getProtocolVersion()));
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    Registries.JAVA_ITEMS.get().get(stoneCuttingRecipeData.getResult().getId())
+                    Registries.javaItems().get().get(stoneCuttingRecipeData.getResult().getId())
                         // See RecipeManager#getRecipesFor as of 1.21
                             .translationKey())));
 
@@ -452,7 +451,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
 
-            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            Item javaItem = Registries.javaItems().get(result.getId());
             if (!(javaItem instanceof BedrockRequiresTagItem)) {
                 // Strip NBT - tools won't appear in the recipe book otherwise
                 output = output.toBuilder().tag(null).build();
@@ -481,7 +480,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
 
-            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            Item javaItem = Registries.javaItems().get(result.getId());
             if (!(javaItem instanceof BedrockRequiresTagItem)) {
                 // Strip NBT - tools won't appear in the recipe book otherwise
                 output = output.toBuilder().tag(null).build();
@@ -510,7 +509,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 return null;
             }
 
-            Item javaItem = Registries.JAVA_ITEMS.get(result.getId());
+            Item javaItem = Registries.javaItems().get(result.getId());
             if (!(javaItem instanceof BedrockRequiresTagItem)) {
                 // Strip NBT - tools won't appear in the recipe book otherwise
                 output = output.toBuilder().tag(null).build();

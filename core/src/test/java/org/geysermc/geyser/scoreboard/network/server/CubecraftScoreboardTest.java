@@ -33,7 +33,6 @@ import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScore
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
@@ -88,7 +87,7 @@ public class CubecraftScoreboardTest {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "sidebar")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("sidebar");
@@ -96,7 +95,7 @@ public class CubecraftScoreboardTest {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
+            });
 
 
             // Now they're going to create a bunch of teams and add players to those teams in a very inefficient way.
@@ -191,27 +190,23 @@ public class CubecraftScoreboardTest {
                     ObjectiveAction.UPDATE,
                     Component.empty()
                         .append(Component.text(
-                            "CubeCraft", Style.style(NamedTextColor.WHITE, TextDecoration.BOLD))),
+                            "CubeCraft", NamedTextColor.WHITE, TextDecoration.BOLD)),
                     ScoreType.INTEGER,
                     null));
-            assertNextPacket(
-                () -> {
-                    var packet = new RemoveObjectivePacket();
-                    packet.setObjectiveId("0");
-                    return packet;
-                },
-                context);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetDisplayObjectivePacket();
-                    packet.setObjectiveId("0");
-                    packet.setDisplayName("§f§lCubeCraft");
-                    packet.setCriteria("dummy");
-                    packet.setDisplaySlot("sidebar");
-                    packet.setSortOrder(1);
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new RemoveObjectivePacket();
+                packet.setObjectiveId("0");
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("§f§lCubeCraft");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -234,7 +229,7 @@ public class CubecraftScoreboardTest {
                 new ClientboundSetPlayerTeamPacket(
                     "SB_l-0",
                     Component.text("SB_l-0"),
-                    Component.empty().append(Component.text("", Style.style(NamedTextColor.BLACK))),
+                    Component.empty().append(Component.text("", NamedTextColor.BLACK)),
                     Component.empty(),
                     true,
                     true,
@@ -244,14 +239,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§0", "sidebar", 10));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(1, "0", 10, "§r§0§0§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 10, "§r§0§0§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -287,14 +280,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§1", "sidebar", 9));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(2, "0", 9, "§bUser: §r§fTim203§r§0§1§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(2, "0", 9, "§bUser: §r§fTim203§r§0§1§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -330,14 +321,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§2", "sidebar", 8));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(3, "0", 8, "§bRank: §r§f\uE1AB §r§0§2§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(3, "0", 8, "§bRank: §r§f\uE1AB §r§0§2§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -370,14 +359,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§3", "sidebar", 7));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(4, "0", 7, "§r§0§3§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(4, "0", 7, "§r§0§3§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -410,14 +397,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§4", "sidebar", 6));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(5, "0", 6, "§r§0§4§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(5, "0", 6, "§r§0§4§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -450,14 +435,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§5", "sidebar", 5));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(6, "0", 5, "§r§0§5§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(6, "0", 5, "§r§0§5§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -493,14 +476,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§6", "sidebar", 4));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(7, "0", 4, "§bLobby: §r§fEU #10§r§0§6§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(7, "0", 4, "§bLobby: §r§fEU #10§r§0§6§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -536,14 +517,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§7", "sidebar", 3));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(8, "0", 3, "§bPlayers: §r§f783§r§0§7§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(8, "0", 3, "§bPlayers: §r§f783§r§0§7§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -576,14 +555,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§8", "sidebar", 2));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(9, "0", 2, "§r§0§8§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(9, "0", 2, "§r§0§8§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -616,14 +593,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§9", "sidebar", 1));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(10, "0", 1, "§824/09/24 (g2208)§r§0§9§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(10, "0", 1, "§824/09/24 (g2208)§r§0§9§r")));
+                return packet;
+            });
 
             context.translate(
                 setTeamTranslator,
@@ -656,14 +631,12 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("§0§a", "sidebar", 0));
-            assertNextPacket(
-                () -> {
-                    var packet = new SetScorePacket();
-                    packet.setAction(SetScorePacket.Action.SET);
-                    packet.setInfos(List.of(new ScoreInfo(11, "0", 0, "§6play.cubecraft.net§r§0§a§r")));
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(11, "0", 0, "§6play.cubecraft.net§r§0§a§r")));
+                return packet;
+            });
 
             // after this we get a ClientboundPlayerInfoUpdatePacket with the action UPDATE_DISPLAY_NAME,
             // but that one is only shown in the tablist so we don't have to handle that.
@@ -673,84 +646,68 @@ public class CubecraftScoreboardTest {
             // So the only thing we have to verify is that the nametag is hidden
 
             mockAndAddPlayerEntity(context, "A_Player", 2);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(2);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "B_Player", 3);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(3);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(3);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "E_Player", 4);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(4);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(4);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "H_Player", 5);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(5);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(5);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "J_Player", 6);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(6);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(6);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "K_Player", 7);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(7);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(7);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "L_Player", 8);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(8);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(8);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
 
             mockAndAddPlayerEntity(context, "O_Player", 9);
-            assertNextPacket(
-                () -> {
-                    var packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(9);
-                    packet.getMetadata().put(EntityDataTypes.NAME, "");
-                    return packet;
-                },
-                context);
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(9);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
         });
     }
 }

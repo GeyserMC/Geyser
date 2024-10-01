@@ -37,7 +37,6 @@ import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
-import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -146,13 +145,8 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        /**
-         * Build the given entity. If a testing environment has been discovered the entity is not registered,
-         * otherwise it is. This is to prevent all the registries from loading, which will fail (and should
-         * not be loaded) while testing
-         */
         public EntityDefinition<T> build() {
-            return build(!EnvironmentUtils.isUnitTesting);
+            return build(true);
         }
 
         /**
@@ -165,10 +159,10 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             }
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
-                Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
-                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
+                Registries.entityDefinitions().get().putIfAbsent(definition.entityType(), definition);
+                Registries.javaEntityIdentifiers().get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
                 if (definition.registeredProperties() != null) {
-                    Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(identifier));
+                    Registries.bedrockEntityProperties().get().add(definition.registeredProperties().toNbtMap(identifier));
                 }
             }
             return definition;

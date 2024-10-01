@@ -297,7 +297,7 @@ public final class EntityUtils {
     private static String translatedEntityName(@NonNull String namespace, @NonNull String name, @NonNull GeyserSession session) {
         // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders,
         // so use the default fallback value as used in Minecraft Java
-        if (EnvironmentUtils.isUnitTesting) {
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
             return "entity." + namespace + "." + name;
         }
         return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());

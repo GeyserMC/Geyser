@@ -69,7 +69,7 @@ public class VanillaSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -77,16 +77,16 @@ public class VanillaSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("owner", "objective", 1));
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "owner")));
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -114,7 +114,7 @@ public class VanillaSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -122,22 +122,22 @@ public class VanillaSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "owner")));
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("owner", "objective", 2));
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 2, "owner")));
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -166,7 +166,7 @@ public class VanillaSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -174,31 +174,31 @@ public class VanillaSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "owner")));
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("owner", "objective", 1).withDisplay(Component.text("hi"))
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "hi")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "hi")));
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -227,7 +227,7 @@ public class VanillaSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -235,31 +235,31 @@ public class VanillaSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "owner")));
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("owner", "objective", 2).withDisplay(Component.text("hi"))
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 2, "hi")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 2, "hi")));
                 return packet;
-            }, context);
+            });
         });
     }
 }
