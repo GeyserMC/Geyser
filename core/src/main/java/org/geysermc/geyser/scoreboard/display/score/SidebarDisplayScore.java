@@ -60,8 +60,8 @@ public final class SidebarDisplayScore extends DisplayScore {
     public void update(Objective objective) {
         markUpdated();
 
-        var finalName = reference.name();
-        var displayName = reference.displayName();
+        String finalName = reference.name();
+        String displayName = reference.displayName();
 
         if (displayName != null) {
             finalName = displayName;

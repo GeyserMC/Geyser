@@ -86,7 +86,7 @@ public final class ScoreReference {
     }
 
     private void score(int score) {
-        var changed = this.score != score;
+        boolean changed = this.score != score;
         this.score = score;
         if (changed) {
             markChanged();

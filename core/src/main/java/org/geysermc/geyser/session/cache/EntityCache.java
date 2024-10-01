@@ -31,14 +31,17 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
@@ -133,7 +136,7 @@ public class EntityCache {
 
     public void addPlayerEntity(PlayerEntity entity) {
         // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
-        var exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
+        boolean exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
         if (exists) {
             return;
         }

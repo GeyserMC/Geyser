@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.entity.type;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +41,12 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
@@ -55,8 +66,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-
-import java.util.*;
 
 @Getter
 @Setter
@@ -427,7 +436,7 @@ public class Entity implements GeyserEntity {
         // Displayname is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            var displayName = MessageTranslator.convertMessage(name.get(), session.locale());
+            String displayName = MessageTranslator.convertMessage(name.get(), session.locale());
             this.displayName = displayName;
             setNametag(displayName, true);
             return;
@@ -456,7 +465,7 @@ public class Entity implements GeyserEntity {
         if (nametag == null) {
             nametag = "";
         }
-        var changed = !Objects.equals(this.nametag, nametag);
+        boolean changed = !Objects.equals(this.nametag, nametag);
         this.nametag = nametag;
         // we only update metadata if the value has changed
         if (!changed) {

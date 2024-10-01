@@ -120,7 +120,7 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        var chatColor = ChatColor.chatColorFor(color);
+        String chatColor = ChatColor.chatColorFor(color);
         // most sidebar plugins will use the reset color, because they don't want color
         // skip the unneeded double reset color in that case
         if (ChatColor.RESET.equals(chatColor)) {
@@ -149,10 +149,10 @@ public final class Team {
             return;
         }
 
-        var oldName = this.name;
-        var oldPrefix = this.prefix;
-        var oldSuffix = this.suffix;
-        var oldVisible = isVisibleFor(playerName());
+        String oldName = this.name;
+        String oldPrefix = this.prefix;
+        String oldSuffix = this.suffix;
+        boolean oldVisible = isVisibleFor(playerName());
         var oldColor = this.color;
 
         this.name = MessageTranslator.convertMessageRaw(name, session().locale());
@@ -245,7 +245,7 @@ public final class Team {
         if (names.isEmpty()) {
             return;
         }
-        var containsSelf = names.contains(playerName());
+        boolean containsSelf = names.contains(playerName());
 
         for (Entity entity : session().getEntityCache().getEntities().values()) {
             if (names.contains(entity.teamIdentifier())) {
@@ -263,7 +263,7 @@ public final class Team {
     }
 
     private void removeRemovedEntities(Set<String> names) {
-        var containsSelf = names.contains(playerName());
+        boolean containsSelf = names.contains(playerName());
 
         var iterator = managedEntities.iterator();
         while (iterator.hasNext()) {
