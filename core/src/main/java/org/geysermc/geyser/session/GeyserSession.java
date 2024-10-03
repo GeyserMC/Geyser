@@ -716,9 +716,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        int minY = this.dimensionType.minY();
-        int maxY = this.dimensionType.maxY();
-        for (JavaDimension javaDimension : this.getRegistryCache().dimensions().values()) {
+        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        int minY = BedrockDimension.OVERWORLD.minY();
+        int maxY = BedrockDimension.OVERWORLD.maxY();
+        for (JavaDimension javaDimension : this.registryCache.dimensions().values()) {
             if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                 minY = Math.min(minY, javaDimension.minY());
                 maxY = Math.max(maxY, javaDimension.maxY());
