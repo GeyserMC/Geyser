@@ -74,6 +74,7 @@ import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
+import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -84,6 +85,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
@@ -175,7 +177,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
@@ -389,6 +390,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean sprinting;
 
     /**
+     * The overworld dimension which Bedrock Edition uses.
+     */
+    private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
+    /**
      * The dimension of the player.
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
@@ -401,7 +406,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * right before the StartGamePacket is sent.
      */
     @Setter
-    private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
+    private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
     @Setter
     private int breakingBlock;
@@ -711,6 +716,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
+        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        int minY = BedrockDimension.OVERWORLD.minY();
+        int maxY = BedrockDimension.OVERWORLD.maxY();
+        for (JavaDimension javaDimension : this.registryCache.dimensions().values()) {
+            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                minY = Math.min(minY, javaDimension.minY());
+                maxY = Math.max(maxY, javaDimension.maxY());
+            }
+        }
+        minY = Math.max(minY, -512);
+        maxY = Math.min(maxY, 512);
+
+        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+            final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
+            this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
+            if (isInOverworld) {
+                this.bedrockDimension = this.bedrockOverworldDimension;
+            }
+            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
+
+            DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            upstream.sendPacket(dimensionDataPacket);
+        }
+
         startGame();
         sentSpawnPacket = true;
         syncEntityProperties();
@@ -1594,7 +1624,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(bedrockDimension));
+        startGamePacket.setDimensionId(bedrockDimension.bedrockId());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
