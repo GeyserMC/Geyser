@@ -216,7 +216,7 @@ public interface GeyserConfig {
         @Comment("""
                 The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
                 DO NOT change this unless Geyser runs on a different internal port than the one that is used to connect.""")
-        @DefaultNumeric(19132)
+        @DefaultNumeric(0)
         @NumericRange(from = 0, to = 65535)
         int broadcastPort();
 
