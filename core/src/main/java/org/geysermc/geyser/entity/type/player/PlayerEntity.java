@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.entity.type.player;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -32,53 +38,35 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.scoreboard.Objective;
-import org.geysermc.geyser.scoreboard.Score;
-import org.geysermc.geyser.scoreboard.Team;
-import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.mcprotocollib.protocol.codec.NbtComponentSerializer;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.BlankFormat;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.StyledFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
@@ -95,6 +83,9 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     private String username;
+
+    private String cachedScore = "";
+    private boolean scoreVisible = true;
 
     /**
      * The textures property from the GameProfile.
@@ -123,6 +114,31 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         this.texturesProperty = texturesProperty;
     }
 
+    /**
+     * Do not use! For testing purposes only
+     */
+    public PlayerEntity(GeyserSession session, long geyserId, UUID uuid, String username) {
+        super(
+            session,
+            -1,
+            geyserId,
+            uuid,
+            EntityDefinition.builder(null).type(EntityType.PLAYER).build(false),
+            Vector3f.ZERO,
+            Vector3f.ZERO,
+            0,
+            0,
+            0
+        );
+        this.username = username;
+        this.nametag = username;
+        this.texturesProperty = null;
+
+        // clear initial metadata
+        dirtyMetadata.apply(new EntityDataMap());
+        setFlagsDirty(false);
+    }
+
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
@@ -132,17 +148,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     public void spawnEntity() {
-        // Check to see if the player should have a belowname counterpart added
-        Objective objective = session.getWorldCache().getScoreboard().getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
-        if (objective != null) {
-            setBelowNameText(objective);
-        }
-
-        // Update in case this entity has been despawned, then respawned
-        this.nametag = this.username;
-        // The name can't be updated later (the entity metadata for it is ignored), so we need to check for this now
-        updateDisplayName(session.getWorldCache().getScoreboard().getTeamFor(username));
-
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
         addPlayerPacket.setUsername(username);
@@ -177,6 +182,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
         // Since we re-use player entities: Clear flags, held item, etc
         this.resetMetadata();
+        this.nametag = username;
         this.hand = ItemData.AIR;
         this.offhand = ItemData.AIR;
         this.boots = ItemData.AIR;
@@ -387,42 +393,61 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
+    public String getDisplayName() {
+        return username;
+    }
+
+    @Override
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         // Doesn't do anything for players
     }
 
-    //todo this will become common entity logic once UUID support is implemented for them
-    public void updateDisplayName(@Nullable Team team) {
-        boolean needsUpdate;
-        if (team != null) {
-            String newDisplayName;
-            if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                TeamColor color = team.getColor();
-                String chatColor = MessageTranslator.toChatColor(color);
-                // We have to emulate what modern Java text already does for us and add the color to each section
-                String prefix = team.getCurrentData().getPrefix();
-                String suffix = team.getCurrentData().getSuffix();
-                newDisplayName = chatColor + prefix + chatColor + this.username + chatColor + suffix;
-            } else {
-                // The name is not visible to the session player; clear name
-                newDisplayName = "";
-            }
-            needsUpdate = !newDisplayName.equals(this.nametag);
-            this.nametag = newDisplayName;
-        } else {
-            // The name has reset, if it was previously something else
-            needsUpdate = !this.nametag.equals(this.username);
-            this.nametag = this.username;
-        }
+    @Override
+    public String teamIdentifier() {
+        return username;
+    }
 
-        if (needsUpdate) {
-            dirtyMetadata.put(EntityDataTypes.NAME, this.nametag);
+    @Override
+    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+        // when fromDisplayName, LivingEntity will call scoreboard code. After that
+        // setNametag is called again with fromDisplayName on false
+        if (nametag == null && !fromDisplayName) {
+            // nametag = null means reset, so reset it back to username
+            nametag = username;
         }
+        super.setNametag(nametag, fromDisplayName);
     }
 
     @Override
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         // Doesn't do anything for players
+    }
+
+    public void setBelowNameText(String text) {
+        if (text == null) {
+            text = "";
+        }
+
+        boolean changed = !Objects.equals(cachedScore, text);
+        cachedScore = text;
+        if (isScoreVisible() && changed) {
+            dirtyMetadata.put(EntityDataTypes.SCORE, text);
+        }
+    }
+
+    @Override
+    protected void scoreVisibility(boolean show) {
+        boolean visibilityChanged = scoreVisible != show;
+        scoreVisible = show;
+        if (!visibilityChanged) {
+            return;
+        }
+        // if the player has no cachedScore, we never have to change the score.
+        // hide = set to "" (does nothing), show = change from "" (does nothing)
+        if (cachedScore.isEmpty()) {
+            return;
+        }
+        dirtyMetadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
     }
 
     @Override
@@ -449,64 +474,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         }
         setBoundingBoxWidth(width);
         setBoundingBoxHeight(height);
-    }
-
-    public void setBelowNameText(Objective objective) {
-        if (objective != null && objective.getUpdateType() != UpdateType.REMOVE) {
-            Score score = objective.getScores().get(username);
-            String numberString;
-            NumberFormat numberFormat;
-            int amount;
-            if (score != null) {
-                amount = score.getScore();
-                numberFormat = score.getNumberFormat();
-                if (numberFormat == null) {
-                    numberFormat = objective.getNumberFormat();
-                }
-            } else {
-                amount = 0;
-                numberFormat = objective.getNumberFormat();
-            }
-
-            if (numberFormat instanceof BlankFormat) {
-                numberString = "";
-            } else if (numberFormat instanceof FixedFormat fixedFormat) {
-                numberString = MessageTranslator.convertMessage(fixedFormat.getValue());
-            } else if (numberFormat instanceof StyledFormat styledFormat) {
-                NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
-                styledAmount.putString("text", String.valueOf(amount));
-
-                numberString = MessageTranslator.convertJsonMessage(
-                        NbtComponentSerializer.tagComponentToJson(styledAmount.build()).toString(), session.locale());
-            } else {
-                numberString = String.valueOf(amount);
-            }
-
-            String displayString = numberString + " " + ChatColor.RESET + objective.getDisplayName();
-
-            if (valid) {
-                // Already spawned - we still need to run the rest of this code because the spawn packet will be
-                // providing the information
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityDataTypes.SCORE, displayString);
-                session.sendUpstreamPacket(packet);
-            } else {
-                // Not spawned yet, store score value in dirtyMetadata to be picked up by #spawnEntity
-                dirtyMetadata.put(EntityDataTypes.SCORE, displayString);
-            }
-        } else {
-            if (valid) {
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityDataTypes.SCORE, "");
-                session.sendUpstreamPacket(packet);
-            } else {
-                // Not spawned yet, store score value in dirtyMetadata to be picked up by #spawnEntity
-                dirtyMetadata.put(EntityDataTypes.SCORE, "");
-            }
-        }
-
     }
 
     /**

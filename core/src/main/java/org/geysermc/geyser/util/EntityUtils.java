@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -38,6 +39,8 @@ import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -288,6 +291,23 @@ public final class EntityUtils {
             case SPECTATOR -> GameType.SURVIVAL_VIEWER;
             default -> GameType.SURVIVAL;
         };
+    }
+
+    private static String translatedEntityName(String namespace, String name, GeyserSession session) {
+        return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
+    }
+
+    public static String translatedEntityName(Key type, GeyserSession session) {
+        return translatedEntityName(type.namespace(), type.value(), session);
+    }
+
+    public static String translatedEntityName(EntityType type, GeyserSession session) {
+        if (type == EntityType.PLAYER) {
+            return "Player"; // the player's name is always shown instead
+        }
+        // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
+        String typeName = type.name().toLowerCase(Locale.ROOT);
+        return translatedEntityName("minecraft", typeName, session);
     }
 
     private EntityUtils() {

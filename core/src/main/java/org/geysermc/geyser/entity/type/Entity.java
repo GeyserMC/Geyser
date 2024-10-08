@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.entity.type;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,12 +41,18 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -55,12 +67,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
-import java.util.*;
-
 @Getter
 @Setter
 public class Entity implements GeyserEntity {
-
     private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
 
     protected final GeyserSession session;
@@ -68,6 +77,12 @@ public class Entity implements GeyserEntity {
     protected int entityId;
     protected final long geyserId;
     protected UUID uuid;
+    /**
+     * Do not call this setter directly!
+     * This will bypass the scoreboard and setting the metadata
+     */
+    @Setter(AccessLevel.NONE)
+    protected String nametag = "";
 
     protected Vector3f position;
     protected Vector3f motion;
@@ -97,7 +112,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    protected String nametag = "";
+    private String displayName;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -126,11 +141,12 @@ public class Entity implements GeyserEntity {
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
+        this.definition = definition;
+        this.displayName = standardDisplayName();
 
         this.entityId = entityId;
         this.geyserId = geyserId;
         this.uuid = uuid;
-        this.definition = definition;
         this.motion = motion;
         this.yaw = yaw;
         this.pitch = pitch;
@@ -341,7 +357,7 @@ public class Entity implements GeyserEntity {
      * Sends the Bedrock metadata to the client
      */
     public void updateBedrockMetadata() {
-        if (!valid) {
+        if (!isValid()) {
             return;
         }
 
@@ -410,16 +426,80 @@ public class Entity implements GeyserEntity {
         return 300;
     }
 
+    public String teamIdentifier() {
+        return uuid.toString();
+    }
+
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // displayName is shown when always display name is enabled. Either with or without team.
+        // That's why there are both a displayName and a nametag variable.
+        // Displayname is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            nametag = MessageTranslator.convertMessage(name.get(), session.locale());
-            dirtyMetadata.put(EntityDataTypes.NAME, nametag);
-        } else if (!nametag.isEmpty()) {
-            // Clear nametag
-            dirtyMetadata.put(EntityDataTypes.NAME, "");
+            String displayName = MessageTranslator.convertMessage(name.get(), session.locale());
+            this.displayName = displayName;
+            setNametag(displayName, true);
+            return;
         }
+
+        // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
+        // maybe we can/should use a translatable here instead?
+        this.displayName = standardDisplayName();
+        setNametag(null, true);
     }
+
+    protected String standardDisplayName() {
+        return EntityUtils.translatedEntityName(definition.entityType(), session);
+    }
+
+    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+        // ensure that the team format is used when nametag changes
+        if (nametag != null && fromDisplayName) {
+            var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
+            if (team != null) {
+                updateNametag(team);
+                return;
+            }
+        }
+
+        if (nametag == null) {
+            nametag = "";
+        }
+        boolean changed = !Objects.equals(this.nametag, nametag);
+        this.nametag = nametag;
+        // we only update metadata if the value has changed
+        if (!changed) {
+            return;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        // if nametag (player with team) is hidden for player, so should the score (belowname)
+        scoreVisibility(!nametag.isEmpty());
+    }
+
+    public void updateNametag(@Nullable Team team) {
+        // allow LivingEntity+ to have a different visibility check
+        updateNametag(team, true);
+    }
+
+    protected void updateNametag(@Nullable Team team, boolean visible) {
+        if (team != null) {
+            String newNametag;
+            // (team) visibility is LivingEntity+, team displayName is Entity+
+            if (visible) {
+                newNametag = team.displayName(getDisplayName());
+            } else {
+                // The name is not visible to the session player; clear name
+                newNametag = "";
+            }
+            setNametag(newNametag, false);
+            return;
+        }
+        // The name has reset, if it was previously something else
+        setNametag(null, false);
+    }
+
+    protected void scoreVisibility(boolean show) {}
 
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));

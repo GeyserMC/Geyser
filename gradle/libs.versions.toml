@@ -39,6 +39,7 @@ neoforge-minecraft = "21.1.1"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
 minecraft = "1.21.1"
+mockito = "5.+"
 
 # plugin versions
 indra = "3.1.3"
@@ -132,6 +133,8 @@ protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", 
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
 # plugins
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
