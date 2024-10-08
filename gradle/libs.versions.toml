@@ -15,7 +15,7 @@ protocol-common = "3.0.0.Beta5-20240916.181041-6"
 protocol-codec = "3.0.0.Beta5-20240916.181041-6"
 raknet = "1.0.0.CR3-20240416.144209-1"
 minecraftauth = "4.1.1"
-mcprotocollib = "5090ca4"
+mcprotocollib = "1.21-20241008.134549-23"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -119,7 +119,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
-mcprotocollib = { group = "com.github.AlexProgrammerDE", name = "MCProtocolLib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
