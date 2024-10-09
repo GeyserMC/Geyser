@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import java.util.Locale;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
@@ -45,8 +46,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-
-import java.util.Locale;
 
 public final class EntityUtils {
     /**
@@ -294,6 +293,10 @@ public final class EntityUtils {
     }
 
     private static String translatedEntityName(String namespace, String name, GeyserSession session) {
+        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders
+        if (EnvironmentUtils.isUnitTesting) {
+            return "entity." + namespace + "." + name;
+        }
         return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
     }
 

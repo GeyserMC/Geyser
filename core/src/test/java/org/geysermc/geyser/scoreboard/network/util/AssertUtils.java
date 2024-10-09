@@ -42,6 +42,14 @@ public class AssertUtils {
         assertContextEquals(expected, context.nextPacket());
     }
 
+    public static void assertNextPacketType(GeyserMockContext context, Class<? extends BedrockPacket> type) {
+        var actual = context.nextPacket();
+        if (actual == null) {
+            Assertions.fail("Expected another packet! " + type);
+        }
+        Assertions.assertEquals(type, actual.getClass());
+    }
+
     public static void assertNoNextPacket(GeyserMockContext context) {
         Assertions.assertEquals(
             Collections.emptyList(),

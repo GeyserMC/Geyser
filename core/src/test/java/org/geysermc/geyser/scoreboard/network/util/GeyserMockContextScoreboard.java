@@ -34,8 +34,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -57,7 +57,10 @@ public class GeyserMockContextScoreboard {
         // GeyserSession has so many dependencies, it's easier to just mock it
         var session = context.mock(GeyserSession.class);
 
+        when(session.getGeyser()).thenReturn(context.mockOrSpy(GeyserImpl.class));
+
         when(session.locale()).thenReturn("en_US");
+
         doAnswer((Answer<Void>) invocation -> {
             context.addPacket(invocation.getArgument(0, BedrockPacket.class));
             return null;

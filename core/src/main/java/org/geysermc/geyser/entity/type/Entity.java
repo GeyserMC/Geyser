@@ -427,7 +427,10 @@ public class Entity implements GeyserEntity {
     }
 
     public String teamIdentifier() {
-        return uuid.toString();
+        // experience orbs are the only known entities that do not send an uuid (even though they do have one),
+        // but to be safe in the future it's done in the entity class itself instead of the entity specific one.
+        // All entities without an uuid cannot show up in the scoreboard!
+        return uuid != null ? uuid.toString() : null;
     }
 
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {

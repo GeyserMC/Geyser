@@ -53,7 +53,6 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
@@ -66,7 +65,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
@@ -118,18 +116,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Do not use! For testing purposes only
      */
     public PlayerEntity(GeyserSession session, long geyserId, UUID uuid, String username) {
-        super(
-            session,
-            -1,
-            geyserId,
-            uuid,
-            EntityDefinition.builder(null).type(EntityType.PLAYER).build(false),
-            Vector3f.ZERO,
-            Vector3f.ZERO,
-            0,
-            0,
-            0
-        );
+        super(session, -1, geyserId, uuid, EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
         this.username = username;
         this.nametag = username;
         this.texturesProperty = null;
