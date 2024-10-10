@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.text;
 
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+
 public class ChatColor {
     public static final String ANSI_RESET = (char) 0x1b + "[0m";
 
@@ -83,5 +85,59 @@ public class ChatColor {
         string = string.replace(YELLOW, (char) 0x1b + "[33;1m");
         string = string.replace(WHITE, (char) 0x1b + "[37;1m");
         return string;
+    }
+
+    public static String styleOrder(int index) {
+        // https://bugs.mojang.com/browse/MCPE-41729
+        // strikethrough and underlined do not exist on Bedrock
+        return switch (index) {
+            case 0 -> BLACK;
+            case 1 -> DARK_BLUE;
+            case 2 -> DARK_GREEN;
+            case 3 -> DARK_AQUA;
+            case 4 -> DARK_RED;
+            case 5 -> DARK_PURPLE;
+            case 6 -> GOLD;
+            case 7 -> GRAY;
+            case 8 -> DARK_GRAY;
+            case 9 -> BLUE;
+            case 10 -> GREEN;
+            case 11 -> AQUA;
+            case 12 -> RED;
+            case 13 -> LIGHT_PURPLE;
+            case 14 -> YELLOW;
+            case 15 -> WHITE;
+            case 16 -> OBFUSCATED;
+            case 17 -> BOLD;
+            default -> ITALIC;
+        };
+    }
+
+    public static String chatColorFor(TeamColor teamColor) {
+        // https://bugs.mojang.com/browse/MCPE-41729
+        // strikethrough and underlined do not exist on Bedrock
+        return switch (teamColor) {
+            case BLACK -> BLACK;
+            case DARK_BLUE -> DARK_BLUE;
+            case DARK_GREEN -> DARK_GREEN;
+            case DARK_AQUA -> DARK_AQUA;
+            case DARK_RED -> DARK_RED;
+            case DARK_PURPLE -> DARK_PURPLE;
+            case GOLD -> GOLD;
+            case GRAY -> GRAY;
+            case DARK_GRAY -> DARK_GRAY;
+            case BLUE -> BLUE;
+            case GREEN -> GREEN;
+            case AQUA -> AQUA;
+            case RED -> RED;
+            case LIGHT_PURPLE -> LIGHT_PURPLE;
+            case YELLOW -> YELLOW;
+            case WHITE -> WHITE;
+            case OBFUSCATED -> OBFUSCATED;
+            case BOLD -> BOLD;
+            case STRIKETHROUGH, UNDERLINED -> "";
+            case ITALIC -> ITALIC;
+            default -> RESET;
+        };
     }
 }

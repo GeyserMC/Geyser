@@ -33,6 +33,7 @@ import org.geysermc.erosion.Constants;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -62,7 +63,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         if (session.isSpawned()) {
-            int fakeDim = DimensionUtils.getTemporaryDimension(DimensionUtils.javaToBedrock(session.getBedrockDimension()), newDimension.bedrockId());
+            int fakeDim = DimensionUtils.getTemporaryDimension(session.getBedrockDimension().bedrockId(), newDimension.bedrockId());
             if (fakeDim != newDimension.bedrockId()) {
                 // The player's current dimension and new dimension are the same
                 // We want a dimension switch to clear old chunks out, so switch to a dimension that isn't the one we're currently in.
@@ -121,9 +122,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 
-        if (DimensionUtils.javaToBedrock(session.getBedrockDimension()) != newDimension.bedrockId()) {
+        if (session.getBedrockDimension().bedrockId() != newDimension.bedrockId()) {
             DimensionUtils.switchDimension(session, newDimension);
-        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.isNetherLike()) {
+        } else if (BedrockDimension.isCustomBedrockNetherId() && newDimension.isNetherLike()) {
             // If the player is spawning into the "fake" nether, send them some fog
             session.camera().sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
