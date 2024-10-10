@@ -27,7 +27,8 @@ package org.geysermc.geyser.network.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -101,7 +102,7 @@ public final class LocalSession extends TcpSession {
 
                 ChannelPipeline pipeline = channel.pipeline();
 
-                initializeHAProxySupport(channel);
+                addHAProxySupport(pipeline);
 
                 pipeline.addLast("read-timeout", new ReadTimeoutHandler(getFlag(BuiltinFlags.READ_TIMEOUT, 30)));
                 pipeline.addLast("write-timeout", new WriteTimeoutHandler(getFlag(BuiltinFlags.WRITE_TIMEOUT, 0)));
@@ -142,21 +143,33 @@ public final class LocalSession extends TcpSession {
         return (MinecraftCodecHelper) this.codecHelper;
     }
 
-    private void initializeHAProxySupport(Channel channel) {
+    // TODO duplicate code
+    private void addHAProxySupport(ChannelPipeline pipeline) {
         InetSocketAddress clientAddress = getFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS);
-        if (clientAddress == null) {
-            return;
+        if (clientAddress != null) {
+            pipeline.addFirst("proxy-protocol-packet-sender", new ChannelInboundHandlerAdapter() {
+                @Override
+                public void channelActive(@NonNull ChannelHandlerContext ctx) throws Exception {
+                    HAProxyProxiedProtocol proxiedProtocol = clientAddress.getAddress() instanceof Inet4Address ? HAProxyProxiedProtocol.TCP4 : HAProxyProxiedProtocol.TCP6;
+                    InetSocketAddress remoteAddress;
+                    if (ctx.channel().remoteAddress() instanceof InetSocketAddress) {
+                        remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+                    } else {
+                        remoteAddress = new InetSocketAddress(host, port);
+                    }
+                    ctx.channel().writeAndFlush(new HAProxyMessage(
+                        HAProxyProtocolVersion.V2, HAProxyCommand.PROXY, proxiedProtocol,
+                        clientAddress.getAddress().getHostAddress(), remoteAddress.getAddress().getHostAddress(),
+                        clientAddress.getPort(), remoteAddress.getPort()
+                    ));
+                    ctx.pipeline().remove(this);
+                    ctx.pipeline().remove("proxy-protocol-encoder");
+                    super.channelActive(ctx);
+                }
+            });
+            pipeline.addFirst("proxy-protocol-encoder", HAProxyMessageEncoder.INSTANCE);
         }
-
-        channel.pipeline().addLast("proxy-protocol-encoder", HAProxyMessageEncoder.INSTANCE);
-        HAProxyProxiedProtocol proxiedProtocol = clientAddress.getAddress() instanceof Inet4Address ? HAProxyProxiedProtocol.TCP4 : HAProxyProxiedProtocol.TCP6;
-        InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
-        channel.writeAndFlush(new HAProxyMessage(
-            HAProxyProtocolVersion.V2, HAProxyCommand.PROXY, proxiedProtocol,
-            clientAddress.getAddress().getHostAddress(), remoteAddress.getAddress().getHostAddress(),
-            clientAddress.getPort(), remoteAddress.getPort()
-        )).addListener(future -> channel.pipeline().remove("proxy-protocol-encoder"));
-    }
+        }
 
     /**
      * Should only be called when direct ByteBufs should be preferred. At this moment, this should only be called on BungeeCord.
