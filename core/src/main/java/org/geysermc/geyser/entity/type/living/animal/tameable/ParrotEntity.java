@@ -48,7 +48,7 @@ public class ParrotEntity extends TameableEntity {
 
     @Override
     @Nullable
-    protected Tag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return null;
     }
 

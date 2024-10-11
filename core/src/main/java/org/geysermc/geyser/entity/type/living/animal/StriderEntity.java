@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
@@ -96,7 +97,7 @@ public class StriderEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected Tag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.STRIDER_FOOD;
     }
 

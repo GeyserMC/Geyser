@@ -33,9 +33,10 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.HolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.geyser.session.cache.tags.TagRegistry;
 import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
@@ -46,23 +47,23 @@ import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
- * will remain empty, matching Java Edition behavior. Only tags from registries in {@link TagRegistry} are stored.
+ * will remain empty, matching Java Edition behavior. Only tags from registries in {@link JavaRegistries} are stored.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
     // Stores the indexes of non-vanilla tag keys in the tags array.
-    private Object2IntMap<Key>[] tagIndexMaps = new Object2IntMap[TagRegistry.values().length];
-    private int[][][] tags = new int[TagRegistry.values().length][][];
+    private Object2IntMap<Key>[] tagIndexMaps = new Object2IntMap[JavaRegistryKey.getRegistered()];
+    private int[][][] tags = new int[JavaRegistryKey.getRegistered()][][];
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 
-        this.tagIndexMaps = new Object2IntMap[TagRegistry.values().length];
-        this.tags = new int[TagRegistry.values().length][][];
+        this.tagIndexMaps = new Object2IntMap[JavaRegistryKey.getRegistered()];
+        this.tags = new int[JavaRegistryKey.getRegistered()][][];
 
         for (Key registryKey : allTags.keySet()) {
-            TagRegistry registry = TagRegistry.fromKey(registryKey);
+            JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
             if (registry == null) {
                 logger.debug("Not loading tags for registry " + registryKey + " (registry is not defined in TagRegistry enum)");
                 continue;
@@ -70,7 +71,7 @@ public final class TagCache {
 
             Map<Key, int[]> registryTags = allTags.get(registryKey);
 
-            if (registry == TagRegistry.BLOCK) {
+            if (registry == JavaRegistries.BLOCK) {
                 // Hack btw
                 int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
                 boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
@@ -78,7 +79,7 @@ public final class TagCache {
                 if (logger.isDebug()) {
                     logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
                 }
-            } else if (registry == TagRegistry.ITEM) {
+            } else if (registry == JavaRegistries.ITEM) {
                 // Hack btw
                 boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
                 session.setEmulatePost1_13Logic(emulatePost1_13Logic);
@@ -93,15 +94,15 @@ public final class TagCache {
         }
     }
 
-    private int[][] loadTags(Map<Key, int[]> packetTags, Object2IntMap<Key> tagIndexMap, TagRegistry registry) {
-        Map<Key, Tag> vanillaTags = registry.getVanillaTags();
+    private int[][] loadTags(Map<Key, int[]> packetTags, Object2IntMap<Key> tagIndexMap, JavaRegistryKey<?> registry) {
+        Map<Key, ? extends Tag<?>> vanillaTags = registry.getVanillaTags();
         List<Key> nonVanillaTagKeys = packetTags.keySet().stream().filter(tag -> !vanillaTags.containsKey(tag)).toList();
 
         int[][] tags = new int[vanillaTags.size() + nonVanillaTagKeys.size()][];
 
         // Load all vanilla tags first (whether the server sent them or not), then load all the remaining non-vanilla tags the server might have sent.
-        for (Map.Entry<Key, Tag> vanillaTag : vanillaTags.entrySet()) {
-            tags[((VanillaTag) vanillaTag.getValue()).ordinal()] = packetTags.getOrDefault(vanillaTag.getKey(), new int[0]);
+        for (Map.Entry<Key, ? extends Tag<?>> vanillaTag : vanillaTags.entrySet()) {
+            tags[((VanillaTag<?>) vanillaTag.getValue()).ordinal()] = packetTags.getOrDefault(vanillaTag.getKey(), new int[0]);
         }
 
         int tagIndex = vanillaTags.size();
@@ -117,8 +118,9 @@ public final class TagCache {
     /**
      * @return true if the block tag is present and contains this block mapping's Java ID.
      */
-    public boolean is(Tag tag, Block block) {
-        if (tag.registry() != TagRegistry.BLOCK) {
+    public boolean is(Tag<Block> tag, Block block) {
+        // TODO should this check be removed? should it be changed into an assertion?
+        if (tag.registry() != JavaRegistries.BLOCK) {
             throw new IllegalArgumentException("Given tag is not a block tag! (tag registry=%s)".formatted(tag.registry()));
         }
         return contains(get(tag), block.javaId());
@@ -127,15 +129,16 @@ public final class TagCache {
     /**
      * @return true if the item tag is present and contains this item stack's Java ID.
      */
-    public boolean is(Tag tag, GeyserItemStack itemStack) {
+    public boolean is(Tag<Item> tag, GeyserItemStack itemStack) {
         return is(tag, itemStack.asItem());
     }
 
     /**
      * @return true if the item tag is present and contains this item's Java ID.
      */
-    public boolean is(Tag tag, Item item) {
-        if (tag.registry() != TagRegistry.ITEM) {
+    public boolean is(Tag<Item> tag, Item item) {
+        // TODO same
+        if (tag.registry() != JavaRegistries.ITEM) {
             throw new IllegalArgumentException("Given tag is not an item tag! (tag registry=%s)".formatted(tag.registry()));
         }
         return contains(get(tag), item.javaId());
@@ -144,15 +147,16 @@ public final class TagCache {
     /**
      * @return true if the specified network ID is in the given holder set.
      */
-    public boolean is(HolderSet holderSet, int id) {
+    // TODO typed?
+    public boolean is(HolderSet<?> holderSet, int id) {
         return contains(holderSet.resolve(this), id);
     }
 
     /**
      * @return the network IDs in the given tag. This can be an empty list. Vanilla tags will be resolved faster than non-vanilla ones.
      */
-    public int[] get(Tag tag) {
-        if (tag instanceof VanillaTag vanillaTag) {
+    public int[] get(Tag<?> tag) {
+        if (tag instanceof VanillaTag<?> vanillaTag) {
             return this.tags[tag.registry().ordinal()][vanillaTag.ordinal()];
         }
 

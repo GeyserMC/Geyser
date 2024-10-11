@@ -26,9 +26,10 @@
 package org.geysermc.geyser.session.cache.tags;
 
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.Ordered;
 
-public record VanillaTag(TagRegistry registry, Key tag, int geyserId) implements Ordered, Tag {
+public record VanillaTag<T>(JavaRegistryKey<T> registry, Key tag, int geyserId) implements Ordered, Tag<T> {
 
     @Override
     public int ordinal() {

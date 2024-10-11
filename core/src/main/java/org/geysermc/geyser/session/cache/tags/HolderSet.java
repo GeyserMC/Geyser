@@ -32,18 +32,19 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
 /**
  * Similar to vanilla Minecraft's HolderSets, stores either a tag or a list of IDs (this list can also be represented as a single ID in vanilla HolderSets).
  *
- * Because HolderSets utilise tags, when loading a HolderSet, Geyser must store tags for the registry the HolderSet is for (it must be listed in {@link TagRegistry}).
+ * Because HolderSets utilise tags, when loading a HolderSet, Geyser must store tags for the registry the HolderSet is for (it must be listed in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries}).
  *
  * Use the {@link HolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link HolderSet#resolve} method.
  */
 @Data
-public final class HolderSet {
+public final class HolderSet<T> {
 
-    private final @Nullable Tag tag;
+    private final @Nullable Tag<T> tag;
     private final int @Nullable [] holders;
 
     public HolderSet(int @NonNull [] holders) {
@@ -51,7 +52,7 @@ public final class HolderSet {
         this.holders = holders;
     }
 
-    public HolderSet(@NonNull Tag tagId) {
+    public HolderSet(@NonNull Tag<T> tagId) {
         this.tag = tagId;
         this.holders = null;
     }
@@ -77,22 +78,22 @@ public final class HolderSet {
      * @param holderSet the HolderSet as an object from NBT.
      * @param keyIdMapping a function that maps resource location IDs in the HolderSet's registry to their network IDs.
      */
-    public static HolderSet readHolderSet(TagRegistry registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
+    public static <T> HolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
         if (holderSet == null) {
-            return new HolderSet(new int[]{});
+            return new HolderSet<>(new int[]{});
         }
 
         if (holderSet instanceof String stringTag) {
             if (stringTag.startsWith("#")) {
                 // Tag
-                return new HolderSet(Tag.createTag(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
+                return new HolderSet<>(Tag.createTag(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
             } else if (stringTag.isEmpty()) {
-                return new HolderSet(new int[]{});
+                return new HolderSet<>(new int[]{});
             }
-            return new HolderSet(new int[]{keyIdMapping.apply(Key.key(stringTag))});
+            return new HolderSet<>(new int[]{keyIdMapping.apply(Key.key(stringTag))});
         } else if (holderSet instanceof List<?> list) {
             // Assume the list is a list of strings
-            return new HolderSet(list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
+            return new HolderSet<>(list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
         }
         throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
     }

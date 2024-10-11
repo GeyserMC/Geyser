@@ -23,65 +23,57 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.tags;
+package org.geysermc.geyser.session.cache.registry;
+
+import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.session.cache.tags.VanillaTag;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.Ordered;
 
 import java.util.HashMap;
 import java.util.Map;
-import lombok.Getter;
-import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.util.MinecraftKey;
 
-/**
- * Lists registries that Geyser stores tags for.
- *
- * When wanting to store tags from a new registry, add the registry here, and register all vanilla tags for it using {@link TagRegistry#registerVanillaTag}. These vanilla tags
- * can be stored in a vanilla tag class, like {@link BlockTag} and {@link ItemTag}. This class can then have an init method that's called in {@link TagRegistry#init}, to ensure
- * that all vanilla tags are registered before any connection is made.
- */
-public enum TagRegistry {
-    BLOCK("block"),
-    ITEM("item"),
-    ENCHANTMENT("enchantment");
-
-    private final Key registryKey;
+public class JavaRegistryKey<T> implements Ordered {
+    @Getter
+    private static int registered = 0;
 
     /**
      * A map mapping vanilla tag keys in this registry to a {@link Tag} instance (this is a {@link VanillaTag}).
-     * 
-     * Keys should never be manually added to this map. Rather, {@link TagRegistry#registerVanillaTag} should be used, during Geyser init.
+     *
+     * Keys should never be manually added to this map. Rather, {@link JavaRegistryKey#registerVanillaTag} should be used, during Geyser init.
      */
+    // TODO should this be changed to VanillaTag ? check
     @Getter
-    private final Map<Key, Tag> vanillaTags;
+    private final Map<Key, Tag<T>> vanillaTags = new HashMap<>();
+    @Getter
+    private final Key registryKey;
+    private final int geyserId;
 
-    TagRegistry(String registry) {
-        this.registryKey = MinecraftKey.key(registry);
-        this.vanillaTags = new HashMap<>();
+    private JavaRegistryKey(Key registryKey, int geyserId) {
+        this.registryKey = registryKey;
+        this.geyserId = geyserId;
     }
 
-    public Tag registerVanillaTag(Key identifier) {
+    public static <T> JavaRegistryKey<T> create(String key) {
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registered);
+        registered++;
+        return registry;
+    }
+
+    public Tag<T> registerVanillaTag(Key identifier) {
         if (vanillaTags.containsKey(identifier)) {
             throw new IllegalArgumentException("Vanilla tag " + identifier + " was already registered!");
         }
 
-        Tag tag = new VanillaTag(this, identifier, vanillaTags.size());
+        Tag<T> tag = new VanillaTag<>(this, identifier, vanillaTags.size());
         vanillaTags.put(identifier, tag);
         return tag;
     }
 
-    @Nullable
-    public static TagRegistry fromKey(Key registryKey) {
-        for (TagRegistry registry : TagRegistry.values()) {
-            if (registry.registryKey.equals(registryKey)) {
-                return registry;
-            }
-        }
-        return null;
-    }
-
-    public static void init() {
-        BlockTag.init();
-        ItemTag.init();
-        EnchantmentTag.init();
+    @Override
+    public int ordinal() {
+        return geyserId;
     }
 }

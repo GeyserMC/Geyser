@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
@@ -74,7 +75,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     @Override
     @Nullable
-    protected Tag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.SNIFFER_FOOD;
     }
 
