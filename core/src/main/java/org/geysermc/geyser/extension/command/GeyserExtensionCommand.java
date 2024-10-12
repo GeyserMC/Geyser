@@ -196,6 +196,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
                 @Override
                 protected org.incendo.cloud.Command.Builder.Applicable<GeyserCommandSource> meta() {
+                    // We don't want to localize the extension command description
                     return builder -> builder.commandDescription(CommandDescription.commandDescription(description));
                 }
 
