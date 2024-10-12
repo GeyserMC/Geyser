@@ -27,6 +27,8 @@ package org.geysermc.geyser.util;
 
 import java.util.Locale;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -292,21 +294,26 @@ public final class EntityUtils {
         };
     }
 
-    private static String translatedEntityName(String namespace, String name, GeyserSession session) {
-        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders
+    private static String translatedEntityName(@NonNull String namespace, @NonNull String name, @NonNull GeyserSession session) {
+        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders,
+        // so use the default fallback value as used in Minecraft Java
         if (EnvironmentUtils.isUnitTesting) {
             return "entity." + namespace + "." + name;
         }
         return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
     }
 
-    public static String translatedEntityName(Key type, GeyserSession session) {
+    public static String translatedEntityName(@NonNull Key type, @NonNull GeyserSession session) {
         return translatedEntityName(type.namespace(), type.value(), session);
     }
 
-    public static String translatedEntityName(EntityType type, GeyserSession session) {
+    public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
         if (type == EntityType.PLAYER) {
             return "Player"; // the player's name is always shown instead
+        }
+        // default fallback value as used in Minecraft Java
+        if (type == null) {
+            return "entity.unregistered_sadface";
         }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
         String typeName = type.name().toLowerCase(Locale.ROOT);
