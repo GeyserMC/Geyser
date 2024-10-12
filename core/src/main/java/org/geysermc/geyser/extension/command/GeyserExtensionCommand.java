@@ -38,6 +38,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.description.CommandDescription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -193,11 +194,16 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                         .handler(this::execute));
                 }
 
+                @Override
+                protected org.incendo.cloud.Command.Builder.Applicable<GeyserCommandSource> meta() {
+                    return builder -> builder.commandDescription(CommandDescription.commandDescription(description));
+                }
+
                 @SuppressWarnings("unchecked")
                 @Override
                 public void execute(CommandContext<GeyserCommandSource> context) {
                     GeyserCommandSource source = context.sender();
-                    String[] args = context.getOrDefault("args", "").split(" ");
+                    String[] args = context.getOrDefault("args", " ").split(" ");
 
                     if (sourceType.isInstance(source)) {
                         executor.execute((T) source, this, args);
