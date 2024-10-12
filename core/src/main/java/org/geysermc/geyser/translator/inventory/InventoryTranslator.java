@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.inventory;
 
 import it.unimi.dsi.fastutil.ints.*;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
@@ -63,7 +63,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 
 import java.util.*;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public abstract class InventoryTranslator {
 
     public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
@@ -108,6 +108,7 @@ public abstract class InventoryTranslator {
     public static final int PLAYER_INVENTORY_OFFSET = 9;
 
     public final int size;
+    protected boolean refreshPending;
 
     public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
@@ -157,7 +158,7 @@ public abstract class InventoryTranslator {
     }
 
     public final void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequest> requests) {
-        boolean refresh = false;
+        this.refreshPending = false;
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequest request : requests) {
             ItemStackResponse response;
@@ -182,14 +183,14 @@ public abstract class InventoryTranslator {
 
             if (response.getResult() != ItemStackResponseStatus.OK) {
                 // Sync our copy of the inventory with Bedrock's to prevent desyncs
-                refresh = true;
+                this.refreshPending = true;
             }
 
             responsePacket.getEntries().add(response);
         }
         session.sendUpstreamPacket(responsePacket);
 
-        if (refresh) {
+        if (this.refreshPending) {
             InventoryUtils.updateCursor(session);
             updateInventory(session, inventory);
         }

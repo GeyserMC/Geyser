@@ -85,6 +85,10 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
+    public int maxStackSize() {
+        return getComponent(DataComponentType.MAX_STACK_SIZE, asItem().maxStackSize());
+    }
+
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
     }
@@ -133,12 +137,20 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : netId;
     }
 
-    public void add(int add) {
-        amount += add;
+    public int capacity() {
+        return Math.max(maxStackSize() - amount, 0);
     }
 
-    public void sub(int sub) {
+    public int add(int add) {
+        add = Math.min(add, capacity());
+        amount += add;
+        return add;
+    }
+
+    public int sub(int sub) {
+        sub = Math.min(sub, amount);
         amount -= sub;
+        return sub;
     }
 
     public ItemStack getItemStack() {
