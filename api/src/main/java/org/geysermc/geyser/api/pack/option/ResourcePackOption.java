@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.pack.option;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-
-import java.nio.file.Path;
-import java.util.List;
+import org.geysermc.geyser.api.pack.ResourcePack;
 
 /**
- * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
+ * Represents a resource pack option that can be used to specify how a resource
+ * pack is sent to Bedrock clients.
  */
-@Deprecated(forRemoval = true)
-public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
+public interface ResourcePackOption<T> {
+
+    /**
+     * @return the option type
+     */
+    @NonNull Type type();
+
+    /**
+     * @return the value of the option
+     */
+    @NonNull T value();
+
+    /**
+     * Used to validate a specific options for a pack.
+     * Some options are not applicable to some packs.
+     *
+     * @param pack the resource pack to validate the option for
+     */
+    void validate(@NonNull ResourcePack pack);
+
+    enum Type {
+        SUBPACK,
+        PRIORITY,
+        FALLBACK
+    }
+
 }

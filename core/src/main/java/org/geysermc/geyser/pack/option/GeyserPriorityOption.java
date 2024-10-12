@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,61 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity;
+package org.geysermc.geyser.pack.option;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.slf4j.Logger;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
 
-@RequiredArgsConstructor
-public class GeyserVelocityLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
+import java.util.Objects;
 
-    @Override
-    public void severe(String message) {
-        logger.error(message);
-    }
+public record GeyserPriorityOption(double priority) implements PriorityOption {
 
-    @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void error(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
+    public GeyserPriorityOption {
+        if (priority < 0 || priority > 10) {
+            throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }
     }
 
     @Override
-    public void debug(String message, Object... arguments) {
-        if (debug) {
-            logger.info(message, arguments);
+    public @NonNull Type type() {
+        return Type.PRIORITY;
+    }
+
+    @Override
+    public @NonNull Double value() {
+        return priority;
+    }
+
+    @Override
+    public void validate(@NonNull ResourcePack pack) {
+        Objects.requireNonNull(pack);
+        if (priority <= 10 && priority > 0) {
+            throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }
     }
 }
