@@ -28,16 +28,25 @@ package org.geysermc.geyser.scoreboard.network;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
+import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaRemoveEntitiesTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.spawn.JavaAddExperienceOrbTranslator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundRemoveEntitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddExperienceOrbPacket;
 import org.junit.jupiter.api.Test;
 
-public class TeamIdentifierTest {
+/**
+ * Tests that don't fit in a larger system (e.g. sidebar objective) that were reported on GitHub
+ */
+public class ScoreboardIssueTests {
+    /**
+     * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5075">#5075</a>
+     */
     @Test
     void entityWithoutUuid() {
         // experience orbs are the only known entities without an uuid, see Entity#teamIdentifier for more info
@@ -50,12 +59,35 @@ public class TeamIdentifierTest {
             // because the entity would be registered and deregistered to the scoreboard.
             assertDoesNotThrow(() -> {
                 context.translate(addExperienceOrbTranslator, new ClientboundAddExperienceOrbPacket(2, 0, 0, 0, 1));
+
+                String displayName = context.mockOrSpy(EntityCache.class).getEntityByJavaId(2).getDisplayName();
+                assertEquals("entity.minecraft.experience_orb", displayName);
+
                 context.translate(removeEntitiesTranslator, new ClientboundRemoveEntitiesPacket(new int[] { 2 }));
             });
 
             // we know that spawning and removing the entity should be fine
             assertNextPacketType(context, AddEntityPacket.class);
             assertNextPacketType(context, RemoveEntityPacket.class);
+        });
+    }
+
+    /**
+     * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5078">#5078</a>
+     */
+    @Test
+    void entityWithoutType() {
+        // dragon entity parts are an entity in Geyser, but do not have an entity type
+        mockContextScoreboard(context -> {
+            // EntityUtils#translatedEntityName used to not take null EntityType's into account,
+            // so it used to throw an exception
+            assertDoesNotThrow(() -> {
+                // dragon entity parts are not spawned using a packet, so we manually create an instance
+                var dragonHeadPart = new EnderDragonPartEntity(context.session(), 2, 2, 1, 1);
+
+                String displayName = dragonHeadPart.getDisplayName();
+                assertEquals("entity.unregistered_sadface", displayName);
+            });
         });
     }
 }
