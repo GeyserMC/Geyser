@@ -199,7 +199,13 @@ public class CustomItemRegistryPopulator {
                     computeThrowableProperties(componentBuilder);
         }
 
-        computeRenderOffsets(false, customItemData, componentBuilder);
+        // Hardcoded on Java, and should extend to the custom item
+        boolean isHat = (javaItem.equals(Items.SKELETON_SKULL) || javaItem.equals(Items.WITHER_SKELETON_SKULL)
+                || javaItem.equals(Items.CARVED_PUMPKIN) || javaItem.equals(Items.ZOMBIE_HEAD)
+                || javaItem.equals(Items.PIGLIN_HEAD) || javaItem.equals(Items.DRAGON_HEAD)
+                || javaItem.equals(Items.CREEPER_HEAD) || javaItem.equals(Items.PLAYER_HEAD)
+        );
+        computeRenderOffsets(isHat, customItemData, componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());

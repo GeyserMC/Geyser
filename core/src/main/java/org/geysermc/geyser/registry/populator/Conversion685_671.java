@@ -45,6 +45,8 @@ public class Conversion685_671 {
     private static final List<Item> NEW_MUSIC_DISCS = List.of(Items.MUSIC_DISC_CREATOR, Items.MUSIC_DISC_CREATOR_MUSIC_BOX, Items.MUSIC_DISC_PRECIPICE);
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
+        mapping = Conversion712_685.remapItem(item, mapping);
+
         String identifer = mapping.getBedrockIdentifier();
 
         if (NEW_MUSIC_DISCS.contains(item)) {
@@ -111,6 +113,8 @@ public class Conversion685_671 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+        tag = Conversion712_685.remapBlock(tag);
+
         final String name = tag.getString("name");
         
         if (!MODIFIED_BLOCKS.contains(name)) {
@@ -130,7 +134,7 @@ public class Conversion685_671 {
             String coralColor;
             boolean deadBit = name.startsWith("minecraft:dead_");
 
-            switch(name) {
+            switch (name) {
                 case "minecraft:tube_coral_block", "minecraft:dead_tube_coral_block" -> coralColor = "blue";
                 case "minecraft:brain_coral_block", "minecraft:dead_brain_coral_block" -> coralColor = "pink";
                 case "minecraft:bubble_coral_block", "minecraft:dead_bubble_coral_block" -> coralColor = "purple";
@@ -152,7 +156,7 @@ public class Conversion685_671 {
             replacement = "minecraft:double_plant";
             String doublePlantType;
 
-            switch(name) {
+            switch (name) {
                 case "minecraft:sunflower" -> doublePlantType = "sunflower";
                 case "minecraft:lilac" -> doublePlantType = "syringa";
                 case "minecraft:tall_grass" -> doublePlantType = "grass";
@@ -174,7 +178,7 @@ public class Conversion685_671 {
             replacement = "minecraft:stone_block_slab";
             String stoneSlabType;
 
-            switch(name) {
+            switch (name) {
                 case "minecraft:smooth_stone_slab" -> stoneSlabType = "smooth_stone";
                 case "minecraft:sandstone_slab" -> stoneSlabType = "sandstone";
                 case "minecraft:petrified_oak_slab" -> stoneSlabType = "wood";
@@ -198,7 +202,7 @@ public class Conversion685_671 {
             replacement = "minecraft:tallgrass";
             String tallGrassType;
 
-            switch(name) {
+            switch (name) {
                 case "minecraft:short_grass" -> tallGrassType = "tall";
                 case "minecraft:fern" -> tallGrassType = "fern";
                 default -> throw new IllegalStateException("Unexpected value: " + name);

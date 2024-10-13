@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.translator.item;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.data.GameProfile.Texture;
-import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
-import com.github.steveice10.mc.auth.exception.property.PropertyException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -44,6 +40,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -55,13 +52,24 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
+import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.*;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class ItemTranslator {
 
@@ -146,6 +154,12 @@ public final class ItemTranslator {
         if (components != null) {
             javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
             if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
+        }
+
+        // Fixes fireworks crafting recipe: they always contain a tag
+        // TODO remove once all items have their default components
+        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
+            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
         }
 
         Rarity rarity = javaItem.rarity();
@@ -480,11 +494,12 @@ public final class ItemTranslator {
         
         GameProfile profile = components.get(DataComponentType.PROFILE);
         if (profile != null) {
-            Map<TextureType, Texture> textures = null;
+            Map<TextureType, Texture> textures;
             try {
                 textures = profile.getTextures(false);
-            } catch (PropertyException e) {
-                GeyserImpl.getInstance().getLogger().debug("Failed to get textures from GameProfile: " + e);
+            } catch (IllegalStateException e) {
+                GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+                return null;
             }
 
             if (textures == null || textures.isEmpty()) {

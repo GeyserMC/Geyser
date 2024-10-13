@@ -3,6 +3,7 @@ plugins {
     idea
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
 }
 
 dependencies {
@@ -25,11 +26,10 @@ dependencies {
 
     api(libs.bundles.protocol)
 
-    api(libs.mcauthlib)
+    api(libs.minecraftauth)
     api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
-        exclude("com.github.GeyserMC", "packetlib")
-        exclude("com.github.GeyserMC", "mcauthlib")
+        exclude("net.raphimc", "MinecraftAuth")
     }
 
     implementation(libs.raknet) {
@@ -52,12 +52,16 @@ dependencies {
     // Adventure text serialization
     api(libs.bundles.adventure)
 
+    // command library
+    api(libs.cloud.core)
+
     api(libs.erosion.common) {
         isTransitive = false
     }
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.mockito)
 
     // Annotation Processors
     compileOnly(projects.ap)
@@ -101,9 +105,6 @@ sourceSets {
     }
 }
 
-fun buildNumber(): Int =
-    (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
-
 fun isDevBuild(branch: String, repository: String): Boolean {
     return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
 }
@@ -137,7 +138,7 @@ inner class GitInfo {
 
         buildNumber = buildNumber()
         isDev = isDevBuild(branch, repository)
-        val projectVersion = if (isDev) project.version else project.version.toString().replace("SNAPSHOT", "b${buildNumber}")
+        val projectVersion = if (isDev) project.version else projectVersion(project)
         version = "$projectVersion ($gitVersion)"
     }
 }

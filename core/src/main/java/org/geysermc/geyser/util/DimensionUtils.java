@@ -25,12 +25,18 @@
 
 package org.geysermc.geyser.util;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.ChangeDimensionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
@@ -38,27 +44,14 @@ import java.util.Set;
 
 public class DimensionUtils {
 
-    // Changes if the above-bedrock Nether building workaround is applied
-    private static int BEDROCK_NETHER_ID = 1;
-
     public static final String BEDROCK_FOG_HELL = "minecraft:fog_hell";
 
-    /**
-     * String reference to vanilla Java overworld dimension identifier
-     */
-    public static final int OVERWORLD = 0;
-    /**
-     * String reference to vanilla Java nether dimension identifier
-     */
-    public static final int NETHER = 3;
-    /**
-     * String reference to vanilla Java end dimension identifier
-     */
-    public static final int THE_END = 2;
+    public static void switchDimension(GeyserSession session, JavaDimension javaDimension) {
+        switchDimension(session, javaDimension, javaDimension.bedrockId());
+    }
 
-    public static void switchDimension(GeyserSession session, int javaDimension) {
-        int bedrockDimension = javaToBedrock(javaDimension); // new bedrock dimension
-        int previousDimension = session.getDimension(); // previous java dimension
+    public static void switchDimension(GeyserSession session, JavaDimension javaDimension, int bedrockDimension) {
+        @Nullable JavaDimension previousDimension = session.getDimensionType(); // previous java dimension; can be null if an online player with no saved auth token logs in.
 
         Entity player = session.getPlayerEntity();
 
@@ -69,6 +62,48 @@ public class DimensionUtils {
         session.getPistonCache().clear();
         session.getSkullCache().clear();
 
+        changeDimension(session, bedrockDimension);
+
+        session.setDimensionType(javaDimension);
+
+        Set<Effect> entityEffects = session.getEffectCache().getEntityEffects();
+        for (Effect effect : entityEffects) {
+            MobEffectPacket mobEffectPacket = new MobEffectPacket();
+            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
+            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
+            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            session.sendUpstreamPacket(mobEffectPacket);
+        }
+        // Effects are re-sent from server
+        entityEffects.clear();
+
+        // Always reset weather, as it sometimes suddenly starts raining. See https://github.com/GeyserMC/Geyser/issues/3679
+        session.updateRain(0);
+        session.updateThunder(0);
+
+        finalizeDimensionSwitch(session, player);
+
+        // If the bedrock nether height workaround is enabled, meaning the client is told it's in the end dimension,
+        // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
+        // thinks they are in the end dimension.
+        if (BedrockDimension.isCustomBedrockNetherId()) {
+            if (javaDimension.isNetherLike()) {
+                session.camera().sendFog(BEDROCK_FOG_HELL);
+            } else if (previousDimension != null && previousDimension.isNetherLike()) {
+                session.camera().removeFog(BEDROCK_FOG_HELL);
+            }
+        }
+    }
+
+    /**
+     * Switch dimensions without clearing internal logic.
+     */
+    public static void fastSwitchDimension(GeyserSession session, int bedrockDimension) {
+        changeDimension(session, bedrockDimension);
+        finalizeDimensionSwitch(session, session.getPlayerEntity());
+    }
+
+    private static void changeDimension(GeyserSession session, int bedrockDimension) {
         if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
             // The server-sided view distance wasn't a thing until Minecraft Java 1.14
             // So ViaVersion compensates by sending a "view distance" of 64
@@ -77,7 +112,7 @@ public class DimensionUtils {
             // To solve this, we cap at 32 unless we know that the render distance actually exceeds 32
             // Also, as of 1.19: PS4 crashes with a ChunkRadiusUpdatedPacket too large
             session.getGeyser().getLogger().debug("Applying dimension switching workaround for Bedrock render distance of "
-                    + session.getServerRenderDistance());
+                + session.getServerRenderDistance());
             ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
             chunkRadiusUpdatedPacket.setRadius(32);
             session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
@@ -92,24 +127,14 @@ public class DimensionUtils {
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
 
-        session.setDimension(javaDimension);
-        setBedrockDimension(session, javaDimension);
+        setBedrockDimension(session, bedrockDimension);
 
-        player.setPosition(pos);
+        session.getPlayerEntity().setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
+    }
 
-        Set<Effect> entityEffects = session.getEffectCache().getEntityEffects();
-        for (Effect effect : entityEffects) {
-            MobEffectPacket mobEffectPacket = new MobEffectPacket();
-            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
-            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
-            session.sendUpstreamPacket(mobEffectPacket);
-        }
-        // Effects are re-sent from server
-        entityEffects.clear();
-
+    private static void finalizeDimensionSwitch(GeyserSession session, Entity player) {
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setStoppingAllSound(true);
@@ -130,49 +155,14 @@ public class DimensionUtils {
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
         ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
-
-        // If the bedrock nether height workaround is enabled, meaning the client is told it's in the end dimension,
-        // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
-        // thinks they are in the end dimension.
-        if (isCustomBedrockNetherId()) {
-            if (NETHER == javaDimension) {
-                session.camera().sendFog(BEDROCK_FOG_HELL);
-            } else if (NETHER == previousDimension) {
-                session.camera().removeFog(BEDROCK_FOG_HELL);
-            }
-        }
     }
 
-    public static void setBedrockDimension(GeyserSession session, int javaDimension) {
-        session.getChunkCache().setBedrockDimension(switch (javaDimension) {
-            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
-            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
-            default -> BedrockDimension.OVERWORLD;
+    public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {
+        session.setBedrockDimension(switch (bedrockDimension) {
+            case BedrockDimension.END_ID -> BedrockDimension.THE_END;
+            case BedrockDimension.DEFAULT_NETHER_ID -> BedrockDimension.THE_NETHER; // JavaDimension *should* be set to BEDROCK_END_ID if the Nether workaround is enabled.
+            default -> session.getBedrockOverworldDimension();
         });
-    }
-
-    public static int javaToBedrock(BedrockDimension dimension) {
-        if (dimension == BedrockDimension.THE_NETHER) {
-            return BEDROCK_NETHER_ID;
-        } else if (dimension == BedrockDimension.THE_END) {
-            return 2;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * Map the Java edition dimension IDs to Bedrock edition
-     *
-     * @param javaDimension Dimension ID to convert
-     * @return Converted Bedrock edition dimension ID
-     */
-    public static int javaToBedrock(int javaDimension) {
-        return switch (javaDimension) {
-            case NETHER -> BEDROCK_NETHER_ID;
-            case THE_END -> 2;
-            default -> 0;
-        };
     }
 
     /**
@@ -183,42 +173,39 @@ public class DimensionUtils {
      */
     public static int javaToBedrock(String javaDimension) {
         return switch (javaDimension) {
-            case "minecraft:the_nether" -> BEDROCK_NETHER_ID;
-            case "minecraft:the_end" -> 2;
-            default -> 0;
+            case BedrockDimension.NETHER_IDENTIFIER -> BedrockDimension.BEDROCK_NETHER_ID;
+            case "minecraft:the_end" -> BedrockDimension.END_ID;
+            default -> BedrockDimension.OVERWORLD_ID;
         };
     }
 
     /**
-     * The Nether dimension in Bedrock does not permit building above Y128 - the Bedrock above the dimension.
-     * This workaround sets the Nether as the End dimension to ignore this limit.
-     *
-     * @param isAboveNetherBedrockBuilding true if we should apply The End workaround
+     * Gets the Bedrock dimension ID, with a safety check if a packet is created before the player is logged/spawned in.
      */
-    public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
-        // Change dimension ID to the End to allow for building above Bedrock
-        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? 2 : 1;
+    public static int javaToBedrock(GeyserSession session) {
+        JavaDimension dimension = session.getDimensionType();
+        if (dimension == null) {
+            return BedrockDimension.OVERWORLD_ID;
+        }
+        return dimension.bedrockId();
     }
 
     /**
      * Gets the fake, temporary dimension we send clients to so we aren't switching to the same dimension without an additional
      * dimension switch.
      *
-     * @param currentDimension the current dimension of the player
-     * @param newDimension the new dimension that the player will be transferred to
-     * @return the fake dimension to transfer to
+     * @param currentBedrockDimension the current dimension of the player
+     * @param newBedrockDimension the new dimension that the player will be transferred to
+     * @return the Bedrock fake dimension to transfer to
      */
-    public static int getTemporaryDimension(int currentDimension, int newDimension) {
-        if (isCustomBedrockNetherId()) {
+    public static int getTemporaryDimension(int currentBedrockDimension, int newBedrockDimension) {
+        if (BedrockDimension.isCustomBedrockNetherId()) {
             // Prevents rare instances of Bedrock locking up
-            return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
+            return newBedrockDimension == BedrockDimension.END_ID ? BedrockDimension.OVERWORLD_ID : BedrockDimension.END_ID;
         }
         // Check current Bedrock dimension and not just the Java dimension.
         // Fixes rare instances like https://github.com/GeyserMC/Geyser/issues/3161
-        return javaToBedrock(currentDimension) == 0 ? NETHER : OVERWORLD;
+        return currentBedrockDimension == BedrockDimension.OVERWORLD_ID ? BedrockDimension.DEFAULT_NETHER_ID : BedrockDimension.OVERWORLD_ID;
     }
 
-    public static boolean isCustomBedrockNetherId() {
-        return BEDROCK_NETHER_ID == 2;
-    }
 }

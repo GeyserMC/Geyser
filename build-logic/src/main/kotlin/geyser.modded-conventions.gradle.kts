@@ -2,10 +2,9 @@
 
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.maven
 
 plugins {
-    id("geyser.publish-conventions")
+    id("geyser.platform-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
 }
@@ -36,6 +35,10 @@ provided("io.netty", "netty-codec")
 provided("io.netty", "netty-resolver-dns")
 provided("io.netty", "netty-resolver-dns-native-macos")
 provided("org.ow2.asm", "asm")
+
+// cloud-fabric/cloud-neoforge jij's all cloud depends already
+provided("org.incendo", ".*")
+provided("io.leangen.geantyref", "geantyref")
 
 architectury {
     minecraft = libs.minecraft.get().version as String
@@ -82,7 +85,7 @@ tasks {
     register("remapModrinthJar", RemapJarTask::class) {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
-        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("BUILD_NUMBER"))
+        archiveVersion.set(versionName(project))
         archiveClassifier.set("")
     }
 }
@@ -111,13 +114,4 @@ afterEvaluate {
 dependencies {
     minecraft(libs.minecraft)
     mappings(loom.officialMojangMappings())
-}
-
-repositories {
-    // mavenLocal()
-    maven("https://repo.opencollab.dev/main")
-    maven("https://jitpack.io")
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://maven.neoforged.net/releases")
 }

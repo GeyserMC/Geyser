@@ -1,5 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 
+plugins {
+    application
+    id("geyser.platform-conventions")
+}
+
 val terminalConsoleVersion = "1.2.0"
 val jlineVersion = "3.21.0"
 

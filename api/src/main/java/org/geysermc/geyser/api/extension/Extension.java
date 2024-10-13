@@ -108,6 +108,15 @@ public interface Extension extends EventRegistrar {
     }
 
     /**
+     * @return the root command that all of this extension's commands will stem from.
+     *         By default, this is the extension's id.
+     */
+    @NonNull
+    default String rootCommand() {
+        return this.description().id();
+    }
+
+    /**
      * Gets the extension's logger
      *
      * @return the extension's logger

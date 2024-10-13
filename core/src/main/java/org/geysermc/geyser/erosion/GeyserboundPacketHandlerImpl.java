@@ -171,10 +171,10 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     @Override
     public void handleHandshake(GeyserboundHandshakePacket packet) {
-        this.close();
         var handler = new GeyserboundHandshakePacketHandler(this.session);
         session.setErosionHandler(handler);
         handler.handleHandshake(packet);
+        this.close();
     }
 
     @Override
@@ -198,6 +198,17 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     public void close() {
         this.packetSender.close();
+
+        if (pendingLookup != null) {
+            pendingLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        if (pendingBatchLookup != null) {
+            pendingBatchLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        if (pickBlockLookup != null) {
+            pickBlockLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        asyncPendingLookups.forEach(($, future) -> future.completeExceptionally(new ErosionCancellationException()));
     }
 
     public int getNextTransactionId() {

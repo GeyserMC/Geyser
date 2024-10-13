@@ -41,7 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -76,6 +76,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         @Override
         public int hashCode(BedrockCommandInfo o) {
             int paramHash = Arrays.deepHashCode(o.paramData());
+            if ("help".equals(o.name())) {
+                paramHash = 31 * paramHash + 1;
+            }
             return 31 * paramHash + o.description().hashCode();
         }
 
@@ -83,6 +86,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         public boolean equals(BedrockCommandInfo a, BedrockCommandInfo b) {
             if (a == b) return true;
             if (a == null || b == null) return false;
+            if ("help".equals(a.name()) && !"help".equals(b.name())) {
+                // Merging this causes Bedrock to fallback to its own help command
+                // Tested on Paper 1.20.4 with Essentials and Bedrock 1.21
+                // https://github.com/GeyserMC/Geyser/issues/2573
+                return false;
+            }
             if (!a.description().equals(b.description())) return false;
             if (a.paramData().length != b.paramData().length) return false;
             for (int i = 0; i < a.paramData().length; i++) {
@@ -116,13 +125,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (!session.getGeyser().getConfig().isCommandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
-            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
             AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            emptyPacket.getCommands().add(createFakeHelpCommand());
             session.sendUpstreamPacket(emptyPacket);
             return;
         }
 
-        GeyserCommandManager manager = session.getGeyser().commandManager();
+        CommandRegistry registry = session.getGeyser().commandRegistry();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -151,8 +161,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
-                    index -> new HashSet<>()).add(node.getName().toLowerCase());
+            String name = node.getName().toLowerCase(Locale.ROOT);
+            String description = registry.description(name, session.locale());
+            BedrockCommandInfo info = new BedrockCommandInfo(name, description, params);
+            commands.computeIfAbsent(info, $ -> new HashSet<>()).add(name);
         }
 
         var eventBus = session.getGeyser().eventBus();
@@ -169,8 +181,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, not sure what these do apart from break things
-        Set<CommandData.Flag> flags = Set.of();
+        // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
+        Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
+
+        boolean helpAdded = false;
 
         // Loop through all the found commands
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
@@ -188,6 +202,15 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
+
+            if (commandName.equals("help")) {
+                helpAdded = true;
+            }
+        }
+
+        if (!helpAdded) {
+            // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
+            commandData.add(createFakeHelpCommand());
         }
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
@@ -274,6 +297,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
             default -> CommandParam.STRING;
         };
+    }
+
+    private CommandData createFakeHelpCommand() {
+        CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
+        return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
 
     /**
@@ -449,7 +477,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
                         // Example vanilla commands: ban-ip, ban, and kick
-                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                        if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
                             optional = false;
                         }
                     }

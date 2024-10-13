@@ -38,7 +38,17 @@ import java.util.UUID;
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 public class TextDisplayEntity extends DisplayBaseEntity {
     public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        super(session, entityId, geyserId, uuid, definition, position.add(0, definition.offset(), 0), motion, yaw, pitch, headYaw);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
+        super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(position.add(Vector3f.from(0, definition.offset(), 0)), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override

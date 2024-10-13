@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
@@ -292,10 +291,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     session.sendUpstreamPacket(soundEventPacket);
                 }
             }
-            case PARTICLES_DRAGON_BLOCK_BREAK -> {
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_GENERIC_SPAWN);
-                effectPacket.setData(61);
-            }
+            case PARTICLES_DRAGON_BLOCK_BREAK -> effectPacket.setType(ParticleType.DRAGON_DESTROY_BLOCK);
             case PARTICLES_WATER_EVAPORATING -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE_WATER);
                 effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));
@@ -481,7 +477,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
     }
 
     private static void spawnOminousTrialSpawnerParticles(GeyserSession session, Vector3f pos) {
-        int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+        int dimensionId = DimensionUtils.javaToBedrock(session);
         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
         stringPacket.setIdentifier("minecraft:trial_spawner_detection_ominous");
         stringPacket.setDimensionId(dimensionId);

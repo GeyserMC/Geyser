@@ -32,40 +32,22 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundResetScorePacket;
 
 @Translator(packet = ClientboundResetScorePacket.class)
 public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScorePacket> {
-
     @Override
     public void translate(GeyserSession session, ClientboundResetScorePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
-        Objective belowName = scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
-
         if (packet.getObjective() == null) {
             // No objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
-            for (Objective otherObjective : scoreboard.getObjectives()) {
-                otherObjective.removeScore(packet.getOwner());
-            }
-
-            // as described below
-            if (belowName != null) {
-                JavaSetScoreTranslator.setBelowName(session, belowName, packet.getOwner());
-            }
+            scoreboard.resetPlayerScores(packet.getOwner());
         } else {
             Objective objective = scoreboard.getObjective(packet.getObjective());
             objective.removeScore(packet.getOwner());
-
-            // If this is the objective that is in use to show the below name text, we need to update the player
-            // attached to this score.
-            if (objective == belowName) {
-                // Update the score on this player to now reflect 0
-                JavaSetScoreTranslator.setBelowName(session, objective, packet.getOwner());
-            }
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second

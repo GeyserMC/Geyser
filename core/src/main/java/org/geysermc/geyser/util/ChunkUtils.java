@@ -156,7 +156,7 @@ public class ChunkUtils {
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
-        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension bedrockDimension = session.getBedrockDimension();
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
         byte[] payload;
@@ -174,7 +174,7 @@ public class ChunkUtils {
             byteBuf.readBytes(payload);
 
             LevelChunkPacket data = new LevelChunkPacket();
-            data.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
+            data.setDimension(session.getBedrockDimension().bedrockId());
             data.setChunkX(chunkX);
             data.setChunkZ(chunkZ);
             data.setSubChunksLength(0);
@@ -210,19 +210,11 @@ public class ChunkUtils {
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void loadDimension(GeyserSession session) {
-        JavaDimension dimension = session.getRegistryCache().dimensions().byId(session.getDimension());
-        session.setDimensionType(dimension);
+        JavaDimension dimension = session.getDimensionType();
         int minY = dimension.minY();
         int maxY = dimension.maxY();
 
-        if (minY % 16 != 0) {
-            throw new RuntimeException("Minimum Y must be a multiple of 16!");
-        }
-        if (maxY % 16 != 0) {
-            throw new RuntimeException("Maximum Y must be a multiple of 16!");
-        }
-
-        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        BedrockDimension bedrockDimension = session.getBedrockDimension();
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
@@ -230,7 +222,7 @@ public class ChunkUtils {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.height()),
-                    session.getDimension()));
+                    session.getRegistryCache().dimensions().byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);
