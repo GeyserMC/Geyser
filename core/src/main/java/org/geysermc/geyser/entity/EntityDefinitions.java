@@ -25,34 +25,131 @@
 
 package org.geysermc.geyser.entity;
 
-import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
-import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
-import org.geysermc.geyser.entity.type.*;
-import org.geysermc.geyser.entity.type.living.*;
-import org.geysermc.geyser.entity.type.living.animal.*;
-import org.geysermc.geyser.entity.type.living.animal.horse.*;
+import org.geysermc.geyser.entity.type.AbstractArrowEntity;
+import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
+import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
+import org.geysermc.geyser.entity.type.ArrowEntity;
+import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.ChestBoatEntity;
+import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
+import org.geysermc.geyser.entity.type.DisplayBaseEntity;
+import org.geysermc.geyser.entity.type.EnderCrystalEntity;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.EvokerFangsEntity;
+import org.geysermc.geyser.entity.type.ExpOrbEntity;
+import org.geysermc.geyser.entity.type.FallingBlockEntity;
+import org.geysermc.geyser.entity.type.FireballEntity;
+import org.geysermc.geyser.entity.type.FireworkEntity;
+import org.geysermc.geyser.entity.type.FishingHookEntity;
+import org.geysermc.geyser.entity.type.FurnaceMinecartEntity;
+import org.geysermc.geyser.entity.type.InteractionEntity;
+import org.geysermc.geyser.entity.type.ItemEntity;
+import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.LeashKnotEntity;
+import org.geysermc.geyser.entity.type.LightningEntity;
+import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.type.MinecartEntity;
+import org.geysermc.geyser.entity.type.PaintingEntity;
+import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
+import org.geysermc.geyser.entity.type.TNTEntity;
+import org.geysermc.geyser.entity.type.TextDisplayEntity;
+import org.geysermc.geyser.entity.type.ThrowableEntity;
+import org.geysermc.geyser.entity.type.ThrowableItemEntity;
+import org.geysermc.geyser.entity.type.ThrownPotionEntity;
+import org.geysermc.geyser.entity.type.TridentEntity;
+import org.geysermc.geyser.entity.type.WitherSkullEntity;
+import org.geysermc.geyser.entity.type.living.AbstractFishEntity;
+import org.geysermc.geyser.entity.type.living.AgeableEntity;
+import org.geysermc.geyser.entity.type.living.AllayEntity;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
+import org.geysermc.geyser.entity.type.living.BatEntity;
+import org.geysermc.geyser.entity.type.living.DolphinEntity;
+import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
+import org.geysermc.geyser.entity.type.living.IronGolemEntity;
+import org.geysermc.geyser.entity.type.living.MagmaCubeEntity;
+import org.geysermc.geyser.entity.type.living.MobEntity;
+import org.geysermc.geyser.entity.type.living.SlimeEntity;
+import org.geysermc.geyser.entity.type.living.SnowGolemEntity;
+import org.geysermc.geyser.entity.type.living.SquidEntity;
+import org.geysermc.geyser.entity.type.living.TadpoleEntity;
+import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
+import org.geysermc.geyser.entity.type.living.animal.AxolotlEntity;
+import org.geysermc.geyser.entity.type.living.animal.BeeEntity;
+import org.geysermc.geyser.entity.type.living.animal.ChickenEntity;
+import org.geysermc.geyser.entity.type.living.animal.CowEntity;
+import org.geysermc.geyser.entity.type.living.animal.FoxEntity;
+import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
+import org.geysermc.geyser.entity.type.living.animal.GoatEntity;
+import org.geysermc.geyser.entity.type.living.animal.HoglinEntity;
+import org.geysermc.geyser.entity.type.living.animal.MooshroomEntity;
+import org.geysermc.geyser.entity.type.living.animal.OcelotEntity;
+import org.geysermc.geyser.entity.type.living.animal.PandaEntity;
+import org.geysermc.geyser.entity.type.living.animal.PigEntity;
+import org.geysermc.geyser.entity.type.living.animal.PolarBearEntity;
+import org.geysermc.geyser.entity.type.living.animal.PufferFishEntity;
+import org.geysermc.geyser.entity.type.living.animal.RabbitEntity;
+import org.geysermc.geyser.entity.type.living.animal.SheepEntity;
+import org.geysermc.geyser.entity.type.living.animal.SnifferEntity;
+import org.geysermc.geyser.entity.type.living.animal.StriderEntity;
+import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
+import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.HorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.TraderLlamaEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.entity.type.living.merchant.AbstractMerchantEntity;
 import org.geysermc.geyser.entity.type.living.merchant.VillagerEntity;
-import org.geysermc.geyser.entity.type.living.monster.*;
+import org.geysermc.geyser.entity.type.living.monster.AbstractSkeletonEntity;
+import org.geysermc.geyser.entity.type.living.monster.BasePiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.BlazeEntity;
+import org.geysermc.geyser.entity.type.living.monster.BoggedEntity;
+import org.geysermc.geyser.entity.type.living.monster.BreezeEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreeperEntity;
+import org.geysermc.geyser.entity.type.living.monster.ElderGuardianEntity;
+import org.geysermc.geyser.entity.type.living.monster.EnderDragonEntity;
+import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
+import org.geysermc.geyser.entity.type.living.monster.EndermanEntity;
+import org.geysermc.geyser.entity.type.living.monster.GhastEntity;
+import org.geysermc.geyser.entity.type.living.monster.GiantEntity;
+import org.geysermc.geyser.entity.type.living.monster.GuardianEntity;
+import org.geysermc.geyser.entity.type.living.monster.MonsterEntity;
+import org.geysermc.geyser.entity.type.living.monster.PhantomEntity;
+import org.geysermc.geyser.entity.type.living.monster.PiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.ShulkerEntity;
+import org.geysermc.geyser.entity.type.living.monster.SkeletonEntity;
+import org.geysermc.geyser.entity.type.living.monster.SpiderEntity;
+import org.geysermc.geyser.entity.type.living.monster.VexEntity;
+import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
+import org.geysermc.geyser.entity.type.living.monster.WitherEntity;
+import org.geysermc.geyser.entity.type.living.monster.ZoglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.ZombieEntity;
+import org.geysermc.geyser.entity.type.living.monster.ZombieVillagerEntity;
+import org.geysermc.geyser.entity.type.living.monster.ZombifiedPiglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.PillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity;
+import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EnvironmentUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 public final class EntityDefinitions {
     public static final EntityDefinition<AllayEntity> ALLAY;
@@ -1025,7 +1122,10 @@ public final class EntityDefinitions {
                 .identifier("minecraft:armor_stand") // Emulated
                 .build(false); // Never sent over the network
 
-        Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
+        // causes the registries to load
+        if (!EnvironmentUtils.isUnitTesting) {
+            Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
+        }
     }
 
     public static void init() {
