@@ -25,11 +25,17 @@
 
 package org.geysermc.geyser.translator.text;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
@@ -39,14 +45,16 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.*;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.ChatDecoration;
+import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
+import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
-
-import java.util.*;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -59,9 +67,6 @@ public class MessageTranslator {
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
     private static final String BEDROCK_COLORS;
 
-    // Store team colors for player names
-    private static final Map<TeamColor, String> TEAM_COLORS = new EnumMap<>(TeamColor.class);
-
     // Legacy formatting character
     private static final String BASE = "\u00a7";
 
@@ -69,31 +74,6 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
 
     static {
-        TEAM_COLORS.put(TeamColor.RESET, RESET);
-
-        TEAM_COLORS.put(TeamColor.BLACK, BASE + "0");
-        TEAM_COLORS.put(TeamColor.DARK_BLUE, BASE + "1");
-        TEAM_COLORS.put(TeamColor.DARK_GREEN, BASE + "2");
-        TEAM_COLORS.put(TeamColor.DARK_AQUA, BASE + "3");
-        TEAM_COLORS.put(TeamColor.DARK_RED, BASE + "4");
-        TEAM_COLORS.put(TeamColor.DARK_PURPLE, BASE + "5");
-        TEAM_COLORS.put(TeamColor.GOLD, BASE + "6");
-        TEAM_COLORS.put(TeamColor.GRAY, BASE + "7");
-        TEAM_COLORS.put(TeamColor.DARK_GRAY, BASE + "8");
-        TEAM_COLORS.put(TeamColor.BLUE, BASE + "9");
-        TEAM_COLORS.put(TeamColor.GREEN, BASE + "a");
-        TEAM_COLORS.put(TeamColor.AQUA, BASE + "b");
-        TEAM_COLORS.put(TeamColor.RED, BASE + "c");
-        TEAM_COLORS.put(TeamColor.LIGHT_PURPLE, BASE + "d");
-        TEAM_COLORS.put(TeamColor.YELLOW, BASE + "e");
-        TEAM_COLORS.put(TeamColor.WHITE, BASE + "f");
-
-        // Formats, not colors
-        TEAM_COLORS.put(TeamColor.OBFUSCATED, BASE + "k");
-        TEAM_COLORS.put(TeamColor.BOLD, BASE + "l");
-        TEAM_COLORS.put(TeamColor.STRIKETHROUGH, BASE + "m");
-        TEAM_COLORS.put(TeamColor.ITALIC, BASE + "o");
-
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
         GsonComponentSerializer source = DefaultComponentSerializer.get()
                 .toBuilder()
@@ -145,13 +125,31 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert a Java message to the legacy format ready for bedrock
+     * Convert a Java message to the legacy format ready for bedrock. Unlike
+     * {@link #convertMessageRaw(Component, String)} this adds a leading color reset. In Bedrock
+     * some places have build-in colors.
      *
      * @param message Java message
      * @param locale Locale to use for translation strings
      * @return Parsed and formatted message for bedrock
      */
     public static String convertMessage(Component message, String locale) {
+        return convertMessage(message, locale, true);
+    }
+
+    /**
+     * Convert a Java message to the legacy format ready for bedrock. Unlike {@link #convertMessage(Component, String)}
+     * this version does not add a leading color reset. In Bedrock some places have build-in colors.
+     *
+     * @param message Java message
+     * @param locale Locale to use for translation strings
+     * @return Parsed and formatted message for bedrock
+     */
+    public static String convertMessageRaw(Component message, String locale) {
+        return convertMessage(message, locale, false);
+    }
+
+    private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
         try {
             // Translate any components that require it
             message = RENDERER.render(message, locale);
@@ -160,7 +158,7 @@ public class MessageTranslator {
 
             StringBuilder finalLegacy = new StringBuilder();
             char[] legacyChars = legacy.toCharArray();
-            boolean lastFormatReset = false;
+            boolean lastFormatReset = !addLeadingResetFormat;
             for (int i = 0; i < legacyChars.length; i++) {
                 char legacyChar = legacyChars[i];
                 if (legacyChar != ChatColor.ESCAPE || i >= legacyChars.length - 1) {
@@ -173,7 +171,7 @@ public class MessageTranslator {
 
                 char next = legacyChars[++i];
                 if (BEDROCK_COLORS.indexOf(next) != -1) {
-                    // Append this color code, as well as a necessary reset code
+                    // Unlike Java Edition, the ChatFormatting is not reset when a ChatColor is added
                     if (!lastFormatReset) {
                         finalLegacy.append(RESET);
                     }
@@ -341,16 +339,16 @@ public class MessageTranslator {
             // Though, Bedrock cannot care about the signed stuff.
             TranslatableComponent.Builder withDecoration = Component.translatable()
                     .key(chat.translationKey())
-                    .style(TextDecoration.getStyle(chat));
+                    .style(ChatDecoration.getStyle(chat));
             List<ChatTypeDecoration.Parameter> parameters = chat.parameters();
             List<Component> args = new ArrayList<>(3);
-            if (parameters.contains(TextDecoration.Parameter.TARGET)) {
+            if (parameters.contains(ChatDecoration.Parameter.TARGET)) {
                 args.add(targetName);
             }
-            if (parameters.contains(TextDecoration.Parameter.SENDER)) {
+            if (parameters.contains(ChatDecoration.Parameter.SENDER)) {
                 args.add(sender);
             }
-            if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
+            if (parameters.contains(ChatDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
             withDecoration.arguments(args);
@@ -364,16 +362,6 @@ public class MessageTranslator {
         }
 
         session.sendUpstreamPacket(textPacket);
-    }
-
-    /**
-     * Convert a team color to a chat color
-     *
-     * @param teamColor Color or format to convert
-     * @return The chat color character
-     */
-    public static String toChatColor(TeamColor teamColor) {
-        return TEAM_COLORS.getOrDefault(teamColor, "");
     }
 
     /**
@@ -426,17 +414,92 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap provided from a registry into a string.
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
      */
-    // This may be a Component in the future.
-    public static String deserializeDescription(NbtMap tag) {
-        NbtMap description = tag.getCompound("description");
-        String translate = description.getString("translate", null);
-        if (translate == null) {
-            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
-            return "";
+    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
+        Object description = tag.get("description");
+        Component parsed = componentFromNbtTag(description);
+        return convertMessage(session, parsed);
+    }
+
+    public static Component componentFromNbtTag(Object nbtTag) {
+        return componentFromNbtTag(nbtTag, Style.empty());
+    }
+
+    private static Component componentFromNbtTag(Object nbtTag, Style style) {
+        if (nbtTag instanceof String literal) {
+            return Component.text(literal).style(style);
+        } else if (nbtTag instanceof List<?> list) {
+            return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
+        } else if (nbtTag instanceof NbtMap map) {
+            Component component = null;
+            String text = map.getString("text", null);
+            if (text != null) {
+                component = Component.text(text);
+            } else {
+                String translateKey = map.getString("translate", null);
+                if (translateKey != null) {
+                    String fallback = map.getString("fallback", "");
+                    List<Component> args = new ArrayList<>();
+
+                    Object with = map.get("with");
+                    if (with instanceof List<?> list) {
+                        args = componentsFromNbtList(list, style);
+                    } else if (with != null) {
+                        args.add(componentFromNbtTag(with, style));
+                    }
+                    component = Component.translatable(translateKey, fallback, args);
+                }
+            }
+
+            if (component != null) {
+                Style newStyle = getStyleFromNbtMap(map, style);
+                component = component.style(newStyle);
+
+                Object extra = map.get("extra");
+                if (extra != null) {
+                    component = component.append(componentFromNbtTag(extra, newStyle));
+                }
+
+                return component;
+            }
         }
-        return translate;
+
+        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
+        return Component.empty();
+    }
+
+    private static List<Component> componentsFromNbtList(List<?> list, Style style) {
+        List<Component> components = new ArrayList<>();
+        for (Object entry : list) {
+            components.add(componentFromNbtTag(entry, style));
+        }
+        return components;
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map) {
+        Style.Builder style = Style.style();
+
+        String colorString = map.getString("color", null);
+        if (colorString != null) {
+            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+                style.color(TextColor.fromHexString(colorString));
+            } else {
+                style.color(NamedTextColor.NAMES.value(colorString));
+            }
+        }
+
+        map.listenForBoolean("bold", value -> style.decoration(TextDecoration.BOLD, value));
+        map.listenForBoolean("italic", value -> style.decoration(TextDecoration.ITALIC, value));
+        map.listenForBoolean("underlined", value -> style.decoration(TextDecoration.UNDERLINED, value));
+        map.listenForBoolean("strikethrough", value -> style.decoration(TextDecoration.STRIKETHROUGH, value));
+        map.listenForBoolean("obfuscated", value -> style.decoration(TextDecoration.OBFUSCATED, value));
+
+        return style.build();
+    }
+
+    public static Style getStyleFromNbtMap(NbtMap map, Style base) {
+        return base.merge(getStyleFromNbtMap(map));
     }
 
     public static void init() {

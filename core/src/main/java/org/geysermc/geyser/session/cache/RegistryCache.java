@@ -49,7 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
-import org.geysermc.geyser.text.TextDecoration;
+import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
@@ -78,7 +78,7 @@ public final class RegistryCache {
     private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
-        register("chat_type", cache -> cache.chatTypes, TextDecoration::readChatType);
+        register("chat_type", cache -> cache.chatTypes, ChatDecoration::readChatType);
         register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
         register("enchantment", cache -> cache.enchantments, Enchantment::read);
         register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);

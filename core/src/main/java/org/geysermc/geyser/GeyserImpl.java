@@ -76,6 +76,7 @@ import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
 import org.geysermc.geyser.floodgate.NoFloodgateProvider;
 import org.geysermc.geyser.floodgate.ProxyFloodgateProvider;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
@@ -95,7 +96,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.VersionCheckUtils;
@@ -434,7 +434,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
-        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        BedrockDimension.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {
