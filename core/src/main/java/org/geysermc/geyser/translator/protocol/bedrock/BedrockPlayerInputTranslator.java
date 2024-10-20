@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerInputPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -37,6 +34,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
 /**
  * Sent by the client for minecarts and boats.
@@ -46,11 +44,11 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
     @Override
     public void translate(GeyserSession session, PlayerInputPacket packet) {
-        ServerboundPlayerInputPacket playerInputPacket = new ServerboundPlayerInputPacket(
-                packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
-        );
-
-        session.sendDownstreamGamePacket(playerInputPacket);
+//        ServerboundPlayerInputPacket playerInputPacket = new ServerboundPlayerInputPacket(
+//                packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
+//        );
+//
+//        session.sendDownstreamGamePacket(playerInputPacket);
 
         session.getPlayerEntity().setVehicleInput(packet.getInputMotion());
 
@@ -78,7 +76,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
                 if (vehicle instanceof BoatEntity && !vehicle.isOnGround()) {
                     // Remove some Y position to prevents boats flying up
-                    vehiclePosition = vehiclePosition.down(EntityDefinitions.BOAT.offset());
+                    vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
                 }
 
                 ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(

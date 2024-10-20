@@ -350,6 +350,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         Hand.MAIN_HAND,
                         0, 0, 0,
                         false,
+                        false,
                         session.getWorldCache().nextPredictionSequence());
                     session.sendDownstreamGamePacket(blockPacket);
                     break;

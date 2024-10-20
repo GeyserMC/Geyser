@@ -296,6 +296,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,
+                                false,
                                 sequence);
                         session.sendDownstreamGamePacket(blockPacket);
 
@@ -698,9 +699,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         float pitch = (float) -Math.toDegrees(Math.atan2(yDiff, xzHypot));
 
         SessionPlayerEntity entity = session.getPlayerEntity();
-        ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
+        ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), false, playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
         // This matches Java edition behavior
-        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
+        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), false, playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
         session.sendDownstreamGamePacket(movementPacket);
 
         if (session.getLookBackScheduledFuture() != null) {

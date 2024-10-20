@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -66,7 +65,7 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
         float y = packet.getPosition().getY();
         if (ridingEntity instanceof BoatEntity && !ridingEntity.isOnGround()) {
             // Remove the offset to prevents boats from looking like they're floating in water
-            y -= EntityDefinitions.BOAT.offset();
+            y -= ridingEntity.getDefinition().offset();
         }
         ServerboundMoveVehiclePacket ServerboundMoveVehiclePacket = new ServerboundMoveVehiclePacket(
                 packet.getPosition().getX(), y, packet.getPosition().getZ(),

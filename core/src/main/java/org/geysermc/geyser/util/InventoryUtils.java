@@ -485,7 +485,7 @@ public class InventoryUtils {
                 }
                 for (int i = 0; i < data.ingredients().length; i++) {
                     Ingredient ingredient = data.ingredients()[i];
-                    for (ItemStack itemStack : ingredient.getOptions()) {
+                    for (int item : ingredient.getValues().getHolders()) { // FIXME
                         boolean inventoryHasItem = false;
                         // Iterate only over the crafting table to find this item
                         crafting:
@@ -493,11 +493,11 @@ public class InventoryUtils {
                             for (int col = firstCol; col < width + firstCol; col++) {
                                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                                 if (geyserItemStack.isEmpty()) {
-                                    inventoryHasItem = itemStack == null || itemStack.getId() == 0;
+                                    inventoryHasItem = item == 0;
                                     if (inventoryHasItem) {
                                         break crafting;
                                     }
-                                } else if (itemStack.equals(geyserItemStack.getItemStack(1))) {
+                                } else if (item == geyserItemStack.getJavaId()) {
                                     inventoryHasItem = true;
                                     break crafting;
                                 }
@@ -522,14 +522,15 @@ public class InventoryUtils {
             for (int col = firstCol; col < width + firstCol; col++) {
                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                 Ingredient ingredient = ingredients[ingredientIndex++];
-                if (ingredient.getOptions().length == 0) {
+                int[] items = ingredient.getValues().getHolders(); // FIXME
+                if (items.length == 0) {
                     if (!geyserItemStack.isEmpty()) {
                         return false;
                     }
                 } else {
                     boolean inventoryHasItem = false;
-                    for (ItemStack item : ingredient.getOptions()) {
-                        if (Objects.equals(geyserItemStack.getItemStack(1), item)) {
+                    for (int item : items) {
+                        if (geyserItemStack.getJavaId() == item) {
                             inventoryHasItem = true;
                             break;
                         }
