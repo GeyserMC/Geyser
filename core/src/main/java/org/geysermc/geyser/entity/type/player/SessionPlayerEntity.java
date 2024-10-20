@@ -247,9 +247,9 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_ATTACK_SPEED) {
+        if (javaAttribute.getType() == AttributeType.Builtin.ATTACK_SPEED) {
             session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
-        } else if (javaAttribute.getType() == AttributeType.Builtin.PLAYER_BLOCK_INTERACTION_RANGE) {
+        } else if (javaAttribute.getType() == AttributeType.Builtin.BLOCK_INTERACTION_RANGE) {
             this.blockInteractionRange = AttributeUtils.calculateValue(javaAttribute);
         } else {
             super.updateAttribute(javaAttribute, newAttributes);

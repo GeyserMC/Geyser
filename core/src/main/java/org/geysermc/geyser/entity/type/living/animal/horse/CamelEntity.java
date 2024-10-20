@@ -141,7 +141,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_JUMP_STRENGTH) {
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
             vehicleComponent.setHorseJumpStrength(attributeData.getValue());
         }
         return attributeData;

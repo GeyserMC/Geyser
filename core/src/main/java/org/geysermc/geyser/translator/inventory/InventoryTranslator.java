@@ -729,10 +729,10 @@ public abstract class InventoryTranslator {
 
                     if (ingRemaining == 0) {
                         while (++ingredientIndex < ingredients.length) {
-                            if (ingredients[ingredientIndex].getOptions().length != 0) {
-                                ingRemaining = timesCrafted;
-                                break;
-                            }
+//                            if (ingredients[ingredientIndex].getOptions().length != 0) {
+//                                ingRemaining = timesCrafted;
+//                                break;
+//                            }
                         }
                     }
 

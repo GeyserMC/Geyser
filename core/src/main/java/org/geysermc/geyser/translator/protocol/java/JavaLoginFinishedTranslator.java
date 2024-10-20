@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.auth.GameProfile;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -34,17 +33,18 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.PluginMessageUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
-import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundGameProfilePacket;
+import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundLoginFinishedPacket;
 
 /**
- * ClientboundGameProfilePacket triggers protocol change LOGIN -> CONFIGURATION
+ * Triggers protocol change LOGIN -> CONFIGURATION
  */
-@Translator(packet = ClientboundGameProfilePacket.class)
-public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameProfilePacket> {
+@Translator(packet = ClientboundLoginFinishedPacket.class)
+public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLoginFinishedPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundGameProfilePacket packet) {
+    public void translate(GeyserSession session, ClientboundLoginFinishedPacket packet) {
         PlayerEntity playerEntity = session.getPlayerEntity();
         AuthType remoteAuthType = session.remoteServer().authType();
 

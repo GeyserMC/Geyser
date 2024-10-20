@@ -59,7 +59,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
-        if (packet.getContainerId() == 255) { //cursor
+        if (packet.getContainerId() == 255) { //cursor //TODO new packet
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             session.getPlayerInventory().setCursor(newItem, session);
             InventoryUtils.updateCursor(session);
@@ -90,7 +90,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             updateCraftingGrid(session, slot, packet.getItem(), inventory, translator);
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) { //TODO new packet
                 // In rare cases, the window ID can still be 0 but Java treats it as valid
                 session.getPlayerInventory().setItem(slot, newItem, session);
                 InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);

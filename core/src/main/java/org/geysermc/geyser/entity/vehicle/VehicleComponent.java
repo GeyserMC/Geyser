@@ -76,8 +76,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
         this.stepHeight = stepHeight;
-        this.moveSpeed = (float) AttributeType.Builtin.GENERIC_MOVEMENT_SPEED.getDef();
-        this.gravity = AttributeType.Builtin.GENERIC_GRAVITY.getDef();
+        this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
+        this.gravity = AttributeType.Builtin.GRAVITY.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
