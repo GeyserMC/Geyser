@@ -48,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -129,6 +130,21 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Conversion712_685::remapBlock)
                 .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), Conversion729_712::remapBlock)
                 .put(ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), tag -> { // TODO: REMOVE ME! Patch to fix unupdated creative items
+                    final String name = tag.getString("name");
+                    if(name.endsWith("_wood") && tag.getCompound("states").containsKey("stripped_bit")) {
+                        NbtMapBuilder builder = tag.getCompound("states")
+                                .toBuilder();
+                        builder.remove("stripped_bit");
+                        NbtMap states = builder
+                                .build();
+                        return tag.toBuilder().putString("name", "minecraft:cherry_wood").putCompound("states", states).build();
+                    }
+                    if(name.equals("minecraft:skull")) {
+                        return tag.toBuilder().putString("name", "minecraft:skeleton_skull").build();
+                    }
+                    return tag;
+                })
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
