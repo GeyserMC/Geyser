@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,61 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity;
+package org.geysermc.geyser.pack.option;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.slf4j.Logger;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.option.SubpackOption;
 
-@RequiredArgsConstructor
-public class GeyserVelocityLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
+import java.util.Objects;
+
+/**
+ * Can be used to specify which subpack from a resource pack a player should load.
+ * Available subpacks can be seen in a resource pack manifest {@link ResourcePackManifest#subpacks()}
+ */
+public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
     @Override
-    public void severe(String message) {
-        logger.error(message);
+    public @NonNull Type type() {
+        return Type.SUBPACK;
     }
 
     @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
+    public @NonNull String value() {
+        return subpackName;
     }
 
     @Override
-    public void error(String message) {
-        logger.error(message);
-    }
+    public void validate(@NonNull ResourcePack pack) {
+        Objects.requireNonNull(pack);
 
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
+        // Allow empty subpack names - they're the same as "none"
+        if (subpackName.isEmpty()) {
+            return;
         }
-    }
 
-    @Override
-    public void debug(String message, Object... arguments) {
-        if (debug) {
-            logger.info(message, arguments);
+        if (pack.manifest().subpacks().stream().noneMatch(subpack -> subpack.name().equals(subpackName))) {
+            throw new IllegalArgumentException("No subpack with the name %s found!".formatted(subpackName));
         }
     }
 }

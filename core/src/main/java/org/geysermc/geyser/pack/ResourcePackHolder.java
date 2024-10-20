@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.pack.option.OptionHolder;
 
-import java.nio.file.Path;
-import java.util.List;
+public record ResourcePackHolder(
+    @NonNull GeyserResourcePack pack,
+    @NonNull OptionHolder optionHolder
+) {
 
-/**
- * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
- */
-@Deprecated(forRemoval = true)
-public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
+    public static ResourcePackHolder of(GeyserResourcePack pack) {
+        return new ResourcePackHolder(pack, new OptionHolder(PriorityOption.NORMAL));
+    }
+
+    public ResourcePack resourcePack() {
+        return this.pack;
+    }
 }

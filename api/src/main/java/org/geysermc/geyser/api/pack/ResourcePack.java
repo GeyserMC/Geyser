@@ -26,6 +26,9 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
+
+import java.util.UUID;
 
 /**
  * Represents a resource pack sent to Bedrock clients
@@ -60,6 +63,14 @@ public interface ResourcePack {
     String contentKey();
 
     /**
+     * @return the resource pack uuid. Shortcut for getting the UUID from the header.
+     */
+    @NonNull
+    default UUID uuid() {
+        return manifest().header().uuid();
+    }
+
+    /**
      * Creates a resource pack with the given {@link PackCodec}.
      *
      * @param codec the pack codec
@@ -68,5 +79,50 @@ public interface ResourcePack {
     @NonNull
     static ResourcePack create(@NonNull PackCodec codec) {
         return codec.create();
+    }
+
+    /**
+     * Returns a {@link Builder} for a resource pack.
+     * It can be used to set a content key.
+     *
+     * @param codec the {@link PackCodec} to base the builder on
+     * @return a {@link Builder} to build a resource pack.
+     */
+    static Builder builder(@NonNull PackCodec codec) {
+        return GeyserApi.api().provider(Builder.class, codec);
+    }
+
+    /**
+     * A builder for a resource pack. It allows providing a content key manually.
+     */
+    interface Builder {
+
+        /**
+         * @return the {@link ResourcePackManifest} of this resource pack
+         */
+        ResourcePackManifest manifest();
+
+        /**
+         * @return the {@link PackCodec} of this resource pack
+         */
+        PackCodec codec();
+
+        /**
+         * @return the current content key, or an empty string if not set
+         */
+        String contentKey();
+
+        /**
+         * Sets a content key for this resource pack.
+         *
+         * @param contentKey the content key
+         * @return this builder
+         */
+        Builder contentKey(@NonNull String contentKey);
+
+        /**
+         * @return the resource pack
+         */
+        ResourcePack build();
     }
 }

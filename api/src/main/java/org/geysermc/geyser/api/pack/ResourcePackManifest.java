@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -65,6 +66,22 @@ public interface ResourcePackManifest {
      */
     @NonNull
     Collection<? extends Dependency> dependencies();
+
+    /**
+     * Gets the subpacks of the resource pack.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/utilizingsubpacks">Microsoft's docs</a> for more information.
+     *
+     * @return the subpacks
+     */
+    @NonNull
+    Collection<? extends Subpack> subpacks();
+
+    /**
+     * Gets the settings of the resource pack.
+     * This is the text shown in the settings menu of a resource pack.
+     */
+    @NonNull
+    Collection<? extends Setting> settings();
 
     /**
      * Represents the header of a resource pack.
@@ -170,6 +187,64 @@ public interface ResourcePackManifest {
          */
         @NonNull
         Version version();
+    }
+
+    /**
+     * Represents a subpack of a resource pack.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/utilizingsubpacks">Micoroft's docs</a> for more information.
+     */
+    interface Subpack {
+
+        /**
+         * Gets the folder name of this subpack.
+         *
+         * @return the folder name
+         */
+        @NonNull
+        String folderName();
+
+        /**
+         * Gets the name of this subpack. Required for each sub pack to be valid.
+         * It can be sent to the Bedrock client alongside the pack
+         * to load a particular subpack within a resource pack.
+         *
+         * @return the subpack name
+         */
+        @NonNull
+        String name();
+
+        /**
+         * Gets the memory tier of this Subpack, representing how much RAM a device must have to run it.
+         * Each memory tier requires 0.25 GB of RAM. For example, a memory tier of 0 is no requirement,
+         * and a memory tier of 4 requires 1GB of RAM.
+         *
+         * @return the memory tier
+         */
+        @Nullable
+        Float memoryTier();
+    }
+
+    /**
+     * Represents a setting that is shown client-side that describe what a pack does.
+     * Multiple setting entries are shown in separate paragraphs.
+     */
+    interface Setting {
+
+        /**
+         * The type of the setting. Usually just "label".
+         *
+         * @return the type
+         */
+        @NonNull
+        String type();
+
+        /**
+         * The text shown for the setting.
+         *
+         * @return the text content
+         */
+        @NonNull
+        String text();
     }
 
     /**

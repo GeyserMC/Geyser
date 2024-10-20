@@ -23,12 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
@@ -37,39 +36,27 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Called when {@link ResourcePack}'s are loaded within Geyser.
  */
-public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
-        super(connection);
-    }
+public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to clients.
      *
-     * @return an unmodifiable list of resource packs that will be sent to the client.
+     * @return an unmodifiable list of resource packs that will be sent to clients.
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Registers a {@link ResourcePack} to be sent to the client.
+     * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
+     * {@link ResourcePackOption} options specifying how it will be applied on clients.
      *
-     * @param pack a resource pack that will be sent to the client
-     * @return true if the resource pack was added successfully,
-     *         or false if already present
-     */
-    public abstract boolean register(@NonNull ResourcePack pack);
-
-    /**
-     * Registers a {@link ResourcePack} to be sent to the client, alongside
-     * specific options.
-     *
-     * @param resourcePack a resource pack that will be sent to the client.
+     * @param pack a resource pack that will be sent to the client.
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
+    public abstract boolean register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
 
     /**
      * Sets {@link ResourcePackOption}'s for a resource pack
@@ -84,7 +71,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * Returns the subpack options set for a specific resource pack uuid.
      * These are not modifiable.
      *
-     * @param uuid the resource pack for which the options are set
+     * @param uuid the resource pack uuid for which the options are set
      * @return a list of {@link ResourcePackOption}
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
@@ -99,10 +86,10 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
     /**
-     * Unregisters a resource pack from being sent to the client.
+     * Unregisters a {@link ResourcePack} from being sent to clients.
      *
-     * @param uuid the UUID of the resource pack
-     * @return true whether the resource pack was removed from the list of resource packs.
+     * @param uuid the uuid of the resource pack to remove.
+     * @return true whether the resource pack was removed successfully.
      */
     public abstract boolean unregister(@NonNull UUID uuid);
 }

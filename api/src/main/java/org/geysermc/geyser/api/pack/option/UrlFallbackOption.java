@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.pack.option;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-
-import java.nio.file.Path;
-import java.util.List;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
- * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
+ * Can be used for resource packs using the {@link org.geysermc.geyser.api.pack.UrlPackCodec}.
+ * When a Bedrock client is unable to download a resource pack from a URL, Geyser will, by default,
+ * serve the resource pack over raknet (as packs are served with the {@link org.geysermc.geyser.api.pack.PathPackCodec}).
+ * This option can be used to disable that behavior, and disconnect the player instead.
+ * By default, {@link UrlFallbackOption#TRUE} is set.
  */
-@Deprecated(forRemoval = true)
-public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
+public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
+
+    UrlFallbackOption TRUE = fallback(true);
+    UrlFallbackOption FALSE = fallback(false);
+
+    /**
+     * Whether to fall back to serving packs over the raknet connection
+     * @param fallback whether to fall back
+     * @return a UrlFallbackOption with the specified behavior
+     */
+    static UrlFallbackOption fallback(boolean fallback) {
+        return GeyserApi.api().provider(UrlFallbackOption.class, fallback);
+    }
+
 }
