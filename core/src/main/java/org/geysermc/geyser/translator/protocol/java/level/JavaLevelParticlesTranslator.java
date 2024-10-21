@@ -132,10 +132,11 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
             }
             case DUST, DUST_COLOR_TRANSITION -> { //TODO
                 DustParticleData data = (DustParticleData) particle.getData();
-                int r = (int) (data.getRed() * 255);
-                int g = (int) (data.getGreen() * 255);
-                int b = (int) (data.getBlue() * 255);
-                int rgbData = ((0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+//                int r = (int) (data.getRed() * 255);
+//                int g = (int) (data.getGreen() * 255);
+//                int b = (int) (data.getBlue() * 255);
+//                int rgbData = ((0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+                int rgbData = data.getColor(); // TEST
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(ParticleType.FALLING_DUST);
