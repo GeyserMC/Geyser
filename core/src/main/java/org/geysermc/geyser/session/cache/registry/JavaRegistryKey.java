@@ -25,7 +25,36 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
-import lombok.Getter;
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.GeyserSession;
 
-public record JavaRegistryKey<T>(@Getter Key registryKey) {}
+import javax.annotation.Nullable;
+
+public record JavaRegistryKey<T>(Key registryKey, @Nullable NetworkSerializer<T> networkSerializer, @Nullable NetworkDeserializer<T> networkDeserializer) {
+
+    public int toNetworkId(GeyserSession session, T object) {
+        if (networkSerializer == null) {
+            throw new UnsupportedOperationException("Registry does not hava a network serializer");
+        }
+        return networkSerializer.toNetworkId(session, object);
+    }
+
+    public T fromNetworkId(GeyserSession session, int networkId) {
+        if (networkDeserializer == null) {
+            throw new UnsupportedOperationException("Registry does not hava a network deserializer");
+        }
+        return networkDeserializer.fromNetworkId(session, networkId);
+    }
+
+    @FunctionalInterface
+    public interface NetworkSerializer<T> {
+
+        int toNetworkId(GeyserSession session, T object);
+    }
+
+    @FunctionalInterface
+    public interface NetworkDeserializer<T> {
+
+        T fromNetworkId(GeyserSession session, int networkId);
+    }
+}

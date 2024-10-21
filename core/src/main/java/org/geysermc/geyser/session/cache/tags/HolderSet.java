@@ -31,6 +31,7 @@ import lombok.Data;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
@@ -44,31 +45,43 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 @Data
 public final class HolderSet<T> {
 
+    private final JavaRegistryKey<T> registry;
     private final @Nullable Tag<T> tag;
     private final int @Nullable [] holders;
 
-    public HolderSet(int @NonNull [] holders) {
+    public HolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
+        this.registry = registry;
         this.tag = null;
         this.holders = holders;
     }
 
-    public HolderSet(@NonNull Tag<T> tagId) {
+    public HolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
+        this.registry = registry;
         this.tag = tagId;
         this.holders = null;
     }
 
     /**
+     * Resolves the HolderSet, and automatically maps the network IDs to their respective object types. If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache.
+     *
+     * @return the HolderSet turned into a list of objects.
+     */
+    public List<T> resolve(GeyserSession session) {
+        return TagCache.mapRawArray(session, resolveRaw(session.getTagCache()), registry);
+    }
+
+    /**
      * Resolves the HolderSet. If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache.
      *
-     * @return the HolderSet turned into a list of network IDs.
+     * @return the HolderSet turned into a list of objects.
      */
-    public int[] resolve(TagCache tagCache) {
+    public int[] resolveRaw(TagCache tagCache) {
         if (holders != null) {
             return holders;
         }
 
         assert tag != null;
-        return tagCache.get(tag);
+        return tagCache.getRaw(tag);
     }
 
     /**
@@ -80,20 +93,20 @@ public final class HolderSet<T> {
      */
     public static <T> HolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
         if (holderSet == null) {
-            return new HolderSet<>(new int[]{});
+            return new HolderSet<>(registry, new int[]{});
         }
 
         if (holderSet instanceof String stringTag) {
             if (stringTag.startsWith("#")) {
                 // Tag
-                return new HolderSet<>(new Tag<>(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
+                return new HolderSet<>(registry, new Tag<>(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
             } else if (stringTag.isEmpty()) {
-                return new HolderSet<>(new int[]{});
+                return new HolderSet<>(registry, new int[]{});
             }
-            return new HolderSet<>(new int[]{keyIdMapping.apply(Key.key(stringTag))});
+            return new HolderSet<>(registry, new int[]{keyIdMapping.apply(Key.key(stringTag))});
         } else if (holderSet instanceof List<?> list) {
             // Assume the list is a list of strings
-            return new HolderSet<>(list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
+            return new HolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
         }
         throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
     }

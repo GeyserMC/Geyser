@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -45,23 +46,23 @@ import java.util.Set;
  */
 public record Enchantment(String identifier,
                           Set<EnchantmentComponent> effects,
-                          HolderSet supportedItems,
+                          HolderSet<Item> supportedItems,
                           int maxLevel,
                           String description,
                           int anvilCost,
-                          HolderSet exclusiveSet,
+                          HolderSet<Enchantment> exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
     public static Enchantment read(RegistryEntryContext context) {
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet supportedItems = HolderSet.readHolderSet(JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        HolderSet<Item> supportedItems = HolderSet.readHolderSet(JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        HolderSet exclusiveSet = HolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        HolderSet<Enchantment> exclusiveSet = HolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 

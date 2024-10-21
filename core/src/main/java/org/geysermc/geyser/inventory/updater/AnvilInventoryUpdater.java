@@ -49,6 +49,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -310,11 +311,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.getJavaId());
+            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.asItem());
 
-            int[] incompatibleEnchantments = enchantment.exclusiveSet().resolve(session.getTagCache());
-            for (int i : incompatibleEnchantments) {
-                Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
+            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
+            for (Enchantment incompatible : incompatibleEnchantments) {
                 if (combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
                     if (!bedrock) {

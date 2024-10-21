@@ -30,7 +30,6 @@ import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
@@ -40,15 +39,23 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
- * will remain empty, matching Java Edition behavior. Only tags from registries in {@link JavaRegistries} are stored.
+ * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
+ * Only tags from registries in {@link JavaRegistries} are stored.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
+    private final GeyserSession session;
     private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
+
+    public TagCache(GeyserSession session) {
+        this.session = session;
+    }
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
@@ -59,7 +66,7 @@ public final class TagCache {
         for (Key registryKey : allTags.keySet()) {
             JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
             if (registry == null) {
-                logger.debug("Not loading tags for registry " + registryKey + " (registry is not defined in TagRegistry enum)");
+                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
                 continue;
             }
 
@@ -92,15 +99,8 @@ public final class TagCache {
         }
     }
 
-    /**
-     * @return true if the block tag is present and contains this block mapping's Java ID.
-     */
-    public boolean is(Tag<Block> tag, Block block) {
-        // TODO should this check be removed? should it be changed into an assertion?
-        if (tag.registry() != JavaRegistries.BLOCK) {
-            throw new IllegalArgumentException("Given tag is not a block tag! (tag registry=%s)".formatted(tag.registry()));
-        }
-        return contains(get(tag), block.javaId());
+    public <T> boolean is(Tag<T> tag, T object) {
+        return contains(getRaw(tag), tag.registry().toNetworkId(session, object));
     }
 
     /**
@@ -111,29 +111,28 @@ public final class TagCache {
     }
 
     /**
-     * @return true if the item tag is present and contains this item's Java ID.
-     */
-    public boolean is(Tag<Item> tag, Item item) {
-        // TODO same
-        if (tag.registry() != JavaRegistries.ITEM) {
-            throw new IllegalArgumentException("Given tag is not an item tag! (tag registry=%s)".formatted(tag.registry()));
-        }
-        return contains(get(tag), item.javaId());
-    }
-
-    /**
      * @return true if the specified network ID is in the given holder set.
      */
-    // TODO typed?
-    public boolean is(HolderSet<?> holderSet, int id) {
-        return contains(holderSet.resolve(this), id);
+    public <T> boolean is(HolderSet<T> holderSet, T object) {
+        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
+    }
+
+    public <T> List<T> get(Tag<T> tag) {
+        return mapRawArray(session, getRaw(tag), tag.registry());
     }
 
     /**
-     * @return the network IDs in the given tag. This can be an empty list. Vanilla tags will be resolved faster than non-vanilla ones.
+     * @return the network IDs in the given tag. This can be an empty list.
      */
-    public int[] get(Tag<?> tag) {
+    public int[] getRaw(Tag<?> tag) {
         return this.tags.getOrDefault(tag, new int[]{});
+    }
+
+    /**
+     * Maps a raw array of network IDs to their respective objects.
+     */
+    public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
+        return Arrays.stream(array).mapToObj(i -> registry.fromNetworkId(session, i)).toList();
     }
 
     private static boolean contains(int[] array, int i) {
