@@ -86,7 +86,7 @@ public final class HolderSet<T> {
         if (holderSet instanceof String stringTag) {
             if (stringTag.startsWith("#")) {
                 // Tag
-                return new HolderSet<>(Tag.createTag(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
+                return new HolderSet<>(new Tag<>(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
             } else if (stringTag.isEmpty()) {
                 return new HolderSet<>(new int[]{});
             }

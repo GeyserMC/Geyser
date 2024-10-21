@@ -96,7 +96,7 @@ public final class RegistryCache {
         Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
         REGISTRIES.forEach((registry, $) -> {
-            List<NbtMap> rawValues = tag.getCompound(registry.getRegistryKey().asString()).getList("value", NbtType.COMPOUND);
+            List<NbtMap> rawValues = tag.getCompound(registry.registryKey().asString()).getList("value", NbtType.COMPOUND);
             Map<Key, NbtMap> values = new HashMap<>();
             for (NbtMap value : rawValues) {
                 Key name = MinecraftKey.key(value.getString("name"));

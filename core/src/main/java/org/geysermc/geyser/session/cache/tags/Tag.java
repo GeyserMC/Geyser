@@ -29,18 +29,6 @@ import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
 /**
- * A tag in any of the registries that are stored by Geyser.
- *
- * The recommended way to turn a tag key into a Tag is to use {@link Tag#createTag}.
- * This ensures a {@link VanillaTag} is used when the tag key is a vanilla one, which allows for faster lookup of the tag.
+ * A tag in any of the registries that are tags are loaded for by Geyser.
  */
-public interface Tag<T> {
-
-    JavaRegistryKey<T> registry();
-
-    Key tag();
-
-    static <T> Tag<T> createTag(JavaRegistryKey<T> registry, Key tagKey) {
-        return registry.getVanillaTags().getOrDefault(tagKey, new NonVanillaTag<>(registry, tagKey));
-    }
-}
+public record Tag<T>(JavaRegistryKey<T> registry, Key tag) {}

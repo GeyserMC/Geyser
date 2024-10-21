@@ -37,9 +37,7 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.session.cache.tags.BlockTag;
-import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 
 import java.util.ArrayList;
@@ -62,7 +60,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<WolfEntity.BuiltInWolfVariant> WOLF_VARIANT = create("wolf_variant");
 
     private static <T> JavaRegistryKey<T> create(String key) {
-        JavaRegistryKey<T> registry = JavaRegistryKey.create(key);
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key));
         VALUES.add(registry);
         return registry;
     }
@@ -70,16 +68,10 @@ public class JavaRegistries {
     @Nullable
     public static JavaRegistryKey<?> fromKey(Key registryKey) {
         for (JavaRegistryKey<?> registry : VALUES) {
-            if (registry.getRegistryKey().equals(registryKey)) {
+            if (registry.registryKey().equals(registryKey)) {
                 return registry;
             }
         }
         return null;
-    }
-
-    public static void init() {
-        BlockTag.init();
-        ItemTag.init();
-        EnchantmentTag.init();
     }
 }

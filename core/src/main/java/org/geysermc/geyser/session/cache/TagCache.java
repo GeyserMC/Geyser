@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -37,12 +36,10 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.HolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.geyser.session.cache.tags.VanillaTag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,16 +48,13 @@ import java.util.Map;
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
-    // Stores the indexes of non-vanilla tag keys in the tags array.
-    private Object2IntMap<Key>[] tagIndexMaps = new Object2IntMap[JavaRegistryKey.getRegistered()];
-    private int[][][] tags = new int[JavaRegistryKey.getRegistered()][][];
+    private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 
-        this.tagIndexMaps = new Object2IntMap[JavaRegistryKey.getRegistered()];
-        this.tags = new int[JavaRegistryKey.getRegistered()][][];
+        this.tags.clear();
 
         for (Key registryKey : allTags.keySet()) {
             JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
@@ -88,31 +82,14 @@ public final class TagCache {
                 }
             }
 
-            Object2IntMap<Key> tagIndexMap = new Object2IntOpenHashMap<>();
-            this.tags[registry.ordinal()] = loadTags(registryTags, tagIndexMap, registry);
-            this.tagIndexMaps[registry.ordinal()] = tagIndexMap;
+            loadTags(registryTags, registry);
         }
     }
 
-    private int[][] loadTags(Map<Key, int[]> packetTags, Object2IntMap<Key> tagIndexMap, JavaRegistryKey<?> registry) {
-        Map<Key, ? extends Tag<?>> vanillaTags = registry.getVanillaTags();
-        List<Key> nonVanillaTagKeys = packetTags.keySet().stream().filter(tag -> !vanillaTags.containsKey(tag)).toList();
-
-        int[][] tags = new int[vanillaTags.size() + nonVanillaTagKeys.size()][];
-
-        // Load all vanilla tags first (whether the server sent them or not), then load all the remaining non-vanilla tags the server might have sent.
-        for (Map.Entry<Key, ? extends Tag<?>> vanillaTag : vanillaTags.entrySet()) {
-            tags[((VanillaTag<?>) vanillaTag.getValue()).ordinal()] = packetTags.getOrDefault(vanillaTag.getKey(), new int[0]);
+    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry) {
+        for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
+            this.tags.put(new Tag<>(registry, tag.getKey()), tag.getValue());
         }
-
-        int tagIndex = vanillaTags.size();
-        for (Key nonVanillaTagKey : nonVanillaTagKeys) {
-            tags[tagIndex] = packetTags.get(nonVanillaTagKey);
-            tagIndexMap.put(nonVanillaTagKey, tagIndex);
-            tagIndex++;
-        }
-
-        return tags;
     }
 
     /**
@@ -156,16 +133,7 @@ public final class TagCache {
      * @return the network IDs in the given tag. This can be an empty list. Vanilla tags will be resolved faster than non-vanilla ones.
      */
     public int[] get(Tag<?> tag) {
-        if (tag instanceof VanillaTag<?> vanillaTag) {
-            return this.tags[tag.registry().ordinal()][vanillaTag.ordinal()];
-        }
-
-        int registryIndex = tag.registry().ordinal();
-        Object2IntMap<Key> tagIndexMap = this.tagIndexMaps[registryIndex];
-        if (!tagIndexMap.containsKey(tag.tag())) {
-            return new int[0];
-        }
-        return this.tags[registryIndex][tagIndexMap.getInt(tag.tag())];
+        return this.tags.getOrDefault(tag, new int[]{});
     }
 
     private static boolean contains(int[] array, int i) {
