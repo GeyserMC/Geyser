@@ -59,4 +59,9 @@ public class JavaSelectKnownPacksTranslator extends PacketTranslator<Clientbound
         }
         session.sendDownstreamPacket(new ServerboundSelectKnownPacks(knownPacks));
     }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
+    }
 }
