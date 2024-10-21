@@ -49,6 +49,7 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +61,9 @@ public final class RecipeRegistryLoader implements RegistryLoader<String, Map<Re
 
     @Override
     public Map<RecipeType, List<GeyserRecipe>> load(String input) {
+        if (true) {
+            return Collections.emptyMap();
+        }
         Map<RecipeType, List<GeyserRecipe>> deserializedRecipes = new Object2ObjectOpenHashMap<>();
 
         List<NbtMap> recipes;
@@ -96,7 +100,7 @@ public final class RecipeRegistryLoader implements RegistryLoader<String, Map<Re
             List<NbtMap> rawInputs = recipe.getList("inputs", NbtType.COMPOUND);
             Ingredient[] javaInputs = new Ingredient[rawInputs.size()];
             for (int i = 0; i < rawInputs.size(); i++) {
-                javaInputs[i] = new Ingredient(new ItemStack[] {toItemStack(rawInputs.get(i), helper)});
+                //javaInputs[i] = new Ingredient(new ItemStack[] {toItemStack(rawInputs.get(i), helper)});
             }
             deserializedRecipes.add(new GeyserShapelessRecipe(javaInputs, output));
         }
@@ -121,7 +125,7 @@ public final class RecipeRegistryLoader implements RegistryLoader<String, Map<Re
             for (int j = 0; i < shape.size() * shape.get(0).length; j++) {
                 for (int index : shape.get(j)) {
                     ItemStack stack = letterToRecipe.get(index);
-                    inputs[i++] = new Ingredient(new ItemStack[] {stack});
+                    //inputs[i++] = new Ingredient(new ItemStack[] {stack});
                 }
             }
             deserializedRecipes.add(new GeyserShapedRecipe(shape.size(), shape.get(0).length, inputs, output));

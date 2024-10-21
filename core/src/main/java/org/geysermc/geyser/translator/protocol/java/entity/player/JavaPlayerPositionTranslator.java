@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
+import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
@@ -50,14 +51,15 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
 
         SessionPlayerEntity entity = session.getPlayerEntity();
+        Vector3d pos = packet.getPosition();
 
         if (!session.isSpawned()) {
+            // TODO this behavior seems outdated (1.21.2).
             // The server sends an absolute teleport everytime the player is respawned
-            Vector3f pos = packet.getPosition().toFloat();
-            entity.setPosition(pos);
-            entity.setYaw(packet.getYaw());
-            entity.setPitch(packet.getPitch());
-            entity.setHeadYaw(packet.getYaw());
+            entity.setPosition(pos.toFloat());
+            entity.setYaw(packet.getXRot());
+            entity.setPitch(packet.getYRot());
+            entity.setHeadYaw(packet.getXRot());
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
@@ -98,15 +100,15 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         }
 
         // If coordinates are relative, then add to the existing coordinate
-        double newX = packet.getX() +
+        double newX = pos.getX() +
                 (packet.getRelatives().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
-        double newY = packet.getY() +
+        double newY = pos.getY() +
                 (packet.getRelatives().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityDefinitions.PLAYER.offset() : 0);
-        double newZ = packet.getZ() +
+        double newZ = pos.getZ() +
                 (packet.getRelatives().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        float newPitch = packet.getPitch() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0);
-        float newYaw = packet.getYaw() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getYaw() : 0);
+        float newPitch = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getPitch() : 0);
+        float newYaw = packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getYaw() : 0);
 
         int id = packet.getId();
 

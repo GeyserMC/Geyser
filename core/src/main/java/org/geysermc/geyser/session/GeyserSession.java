@@ -202,6 +202,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
@@ -1966,7 +1967,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void sendJavaClientSettings() {
         ServerboundClientInformationPacket clientSettingsPacket = new ServerboundClientInformationPacket(locale(),
                 getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
-                HandPreference.RIGHT_HAND, false, true);
+                HandPreference.RIGHT_HAND, false, true, ParticleStatus.ALL); // TODO particle status
         sendDownstreamPacket(clientSettingsPacket);
     }
 

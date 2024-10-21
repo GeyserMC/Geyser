@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +25,28 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.cloudburstmc.math.vector.Vector3d;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
 
-@Translator(packet = ClientboundTeleportEntityPacket.class)
-public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
+@Translator(packet = ClientboundEntityPositionSyncPacket.class)
+public class JavaEntityPositionSyncTranslator extends PacketTranslator<ClientboundEntityPositionSyncPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
-        session.getGeyser().getLogger().info(packet.toString());
+    public void translate(GeyserSession session, ClientboundEntityPositionSyncPacket packet) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
+        if (entity == null) return;
+
+        Vector3d pos = packet.getPosition();
+
+        if (entity instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
+        }
+
+        entity.teleport(pos.toFloat(), packet.getXRot(), packet.getYRot(), packet.isOnGround());
     }
 }

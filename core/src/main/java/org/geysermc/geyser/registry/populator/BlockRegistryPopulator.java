@@ -262,7 +262,7 @@ public final class BlockRegistryPopulator {
                 NbtMap originalBedrockTag = buildBedrockState(blockState, entry);
                 NbtMap bedrockTag = stateMapper.remap(originalBedrockTag);
 
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.getOrDefault(bedrockTag, airDefinition); // FIXME EEE
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);

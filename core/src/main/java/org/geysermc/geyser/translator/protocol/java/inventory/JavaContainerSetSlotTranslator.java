@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -175,8 +176,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 for (int col = firstCol; col < width + firstCol; col++) {
                     GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
                     ingredients[index] = geyserItemStack.getItemData(session);
-                    ItemStack[] itemStacks = new ItemStack[] {geyserItemStack.isEmpty() ? null : geyserItemStack.getItemStack(1)};
-                    javaIngredients[index] = new Ingredient(itemStacks);
+                    int[] items = new int[] {geyserItemStack.isEmpty() ? 0 : geyserItemStack.getJavaId()};
+                    javaIngredients[index] = new Ingredient(new HolderSet(items));
 
                     InventorySlotPacket slotPacket = new InventorySlotPacket();
                     slotPacket.setContainerId(ContainerId.UI);
