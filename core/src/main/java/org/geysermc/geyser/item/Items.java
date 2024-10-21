@@ -25,13 +25,45 @@
 
 package org.geysermc.geyser.item;
 
+import static org.geysermc.geyser.item.type.Item.builder;
+
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.components.ToolTier;
-import org.geysermc.geyser.item.type.*;
+import org.geysermc.geyser.item.type.ArmorItem;
+import org.geysermc.geyser.item.type.ArrowItem;
+import org.geysermc.geyser.item.type.AxolotlBucketItem;
+import org.geysermc.geyser.item.type.BannerItem;
+import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.item.type.BoatItem;
+import org.geysermc.geyser.item.type.CompassItem;
+import org.geysermc.geyser.item.type.CrossbowItem;
+import org.geysermc.geyser.item.type.DecoratedPotItem;
+import org.geysermc.geyser.item.type.DyeItem;
+import org.geysermc.geyser.item.type.DyeableArmorItem;
+import org.geysermc.geyser.item.type.ElytraItem;
+import org.geysermc.geyser.item.type.EnchantedBookItem;
+import org.geysermc.geyser.item.type.FilledMapItem;
+import org.geysermc.geyser.item.type.FireworkRocketItem;
+import org.geysermc.geyser.item.type.FireworkStarItem;
+import org.geysermc.geyser.item.type.FishingRodItem;
+import org.geysermc.geyser.item.type.GoatHornItem;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.MaceItem;
+import org.geysermc.geyser.item.type.MapItem;
+import org.geysermc.geyser.item.type.OminousBottleItem;
+import org.geysermc.geyser.item.type.PlayerHeadItem;
+import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.geyser.item.type.ShieldItem;
+import org.geysermc.geyser.item.type.ShulkerBoxItem;
+import org.geysermc.geyser.item.type.SpawnEggItem;
+import org.geysermc.geyser.item.type.TieredItem;
+import org.geysermc.geyser.item.type.TippedArrowItem;
+import org.geysermc.geyser.item.type.TropicalFishBucketItem;
+import org.geysermc.geyser.item.type.WolfArmorItem;
+import org.geysermc.geyser.item.type.WritableBookItem;
+import org.geysermc.geyser.item.type.WrittenBookItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.registry.Registries;
-
-import static org.geysermc.geyser.item.type.Item.builder;
 
 /**
  * A list, in order, of all Java items.
@@ -1375,13 +1407,13 @@ public final class Items {
     public static final int AIR_ID = AIR.javaId();
 
     private static <T extends Item> T register(T item) {
-        return register(item, Registries.JAVA_ITEMS.get().size());
+        return register(item, Registries.javaItems().get().size());
     }
 
     public static <T extends Item> T register(T item, int id) {
         item.setJavaId(id);
-        Registries.JAVA_ITEMS.registerWithAnyIndex(id, item, AIR);
-        Registries.JAVA_ITEM_IDENTIFIERS.register(item.javaIdentifier(), item);
+        Registries.javaItems().registerWithAnyIndex(id, item, AIR);
+        Registries.javaItemIdentifiers().register(item.javaIdentifier(), item);
         return item;
     }
 

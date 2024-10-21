@@ -25,7 +25,12 @@
 
 package org.geysermc.geyser.inventory;
 
-import lombok.*;
+import java.util.HashMap;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -38,8 +43,6 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-
-import java.util.HashMap;
 
 @Data
 public class GeyserItemStack {
@@ -165,7 +168,7 @@ public class GeyserItemStack {
 
     public Item asItem() {
         if (item == null) {
-            return (item = Registries.JAVA_ITEMS.get().get(javaId));
+            return (item = Registries.javaItems().get().get(javaId));
         }
         return item;
     }

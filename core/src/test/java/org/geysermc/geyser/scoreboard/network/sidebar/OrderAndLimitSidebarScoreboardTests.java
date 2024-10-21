@@ -98,7 +98,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -106,8 +106,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -128,7 +128,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(15, "0", 3, "c")
                 ));
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // remove a score
@@ -136,43 +136,43 @@ public class OrderAndLimitSidebarScoreboardTests {
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("m", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(5, "0", 13, "m")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
                 return packet;
-            }, context);
+            });
 
             // add a score
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("aa", "objective", 13)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(17, "0", 13, "aa")));
                 return packet;
-            }, context);
+            });
 
             // add score with same score value (after)
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ga", "objective", 9)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -180,8 +180,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(9, "0", 9, "§0§rg")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -189,14 +189,14 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 9, "§1§rga")
                 ));
                 return packet;
-            }, context);
+            });
 
             // add another score with same score value (before all)
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ag", "objective", 9)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -205,8 +205,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 9, "§2§rga")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -215,14 +215,14 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 9, "§2§rga")
                 ));
                 return packet;
-            }, context);
+            });
 
             // remove score with same value
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("g", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -230,8 +230,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 9, "§1§rga")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -239,14 +239,14 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(20, "0", 4, "e")
                 ));
                 return packet;
-            }, context);
+            });
 
             // remove the other score with the same value
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("ga", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -254,8 +254,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(19, "0", 9, "ag")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -263,7 +263,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(21, "0", 3, "c")
                 ));
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -327,7 +327,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 setDisplayObjectiveTranslator,
                 new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
@@ -335,8 +335,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -357,7 +357,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(15, "0", 3, "c")
                 ));
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // remove a score
@@ -365,36 +365,36 @@ public class OrderAndLimitSidebarScoreboardTests {
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("m", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(5, "0", 13, "m")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
                 return packet;
-            }, context);
+            });
 
             // add a score
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("aa", "objective", 13)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(new ScoreInfo(17, "0", 13, "aa")));
                 return packet;
-            }, context);
+            });
 
             // add some teams for the upcoming score adds
             context.translate(
@@ -435,7 +435,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 setScoreTranslator,
                 new ClientboundSetScorePacket("oa", "objective", 11)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -443,8 +443,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(7, "0", 11, "§0§r§4prefix§r§4o§r§4suffix")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -452,7 +452,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 11, "§1§r§3prefix§r§3oa§r§3suffix")
                 ));
                 return packet;
-            }, context);
+            });
 
             // add a score that on Java should be before 'o', but would be after on Bedrock without manual order
             // due to the team color
@@ -460,7 +460,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ao", "objective", 11)
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -469,8 +469,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 11, "§2§r§3prefix§r§3oa§r§3suffix")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -479,14 +479,14 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 11, "§2§r§3prefix§r§3oa§r§3suffix")
                 ));
                 return packet;
-            }, context);
+            });
 
             // remove original 'o' score
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("o", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -494,8 +494,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(18, "0", 11, "§1§r§3prefix§r§3oa§r§3suffix")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -503,14 +503,14 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(20, "0", 4, "e")
                 ));
                 return packet;
-            }, context);
+            });
 
             // remove the other score with the same value as 'o'
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("oa", "objective")
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
@@ -518,8 +518,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(19, "0", 11, "§5prefix§r§5ao§r§5suffix")
                 ));
                 return packet;
-            }, context);
-            assertNextPacket(() -> {
+            });
+            assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
                 packet.setInfos(List.of(
@@ -527,7 +527,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                     new ScoreInfo(21, "0", 3, "c")
                 ));
                 return packet;
-            }, context);
+            });
         });
     }
 }

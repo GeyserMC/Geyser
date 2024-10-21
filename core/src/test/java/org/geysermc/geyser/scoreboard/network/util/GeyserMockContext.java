@@ -35,16 +35,15 @@ import java.util.function.Consumer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class GeyserMockContext {
     private final List<Object> mocksAndSpies = new ArrayList<>();
     private final List<Object> storedObjects = new ArrayList<>();
     private final List<BedrockPacket> packets = Collections.synchronizedList(new ArrayList<>());
-    private MockedStatic<GeyserImpl> geyserImplMock;
 
     public static void mockContext(Consumer<GeyserMockContext> geyserContext) {
         var context = new GeyserMockContext();
@@ -59,10 +58,18 @@ public class GeyserMockContext {
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
 
-        try (var mocked = mockStatic(GeyserImpl.class)) {
-            mocked.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
-            context.geyserImplMock = mocked;
-            geyserContext.accept(context);
+        try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
+            geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
+
+            // Registries contains static methods that all call 'backingRegistries', that's the one we override.
+            // So every other static method will invoke the real method.
+            try (var registriesMock = mockStatic(Registries.class, Mockito.CALLS_REAL_METHODS)) {
+                var commonRegistries = context.storeObject(new CommonRegistriesMock());
+                registriesMock.when(Registries::instance).thenReturn(commonRegistries);
+                Registries.init();
+
+                geyserContext.accept(context);
+            }
         }
     }
 
@@ -135,9 +142,5 @@ public class GeyserMockContext {
 
     public <T> void translate(PacketTranslator<T> translator, T packet) {
         translator.translate(session(), packet);
-    }
-
-    public MockedStatic<GeyserImpl> geyserImplMock() {
-        return geyserImplMock;
     }
 }
