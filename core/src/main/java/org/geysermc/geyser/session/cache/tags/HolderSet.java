@@ -38,9 +38,10 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 /**
  * Similar to vanilla Minecraft's HolderSets, stores either a tag or a list of IDs (this list can also be represented as a single ID in vanilla HolderSets).
  *
- * Because HolderSets utilise tags, when loading a HolderSet, Geyser must store tags for the registry the HolderSet is for (it must be listed in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries}).
+ * <p>Because HolderSets utilise tags, when loading a HolderSet, Geyser must store tags for the registry the HolderSet is for (see {@link JavaRegistryKey}).</p>
  *
- * Use the {@link HolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link HolderSet#resolve} method.
+ * <p>Use the {@link HolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link HolderSet#resolveRaw} method.
+ * To turn the HolderSet into a list of objects, use the {@link HolderSet#resolve} method.</p>
  */
 @Data
 public final class HolderSet<T> {

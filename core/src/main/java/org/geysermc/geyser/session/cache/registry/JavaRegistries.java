@@ -47,6 +47,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
+ */
 public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
