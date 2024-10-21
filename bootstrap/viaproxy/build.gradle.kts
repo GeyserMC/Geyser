@@ -1,3 +1,7 @@
+plugins {
+    id("geyser.platform-conventions")
+}
+
 dependencies {
     api(projects.core)
 

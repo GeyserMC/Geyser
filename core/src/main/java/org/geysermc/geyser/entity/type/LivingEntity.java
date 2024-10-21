@@ -25,6 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,9 +46,11 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
@@ -64,12 +71,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffect
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
-import java.util.*;
-
 @Getter
 @Setter
 public class LivingEntity extends Entity {
-
     protected ItemData helmet = ItemData.AIR;
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
@@ -147,6 +151,16 @@ public class LivingEntity extends Entity {
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
         dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+    }
+
+    @Override
+    public void updateNametag(@Nullable Team team) {
+        // if name not visible, don't mark it as visible
+        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
+    }
+
+    public void hideNametag() {
+        setNametag("", false);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -294,6 +308,36 @@ public class LivingEntity extends Entity {
         return super.interact(hand);
     }
 
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public boolean setBoundingBoxHeight(float height) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setHeight(height);
+        }
+
+        return super.setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public void setBoundingBoxWidth(float width) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setWidth(width);
+        }
+
+        super.setBoundingBoxWidth(width);
+    }
+
     /**
      * Checks to see if a nametag interaction would go through.
      */
@@ -407,9 +451,25 @@ public class LivingEntity extends Entity {
                     this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
+                case GENERIC_MOVEMENT_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setMoveSpeed(attributeData.getValue());
+                    }
+                }
+                case GENERIC_STEP_HEIGHT -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setStepHeight((float) AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
+                case GENERIC_GRAVITY ->  {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setGravity(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
                 case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-                case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
                 case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
                 case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
                 case GENERIC_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));

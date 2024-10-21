@@ -31,6 +31,8 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -75,6 +77,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 slotPacket.setContainerId(ContainerId.UI);
                 slotPacket.setSlot(bedrockSlot);
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
+                slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                 session.sendUpstreamPacket(slotPacket);
             }
         }
@@ -95,6 +98,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
+            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         } else if (lastTargetSlot != javaSlot) {
             // Update the previous target slot to remove repair cost changes
@@ -102,6 +106,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(lastTargetSlot));
             slotPacket.setItem(inventory.getItem(lastTargetSlot).getItemData(session));
+            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         }
 
@@ -165,6 +170,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(translator.javaSlotToBedrock(slot));
         slotPacket.setItem(itemData);
+        slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(slotPacket);
     }
 

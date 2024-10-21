@@ -76,6 +76,7 @@ import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
@@ -95,7 +96,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.NewsHandler;
@@ -363,22 +363,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 }
             }
 
-            String broadcastPort = System.getProperty("geyserBroadcastPort", "");
-            if (!broadcastPort.isEmpty()) {
-                int parsedPort;
-                try {
-                    parsedPort = Integer.parseInt(broadcastPort);
-                    if (parsedPort < 1 || parsedPort > 65535) {
-                        throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
-                    }
-                } catch (NumberFormatException e) {
-                    logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
-                    parsedPort = config.getBedrock().port();
-                }
-                config.getBedrock().setBroadcastPort(parsedPort);
-                logger.info("Broadcast port set from system property: " + parsedPort);
-            }
-
             if (platformType != PlatformType.VIAPROXY) {
                 boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
                 if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
@@ -391,6 +375,26 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     config.getRemote().setAuthType(AuthType.FLOODGATE);
                 }
             }
+        }
+
+        // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
+        String broadcastPort = System.getProperty("geyserBroadcastPort", "");
+        if (!broadcastPort.isEmpty()) {
+            try {
+                int parsedPort = Integer.parseInt(broadcastPort);
+                if (parsedPort < 1 || parsedPort > 65535) {
+                    throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
+                }
+                config.getBedrock().setBroadcastPort(parsedPort);
+                logger.info("Broadcast port set from system property: " + parsedPort);
+            } catch (NumberFormatException e) {
+                logger.error(String.format("Invalid broadcast port from system property: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
+            }
+        }
+
+        // It's set to 0 only if no system property or manual config value was set
+        if (config.getBedrock().broadcastPort() == 0) {
+            config.getBedrock().setBroadcastPort(config.getBedrock().port());
         }
 
         String remoteAddress = config.getRemote().address();
@@ -421,7 +425,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
-        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        BedrockDimension.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {

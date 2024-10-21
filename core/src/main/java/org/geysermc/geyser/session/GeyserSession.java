@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import net.raphimc.minecraftauth.responsehandler.exception.MinecraftRequestException;
 import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
@@ -66,12 +67,14 @@ import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
+import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -82,9 +85,11 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
@@ -128,7 +133,9 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
@@ -170,7 +177,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
@@ -227,6 +233,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -257,7 +264,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @NonNull
     @Setter
-    private AbstractGeyserboundPacketHandler erosionHandler;
+    private volatile AbstractGeyserboundPacketHandler erosionHandler;
 
     @Accessors(fluent = true)
     @Setter
@@ -383,6 +390,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean sprinting;
 
     /**
+     * The overworld dimension which Bedrock Edition uses.
+     */
+    private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
+    /**
      * The dimension of the player.
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
@@ -395,7 +406,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * right before the StartGamePacket is sent.
      */
     @Setter
-    private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
+    private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
     @Setter
     private int breakingBlock;
@@ -566,16 +577,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private float walkSpeed;
 
     /**
-     * Caches current rain status.
+     * Caches current rain strength.
+     * Value between 0 and 1.
      */
-    @Setter
-    private boolean raining = false;
+    private float rainStrength = 0.0f;
 
     /**
-     * Caches current thunder status.
+     * Caches current thunder strength.
+     * Value between 0 and 1.
      */
-    @Setter
-    private boolean thunder = false;
+    private float thunderStrength = 0.0f;
 
     /**
      * Stores a map of all statistics sent from the server.
@@ -601,6 +612,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The thread that will run every 50 milliseconds - one Minecraft tick.
      */
     private ScheduledFuture<?> tickThread = null;
+
+    /**
+     * The number of ticks that have elapsed since the start of this session
+     */
+    private int ticks;
+
+    /**
+     * The world time in ticks according to the server
+     * <p>
+     * Note: The TickingStatePacket is currently ignored.
+     */
+    @Setter
+    private long worldTicks;
 
     /**
      * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
@@ -692,6 +716,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
+        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        int minY = BedrockDimension.OVERWORLD.minY();
+        int maxY = BedrockDimension.OVERWORLD.maxY();
+        for (JavaDimension javaDimension : this.registryCache.dimensions().values()) {
+            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                minY = Math.min(minY, javaDimension.minY());
+                maxY = Math.max(maxY, javaDimension.maxY());
+            }
+        }
+        minY = Math.max(minY, -512);
+        maxY = Math.min(maxY, 512);
+
+        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+            final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
+            this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
+            if (isInOverworld) {
+                this.bedrockDimension = this.bedrockOverworldDimension;
+            }
+            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
+
+            DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            upstream.sendPacket(dimensionDataPacket);
+        }
+
         startGame();
         sentSpawnPacket = true;
         syncEntityProperties();
@@ -862,7 +911,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return task.getAuthentication().handle((result, ex) -> {
              if (ex != null) {
                  geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                 disconnect(ex.toString());
+                 if (ex instanceof CompletionException ce
+                     && ce.getCause() instanceof MinecraftRequestException mre
+                     && mre.getResponse().getStatusCode() == 404) {
+                     // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
+                     disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
+                 } else {
+                     disconnect(ex.toString());
+                 }
                  return false;
              }
 
@@ -907,8 +963,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Start ticking
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
-        this.protocol.setUseDefaultListeners(false);
-
         TcpSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
@@ -934,7 +988,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
 
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
-            downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
         }
         if (geyser.getConfig().isForwardPlayerPing()) {
@@ -943,22 +996,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // We'll handle this since we have the registry data on hand
         downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
-
-        // This isn't a great solution, but... we want to make sure the finish configuration packet cannot be sent
-        // before the KnownPacks packet.
-        this.downstream.getSession().addListener(new ClientListener(ProtocolState.LOGIN, loginEvent.transferring()) {
-            @Override
-            public void packetReceived(Session session, Packet packet) {
-                if (protocol.getState() == ProtocolState.CONFIGURATION) {
-                    if (packet instanceof ClientboundFinishConfigurationPacket) {
-                        // Prevent
-                        GeyserSession.this.ensureInEventLoop(() -> GeyserSession.this.sendDownstreamPacket(new ServerboundFinishConfigurationPacket()));
-                        return;
-                    }
-                }
-                super.packetReceived(session, packet);
-            }
-        });
 
         downstream.addListener(new SessionAdapter() {
             @Override
@@ -1176,9 +1213,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             tickThread.cancel(false);
         }
 
-        erosionHandler.close();
-
+        // Mark session as closed before cancelling erosion futures
         closed = true;
+        erosionHandler.close();
     }
 
     /**
@@ -1199,6 +1236,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         eventLoop.execute(() -> {
             try {
                 runnable.run();
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
@@ -1216,6 +1255,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (!closed) {
                     runnable.run();
                 }
+            } catch (ErosionCancellationException e) {
+                geyser.getLogger().debug("Caught ErosionCancellationException");
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
@@ -1261,6 +1302,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 isInWorldBorderWarningArea = false;
             }
 
+            Entity vehicle = playerEntity.getVehicle();
+            if (vehicle instanceof ClientVehicle clientVehicle && vehicle.isValid()) {
+                clientVehicle.getVehicleComponent().tickVehicle();
+            }
 
             for (Tickable entity : entityCache.getTickableEntities()) {
                 entity.tick();
@@ -1296,6 +1341,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
+
+        ticks++;
+        worldTicks++;
     }
 
     public void setAuthenticationData(AuthData authData) {
@@ -1557,7 +1605,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(bedrockDimension));
+        startGamePacket.setDimensionId(bedrockDimension.bedrockId());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
@@ -1721,8 +1769,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
-        if (protocol.getState() != intendedState) {
-            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
+        if (protocol.getOutboundState() != intendedState) {
+            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state");
             return;
         }
 
@@ -1756,7 +1804,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        ProtocolState state = protocol.getState();
+        ProtocolState state = protocol.getOutboundState();
         if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
             downstream.sendPacket(packet);
         } else {
@@ -1979,6 +2027,71 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             case SLEEPING -> 0.2f;
             default -> EntityDefinitions.PLAYER.offset();
         };
+    }
+
+    /**
+     * Sends a packet to update rain strength.
+     * Stops rain if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateRain(float strength) {
+        boolean wasRaining = isRaining();
+        this.rainStrength = strength;
+
+        LevelEventPacket rainPacket = new LevelEventPacket();
+        rainPacket.setType(isRaining() ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
+        rainPacket.setData((int) (strength * 65535));
+        rainPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(rainPacket);
+
+        // Keep thunder in sync with rain when starting/stopping a storm
+        if ((wasRaining != isRaining()) && isThunder()) {
+            if (isRaining()) {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.START_THUNDERSTORM);
+                thunderPacket.setData((int) (this.thunderStrength * 65535));
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            } else {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                thunderPacket.setData(0);
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            }
+        }
+    }
+
+    /**
+     * Sends a packet to update thunderstorm strength.
+     * Stops thunderstorm if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateThunder(float strength) {
+        this.thunderStrength = strength;
+
+        // Do not send thunder packet if not raining
+        // The bedrock client will start raining automatically when updating thunder strength
+        // https://github.com/GeyserMC/Geyser/issues/3679
+        if (!isRaining()) {
+            return;
+        }
+
+        LevelEventPacket thunderPacket = new LevelEventPacket();
+        thunderPacket.setType(isThunder() ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
+        thunderPacket.setData((int) (strength * 65535));
+        thunderPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(thunderPacket);
+    }
+
+    public boolean isRaining() {
+        return this.rainStrength > 0;
+    }
+
+    public boolean isThunder() {
+        return this.thunderStrength > 0;
     }
 
     @Override

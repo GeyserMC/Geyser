@@ -2,11 +2,9 @@
 
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.maven
 
 plugins {
-    id("geyser.build-logic")
-    id("geyser.publish-conventions")
+    id("geyser.platform-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
 }
@@ -87,7 +85,7 @@ tasks {
     register("remapModrinthJar", RemapJarTask::class) {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
-        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("BUILD_NUMBER"))
+        archiveVersion.set(versionName(project))
         archiveClassifier.set("")
     }
 }
