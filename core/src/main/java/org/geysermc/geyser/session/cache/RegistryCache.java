@@ -138,7 +138,7 @@ public final class RegistryCache {
      * Loads a registry in, if we are tracking it.
      */
     public void load(ClientboundRegistryDataPacket packet) {
-        var reader = REGISTRIES.get(packet.getRegistry());
+        var reader = REGISTRIES.get(JavaRegistries.fromKey(packet.getRegistry()));
         if (reader != null) {
             reader.accept(this, packet.getEntries());
         } else {
