@@ -112,7 +112,7 @@ public final class GeyserHolderSet<T> {
             // Assume the list is a list of strings
             return new GeyserHolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).mapToInt(keyIdMapping).toArray());
         }
-        session.getGeyser().getLogger().debug("Failed parsing HolderSet for registry + " + registry + "! Expected either a tag, a string ID or a list of string IDs, found " + holderSet);
+        session.getGeyser().getLogger().warning("Failed parsing HolderSet for registry + " + registry + "! Expected either a tag, a string ID or a list of string IDs, found " + holderSet);
         return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
     }
 }
