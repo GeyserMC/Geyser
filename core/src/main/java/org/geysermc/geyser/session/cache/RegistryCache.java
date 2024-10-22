@@ -46,7 +46,9 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.ChatDecoration;
@@ -74,35 +76,34 @@ import java.util.function.ToIntFunction;
 @Accessors(fluent = true)
 @Getter
 public final class RegistryCache {
-    private static final Map<Key, Map<Key, NbtMap>> DEFAULTS;
-    private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
+    private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
+    private static final Map<JavaRegistryKey<?>, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
-        register("chat_type", cache -> cache.chatTypes, ChatDecoration::readChatType);
-        register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
-        register("enchantment", cache -> cache.enchantments, Enchantment::read);
-        register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
-        register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
-        register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
-        register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
-        register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
-        register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
-        register("wolf_variant", cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
+        register(JavaRegistries.CHAT_TYPE, cache -> cache.chatTypes, ChatDecoration::readChatType);
+        register(JavaRegistries.DIMENSION_TYPE, cache -> cache.dimensions, JavaDimension::read);
+        register(JavaRegistries.ENCHANTMENT, cache -> cache.enchantments, Enchantment::read);
+        register(JavaRegistries.JUKEBOX_SONG, cache -> cache.jukeboxSongs, JukeboxSong::read);
+        register(JavaRegistries.PAINTING_VARIANT, cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
+        register(JavaRegistries.TRIM_MATERIAL, cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
+        register(JavaRegistries.TRIM_PATTERN, cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
+        register(JavaRegistries.BIOME, (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
+        register(JavaRegistries.BANNER_PATTERN, cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
+        register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
-        Map<Key, Map<Key, NbtMap>> defaults = new HashMap<>();
+        Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
-        REGISTRIES.forEach((key, $) -> {
-            List<NbtMap> rawValues = tag.getCompound(key.asString())
-                    .getList("value", NbtType.COMPOUND);
+        REGISTRIES.forEach((registry, $) -> {
+            List<NbtMap> rawValues = tag.getCompound(registry.registryKey().asString()).getList("value", NbtType.COMPOUND);
             Map<Key, NbtMap> values = new HashMap<>();
             for (NbtMap value : rawValues) {
                 Key name = MinecraftKey.key(value.getString("name"));
                 values.put(name, value.getCompound("element"));
             }
             // Can make these maps immutable and as efficient as possible after initialization
-            defaults.put(key, Map.copyOf(values));
+            defaults.put(registry, Map.copyOf(values));
         });
 
         DEFAULTS = Map.copyOf(defaults);
@@ -137,7 +138,7 @@ public final class RegistryCache {
      * Loads a registry in, if we are tracking it.
      */
     public void load(ClientboundRegistryDataPacket packet) {
-        var reader = REGISTRIES.get(packet.getRegistry());
+        var reader = REGISTRIES.get(JavaRegistries.fromKey(packet.getRegistry()));
         if (reader != null) {
             reader.accept(this, packet.getEntries());
         } else {
@@ -151,9 +152,8 @@ public final class RegistryCache {
      * @param reader converts the RegistryEntry NBT into a class file
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
-        Key registryKey = MinecraftKey.key(registry);
-        REGISTRIES.put(registryKey, (registryCache, entries) -> {
+    private static <T> void register(JavaRegistryKey<T> registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
+        REGISTRIES.put(registry, (registryCache, entries) -> {
             Map<Key, NbtMap> localRegistry = null;
             JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
@@ -172,7 +172,7 @@ public final class RegistryCache {
                 // If the data is null, that's the server telling us we need to use our default values.
                 if (entry.getData() == null) {
                     if (localRegistry == null) { // Lazy initialize
-                        localRegistry = DEFAULTS.get(registryKey);
+                        localRegistry = DEFAULTS.get(registry);
                     }
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }
@@ -189,8 +189,8 @@ public final class RegistryCache {
     /**
      * @param localCacheFunction the int array to set the final values to.
      */
-    private static void register(String registry, BiConsumer<RegistryCache, int[]> localCacheFunction, ToIntFunction<RegistryEntry> reader) {
-        REGISTRIES.put(MinecraftKey.key(registry), (registryCache, entries) -> {
+    private static void register(JavaRegistryKey<?> registry, BiConsumer<RegistryCache, int[]> localCacheFunction, ToIntFunction<RegistryEntry> reader) {
+        REGISTRIES.put(registry, (registryCache, entries) -> {
             Int2IntMap temp = new Int2IntOpenHashMap();
             int greatestId = 0;
             for (int i = 0; i < entries.size(); i++) {

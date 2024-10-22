@@ -679,7 +679,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.registryCache = new RegistryCache(this);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
-        this.tagCache = new TagCache();
+        this.tagCache = new TagCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
