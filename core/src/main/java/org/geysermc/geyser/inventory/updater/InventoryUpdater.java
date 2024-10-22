@@ -48,6 +48,7 @@ public class InventoryUpdater {
         contentPacket.setContainerId(ContainerId.INVENTORY);
         contentPacket.setContents(Arrays.asList(bedrockItems));
         contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        contentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(contentPacket);
     }
 
@@ -58,6 +59,7 @@ public class InventoryUpdater {
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
             return true;
         }

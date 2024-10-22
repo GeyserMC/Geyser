@@ -283,7 +283,7 @@ class CodecProcessor {
         boolean is712OrAbove = codec.getProtocolVersion() >= 712;
 
         BedrockPacketSerializer<InventoryContentPacket> inventoryContentSerializer;
-        if(is748OrAbove) {
+        if (is748OrAbove) {
             inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V748;
         } else if (is729OrAbove) {
             inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V729;
@@ -294,7 +294,7 @@ class CodecProcessor {
         }
 
         BedrockPacketSerializer<InventorySlotPacket> inventorySlotSerializer;
-        if(is748OrAbove) {
+        if (is748OrAbove) {
             inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V748;
         } else if (is729OrAbove) {
             inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V729;

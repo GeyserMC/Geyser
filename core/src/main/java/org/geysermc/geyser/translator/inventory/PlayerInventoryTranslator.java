@@ -85,6 +85,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         }
         inventoryContentPacket.setContents(Arrays.asList(contents));
         inventoryContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        inventoryContentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
@@ -102,6 +103,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         }
         armorContentPacket.setContents(Arrays.asList(contents));
         armorContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        armorContentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
@@ -109,6 +111,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
         offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        offhandPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -131,6 +134,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
 
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -168,12 +172,14 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
             slotPacket.setItem(bedrockItem);
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
             offhandPacket.setContents(Collections.singletonList(bedrockItem));
             offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            offhandPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(offhandPacket);
         }
     }

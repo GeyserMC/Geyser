@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.updater;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
@@ -49,6 +50,7 @@ public class UIInventoryUpdater extends InventoryUpdater {
             slotPacket.setSlot(bedrockSlot);
             slotPacket.setItem(inventory.getItem(i).getItemData(session));
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -63,6 +65,7 @@ public class UIInventoryUpdater extends InventoryUpdater {
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        slotPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

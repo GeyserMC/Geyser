@@ -64,6 +64,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         contentPacket.setContainerId(inventory.getBedrockId());
         contentPacket.setContents(bedrockItems);
         contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        contentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(contentPacket);
     }
 
@@ -77,6 +78,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        slotPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(slotPacket);
         return true;
     }
