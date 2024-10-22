@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
@@ -49,6 +43,10 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -183,7 +181,6 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setContainerId(ContainerId.UI);
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ItemData.AIR);
-                    slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }
@@ -216,7 +213,6 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setContainerId(ContainerId.UI);
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ingredients[index]);
-                    slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }

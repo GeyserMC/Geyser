@@ -44,6 +44,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.InventorySlotSeri
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.MobArmorEquipmentSerializer_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v729.serializer.InventoryContentSerializer_v729;
 import org.cloudburstmc.protocol.bedrock.codec.v729.serializer.InventorySlotSerializer_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventoryContentSerializer_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -140,6 +142,13 @@ class CodecProcessor {
         }
     };
 
+    private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V748 = new InventoryContentSerializer_v748() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+        }
+    };
+
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V729 = new InventoryContentSerializer_v729() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
@@ -168,6 +177,13 @@ class CodecProcessor {
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V729 = new InventorySlotSerializer_v729() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V748 = new InventorySlotSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
             throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
@@ -262,11 +278,14 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
+        boolean is748OrAbove = codec.getProtocolVersion() >= 748;
         boolean is729OrAbove = codec.getProtocolVersion() >= 729;
         boolean is712OrAbove = codec.getProtocolVersion() >= 712;
 
         BedrockPacketSerializer<InventoryContentPacket> inventoryContentSerializer;
-        if (is729OrAbove) {
+        if (is748OrAbove) {
+            inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V748;
+        } else if (is729OrAbove) {
             inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V729;
         } else if (is712OrAbove) {
             inventoryContentSerializer = INVENTORY_CONTENT_SERIALIZER_V712;
@@ -275,7 +294,9 @@ class CodecProcessor {
         }
 
         BedrockPacketSerializer<InventorySlotPacket> inventorySlotSerializer;
-        if (is729OrAbove) {
+        if (is748OrAbove) {
+            inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V748;
+        } else if (is729OrAbove) {
             inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V729;
         } else if (is712OrAbove) {
             inventorySlotSerializer = INVENTORY_SLOT_SERIALIZER_V712;

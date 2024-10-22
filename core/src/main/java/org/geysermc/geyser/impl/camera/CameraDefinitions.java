@@ -43,13 +43,13 @@ public class CameraDefinitions {
 
     static {
         CAMERA_PRESETS = List.of(
-            new CameraPreset(CameraPerspective.FIRST_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null),
-            new CameraPreset(CameraPerspective.FREE.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null),
-            new CameraPreset(CameraPerspective.THIRD_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null),
-            new CameraPreset(CameraPerspective.THIRD_PERSON_FRONT.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null),
-            new CameraPreset("geyser:free_audio", "minecraft:free", null, null, null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.empty(), null, OptionalBoolean.of(false), null),
-            new CameraPreset("geyser:free_effects", "minecraft:free", null, null, null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.empty(), null, OptionalBoolean.of(true), null),
-            new CameraPreset("geyser:free_audio_effects", "minecraft:free", null, null, null, null, null,  CameraAudioListener.PLAYER, OptionalBoolean.empty(), null, OptionalBoolean.of(true), null));
+            new CameraPreset(CameraPerspective.FIRST_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset(CameraPerspective.FREE.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset(CameraPerspective.THIRD_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset(CameraPerspective.THIRD_PERSON_FRONT.id(), "", null, null, null, null, null, null, OptionalBoolean.empty(), null, OptionalBoolean.empty(), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset("geyser:free_audio", "minecraft:free", null, null, null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.empty(), null, OptionalBoolean.of(false), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset("geyser:free_effects", "minecraft:free", null, null, null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.empty(), null, OptionalBoolean.of(true), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()),
+            new CameraPreset("geyser:free_audio_effects", "minecraft:free", null, null, null, null, null,  CameraAudioListener.PLAYER, OptionalBoolean.empty(), null, OptionalBoolean.of(true), null, null, null, OptionalBoolean.empty(), OptionalBoolean.empty()));
 
         SimpleDefinitionRegistry.Builder<NamedDefinition> builder = SimpleDefinitionRegistry.builder();
         for (int i = 0; i < CAMERA_PRESETS.size(); i++) {
