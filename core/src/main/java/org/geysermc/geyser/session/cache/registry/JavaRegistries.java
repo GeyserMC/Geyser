@@ -84,6 +84,7 @@ public class JavaRegistries {
     }
 
     private static <T> JavaRegistryKey<T> create(String key) {
+        // Cast for ambiguous call
         return create(key, (JavaRegistryKey.NetworkSerializer<T>) null, null);
     }
 
