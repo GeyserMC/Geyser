@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.GeyserLogger;
@@ -33,7 +34,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.tags.HolderSet;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
@@ -113,7 +114,7 @@ public final class TagCache {
     /**
      * @return true if the specified network ID is in the given holder set.
      */
-    public <T> boolean is(HolderSet<T> holderSet, T object) {
+    public <T> boolean is(GeyserHolderSet<T> holderSet, T object) {
         return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
     }
 
@@ -125,7 +126,7 @@ public final class TagCache {
      * @return the network IDs in the given tag. This can be an empty list.
      */
     public int[] getRaw(Tag<?> tag) {
-        return this.tags.getOrDefault(tag, new int[]{});
+        return this.tags.getOrDefault(tag, IntArrays.EMPTY_ARRAY);
     }
 
     /**

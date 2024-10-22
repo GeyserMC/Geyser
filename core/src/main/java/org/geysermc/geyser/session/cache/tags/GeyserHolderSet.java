@@ -26,7 +26,10 @@
 package org.geysermc.geyser.session.cache.tags;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
+
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import lombok.Data;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -40,23 +43,23 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
  *
  * <p>Because HolderSets utilise tags, when loading a HolderSet, Geyser must store tags for the registry the HolderSet is for (see {@link JavaRegistryKey}).</p>
  *
- * <p>Use the {@link HolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link HolderSet#resolveRaw} method.
- * To turn the HolderSet into a list of objects, use the {@link HolderSet#resolve} method.</p>
+ * <p>Use the {@link GeyserHolderSet#readHolderSet} method to easily read a HolderSet from NBT sent by a server. To turn the HolderSet into a list of network IDs, use the {@link GeyserHolderSet#resolveRaw} method.
+ * To turn the HolderSet into a list of objects, use the {@link GeyserHolderSet#resolve} method.</p>
  */
 @Data
-public final class HolderSet<T> {
+public final class GeyserHolderSet<T> {
 
     private final JavaRegistryKey<T> registry;
     private final @Nullable Tag<T> tag;
     private final int @Nullable [] holders;
 
-    public HolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
+    public GeyserHolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
         this.registry = registry;
         this.tag = null;
         this.holders = holders;
     }
 
-    public HolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
+    public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
         this.registry = registry;
         this.tag = tagId;
         this.holders = null;
@@ -81,8 +84,7 @@ public final class HolderSet<T> {
             return holders;
         }
 
-        assert tag != null;
-        return tagCache.getRaw(tag);
+        return tagCache.getRaw(Objects.requireNonNull(tag, "HolderSet must have a tag if it doesn't have a list of IDs"));
     }
 
     /**
@@ -92,22 +94,22 @@ public final class HolderSet<T> {
      * @param holderSet the HolderSet as an object from NBT.
      * @param keyIdMapping a function that maps resource location IDs in the HolderSet's registry to their network IDs.
      */
-    public static <T> HolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
+    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
         if (holderSet == null) {
-            return new HolderSet<>(registry, new int[]{});
+            return new GeyserHolderSet<>(registry, new int[]{});
         }
 
         if (holderSet instanceof String stringTag) {
             if (stringTag.startsWith("#")) {
                 // Tag
-                return new HolderSet<>(registry, new Tag<>(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
+                return new GeyserHolderSet<>(registry, new Tag<>(registry, Key.key(stringTag.substring(1)))); // Remove '#' at beginning that indicates tag
             } else if (stringTag.isEmpty()) {
-                return new HolderSet<>(registry, new int[]{});
+                return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
             }
-            return new HolderSet<>(registry, new int[]{keyIdMapping.apply(Key.key(stringTag))});
+            return new GeyserHolderSet<>(registry, new int[]{keyIdMapping.apply(Key.key(stringTag))});
         } else if (holderSet instanceof List<?> list) {
             // Assume the list is a list of strings
-            return new HolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
+            return new GeyserHolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
         }
         throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
     }

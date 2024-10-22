@@ -33,7 +33,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.session.cache.tags.HolderSet;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashSet;
@@ -46,23 +46,23 @@ import java.util.Set;
  */
 public record Enchantment(String identifier,
                           Set<EnchantmentComponent> effects,
-                          HolderSet<Item> supportedItems,
+                          GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
                           String description,
                           int anvilCost,
-                          HolderSet<Enchantment> exclusiveSet,
+                          GeyserHolderSet<Enchantment> exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
     public static Enchantment read(RegistryEntryContext context) {
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        HolderSet<Item> supportedItems = HolderSet.readHolderSet(JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        HolderSet<Enchantment> exclusiveSet = HolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
