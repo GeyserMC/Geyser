@@ -31,4 +31,5 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 /**
  * A tag in any of the registries that tags are loaded for by Geyser.
  */
-public record Tag<T>(JavaRegistryKey<T> registry, Key tag) {}
+public record Tag<T>(JavaRegistryKey<T> registry, Key tag) {
+}

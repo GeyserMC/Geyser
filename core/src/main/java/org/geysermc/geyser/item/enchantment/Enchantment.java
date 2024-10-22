@@ -57,12 +57,12 @@ public record Enchantment(String identifier,
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 

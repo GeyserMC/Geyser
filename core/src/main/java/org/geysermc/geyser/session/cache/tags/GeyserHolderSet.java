@@ -27,7 +27,7 @@ package org.geysermc.geyser.session.cache.tags;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import lombok.Data;
@@ -90,13 +90,14 @@ public final class GeyserHolderSet<T> {
     /**
      * Reads a HolderSet from an object from NBT.
      *
+     * @param session session, only used for logging purposes.
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as an object from NBT.
      * @param keyIdMapping a function that maps resource location IDs in the HolderSet's registry to their network IDs.
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, Function<Key, Integer> keyIdMapping) {
+    public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet, ToIntFunction<Key> keyIdMapping) {
         if (holderSet == null) {
-            return new GeyserHolderSet<>(registry, new int[]{});
+            return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
         }
 
         if (holderSet instanceof String stringTag) {
@@ -106,11 +107,12 @@ public final class GeyserHolderSet<T> {
             } else if (stringTag.isEmpty()) {
                 return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
             }
-            return new GeyserHolderSet<>(registry, new int[]{keyIdMapping.apply(Key.key(stringTag))});
+            return new GeyserHolderSet<>(registry, new int[]{keyIdMapping.applyAsInt(Key.key(stringTag))});
         } else if (holderSet instanceof List<?> list) {
             // Assume the list is a list of strings
-            return new GeyserHolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).map(keyIdMapping).mapToInt(Integer::intValue).toArray());
+            return new GeyserHolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).mapToInt(keyIdMapping).toArray());
         }
-        throw new IllegalArgumentException("Holder set must either be a tag, a string ID or a list of string IDs");
+        session.getGeyser().getLogger().debug("Failed parsing HolderSet for registry + " + registry + "! Expected either a tag, a string ID or a list of string IDs, found " + holderSet);
+        return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
     }
 }
