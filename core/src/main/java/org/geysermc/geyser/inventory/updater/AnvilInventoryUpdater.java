@@ -27,7 +27,6 @@ package org.geysermc.geyser.inventory.updater;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -41,8 +40,8 @@ import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -57,6 +56,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class AnvilInventoryUpdater extends InventoryUpdater {
     public static final AnvilInventoryUpdater INSTANCE = new AnvilInventoryUpdater();
@@ -81,6 +81,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 slotPacket.setSlot(bedrockSlot);
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
                 slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+                slotPacket.setStorageItem(ItemData.AIR);
                 session.sendUpstreamPacket(slotPacket);
             }
         }
@@ -102,6 +103,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         } else if (lastTargetSlot != javaSlot) {
             // Update the previous target slot to remove repair cost changes
@@ -110,6 +112,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setSlot(translator.javaSlotToBedrock(lastTargetSlot));
             slotPacket.setItem(inventory.getItem(lastTargetSlot).getItemData(session));
             slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         }
 
@@ -174,6 +177,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         slotPacket.setSlot(translator.javaSlotToBedrock(slot));
         slotPacket.setItem(itemData);
         slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        slotPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(slotPacket);
     }
 

@@ -183,6 +183,7 @@ public class InventoryUtils {
         cursorPacket.setSlot(0);
         cursorPacket.setItem(session.getPlayerInventory().getCursor().getItemData(session));
         cursorPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+        cursorPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(cursorPacket);
     }
 
