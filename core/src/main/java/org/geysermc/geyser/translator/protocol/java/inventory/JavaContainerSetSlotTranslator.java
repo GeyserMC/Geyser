@@ -183,6 +183,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ItemData.AIR);
                     slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+                    slotPacket.setStorageItem(ItemData.AIR);
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }
@@ -216,6 +217,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     slotPacket.setSlot(col + (row * gridDimensions) + offset);
                     slotPacket.setItem(ingredients[index]);
                     slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
+                    slotPacket.setStorageItem(ItemData.AIR);
                     session.sendUpstreamPacket(slotPacket);
                     index++;
                 }
