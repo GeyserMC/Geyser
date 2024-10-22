@@ -71,7 +71,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     void closeForm();
 
     /**
-     * Gets the protocol version of the player.
+     * Gets the Bedrock protocol version of the player.
      */
     int protocolVersion();
 
