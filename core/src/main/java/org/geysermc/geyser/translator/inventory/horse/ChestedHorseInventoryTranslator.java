@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.inventory.horse;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
@@ -95,8 +94,6 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(ContainerId.INVENTORY);
         contentPacket.setContents(Arrays.asList(bedrockItems));
-        contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        contentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(contentPacket);
 
         ItemData[] horseItems = new ItemData[chestSize + 1];
@@ -110,8 +107,6 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
         horseContentsPacket.setContainerId(inventory.getBedrockId());
         horseContentsPacket.setContents(Arrays.asList(horseItems));
-        horseContentsPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        horseContentsPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(horseContentsPacket);
     }
 }

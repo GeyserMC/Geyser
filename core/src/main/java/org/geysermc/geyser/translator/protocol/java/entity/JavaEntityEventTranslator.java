@@ -30,9 +30,6 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -170,8 +167,6 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     InventoryContentPacket offhandPacket = new InventoryContentPacket();
                     offhandPacket.setContainerId(ContainerId.OFFHAND);
                     offhandPacket.setContents(Collections.singletonList(InventoryUtils.getTotemOfUndying().apply(session.getUpstream().getProtocolVersion())));
-                    offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-                    offhandPacket.setStorageItem(ItemData.AIR);
                     session.sendUpstreamPacket(offhandPacket);
                 }
 
