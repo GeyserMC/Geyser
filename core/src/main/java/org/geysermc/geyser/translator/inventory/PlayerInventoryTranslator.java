@@ -30,17 +30,25 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftCreativeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DestroyAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -84,8 +92,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
         inventoryContentPacket.setContents(Arrays.asList(contents));
-        inventoryContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        inventoryContentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
@@ -102,16 +108,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
-        armorContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        armorContentPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
-        offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-        offhandPacket.setStorageItem(ItemData.AIR);
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -133,8 +135,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
             }
 
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -171,15 +171,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setSlot(slot + 27);
             }
             slotPacket.setItem(bedrockItem);
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-            slotPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
             offhandPacket.setContents(Collections.singletonList(bedrockItem));
-            offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
-            offhandPacket.setStorageItem(ItemData.AIR);
             session.sendUpstreamPacket(offhandPacket);
         }
     }
