@@ -46,7 +46,6 @@ public class Conversion685_671 {
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         mapping = Conversion712_685.remapItem(item, mapping);
-
         String identifier = mapping.getBedrockIdentifier();
 
         if (NEW_MUSIC_DISCS.contains(item)) {

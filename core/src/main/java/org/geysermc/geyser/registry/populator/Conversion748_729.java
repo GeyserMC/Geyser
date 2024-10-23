@@ -36,6 +36,7 @@ public class Conversion748_729 {
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         String identifier = mapping.getBedrockIdentifier();
+
         if (!NEW_PLAYER_HEADS.contains(identifier)) {
             return mapping;
         }
