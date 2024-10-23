@@ -37,10 +37,17 @@ import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.loader.*;
+import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
+import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
+import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
+import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
+import org.geysermc.geyser.registry.loader.RegistryLoaders;
+import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
-import org.geysermc.geyser.registry.loader.RecipeRegistryLoader;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -54,9 +61,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Holds all the common registries in Geyser.
@@ -140,7 +151,7 @@ public final class Registries {
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
-    public static final SimpleMappedRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
+    //public static final SimpleMappedRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.

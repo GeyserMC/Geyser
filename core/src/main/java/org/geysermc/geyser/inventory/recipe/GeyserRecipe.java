@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 /**
- * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe}.
+ * A more compact version of {link org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe}.
  */
 public interface GeyserRecipe {
     /**

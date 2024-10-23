@@ -28,13 +28,12 @@ package org.geysermc.geyser.inventory.recipe;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapedRecipeData;
 
 public record GeyserShapedRecipe(int width, int height, Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
 
-    public GeyserShapedRecipe(ShapedRecipeData data) {
-        this(data.getWidth(), data.getHeight(), data.getIngredients(), data.getResult());
-    }
+//    public GeyserShapedRecipe(ShapedRecipeData data) {
+//        this(data.getWidth(), data.getHeight(), data.getIngredients(), data.getResult());
+//    }
 
     @Override
     public boolean isShaped() {

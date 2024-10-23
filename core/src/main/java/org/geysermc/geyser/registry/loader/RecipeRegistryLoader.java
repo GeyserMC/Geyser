@@ -27,29 +27,19 @@ package org.geysermc.geyser.registry.loader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
-import java.io.DataInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,41 +47,41 @@ import java.util.Map;
  * Populates the recipe registry with some recipes that Java does not send, to ensure they show up as intended
  * in the recipe book.
  */
-public final class RecipeRegistryLoader implements RegistryLoader<String, Map<RecipeType, List<GeyserRecipe>>> {
+public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map<Object, List<GeyserRecipe>>> {
 
-    @Override
-    public Map<RecipeType, List<GeyserRecipe>> load(String input) {
-        if (true) {
-            return Collections.emptyMap();
-        }
-        Map<RecipeType, List<GeyserRecipe>> deserializedRecipes = new Object2ObjectOpenHashMap<>();
+//    @Override
+//    public Map<RecipeType, List<GeyserRecipe>> load(String input) {
+//        if (true) {
+//            return Collections.emptyMap();
+//        }
+//        Map<RecipeType, List<GeyserRecipe>> deserializedRecipes = new Object2ObjectOpenHashMap<>();
+//
+//        List<NbtMap> recipes;
+//        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/recipes.nbt")) {
+//            try (NBTInputStream nbtStream = new NBTInputStream(new DataInputStream(stream))) {
+//                recipes = ((NbtMap) nbtStream.readTag()).getList("recipes", NbtType.COMPOUND);
+//            }
+//        } catch (Exception e) {
+//            throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+//        }
+//
+//        MinecraftCodecHelper helper = MinecraftCodec.CODEC.getHelperFactory().get();
+//        for (NbtMap recipeCollection : recipes) {
+//            var pair = getRecipes(recipeCollection, helper);
+//            deserializedRecipes.put(pair.key(), pair.value());
+//        }
+//        return deserializedRecipes;
+//    }
 
-        List<NbtMap> recipes;
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/recipes.nbt")) {
-            try (NBTInputStream nbtStream = new NBTInputStream(new DataInputStream(stream))) {
-                recipes = ((NbtMap) nbtStream.readTag()).getList("recipes", NbtType.COMPOUND);
-            }
-        } catch (Exception e) {
-            throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
-        }
-
-        MinecraftCodecHelper helper = MinecraftCodec.CODEC.getHelperFactory().get();
-        for (NbtMap recipeCollection : recipes) {
-            var pair = getRecipes(recipeCollection, helper);
-            deserializedRecipes.put(pair.key(), pair.value());
-        }
-        return deserializedRecipes;
-    }
-
-    private static Pair<RecipeType, List<GeyserRecipe>> getRecipes(NbtMap recipes, MinecraftCodecHelper helper) {
-        List<NbtMap> typedRecipes = recipes.getList("recipes", NbtType.COMPOUND);
-        RecipeType recipeType = RecipeType.from(recipes.getInt("recipe_type", -1));
-        if (recipeType == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
-            return Pair.of(recipeType, getShapedRecipes(typedRecipes, helper));
-        } else {
-            return Pair.of(recipeType, getShapelessRecipes(typedRecipes, helper));
-        }
-    }
+//    private static Pair<RecipeType, List<GeyserRecipe>> getRecipes(NbtMap recipes, MinecraftCodecHelper helper) {
+//        List<NbtMap> typedRecipes = recipes.getList("recipes", NbtType.COMPOUND);
+//        RecipeType recipeType = RecipeType.from(recipes.getInt("recipe_type", -1));
+//        if (recipeType == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
+//            return Pair.of(recipeType, getShapedRecipes(typedRecipes, helper));
+//        } else {
+//            return Pair.of(recipeType, getShapelessRecipes(typedRecipes, helper));
+//        }
+//    }
 
     private static List<GeyserRecipe> getShapelessRecipes(List<NbtMap> recipes, MinecraftCodecHelper helper) {
         List<GeyserRecipe> deserializedRecipes = new ObjectArrayList<>(recipes.size());

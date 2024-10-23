@@ -109,6 +109,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
      * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
      */
     private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
+        if (true) {
+            return;
+        }
         // Check if it's the crafting grid result slot.
         if (slot != 0) {
             return;
