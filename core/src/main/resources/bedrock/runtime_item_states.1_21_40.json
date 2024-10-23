@@ -3548,6 +3548,10 @@
         "id": 83
     },
     {
+        "name": "minecraft:item.skull",
+        "id": 144
+    },
+    {
         "name": "minecraft:item.soul_campfire",
         "id": -290
     },
@@ -5664,12 +5668,12 @@
         "id": 144
     },
     {
-        "name": "minecraft:skeleton_spawn_egg",
-        "id": 471
+        "name": "minecraft:skull",
+        "id": 533
     },
     {
-        "name": "minecraft:skull",
-        "id": 736
+        "name": "minecraft:skeleton_spawn_egg",
+        "id": 471
     },
     {
         "name": "minecraft:skull_banner_pattern",

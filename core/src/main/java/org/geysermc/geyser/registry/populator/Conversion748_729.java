@@ -31,59 +31,44 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import java.util.List;
 
 public class Conversion748_729 {
-    private static final List<String> NEW_PLAYER_HEADS = List.of("minecraft:skeleton_skull", "minecraft:wither_skeleton_skull", "minecraft:zombie_head", "minecraft:player_head", "minecraft:creeper_head", "minecraft:dragon_head");
+
+    private static final List<String> NEW_PLAYER_HEADS = List.of("minecraft:skeleton_skull", "minecraft:wither_skeleton_skull", "minecraft:zombie_head", "minecraft:player_head", "minecraft:creeper_head", "minecraft:dragon_head", "minecraft:piglin_head");
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        mapping = Conversion729_712.remapItem(item, mapping);
         String identifier = mapping.getBedrockIdentifier();
-
-        if (NEW_PLAYER_HEADS.contains(identifier)) {
-            switch (identifier) {
-                case "minecraft:skeleton_skull" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(0)
-                        .withFirstBlockRuntimeId(8827)
-                        .withLastBlockRuntimeId(8858);
-                }
-                case "minecraft:wither_skeleton_skull" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(1)
-                        .withFirstBlockRuntimeId(8867)
-                        .withLastBlockRuntimeId(8898);
-                }
-                case "minecraft:zombie_head" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(2)
-                        .withFirstBlockRuntimeId(8947)
-                        .withLastBlockRuntimeId(8978);
-                }
-                case "minecraft:player_head" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(3)
-                        .withFirstBlockRuntimeId(8907)
-                        .withLastBlockRuntimeId(8938);
-                }
-                case "minecraft:creeper_head" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(4)
-                        .withFirstBlockRuntimeId(8987)
-                        .withLastBlockRuntimeId(9018);
-                }
-                case "minecraft:dragon_head" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(5)
-                        .withFirstBlockRuntimeId(9027)
-                        .withLastBlockRuntimeId(9058);
-                }
-                case "minecraft:piglin_head" -> {
-                    return mapping.withBedrockIdentifier("minecraft:skull")
-                        .withBedrockData(6)
-                        .withFirstBlockRuntimeId(9067)
-                        .withLastBlockRuntimeId(9098);
-                }
+        if (!NEW_PLAYER_HEADS.contains(identifier)) {
+            return mapping;
+        }
+        switch (identifier) {
+            case "minecraft:skeleton_skull" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(0);
+            }
+            case "minecraft:wither_skeleton_skull" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(1);
+            }
+            case "minecraft:zombie_head" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(2);
+            }
+            case "minecraft:player_head" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(3);
+            }
+            case "minecraft:creeper_head" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(4);
+            }
+            case "minecraft:dragon_head" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(5);
+            }
+            case "minecraft:piglin_head" -> {
+                return mapping.withBedrockIdentifier("minecraft:skull")
+                    .withBedrockData(6);
             }
         }
-
         return mapping;
     }
 

@@ -71,6 +71,7 @@ import org.geysermc.geyser.registry.type.*;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 /**
  * Populates the item registries.
