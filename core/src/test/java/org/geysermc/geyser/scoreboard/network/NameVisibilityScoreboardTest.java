@@ -27,7 +27,7 @@ package org.geysermc.geyser.scoreboard.network;
 
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockAndAddPlayerEntity;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 
 import net.kyori.adventure.text.Component;
@@ -47,7 +47,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -78,7 +78,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -148,7 +148,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -217,7 +217,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,

@@ -1121,7 +1121,7 @@ public final class EntityDefinitions {
                 .identifier("minecraft:armor_stand") // Emulated
                 .build(false); // Never sent over the network
 
-        Registries.javaEntityIdentifiers().get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
+        Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
     }
 
     public static void init() {

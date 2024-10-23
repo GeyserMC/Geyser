@@ -47,7 +47,7 @@ public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
             return;
         }
         NbtMapBuilder spawnData = NbtMap.builder();
-        EntityDefinition<?> definition = Registries.javaEntityIdentifiers().get(entityData.getString("id"));
+        EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
         if (definition != null) {
             spawnData.putString("TypeId", definition.identifier());
         }

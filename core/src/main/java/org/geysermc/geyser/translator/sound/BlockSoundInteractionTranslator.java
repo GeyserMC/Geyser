@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.sound;
 
-import java.util.Map;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -33,6 +32,8 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+
+import java.util.Map;
 
 /**
  * Sound interaction handler for when a block is right-clicked.
@@ -50,7 +51,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
-        for (Map.Entry<SoundTranslator, SoundInteractionTranslator<?>> interactionEntry : Registries.soundTranslators().get().entrySet()) {
+        for (Map.Entry<SoundTranslator, SoundInteractionTranslator<?>> interactionEntry : Registries.SOUND_TRANSLATORS.get().entrySet()) {
             if (!(interactionEntry.getValue() instanceof BlockSoundInteractionTranslator)) {
                 continue;
             }

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import java.util.Locale;
-import java.util.Map;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -35,6 +33,9 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+
+import java.util.Locale;
+import java.util.Map;
 
 public class BlockEntityUtils {
     /**
@@ -67,7 +68,7 @@ public class BlockEntityUtils {
     }
 
     public static BlockEntityTranslator getBlockEntityTranslator(BlockEntityType type) {
-         return Registries.blockEntities().get(type);
+         return Registries.BLOCK_ENTITIES.get(type);
     }
 
     public static void updateBlockEntity(GeyserSession session, @NonNull NbtMap blockEntity, Vector3i position) {

@@ -25,13 +25,18 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -47,15 +52,11 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
+
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 @Translator(packet = ClientboundLevelParticlesPacket.class)
 public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLevelParticlesPacket> {
@@ -177,7 +178,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 };
             }
             default -> {
-                ParticleMapping particleMapping = Registries.particles().get(particle.getType());
+                ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
                 if (particleMapping == null) { //TODO ensure no particle can be null
                     return null;
                 }

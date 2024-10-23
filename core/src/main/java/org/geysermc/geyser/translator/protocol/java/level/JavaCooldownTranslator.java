@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -32,14 +33,13 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 
 @Translator(packet = ClientboundCooldownPacket.class)
 public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldownPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundCooldownPacket packet) {
-        Item item = Registries.javaItems().get().get(packet.getItemId());
+        Item item = Registries.JAVA_ITEMS.get().get(packet.getItemId());
         // Not every item, as of 1.19, appears to be server-driven. Just these two.
         // Use a map here if it gets too big.
         String cooldownCategory;

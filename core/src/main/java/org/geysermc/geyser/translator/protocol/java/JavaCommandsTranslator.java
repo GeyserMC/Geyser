@@ -32,29 +32,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
@@ -71,6 +54,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
 import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
+
+import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
@@ -374,14 +360,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (entityTypes != null) {
                 return entityTypes;
             }
-            return (entityTypes = Registries.javaEntityIdentifiers().get().keySet().toArray(new String[0]));
+            return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
         }
 
         public String[] getItemNames() {
             if (itemNames != null) {
                 return itemNames;
             }
-            return (itemNames = Registries.javaItemIdentifiers().get().keySet().toArray(new String[0]));
+            return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
         }
 
         private CommandEnumData getTeams() {

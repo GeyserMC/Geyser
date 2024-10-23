@@ -34,30 +34,6 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Path;
-import java.security.Key;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -126,6 +102,31 @@ import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Path;
+import java.security.Key;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 public class GeyserImpl implements GeyserApi, EventRegistrar {
@@ -296,7 +297,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         SkinProvider.registerCacheImageTask(this);
 
-        Registries.resourcePacks().load();
+        Registries.RESOURCE_PACKS.load();
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
@@ -722,7 +723,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
-        Registries.resourcePacks().get().clear();
+        Registries.RESOURCE_PACKS.get().clear();
 
         this.setEnabled(false);
     }
@@ -780,7 +781,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Override
     @SuppressWarnings("unchecked")
     public <R extends T, T> @NonNull R provider(@NonNull Class<T> apiClass, @Nullable Object... args) {
-        ProviderSupplier provider = Registries.providers().get(apiClass);
+        ProviderSupplier provider = Registries.PROVIDERS.get(apiClass);
         if (provider == null) {
             throw new IllegalArgumentException("No provider found for " + apiClass);
         }

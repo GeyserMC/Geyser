@@ -48,7 +48,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
     public ShulkerInventoryTranslator() {
         // Ensure that the shulker box default state won't be trying to open in a state facing the player
         super(27, new BlockInventoryHolder(Blocks.SHULKER_BOX.defaultBlockState().withValue(Properties.FACING, Direction.NORTH), ContainerType.CONTAINER) {
-            private final BlockEntityTranslator shulkerBoxTranslator = Registries.blockEntities().get(BlockEntityType.SHULKER_BOX);
+            private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
             protected boolean isValidBlock(BlockState blockState) {

@@ -39,20 +39,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.io.DataInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -81,6 +67,21 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+
+import java.io.DataInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Populates the block registries.
@@ -460,7 +461,7 @@ public final class BlockRegistryPopulator {
                     @Override
                     public ItemStack pickItem(BlockState state) {
                         if (this.item == null) {
-                            this.item = Registries.javaItemIdentifiers().get(pickItem);
+                            this.item = Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
                             if (this.item == null) {
                                 GeyserImpl.getInstance().getLogger().warning("We could not find item " + pickItem
                                         + " for getting the item for block " + javaBlockState.identifier());

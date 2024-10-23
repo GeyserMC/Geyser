@@ -27,7 +27,7 @@ package org.geysermc.geyser.scoreboard.network.belowname;
 
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockAndAddPlayerEntity;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 
 import net.kyori.adventure.text.Component;
@@ -80,7 +80,7 @@ public class BasicBelownameScoreboardTests {
             var setObjectiveTranslator = new JavaSetObjectiveTranslator();
             var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setObjectiveTranslator,
@@ -113,7 +113,7 @@ public class BasicBelownameScoreboardTests {
             var setObjectiveTranslator = new JavaSetObjectiveTranslator();
             var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setObjectiveTranslator,
@@ -158,7 +158,7 @@ public class BasicBelownameScoreboardTests {
             var setObjectiveTranslator = new JavaSetObjectiveTranslator();
             var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setObjectiveTranslator,

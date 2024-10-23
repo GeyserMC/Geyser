@@ -159,10 +159,10 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             }
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
-                Registries.entityDefinitions().get().putIfAbsent(definition.entityType(), definition);
-                Registries.javaEntityIdentifiers().get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
+                Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
+                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
                 if (definition.registeredProperties() != null) {
-                    Registries.bedrockEntityProperties().get().add(definition.registeredProperties().toNbtMap(identifier));
+                    Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(identifier));
                 }
             }
             return definition;

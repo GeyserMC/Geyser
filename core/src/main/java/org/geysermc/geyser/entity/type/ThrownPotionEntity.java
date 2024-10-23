@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import java.util.EnumSet;
-import java.util.UUID;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -41,6 +39,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
+
+import java.util.EnumSet;
+import java.util.UUID;
 
 public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
@@ -72,7 +73,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = Registries.javaItems().get().get(itemStack.getId()) == Items.LINGERING_POTION;
+                boolean isLingering = Registries.JAVA_ITEMS.get().get(itemStack.getId()) == Items.LINGERING_POTION;
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

@@ -25,8 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -45,9 +46,9 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Translator(packet = ClientboundMerchantOffersPacket.class)
 public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMerchantOffersPacket> {
@@ -172,7 +173,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
         // Bedrock expects all price adjustments to be applied to the item's count
         int count = stack.getAmount() + ((int) Math.max(Math.floor(stack.getAmount() * demand * priceMultiplier), 0)) + specialPrice;
-        count = MathUtils.constrain(count, 1, Registries.javaItems().get().get(stack.getId()).maxStackSize());
+        count = MathUtils.constrain(count, 1, Registries.JAVA_ITEMS.get().get(stack.getId()).maxStackSize());
 
         return getItemTag(session, stack, mapping, count);
     }

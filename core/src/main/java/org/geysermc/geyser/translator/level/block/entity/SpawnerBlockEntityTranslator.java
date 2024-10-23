@@ -118,7 +118,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             // As of 1.19.3, spawners can be empty
             builder.put("EntityIdentifier", entityId);
 
-            EntityDefinition<?> definition = Registries.javaEntityIdentifiers().get(entityId);
+            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
             if (definition != null) {
                 builder.putFloat("DisplayEntityWidth", definition.width());
                 builder.putFloat("DisplayEntityHeight", definition.height());

@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -67,6 +62,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.TrialSpawnerDet
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.UnknownLevelEventData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+
 @Translator(packet = ClientboundLevelEventPacket.class)
 public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelEventPacket> {
 
@@ -86,7 +87,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             // Prioritize level events because it makes parrots dance.
-            SoundMapping mapping = Registries.sounds().get(jukeboxSong.soundEvent().replace("minecraft:", ""));
+            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.soundEvent().replace("minecraft:", ""));
             SoundEvent soundEvent = null;
             if (mapping != null) {
                 String bedrock = mapping.getBedrock();
@@ -132,7 +133,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         }
 
         // Check for a sound event translator
-        LevelEventTranslator transformer = Registries.soundLevelEvents().get(packet.getEvent());
+        LevelEventTranslator transformer = Registries.SOUND_LEVEL_EVENTS.get(packet.getEvent());
         if (transformer != null) {
             transformer.translate(session, packet);
             return;

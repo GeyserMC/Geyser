@@ -25,17 +25,22 @@
 
 package org.geysermc.geyser.registry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.loader.*;
+import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
+import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
+import org.geysermc.geyser.registry.loader.RecipeRegistryLoader;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -51,159 +56,159 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
+import java.util.*;
+
 /**
  * Holds all the common registries in Geyser.
- * Block specific registries can be found in {@link BlockRegistries}
  */
 public final class Registries {
-    private static CommonRegistries backingRegistries;
-
-    public static CommonRegistries instance() {
-        return CommonRegistriesDefault.instance();
-    }
+    private static boolean initialized = false;
 
     /**
      * A registry holding all the providers.
      * This has to be initialized first to allow extensions to access providers during other registry events.
      */
-    public static SimpleMappedRegistry<Class<?>, ProviderSupplier> providers() {
-        return backingRegistries.providers();
-    }
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
 
     /**
-     * A registry holding a CompoundTag of the known entity identifiers.
+     * A registry holding a NbtMap of the known entity identifiers.
      */
-    public static SimpleRegistry<NbtMap> bedrockEntityIdentifiers() {
-        return backingRegistries.bedrockEntityIdentifiers();
-    }
+    public static final SimpleRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
     /**
      * A registry containing all the Bedrock packet translators.
      */
-    public static PacketTranslatorRegistry<BedrockPacket> bedrockPacketTranslators() {
-        return backingRegistries.bedrockPacketTranslators();
-    }
+    public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
     /**
-     * A registry holding a CompoundTag of all the known biomes.
+     * A registry holding a NbtMap of all the known biomes.
      */
-    public static SimpleRegistry<NbtMap> biomesNbt() {
-        return backingRegistries.biomesNbt();
-    }
+    public static final SimpleRegistry<NbtMap> BIOMES_NBT = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
     /**
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
      */
-    public static SimpleRegistry<Object2IntMap<String>> biomeIdentifiers() {
-        return backingRegistries.biomeIdentifiers();
-    }
+    public static final SimpleRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
-    public static SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> blockEntities() {
-        return backingRegistries.blockEntities();
-    }
+    public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
      * A map containing all entity types and their respective Geyser definitions
      */
-    public static SimpleMappedRegistry<EntityType, EntityDefinition<?>> entityDefinitions() {
-        return backingRegistries.entityDefinitions();
-    }
+    public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
 
     /**
      * A registry holding a list of all the known entity properties to be sent to the client after start game.
      */
-    public static SimpleRegistry<Set<NbtMap>> bedrockEntityProperties() {
-        return backingRegistries.bedrockEntityProperties();
-    }
+    public static final SimpleRegistry<Set<NbtMap>> BEDROCK_ENTITY_PROPERTIES = SimpleRegistry.create(RegistryLoaders.empty(HashSet::new));
 
     /**
      * A map containing all Java entity identifiers and their respective Geyser definitions
      */
-    public static SimpleMappedRegistry<String, EntityDefinition<?>> javaEntityIdentifiers() {
-        return backingRegistries.javaEntityIdentifiers();
-    }
+    public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry containing all the Java packet translators.
      */
-    public static PacketTranslatorRegistry<Packet> javaPacketTranslators() {
-        return backingRegistries.javaPacketTranslators();
-    }
+    public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
     /**
      * A registry containing all Java items ordered by their network ID.
      */
-    public static ListRegistry<Item> javaItems() {
-        return backingRegistries.javaItems();
-    }
+    public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
-    public static SimpleMappedRegistry<String, Item> javaItemIdentifiers() {
-        return backingRegistries.javaItemIdentifiers();
-    }
+    /**
+     * A registry containing item identifiers.
+     */
+    public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
      * primarily Bedrock version-specific data.
      */
-    public static VersionedRegistry<ItemMappings> items() {
-        return backingRegistries.items();
-    }
+    public static final VersionedRegistry<ItemMappings> ITEMS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding the {@link ParticleType} to a corresponding {@link ParticleMapping}, containing various pieces of
      * data primarily for how Bedrock should handle the particle.
      */
-    public static SimpleMappedRegistry<ParticleType, ParticleMapping> particles() {
-        return backingRegistries.particles();
-    }
+    public static final SimpleMappedRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
 
     /**
      * A registry holding all the potion mixes.
      */
-    public static VersionedRegistry<Set<PotionMixData>> potionMixes() {
-        return backingRegistries.potionMixes();
-    }
+    public static final VersionedRegistry<Set<PotionMixData>> POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
 
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
-    public static SimpleMappedRegistry<RecipeType, List<GeyserRecipe>> recipes() {
-        return backingRegistries.recipes();
-    }
+    public static final SimpleMappedRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
-    public static DeferredRegistry<Map<String, ResourcePack>> resourcePacks() {
-        return backingRegistries.resourcePacks();
-    }
+    public static final DeferredRegistry<Map<String, ResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
      */
-    public static SimpleMappedRegistry<String, SoundMapping> sounds() {
-        return backingRegistries.sounds();
-    }
+    public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
      */
-    public static SimpleMappedRegistry<LevelEvent, LevelEventTranslator> soundLevelEvents() {
-        return backingRegistries.soundLevelEvents();
-    }
+    public static final SimpleMappedRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.
      */
-    public static SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> soundTranslators() {
-        return backingRegistries.soundTranslators();
-    }
+    public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
     public static void init() {
-        backingRegistries = instance();
-        backingRegistries.postInit();
+        if (initialized) return;
+        initialized = true;
+
+        PROVIDERS.load();
+        BEDROCK_ENTITY_IDENTIFIERS.load();
+        BEDROCK_PACKET_TRANSLATORS.load();
+        BIOMES_NBT.load();
+        BIOME_IDENTIFIERS.load();
+        BLOCK_ENTITIES.load();
+        ENTITY_DEFINITIONS.load();
+        BEDROCK_ENTITY_PROPERTIES.load();
+        JAVA_ENTITY_IDENTIFIERS.load();
+        JAVA_PACKET_TRANSLATORS.load();
+        JAVA_ITEMS.load();
+        JAVA_ITEM_IDENTIFIERS.load();
+        ITEMS.load();
+        PARTICLES.load();
+        // load potion mixes later
+        RECIPES.load();
+        RESOURCE_PACKS.load();
+        SOUNDS.load();
+        SOUND_LEVEL_EVENTS.load();
+        SOUND_TRANSLATORS.load();
+
+        PacketRegistryPopulator.populate();
+        ItemRegistryPopulator.populate();
+
+        // potion mixes depend on other registries
+        POTION_MIXES.load();
+
+        // Remove unneeded client generation data from NbtMapBuilder
+        NbtMapBuilder biomesNbt = NbtMap.builder();
+        for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
+            String key = entry.getKey();
+            NbtMapBuilder value = ((NbtMap) entry.getValue()).toBuilder();
+            value.remove("minecraft:consolidated_features");
+            value.remove("minecraft:multinoise_generation_rules");
+            value.remove("minecraft:surface_material_adjustments");
+            value.remove( "minecraft:surface_parameters");
+            biomesNbt.put(key, value.build());
+        }
+        BIOMES_NBT.set(biomesNbt.build());
     }
 }

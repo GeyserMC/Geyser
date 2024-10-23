@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.translator.level;
 
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
@@ -34,19 +40,13 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
 
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
     public static int loadServerBiome(RegistryEntry entry) {
         String javaIdentifier = entry.getId().asString();
-        return Registries.biomeIdentifiers().get().getOrDefault(javaIdentifier, 0);
+        return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {

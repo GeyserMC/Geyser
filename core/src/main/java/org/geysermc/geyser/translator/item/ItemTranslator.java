@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.translator.item;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -69,6 +63,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class ItemTranslator {
 
@@ -127,7 +128,7 @@ public final class ItemTranslator {
             session.getGeyser().getLogger().debug("ItemMapping returned air: " + javaId);
             return ItemData.builder();
         }
-        return translateToBedrock(session, Registries.javaItems().get().get(javaId), bedrockItem, count, components);
+        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(javaId), bedrockItem, count, components);
     }
 
     @NonNull
@@ -142,7 +143,7 @@ public final class ItemTranslator {
             return ItemData.AIR;
         }
         // Java item needs to be loaded separately. The mapping for tipped arrow would
-        return translateToBedrock(session, Registries.javaItems().get().get(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponents())
+        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponents())
                 .build();
     }
 

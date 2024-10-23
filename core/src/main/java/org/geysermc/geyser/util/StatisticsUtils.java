@@ -26,12 +26,6 @@
 package org.geysermc.geyser.util;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.item.type.Item;
@@ -41,16 +35,14 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.BreakBlockStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.BreakItemStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.CraftItemStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.DropItemStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.KillEntityStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.KilledByEntityStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.PickupItemStatistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.UseItemStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.IntFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StatisticsUtils {
     private static final Pattern CONTENT_PATTERN = Pattern.compile("^\\S+:", Pattern.MULTILINE);
@@ -84,7 +76,7 @@ public class StatisticsUtils {
 
                             List<String> content = new ArrayList<>();
 
-                            List<Item> itemRegistry = Registries.javaItems().get();
+                            List<Item> itemRegistry = Registries.JAVA_ITEMS.get();
                             switch (response.clickedButtonId()) {
                                 case 0:
                                     builder.title("stat.generalButton");

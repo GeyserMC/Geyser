@@ -61,15 +61,13 @@ public class GeyserMockContext {
         try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
 
-            // Registries contains static methods that all call 'backingRegistries', that's the one we override.
-            // So every other static method will invoke the real method.
-            try (var registriesMock = mockStatic(Registries.class, Mockito.CALLS_REAL_METHODS)) {
-                var commonRegistries = context.storeObject(new CommonRegistriesMock());
-                registriesMock.when(Registries::instance).thenReturn(commonRegistries);
-                Registries.init();
+            // Since Geyser isn't actually loaded, the Registries#init will not be called.
+            // This means that we manually load the registries we want to use
+            Registries.ENTITY_DEFINITIONS.load();
+            Registries.JAVA_ENTITY_IDENTIFIERS.load();
+            Registries.BEDROCK_ENTITY_PROPERTIES.load();
 
-                geyserContext.accept(context);
-            }
+            geyserContext.accept(context);
         }
     }
 

@@ -27,17 +27,18 @@ package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.CommonRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Generates a collection of {@link PotionMixData} that enables the
@@ -48,12 +49,12 @@ import org.geysermc.geyser.registry.type.ItemMappings;
  * (Ex: Bedrock cannot normally place glass bottles or fully upgraded
  * potions into the brewing stand, but Java can.)
  */
-public class PotionMixRegistryLoader implements RegistryLoader<CommonRegistries, Int2ObjectMap<Set<PotionMixData>>> {
+public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2ObjectMap<Set<PotionMixData>>> {
 
     @Override
-    public Int2ObjectMap<Set<PotionMixData>> load(CommonRegistries registries) {
-        var allPotionMixes = new Int2ObjectOpenHashMap<Set<PotionMixData>>(registries.items().get().size());
-        for (var entry : registries.items().get().int2ObjectEntrySet()) {
+    public Int2ObjectMap<Set<PotionMixData>> load(Object input) {
+        var allPotionMixes = new Int2ObjectOpenHashMap<Set<PotionMixData>>(Registries.ITEMS.get().size());
+        for (var entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
             ItemMappings mappings = entry.getValue();
             List<ItemMapping> ingredients = new ArrayList<>();
             ingredients.add(getNonNull(mappings, Items.NETHER_WART));
@@ -119,9 +120,8 @@ public class PotionMixRegistryLoader implements RegistryLoader<CommonRegistries,
 
     private static ItemMapping getNonNull(ItemMappings mappings, Item javaItem) {
         ItemMapping itemMapping = mappings.getMapping(javaItem);
-        if (itemMapping == null) {
+        if (itemMapping == null)
             throw new NullPointerException("No item entry exists for java identifier: " + javaItem.javaIdentifier());
-        }
 
         return itemMapping;
     }

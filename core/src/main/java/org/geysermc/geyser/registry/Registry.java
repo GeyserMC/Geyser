@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry;
 
 import java.util.function.Consumer;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
+import org.geysermc.geyser.registry.loader.RegistryLoaderHolder;
 
 /**
  * A wrapper around a value which is loaded based on the output from the provided
@@ -57,12 +58,14 @@ import org.geysermc.geyser.registry.loader.RegistryLoader;
  * however it demonstrates a fairly basic use case of how this system works. Typically
  * though, the first parameter would be a location of some sort, such as a file path
  * where the loader will load the mappings from. The NBT registry is a good reference
- * point for something both simple and practical. See {@link Registries#biomesNbt} and
+ * point for something both simple and practical. See {@link Registries#BIOMES_NBT} and
  * {@link org.geysermc.geyser.registry.loader.NbtRegistryLoader}.
  *
  * @param <M> the value being held by the registry
  */
+@SuppressWarnings("rawtypes")
 public abstract class Registry<M> implements IRegistry<M> {
+    protected RegistryLoaderHolder loaderHolder;
     protected M mappings;
 
     /**
@@ -75,7 +78,17 @@ public abstract class Registry<M> implements IRegistry<M> {
      * @param <I> the input type
      */
     protected <I> Registry(I input, RegistryLoader<I, M> registryLoader) {
-        this.mappings = registryLoader.load(input);
+        this.loaderHolder = new RegistryLoaderHolder<>(input, registryLoader);
+    }
+
+    public void load() {
+        // don't load twice
+        if (this.mappings != null) return;
+
+        var holder = this.loaderHolder;
+        this.loaderHolder = null;
+        //noinspection unchecked
+        this.mappings = (M) holder.registryLoader().load(holder.input());
     }
 
     /**

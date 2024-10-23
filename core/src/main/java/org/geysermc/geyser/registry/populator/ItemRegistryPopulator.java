@@ -33,22 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -79,14 +64,12 @@ import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.CommonRegistries;
-import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.*;
+
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Populates the item registries.
@@ -106,7 +89,7 @@ public class ItemRegistryPopulator {
         GeyserMappingItem remap(Item item, GeyserMappingItem mapping);
     }
 
-    public static void populate(CommonRegistries registries) {
+    public static void populate() {
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
         paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion685_671::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion712_685::remapItem));
@@ -235,7 +218,7 @@ public class ItemRegistryPopulator {
             Set<String> registeredItemNames = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
-                Item javaItem = registries.javaItemIdentifiers().get(entry.getKey());
+                Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(entry.getKey());
                 if (javaItem == null) {
                     throw new RuntimeException("Extra item in mappings? " + entry.getKey());
                 }
@@ -636,7 +619,7 @@ public class ItemRegistryPopulator {
                     .customBlockItemDefinitions(customBlockItemDefinitions)
                     .build();
 
-            registries.items().register(palette.protocolVersion(), itemMappings);
+            Registries.ITEMS.register(palette.protocolVersion(), itemMappings);
 
             firstMappingsPass = false;
         }

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import java.util.Locale;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -40,6 +39,8 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
+
+import java.util.Locale;
 
 public final class SoundUtils {
 
@@ -66,7 +67,7 @@ public final class SoundUtils {
      */
     public static String translatePlaySound(String javaIdentifier) {
         String soundIdentifier = removeMinecraftNamespace(javaIdentifier);
-        SoundMapping soundMapping = Registries.sounds().get(soundIdentifier);
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
@@ -103,7 +104,7 @@ public final class SoundUtils {
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
         String soundIdentifier = removeMinecraftNamespace(javaSound.getName());
 
-        SoundMapping soundMapping = Registries.sounds().get(soundIdentifier);
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + soundIdentifier + " not found; assuming custom.");
             playSound(session, soundIdentifier, position, volume, pitch);
