@@ -451,7 +451,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
-     * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
+     * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
      */
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;

@@ -25,15 +25,35 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket.SelectableRecipe;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -84,7 +104,72 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
-        // :(
+        int netId = session.getLastRecipeNetId().get();
+        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        System.out.println(packet);
+        Int2ObjectMap<List<SelectableRecipe>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
+
+        List<SelectableRecipe> stonecutterRecipes = packet.getStonecutterRecipes();
+        for (SelectableRecipe recipe : stonecutterRecipes) {
+            // Hardcoding the heck out of this until we see different examples of how this works.
+            HolderSet ingredient = recipe.input().getValues();
+            if (ingredient.getHolders() == null || ingredient.getHolders().length != 1) {
+                session.getGeyser().getLogger().debug("Ignoring stonecutter recipe for weird input: " + recipe);
+                continue;
+            }
+            if (!(recipe.recipe() instanceof ItemStackSlotDisplay)) {
+                session.getGeyser().getLogger().debug("Ignoring stonecutter recipe for weird output: " + recipe);
+                continue;
+            }
+            unsortedStonecutterData.computeIfAbsent(ingredient.getHolders()[0], $ -> new ArrayList<>()).add(recipe);
+        }
+
+        Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
+        for (Int2ObjectMap.Entry<List<SelectableRecipe>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
+            // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
+            // We can get the correct order for button pressing
+            data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
+                Registries.JAVA_ITEMS.get().get(((ItemStackSlotDisplay) stoneCuttingRecipeData.recipe()).itemStack().getId())
+                    // See RecipeManager#getRecipesFor as of 1.21
+                    .translationKey())));
+
+            // Now that it's sorted, let's translate these recipes
+            int buttonId = 0;
+            for (SelectableRecipe recipe : data.getValue()) {
+                // As of 1.16.4, all stonecutter recipes have one ingredient option
+                HolderSet ingredient = recipe.input().getValues();
+                int javaInput = ingredient.getHolders()[0];
+                ItemMapping mapping = session.getItemMappings().getMapping(javaInput);
+                if (mapping.getJavaItem() == Items.AIR) {
+                    // Modded ?
+                    continue;
+                }
+                ItemDescriptorWithCount descriptor = new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1);
+                ItemStack javaOutput = ((ItemStackSlotDisplay) recipe.recipe()).itemStack();
+                ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
+                if (!output.isValid()) {
+                    // Probably modded items
+                    continue;
+                }
+                int recipeNetId = netId++;
+                UUID uuid = UUID.randomUUID();
+                // We need to register stonecutting recipes, so they show up on Bedrock
+                // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter
+                craftingDataPacket.getCraftingData().add(ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
+                    Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID));
+                session.getGeyser().getLogger().info(mapping.getJavaItem().javaIdentifier() + " " + buttonId + " " + recipeNetId);
+
+                // Save the recipe list for reference when crafting
+                // Add the net ID as the key and the button required + output for the value
+                stonecutterRecipeMap.put(recipeNetId, new GeyserStonecutterData(buttonId++, javaOutput));
+
+                // Currently, stone cutter recipes are not locked/unlocked on Bedrock; so no need to cache their identifiers.
+            }
+        }
+
+        session.sendUpstreamPacket(craftingDataPacket);
+        session.setStonecutterRecipes(stonecutterRecipeMap);
+        session.getLastRecipeNetId().set(netId);
     }
 //        boolean sendTrimRecipes = false;
 //        Map<String, List<String>> recipeIDs = session.getJavaToBedrockRecipeIds();
