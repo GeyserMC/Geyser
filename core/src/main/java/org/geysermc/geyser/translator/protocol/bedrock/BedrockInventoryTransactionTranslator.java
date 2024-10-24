@@ -403,7 +403,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             playSoundPacket.setPosition(session.getPlayerEntity().position());
                                             playSoundPacket.setSound(SoundUtils.translatePlaySound(geyserInstrument.soundEvent()));
                                             playSoundPacket.setPitch(1.0F);
-                                            // Java calculates the volume by dividing the range by 16, but it appears very soft like that, do we change this? TODO
                                             playSoundPacket.setVolume(geyserInstrument.range() / 16.0F);
                                             session.sendUpstreamPacket(playSoundPacket);
                                         }
