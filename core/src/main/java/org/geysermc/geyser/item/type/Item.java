@@ -115,7 +115,7 @@ public class Item {
 
     /* Translation methods to Bedrock and back */
 
-    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         if (this == Items.AIR || count <= 0) {
             // Return, essentially, air
             return ItemData.builder();
@@ -130,7 +130,7 @@ public class Item {
         return builder;
     }
 
-    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         return GeyserItemStack.of(javaId, itemData.getCount());
     }
 

@@ -33,6 +33,7 @@ import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
@@ -62,6 +63,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<PaintingType> PAINTING_VARIANT = create("painting_variant", RegistryCache::paintings);
     public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material", RegistryCache::trimMaterials);
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern", RegistryCache::trimPatterns);
+    public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument", RegistryCache::instruments);
     /**
      * This registry should not be used in holder sets, tags, etc. It's simply used as a mapping from Java biomes to Bedrock ones.
      */
