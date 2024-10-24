@@ -84,7 +84,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         Level level = player.level();
-        if (y < level.getMinBuildHeight()) {
+        if (y < level.getMinY()) {
             return 0;
         }
 
@@ -93,7 +93,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             return 0;
         }
 
-        int worldOffset = level.getMinBuildHeight() >> 4;
+        int worldOffset = level.getMinY() >> 4;
         int chunkOffset = (y >> 4) - worldOffset;
         if (chunkOffset < chunk.getSections().length) {
             LevelChunkSection section = chunk.getSections()[chunkOffset];

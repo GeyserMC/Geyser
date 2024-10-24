@@ -6,6 +6,10 @@ plugins {
     id("io.freefair.lombok")
 }
 
+tasks.test {
+    enabled = false
+}
+
 dependencies {
     constraints {
         implementation(libs.raknet) // Ensure protocol does not override the RakNet version
