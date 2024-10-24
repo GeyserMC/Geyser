@@ -48,14 +48,17 @@ public final class BedrockMovePlayerTranslator {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
-        // Send book update before the player moves
-        session.getBookEditCache().checkForSend();
-
         boolean actualPositionChanged = !entity.getPosition().equals(packet.getPosition());
-        // Ignore movement packets until Bedrock's position matches the teleported position
-        if (session.getUnconfirmedTeleport() != null && actualPositionChanged) {
-            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
-            return;
+
+        if (actualPositionChanged) {
+            // Send book update before the player moves
+            session.getBookEditCache().checkForSend();
+
+            // Ignore movement packets until Bedrock's position matches the teleported position
+            if (session.getUnconfirmedTeleport() != null) {
+                session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+                return;
+            }
         }
 
         if (entity.getBedPosition() != null) {

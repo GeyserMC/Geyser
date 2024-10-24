@@ -198,22 +198,22 @@ public class CollisionManager {
 
         position = playerBoundingBox.getBottomCenter();
 
-        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
+        boolean onGround = (adjustedMovement.getY() != movement.getY() && movement.getY() < 0) || isOnGround();
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
-        if (/*onGround != newOnGround || */movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
+        if (movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Client will dismount if on a vehicle
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), newOnGround, true);
+                playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), onGround, true);
             }
         }
 
-        if (!newOnGround) {
+        if (!onGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
-        return new CollisionResult(position, TriState.byBoolean(newOnGround));
+        return new CollisionResult(position, TriState.byBoolean(onGround));
     }
 
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong
@@ -415,44 +415,38 @@ public class CollisionManager {
         return BlockUtils.getCollision(blockId);
     }
 
-    /**
-     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
-     * were they not sneaking
-     */
-    public boolean mustPlayerSneakHere() {
-        return checkPose(EntityDefinitions.PLAYER.height());
-    }
-
-    /**
-     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
-     * were they not crawling
-     */
-    public boolean mustPlayerCrawlHere() {
-        return checkPose(PlayerEntity.SNEAKING_POSE_HEIGHT);
-    }
-
-    /**
-     * @param height check and see if this height is invalid in the current player position
-     */
-    private boolean checkPose(float height) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = BlockUtils.getCollisionAt(session, position);
-        if (collision != null) {
-            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
-            // at the current location.
-            double originalY = playerBoundingBox.getMiddleY();
-            double originalHeight = playerBoundingBox.getSizeY();
-            double standingY = originalY - (originalHeight / 2.0) + (height / 2.0);
-
-            playerBoundingBox.setSizeY(EntityDefinitions.PLAYER.height());
-            playerBoundingBox.setMiddleY(standingY);
-            boolean result = collision.checkIntersection(position, playerBoundingBox);
-            result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
-            playerBoundingBox.setSizeY(originalHeight);
-            playerBoundingBox.setMiddleY(originalY);
-            return result;
+    private boolean isOnGround() {
+        // Someone smarter than me at collisions plz check this.
+        Vector3d bottomCenter = playerBoundingBox.getBottomCenter();
+        Vector3i groundPos = Vector3i.from(bottomCenter.getX(), bottomCenter.getY() - 1, bottomCenter.getZ());
+        BlockCollision collision = BlockUtils.getCollisionAt(session, groundPos);
+        if (collision == null) {
+            return false; // Probably air.
         }
-        return false;
+
+        // Hack to not check below the player
+        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
+        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
+
+        boolean intersected = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
+
+        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
+        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
+
+        boolean result;
+        if (intersected) {
+            result = true;
+        } else {
+            // Hack to check slightly below the player
+            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
+            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
+
+            result = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
+
+            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
+            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
+        }
+        return result;
     }
 
     /**
