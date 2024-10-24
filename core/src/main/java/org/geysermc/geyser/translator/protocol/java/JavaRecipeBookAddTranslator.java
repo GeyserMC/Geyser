@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -32,6 +33,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
@@ -52,6 +54,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDispla
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplayEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
@@ -61,11 +64,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlot
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Translator(packet = ClientboundRecipeBookAddPacket.class)
@@ -104,17 +108,17 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 
                     boolean empty = true;
                     boolean complexInputs = false;
-                    List<ItemDescriptorWithCount[]> inputs = new ArrayList<>(shapedRecipe.ingredients().size());
+                    List<List<ItemDescriptorWithCount>> inputs = new ArrayList<>(shapedRecipe.ingredients().size());
                     for (SlotDisplay input : shapedRecipe.ingredients()) {
-                        ItemDescriptorWithCount[] translated = translateToInput(session, input);
+                        List<ItemDescriptorWithCount> translated = translateToInput(session, input);
                         if (translated == null) {
                             continue;
                         }
                         inputs.add(translated);
-                        if (translated.length != 1 || translated[0] != ItemDescriptorWithCount.EMPTY) {
+                        if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
                             empty = false;
                         }
-                        complexInputs |= translated.length > 1;
+                        complexInputs |= translated.size() > 1;
                     }
                     if (empty) {
                         // Crashes Bedrock 1.19.70 otherwise
@@ -123,15 +127,31 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     }
 
                     if (complexInputs) {
-
-                    } else {
-                        String recipeId = Integer.toString(contents.id());
-                        craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
-                                shapedRecipe.width(), shapedRecipe.height(), inputs.stream().map(descriptors -> descriptors[0]).toList(),
-                                Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
-                        recipesPacket.getUnlockedRecipes().add(recipeId);
-                        javaToBedrockRecipeIds.put(contents.id(), Collections.singletonList(recipeId));
+                        System.out.println(inputs);
+                        if (true) continue;
+                        List<List<ItemDescriptorWithCount>> processedInputs = Lists.cartesianProduct(inputs);
+                        System.out.println(processedInputs.size());
+                        if (processedInputs.size() <= 500) { // Do not let us process giant lists.
+                            List<String> bedrockRecipeIds = new ArrayList<>();
+                            for (int i = 0; i < processedInputs.size(); i++) {
+                                List<ItemDescriptorWithCount> possibleInput = processedInputs.get(i);
+                                String recipeId = contents.id() + "_" + i;
+                                craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
+                                    shapedRecipe.width(), shapedRecipe.height(), possibleInput,
+                                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
+                                recipesPacket.getUnlockedRecipes().add(recipeId);
+                                bedrockRecipeIds.add(recipeId);
+                            }
+                            javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
+                            continue;
+                        }
                     }
+                    String recipeId = Integer.toString(contents.id());
+                    craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
+                        shapedRecipe.width(), shapedRecipe.height(), inputs.stream().map(descriptors -> descriptors.get(0)).toList(),
+                        Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
+                    recipesPacket.getUnlockedRecipes().add(recipeId);
+                    javaToBedrockRecipeIds.put(contents.id(), Collections.singletonList(recipeId));
                 }
                 case CRAFTING_SHAPELESS -> {
                     ShapelessCraftingRecipeDisplay shapelessRecipe = (ShapelessCraftingRecipeDisplay) display;
@@ -147,6 +167,42 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                         output = output.toBuilder().tag(null).build();
                     }
                 }
+                case SMITHING -> {
+                    if (true) {
+                        System.out.println(display);
+                        continue;
+                    }
+                    SmithingRecipeDisplay smithingRecipe = (SmithingRecipeDisplay) display;
+                    Pair<Item, ItemData> output = translateToOutput(session, smithingRecipe.result());
+                    if (output == null) {
+                        continue;
+                    }
+
+                    List<ItemDescriptorWithCount> bases = translateToInput(session, smithingRecipe.base());
+                    List<ItemDescriptorWithCount> templates = translateToInput(session, smithingRecipe.template());
+                    List<ItemDescriptorWithCount> additions = translateToInput(session, smithingRecipe.addition());
+
+                    if (bases == null || templates == null || additions == null) {
+                        continue;
+                    }
+
+                    int i = 0;
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    for (ItemDescriptorWithCount template : templates) {
+                        for (ItemDescriptorWithCount base : bases) {
+                            for (ItemDescriptorWithCount addition : additions) {
+                                String id = contents.id() + "_" + i++;
+                                // Note: vanilla inputs use aux value of Short.MAX_VALUE
+                                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(id,
+                                        template, base, addition, output.right(), "smithing_table", netId++));
+
+                                recipesPacket.getUnlockedRecipes().add(id);
+                                bedrockRecipeIds.add(id);
+                            }
+                        }
+                    }
+                    javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
+                }
             }
         }
 
@@ -159,11 +215,11 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         TAG_TO_ITEM_DESCRIPTOR_CACHE.remove();
     }
 
-    private static final ThreadLocal<Map<int[], ItemDescriptorWithCount[]>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(Object2ObjectOpenHashMap::new);
+    private static final ThreadLocal<Map<int[], List<ItemDescriptorWithCount>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(Object2ObjectOpenHashMap::new);
 
-    private ItemDescriptorWithCount[] translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
+    private List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
         if (slotDisplay instanceof EmptySlotDisplay) {
-            return new ItemDescriptorWithCount[] {ItemDescriptorWithCount.EMPTY};
+            return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
         }
         if (slotDisplay instanceof CompositeSlotDisplay composite) {
             if (composite.contents().size() == 1) {
@@ -172,23 +228,23 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             return composite.contents().stream()
                 .map(subDisplay -> translateToInput(session, subDisplay))
                 .filter(Objects::nonNull)
-                .flatMap(Arrays::stream)
-                .toArray(ItemDescriptorWithCount[]::new);
+                .flatMap(List::stream)
+                .toList();
         }
         if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
-            return new ItemDescriptorWithCount[] {fromItem(session, itemSlot.item())};
+            return Collections.singletonList(fromItem(session, itemSlot.item()));
         }
         if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
             ItemData item = ItemTranslator.translateToBedrock(session, itemStackSlot.itemStack());
-            return new ItemDescriptorWithCount[] {ItemDescriptorWithCount.fromItem(item)};
+            return Collections.singletonList(ItemDescriptorWithCount.fromItem(item));
         }
         if (slotDisplay instanceof TagSlotDisplay tagSlot) {
             Key tag = tagSlot.tag();
             int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); // I don't like this...
             if (items == null || items.length == 0) {
-                return new ItemDescriptorWithCount[] {ItemDescriptorWithCount.EMPTY};
+                return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
             } else if (items.length == 1) {
-                return new ItemDescriptorWithCount[] {fromItem(session, items[0])};
+                return Collections.singletonList(fromItem(session, items[0]));
             } else {
                 // Cache is implemented as, presumably, an item tag will be used multiple times in succession
                 // (E.G. a chest with planks tags)
@@ -205,14 +261,14 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 //                    }).collect(Collectors.joining(" || "));
 //                    if ("minecraft:planks".equals(tag.toString())) {
 //                        String molang = "q.any_tag('minecraft:planks')";
-//                        return new ItemDescriptorWithCount[] {new ItemDescriptorWithCount(new MolangDescriptor(molang, 10), 1)};
+//                        return Collections.singletonList(new ItemDescriptorWithCount(new MolangDescriptor(molang, 10), 1));
 //                    }
-                    return null;
-//                    Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
-//                    for (int item : key) {
-//                        itemDescriptors.add(fromItem(session, item));
-//                    }
-//                    return itemDescriptors.toArray(ItemDescriptorWithCount[]::new);
+
+                    Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
+                    for (int item : key) {
+                        itemDescriptors.add(fromItem(session, item));
+                    }
+                    return new ArrayList<>(itemDescriptors); // This, or a list from the start with contains -> add?
                 });
             }
         }
@@ -243,40 +299,4 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         ItemMapping mapping = session.getItemMappings().getMapping(item);
         return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); // Need to check count
     }
-
-//    private static ItemDescriptorWithCount[][] combinations(ItemDescriptorWithCount[] itemDescriptors) {
-//        int totalCombinations = 1;
-//        for (Set<ItemDescriptorWithCount> optionSet : squashedOptions.keySet()) {
-//            totalCombinations *= optionSet.size();
-//        }
-//        if (totalCombinations > 500) {
-//            ItemDescriptorWithCount[] translatedItems = new ItemDescriptorWithCount[ingredients.length];
-//            for (int i = 0; i < ingredients.length; i++) {
-//                if (ingredients[i].getOptions().length > 0) {
-//                    translatedItems[i] = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, ingredients[i].getOptions()[0]));
-//                } else {
-//                    translatedItems[i] = ItemDescriptorWithCount.EMPTY;
-//                }
-//            }
-//            return new ItemDescriptorWithCount[][]{translatedItems};
-//        }
-//        List<Set<ItemDescriptorWithCount>> sortedSets = new ArrayList<>(squashedOptions.keySet());
-//        sortedSets.sort(Comparator.comparing(Set::size, Comparator.reverseOrder()));
-//        ItemDescriptorWithCount[][] combinations = new ItemDescriptorWithCount[totalCombinations][ingredients.length];
-//        int x = 1;
-//        for (Set<ItemDescriptorWithCount> set : sortedSets) {
-//            IntSet slotSet = squashedOptions.get(set);
-//            int i = 0;
-//            for (ItemDescriptorWithCount item : set) {
-//                for (int j = 0; j < totalCombinations / set.size(); j++) {
-//                    final int comboIndex = (i * x) + (j % x) + ((j / x) * set.size() * x);
-//                    for (IntIterator it = slotSet.iterator(); it.hasNext(); ) {
-//                        combinations[comboIndex][it.nextInt()] = item;
-//                    }
-//                }
-//                i++;
-//            }
-//            x *= set.size();
-//        }
-//    }
 }

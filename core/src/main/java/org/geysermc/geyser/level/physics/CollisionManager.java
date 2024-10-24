@@ -27,6 +27,7 @@ package org.geysermc.geyser.level.physics;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.util.TriState;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -153,11 +154,10 @@ public class CollisionManager {
      * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
      *
      * @param bedrockPosition the current Bedrock position of the client
-     * @param onGround whether the Bedrock player is on the ground
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public @Nullable Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -176,7 +176,7 @@ public class CollisionManager {
             playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
             playerBoundingBox.setMiddleZ(position.getZ());
 
-            return playerBoundingBox.getBottomCenter();
+            return new CollisionResult(playerBoundingBox.getBottomCenter(), TriState.NOT_SET);
         }
 
         Vector3d startingPos = playerBoundingBox.getBottomCenter();
@@ -198,9 +198,9 @@ public class CollisionManager {
 
         position = playerBoundingBox.getBottomCenter();
 
-        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
+        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
-        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
+        if (/*onGround != newOnGround || */movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Client will dismount if on a vehicle
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
@@ -208,12 +208,12 @@ public class CollisionManager {
             }
         }
 
-        if (!onGround) {
+        if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
-        return position;
+        return new CollisionResult(position, TriState.byBoolean(newOnGround));
     }
 
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong

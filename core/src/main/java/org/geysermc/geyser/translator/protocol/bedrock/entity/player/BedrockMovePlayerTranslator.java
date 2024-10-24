@@ -27,34 +27,33 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerStatusOnlyPacket;
 
-@Translator(packet = MovePlayerPacket.class)
-public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
 
-    @Override
-    public void translate(GeyserSession session, MovePlayerPacket packet) {
+public final class BedrockMovePlayerTranslator {
+
+    static void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
-
-        session.setLastMovementTimestamp(System.currentTimeMillis());
 
         // Send book update before the player moves
         session.getBookEditCache().checkForSend();
 
+        boolean actualPositionChanged = !entity.getPosition().equals(packet.getPosition());
         // Ignore movement packets until Bedrock's position matches the teleported position
-        if (session.getUnconfirmedTeleport() != null) {
+        if (session.getUnconfirmedTeleport() != null && actualPositionChanged) {
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }
@@ -70,7 +69,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         float pitch = packet.getRotation().getX();
         float headYaw = packet.getRotation().getY();
 
-        boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
+        // shouldSendPositionReminder also increments a tick counter, so make sure it's always called.
+        boolean positionChanged = session.getInputCache().shouldSendPositionReminder() || actualPositionChanged;
         boolean rotationChanged = entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw;
 
         if (session.getLookBackScheduledFuture() != null) {
@@ -80,19 +80,22 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.setLookBackScheduledFuture(null);
         }
 
+        // This takes into account no movement sent from the client, but the player is trying to move anyway.
+        // (Press into a wall in a corner - you're trying to move but nothing actually happens)
+        boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
+
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (!positionChanged && rotationChanged) {
-            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(packet.isOnGround(), false, yaw, pitch);
+            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(entity.isOnGround(), horizontalCollision, yaw, pitch);
 
             entity.setYaw(yaw);
             entity.setPitch(pitch);
             entity.setHeadYaw(headYaw);
-            entity.setOnGround(packet.isOnGround());
 
             session.sendDownstreamGamePacket(playerRotationPacket);
-        } else {
+        } else if (positionChanged) {
             // World border collision will be handled by client vehicle
             if (!(entity.getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled())
                     && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
@@ -100,9 +103,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             }
 
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
-                Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), packet.getMode() == MovePlayerPacket.Mode.TELEPORT);
-                if (position != null) { // A null return value cancels the packet
-                    boolean onGround = packet.isOnGround();
+                CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
+                if (result != null) { // A null return value cancels the packet
+                    Vector3d position = result.correctedMovement();
+                    boolean onGround = result.onGround().toBooleanOrElse(entity.isOnGround());
                     boolean isBelowVoid = entity.isVoidPositionDesynched();
 
                     boolean teleportThroughVoidFloor, mustResyncPosition;
@@ -138,7 +142,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         // Send rotation updates as well
                         movePacket = new ServerboundMovePlayerPosRotPacket(
                                 onGround,
-                                false,
+                                horizontalCollision,
                                 position.getX(), yPosition, position.getZ(),
                                 yaw, pitch
                         );
@@ -147,7 +151,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         entity.setHeadYaw(headYaw);
                     } else {
                         // Rotation did not change; don't send an update with rotation
-                        movePacket = new ServerboundMovePlayerPosPacket(onGround, false, position.getX(), yPosition, position.getZ());
+                        movePacket = new ServerboundMovePlayerPosPacket(onGround, horizontalCollision, position.getX(), yPosition, position.getZ());
                     }
 
                     entity.setPositionManual(packet.getPosition());
@@ -162,6 +166,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         entity.teleportVoidFloorFix(true);
                     }
 
+                    session.getInputCache().markPositionPacketSent();
                     session.getSkullCache().updateVisibleSkulls();
                 }
             } else {
@@ -169,7 +174,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 session.getGeyser().getLogger().debug("Recalculating position...");
                 session.getCollisionManager().recalculatePosition();
             }
+        } else if (horizontalCollision != session.getInputCache().lastHorizontalCollision()) {
+            session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(entity.isOnGround(), horizontalCollision));
         }
+
+        session.getInputCache().setLastHorizontalCollision(horizontalCollision);
 
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
@@ -180,11 +189,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
     }
 
-    private boolean isInvalidNumber(float val) {
+    private static boolean isInvalidNumber(float val) {
         return Float.isNaN(val) || Float.isInfinite(val);
     }
 
-    private boolean isValidMove(GeyserSession session, Vector3f currentPosition, Vector3f newPosition) {
+    private static boolean isValidMove(GeyserSession session, Vector3f currentPosition, Vector3f newPosition) {
         if (isInvalidNumber(newPosition.getX()) || isInvalidNumber(newPosition.getY()) || isInvalidNumber(newPosition.getZ())) {
             return false;
         }

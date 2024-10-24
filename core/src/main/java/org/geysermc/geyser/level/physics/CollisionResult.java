@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.level.physics;
 
+import net.kyori.adventure.util.TriState;
 import org.cloudburstmc.math.vector.Vector3d;
 
 /**
  * Holds the result of a collision check.
  */
-public record CollisionResult(Vector3d correctedMovement, boolean horizontalCollision) {
+public record CollisionResult(Vector3d correctedMovement, TriState onGround) {
 }
