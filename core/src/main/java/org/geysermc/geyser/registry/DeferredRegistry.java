@@ -113,6 +113,13 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
     }
 
     /**
+     * Whether this registry was loaded.
+     */
+    public boolean loaded() {
+        return this.loaded;
+    }
+
+    /**
      * Creates a new deferred registry.
      *
      * @param registryLoader the registry loader
