@@ -384,7 +384,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 session.setCurrentBook(packet.getItemInHand());
                             } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.GOAT_HORN) {
                                 // Temporary workaround while we don't have full item/block use tracking.
-                                if (!session.getWorldCache().hasCooldown(Items.GOAT_HORN)) {
+                                if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
                                     Holder<Instrument> instrument = session.getPlayerInventory()
                                         .getItemInHand()
                                         .getComponent(DataComponentType.INSTRUMENT);
