@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @param description only populated if {@link #bedrockEnchantment()} is not null.
+ * @param description only populated if {@link #bedrockEnchantment()} is null.
  * @param anvilCost also as a rarity multiplier
  */
 public record Enchantment(String identifier,

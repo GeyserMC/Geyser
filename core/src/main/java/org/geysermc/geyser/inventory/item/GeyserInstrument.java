@@ -28,37 +28,29 @@ package org.geysermc.geyser.inventory.item;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.SoundUtils;
 
 import java.util.Locale;
 
-// TODO is this the right name?
 public record GeyserInstrument(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) {
 
     public static GeyserInstrument read(RegistryEntryContext context) {
         NbtMap data = context.data();
-        // TODO this needs to turn into an util method as its duplicated
-        Object soundEventObject = data.get("sound_event");
-        String soundEvent;
-        if (soundEventObject instanceof NbtMap map) {
-            soundEvent = map.getString("sound_id");
-        } else if (soundEventObject instanceof String string) {
-            soundEvent = string;
-        } else {
-            soundEvent = "";
-            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context.id() + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
-        }
-
+        String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
         String description = MessageTranslator.deserializeDescriptionForTooltip(context.session(), data);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
         return new GeyserInstrument(soundEvent, range, description, bedrockInstrument);
     }
 
+    /**
+     * @return the ID of the Bedrock counterpart for this instrument.
+     *         If there is none ({@link #bedrockInstrument()} is null), then an ID is returned that isn't used for any Bedrock goat horn, to prevent conflicts.
+     */
     public int bedrockId() {
         if (bedrockInstrument != null) {
             return bedrockInstrument.ordinal();
@@ -66,7 +58,9 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
         return BedrockInstrument.VALUES.length;
     }
 
-    // TODO can this be better?
+    /**
+     * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
+     */
     public static int bedrockIdToJava(JavaRegistry<GeyserInstrument> instruments, int id) {
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
@@ -77,9 +71,12 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
                 }
             }
         }
-        return id;
+        return -1;
     }
 
+    /**
+     * Each vanilla instrument on Bedrock, ordered in their network IDs.
+     */
     public enum BedrockInstrument {
         PONDER,
         SING,
