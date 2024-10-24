@@ -422,6 +422,15 @@ public class MessageTranslator {
         return convertMessage(session, parsed);
     }
 
+    /**
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
+     */
+    public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
+        Object description = tag.get("description");
+        Component parsed = componentFromNbtTag(description);
+        return RESET + BASE + CharacterAndFormat.GRAY.character() + convertMessage(parsed, session.locale(), false);
+    }
+
     public static Component componentFromNbtTag(Object nbtTag) {
         return componentFromNbtTag(nbtTag, Style.empty());
     }

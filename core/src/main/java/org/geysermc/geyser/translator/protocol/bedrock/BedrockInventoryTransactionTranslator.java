@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
@@ -77,6 +79,7 @@ import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -386,13 +389,24 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         .getItemInHand()
                                         .getComponent(DataComponentType.INSTRUMENT);
                                     if (instrument != null && instrument.isId()) {
-                                        // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
-                                        LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
-                                        soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.id()));
-                                        soundPacket.setPosition(session.getPlayerEntity().getPosition());
-                                        soundPacket.setIdentifier("minecraft:player");
-                                        soundPacket.setExtraData(-1);
-                                        session.sendUpstreamPacket(soundPacket);
+                                        GeyserInstrument geyserInstrument = session.getRegistryCache().instruments().byId(instrument.id());
+                                        if (geyserInstrument.bedrockInstrument() != null) {
+                                            // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
+                                            LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
+                                            soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + geyserInstrument.bedrockInstrument().ordinal()));
+                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                            soundPacket.setIdentifier("minecraft:player");
+                                            soundPacket.setExtraData(-1);
+                                            session.sendUpstreamPacket(soundPacket);
+                                        } else {
+                                            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setSound(SoundUtils.translatePlaySound(geyserInstrument.soundEvent()));
+                                            playSoundPacket.setPitch(1.0F);
+                                            // Java calculates the volume by dividing the range by 16, but it appears very soft like that, do we change this? TODO
+                                            playSoundPacket.setVolume(geyserInstrument.range() / 16.0F);
+                                            session.sendUpstreamPacket(playSoundPacket);
+                                        }
                                     }
                                 }
                             }

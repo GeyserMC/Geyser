@@ -39,8 +39,10 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
 
     @Override
     public void translate(GeyserSession session, ClientboundCooldownPacket packet) {
-        Item item = Registries.JAVA_ITEMS.get().get(0); // FIXME
-        // Not every item, as of 1.19, appears to be server-driven. Just these two.
+        // If the cooldown group is a modded item, an item that Bedrock doesn't support custom cooldowns for, or a custom cooldown group,
+        // then the cooldown won't be translated correctly. The cooldown won't show up on Bedrock, but they are still unable to use the item.
+        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(packet.getCooldownGroup().asString());
+        // Not every item, as of 1.19, appears to be server-driven. Just these two. // TODO is this still the case?
         // Use a map here if it gets too big.
         String cooldownCategory;
         if (item == Items.GOAT_HORN) {
