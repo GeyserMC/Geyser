@@ -164,6 +164,9 @@ public class GeyserItemStack {
     }
 
     public Item asItem() {
+        if (isEmpty()) {
+            return Items.AIR;
+        }
         if (item == null) {
             return (item = Registries.JAVA_ITEMS.get().get(javaId));
         }

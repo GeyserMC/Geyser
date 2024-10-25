@@ -209,7 +209,6 @@ final class BedrockBlockActions {
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
             }
-            case JUMP -> entity.setOnGround(false); // Increase block break time while jumping
             case MISSED_SWING -> {
                 // Java edition sends a cooldown when hitting air.
                 // Normally handled by BedrockLevelSoundEventTranslator, but there is no sound on Java for this.

@@ -49,7 +49,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -305,14 +304,7 @@ public class InventoryUtils {
 
         // If we still have not found the item, and we're in creative, ask for the item from the server.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = findEmptyHotbarSlot(inventory);
-
-            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
-                    itemStack);
-            if ((slot - 36) != inventory.getHeldItemSlot()) {
-                setHotbarItem(session, slot);
-            }
-            session.sendDownstreamGamePacket(actionPacket);
+            setPickedItem(session, inventory, GeyserItemStack.from(itemStack));
         }
     }
 
@@ -372,24 +364,15 @@ public class InventoryUtils {
             return;
         }
 
-        // If we still have not found the item, and we're in creative, ask for the item from the server.
+        // If we still have not found the item, and we're in creative, set the item ourselves.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = findEmptyHotbarSlot(inventory);
-
-            ItemMapping mapping = session.getItemMappings().getMapping(item);
-            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short)slot,
-                    new ItemStack(mapping.getJavaItem().javaId()));
-            if ((slot - 36) != inventory.getHeldItemSlot()) {
-                setHotbarItem(session, slot);
-            }
-            session.sendDownstreamGamePacket(actionPacket);
+            GeyserItemStack itemStack = item.newItemStack(1, null);
+            setPickedItem(session, inventory, itemStack);
         }
     }
 
-    /**
-     * @return the first empty slot found in this inventory, or else the player's currently held slot.
-     */
-    private static int findEmptyHotbarSlot(PlayerInventory inventory) {
+    private static void setPickedItem(GeyserSession session, PlayerInventory inventory, GeyserItemStack itemStack) {
+        // Try to find an empty hotbar slot.
         int slot = inventory.getHeldItemSlot() + 36;
         if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
             for (int i = 36; i < 45; i++) {
@@ -399,7 +382,32 @@ public class InventoryUtils {
                 }
             }
         }
-        return slot;
+        GeyserItemStack existingItem = inventory.getItem(slot);
+        if (!existingItem.isEmpty()) {
+            // Try to move the item to another slot.
+            for (int i = 9; i < 36; i++) {
+                if (inventory.getItem(i).isEmpty()) {
+                    inventory.setItem(i, existingItem, session);
+                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, i);
+
+                    ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) i,
+                        existingItem.getItemStack());
+                    session.sendDownstreamGamePacket(actionPacket);
+                    break;
+                }
+            }
+        }
+
+        // As of 1.21.3 - the client does this on its own end and the server doesn't send a slot response back.
+        inventory.setItem(slot, itemStack, session);
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, slot);
+
+        ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
+            itemStack.getItemStack());
+        if ((slot - 36) != inventory.getHeldItemSlot()) {
+            setHotbarItem(session, slot);
+        }
+        session.sendDownstreamGamePacket(actionPacket);
     }
 
     /**

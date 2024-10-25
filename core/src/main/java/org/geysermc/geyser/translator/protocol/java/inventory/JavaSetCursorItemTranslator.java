@@ -23,30 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity;
+package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import org.cloudburstmc.math.vector.Vector3d;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
+import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundSetCursorItemPacket;
 
-@Translator(packet = ClientboundEntityPositionSyncPacket.class)
-public class JavaEntityPositionSyncTranslator extends PacketTranslator<ClientboundEntityPositionSyncPacket> {
+@Translator(packet = ClientboundSetCursorItemPacket.class)
+public class JavaSetCursorItemTranslator extends PacketTranslator<ClientboundSetCursorItemPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundEntityPositionSyncPacket packet) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
-        if (entity == null) return;
-
-        Vector3d pos = packet.getPosition();
-
-        if (entity instanceof ClientVehicle clientVehicle) {
-            clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
-        }
-
-        entity.teleport(pos.toFloat(), packet.getYRot(), packet.getXRot(), packet.isOnGround());
+    public void translate(GeyserSession session, ClientboundSetCursorItemPacket packet) {
+        GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
+        session.getPlayerInventory().setCursor(newItem, session);
+        InventoryUtils.updateCursor(session);
     }
 }

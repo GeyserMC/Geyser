@@ -58,14 +58,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
-        if (packet.getContainerId() == 255) { //cursor //TODO new packet
-            GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            session.getPlayerInventory().setCursor(newItem, session);
-            InventoryUtils.updateCursor(session);
-            return;
-        }
-
         //TODO: support window id -2, should update player inventory
+        //TODO: ^ I think this is outdated.
         Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null) {
             return;
@@ -89,8 +83,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             updateCraftingGrid(session, slot, packet.getItem(), inventory, translator);
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) { //TODO new packet
+            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
                 // In rare cases, the window ID can still be 0 but Java treats it as valid
+                // This behavior still exists as of Java Edition 1.21.2, despite the new packet
                 session.getPlayerInventory().setItem(slot, newItem, session);
                 InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
             } else {
