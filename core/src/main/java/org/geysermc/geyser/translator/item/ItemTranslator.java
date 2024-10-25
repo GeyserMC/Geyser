@@ -100,9 +100,9 @@ public final class ItemTranslator {
     private ItemTranslator() {
     }
 
-    public static ItemStack translateToJava(GeyserSession session, ItemData data) {
+    public static GeyserItemStack translateToJava(GeyserSession session, ItemData data) {
         if (data == null) {
-            return new ItemStack(Items.AIR_ID);
+            return GeyserItemStack.EMPTY;
         }
 
         ItemMapping bedrockItem = session.getItemMappings().getMapping(data);
@@ -119,7 +119,7 @@ public final class ItemTranslator {
                 itemStack.setComponents(components);
             }
         }
-        return itemStack.getItemStack();
+        return itemStack;
     }
 
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, int javaId, int count, DataComponents components) {
