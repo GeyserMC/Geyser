@@ -59,6 +59,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeT
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -428,6 +429,19 @@ public final class ItemTranslator {
             }
         }
 
+        // Fix bedrock new light block level since 1.21.20
+        if (mapping.getJavaItem().equals(Items.LIGHT)) {
+            String lightLevel = getLightLevel(itemStack.getComponents());
+            if (lightLevel != null) {
+                lightLevel = "0";
+            }
+
+            ItemDefinition definition = session.getItemMappings().getDefinition("minecraft:light_block_" + lightLevel);
+            if (definition != null) {
+                itemDefinition = definition;
+            }
+        }
+
         ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);
         if (definition == null) {
             // No custom item
@@ -491,7 +505,7 @@ public final class ItemTranslator {
         if (components == null) {
             return null;
         }
-        
+
         GameProfile profile = components.get(DataComponentType.PROFILE);
         if (profile != null) {
             Map<TextureType, Texture> textures;
@@ -527,5 +541,16 @@ public final class ItemTranslator {
             builder.definition(itemDefinition);
             builder.blockDefinition(blockDefinition);
         }
+    }
+
+    private static @Nullable String getLightLevel(DataComponents components) {
+        if (components == null) {
+            return null;
+        }
+        BlockStateProperties blockState = components.get(DataComponentType.BLOCK_STATE);
+        if (blockState == null) {
+            return null;
+        }
+        return blockState.getProperties().getOrDefault("level", "0"); // The properties value is String in Java Edition
     }
 }
