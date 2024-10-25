@@ -29,14 +29,11 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
@@ -44,7 +41,6 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -52,8 +48,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
@@ -61,106 +55,35 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
-@Translator(packet = PlayerActionPacket.class)
-public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
+import java.util.List;
 
-    @Override
-    public void translate(GeyserSession session, PlayerActionPacket packet) {
+final class BedrockBlockActions {
+
+    static void translate(GeyserSession session, List<PlayerBlockActionData> playerActions) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         // Send book update before any player action
-        if (packet.getAction() != PlayerActionType.RESPAWN) {
-            session.getBookEditCache().checkForSend();
+        session.getBookEditCache().checkForSend();
+
+        for (PlayerBlockActionData blockActionData : playerActions) {
+            handle(session, entity, blockActionData);
         }
+    }
 
-        Vector3i vector = packet.getBlockPosition();
+    private static void handle(GeyserSession session, SessionPlayerEntity entity, PlayerBlockActionData blockActionData) {
+        PlayerActionType action = blockActionData.getAction();
+        Vector3i vector = blockActionData.getBlockPosition();
+        int blockFace = blockActionData.getFace();
 
-        switch (packet.getAction()) {
-            case RESPAWN -> {
-                // Respawn process is finished and the server and client are both OK with respawning.
-                EntityEventPacket eventPacket = new EntityEventPacket();
-                eventPacket.setRuntimeEntityId(entity.getGeyserId());
-                eventPacket.setType(EntityEventType.RESPAWN);
-                eventPacket.setData(0);
-                session.sendUpstreamPacket(eventPacket);
-                // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
-                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                attributesPacket.getAttributes().addAll(entity.getAttributes().values());
-                session.sendUpstreamPacket(attributesPacket);
-
-                // Bounding box must be sent after a player dies and respawns since 1.19.40
-                entity.updateBoundingBox();
-
-                // Needed here since 1.19.81 for dimension switching
-                session.getEntityCache().updateBossBars();
-            }
-            case START_SWIMMING -> {
-                if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                    session.sendDownstreamGamePacket(startSwimPacket);
-
-                    session.setSwimming(true);
-                }
-            }
-            case STOP_SWIMMING -> {
-                // Prevent packet spam when Bedrock players are crawling near the edge of a block
-                if (!session.getCollisionManager().mustPlayerCrawlHere()) {
-                    ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                    session.sendDownstreamGamePacket(stopSwimPacket);
-
-                    session.setSwimming(false);
-                }
-            }
-            case START_GLIDE -> {
-                // Otherwise gliding will not work in creative
-                ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
-                session.sendDownstreamGamePacket(playerAbilitiesPacket);
-                sendPlayerGlideToggle(session, entity);
-            }
-            case STOP_GLIDE -> sendPlayerGlideToggle(session, entity);
-            case START_SNEAK -> {
-                ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                session.sendDownstreamGamePacket(startSneakPacket);
-
-                session.startSneaking();
-            }
-            case STOP_SNEAK -> {
-                ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
-                session.sendDownstreamGamePacket(stopSneakPacket);
-
-                session.stopSneaking();
-            }
-            case START_SPRINT -> {
-                if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                    session.sendDownstreamGamePacket(startSprintPacket);
-                    session.setSprinting(true);
-                }
-            }
-            case STOP_SPRINT -> {
-                if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                    session.sendDownstreamGamePacket(stopSprintPacket);
-                }
-                session.setSprinting(false);
-            }
+        switch (action) {
             case DROP_ITEM -> {
                 ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
-                    vector, Direction.VALUES[packet.getFace()], 0);
+                    vector, Direction.VALUES[blockFace], 0);
                 session.sendDownstreamGamePacket(dropItemPacket);
-            }
-            case STOP_SLEEP -> {
-                ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.LEAVE_BED);
-                session.sendDownstreamGamePacket(stopSleepingPacket);
             }
             case START_BREAK -> {
                 // Ignore START_BREAK when the player is CREATIVE to avoid Spigot receiving 2 packets it interpets as block breaking. https://github.com/GeyserMC/Geyser/issues/4021
@@ -191,9 +114,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendUpstreamPacket(startBreak);
 
                 // Account for fire - the client likes to hit the block behind.
-                Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, packet.getFace());
+                Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, blockFace);
                 Block block = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
-                Direction direction = Direction.VALUES[packet.getFace()];
+                Direction direction = Direction.VALUES[blockFace];
                 if (block == Blocks.FIRE || block == Blocks.SOUL_FIRE) {
                     ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
                         direction, session.getWorldCache().nextPredictionSequence());
@@ -218,7 +141,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 Vector3f vectorFloat = vector.toFloat();
 
                 BlockState breakingBlockState = BlockState.of(breakingBlock);
-                Direction direction = Direction.VALUES[packet.getFace()];
+                Direction direction = Direction.VALUES[blockFace];
                 spawnBlockBreakParticles(session, direction, vector, breakingBlockState);
 
                 double breakTime = BlockUtils.getSessionBreakTime(session, breakingBlockState.block()) * 20;
@@ -304,69 +227,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     session.sendUpstreamPacket(animatePacket);
                 }
             }
-            case START_FLYING -> { // Since 1.20.30
-                if (session.isCanFly()) {
-                    if (session.getGameMode() == GameMode.SPECTATOR) {
-                        // should already be flying
-                        session.sendAdventureSettings();
-                        break;
-                    }
-
-                    if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
-                        // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
-                        // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
-                        session.sendAdventureSettings();
-                        break;
-                    }
-
-                    session.setFlying(true);
-                    session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
-                } else {
-                    // update whether we can fly
-                    session.sendAdventureSettings();
-                    // stop flying
-                    PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
-                    stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                    stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
-                    stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
-                    stopFlyingPacket.setResultPosition(Vector3i.ZERO);
-                    stopFlyingPacket.setFace(0);
-                    session.sendUpstreamPacket(stopFlyingPacket);
-                }
-            }
-            case STOP_FLYING -> {
-                session.setFlying(false);
-                session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
-            }
-            case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK -> { // Used by client to get book from lecterns and items from item frame in creative mode since 1.20.70
-                BlockState state = session.getGeyser().getWorldManager().blockAt(session, vector);
-
-                if (state.getValue(Properties.HAS_BOOK, false)) {
-                    session.setDroppingLecternBook(true);
-
-                    ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
-                        vector,
-                        Direction.DOWN,
-                        Hand.MAIN_HAND,
-                        0, 0, 0,
-                        false,
-                        false,
-                        session.getWorldCache().nextPredictionSequence());
-                    session.sendDownstreamGamePacket(blockPacket);
-                    break;
-                }
-
-                Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
-                if (itemFrame != null) {
-                    ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
-                        InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                    session.sendDownstreamGamePacket(interactPacket);
-                }
-            }
         }
     }
 
-    private void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
+    private static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         switch (direction) {
             case UP -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_UP);
@@ -379,10 +243,5 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         levelEventPacket.setPosition(position.toFloat());
         levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
         session.sendUpstreamPacket(levelEventPacket);
-    }
-
-    private void sendPlayerGlideToggle(GeyserSession session, Entity entity) {
-        ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
-        session.sendDownstreamGamePacket(glidePacket);
     }
 }

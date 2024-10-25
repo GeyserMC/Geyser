@@ -71,7 +71,6 @@ import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
@@ -318,7 +317,7 @@ class CodecProcessor {
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unusued serverbound packets that relate to unused features
-            .updateSerializer(PlayerAuthInputPacket.class, ILLEGAL_SERIALIZER)
+            //.updateSerializer(PlayerAuthInputPacket.class, ILLEGAL_SERIALIZER) TODO keeping until we determine which packets should replace
             .updateSerializer(ClientCacheBlobStatusPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubClientLoginPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)

@@ -154,10 +154,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 int recipeNetId = netId++;
                 UUID uuid = UUID.randomUUID();
                 // We need to register stonecutting recipes, so they show up on Bedrock
-                // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter
+                // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter)
                 craftingDataPacket.getCraftingData().add(ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
                     Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID));
-                session.getGeyser().getLogger().info(mapping.getJavaItem().javaIdentifier() + " " + buttonId + " " + recipeNetId);
 
                 // Save the recipe list for reference when crafting
                 // Add the net ID as the key and the button required + output for the value
