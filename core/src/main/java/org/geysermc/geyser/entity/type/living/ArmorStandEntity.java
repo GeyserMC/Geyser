@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import java.util.Optional;
-import java.util.UUID;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -48,6 +46,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+
+import java.util.Optional;
+import java.util.UUID;
 
 public class ArmorStandEntity extends LivingEntity {
 
