@@ -28,11 +28,14 @@ package org.geysermc.geyser.inventory.item;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 
 import java.util.Locale;
 
@@ -48,20 +51,20 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
     }
 
     /**
-     * @return the ID of the Bedrock counterpart for this instrument.
-     *         If there is none ({@link #bedrockInstrument()} is null), then an ID is returned that isn't used for any Bedrock goat horn, to prevent conflicts.
+     * @return the ID of the Bedrock counterpart for this instrument. If there is none ({@link #bedrockInstrument()} is null), then -1 is returned.
      */
     public int bedrockId() {
         if (bedrockInstrument != null) {
             return bedrockInstrument.ordinal();
         }
-        return BedrockInstrument.VALUES.length;
+        return -1;
     }
 
     /**
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
-    public static int bedrockIdToJava(JavaRegistry<GeyserInstrument> instruments, int id) {
+    public static int bedrockIdToJava(GeyserSession session, int id) {
+        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().instruments();
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
@@ -72,6 +75,15 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
             }
         }
         return -1;
+    }
+
+    public static GeyserInstrument fromHolder(GeyserSession session, Holder<Instrument> holder) {
+        if (holder.isId()) {
+            return session.getRegistryCache().instruments().byId(holder.id());
+        }
+        Instrument custom = holder.custom();
+        return new GeyserInstrument(custom.getSoundEvent().getName(), custom.getRange(),
+            MessageTranslator.convertMessageForTooltip(custom.getDescription(), session.locale()), null);
     }
 
     /**

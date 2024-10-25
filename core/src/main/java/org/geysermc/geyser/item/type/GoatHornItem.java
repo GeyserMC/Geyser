@@ -50,10 +50,13 @@ public class GoatHornItem extends Item {
             return builder;
         }
 
-        Holder<Instrument> instrument = components.get(DataComponentType.INSTRUMENT);
-        if (instrument != null && instrument.isId()) {
-            GeyserInstrument geyserInstrument = session.getRegistryCache().instruments().byId(instrument.id());
-            builder.damage(geyserInstrument.bedrockId());
+        Holder<Instrument> holder = components.get(DataComponentType.INSTRUMENT);
+        if (holder != null) {
+            GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+            int bedrockId = instrument.bedrockId();
+            if (bedrockId >= 0) {
+                builder.damage(bedrockId);
+            }
         }
 
         return builder;
@@ -62,11 +65,13 @@ public class GoatHornItem extends Item {
     @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
-        Holder<Instrument> instrument = components.get(DataComponentType.INSTRUMENT);
-        if (instrument != null && instrument.isId()) {
-            GeyserInstrument geyserInstrument = session.getRegistryCache().instruments().byId(instrument.id());
-            if (geyserInstrument.bedrockInstrument() == null) {
-                builder.getOrCreateLore().add(geyserInstrument.description());
+
+        Holder<Instrument> holder = components.get(DataComponentType.INSTRUMENT);
+        if (holder != null && components.get(DataComponentType.HIDE_TOOLTIP) == null
+            && components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) == null) {
+            GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+            if (instrument.bedrockInstrument() == null) {
+                builder.getOrCreateLore().add(instrument.description());
             }
         }
     }
@@ -77,7 +82,7 @@ public class GoatHornItem extends Item {
 
         int damage = itemData.getDamage();
         // This could cause an issue since -1 is returned for non-vanilla goat horns
-        itemStack.getOrCreateComponents().put(DataComponentType.INSTRUMENT, Holder.ofId(GeyserInstrument.bedrockIdToJava(session.getRegistryCache().instruments(), damage)));
+        itemStack.getOrCreateComponents().put(DataComponentType.INSTRUMENT, Holder.ofId(GeyserInstrument.bedrockIdToJava(session, damage)));
 
         return itemStack;
     }

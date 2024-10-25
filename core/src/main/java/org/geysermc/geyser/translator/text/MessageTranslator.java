@@ -138,6 +138,18 @@ public class MessageTranslator {
     }
 
     /**
+     * Convert a Java message to the legacy format ready for bedrock, for use in item tooltips
+     * (a gray color is applied).
+     *
+     * @param message Java message
+     * @param locale Locale to use for translation strings
+     * @return Parsed and formatted message for bedrock, in gray color
+     */
+    public static String convertMessageForTooltip(Component message, String locale) {
+        return RESET + ChatColor.GRAY + convertMessageRaw(message, locale);
+    }
+
+    /**
      * Convert a Java message to the legacy format ready for bedrock. Unlike {@link #convertMessage(Component, String)}
      * this version does not add a leading color reset. In Bedrock some places have build-in colors.
      *
@@ -428,7 +440,7 @@ public class MessageTranslator {
     public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
         Object description = tag.get("description");
         Component parsed = componentFromNbtTag(description);
-        return RESET + BASE + CharacterAndFormat.GRAY.character() + convertMessage(parsed, session.locale(), false);
+        return convertMessageForTooltip(parsed, session.locale());
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {
