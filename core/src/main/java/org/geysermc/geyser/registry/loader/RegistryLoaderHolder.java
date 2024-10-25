@@ -25,5 +25,9 @@
 
 package org.geysermc.geyser.registry.loader;
 
+/**
+ * A holder of the constructor parameters to prevent them from automatically loading,
+ * and instead load them when the load method is called.
+ */
 public record RegistryLoaderHolder<I, M>(I input, RegistryLoader<I, M> registryLoader) {
 }
