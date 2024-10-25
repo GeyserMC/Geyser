@@ -62,6 +62,8 @@ import java.util.*;
  * Holds all the common registries in Geyser.
  */
 public final class Registries {
+    private static boolean initialized = false;
+
     /**
      * A registry holding all the providers.
      * This has to be initialized first to allow extensions to access providers during other registry events.
@@ -69,7 +71,7 @@ public final class Registries {
     public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
 
     /**
-     * A registry holding a CompoundTag of the known entity identifiers.
+     * A registry holding a NbtMap of the known entity identifiers.
      */
     public static final SimpleRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
@@ -79,7 +81,7 @@ public final class Registries {
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
     /**
-     * A registry holding a CompoundTag of all the known biomes.
+     * A registry holding a NbtMap of all the known biomes.
      */
     public static final SimpleRegistry<NbtMap> BIOMES_NBT = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
@@ -118,6 +120,9 @@ public final class Registries {
      */
     public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
+    /**
+     * A registry containing item identifiers.
+     */
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
@@ -135,7 +140,7 @@ public final class Registries {
     /**
      * A registry holding all the potion mixes.
      */
-    public static final VersionedRegistry<Set<PotionMixData>> POTION_MIXES;
+    public static final VersionedRegistry<Set<PotionMixData>> POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
 
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
@@ -163,15 +168,35 @@ public final class Registries {
     public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
     public static void init() {
-        // no-op
-    }
+        if (initialized) return;
+        initialized = true;
 
-    static {
+        PROVIDERS.load();
+        BEDROCK_ENTITY_IDENTIFIERS.load();
+        BEDROCK_PACKET_TRANSLATORS.load();
+        BIOMES_NBT.load();
+        BIOME_IDENTIFIERS.load();
+        BLOCK_ENTITIES.load();
+        ENTITY_DEFINITIONS.load();
+        BEDROCK_ENTITY_PROPERTIES.load();
+        JAVA_ENTITY_IDENTIFIERS.load();
+        JAVA_PACKET_TRANSLATORS.load();
+        JAVA_ITEMS.load();
+        JAVA_ITEM_IDENTIFIERS.load();
+        ITEMS.load();
+        PARTICLES.load();
+        // load potion mixes later
+        RECIPES.load();
+        RESOURCE_PACKS.load();
+        SOUNDS.load();
+        SOUND_LEVEL_EVENTS.load();
+        SOUND_TRANSLATORS.load();
+
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
 
-        // Create registries that require other registries to load first
-        POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
+        // potion mixes depend on other registries
+        POTION_MIXES.load();
 
         // Remove unneeded client generation data from NbtMapBuilder
         NbtMapBuilder biomesNbt = NbtMap.builder();

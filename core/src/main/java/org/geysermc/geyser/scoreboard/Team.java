@@ -90,6 +90,8 @@ public final class Team {
                     // Remove old team from this map, and from the set of players of the old team.
                     // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
                     oldTeam.entities.remove(player);
+                    // also remove the managed entity if there is one
+                    removeManagedEntity(player);
                 }
                 return this;
             });
@@ -280,6 +282,15 @@ public final class Team {
         if (containsSelf) {
             refreshAllEntities();
         }
+    }
+
+    /**
+     * Used internally to remove a managed entity without causing an update.
+     * This is fine because its only used when the entity is added to another team,
+     * which will fire the correct nametag updates etc.
+     */
+    private void removeManagedEntity(String name) {
+        managedEntities.removeIf(entity -> name.equals(entity.teamIdentifier()));
     }
 
     private void refreshAllEntities() {

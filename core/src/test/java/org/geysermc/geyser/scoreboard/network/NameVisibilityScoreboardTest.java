@@ -27,7 +27,7 @@ package org.geysermc.geyser.scoreboard.network;
 
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockAndAddPlayerEntity;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 
 import net.kyori.adventure.text.Component;
@@ -47,7 +47,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -64,12 +64,12 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"player1"}
                 )
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "");
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -78,7 +78,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -96,12 +96,12 @@ public class NameVisibilityScoreboardTest {
                 )
             );
             // only hidden if session player (Tim203) is in a team as well
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4player1§r§4suffix");
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // create another team and add Tim203 to it
@@ -121,12 +121,12 @@ public class NameVisibilityScoreboardTest {
                 )
             );
             // Tim203 is now in another team, so it should be hidden
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "");
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // add Tim203 to same team as player1, score should be visible again
@@ -134,12 +134,12 @@ public class NameVisibilityScoreboardTest {
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4player1§r§4suffix");
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -148,7 +148,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -166,12 +166,12 @@ public class NameVisibilityScoreboardTest {
                 )
             );
             // Tim203 is not in a team (let alone the same team), so should be visible
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4player1§r§4suffix");
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // Tim203 is now in the same team as player1, so should be hidden
@@ -179,12 +179,12 @@ public class NameVisibilityScoreboardTest {
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "");
                 return packet;
-            }, context);
+            });
             assertNoNextPacket(context);
 
             // create another team and add Tim203 to there, score should be visible again
@@ -203,12 +203,12 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"Tim203"}
                 )
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4player1§r§4suffix");
                 return packet;
-            }, context);
+            });
         });
     }
 
@@ -217,7 +217,7 @@ public class NameVisibilityScoreboardTest {
         mockContextScoreboard(context -> {
             var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
 
-            mockAndAddPlayerEntity(context, "player1", 2);
+            spawnPlayerSilently(context, "player1", 2);
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -234,12 +234,12 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"player1"}
                 )
             );
-            assertNextPacket(() -> {
+            assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4player1§r§4suffix");
                 return packet;
-            }, context);
+            });
 
             // adding self to another team shouldn't make a difference
             context.translate(
