@@ -482,7 +482,7 @@ public final class Items {
     public static final Item RED_TERRACOTTA = register(new BlockItem(builder(), Blocks.RED_TERRACOTTA));
     public static final Item BLACK_TERRACOTTA = register(new BlockItem(builder(), Blocks.BLACK_TERRACOTTA));
     public static final Item BARRIER = register(new BlockItem(builder().rarity(Rarity.EPIC), Blocks.BARRIER));
-    public static final Item LIGHT = register(new BlockItem(builder().rarity(Rarity.EPIC), Blocks.LIGHT));
+    public static final Item LIGHT = register(new LightItem(builder().rarity(Rarity.EPIC), Blocks.LIGHT));
     public static final Item HAY_BLOCK = register(new BlockItem(builder(), Blocks.HAY_BLOCK));
     public static final Item WHITE_CARPET = register(new BlockItem(builder(), Blocks.WHITE_CARPET));
     public static final Item ORANGE_CARPET = register(new BlockItem(builder(), Blocks.ORANGE_CARPET));
