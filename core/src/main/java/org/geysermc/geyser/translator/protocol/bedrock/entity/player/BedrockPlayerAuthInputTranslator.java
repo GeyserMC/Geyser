@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -36,19 +37,25 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
@@ -57,12 +64,16 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
-public class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
+public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
 
     @Override
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
+
+        boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(packet);
+
+        processVehicleInput(session, packet, wasJumping);
 
         BedrockMovePlayerTranslator.translate(session, packet);
 
@@ -200,6 +211,96 @@ public class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAut
             session.sendDownstreamGamePacket(breakPacket);
         } else {
             session.getGeyser().getLogger().error("Unhandled item use transaction type!");
+        }
+    }
+
+    private static void processVehicleInput(GeyserSession session, PlayerAuthInputPacket packet, boolean wasJumping) {
+        Entity vehicle = session.getPlayerEntity().getVehicle();
+        if (vehicle == null) {
+            return;
+        }
+        if (vehicle instanceof ClientVehicle) {
+            session.getPlayerEntity().setVehicleInput(packet.getAnalogMoveVector());
+        }
+
+        boolean sendMovement = false;
+        if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
+            sendMovement = vehicle.isOnGround();
+        } else if (vehicle instanceof BoatEntity) {
+            if (vehicle.getPassengers().size() == 1) {
+                // The player is the only rider
+                sendMovement = true;
+            } else {
+                // Check if the player is the front rider
+                if (session.getPlayerEntity().isRidingInFront()) {
+                    sendMovement = true;
+                }
+            }
+        }
+
+        if (vehicle instanceof AbstractHorseEntity) {
+            // Behavior verified as of Java Edition 1.21.3
+            int currentJumpingTicks = session.getInputCache().getJumpingTicks();
+            if (currentJumpingTicks < 0) {
+                session.getInputCache().setJumpingTicks(++currentJumpingTicks);
+                if (currentJumpingTicks == 0) {
+                    session.getPlayerEntity().setVehicleJumpStrength(0);
+                }
+            }
+
+            boolean holdingJump = packet.getInputData().contains(PlayerAuthInputData.JUMPING);
+            if (wasJumping && !holdingJump) {
+                // Jump released
+                // Yes, I'm fairly certain that entity ID is correct.
+                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(),
+                    PlayerState.START_HORSE_JUMP, MathUtils.floor(session.getInputCache().getJumpScale() * 100f)));
+                session.getInputCache().setJumpingTicks(-10);
+            } else if (!wasJumping && holdingJump) {
+                session.getInputCache().setJumpingTicks(0);
+                session.getInputCache().setJumpScale(0);
+            } else if (holdingJump) {
+                session.getInputCache().setJumpingTicks(++currentJumpingTicks);
+                if (currentJumpingTicks < 10) {
+                    session.getInputCache().setJumpScale(session.getInputCache().getJumpScale() * 0.1F);
+                } else {
+                    session.getInputCache().setJumpScale(0.8f + 2.0f / (currentJumpingTicks - 9) * 0.1f);
+                }
+            }
+        } else {
+            session.getInputCache().setJumpScale(0);
+        }
+
+        if (sendMovement) {
+            Vector3f vehiclePosition = packet.getPosition();
+            Vector2f vehicleRotation = packet.getVehicleRotation();
+            if (vehicleRotation == null) {
+                return; // If the client just got in or out of a vehicle for example.
+            }
+
+            if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
+                Vector3f position = vehicle.getPosition();
+                if (vehicle instanceof BoatEntity boat) {
+                    // Undo the changes usually applied to the boat
+                    boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
+                } else {
+                    // This doesn't work if teleported is false
+                    vehicle.moveAbsolute(position,
+                        vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
+                        vehicle.isOnGround(), true);
+                }
+                return;
+            }
+
+            if (vehicle instanceof BoatEntity && !vehicle.isOnGround()) {
+                // Remove some Y position to prevents boats flying up
+                vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
+            }
+
+            ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
+                vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
+                vehicleRotation.getY() - 90, vehiclePosition.getX() // TODO I wonder if this is related to the horse spinning bugs...
+            );
+            session.sendDownstreamGamePacket(moveVehiclePacket);
         }
     }
 }

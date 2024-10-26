@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,6 +39,10 @@ public final class InputCache {
     private ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(false, false, false, false, false, false, false);
     private boolean lastHorizontalCollision;
     private int ticksSinceLastMovePacket;
+    @Getter @Setter
+    private int jumpingTicks;
+    @Getter @Setter
+    private float jumpScale;
 
     public InputCache(GeyserSession session) {
         this.session = session;
@@ -59,6 +65,10 @@ public final class InputCache {
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }
+    }
+
+    public boolean wasJumping() {
+        return this.inputPacket.isJump();
     }
 
     public void markPositionPacketSent() {

@@ -701,9 +701,4 @@ public class Entity implements GeyserEntity {
         packet.setData(data);
         session.sendUpstreamPacket(packet);
     }
-
-    @SuppressWarnings("unchecked")
-    public <I extends Entity> @Nullable I as(Class<I> entityClass) {
-        return entityClass.isInstance(this) ? (I) this : null;
-    }
 }

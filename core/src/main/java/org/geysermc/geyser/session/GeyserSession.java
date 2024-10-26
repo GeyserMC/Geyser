@@ -525,12 +525,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean placedBucket;
 
     /**
-     * Used to send a ServerboundMoveVehiclePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
-     */
-    @Setter
-    private long lastVehicleMoveTimestamp = System.currentTimeMillis();
-
-    /**
      * Counts how many ticks have occurred since an arm animation started.
      * -1 means there is no active arm swing; -2 means an arm swing will start in a tick.
      */

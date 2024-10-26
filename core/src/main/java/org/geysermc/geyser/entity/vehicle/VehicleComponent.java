@@ -758,7 +758,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos.getX(), javaPos.getY(), javaPos.getZ(), rotation.getX(), rotation.getY());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
-        vehicle.getSession().setLastVehicleMoveTimestamp(System.currentTimeMillis());
     }
 
     protected double getGravity() {
