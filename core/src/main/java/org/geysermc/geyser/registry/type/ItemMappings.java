@@ -135,8 +135,11 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             return ItemMapping.AIR;
         } else if (definition.getRuntimeId() == lodestoneCompass.getBedrockDefinition().getRuntimeId()) {
             return lodestoneCompass;
-        } else if (lightBlocks.containsKey(definition.getRuntimeId())) {
-            return lightBlocks.get(definition.getRuntimeId());
+        }
+
+        ItemMapping lightBlock = lightBlocks.get(definition.getRuntimeId());
+        if (lightBlock != null) {
+            return lightBlock;
         }
 
         boolean isBlock = data.getBlockDefinition() != null;

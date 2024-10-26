@@ -519,7 +519,7 @@ public class ItemRegistryPopulator {
 
                 ItemMapping lightBlockEntry = ItemMapping.builder()
                     .javaItem(Items.LIGHT)
-                    .bedrockIdentifier("minecraft:light_block_"+i)
+                    .bedrockIdentifier("minecraft:light_block_" + i)
                     .bedrockDefinition(lightBlock)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)

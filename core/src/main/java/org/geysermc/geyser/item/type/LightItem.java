@@ -44,7 +44,7 @@ public class LightItem extends BlockItem {
     @Override
     public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         ItemMapping lightLevelMapping = getLightLevelMapping(components, mappings);
-        if (lightLevelMapping!= null) {
+        if (lightLevelMapping != null) {
             return super.translateToBedrock(count, components, lightLevelMapping, mappings);
         }
 
