@@ -39,6 +39,7 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
 
 import java.util.UUID;
 
@@ -182,6 +183,12 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void tick() {
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+        if (session.getPlayerEntity().getVehicle() == this) {
+            // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
+            ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
+            session.sendDownstreamGamePacket(steerPacket);
+            return;
+        }
         doTick = !doTick; // Run every 100 ms
         if (!doTick || passengers.isEmpty()) {
             return;

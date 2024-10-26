@@ -78,83 +78,86 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         BedrockMovePlayerTranslator.translate(session, packet);
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
-        if (!inputData.isEmpty()) {
-            for (PlayerAuthInputData input : inputData) {
-                switch (input) {
-                    case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
-                    case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
-                    case START_SNEAKING -> {
-                        ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                        session.sendDownstreamGamePacket(startSneakPacket);
+        for (PlayerAuthInputData input : inputData) {
+            switch (input) {
+                case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
+                case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
+                case START_SNEAKING -> {
+                    ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
+                    session.sendDownstreamGamePacket(startSneakPacket);
 
-                        session.startSneaking();
-                    }
-                    case STOP_SNEAKING -> {
-                        ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
-                        session.sendDownstreamGamePacket(stopSneakPacket);
-
-                        session.stopSneaking();
-                    }
-                    case START_SPRINTING -> {
-                        if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                            ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                            session.sendDownstreamGamePacket(startSprintPacket);
-                            session.setSprinting(true);
-                        }
-                    }
-                    case STOP_SPRINTING -> {
-                        if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                            ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                            session.sendDownstreamGamePacket(stopSprintPacket);
-                        }
-                        session.setSprinting(false);
-                    }
-                    case START_SWIMMING -> session.setSwimming(true);
-                    case STOP_SWIMMING -> session.setSwimming(false);
-                    case START_FLYING -> { // Since 1.20.30
-                        if (session.isCanFly()) {
-                            if (session.getGameMode() == GameMode.SPECTATOR) {
-                                // should already be flying
-                                session.sendAdventureSettings();
-                                break;
-                            }
-
-                            if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
-                                // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
-                                // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
-                                session.sendAdventureSettings();
-                                break;
-                            }
-
-                            session.setFlying(true);
-                            session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
-                        } else {
-                            // update whether we can fly
-                            session.sendAdventureSettings();
-                            // stop flying
-                            PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
-                            stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                            stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
-                            stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
-                            stopFlyingPacket.setResultPosition(Vector3i.ZERO);
-                            stopFlyingPacket.setFace(0);
-                            session.sendUpstreamPacket(stopFlyingPacket);
-                        }
-                    }
-                    case STOP_FLYING -> {
-                        session.setFlying(false);
-                        session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
-                    }
-                    case START_GLIDING -> {
-                        // Otherwise gliding will not work in creative
-                        ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
-                        session.sendDownstreamGamePacket(playerAbilitiesPacket);
-                        sendPlayerGlideToggle(session, entity);
-                    }
-                    case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
+                    session.startSneaking();
                 }
+                case STOP_SNEAKING -> {
+                    ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
+                    session.sendDownstreamGamePacket(stopSneakPacket);
+
+                    session.stopSneaking();
+                }
+                case START_SPRINTING -> {
+                    if (!entity.getFlag(EntityFlag.SWIMMING)) {
+                        ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
+                        session.sendDownstreamGamePacket(startSprintPacket);
+                        session.setSprinting(true);
+                    }
+                }
+                case STOP_SPRINTING -> {
+                    if (!entity.getFlag(EntityFlag.SWIMMING)) {
+                        ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                        session.sendDownstreamGamePacket(stopSprintPacket);
+                    }
+                    session.setSprinting(false);
+                }
+                case START_SWIMMING -> session.setSwimming(true);
+                case STOP_SWIMMING -> session.setSwimming(false);
+                case START_FLYING -> { // Since 1.20.30
+                    if (session.isCanFly()) {
+                        if (session.getGameMode() == GameMode.SPECTATOR) {
+                            // should already be flying
+                            session.sendAdventureSettings();
+                            break;
+                        }
+
+                        if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+                            // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+                            // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+                            session.sendAdventureSettings();
+                            break;
+                        }
+
+                        session.setFlying(true);
+                        session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
+                    } else {
+                        // update whether we can fly
+                        session.sendAdventureSettings();
+                        // stop flying
+                        PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
+                        stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
+                        stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
+                        stopFlyingPacket.setResultPosition(Vector3i.ZERO);
+                        stopFlyingPacket.setFace(0);
+                        session.sendUpstreamPacket(stopFlyingPacket);
+                    }
+                }
+                case STOP_FLYING -> {
+                    session.setFlying(false);
+                    session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
+                }
+                case START_GLIDING -> {
+                    // Otherwise gliding will not work in creative
+                    ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
+                    session.sendDownstreamGamePacket(playerAbilitiesPacket);
+                    sendPlayerGlideToggle(session, entity);
+                }
+                case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
             }
         }
+        boolean up = inputData.contains(PlayerAuthInputData.UP);
+        // Yes. These are flipped. It's always been an issue with Geyser. That's what it's like working with this codebase.
+        // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
+        session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
+        session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
     }
 
     private static void sendPlayerGlideToggle(GeyserSession session, Entity entity) {
