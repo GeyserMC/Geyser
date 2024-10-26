@@ -153,11 +153,13 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
             }
         }
-        boolean up = inputData.contains(PlayerAuthInputData.UP);
-        // Yes. These are flipped. It's always been an issue with Geyser. That's what it's like working with this codebase.
-        // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
-        session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
-        session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
+        if (entity.getVehicle() instanceof BoatEntity) {
+            boolean up = inputData.contains(PlayerAuthInputData.UP);
+            // Yes. These are flipped. It's always been an issue with Geyser. That's what it's like working with this codebase.
+            // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
+            session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
+            session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
+        }
     }
 
     private static void sendPlayerGlideToggle(GeyserSession session, Entity entity) {
@@ -228,7 +230,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean sendMovement = false;
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
-            sendMovement = vehicle.isOnGround();
+            sendMovement = true;
         } else if (vehicle instanceof BoatEntity) {
             if (vehicle.getPassengers().size() == 1) {
                 // The player is the only rider
@@ -299,6 +301,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
             }
 
+            vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                 vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
                 vehicleRotation.getY() - 90, vehiclePosition.getX() // TODO I wonder if this is related to the horse spinning bugs...
