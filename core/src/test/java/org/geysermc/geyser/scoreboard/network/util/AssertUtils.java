@@ -26,6 +26,7 @@
 package org.geysermc.geyser.scoreboard.network.util;
 
 import java.util.Collections;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.junit.jupiter.api.Assertions;
@@ -38,7 +39,7 @@ public class AssertUtils {
         Assertions.assertEquals(expected.get(), actual);
     }
 
-    public static void assertNextPacket(Supplier<BedrockPacket> expected, GeyserMockContext context) {
+    public static void assertNextPacket(GeyserMockContext context, Supplier<BedrockPacket> expected) {
         assertContextEquals(expected, context.nextPacket());
     }
 
@@ -48,6 +49,16 @@ public class AssertUtils {
             Assertions.fail("Expected another packet! " + type);
         }
         Assertions.assertEquals(type, actual.getClass());
+    }
+
+    public static <T extends BedrockPacket> void assertNextPacketMatch(GeyserMockContext context, Class<T> type, Consumer<T> matcher) {
+        var actual = context.nextPacket();
+        if (actual == null) {
+            Assertions.fail("Expected another packet!");
+        }
+        Assertions.assertEquals(type, actual.getClass(), "Expected packet to be an instance of " + type);
+        //noinspection unchecked verified in the line above me
+        matcher.accept((T) actual);
     }
 
     public static void assertNoNextPacket(GeyserMockContext context) {

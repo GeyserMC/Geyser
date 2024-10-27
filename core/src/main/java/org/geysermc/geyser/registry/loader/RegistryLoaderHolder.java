@@ -23,19 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.registry.loader;
 
-public final class EnvironmentUtils {
-    public static final boolean IS_UNIT_TESTING = isUnitTesting();
-
-    private EnvironmentUtils() {}
-
-    private static boolean isUnitTesting() {
-        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-            if (element.getClassName().startsWith("org.junit.")) {
-                return true;
-            }
-        }
-        return false;
-    }
+/**
+ * A holder of the constructor parameters to prevent them from automatically loading,
+ * and instead load them when the load method is called.
+ */
+public record RegistryLoaderHolder<I, M>(I input, RegistryLoader<I, M> registryLoader) {
 }

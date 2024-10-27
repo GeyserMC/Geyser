@@ -145,7 +145,6 @@ import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -1122,10 +1121,7 @@ public final class EntityDefinitions {
                 .identifier("minecraft:armor_stand") // Emulated
                 .build(false); // Never sent over the network
 
-        // causes the registries to load
-        if (!EnvironmentUtils.isUnitTesting) {
-            Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
-        }
+        Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
     }
 
     public static void init() {
