@@ -231,9 +231,15 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         logger.info("******************************************");
 
-        /* Initialize registries */
-        Registries.init();
-        BlockRegistries.init();
+        /*
+        First load the registries and then populate them.
+        Both the block registries and the common registries depend on each other,
+        so maintaining this order is crucial for Geyser to load.
+         */
+        BlockRegistries.load();
+        Registries.load();
+        BlockRegistries.populate();
+        Registries.populate();
 
         RegistryCache.init();
 

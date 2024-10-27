@@ -62,7 +62,7 @@ import java.util.*;
  * Holds all the common registries in Geyser.
  */
 public final class Registries {
-    private static boolean initialized = false;
+    private static boolean loaded = false;
 
     /**
      * A registry holding all the providers.
@@ -167,9 +167,9 @@ public final class Registries {
      */
     public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
-    public static void init() {
-        if (initialized) return;
-        initialized = true;
+    public static void load() {
+        if (loaded) return;
+        loaded = true;
 
         PROVIDERS.load();
         BEDROCK_ENTITY_IDENTIFIERS.load();
@@ -191,7 +191,9 @@ public final class Registries {
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();
+    }
 
+    public static void populate() {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
 
