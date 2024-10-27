@@ -1371,14 +1371,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setSwimming(boolean swimming) {
-        if (swimming) {
+        if (!swimming && playerEntity.getFlag(EntityFlag.CRAWLING)) {
+            // Do not update bounding box.
+            playerEntity.setFlag(EntityFlag.SWIMMING, false);
+            playerEntity.updateBedrockMetadata();
+            return;
+        }
+        toggleSwimmingPose(swimming, EntityFlag.SWIMMING);
+    }
+
+    public void setCrawling(boolean crawling) {
+        toggleSwimmingPose(crawling, EntityFlag.CRAWLING);
+    }
+
+    private void toggleSwimmingPose(boolean crawling, EntityFlag flag) {
+        if (crawling) {
             this.pose = Pose.SWIMMING;
             playerEntity.setBoundingBoxHeight(0.6f);
         } else {
             this.pose = Pose.STANDING;
             playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
         }
-        playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
+        playerEntity.setFlag(flag, crawling);
         playerEntity.updateBedrockMetadata();
     }
 

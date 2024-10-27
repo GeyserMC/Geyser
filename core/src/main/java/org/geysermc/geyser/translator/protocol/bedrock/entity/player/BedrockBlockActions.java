@@ -31,14 +31,10 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
@@ -49,7 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.util.BlockUtils;
-import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -57,24 +52,21 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractActio
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.List;
 
 final class BedrockBlockActions {
 
     static void translate(GeyserSession session, List<PlayerBlockActionData> playerActions) {
-        SessionPlayerEntity entity = session.getPlayerEntity();
-
         // Send book update before any player action
         session.getBookEditCache().checkForSend();
 
         for (PlayerBlockActionData blockActionData : playerActions) {
-            handle(session, entity, blockActionData);
+            handle(session, blockActionData);
         }
     }
 
-    private static void handle(GeyserSession session, SessionPlayerEntity entity, PlayerBlockActionData blockActionData) {
+    private static void handle(GeyserSession session, PlayerBlockActionData blockActionData) {
         PlayerActionType action = blockActionData.getAction();
         Vector3i vector = blockActionData.getBlockPosition();
         int blockFace = blockActionData.getFace();
@@ -197,34 +189,6 @@ final class BedrockBlockActions {
             }
             // Handled in BedrockInventoryTransactionTranslator
             case STOP_BREAK -> {
-            }
-            case DIMENSION_CHANGE_SUCCESS -> {
-                //sometimes the client doesn't feel like loading
-                PlayStatusPacket spawnPacket = new PlayStatusPacket();
-                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-                session.sendUpstreamPacket(spawnPacket);
-
-                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                attributesPacket.getAttributes().addAll(entity.getAttributes().values());
-                session.sendUpstreamPacket(attributesPacket);
-            }
-            case MISSED_SWING -> {
-                // Java edition sends a cooldown when hitting air.
-                // Normally handled by BedrockLevelSoundEventTranslator, but there is no sound on Java for this.
-                CooldownUtils.sendCooldown(session);
-
-                // TODO Re-evaluate after pre-1.20.10 is no longer supported?
-                if (session.getArmAnimationTicks() == -1) {
-                    session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
-                    session.activateArmAnimationTicking();
-
-                    // Send packet to Bedrock so it knows
-                    AnimatePacket animatePacket = new AnimatePacket();
-                    animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                    animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-                    session.sendUpstreamPacket(animatePacket);
-                }
             }
         }
     }

@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
@@ -64,6 +65,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -94,6 +96,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
+        if (packet instanceof PlayerAuthInputPacket) {
+            //System.out.println(packet);
+        } else {
+            System.out.println(ChatColor.toANSI(ChatColor.GREEN) + packet + ChatColor.ANSI_RESET);
+        }
         Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
         return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
     }

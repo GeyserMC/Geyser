@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;

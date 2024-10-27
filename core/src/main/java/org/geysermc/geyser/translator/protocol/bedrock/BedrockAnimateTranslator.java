@@ -44,7 +44,6 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             return;
         }
 
-        System.out.println("wewewewewewewewewewewe");
         if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
             session.armSwingPending();
             // Delay so entity damage can be processed first

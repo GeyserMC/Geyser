@@ -33,6 +33,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
@@ -81,8 +82,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         int netId = session.getLastRecipeNetId().get();
         Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getJavaToBedrockRecipeIds();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        // Check if we should set cleanRecipes here or not.
-
 
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         recipesPacket.setAction(packet.isReplace() ? UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED : UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
@@ -94,78 +93,42 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             switch (display.getType()) {
                 case CRAFTING_SHAPED -> {
                     ShapedCraftingRecipeDisplay shapedRecipe = (ShapedCraftingRecipeDisplay) display;
-                    Pair<Item, ItemData> pair = translateToOutput(session, shapedRecipe.result());
-                    if (pair == null || !pair.right().isValid()) {
-                        // Likely modded item Bedrock will complain about
+                    var bedrockRecipes = combinations(session, display, shapedRecipe.ingredients());
+                    if (bedrockRecipes == null) {
                         continue;
                     }
-
-                    ItemData output = pair.right();
-                    if (!(pair.left() instanceof BedrockRequiresTagItem)) {
-                        // Strip NBT - tools won't appear in the recipe book otherwise
-                        output = output.toBuilder().tag(null).build();
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    ItemData output = bedrockRecipes.right();
+                    List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
+                    for (int i = 0; i < left.size(); i++) {
+                        List<ItemDescriptorWithCount> inputs = left.get(i);
+                        String recipeId = contents.id() + "_" + i;
+                        craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
+                            shapedRecipe.width(), shapedRecipe.height(), inputs,
+                            Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
+                        recipesPacket.getUnlockedRecipes().add(recipeId);
+                        bedrockRecipeIds.add(recipeId);
                     }
-
-                    boolean empty = true;
-                    boolean complexInputs = false;
-                    List<List<ItemDescriptorWithCount>> inputs = new ArrayList<>(shapedRecipe.ingredients().size());
-                    for (SlotDisplay input : shapedRecipe.ingredients()) {
-                        List<ItemDescriptorWithCount> translated = translateToInput(session, input);
-                        if (translated == null) {
-                            continue;
-                        }
-                        inputs.add(translated);
-                        if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
-                            empty = false;
-                        }
-                        complexInputs |= translated.size() > 1;
-                    }
-                    if (empty) {
-                        // Crashes Bedrock 1.19.70 otherwise
-                        // Fixes https://github.com/GeyserMC/Geyser/issues/3549
-                        continue;
-                    }
-
-                    if (complexInputs) {
-                        System.out.println(inputs);
-                        if (true) continue;
-                        List<List<ItemDescriptorWithCount>> processedInputs = Lists.cartesianProduct(inputs);
-                        System.out.println(processedInputs.size());
-                        if (processedInputs.size() <= 500) { // Do not let us process giant lists.
-                            List<String> bedrockRecipeIds = new ArrayList<>();
-                            for (int i = 0; i < processedInputs.size(); i++) {
-                                List<ItemDescriptorWithCount> possibleInput = processedInputs.get(i);
-                                String recipeId = contents.id() + "_" + i;
-                                craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
-                                    shapedRecipe.width(), shapedRecipe.height(), possibleInput,
-                                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
-                                recipesPacket.getUnlockedRecipes().add(recipeId);
-                                bedrockRecipeIds.add(recipeId);
-                            }
-                            javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
-                            continue;
-                        }
-                    }
-                    String recipeId = Integer.toString(contents.id());
-                    craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
-                        shapedRecipe.width(), shapedRecipe.height(), inputs.stream().map(descriptors -> descriptors.get(0)).toList(),
-                        Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, false, RecipeUnlockingRequirement.INVALID));
-                    recipesPacket.getUnlockedRecipes().add(recipeId);
-                    javaToBedrockRecipeIds.put(contents.id(), Collections.singletonList(recipeId));
+                    javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
                 case CRAFTING_SHAPELESS -> {
                     ShapelessCraftingRecipeDisplay shapelessRecipe = (ShapelessCraftingRecipeDisplay) display;
-                    Pair<Item, ItemData> pair = translateToOutput(session, shapelessRecipe.result());
-                    if (pair == null || !pair.right().isValid()) {
-                        // Likely modded item Bedrock will complain about
+                    var bedrockRecipes = combinations(session, display, shapelessRecipe.ingredients());
+                    if (bedrockRecipes == null) {
                         continue;
                     }
-
-                    ItemData output = pair.right();
-                    if (!(pair.left() instanceof BedrockRequiresTagItem)) {
-                        // Strip NBT - tools won't appear in the recipe book otherwise
-                        output = output.toBuilder().tag(null).build();
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    ItemData output = bedrockRecipes.right();
+                    List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
+                    for (int i = 0; i < left.size(); i++) {
+                        List<ItemDescriptorWithCount> inputs = left.get(i);
+                        String recipeId = contents.id() + "_" + i;
+                        craftingDataPacket.getCraftingData().add(ShapelessRecipeData.shapeless(recipeId,
+                            inputs, Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0, netId++, RecipeUnlockingRequirement.INVALID));
+                        recipesPacket.getUnlockedRecipes().add(recipeId);
+                        bedrockRecipeIds.add(recipeId);
                     }
+                    javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
                 case SMITHING -> {
                     if (true) {
@@ -298,5 +261,60 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         }
         ItemMapping mapping = session.getItemMappings().getMapping(item);
         return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); // Need to check count
+    }
+
+    private Pair<List<List<ItemDescriptorWithCount>>, ItemData> combinations(GeyserSession session, RecipeDisplay display, List<SlotDisplay> ingredients) {
+        Pair<Item, ItemData> pair = translateToOutput(session, display.result());
+        if (pair == null || !pair.right().isValid()) {
+            // Likely modded item Bedrock will complain about
+            return null;
+        }
+
+        ItemData output = pair.right();
+        if (!(pair.left() instanceof BedrockRequiresTagItem)) {
+            // Strip NBT - tools won't appear in the recipe book otherwise
+            output = output.toBuilder().tag(null).build();
+        }
+
+        boolean empty = true;
+        boolean complexInputs = false;
+        List<List<ItemDescriptorWithCount>> inputs = new ArrayList<>(ingredients.size());
+        for (SlotDisplay input : ingredients) {
+            List<ItemDescriptorWithCount> translated = translateToInput(session, input);
+            if (translated == null) {
+                continue;
+            }
+            inputs.add(translated);
+            if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
+                empty = false;
+            }
+            complexInputs |= translated.size() > 1;
+        }
+        if (empty) {
+            // Crashes Bedrock 1.19.70 otherwise
+            // Fixes https://github.com/GeyserMC/Geyser/issues/3549
+            return null;
+        }
+
+        if (complexInputs) {
+            System.out.println(inputs);
+            long size = 1;
+            // See how big a cartesian product will get without creating one (Guava throws an error; not really ideal)
+            for (List<ItemDescriptorWithCount> list : inputs) {
+                size *= list.size();
+                if (size > 500) {
+                    // Too much. No.
+                    complexInputs = false;
+                    break;
+                }
+            }
+            if (complexInputs) {
+                return Pair.of(Lists.cartesianProduct(inputs), output);
+            }
+        }
+        return Pair.of(
+            Collections.singletonList(inputs.stream().map(descriptors -> descriptors.get(0)).toList()),
+            output
+        );
     }
 }

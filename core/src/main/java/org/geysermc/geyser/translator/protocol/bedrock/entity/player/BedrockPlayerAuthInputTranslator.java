@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
+import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -65,17 +66,22 @@ import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
 public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
+    private Set<PlayerAuthInputData> data = Set.of();
 
     @Override
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
+        if (!data.equals(packet.getInputData())) {
+            System.out.println(data);
+            this.data = packet.getInputData();
+        }
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(packet);
 
-        processVehicleInput(session, packet, wasJumping);
-
         BedrockMovePlayerTranslator.translate(session, packet);
+
+        processVehicleInput(session, packet, wasJumping);
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
         for (PlayerAuthInputData input : inputData) {
@@ -110,6 +116,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
+                case START_CRAWLING -> session.setCrawling(true);
+                case STOP_CRAWLING -> session.setCrawling(false);
                 case START_FLYING -> { // Since 1.20.30
                     if (session.isCanFly()) {
                         if (session.getGameMode() == GameMode.SPECTATOR) {
@@ -151,6 +159,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     sendPlayerGlideToggle(session, entity);
                 }
                 case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
+                case MISSED_SWING -> CooldownUtils.sendCooldown(session); // Java edition sends a cooldown when hitting air.
             }
         }
         if (entity.getVehicle() instanceof BoatEntity) {
@@ -249,7 +258,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             if (currentJumpingTicks < 0) {
                 session.getInputCache().setJumpingTicks(++currentJumpingTicks);
                 if (currentJumpingTicks == 0) {
-                    session.getPlayerEntity().setVehicleJumpStrength(0);
+                    session.getInputCache().setJumpScale(0);
                 }
             }
 
