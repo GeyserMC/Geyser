@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -50,7 +51,6 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
@@ -71,7 +71,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     @Override
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         if (!data.equals(packet.getInputData())) {
-            System.out.println(data);
+            System.out.println(packet.getInputData());
             this.data = packet.getInputData();
         }
         SessionPlayerEntity entity = session.getPlayerEntity();
@@ -267,7 +267,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 // Jump released
                 // Yes, I'm fairly certain that entity ID is correct.
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(),
-                    PlayerState.START_HORSE_JUMP, MathUtils.floor(session.getInputCache().getJumpScale() * 100f)));
+                    PlayerState.START_HORSE_JUMP, GenericMath.floor(session.getInputCache().getJumpScale() * 100f)));
                 session.getInputCache().setJumpingTicks(-10);
             } else if (!wasJumping && holdingJump) {
                 session.getInputCache().setJumpingTicks(0);

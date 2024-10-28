@@ -27,6 +27,8 @@ package org.geysermc.geyser.session.cache;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -52,12 +54,28 @@ public final class InputCache {
         // Input is sent to the server before packet positions, as of 1.21.2
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
         var oldInputPacket = this.inputPacket;
+
+        boolean up, down, left, right;
+        if (packet.getInputMode() == InputMode.MOUSE) {
+            up = bedrockInput.contains(PlayerAuthInputData.UP);
+            down = bedrockInput.contains(PlayerAuthInputData.DOWN);
+            left = bedrockInput.contains(PlayerAuthInputData.LEFT);
+            right = bedrockInput.contains(PlayerAuthInputData.RIGHT);
+        } else {
+            // The above flags don't fire TODO test console
+            Vector2f analogMovement = packet.getAnalogMoveVector();
+            up = analogMovement.getY() > 0;
+            down = analogMovement.getY() < 0;
+            left = analogMovement.getX() > 0;
+            right = analogMovement.getX() < 0;
+        }
+
         // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
-            .withForward(bedrockInput.contains(PlayerAuthInputData.UP))
-            .withBackward(bedrockInput.contains(PlayerAuthInputData.DOWN))
-            .withLeft(bedrockInput.contains(PlayerAuthInputData.LEFT))
-            .withRight(bedrockInput.contains(PlayerAuthInputData.RIGHT))
+            .withForward(up)
+            .withBackward(down)
+            .withLeft(left)
+            .withRight(right)
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMPING)) // Looks like this only triggers when the JUMP key input is being pressed. There's also JUMP_DOWN?
             .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAKING))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINTING)); // SPRINTING will trigger even if the player isn't moving

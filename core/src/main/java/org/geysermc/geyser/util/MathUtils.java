@@ -106,17 +106,6 @@ public class MathUtils {
     }
 
     /**
-     * Round the given float to the previous whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int floor(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber < truncated ? truncated - 1 : truncated;
-    }
-
-    /**
      * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
      *
      * @param num number to calculate

@@ -61,6 +61,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySl
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SmithingTrimDemoSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
@@ -78,7 +79,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipeBookAddPacket packet) {
-        System.out.println(packet);
+        //System.out.println(packet);
         int netId = session.getLastRecipeNetId().get();
         Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getJavaToBedrockRecipeIds();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
@@ -131,8 +132,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
                 case SMITHING -> {
-                    if (true) {
-                        System.out.println(display);
+                    if (display.result() instanceof SmithingTrimDemoSlotDisplay) {
+                        // Skip these - Bedrock already knows about them from the TrimDataPacket
                         continue;
                     }
                     SmithingRecipeDisplay smithingRecipe = (SmithingRecipeDisplay) display;
@@ -169,7 +170,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             }
         }
 
-        System.out.println(craftingDataPacket);
+        //System.out.println(craftingDataPacket);
         session.sendUpstreamPacket(craftingDataPacket);
         session.sendUpstreamPacket(recipesPacket);
         session.getLastRecipeNetId().set(netId);
@@ -212,26 +213,11 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 // Cache is implemented as, presumably, an item tag will be used multiple times in succession
                 // (E.G. a chest with planks tags)
                 return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().computeIfAbsent(items, key -> {
-//                    String molang = "q.is_item_name_any('', "
-//                        + Arrays.stream(items).mapToObj(item -> {
-//                            ItemMapping mapping = session.getItemMappings().getMapping(item);
-//                            return "'" + mapping.getBedrockIdentifier() + "'";
-//                        }).collect(Collectors.joining(", "))
-//                        + ")";
-//                    String molang = Arrays.stream(items).mapToObj(item -> {
-//                        ItemMapping mapping = session.getItemMappings().getMapping(item);
-//                        return "q.identifier == '" + mapping.getBedrockIdentifier() + "'";
-//                    }).collect(Collectors.joining(" || "));
-//                    if ("minecraft:planks".equals(tag.toString())) {
-//                        String molang = "q.any_tag('minecraft:planks')";
-//                        return Collections.singletonList(new ItemDescriptorWithCount(new MolangDescriptor(molang, 10), 1));
-//                    }
-
                     Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
                     for (int item : key) {
                         itemDescriptors.add(fromItem(session, item));
                     }
-                    return new ArrayList<>(itemDescriptors); // This, or a list from the start with contains -> add?
+                    return List.copyOf(itemDescriptors); // This, or a list from the start with contains -> add?
                 });
             }
         }
