@@ -145,8 +145,6 @@ public class BlockRegistries {
         CUSTOM_BLOCK_ITEM_OVERRIDES.load();
         EXTENDED_COLLISION_BOXES.load();
         CUSTOM_SKULLS.load();
-
-        COLLISIONS.load();
     }
 
     public static void populate() {
@@ -156,6 +154,7 @@ public class BlockRegistries {
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.DEFINITION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
+        COLLISIONS.load();
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
