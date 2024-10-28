@@ -42,7 +42,7 @@ import java.util.UUID;
 import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 @Translator(packet = ClientboundFinishConfigurationPacket.class)
-public class JavaFinishConfigurationPacketTranslator extends PacketTranslator<ClientboundFinishConfigurationPacket> {
+public class JavaFinishConfigurationTranslator extends PacketTranslator<ClientboundFinishConfigurationPacket> {
     /**
      * Required to use the specified cartography table recipes
      */
@@ -72,6 +72,9 @@ public class JavaFinishConfigurationPacketTranslator extends PacketTranslator<Cl
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);
+            session.getCraftingRecipes().clear();
+            session.getJavaToBedrockRecipeIds().clear();
+            session.getStonecutterRecipes().clear();
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }

@@ -44,12 +44,15 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -104,9 +107,6 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
      * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
      */
     private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
-        if (true) {
-            return;
-        }
         // Check if it's the crafting grid result slot.
         if (slot != 0) {
             return;
@@ -166,14 +166,13 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             ItemData[] ingredients = new ItemData[height * width];
             //construct ingredient list and clear slots on client
-            Ingredient[] javaIngredients = new Ingredient[height * width];
+            List<SlotDisplay> javaIngredients = new ArrayList<>(height * width);
             int index = 0;
             for (int row = firstRow; row < height + firstRow; row++) {
                 for (int col = firstCol; col < width + firstCol; col++) {
                     GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
                     ingredients[index] = geyserItemStack.getItemData(session);
-                    int[] items = new int[] {geyserItemStack.isEmpty() ? 0 : geyserItemStack.getJavaId()};
-                    javaIngredients[index] = new Ingredient(new HolderSet(items));
+                    javaIngredients.add(geyserItemStack.isEmpty() ? new EmptySlotDisplay() : new ItemStackSlotDisplay(geyserItemStack.getItemStack()));
 
                     InventorySlotPacket slotPacket = new InventorySlotPacket();
                     slotPacket.setContainerId(ContainerId.UI);
@@ -185,7 +184,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             }
 
             // Cache this recipe so we know the client has received it
-            session.getCraftingRecipes().put(newRecipeId, new GeyserShapedRecipe(width, height, javaIngredients, item));
+            session.getCraftingRecipes().put(newRecipeId, new GeyserShapedRecipe(width, height, javaIngredients, new ItemStackSlotDisplay(item)));
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             craftPacket.getCraftingData().add(ShapedRecipeData.shaped(

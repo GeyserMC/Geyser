@@ -446,8 +446,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
-    @Setter
-    private Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final AtomicInteger lastRecipeNetId;
 
     /**
