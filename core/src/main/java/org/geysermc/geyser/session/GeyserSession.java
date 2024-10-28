@@ -83,7 +83,6 @@ import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -179,6 +178,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
@@ -684,7 +684,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
-        this.lastRecipeNetId = new AtomicInteger(1);
+        this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID);
 
         this.spawned = false;
         this.loggedIn = false;
@@ -755,12 +755,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
-
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(this.upstream.getProtocolVersion()));
-        upstream.sendPacket(craftingDataPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);

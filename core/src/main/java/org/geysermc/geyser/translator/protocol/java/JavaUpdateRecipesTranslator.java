@@ -30,8 +30,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
@@ -58,8 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
-
 /**
  * Used to send all valid recipes from Java to Bedrock.
  * <p>
@@ -67,15 +63,6 @@ import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
  */
 @Translator(packet = ClientboundUpdateRecipesPacket.class)
 public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpdateRecipesPacket> {
-    /**
-     * Required to use the specified cartography table recipes
-     */
-    private static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
-            MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
-            MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
-            MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
-            MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
-    );
 
     private static final List<String> NETHERITE_UPGRADES = List.of(
             "minecraft:netherite_sword",
