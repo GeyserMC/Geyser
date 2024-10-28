@@ -512,7 +512,7 @@ public class ItemRegistryPopulator {
             Int2ObjectMap<ItemMapping> lightBlocks = new Int2ObjectOpenHashMap<>();
 
             for (int i = 0; i <= Properties.LEVEL.high(); i++) {
-                ItemDefinition lightBlock = definitions.get("minecraft:light_block_"+i);
+                ItemDefinition lightBlock = definitions.get("minecraft:light_block_" + i);
                 if (lightBlock == null) {
                     break;
                 }
