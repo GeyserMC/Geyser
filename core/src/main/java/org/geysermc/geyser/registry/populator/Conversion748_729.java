@@ -39,7 +39,7 @@ public class Conversion748_729 {
 
         if (NEW_PLAYER_HEADS.containsKey(identifier)) {
             return mapping.withBedrockIdentifier("minecraft:skull")
-                .withBedrockData(0);
+                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
         }
 
         return mapping;
