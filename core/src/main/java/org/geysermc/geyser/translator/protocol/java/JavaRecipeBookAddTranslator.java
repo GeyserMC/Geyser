@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
@@ -176,6 +177,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                         }
                     }
                     javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
+                    session.getSmithingRecipes().add(new GeyserSmithingRecipe(smithingRecipe));
+                    System.out.println(new GeyserSmithingRecipe(smithingRecipe));
                 }
             }
         }

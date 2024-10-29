@@ -182,6 +182,13 @@ public class GeyserItemStack {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
+    public SlotDisplay asSlotDisplay() {
+        if (isEmpty()) {
+            return new EmptySlotDisplay();
+        }
+        return new ItemStackSlotDisplay(this.getItemStack());
+    }
+
     public Item asItem() {
         if (isEmpty()) {
             return Items.AIR;

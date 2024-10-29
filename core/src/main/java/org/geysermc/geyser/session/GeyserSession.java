@@ -29,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -77,6 +78,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
@@ -141,6 +143,7 @@ import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
@@ -311,7 +314,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final AtomicInteger itemNetId = new AtomicInteger(2);
 
     @Setter
-    private ScheduledFuture<?> craftingGridFuture;
+    private ScheduledFuture<?> containerOutputFuture;
 
     /**
      * Stores session collision
@@ -447,6 +450,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
     private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    @Setter
+    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -455,6 +460,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
