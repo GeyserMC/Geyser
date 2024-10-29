@@ -87,7 +87,7 @@ public final class Registries {
     /**
      * A registry holding a NbtMap of the known entity identifiers.
      */
-    public static final DeferredRegistrySimple<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = DeferredRegistrySimple.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
+    public static final SimpleDeferredRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleDeferredRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
     /**
      * A registry containing all the Bedrock packet translators.
@@ -97,17 +97,17 @@ public final class Registries {
     /**
      * A registry holding a NbtMap of all the known biomes.
      */
-    public static final DeferredRegistrySimple<NbtMap> BIOMES_NBT = DeferredRegistrySimple.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
+    public static final SimpleDeferredRegistry<NbtMap> BIOMES_NBT = SimpleDeferredRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
     /**
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
      */
-    public static final DeferredRegistrySimple<Object2IntMap<String>> BIOME_IDENTIFIERS = DeferredRegistrySimple.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
+    public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
-    public static final DeferredRegistrySimpleMapped<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = DeferredRegistrySimpleMapped.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
      * A map containing all entity types and their respective Geyser definitions
@@ -149,37 +149,37 @@ public final class Registries {
      * A mapped registry holding the {@link ParticleType} to a corresponding {@link ParticleMapping}, containing various pieces of
      * data primarily for how Bedrock should handle the particle.
      */
-    public static final DeferredRegistrySimpleMapped<ParticleType, ParticleMapping> PARTICLES = DeferredRegistrySimpleMapped.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedDeferredRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
 
     /**
      * A registry holding all the potion mixes.
      */
-    public static final DeferredRegistryVersioned<Set<PotionMixData>> POTION_MIXES = DeferredRegistryVersioned.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
+    public static final VersionedDeferredRegistry<Set<PotionMixData>> POTION_MIXES = VersionedDeferredRegistry.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
 
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
-    public static final DeferredRegistrySimpleMapped<RecipeType, List<GeyserRecipe>> RECIPES = DeferredRegistrySimpleMapped.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
-    public static final DeferredRegistrySimpleMapped<String, ResourcePack> RESOURCE_PACKS = DeferredRegistrySimpleMapped.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<String, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
      */
-    public static final DeferredRegistrySimpleMapped<String, SoundMapping> SOUNDS = DeferredRegistrySimpleMapped.create("mappings/sounds.json", SoundRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<String, SoundMapping> SOUNDS = SimpleMappedDeferredRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
      */
-    public static final DeferredRegistrySimpleMapped<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = DeferredRegistrySimpleMapped.create("mappings/effects.json", SoundEventsRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedDeferredRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.
      */
-    public static final DeferredRegistrySimpleMapped<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = DeferredRegistrySimpleMapped.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
+    public static final SimpleMappedDeferredRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
     public static void load() {
         if (loaded) return;

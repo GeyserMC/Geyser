@@ -27,23 +27,24 @@ package org.geysermc.geyser.registry;
 
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistry<V>> {
-    protected <I> DeferredRegistrySimple(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, RegistryLoader<I, V> deferredLoader) {
+public class SimpleMappedDeferredRegistry<K, V> extends AbstractMappedDeferredRegistry<K, V, Map<K, V>, SimpleMappedRegistry<K, V>> {
+    protected <I> SimpleMappedDeferredRegistry(Function<RegistryLoader<I, Map<K, V>>, SimpleMappedRegistry<K, V>> registryLoader, RegistryLoader<I, Map<K, V>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistrySimple(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, Supplier<RegistryLoader<I, V>> deferredLoader) {
+    protected <I> SimpleMappedDeferredRegistry(Function<RegistryLoader<I, Map<K, V>>, SimpleMappedRegistry<K, V>> registryLoader, Supplier<RegistryLoader<I, Map<K, V>>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistrySimple(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, RegistryLoader<I, V> deferredLoader) {
+    protected <I> SimpleMappedDeferredRegistry(I input, RegistryInitializer<Map<K, V>, SimpleMappedRegistry<K, V>> registryInitializer, RegistryLoader<I, Map<K, V>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
-    protected <I> DeferredRegistrySimple(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, V>> deferredLoader) {
+    protected <I> SimpleMappedDeferredRegistry(I input, RegistryInitializer<Map<K, V>, SimpleMappedRegistry<K, V>> registryInitializer, Supplier<RegistryLoader<I, Map<K, V>>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
@@ -55,8 +56,8 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, RegistryLoader<I, V> deferredLoader) {
-        return new DeferredRegistrySimple<>(registryLoader, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(Function<RegistryLoader<I, Map<K, V>>, SimpleMappedRegistry<K, V>> registryLoader, RegistryLoader<I, Map<K, V>> deferredLoader) {
+        return new SimpleMappedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -67,8 +68,8 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, Supplier<RegistryLoader<I, V>> deferredLoader) {
-        return new DeferredRegistrySimple<>(registryLoader, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(Function<RegistryLoader<I, Map<K, V>>, SimpleMappedRegistry<K, V>> registryLoader, Supplier<RegistryLoader<I, Map<K, V>>> deferredLoader) {
+        return new SimpleMappedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -79,8 +80,8 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, RegistryLoader<I, V> deferredLoader) {
-        return new DeferredRegistrySimple<>(input, registryInitializer, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(I input, DeferredRegistry.RegistryInitializer<Map<K, V>, SimpleMappedRegistry<K, V>> registryInitializer, RegistryLoader<I, Map<K, V>> deferredLoader) {
+        return new SimpleMappedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
     /**
@@ -91,8 +92,8 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, V>> deferredLoader) {
-        return new DeferredRegistrySimple<>(input, registryInitializer, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(I input, DeferredRegistry.RegistryInitializer<Map<K, V>, SimpleMappedRegistry<K, V>> registryInitializer, Supplier<RegistryLoader<I, Map<K, V>>> deferredLoader) {
+        return new SimpleMappedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
     /**
@@ -102,8 +103,8 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(I input, RegistryLoader<I, V> deferredLoader) {
-        return create(input, SimpleRegistry::create, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(I input, RegistryLoader<I, Map<K, V>> deferredLoader) {
+        return create(input, SimpleMappedRegistry::create, deferredLoader);
     }
 
     /**
@@ -113,7 +114,7 @@ public class DeferredRegistrySimple<V> extends DeferredRegistry<V, SimpleRegistr
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistrySimple<V> create(I input, Supplier<RegistryLoader<I, V>> deferredLoader) {
-        return create(input, SimpleRegistry::create, deferredLoader);
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> create(I input, Supplier<RegistryLoader<I, Map<K, V>>> deferredLoader) {
+        return create(input, SimpleMappedRegistry::create, deferredLoader);
     }
 }

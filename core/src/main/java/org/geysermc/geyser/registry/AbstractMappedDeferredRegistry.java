@@ -33,20 +33,20 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class DeferredRegistryAbstractMapped<K, V, M extends Map<K, V>, R extends AbstractMappedRegistry<K, V, M>> extends DeferredRegistry<M, R> {
-    protected <I> DeferredRegistryAbstractMapped(Function<RegistryLoader<I, M>, R> registryLoader, RegistryLoader<I, M> deferredLoader) {
+public abstract class AbstractMappedDeferredRegistry<K, V, M extends Map<K, V>, R extends AbstractMappedRegistry<K, V, M>> extends DeferredRegistry<M, R> {
+    protected <I> AbstractMappedDeferredRegistry(Function<RegistryLoader<I, M>, R> registryLoader, RegistryLoader<I, M> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryAbstractMapped(Function<RegistryLoader<I, M>, R> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    protected <I> AbstractMappedDeferredRegistry(Function<RegistryLoader<I, M>, R> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryAbstractMapped(I input, RegistryInitializer<M, R> registryInitializer, RegistryLoader<I, M> deferredLoader) {
+    protected <I> AbstractMappedDeferredRegistry(I input, RegistryInitializer<M, R> registryInitializer, RegistryLoader<I, M> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
-    protected <I> DeferredRegistryAbstractMapped(I input, RegistryInitializer<M, R> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    protected <I> AbstractMappedDeferredRegistry(I input, RegistryInitializer<M, R> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 

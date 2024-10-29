@@ -69,7 +69,7 @@ public class BlockRegistries {
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final DeferredRegistryList<BlockCollision> COLLISIONS = DeferredRegistryList.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
+    public static final ListDeferredRegistry<BlockCollision> COLLISIONS = ListDeferredRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
 
     /**
      * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about

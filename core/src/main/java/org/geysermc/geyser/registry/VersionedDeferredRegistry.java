@@ -32,20 +32,20 @@ import org.geysermc.geyser.registry.loader.RegistryLoader;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DeferredRegistryVersioned<V> extends DeferredRegistryAbstractMapped<Integer, V, Int2ObjectMap<V>, VersionedRegistry<V>> {
-    protected <I> DeferredRegistryVersioned(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
+public class VersionedDeferredRegistry<V> extends AbstractMappedDeferredRegistry<Integer, V, Int2ObjectMap<V>, VersionedRegistry<V>> {
+    protected <I> VersionedDeferredRegistry(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryVersioned(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
+    protected <I> VersionedDeferredRegistry(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryVersioned(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
+    protected <I> VersionedDeferredRegistry(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
-    protected <I> DeferredRegistryVersioned(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
+    protected <I> VersionedDeferredRegistry(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
@@ -72,8 +72,8 @@ public class DeferredRegistryVersioned<V> extends DeferredRegistryAbstractMapped
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryVersioned<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
-        return new DeferredRegistryVersioned<>(registryLoader, deferredLoader);
+    public static <I, V> VersionedDeferredRegistry<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
+        return new VersionedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -84,8 +84,8 @@ public class DeferredRegistryVersioned<V> extends DeferredRegistryAbstractMapped
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryVersioned<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
-        return new DeferredRegistryVersioned<>(registryLoader, deferredLoader);
+    public static <I, V> VersionedDeferredRegistry<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
+        return new VersionedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -96,8 +96,8 @@ public class DeferredRegistryVersioned<V> extends DeferredRegistryAbstractMapped
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryVersioned<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
-        return new DeferredRegistryVersioned<>(input, registryInitializer, deferredLoader);
+    public static <I, V> VersionedDeferredRegistry<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
+        return new VersionedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
     /**
@@ -108,7 +108,7 @@ public class DeferredRegistryVersioned<V> extends DeferredRegistryAbstractMapped
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryVersioned<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
-        return new DeferredRegistryVersioned<>(input, registryInitializer, deferredLoader);
+    public static <I, V> VersionedDeferredRegistry<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
+        return new VersionedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 }

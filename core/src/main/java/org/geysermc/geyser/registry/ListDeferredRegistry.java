@@ -32,20 +32,20 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegistry<V>> {
-    protected <I> DeferredRegistryList(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, RegistryLoader<I, List<V>> deferredLoader) {
+public class ListDeferredRegistry<V> extends DeferredRegistry<List<V>, ListRegistry<V>> {
+    protected <I> ListDeferredRegistry(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, RegistryLoader<I, List<V>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryList(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
+    protected <I> ListDeferredRegistry(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
         super(registryLoader, deferredLoader);
     }
 
-    protected <I> DeferredRegistryList(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, RegistryLoader<I, List<V>> deferredLoader) {
+    protected <I> ListDeferredRegistry(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, RegistryLoader<I, List<V>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
 
-    protected <I> DeferredRegistryList(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
+    protected <I> ListDeferredRegistry(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
         super(input, registryInitializer, deferredLoader);
     }
     /**
@@ -111,8 +111,8 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, RegistryLoader<I, List<V>> deferredLoader) {
-        return new DeferredRegistryList<>(registryLoader, deferredLoader);
+    public static <I, V> ListDeferredRegistry<V> create(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, RegistryLoader<I, List<V>> deferredLoader) {
+        return new ListDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -123,8 +123,8 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
-        return new DeferredRegistryList<>(registryLoader, deferredLoader);
+    public static <I, V> ListDeferredRegistry<V> create(Function<RegistryLoader<I, List<V>>, ListRegistry<V>> registryLoader, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
+        return new ListDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
     /**
@@ -135,8 +135,8 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, RegistryLoader<I, List<V>> deferredLoader) {
-        return new DeferredRegistryList<>(input, registryInitializer, deferredLoader);
+    public static <I, V> ListDeferredRegistry<V> create(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, RegistryLoader<I, List<V>> deferredLoader) {
+        return new ListDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
     /**
@@ -147,8 +147,8 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
-        return new DeferredRegistryList<>(input, registryInitializer, deferredLoader);
+    public static <I, V> ListDeferredRegistry<V> create(I input, RegistryInitializer<List<V>, ListRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
+        return new ListDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
     /**
@@ -158,7 +158,7 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(I input, RegistryLoader<I, List<V>> deferredLoader) {
+    public static <I, V> ListDeferredRegistry<V> create(I input, RegistryLoader<I, List<V>> deferredLoader) {
         return create(input, ListRegistry::create, deferredLoader);
     }
 
@@ -169,7 +169,7 @@ public class DeferredRegistryList<V> extends DeferredRegistry<List<V>, ListRegis
      * @param <I> the input type
      * @return the new deferred registry
      */
-    public static <I, V> DeferredRegistryList<V> create(I input, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
+    public static <I, V> ListDeferredRegistry<V> create(I input, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
         return create(input, ListRegistry::create, deferredLoader);
     }
 }
