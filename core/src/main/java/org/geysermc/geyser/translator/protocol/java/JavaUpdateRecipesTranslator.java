@@ -57,14 +57,12 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket.SelectableRecipe;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
@@ -103,7 +101,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         int netId = session.getLastRecipeNetId().get();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        System.out.println(packet);
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
@@ -115,8 +112,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             addSmithingTransformRecipes(session, craftingDataPacket.getCraftingData());
             netId = session.getLastRecipeNetId().get(); // Was updated in the above method.
         } else {
-            System.out.println(Arrays.stream(smithingTemplate).mapToObj(i -> Registries.JAVA_ITEMS.get(i).javaIdentifier()).collect(Collectors.joining(" ")));
-            System.out.println(Arrays.stream(smithingAddition).mapToObj(i -> Registries.JAVA_ITEMS.get(i).javaIdentifier()).collect(Collectors.joining(" ")));
             oldSmithingTable = false;
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();

@@ -66,14 +66,9 @@ import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
 public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
-    private Set<PlayerAuthInputData> data = Set.of();
 
     @Override
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
-        if (!data.equals(packet.getInputData())) {
-            System.out.println(packet.getInputData());
-            this.data = packet.getInputData();
-        }
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         boolean wasJumping = session.getInputCache().wasJumping();

@@ -519,7 +519,7 @@ public class InventoryUtils {
                         }
                     }
 
-                    if (!ingredients.equals(mirroredIngredients) ||
+                    if (ingredients.equals(mirroredIngredients) ||
                             !testShapedRecipe(session, mirroredIngredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
                         continue;
                     }
@@ -551,7 +551,6 @@ public class InventoryUtils {
                     }
                 }
             }
-            System.out.println("Found existing match for item: " + recipe);
             return recipe;
         }
         return null;

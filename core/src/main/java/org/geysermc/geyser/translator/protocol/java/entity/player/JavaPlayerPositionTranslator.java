@@ -47,7 +47,6 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerPositionPacket packet) {
-        System.out.println(packet);
         if (!session.isLoggedIn())
             return;
 

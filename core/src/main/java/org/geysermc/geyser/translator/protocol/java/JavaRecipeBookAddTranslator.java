@@ -84,7 +84,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipeBookAddPacket packet) {
-        System.out.println(packet);
         int netId = session.getLastRecipeNetId().get();
         Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getJavaToBedrockRecipeIds();
         Int2ObjectMap<GeyserRecipe> geyserRecipes = session.getCraftingRecipes();
@@ -179,12 +178,10 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     }
                     javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
                     session.getSmithingRecipes().add(new GeyserSmithingRecipe(smithingRecipe));
-                    System.out.println(new GeyserSmithingRecipe(smithingRecipe));
                 }
             }
         }
 
-        //System.out.println(craftingDataPacket);
         session.sendUpstreamPacket(craftingDataPacket);
         session.sendUpstreamPacket(recipesPacket);
         session.getLastRecipeNetId().set(netId);
@@ -301,7 +298,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         }
 
         if (complexInputs) {
-            System.out.println(inputs);
             long size = 1;
             // See how big a cartesian product will get without creating one (Guava throws an error; not really ideal)
             for (List<ItemDescriptorWithCount> list : inputs) {
