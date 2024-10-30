@@ -36,24 +36,37 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
+import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.Locale;
 
-public record GeyserInstrument(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) {
+public interface GeyserInstrument {
 
-    public static GeyserInstrument read(RegistryEntryContext context) {
+    static GeyserInstrument read(RegistryEntryContext context) {
         NbtMap data = context.data();
         String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
         String description = MessageTranslator.deserializeDescriptionForTooltip(context.session(), data);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
-        return new GeyserInstrument(soundEvent, range, description, bedrockInstrument);
+        return new GeyserInstrument.Impl(soundEvent, range, description, bedrockInstrument);
     }
+
+    String soundEvent();
+
+    float range();
+
+    /**
+     * In Bedrock format
+     */
+    String description();
+
+    BedrockInstrument bedrockInstrument();
 
     /**
      * @return the ID of the Bedrock counterpart for this instrument. If there is none ({@link #bedrockInstrument()} is null), then -1 is returned.
      */
-    public int bedrockId() {
+    default int bedrockId() {
+        BedrockInstrument bedrockInstrument = bedrockInstrument();
         if (bedrockInstrument != null) {
             return bedrockInstrument.ordinal();
         }
@@ -63,13 +76,13 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
     /**
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
-    public static int bedrockIdToJava(GeyserSession session, int id) {
+    static int bedrockIdToJava(GeyserSession session, int id) {
         JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().instruments();
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
                 GeyserInstrument instrument = instruments.byId(i);
-                if (instrument.bedrockInstrument == bedrockInstrument) {
+                if (instrument.bedrockInstrument() == bedrockInstrument) {
                     return i;
                 }
             }
@@ -77,19 +90,47 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
         return -1;
     }
 
-    public static GeyserInstrument fromHolder(GeyserSession session, Holder<Instrument> holder) {
+    static GeyserInstrument fromHolder(GeyserSession session, Holder<Instrument> holder) {
         if (holder.isId()) {
             return session.getRegistryCache().instruments().byId(holder.id());
         }
         Instrument custom = holder.custom();
-        return new GeyserInstrument(custom.getSoundEvent().getName(), custom.getRange(),
-            MessageTranslator.convertMessageForTooltip(custom.getDescription(), session.locale()), null);
+        return new Wrapper(custom, session.locale());
+    }
+
+    record Wrapper(Instrument instrument, String locale) implements GeyserInstrument {
+        @Override
+        public String soundEvent() {
+            return instrument.getSoundEvent().getName();
+        }
+
+        @Override
+        public float range() {
+            return instrument.getRange();
+        }
+
+        @Override
+        public String description() {
+            return MessageTranslator.convertMessageForTooltip(instrument.getDescription(), locale);
+        }
+
+        @Override
+        public BedrockInstrument bedrockInstrument() {
+            if (instrument.getSoundEvent() instanceof BuiltinSound) {
+                return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.getSoundEvent().getName()));
+            }
+            // Probably custom
+            return null;
+        }
+    }
+
+    record Impl(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) implements GeyserInstrument {
     }
 
     /**
      * Each vanilla instrument on Bedrock, ordered in their network IDs.
      */
-    public enum BedrockInstrument {
+    enum BedrockInstrument {
         PONDER,
         SING,
         SEEK,
