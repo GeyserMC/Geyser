@@ -268,14 +268,12 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             UUID uuid = UUID.randomUUID();
 
-            ItemData bedrockAddition = ItemTranslator.translateToBedrock(session, material.getItemStack());
-
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             craftPacket.getCraftingData().add(SmithingTransformRecipeData.of(
                 uuid.toString(),
                 ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template.getItemStack())),
                 ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, input.getItemStack())),
-                ItemDescriptorWithCount.fromItem(bedrockAddition),
+                ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, material.getItemStack())),
                 ItemTranslator.translateToBedrock(session, output),
                 "smithing_table",
                 session.getLastRecipeNetId().incrementAndGet()

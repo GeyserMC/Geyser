@@ -74,6 +74,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             session.getUpstream().sendPacket(craftingDataPacket);
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();
+            session.getSmithingRecipes().clear();
             session.getStonecutterRecipes().clear();
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);

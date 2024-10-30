@@ -67,6 +67,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlo
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
@@ -461,6 +462,9 @@ public class InventoryUtils {
                 return acceptsAsInput(session, compositeSlotDisplay.contents().get(0), itemStack);
             }
             return compositeSlotDisplay.contents().stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
+        }
+        if (slotDisplay instanceof WithRemainderSlotDisplay remainderSlotDisplay) {
+            return acceptsAsInput(session, remainderSlotDisplay.input(), itemStack);
         }
         if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
             return itemStack.getJavaId() == itemSlotDisplay.item();

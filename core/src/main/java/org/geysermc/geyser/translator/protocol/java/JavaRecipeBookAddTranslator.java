@@ -67,6 +67,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSta
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SmithingTrimDemoSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
@@ -207,6 +208,10 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .toList();
+        }
+        if (slotDisplay instanceof WithRemainderSlotDisplay remainder) {
+            // Don't need to worry about what will stay in the crafting table after crafting for the purposes of sending recipes to Bedrock
+            return translateToInput(session, remainder.input());
         }
         if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
             return Collections.singletonList(fromItem(session, itemSlot.item()));
