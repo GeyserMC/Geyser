@@ -858,6 +858,7 @@ public final class EntityDefinitions {
             SALMON = EntityDefinition.inherited(abstractFishEntityBase.factory(), abstractFishEntityBase)
                     .type(EntityType.SALMON)
                     .height(0.5f).width(0.7f)
+                    .addTranslator(null) // Scale/variant - TODO
                     .build();
             TADPOLE = EntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
                     .type(EntityType.TADPOLE)

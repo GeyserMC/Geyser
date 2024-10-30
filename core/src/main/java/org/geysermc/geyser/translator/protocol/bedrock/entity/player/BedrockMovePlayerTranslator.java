@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -48,17 +47,17 @@ public final class BedrockMovePlayerTranslator {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
+        // Ignore movement packets until Bedrock's position matches the teleported position
+        if (session.getUnconfirmedTeleport() != null) {
+            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+            return;
+        }
+
         boolean actualPositionChanged = !entity.getPosition().equals(packet.getPosition());
 
         if (actualPositionChanged) {
             // Send book update before the player moves
             session.getBookEditCache().checkForSend();
-
-            // Ignore movement packets until Bedrock's position matches the teleported position
-            if (session.getUnconfirmedTeleport() != null) {
-                session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
-                return;
-            }
         }
 
         if (entity.getBedPosition() != null) {
@@ -72,9 +71,11 @@ public final class BedrockMovePlayerTranslator {
         float pitch = packet.getRotation().getX();
         float headYaw = packet.getRotation().getY();
 
-        // shouldSendPositionReminder also increments a tick counter, so make sure it's always called.
-        boolean positionChanged = session.getInputCache().shouldSendPositionReminder() || actualPositionChanged;
-        boolean rotationChanged = entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw;
+        boolean hasVehicle = entity.getVehicle() != null;
+
+        // shouldSendPositionReminder also increments a tick counter, so make sure it's always called unless the player is on a vehicle.
+        boolean positionChanged = !hasVehicle && session.getInputCache().shouldSendPositionReminder() || actualPositionChanged;
+        boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
         if (session.getLookBackScheduledFuture() != null) {
             // Resend the rotation if it was changed by Geyser
@@ -99,12 +100,6 @@ public final class BedrockMovePlayerTranslator {
 
             session.sendDownstreamGamePacket(playerRotationPacket);
         } else if (positionChanged) {
-            // World border collision will be handled by client vehicle
-            if (!(entity.getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled())
-                    && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
-                return;
-            }
-
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
                 CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
                 if (result != null) { // A null return value cancels the packet

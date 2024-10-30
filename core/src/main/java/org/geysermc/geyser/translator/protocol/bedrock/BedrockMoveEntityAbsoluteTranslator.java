@@ -42,17 +42,15 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
 
     @Override
     public void translate(GeyserSession session, MoveEntityAbsolutePacket packet) {
-        session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
-
         Entity ridingEntity = session.getPlayerEntity().getVehicle();
         if (ridingEntity != null && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), false)) {
             Vector3f position = Vector3f.from(ridingEntity.getPosition().getX(), packet.getPosition().getY(),
                     ridingEntity.getPosition().getZ());
             if (ridingEntity instanceof BoatEntity) {
                 // Undo the changes usually applied to the boat
-                ridingEntity.as(BoatEntity.class)
-                        .moveAbsoluteWithoutAdjustments(position, ridingEntity.getYaw(),
-                        ridingEntity.isOnGround(), true);
+//                ridingEntity.as(BoatEntity.class)
+//                        .moveAbsoluteWithoutAdjustments(position, ridingEntity.getYaw(),
+//                        ridingEntity.isOnGround(), true);
             } else {
                 // This doesn't work if teleported is false
                 ridingEntity.moveAbsolute(position,

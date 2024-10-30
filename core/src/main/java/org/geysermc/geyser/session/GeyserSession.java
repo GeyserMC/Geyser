@@ -29,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -77,13 +78,13 @@ import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -142,6 +143,7 @@ import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
@@ -179,6 +181,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
@@ -311,7 +314,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final AtomicInteger itemNetId = new AtomicInteger(2);
 
     @Setter
-    private ScheduledFuture<?> craftingGridFuture;
+    private ScheduledFuture<?> containerOutputFuture;
 
     /**
      * Stores session collision
@@ -446,8 +449,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
+    private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
     @Setter
-    private Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -456,6 +460,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
@@ -523,12 +528,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private boolean placedBucket;
-
-    /**
-     * Used to send a ServerboundMoveVehiclePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
-     */
-    @Setter
-    private long lastVehicleMoveTimestamp = System.currentTimeMillis();
 
     /**
      * Counts how many ticks have occurred since an arm animation started.
@@ -690,7 +689,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
-        this.lastRecipeNetId = new AtomicInteger(1);
+        this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
 
         this.spawned = false;
         this.loggedIn = false;
@@ -761,12 +760,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
-
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(this.upstream.getProtocolVersion()));
-        upstream.sendPacket(craftingDataPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
@@ -1377,14 +1370,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setSwimming(boolean swimming) {
-        if (swimming) {
+        if (!swimming && playerEntity.getFlag(EntityFlag.CRAWLING)) {
+            // Do not update bounding box.
+            playerEntity.setFlag(EntityFlag.SWIMMING, false);
+            playerEntity.updateBedrockMetadata();
+            return;
+        }
+        toggleSwimmingPose(swimming, EntityFlag.SWIMMING);
+    }
+
+    public void setCrawling(boolean crawling) {
+        toggleSwimmingPose(crawling, EntityFlag.CRAWLING);
+    }
+
+    private void toggleSwimmingPose(boolean crawling, EntityFlag flag) {
+        if (crawling) {
             this.pose = Pose.SWIMMING;
             playerEntity.setBoundingBoxHeight(0.6f);
         } else {
             this.pose = Pose.STANDING;
             playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
         }
-        playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
+        playerEntity.setFlag(flag, crawling);
         playerEntity.updateBedrockMetadata();
     }
 

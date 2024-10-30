@@ -47,6 +47,6 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
             clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
         }
 
-        entity.teleport(pos.toFloat(), packet.getXRot(), packet.getYRot(), packet.isOnGround());
+        entity.teleport(pos.toFloat(), packet.getYRot(), packet.getXRot(), packet.isOnGround());
     }
 }

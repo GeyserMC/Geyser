@@ -47,6 +47,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerPositionPacket packet) {
+        System.out.println(packet);
         if (!session.isLoggedIn())
             return;
 
@@ -57,9 +58,9 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // TODO this behavior seems outdated (1.21.2).
             // The server sends an absolute teleport everytime the player is respawned
             entity.setPosition(pos.toFloat());
-            entity.setYaw(packet.getXRot());
-            entity.setPitch(packet.getYRot());
-            entity.setHeadYaw(packet.getXRot());
+            entity.setYaw(packet.getYRot());
+            entity.setPitch(packet.getXRot());
+            entity.setHeadYaw(packet.getYRot());
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
@@ -78,7 +79,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             session.sendUpstreamPacket(movePlayerPacket);
             session.setSpawned(true);
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
-            session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getYRot(), packet.getXRot(), packet.getId())); // TODO
+            session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getXRot(), packet.getYRot(), packet.getId())); // TODO
 
             acceptTeleport(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getYRot(), packet.getXRot(), packet.getId());
 
@@ -107,8 +108,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         double newZ = pos.getZ() +
                 (packet.getRelatives().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        float newPitch = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getPitch() : 0);
-        float newYaw = packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getYaw() : 0);
+        float newPitch = packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0);
+        float newYaw = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getYaw() : 0);
 
         int id = packet.getId();
 

@@ -44,47 +44,6 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
     @Override
     public void translate(GeyserSession session, PlayerInputPacket packet) {
-//        ServerboundPlayerInputPacket playerInputPacket = new ServerboundPlayerInputPacket(
-//                packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
-//        );
-//
-//        session.sendDownstreamGamePacket(playerInputPacket);
 
-        session.getPlayerEntity().setVehicleInput(packet.getInputMotion());
-
-        // Bedrock only sends movement vehicle packets while moving
-        // This allows horses to take damage while standing on magma
-        Entity vehicle = session.getPlayerEntity().getVehicle();
-        boolean sendMovement = false;
-        if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
-            sendMovement = vehicle.isOnGround();
-        } else if (vehicle instanceof BoatEntity) {
-            if (vehicle.getPassengers().size() == 1) {
-                // The player is the only rider
-                sendMovement = true;
-            } else {
-                // Check if the player is the front rider
-                if (session.getPlayerEntity().isRidingInFront()) {
-                    sendMovement = true;
-                }
-            }
-        }
-        if (sendMovement) {
-            long timeSinceVehicleMove = System.currentTimeMillis() - session.getLastVehicleMoveTimestamp();
-            if (timeSinceVehicleMove >= 100) {
-                Vector3f vehiclePosition = vehicle.getPosition();
-
-                if (vehicle instanceof BoatEntity && !vehicle.isOnGround()) {
-                    // Remove some Y position to prevents boats flying up
-                    vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
-                }
-
-                ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
-                        vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
-                        vehicle.getYaw() - 90, vehicle.getPitch()
-                );
-                session.sendDownstreamGamePacket(moveVehiclePacket);
-            }
-        }
     }
 }

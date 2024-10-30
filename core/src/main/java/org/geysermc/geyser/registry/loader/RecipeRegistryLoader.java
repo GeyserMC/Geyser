@@ -31,8 +31,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -92,7 +90,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
             for (int i = 0; i < rawInputs.size(); i++) {
                 //javaInputs[i] = new Ingredient(new ItemStack[] {toItemStack(rawInputs.get(i), helper)});
             }
-            deserializedRecipes.add(new GeyserShapelessRecipe(javaInputs, output));
+            //deserializedRecipes.add(new GeyserShapelessRecipe(javaInputs, output));
         }
         return deserializedRecipes;
     }
@@ -118,7 +116,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
                     //inputs[i++] = new Ingredient(new ItemStack[] {stack});
                 }
             }
-            deserializedRecipes.add(new GeyserShapedRecipe(shape.size(), shape.get(0).length, inputs, output));
+            //deserializedRecipes.add(new GeyserShapedRecipe(shape.size(), shape.get(0).length, inputs, output));
         }
         return deserializedRecipes;
     }

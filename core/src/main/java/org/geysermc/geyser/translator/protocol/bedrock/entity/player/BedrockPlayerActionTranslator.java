@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.type.Entity;
@@ -102,6 +103,18 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                     session.sendDownstreamGamePacket(interactPacket);
                 }
+            }
+            case DIMENSION_CHANGE_SUCCESS -> {
+                SessionPlayerEntity entity = session.getPlayerEntity();
+                // Sometimes the client doesn't feel like loading
+                PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                session.sendUpstreamPacket(spawnPacket);
+
+                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                attributesPacket.getAttributes().addAll(entity.getAttributes().values());
+                session.sendUpstreamPacket(attributesPacket);
             }
         }
     }
