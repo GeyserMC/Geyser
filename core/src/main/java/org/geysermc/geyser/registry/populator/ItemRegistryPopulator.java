@@ -113,14 +113,8 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion685_671::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion712_685::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion729_712::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), Collections.emptyMap(), (item, mapping) -> {
-            String identifier = item.javaIdentifier();
-            if (identifier.endsWith("_head") || identifier.endsWith("_skull")) {
-                return mapping.withBedrockIdentifier(item.javaIdentifier());
-            }
-            return mapping;
-        }));
+        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion748_729::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

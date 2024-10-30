@@ -16,6 +16,7 @@ public class Conversion729_712 {
     private static final List<String> NEW_BLOCKS = Stream.of(NEW_PURPUR_BLOCKS, NEW_WALL_BLOCKS, NEW_SPONGE_BLOCKS, NEW_TNT_BLOCKS, STRUCTURE_VOID).flatMap(List::stream).toList();
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
+        mapping = Conversion748_729.remapItem(item, mapping);
         String identifier = mapping.getBedrockIdentifier();
 
         if (!NEW_BLOCKS.contains(identifier)) {
