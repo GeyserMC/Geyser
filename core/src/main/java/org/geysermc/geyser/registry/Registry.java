@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry;
 
 import java.util.function.Consumer;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
-import org.geysermc.geyser.registry.loader.RegistryLoaderHolder;
 
 /**
  * A wrapper around a value which is loaded based on the output from the provided
@@ -63,9 +62,7 @@ import org.geysermc.geyser.registry.loader.RegistryLoaderHolder;
  *
  * @param <M> the value being held by the registry
  */
-@SuppressWarnings("rawtypes")
 public abstract class Registry<M> implements IRegistry<M> {
-    protected RegistryLoaderHolder loaderHolder;
     protected M mappings;
 
     /**
@@ -78,17 +75,7 @@ public abstract class Registry<M> implements IRegistry<M> {
      * @param <I> the input type
      */
     protected <I> Registry(I input, RegistryLoader<I, M> registryLoader) {
-        this.loaderHolder = new RegistryLoaderHolder<>(input, registryLoader);
-    }
-
-    public void load() {
-        // don't load twice
-        if (this.mappings != null) return;
-
-        var holder = this.loaderHolder;
-        this.loaderHolder = null;
-        //noinspection unchecked
-        this.mappings = (M) holder.registryLoader().load(holder.input());
+        this.mappings = registryLoader.load(input);
     }
 
     /**
