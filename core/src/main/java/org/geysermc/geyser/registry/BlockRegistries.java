@@ -69,7 +69,7 @@ public class BlockRegistries {
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final ListRegistry<BlockCollision> COLLISIONS = ListRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
+    public static final ListDeferredRegistry<BlockCollision> COLLISIONS = ListDeferredRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
 
     /**
      * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about
@@ -130,23 +130,6 @@ public class BlockRegistries {
      */
     public static final SimpleMappedRegistry<String, CustomSkull> CUSTOM_SKULLS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
-    public static void load() {
-        BLOCKS.load();
-        BLOCK_STATES.load();
-        // collisions are loaded later, because they are initialized later
-        JAVA_BLOCKS.load();
-        JAVA_IDENTIFIER_TO_ID.load();
-        WATERLOGGED.load();
-        INTERACTIVE.load();
-        INTERACTIVE_MAY_BUILD.load();
-        CUSTOM_BLOCKS.load();
-        CUSTOM_BLOCK_STATE_OVERRIDES.load();
-        NON_VANILLA_BLOCK_STATE_OVERRIDES.load();
-        CUSTOM_BLOCK_ITEM_OVERRIDES.load();
-        EXTENDED_COLLISION_BOXES.load();
-        CUSTOM_SKULLS.load();
-    }
-
     public static void populate() {
         Blocks.VAULT.javaId(); // FIXME
         CustomSkullRegistryPopulator.populate();
@@ -160,5 +143,4 @@ public class BlockRegistries {
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
     }
-
 }

@@ -61,12 +61,6 @@ public class GeyserMockContext {
         try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
 
-            // Since Geyser isn't actually loaded, the Registries#init will not be called.
-            // This means that we manually load the registries we want to use
-            Registries.ENTITY_DEFINITIONS.load();
-            Registries.JAVA_ENTITY_IDENTIFIERS.load();
-            Registries.BEDROCK_ENTITY_PROPERTIES.load();
-
             geyserContext.accept(context);
         }
     }
