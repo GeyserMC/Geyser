@@ -178,7 +178,7 @@ public final class Scoreboard {
         Team team = teams.get(teamName);
         if (team != null) {
             if (SHOW_SCOREBOARD_LOGS) {
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+                logger.info("Ignoring team %s for %s. It overrides without removing old team.".formatted(teamName, session.javaUsername()));
             }
             return;
         }
