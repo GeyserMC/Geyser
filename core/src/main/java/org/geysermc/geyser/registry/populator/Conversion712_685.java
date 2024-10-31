@@ -33,35 +33,34 @@ public class Conversion712_685 {
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         mapping = Conversion729_712.remapItem(item, mapping);
+        String identifier = mapping.getBedrockIdentifier();
 
-        String identifer = mapping.getBedrockIdentifier();
-
-        if (!NEW_BLOCKS.contains(identifer)) {
+        if (!NEW_BLOCKS.contains(identifier)) {
             return mapping;
         }
 
-        if (identifer.equals("minecraft:coarse_dirt")) {
+        if (identifier.equals("minecraft:coarse_dirt")) {
             return mapping.withBedrockIdentifier("minecraft:dirt").withBedrockData(1);
         }
 
-        if (identifer.equals("minecraft:dandelion")) {
+        if (identifier.equals("minecraft:dandelion")) {
             return mapping.withBedrockIdentifier("minecraft:yellow_flower").withBedrockData(0);
         }
 
-        if (identifer.equals("minecraft:red_sand")) {
+        if (identifier.equals("minecraft:red_sand")) {
             return mapping.withBedrockIdentifier("minecraft:sand").withBedrockData(1);
         }
 
-        if (NEW_PRISMARINE_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_PRISMARINE_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:prismarine" -> { return mapping.withBedrockIdentifier("minecraft:prismarine").withBedrockData(0); }
                 case "minecraft:dark_prismarine" -> { return mapping.withBedrockIdentifier("minecraft:prismarine").withBedrockData(1); }
                 case "minecraft:prismarine_bricks" -> { return mapping.withBedrockIdentifier("minecraft:prismarine").withBedrockData(2); }
             }
         }
 
-        if (NEW_SANDSTONE_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_SANDSTONE_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:sandstone" -> { return mapping.withBedrockIdentifier("minecraft:sandstone").withBedrockData(0); }
                 case "minecraft:chiseled_sandstone" -> { return mapping.withBedrockIdentifier("minecraft:sandstone").withBedrockData(1); }
                 case "minecraft:cut_sandstone" -> { return mapping.withBedrockIdentifier("minecraft:sandstone").withBedrockData(2); }
@@ -69,8 +68,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_RED_SANDSTONE_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_RED_SANDSTONE_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:red_sandstone" -> { return mapping.withBedrockIdentifier("minecraft:red_sandstone").withBedrockData(0); }
                 case "minecraft:chiseled_red_sandstone" -> { return mapping.withBedrockIdentifier("minecraft:red_sandstone").withBedrockData(1); }
                 case "minecraft:cut_red_sandstone" -> { return mapping.withBedrockIdentifier("minecraft:red_sandstone").withBedrockData(2); }
@@ -78,8 +77,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_QUARTZ_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_QUARTZ_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:quartz_block" -> { return mapping.withBedrockIdentifier("minecraft:quartz_block").withBedrockData(0); }
                 case "minecraft:chiseled_quartz_block" -> { return mapping.withBedrockIdentifier("minecraft:quartz_block").withBedrockData(1); }
                 case "minecraft:quartz_pillar" -> { return mapping.withBedrockIdentifier("minecraft:quartz_block").withBedrockData(2); }
@@ -87,8 +86,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_STONE_BLOCK_SLABS_2.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_STONE_BLOCK_SLABS_2.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:red_sandstone_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab2").withBedrockData(0); }
                 case "minecraft:purpur_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab2").withBedrockData(1); }
                 case "minecraft:prismarine_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab2").withBedrockData(2); }
@@ -100,8 +99,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_STONE_BLOCK_SLABS_3.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_STONE_BLOCK_SLABS_3.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:end_stone_brick_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab3").withBedrockData(0); }
                 case "minecraft:smooth_red_sandstone_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab3").withBedrockData(1); }
                 case "minecraft:polished_andesite_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab3").withBedrockData(2); }
@@ -113,8 +112,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_STONE_BLOCK_SLABS_4.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_STONE_BLOCK_SLABS_4.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:mossy_stone_brick_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab4").withBedrockData(0); }
                 case "minecraft:smooth_quartz_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab4").withBedrockData(1); }
                 case "minecraft:normal_stone_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab4").withBedrockData(2); }
@@ -123,8 +122,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_MONSTER_EGGS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_MONSTER_EGGS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:infested_stone" -> { return mapping.withBedrockIdentifier("minecraft:monster_egg").withBedrockData(0); }
                 case "minecraft:infested_cobblestone" -> { return mapping.withBedrockIdentifier("minecraft:monster_egg").withBedrockData(1); }
                 case "minecraft:infested_stone_bricks" -> { return mapping.withBedrockIdentifier("minecraft:monster_egg").withBedrockData(2); }
@@ -134,8 +133,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_STONEBRICK_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_STONEBRICK_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:stone_bricks" -> { return mapping.withBedrockIdentifier("minecraft:stonebrick").withBedrockData(0); }
                 case "minecraft:mossy_stone_bricks" -> { return mapping.withBedrockIdentifier("minecraft:stonebrick").withBedrockData(1); }
                 case "minecraft:cracked_stone_bricks" -> { return mapping.withBedrockIdentifier("minecraft:stonebrick").withBedrockData(2); }
@@ -143,8 +142,8 @@ public class Conversion712_685 {
             }
         }
 
-        if (NEW_ANVILS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_ANVILS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:anvil" -> { return mapping.withBedrockIdentifier("minecraft:anvil").withBedrockData(0); }
                 case "minecraft:chipped_anvil" -> { return mapping.withBedrockIdentifier("minecraft:anvil").withBedrockData(4); }
                 case "minecraft:damaged_anvil" -> { return mapping.withBedrockIdentifier("minecraft:anvil").withBedrockData(8); }

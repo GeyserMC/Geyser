@@ -69,11 +69,12 @@ public class EntityCache {
 
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
-            entity.spawnEntity();
-
-            // start tracking newly spawned entities.
-            // This is however not called for players, that's done in addPlayerEntity
+            // start tracking newly spawned entities. Doing this before the actual entity spawn can result in combining
+            // the otherwise sent metadata packet (in the case of team visibility, which sets the NAME metadata to
+            // empty) with the entity spawn packet (which also includes metadata). Resulting in 1 less packet sent.
             session.getWorldCache().getScoreboard().entityRegistered(entity);
+
+            entity.spawnEntity();
 
             if (entity instanceof Tickable) {
                 // Start ticking it
@@ -144,8 +145,6 @@ public class EntityCache {
         // notify scoreboard for new entity
         var scoreboard = session.getWorldCache().getScoreboard();
         scoreboard.playerRegistered(entity);
-        // spawnPlayer's entityRegistered is not called for players
-        scoreboard.entityRegistered(entity);
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {

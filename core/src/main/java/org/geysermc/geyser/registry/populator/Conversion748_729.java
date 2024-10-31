@@ -23,19 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.registry.populator;
 
-public final class EnvironmentUtils {
-    public static final boolean IS_UNIT_TESTING = isUnitTesting();
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
-    private EnvironmentUtils() {}
+import java.util.Map;
 
-    private static boolean isUnitTesting() {
-        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-            if (element.getClassName().startsWith("org.junit.")) {
-                return true;
-            }
+public class Conversion748_729 {
+
+    private static final Map<String, Integer> NEW_PLAYER_HEADS = Map.of("minecraft:skeleton_skull", 0, "minecraft:wither_skeleton_skull", 1, "minecraft:zombie_head", 2, "minecraft:player_head", 3, "minecraft:creeper_head", 4, "minecraft:dragon_head", 5, "minecraft:piglin_head", 6);
+
+    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
+        String identifier = mapping.getBedrockIdentifier();
+
+        if (NEW_PLAYER_HEADS.containsKey(identifier)) {
+            return mapping.withBedrockIdentifier("minecraft:skull")
+                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
         }
-        return false;
+
+        return mapping;
     }
+
 }

@@ -146,6 +146,18 @@ public class ListRegistry<M> extends Registry<List<M>> {
      * @param registryLoader the registry loader
      * @param <I> the input
      * @param <M> the type value
+     * @return a new registry with the given RegistryLoader
+     */
+    public static <I, M> ListRegistry<M> create(I input, RegistryLoader<I, List<M>> registryLoader) {
+        return new ListRegistry<>(input, registryLoader);
+    }
+
+    /**
+     * Creates a new integer mapped registry with the given {@link RegistryLoader} and input.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <M> the type value
      * @return a new registry with the given RegistryLoader supplier
      */
     public static <I, M> ListRegistry<M> create(I input, Supplier<RegistryLoader<I, List<M>>> registryLoader) {
