@@ -42,6 +42,7 @@ import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.enchantment.Enchantment;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
@@ -90,6 +91,7 @@ public final class RegistryCache {
         register(JavaRegistries.BIOME, (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register(JavaRegistries.BANNER_PATTERN, cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
         register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
+        register(JavaRegistries.INSTRUMENT, cache -> cache.instruments, GeyserInstrument::read);
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
@@ -129,6 +131,7 @@ public final class RegistryCache {
 
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
     private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<GeyserInstrument> instruments = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;

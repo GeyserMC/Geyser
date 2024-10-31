@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @param description only populated if {@link #bedrockEnchantment()} is not null.
+ * @param description only populated if {@link #bedrockEnchantment()} is null.
  * @param anvilCost also as a rarity multiplier
  */
 public record Enchantment(String identifier,
@@ -66,8 +66,6 @@ public record Enchantment(String identifier,
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
-        // TODO - description is a component. So if a hardcoded literal string is given, this will display normally on Java,
-        //  but Geyser will attempt to lookup the literal string as translation - and will fail, displaying an empty string as enchantment name.
         String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
 
         return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
