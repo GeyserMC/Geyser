@@ -13,6 +13,9 @@ architectury {
 provided("org.cloudburstmc.math", "api")
 provided("com.google.errorprone", "error_prone_annotations")
 
+// Jackson shipped by Minecraft is too old, so we shade & relocate our newer version
+relocate("com.fasterxml.jackson")
+
 val includeTransitive: Configuration = configurations.getByName("includeTransitive")
 
 dependencies {
@@ -30,6 +33,12 @@ dependencies {
         isTransitive = false
     }
     shadow(projects.core) { isTransitive = false }
+
+    // Minecraft (1.21.2+) includes jackson. But an old version!
+    shadow(libs.jackson.core) { isTransitive = false }
+    shadow(libs.jackson.databind) { isTransitive = false }
+    shadow(libs.jackson.dataformat.yaml) { isTransitive = false }
+    shadow(libs.jackson.annotations) { isTransitive = false }
 
     // Let's shade in our own api
     shadow(projects.api) { isTransitive = false }
@@ -55,6 +64,11 @@ tasks {
 
     remapModrinthJar {
         archiveBaseName.set("geyser-neoforge")
+    }
+
+    shadowJar {
+        // Without this, jackson's service files are not relocated
+        mergeServiceFiles()
     }
 }
 
