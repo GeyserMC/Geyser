@@ -110,9 +110,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     for (int i = 0; i < left.size(); i++) {
                         List<ItemDescriptorWithCount> inputs = left.get(i);
                         String recipeId = contents.id() + "_" + i;
-                        if (recipeId.equals("1318_0")) {
-                            System.out.println(display);
-                        }
                         int recipeNetworkId = netId++;
                         craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(recipeId,
                             shapedRecipe.width(), shapedRecipe.height(), inputs,
@@ -273,9 +270,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // Likely modded item Bedrock will complain about
             // Implementation note: ItemData#isValid() may return true for air because count might be > 0 and the air definition may not be ItemDefinition.AIR
             return null;
-        }
-        if (pair.left() == Items.PALE_OAK_TRAPDOOR) {
-            System.out.println(pair.right());
         }
 
         ItemData output = pair.right();
