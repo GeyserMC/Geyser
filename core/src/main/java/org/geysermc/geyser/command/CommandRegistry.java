@@ -67,6 +67,7 @@ import org.incendo.cloud.internal.CommandNode;
 import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.LiteralParser;
+import org.incendo.cloud.parser.standard.StringArrayParser;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -320,7 +321,7 @@ public class CommandRegistry implements EventRegistrar {
     }
 
     public void export(GeyserSession session, List<CommandData> bedrockCommands) {
-        cloud.commandTree().rootNode().children().forEach(commandTree -> {
+        cloud.commandTree().rootNodes().forEach(commandTree -> {
             var command = commandTree.command();
             // Command null happens if you register an extension command with custom Cloud parameters...
             if (command == null || session.hasPermission(command.commandPermission().permissionString())) {
@@ -335,9 +336,8 @@ public class CommandRegistry implements EventRegistrar {
 
                 List<CommandOverloadData> data = new ArrayList<>();
                 for (var node : commandTree.children()) {
-                    List<List<CommandParamData>> params = new ArrayList<>();
-                     createParamData(node, params);
-                     params.forEach(param -> data.add(new CommandOverloadData(false, param.toArray(CommandParamData[]::new))));
+                    List<List<CommandParamData>> params = createParamData(node);
+                    params.forEach(param -> data.add(new CommandOverloadData(false, param.toArray(CommandParamData[]::new))));
                 }
 
                 CommandData bedrockCommand = new CommandData(name, rootComponent.description().textDescription(),
@@ -348,7 +348,7 @@ public class CommandRegistry implements EventRegistrar {
         });
     }
 
-    private void createParamData(CommandNode<GeyserCommandSource> node, List<List<CommandParamData>> bedrockData) {
+    private List<List<CommandParamData>> createParamData(CommandNode<GeyserCommandSource> node) {
         CommandParamData data = new CommandParamData();
         var component = node.component();
         data.setName(component.name());
@@ -370,44 +370,25 @@ public class CommandRegistry implements EventRegistrar {
             }
 
             data.setEnumData(new CommandEnumData(component.name().toLowerCase(Locale.ROOT), map, false));
+        } else if (component.parser() instanceof StringArrayParser<?>) {
+            data.setType(CommandParam.TEXT);
         } else {
             data.setType(CommandParam.STRING);
         }
 
-        // This, realistically, is not going to be used without extensions using internals and implementing complicated commands.
-        // It essentially does the same behavior as JavaCommandsTranslator#isCompatible.
-        // But, selfishly, I would like to use it, and in the future it's possible extensions can register commands
-        // using Cloud, and in that case this becomes relevant!
-        if (bedrockData.isEmpty()) {
-            List<CommandParamData> list = new ArrayList<>();
+        var children = node.children();
+        if (children.isEmpty()) {
+            List<CommandParamData> list = new ArrayList<>(); // Must be mutable; parents will be added to list.
             list.add(data);
-            bedrockData.add(list);
-        } else {
-            int size = bedrockData.size(); // Preserve original list size in case new entries get added.
-            for (int i = 0; i < size; i++) {
-                List<CommandParamData> cpdList = bedrockData.get(i);
-                if (cpdList.size() <= 1) { // No commands or parent will be root.
-                    cpdList.add(data);
-                } else {
-                    String parentName = node.parent().component().name(); // Should never be null.
-                    if (!cpdList.get(cpdList.size() - 1).getName().equals(parentName)) { // We need to copy the list as this is a new branch.
-                        for (int j = cpdList.size() - 2; j >= 0; j--) {
-                            if (cpdList.get(j).getName().equals(parentName)) {
-                                List<CommandParamData> newList = new ArrayList<>(cpdList.subList(0, j + 1));
-                                newList.add(data);
-                                bedrockData.add(newList);
-                                break;
-                            }
-                        }
-                    } else {
-                        cpdList.add(data);
-                    }
-                }
-            }
+            return Collections.singletonList(list); // Safe to do; will be consumed in an addAll call.
         }
-
-        for (var child : node.children()) {
-            createParamData(child, bedrockData);
+        List<List<CommandParamData>> collectiveData = new ArrayList<>();
+        // If a node has multiple children, this will need to be represented
+        // by creating a new list/branch for each and cloning this node down each line.
+        for (var child : children) {
+            collectiveData.addAll(createParamData(child));
         }
+        collectiveData.forEach(list -> list.add(0, data));
+        return collectiveData;
     }
 }
