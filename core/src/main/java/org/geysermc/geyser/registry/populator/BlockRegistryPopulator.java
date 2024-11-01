@@ -283,7 +283,7 @@ public final class BlockRegistryPopulator {
                         .build();
                 }
 
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.getOrDefault(bedrockTag, airDefinition); // FIXME EEE
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);

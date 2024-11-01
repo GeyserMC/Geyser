@@ -320,13 +320,17 @@ public class CommandRegistry implements EventRegistrar {
         cloud.commandExecutor().executeCommand(source, command);
     }
 
-    public void export(GeyserSession session, List<CommandData> bedrockCommands) {
+    public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
         cloud.commandTree().rootNodes().forEach(commandTree -> {
             var command = commandTree.command();
             // Command null happens if you register an extension command with custom Cloud parameters...
             if (command == null || session.hasPermission(command.commandPermission().permissionString())) {
                 var rootComponent = commandTree.component();
                 String name = rootComponent.name();
+                if (!knownAliases.add(name)) {
+                    // If the server already defined the command, let's not crash.
+                    return;
+                }
 
                 LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
                 for (String s : rootComponent.aliases()) {

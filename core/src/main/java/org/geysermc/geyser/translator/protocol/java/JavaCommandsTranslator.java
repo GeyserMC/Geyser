@@ -215,7 +215,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         if (session.getGeyser().platformType() == PlatformType.STANDALONE) {
-            session.getGeyser().commandRegistry().export(session, commandData);
+            session.getGeyser().commandRegistry().export(session, commandData, knownAliases);
         }
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
