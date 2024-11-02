@@ -678,14 +678,6 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.POWERED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataType.BOOLEAN, CreeperEntity::setIgnited)
                     .build();
-            DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, mobEntityBase)
-                    .type(EntityType.DOLPHIN)
-                    .height(0.6f).width(0.9f)
-                    //TODO check
-                    .addTranslator(null) // treasure position
-                    .addTranslator(null) // "got fish"
-                    .addTranslator(null) // "moistness level"
-                    .build();
             ENDERMAN = EntityDefinition.inherited(EndermanEntity::new, mobEntityBase)
                     .type(EntityType.ENDERMAN)
                     .height(2.9f).width(0.6f)
@@ -754,10 +746,6 @@ public final class EntityDefinitions {
             CAVE_SPIDER = EntityDefinition.inherited(SpiderEntity::new, SPIDER)
                     .type(EntityType.CAVE_SPIDER)
                     .height(0.5f).width(0.7f)
-                    .build();
-            SQUID = EntityDefinition.inherited(SquidEntity::new, mobEntityBase)
-                    .type(EntityType.SQUID)
-                    .heightAndWidth(0.8f)
                     .build();
             STRAY = EntityDefinition.inherited(AbstractSkeletonEntity::new, mobEntityBase)
                     .type(EntityType.STRAY)
@@ -883,11 +871,6 @@ public final class EntityDefinitions {
             PIGLIN_BRUTE = EntityDefinition.inherited(abstractPiglinEntityBase.factory(), abstractPiglinEntityBase)
                     .type(EntityType.PIGLIN_BRUTE)
                     .height(1.95f).width(0.6f)
-                    .build();
-
-            GLOW_SQUID = EntityDefinition.inherited(GlowSquidEntity::new, SQUID)
-                    .type(EntityType.GLOW_SQUID)
-                    .addTranslator(null) // Set dark ticks remaining, possible TODO
                     .build();
 
             EntityDefinition<RaidParticipantEntity> raidParticipantEntityBase = EntityDefinition.inherited(RaidParticipantEntity::new, mobEntityBase)
@@ -1079,6 +1062,26 @@ public final class EntityDefinitions {
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
                     .build();
+        }
+
+        // Water creatures (AgeableWaterCreature)
+        {
+            DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, ageableEntityBase)
+                .type(EntityType.DOLPHIN)
+                .height(0.6f).width(0.9f)
+                //TODO check
+                .addTranslator(null) // treasure position
+                .addTranslator(null) // "got fish"
+                .addTranslator(null) // "moistness level"
+                .build();
+            SQUID = EntityDefinition.inherited(SquidEntity::new, ageableEntityBase)
+                .type(EntityType.SQUID)
+                .heightAndWidth(0.8f)
+                .build();
+            GLOW_SQUID = EntityDefinition.inherited(GlowSquidEntity::new, SQUID)
+                .type(EntityType.GLOW_SQUID)
+                .addTranslator(null) // Set dark ticks remaining, possible TODO
+                .build();
         }
 
         // Horses
