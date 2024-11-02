@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -48,6 +49,7 @@ import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
+import org.geysermc.geyser.registry.populator.TagRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -164,6 +166,11 @@ public final class Registries {
     public static final SimpleMappedDeferredRegistry<String, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
+     * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
+     */
+    public static final VersionedRegistry<Object2ObjectMap<int[], String>> TAGS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
      */
     public static final SimpleMappedDeferredRegistry<String, SoundMapping> SOUNDS = SimpleMappedDeferredRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
@@ -202,6 +209,7 @@ public final class Registries {
     public static void populate() {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
+        TagRegistryPopulator.populate();
 
         // potion mixes depend on other registries
         POTION_MIXES.load();

@@ -90,13 +90,18 @@ public final class TagCache {
                 }
             }
 
-            loadTags(registryTags, registry);
+            loadTags(registryTags, registry, registry == JavaRegistries.ITEM);
         }
     }
 
-    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry) {
+    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry, boolean sort) {
         for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
-            this.tags.put(new Tag<>(registry, tag.getKey()), tag.getValue());
+            int[] value = tag.getValue();
+            if (sort) {
+                // Used in RecipeBookAddTranslator
+                Arrays.sort(value);
+            }
+            this.tags.put(new Tag<>(registry, tag.getKey()), value);
         }
     }
 

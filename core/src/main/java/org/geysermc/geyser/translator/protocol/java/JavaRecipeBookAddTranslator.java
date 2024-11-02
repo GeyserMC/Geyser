@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.Shapeles
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -190,6 +191,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         TAG_TO_ITEM_DESCRIPTOR_CACHE.remove();
     }
 
+    // Arrays are usually an issue in maps, but because it's referencing the tag array that is unchanged, it actually works out for us.
     private static final ThreadLocal<Map<int[], List<ItemDescriptorWithCount>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(Object2ObjectOpenHashMap::new);
 
     private List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
@@ -228,6 +230,18 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 // Cache is implemented as, presumably, an item tag will be used multiple times in succession
                 // (E.G. a chest with planks tags)
                 return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().computeIfAbsent(items, key -> {
+                    var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
+                    String bedrockTag = bedrockTags.get(key);
+                    if (bedrockTag != null) {
+                        return Collections.singletonList(
+                            new ItemDescriptorWithCount(new ItemTagDescriptor(bedrockTag), 1)
+                        );
+                    }
+
+                    // In the future, we can probably search through and use subsets of tags as well.
+                    // I.E. if a Bedrock tag contains [stone stone_brick] and the Java tag uses [stone stone_brick bricks]
+                    // we can still use that Bedrock tag alongside plain item descriptors for "bricks".
+
                     Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
                     for (int item : key) {
                         itemDescriptors.add(fromItem(session, item));
