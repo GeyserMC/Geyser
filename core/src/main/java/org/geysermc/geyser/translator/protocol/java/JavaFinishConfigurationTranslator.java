@@ -70,7 +70,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         craftingDataPacket.setCleanRecipes(true);
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
-        if (session.isSentSpawnPacket()) {
+        // TODO proper fix to check if we've been online - in online mode (with auth screen),
+        //  recipes are not yet known
+        if (session.isSentSpawnPacket() && session.getStonecutterRecipes() != null) {
             session.getUpstream().sendPacket(craftingDataPacket);
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();

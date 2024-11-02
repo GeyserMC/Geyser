@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,21 +25,18 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundCookieRequestPacket;
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ServerboundCookieResponsePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerRotationPacket;
 
-@Translator(packet = ClientboundCookieRequestPacket.class)
-public class JavaCookieRequestTranslator extends PacketTranslator<ClientboundCookieRequestPacket> {
+@Translator(packet = ClientboundPlayerRotationPacket.class)
+public class JavaPlayerRotationTranslator extends PacketTranslator<ClientboundPlayerRotationPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundCookieRequestPacket packet) {
-        ServerboundCookieResponsePacket responsePacket = new ServerboundCookieResponsePacket(
-                packet.getKey(),
-                session.getCookies().get(packet.getKey().asString())
-        );
-        session.sendDownstreamPacket(responsePacket);
+    public void translate(GeyserSession session, ClientboundPlayerRotationPacket packet) {
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
+        // TODO
     }
 }

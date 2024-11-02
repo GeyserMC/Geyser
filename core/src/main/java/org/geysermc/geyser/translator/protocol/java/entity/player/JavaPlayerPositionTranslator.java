@@ -26,10 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import org.cloudburstmc.math.vector.Vector3d;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
@@ -41,6 +37,10 @@ import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 
 @Translator(packet = ClientboundPlayerPositionPacket.class)
 public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPlayerPositionPacket> {
@@ -76,6 +76,12 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
 
             session.sendUpstreamPacket(movePlayerPacket);
+
+            // Fixes incorrect rotation upon login
+            // Yes, even that's not respected by Bedrock. Try it out in singleplayer!
+            // Log out and back in - and you're looking elsewhere :)
+            entity.forceRotationUpdate();
+
             session.setSpawned(true);
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
             session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getXRot(), packet.getYRot(), packet.getId())); // TODO
