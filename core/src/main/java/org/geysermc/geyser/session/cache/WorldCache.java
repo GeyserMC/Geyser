@@ -81,7 +81,7 @@ public final class WorldCache {
         resetTitleTimes(false);
     }
 
-    public void removeScoreboard() {
+    public void resetScoreboard() {
         scoreboard.removeScoreboard();
         scoreboard = new Scoreboard(session);
     }

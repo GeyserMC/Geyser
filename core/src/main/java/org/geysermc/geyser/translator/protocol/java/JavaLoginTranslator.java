@@ -71,8 +71,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
                 DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
 
-            session.getWorldCache().removeScoreboard();
-
             // Remove all bossbars
             session.getEntityCache().removeAllBossBars();
             // Remove extra hearts, hunger, etc.
