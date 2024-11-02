@@ -255,7 +255,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final EventLoop eventLoop;
     @Setter
     private AuthData authData;
-    @Setter
     private BedrockClientData clientData;
     /**
      * Used for Floodgate skin uploading
@@ -1411,6 +1410,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.cameraData.handleGameModeChange(currentlySpectator, newGamemode);
     }
 
+    public void setClientData(BedrockClientData data) {
+        this.clientData = data;
+        this.inputCache.setInputMode(
+            org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
     /**
      * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
      */
@@ -2124,7 +2129,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull InputMode inputMode() {
-        return InputMode.values()[clientData.getCurrentInputMode().ordinal()]; //todo
+        return InputMode.values()[inputCache.getInputMode().ordinal()]; //todo
     }
 
     @Override

@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -45,6 +46,8 @@ public final class InputCache {
     private int jumpingTicks;
     @Getter @Setter
     private float jumpScale;
+    @Getter @Setter
+    private @MonotonicNonNull InputMode inputMode;
 
     public InputCache(GeyserSession session) {
         this.session = session;
@@ -54,9 +57,10 @@ public final class InputCache {
         // Input is sent to the server before packet positions, as of 1.21.2
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
         var oldInputPacket = this.inputPacket;
+        this.inputMode = packet.getInputMode();
 
         boolean up, down, left, right;
-        if (packet.getInputMode() == InputMode.MOUSE) {
+        if (this.inputMode == InputMode.MOUSE) {
             up = bedrockInput.contains(PlayerAuthInputData.UP);
             down = bedrockInput.contains(PlayerAuthInputData.DOWN);
             left = bedrockInput.contains(PlayerAuthInputData.LEFT);
