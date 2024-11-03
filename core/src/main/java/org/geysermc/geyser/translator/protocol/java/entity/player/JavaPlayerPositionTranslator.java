@@ -80,7 +80,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // Fixes incorrect rotation upon login
             // Yes, even that's not respected by Bedrock. Try it out in singleplayer!
             // Log out and back in - and you're looking elsewhere :)
-            entity.forceRotationUpdate();
+            entity.updateOwnRotation(entity.getYaw(), entity.getPitch(), entity.getHeadYaw());
 
             session.setSpawned(true);
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets

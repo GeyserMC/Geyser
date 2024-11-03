@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,7 +35,6 @@ public class JavaPlayerRotationTranslator extends PacketTranslator<ClientboundPl
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerRotationPacket packet) {
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
-        // TODO
+        session.getPlayerEntity().updateOwnRotation(packet.getYRot(), packet.getXRot(), packet.getYRot());
     }
 }
