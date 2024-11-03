@@ -81,5 +81,11 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
+
+        // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
+        // The ClientboundStartConfigurationPacket indirectly removes the old scoreboard,
+        // and this packet indirectly creates the new one.
+        // This makes this packet a good place to reset the scoreboard.
+        session.getWorldCache().resetScoreboard();
     }
 }
