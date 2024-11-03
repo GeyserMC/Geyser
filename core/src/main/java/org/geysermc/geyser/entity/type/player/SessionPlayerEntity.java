@@ -145,6 +145,29 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     /**
+     * Special method used only when updating the session player's rotation.
+     * For some reason, Mode#NORMAL ignored rotation. Yay.
+     * @param yaw the new yaw
+     * @param pitch the new pitch
+     * @param headYaw the head yaw
+     */
+    public void updateOwnRotation(float yaw, float pitch, float headYaw) {
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+        
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround());
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+
+        session.sendUpstreamPacket(movePlayerPacket);
+    }
+
+    /**
      * Set the player's position without applying an offset or moving the bounding box
      * This is used in BedrockMovePlayerTranslator which receives the player's position
      * with the offset pre-applied

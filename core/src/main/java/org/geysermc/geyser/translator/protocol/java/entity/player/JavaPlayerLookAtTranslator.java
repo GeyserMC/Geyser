@@ -49,7 +49,7 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
 
         var self = session.getPlayerEntity();
         // headYaw is also set to yaw in this packet
-        self.updateRotation(yaw, pitch, yaw, self.isOnGround());
+        self.updateOwnRotation(yaw, pitch, yaw);
     }
 
     public Vector3f targetPosition(GeyserSession session, ClientboundPlayerLookAtPacket packet) {
