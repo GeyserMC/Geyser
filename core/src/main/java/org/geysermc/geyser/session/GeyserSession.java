@@ -1312,6 +1312,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     armAnimationTicks = -1;
                 }
             }
+
+            if (spawned) {
+                // Could move this to the PlayerAuthInput translator, in the event the player lags
+                // but this will work once we implement matching Java custom tick cycles
+                sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
+            }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
