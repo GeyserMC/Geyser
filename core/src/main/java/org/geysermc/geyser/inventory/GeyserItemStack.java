@@ -184,7 +184,7 @@ public class GeyserItemStack {
 
     public SlotDisplay asSlotDisplay() {
         if (isEmpty()) {
-            return new EmptySlotDisplay();
+            return EmptySlotDisplay.INSTANCE;
         }
         return new ItemStackSlotDisplay(this.getItemStack());
     }

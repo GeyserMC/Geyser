@@ -56,6 +56,19 @@ public final class TagRegistryPopulator {
     private static final Gson GSON = new GsonBuilder().create(); // temporary
 
     public static void populate() {
+        Hash.Strategy<int[]> hashStrategy = new Hash.Strategy<>() {
+            // Necessary so arrays can actually be compared
+            @Override
+            public int hashCode(int[] o) {
+                return Arrays.hashCode(o);
+            }
+
+            @Override
+            public boolean equals(int[] a, int[] b) {
+                return Arrays.equals(a, b);
+            }
+        };
+
         List<ObjectIntPair<String>> paletteVersions = List.of(
             ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()),
             ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()),
@@ -77,18 +90,7 @@ public final class TagRegistryPopulator {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
             }
 
-            Object2ObjectMap<int[], String> javaItemsToBedrockTag = new Object2ObjectOpenCustomHashMap<>(new Hash.Strategy<>() {
-                // Necessary so arrays can actually be compared
-                @Override
-                public int hashCode(int[] o) {
-                    return Arrays.hashCode(o);
-                }
-
-                @Override
-                public boolean equals(int[] a, int[] b) {
-                    return Arrays.equals(a, b);
-                }
-            });
+            Object2ObjectMap<int[], String> javaItemsToBedrockTag = new Object2ObjectOpenCustomHashMap<>(hashStrategy);
 
             for (var entry : bedrockTags.entrySet()) {
                 List<String> value = entry.getValue();
