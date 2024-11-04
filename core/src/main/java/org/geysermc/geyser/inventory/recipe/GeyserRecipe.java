@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 /**
@@ -37,6 +36,5 @@ public interface GeyserRecipe {
      */
     boolean isShaped();
 
-    @Nullable
     SlotDisplay result();
 }
