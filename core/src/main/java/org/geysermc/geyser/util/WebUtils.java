@@ -148,20 +148,22 @@ public class WebUtils {
                     long cachedLastModified = Long.parseLong(metadata.get(2));
                     downloadLocation = REMOTE_PACK_CACHE.resolve(metadata.get(3));
 
-                    if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) &&
-                            cachedLastModified == con.getLastModified() && downloadLocation.toFile().exists()) {
+                    if (cachedSize == size &&
+                            cachedEtag.equals(con.getHeaderField("ETag")) &&
+                            cachedLastModified == con.getLastModified() &&
+                            downloadLocation.toFile().exists()) {
                         logger.debug("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
                         downloadLocation.toFile().setLastModified(System.currentTimeMillis());
                         packMetadata.toFile().setLastModified(System.currentTimeMillis());
                         return downloadLocation;
+                    } else {
+                        logger.debug("Deleting cached pack/metadata as it appears to have changed!");
+                        Files.deleteIfExists(packMetadata);
+                        Files.deleteIfExists(downloadLocation);
                     }
                 } catch (IOException e) {
                     GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata! " + e);
-                    try {
-                        Files.delete(packMetadata);
-                    } catch (Exception exception) {
-                        GeyserImpl.getInstance().getLogger().error("Failed to delete pack metadata!", exception);
-                    }
+                    packMetadata.toFile().deleteOnExit();
                 }
             }
 

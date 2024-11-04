@@ -373,7 +373,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     }
 
     public static void clear() {
-        Registries.RESOURCE_PACKS.get().clear();
+        if (Registries.RESOURCE_PACKS.loaded()) {
+            Registries.RESOURCE_PACKS.get().clear();
+        }
         CACHED_FAILED_PACKS.invalidateAll();
     }
 

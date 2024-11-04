@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
@@ -192,24 +191,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
                 header.uuid().toString(), header.version().toString(), pack.codec().size(), pack.contentKey(),
-                subpackName(pack), header.uuid().toString(), false, false, false)
+                subpackName(pack), header.uuid().toString(), false, false, false, subpackName(pack))
             );
-        }
-
-        return entries;
-    }
-
-    public List<ResourcePacksInfoPacket.CDNEntry> cdnEntries() {
-        List<ResourcePacksInfoPacket.CDNEntry> entries = new ArrayList<>();
-
-        for (ResourcePackHolder holder : this.packs.values()) {
-            GeyserResourcePack pack = holder.pack();
-            if (pack.codec() instanceof UrlPackCodec urlPackCodec) {
-                ResourcePackManifest.Header header = pack.manifest().header();
-                entries.add(new ResourcePacksInfoPacket.CDNEntry(
-                    header.uuid() + "_" + header.version(), urlPackCodec.url())
-                );
-            }
         }
 
         return entries;

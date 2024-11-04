@@ -729,11 +729,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
-        if (Registries.RESOURCE_PACKS.loaded()) {
-            Registries.RESOURCE_PACKS.get().clear();
-        }
         ResourcePackLoader.clear();
-        // TODO
 
         this.setEnabled(false);
     }
