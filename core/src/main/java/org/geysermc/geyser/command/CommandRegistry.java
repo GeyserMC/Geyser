@@ -68,6 +68,8 @@ import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.LiteralParser;
 import org.incendo.cloud.parser.standard.StringArrayParser;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.Suggestions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -318,6 +320,10 @@ public class CommandRegistry implements EventRegistrar {
      */
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
         cloud.commandExecutor().executeCommand(source, command);
+    }
+
+    public Suggestions<GeyserCommandSource, ? extends Suggestion> suggestionsFor(GeyserCommandSource source, String input) {
+        return cloud.suggestionFactory().suggestImmediately(source, input);
     }
 
     public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
