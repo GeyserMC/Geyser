@@ -25,6 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +50,7 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
@@ -65,12 +71,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffect
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
-import java.util.*;
-
 @Getter
 @Setter
 public class LivingEntity extends Entity {
-
     protected ItemData helmet = ItemData.AIR;
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
@@ -148,6 +151,16 @@ public class LivingEntity extends Entity {
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
         dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+    }
+
+    @Override
+    public void updateNametag(@Nullable Team team) {
+        // if name not visible, don't mark it as visible
+        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
+    }
+
+    public void hideNametag() {
+        setNametag("", false);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {

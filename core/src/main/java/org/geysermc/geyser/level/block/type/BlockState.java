@@ -63,7 +63,7 @@ public final class BlockState {
             return null;
         }
         //noinspection unchecked
-        return (T) get(property);
+        return (T) value;
     }
 
     public <T extends Comparable<T>> T getValue(Property<T> property, T def) {

@@ -63,12 +63,19 @@ public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultr
         if ("minecraft".equals(id.namespace())) {
             String identifier = id.asString();
             bedrockId = DimensionUtils.javaToBedrock(identifier);
-            isNetherLike = DimensionUtils.NETHER_IDENTIFIER.equals(identifier);
+            isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(identifier);
         } else {
             // Effects should give is a clue on how this (custom) dimension is supposed to look like
             String effects = dimension.getString("effects");
             bedrockId = DimensionUtils.javaToBedrock(effects);
-            isNetherLike = DimensionUtils.NETHER_IDENTIFIER.equals(effects);
+            isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(effects);
+        }
+
+        if (minY % 16 != 0) {
+            throw new RuntimeException("Minimum Y must be a multiple of 16!");
+        }
+        if (maxY % 16 != 0) {
+            throw new RuntimeException("Maximum Y must be a multiple of 16!");
         }
 
         return new JavaDimension(minY, maxY, piglinSafe, ultrawarm, coordinateScale, bedrockId, isNetherLike);

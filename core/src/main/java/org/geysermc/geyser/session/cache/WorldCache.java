@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
@@ -49,7 +50,7 @@ public final class WorldCache {
     @Getter
     private final ScoreboardSession scoreboardSession;
     @Getter
-    private Scoreboard scoreboard;
+    private @NonNull Scoreboard scoreboard;
     @Getter
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
@@ -80,11 +81,9 @@ public final class WorldCache {
         resetTitleTimes(false);
     }
 
-    public void removeScoreboard() {
-        if (scoreboard != null) {
-            scoreboard.removeScoreboard();
-            scoreboard = new Scoreboard(session);
-        }
+    public void resetScoreboard() {
+        scoreboard.removeScoreboard();
+        scoreboard = new Scoreboard(session);
     }
 
     public int increaseAndGetScoreboardPacketsPerSecond() {

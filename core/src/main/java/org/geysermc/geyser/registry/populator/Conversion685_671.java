@@ -46,8 +46,7 @@ public class Conversion685_671 {
 
     static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         mapping = Conversion712_685.remapItem(item, mapping);
-
-        String identifer = mapping.getBedrockIdentifier();
+        String identifier = mapping.getBedrockIdentifier();
 
         if (NEW_MUSIC_DISCS.contains(item)) {
             return mapping.withBedrockIdentifier("minecraft:music_disc_otherside");
@@ -59,12 +58,12 @@ public class Conversion685_671 {
             return mapping.withBedrockIdentifier("minecraft:glass_bottle");
         }
 
-        if (!NEW_BLOCKS.contains(identifer)) {
+        if (!NEW_BLOCKS.contains(identifier)) {
             return mapping;
         }
 
-        if (NEW_CORAL_BLOCKS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_CORAL_BLOCKS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:tube_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(0); }
                 case "minecraft:brain_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(1); }
                 case "minecraft:bubble_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(2); }
@@ -78,8 +77,8 @@ public class Conversion685_671 {
             }
         }
 
-        if (NEW_DOUBLE_PLANTS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_DOUBLE_PLANTS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:sunflower" -> { return mapping.withBedrockIdentifier("minecraft:double_plant").withBedrockData(0); }
                 case "minecraft:lilac" -> { return mapping.withBedrockIdentifier("minecraft:double_plant").withBedrockData(1); }
                 case "minecraft:tall_grass" -> { return mapping.withBedrockIdentifier("minecraft:double_plant").withBedrockData(2); }
@@ -89,8 +88,8 @@ public class Conversion685_671 {
             }
         }
 
-        if (NEW_STONE_BLOCK_SLABS.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_STONE_BLOCK_SLABS.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:smooth_stone_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab").withBedrockData(0); }
                 case "minecraft:sandstone_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab").withBedrockData(1); }
                 case "minecraft:petrified_oak_slab" -> { return mapping.withBedrockIdentifier("minecraft:stone_block_slab").withBedrockData(2); }
@@ -102,8 +101,8 @@ public class Conversion685_671 {
             }
         }
 
-        if (NEW_TALLGRASSES.contains(identifer)) {
-            switch (identifer) {
+        if (NEW_TALLGRASSES.contains(identifier)) {
+            switch (identifier) {
                 case "minecraft:short_grass" -> { return mapping.withBedrockIdentifier("minecraft:tallgrass").withBedrockData(1); }
                 case "minecraft:fern" -> { return mapping.withBedrockIdentifier("minecraft:tallgrass").withBedrockData(2); }
             }

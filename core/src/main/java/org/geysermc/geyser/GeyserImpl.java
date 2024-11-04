@@ -76,6 +76,7 @@ import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
@@ -96,7 +97,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.NewsHandler;
@@ -232,9 +232,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         logger.info("******************************************");
 
-        /* Initialize registries */
-        Registries.init();
-        BlockRegistries.init();
+        /*
+        First load the registries and then populate them.
+        Both the block registries and the common registries depend on each other,
+        so maintaining this order is crucial for Geyser to load.
+         */
+        Registries.load();
+        BlockRegistries.populate();
+        Registries.populate();
 
         RegistryCache.init();
 
@@ -426,7 +431,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
-        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        BedrockDimension.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {
@@ -724,7 +729,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
+        if (Registries.RESOURCE_PACKS.loaded()) {
+            Registries.RESOURCE_PACKS.get().clear();
+        }
         ResourcePackLoader.clear();
+        // TODO
 
         this.setEnabled(false);
     }
