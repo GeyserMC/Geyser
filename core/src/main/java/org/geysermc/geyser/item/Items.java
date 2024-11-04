@@ -1237,7 +1237,7 @@ public final class Items {
     public static final Item IRON_HORSE_ARMOR = register(new Item("iron_horse_armor", builder().stackSize(1)));
     public static final Item GOLDEN_HORSE_ARMOR = register(new Item("golden_horse_armor", builder().stackSize(1)));
     public static final Item DIAMOND_HORSE_ARMOR = register(new Item("diamond_horse_armor", builder().stackSize(1)));
-    public static final Item LEATHER_HORSE_ARMOR = register(new Item("leather_horse_armor", builder().stackSize(1)));
+    public static final Item LEATHER_HORSE_ARMOR = register(new DyeableArmorItem("leather_horse_armor", ArmorMaterial.LEATHER, builder().stackSize(1)));
     public static final Item LEAD = register(new Item("lead", builder()));
     public static final Item NAME_TAG = register(new Item("name_tag", builder()));
     public static final Item COMMAND_BLOCK_MINECART = register(new Item("command_block_minecart", builder().stackSize(1)));
