@@ -168,7 +168,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     /**
      * Set the player's position without applying an offset or moving the bounding box
-     * This is used in BedrockMovePlayerTranslator which receives the player's position
+     * This is used in BedrockMovePlayer which receives the player's position
      * with the offset pre-applied
      *
      * @param position the new position of the Bedrock player

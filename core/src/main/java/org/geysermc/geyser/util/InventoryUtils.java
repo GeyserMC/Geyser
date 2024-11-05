@@ -515,7 +515,11 @@ public class InventoryUtils {
                     List<SlotDisplay> mirroredIngredients = new ArrayList<>(ingredients.size());
                     for (int row = 0; row < height; row++) {
                         for (int col = 0; col < width; col++) {
-                            mirroredIngredients.add(ingredients.get((width - 1 - col) + (row * width)));
+                            int index = col + (row * width);
+                            while (mirroredIngredients.size() <= index) {
+                                mirroredIngredients.add(null);
+                            }
+                            mirroredIngredients.set(index, ingredients.get((width - 1 - col) + (row * width)));
                         }
                     }
 

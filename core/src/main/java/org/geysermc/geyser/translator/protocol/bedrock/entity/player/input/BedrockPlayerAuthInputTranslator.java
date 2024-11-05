@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -74,7 +74,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(packet);
 
-        BedrockMovePlayerTranslator.translate(session, packet);
+        BedrockMovePlayer.translate(session, packet);
 
         processVehicleInput(session, packet, wasJumping);
 
@@ -220,6 +220,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.sendDownstreamGamePacket(breakPacket);
         } else {
             session.getGeyser().getLogger().error("Unhandled item use transaction type!");
+            if (session.getGeyser().getLogger().isDebug()) {
+                session.getGeyser().getLogger().debug(transaction);
+            }
         }
     }
 

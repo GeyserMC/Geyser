@@ -31,7 +31,6 @@ import com.google.gson.reflect.TypeToken;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
@@ -90,7 +89,7 @@ public final class TagRegistryPopulator {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
             }
 
-            Object2ObjectMap<int[], String> javaItemsToBedrockTag = new Object2ObjectOpenCustomHashMap<>(hashStrategy);
+            var javaItemsToBedrockTag = new Object2ObjectOpenCustomHashMap<int[], String>(hashStrategy);
 
             for (var entry : bedrockTags.entrySet()) {
                 List<String> value = entry.getValue();
@@ -129,6 +128,7 @@ public final class TagRegistryPopulator {
                 javaItemsToBedrockTag.put(javaNetworkIdArray, entry.getKey());
             }
 
+            javaItemsToBedrockTag.trim();
             Registries.TAGS.register(palette.rightInt(), javaItemsToBedrockTag);
         }
     }
