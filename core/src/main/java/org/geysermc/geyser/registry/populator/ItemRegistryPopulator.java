@@ -84,6 +84,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,7 +96,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ItemRegistryPopulator {
 
-    record PaletteVersion(String version, int protocolVersion, Map<Item, String> javaOnlyItems, Remapper remapper) {
+    record PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
             this(version, protocolVersion, Collections.emptyMap(), (item, mapping) -> mapping);
@@ -109,11 +110,17 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        List<Item> bundles = List.of(Items.BUNDLE, Items.BLACK_BUNDLE, Items.BLUE_BUNDLE, Items.BROWN_BUNDLE, Items.CYAN_BUNDLE, Items.GRAY_BUNDLE,
+            Items.GREEN_BUNDLE, Items.LIGHT_BLUE_BUNDLE, Items.LIGHT_GRAY_BUNDLE, Items.LIME_BUNDLE, Items.MAGENTA_BUNDLE, Items.ORANGE_BUNDLE, Items.RED_BUNDLE,
+            Items.PINK_BUNDLE, Items.PURPLE_BUNDLE, Items.WHITE_BUNDLE, Items.YELLOW_BUNDLE);
+        Map<Item, Item> pre1_21_2Items = new HashMap<>();
+        bundles.forEach(bundle -> pre1_21_2Items.put(bundle, Items.SHULKER_SHELL));
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion685_671::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion712_685::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion729_712::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion748_729::remapItem));
+        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion685_671::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion712_685::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion729_712::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion748_729::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
@@ -227,7 +234,7 @@ public class ItemRegistryPopulator {
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
-                    Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW, Items.BUNDLE);
+                    Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW);
             if (!customItemsAllowed) {
                 javaOnlyItems.add(Items.FURNACE_MINECART);
             }
@@ -243,9 +250,9 @@ public class ItemRegistryPopulator {
                     throw new RuntimeException("Extra item in mappings? " + entry.getKey());
                 }
                 GeyserMappingItem mappingItem;
-                String replacementItem = palette.javaOnlyItems().get(javaItem);
+                Item replacementItem = palette.javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
-                    mappingItem = items.get(replacementItem); // java only item, a java id fallback has been provided
+                    mappingItem = items.get(replacementItem.javaIdentifier()); // java only item, a java id fallback has been provided
                 } else {
                     // check if any mapping changes need to be made on this version
                     mappingItem = palette.remapper().remap(javaItem, entry.getValue());

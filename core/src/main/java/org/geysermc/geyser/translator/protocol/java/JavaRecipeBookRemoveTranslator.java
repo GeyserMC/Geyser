@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,51 +25,34 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookRemovePacket;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Translator(packet = ClientboundRecipePacket.class)
-public class JavaClientboundRecipesTranslator extends PacketTranslator<ClientboundRecipePacket> {
+@Translator(packet = ClientboundRecipeBookRemovePacket.class)
+public class JavaRecipeBookRemoveTranslator extends PacketTranslator<ClientboundRecipeBookRemovePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
-        switch (packet.getAction()) {
-            case INIT -> {
-                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getAlreadyKnownRecipes()));
-            }
-            case ADD -> {
-                List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
-                if (recipes.isEmpty()) {
-                    // Sending an empty list here packet will crash the client as of 1.20.60
-                    return;
-                }
-                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(recipes);
-            }
-            case REMOVE -> {
-                List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
-                if (recipes.isEmpty()) {
-                    // Sending an empty list here will crash the client as of 1.20.60
-                    return;
-                }
-                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(recipes);
-            }
+    public void translate(GeyserSession session, ClientboundRecipeBookRemovePacket packet) {
+        List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
+        if (recipes.isEmpty()) {
+            // Sending an empty list here will crash the client as of 1.20.60
+            return;
         }
+        UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
+        recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
+        recipesPacket.getUnlockedRecipes().addAll(recipes);
         session.sendUpstreamPacket(recipesPacket);
     }
 
-    private List<String> getBedrockRecipes(GeyserSession session, String[] javaRecipeIdentifiers) {
+    private List<String> getBedrockRecipes(GeyserSession session, int[] javaRecipeIds) {
         List<String> recipes = new ArrayList<>();
-        for (String javaIdentifier : javaRecipeIdentifiers) {
+        for (int javaIdentifier : javaRecipeIds) {
             List<String> bedrockRecipes = session.getJavaToBedrockRecipeIds().get(javaIdentifier);
             // Some recipes are not (un)lockable on Bedrock edition, like furnace or stonecutter recipes.
             // So we don't store/send these.

@@ -196,11 +196,10 @@ public final class BlockRegistryPopulator {
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
             for (int i = 0; i < blockStates.size(); i++) {
                 NbtMap tag = blockStates.get(i);
-                if (blockStateOrderedMap.containsKey(tag)) {
+                GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
+                if (blockStateOrderedMap.put(tag, block) != null) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
-                GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
-                blockStateOrderedMap.put(tag, block);
                 bedrockRuntimeMap[i] = block;
             }
 

@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,6 +61,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+
 @Getter
 @Setter
 public class Entity implements GeyserEntity {
@@ -89,6 +90,7 @@ public class Entity implements GeyserEntity {
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
+     * Java: Y = Yaw, X = Pitch
      */
     protected float yaw;
     protected float pitch;
@@ -698,10 +700,5 @@ public class Entity implements GeyserEntity {
         packet.setType(type);
         packet.setData(data);
         session.sendUpstreamPacket(packet);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <I extends Entity> @Nullable I as(Class<I> entityClass) {
-        return entityClass.isInstance(this) ? (I) this : null;
     }
 }

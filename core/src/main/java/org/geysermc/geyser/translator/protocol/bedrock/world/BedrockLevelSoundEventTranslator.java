@@ -89,6 +89,7 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
                         Hand.MAIN_HAND,
                         0, 0, 0,
                         false,
+                        false,
                         session.getWorldCache().nextPredictionSequence());
                 session.sendDownstreamGamePacket(blockPacket);
             }

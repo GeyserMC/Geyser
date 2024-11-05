@@ -25,14 +25,6 @@
 
 package org.geysermc.geyser.scoreboard.network;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
@@ -74,6 +66,11 @@ import org.junit.jupiter.api.Test;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.*;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for issues reported on GitHub.
@@ -157,7 +154,7 @@ public class ScoreboardIssueTests {
                 new ClientboundPlayerInfoUpdatePacket(
                     EnumSet.of(PlayerListEntryAction.ADD_PLAYER, PlayerListEntryAction.UPDATE_LISTED),
                     new PlayerListEntry[] {
-                        new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, null, 0, null, null)
+                        new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, 0, null, 0, null, null)
                     }));
 
             //todo we don't have to remove an entry that was never in the playerlist in the first place

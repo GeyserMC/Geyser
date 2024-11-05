@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -42,13 +43,13 @@ import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
 import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
-import org.geysermc.geyser.registry.loader.RecipeRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
+import org.geysermc.geyser.registry.populator.TagRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -62,13 +63,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -159,12 +158,17 @@ public final class Registries {
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
-    public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
+    //public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
     public static final SimpleMappedDeferredRegistry<String, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+
+    /**
+     * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
+     */
+    public static final VersionedRegistry<Object2ObjectMap<int[], String>> TAGS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
@@ -195,7 +199,7 @@ public final class Registries {
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later
-        RECIPES.load();
+        //RECIPES.load();
         RESOURCE_PACKS.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
@@ -205,6 +209,7 @@ public final class Registries {
     public static void populate() {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
+        TagRegistryPopulator.populate();
 
         // potion mixes depend on other registries
         POTION_MIXES.load();

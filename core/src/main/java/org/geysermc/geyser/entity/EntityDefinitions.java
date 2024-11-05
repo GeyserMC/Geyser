@@ -151,29 +151,37 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 public final class EntityDefinitions {
+    public static final EntityDefinition<BoatEntity> ACACIA_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> ACACIA_CHEST_BOAT;
     public static final EntityDefinition<AllayEntity> ALLAY;
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
     public static final EntityDefinition<ArmadilloEntity> ARMADILLO;
     public static final EntityDefinition<ArmorStandEntity> ARMOR_STAND;
     public static final EntityDefinition<ArrowEntity> ARROW;
     public static final EntityDefinition<AxolotlEntity> AXOLOTL;
+    public static final EntityDefinition<BoatEntity> BAMBOO_RAFT;
+    public static final EntityDefinition<ChestBoatEntity> BAMBOO_CHEST_RAFT;
     public static final EntityDefinition<BatEntity> BAT;
     public static final EntityDefinition<BeeEntity> BEE;
+    public static final EntityDefinition<BoatEntity> BIRCH_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> BIRCH_CHEST_BOAT;
     public static final EntityDefinition<BlazeEntity> BLAZE;
-    public static final EntityDefinition<BoatEntity> BOAT;
     public static final EntityDefinition<BoggedEntity> BOGGED;
     public static final EntityDefinition<BreezeEntity> BREEZE;
     public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
+    public static final EntityDefinition<BoatEntity> CHERRY_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> CHERRY_CHEST_BOAT;
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
-    public static final EntityDefinition<ChestBoatEntity> CHEST_BOAT;
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
     public static final EntityDefinition<CreeperEntity> CREEPER;
+    public static final EntityDefinition<BoatEntity> DARK_OAK_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> DARK_OAK_CHEST_BOAT;
     public static final EntityDefinition<DolphinEntity> DOLPHIN;
     public static final EntityDefinition<ChestedHorseEntity> DONKEY;
     public static final EntityDefinition<FireballEntity> DRAGON_FIREBALL;
@@ -212,14 +220,20 @@ public final class EntityDefinitions {
     public static final EntityDefinition<IronGolemEntity> IRON_GOLEM;
     public static final EntityDefinition<ItemEntity> ITEM;
     public static final EntityDefinition<ItemFrameEntity> ITEM_FRAME;
+    public static final EntityDefinition<BoatEntity> JUNGLE_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> JUNGLE_CHEST_BOAT;
     public static final EntityDefinition<LeashKnotEntity> LEASH_KNOT;
     public static final EntityDefinition<LightningEntity> LIGHTNING_BOLT;
     public static final EntityDefinition<LlamaEntity> LLAMA;
     public static final EntityDefinition<ThrowableEntity> LLAMA_SPIT;
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
+    public static final EntityDefinition<BoatEntity> MANGROVE_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> MANGROVE_CHEST_BOAT;
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
+    public static final EntityDefinition<BoatEntity> OAK_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
     public static final EntityDefinition<PaintingEntity> PAINTING;
     public static final EntityDefinition<PandaEntity> PANDA;
@@ -250,6 +264,8 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; // Not present on Bedrock
     public static final EntityDefinition<AbstractArrowEntity> SPECTRAL_ARROW;
     public static final EntityDefinition<SpiderEntity> SPIDER;
+    public static final EntityDefinition<BoatEntity> SPRUCE_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> SPRUCE_CHEST_BOAT;
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
@@ -307,23 +323,6 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.FLOAT, AreaEffectCloudEntity::setRadius)
                     .addTranslator(null) // Waiting
                     .addTranslator(MetadataType.PARTICLE, AreaEffectCloudEntity::setParticle)
-                    .build();
-            BOAT = EntityDefinition.inherited(BoatEntity::new, entityBase)
-                    .type(EntityType.BOAT)
-                    .height(0.6f).width(1.6f)
-                    .offset(0.35f)
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
-                    .addTranslator(MetadataType.FLOAT, (boatEntity, entityMetadata) ->
-                            // 'Health' in Bedrock, damage taken in Java - it makes motion in Bedrock
-                            boatEntity.getDirtyMetadata().put(EntityDataTypes.STRUCTURAL_INTEGRITY, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
-                    .addTranslator(MetadataType.INT, BoatEntity::setVariant)
-                    .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingLeft)
-                    .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
-                    .build();
-            CHEST_BOAT = EntityDefinition.inherited(ChestBoatEntity::new, BOAT)
-                    .type(EntityType.CHEST_BOAT)
                     .build();
             DRAGON_FIREBALL = EntityDefinition.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
@@ -567,6 +566,45 @@ public final class EntityDefinitions {
                     .build(false);
         }
 
+        // Boats
+        {
+            EntityDefinition<BoatEntity> boatBase = EntityDefinition.<BoatEntity>inherited(null, entityBase)
+                .height(0.6f).width(1.6f)
+                .offset(0.35f)
+                .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
+                .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
+                .addTranslator(MetadataType.FLOAT, (boatEntity, entityMetadata) ->
+                    // 'Health' in Bedrock, damage taken in Java - it makes motion in Bedrock
+                    boatEntity.getDirtyMetadata().put(EntityDataTypes.STRUCTURAL_INTEGRITY, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
+                .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingLeft)
+                .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
+                .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
+                .build();
+
+            ACACIA_BOAT = buildBoat(boatBase, EntityType.ACACIA_BOAT, BoatEntity.BoatVariant.ACACIA);
+            BAMBOO_RAFT = buildBoat(boatBase, EntityType.BAMBOO_RAFT, BoatEntity.BoatVariant.BAMBOO);
+            BIRCH_BOAT = buildBoat(boatBase, EntityType.BIRCH_BOAT, BoatEntity.BoatVariant.BIRCH);
+            CHERRY_BOAT = buildBoat(boatBase, EntityType.CHERRY_BOAT, BoatEntity.BoatVariant.CHERRY);
+            DARK_OAK_BOAT = buildBoat(boatBase, EntityType.DARK_OAK_BOAT, BoatEntity.BoatVariant.DARK_OAK);
+            JUNGLE_BOAT = buildBoat(boatBase, EntityType.JUNGLE_BOAT, BoatEntity.BoatVariant.JUNGLE);
+            MANGROVE_BOAT = buildBoat(boatBase, EntityType.MANGROVE_BOAT, BoatEntity.BoatVariant.MANGROVE);
+            OAK_BOAT = buildBoat(boatBase, EntityType.OAK_BOAT, BoatEntity.BoatVariant.OAK);
+            SPRUCE_BOAT = buildBoat(boatBase, EntityType.SPRUCE_BOAT, BoatEntity.BoatVariant.SPRUCE);
+
+            EntityDefinition<ChestBoatEntity> chestBoatBase = EntityDefinition.<ChestBoatEntity>inherited(null, boatBase)
+                .build();
+
+            ACACIA_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.ACACIA_CHEST_BOAT, BoatEntity.BoatVariant.ACACIA);
+            BAMBOO_CHEST_RAFT = buildChestBoat(chestBoatBase, EntityType.BAMBOO_CHEST_RAFT, BoatEntity.BoatVariant.BAMBOO);
+            BIRCH_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.BIRCH_CHEST_BOAT, BoatEntity.BoatVariant.BIRCH);
+            CHERRY_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.CHERRY_CHEST_BOAT, BoatEntity.BoatVariant.CHERRY);
+            DARK_OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.DARK_OAK_CHEST_BOAT, BoatEntity.BoatVariant.DARK_OAK);
+            JUNGLE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.JUNGLE_CHEST_BOAT, BoatEntity.BoatVariant.JUNGLE);
+            MANGROVE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.MANGROVE_CHEST_BOAT, BoatEntity.BoatVariant.MANGROVE);
+            OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.OAK_CHEST_BOAT, BoatEntity.BoatVariant.OAK);
+            SPRUCE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.SPRUCE_CHEST_BOAT, BoatEntity.BoatVariant.SPRUCE);
+        }
+
         EntityDefinition<LivingEntity> livingEntityBase = EntityDefinition.inherited(LivingEntity::new, entityBase)
                 .addTranslator(MetadataType.BYTE, LivingEntity::setLivingEntityFlags)
                 .addTranslator(MetadataType.FLOAT, LivingEntity::setHealth)
@@ -640,14 +678,6 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.POWERED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataType.BOOLEAN, CreeperEntity::setIgnited)
                     .build();
-            DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, mobEntityBase)
-                    .type(EntityType.DOLPHIN)
-                    .height(0.6f).width(0.9f)
-                    //TODO check
-                    .addTranslator(null) // treasure position
-                    .addTranslator(null) // "got fish"
-                    .addTranslator(null) // "moistness level"
-                    .build();
             ENDERMAN = EntityDefinition.inherited(EndermanEntity::new, mobEntityBase)
                     .type(EntityType.ENDERMAN)
                     .height(2.9f).width(0.6f)
@@ -716,10 +746,6 @@ public final class EntityDefinitions {
             CAVE_SPIDER = EntityDefinition.inherited(SpiderEntity::new, SPIDER)
                     .type(EntityType.CAVE_SPIDER)
                     .height(0.5f).width(0.7f)
-                    .build();
-            SQUID = EntityDefinition.inherited(SquidEntity::new, mobEntityBase)
-                    .type(EntityType.SQUID)
-                    .heightAndWidth(0.8f)
                     .build();
             STRAY = EntityDefinition.inherited(AbstractSkeletonEntity::new, mobEntityBase)
                     .type(EntityType.STRAY)
@@ -819,6 +845,7 @@ public final class EntityDefinitions {
             SALMON = EntityDefinition.inherited(abstractFishEntityBase.factory(), abstractFishEntityBase)
                     .type(EntityType.SALMON)
                     .height(0.5f).width(0.7f)
+                    .addTranslator(null) // Scale/variant - TODO
                     .build();
             TADPOLE = EntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
                     .type(EntityType.TADPOLE)
@@ -844,11 +871,6 @@ public final class EntityDefinitions {
             PIGLIN_BRUTE = EntityDefinition.inherited(abstractPiglinEntityBase.factory(), abstractPiglinEntityBase)
                     .type(EntityType.PIGLIN_BRUTE)
                     .height(1.95f).width(0.6f)
-                    .build();
-
-            GLOW_SQUID = EntityDefinition.inherited(GlowSquidEntity::new, SQUID)
-                    .type(EntityType.GLOW_SQUID)
-                    .addTranslator(null) // Set dark ticks remaining, possible TODO
                     .build();
 
             EntityDefinition<RaidParticipantEntity> raidParticipantEntityBase = EntityDefinition.inherited(RaidParticipantEntity::new, mobEntityBase)
@@ -1042,6 +1064,26 @@ public final class EntityDefinitions {
                     .build();
         }
 
+        // Water creatures (AgeableWaterCreature)
+        {
+            DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, ageableEntityBase)
+                .type(EntityType.DOLPHIN)
+                .height(0.6f).width(0.9f)
+                //TODO check
+                .addTranslator(null) // treasure position
+                .addTranslator(null) // "got fish"
+                .addTranslator(null) // "moistness level"
+                .build();
+            SQUID = EntityDefinition.inherited(SquidEntity::new, ageableEntityBase)
+                .type(EntityType.SQUID)
+                .heightAndWidth(0.8f)
+                .build();
+            GLOW_SQUID = EntityDefinition.inherited(GlowSquidEntity::new, SQUID)
+                .type(EntityType.GLOW_SQUID)
+                .addTranslator(null) // Set dark ticks remaining, possible TODO
+                .build();
+        }
+
         // Horses
         {
             EntityDefinition<AbstractHorseEntity> abstractHorseEntityBase = EntityDefinition.inherited(AbstractHorseEntity::new, ageableEntityBase)
@@ -1122,6 +1164,22 @@ public final class EntityDefinitions {
                 .build(false); // Never sent over the network
 
         Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
+    }
+
+    private static EntityDefinition<BoatEntity> buildBoat(EntityDefinition<BoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
+        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
+            new BoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+            .type(entityType)
+            .identifier("minecraft:boat")
+            .build();
+    }
+
+    private static EntityDefinition<ChestBoatEntity> buildChestBoat(EntityDefinition<ChestBoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
+        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
+                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+            .type(entityType)
+            .identifier("minecraft:chest_boat")
+            .build();
     }
 
     public static void init() {

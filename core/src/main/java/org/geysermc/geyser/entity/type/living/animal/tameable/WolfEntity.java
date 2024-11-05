@@ -36,8 +36,10 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
@@ -116,7 +118,7 @@ public class WolfEntity extends TameableEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.WOLF_FOOD;
     }
 

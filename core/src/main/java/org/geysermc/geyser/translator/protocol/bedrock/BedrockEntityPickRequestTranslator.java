@@ -51,29 +51,14 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;
 
+        if (entity instanceof BoatEntity boat) {
+            InventoryUtils.findOrCreateItem(session, boat.getPickItem());
+            return;
+        }
+
         // Get the corresponding item
         String itemName;
         switch (entity.getDefinition().entityType()) {
-            case BOAT, CHEST_BOAT -> {
-                // Include type of boat in the name
-                int variant = ((BoatEntity) entity).getVariant();
-                String typeOfBoat = switch (variant) {
-                    case 1 -> "spruce";
-                    case 2 -> "birch";
-                    case 3 -> "jungle";
-                    case 4 -> "acacia";
-                    case 5 -> "cherry";
-                    case 6 -> "dark_oak";
-                    case 7 -> "mangrove";
-                    case 8 -> "bamboo";
-                    default -> "oak";
-                };
-                itemName = typeOfBoat + "_" + entity.getDefinition().entityType().name().toLowerCase(Locale.ROOT);
-                // Bamboo boat is a raft
-                if (variant == 8) {
-                    itemName = itemName.replace("boat", "raft");
-                }
-            }
             case LEASH_KNOT -> itemName = "lead";
             case CHEST_MINECART, COMMAND_BLOCK_MINECART, FURNACE_MINECART, HOPPER_MINECART, TNT_MINECART ->
                     // The Bedrock identifier matches the item name which moves MINECART to the end of the name

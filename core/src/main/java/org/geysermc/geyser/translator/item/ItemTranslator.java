@@ -108,7 +108,7 @@ public final class ItemTranslator {
         ItemMapping bedrockItem = session.getItemMappings().getMapping(data);
         Item javaItem = bedrockItem.getJavaItem();
 
-        GeyserItemStack itemStack = javaItem.translateToJava(data, bedrockItem, session.getItemMappings());
+        GeyserItemStack itemStack = javaItem.translateToJava(session, data, bedrockItem, session.getItemMappings());
 
         NbtMap nbt = data.getTag();
         if (nbt != null && !nbt.isEmpty()) {
@@ -198,7 +198,7 @@ public final class ItemTranslator {
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
 
-        ItemData.Builder builder = javaItem.translateToBedrock(count, components, bedrockItem, session.getItemMappings());
+        ItemData.Builder builder = javaItem.translateToBedrock(session, count, components, bedrockItem, session.getItemMappings());
         // Finalize the Bedrock NBT
         builder.tag(nbtBuilder.build());
         if (bedrockItem.isBlock()) {

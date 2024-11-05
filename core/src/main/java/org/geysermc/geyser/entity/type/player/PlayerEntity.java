@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -64,6 +58,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
@@ -248,10 +249,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         if (rightParrot != null) {
             rightParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
-    }
-
-    public void updateRotation(float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
