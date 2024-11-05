@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.List;
 
-public record GeyserShapedRecipe(int width, int height, List<SlotDisplay> ingredients, @Nullable SlotDisplay result) implements GeyserRecipe {
+public record GeyserShapedRecipe(int width, int height, List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
 
     public GeyserShapedRecipe(ShapedCraftingRecipeDisplay data) {
         this(data.width(), data.height(), data.ingredients(), data.result());

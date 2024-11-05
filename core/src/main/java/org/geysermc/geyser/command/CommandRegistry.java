@@ -68,6 +68,8 @@ import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.LiteralParser;
 import org.incendo.cloud.parser.standard.StringArrayParser;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.Suggestions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -320,6 +322,10 @@ public class CommandRegistry implements EventRegistrar {
         cloud.commandExecutor().executeCommand(source, command);
     }
 
+    public Suggestions<GeyserCommandSource, ? extends Suggestion> suggestionsFor(GeyserCommandSource source, String input) {
+        return cloud.suggestionFactory().suggestImmediately(source, input);
+    }
+
     public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
         cloud.commandTree().rootNodes().forEach(commandTree -> {
             var command = commandTree.command();
@@ -340,7 +346,7 @@ public class CommandRegistry implements EventRegistrar {
 
                 List<CommandOverloadData> data = new ArrayList<>();
                 for (var node : commandTree.children()) {
-                    List<List<CommandParamData>> params = createParamData(node);
+                    List<List<CommandParamData>> params = createParamData(session, node);
                     params.forEach(param -> data.add(new CommandOverloadData(false, param.toArray(CommandParamData[]::new))));
                 }
 
@@ -352,7 +358,13 @@ public class CommandRegistry implements EventRegistrar {
         });
     }
 
-    private List<List<CommandParamData>> createParamData(CommandNode<GeyserCommandSource> node) {
+    private List<List<CommandParamData>> createParamData(GeyserSession session, CommandNode<GeyserCommandSource> node) {
+        var command = node.command();
+        if (command != null && !session.hasPermission(command.commandPermission().permissionString())) {
+            // Triggers with subcommands like Geyser dump, stop, etc.
+            return Collections.emptyList();
+        }
+
         CommandParamData data = new CommandParamData();
         var component = node.component();
         data.setName(component.name());
@@ -390,7 +402,7 @@ public class CommandRegistry implements EventRegistrar {
         // If a node has multiple children, this will need to be represented
         // by creating a new list/branch for each and cloning this node down each line.
         for (var child : children) {
-            collectiveData.addAll(createParamData(child));
+            collectiveData.addAll(createParamData(session, child));
         }
         collectiveData.forEach(list -> list.add(0, data));
         return collectiveData;

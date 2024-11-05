@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -74,7 +74,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(packet);
 
-        BedrockMovePlayerTranslator.translate(session, packet);
+        BedrockMovePlayer.translate(session, packet);
 
         processVehicleInput(session, packet, wasJumping);
 
@@ -220,6 +220,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.sendDownstreamGamePacket(breakPacket);
         } else {
             session.getGeyser().getLogger().error("Unhandled item use transaction type!");
+            if (session.getGeyser().getLogger().isDebug()) {
+                session.getGeyser().getLogger().debug(transaction);
+            }
         }
     }
 
@@ -229,12 +232,12 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             return;
         }
         if (vehicle instanceof ClientVehicle) {
-            session.getPlayerEntity().setVehicleInput(packet.getAnalogMoveVector());
+            session.getPlayerEntity().setVehicleInput(packet.getMotion());
         }
 
         boolean sendMovement = false;
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
-            sendMovement = true;
+            sendMovement = !(vehicle instanceof ClientVehicle);
         } else if (vehicle instanceof BoatEntity) {
             if (vehicle.getPassengers().size() == 1) {
                 // The player is the only rider
@@ -261,16 +264,18 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             if (wasJumping && !holdingJump) {
                 // Jump released
                 // Yes, I'm fairly certain that entity ID is correct.
+                int finalVehicleJumpStrength = GenericMath.floor(session.getInputCache().getJumpScale() * 100f);
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(),
-                    PlayerState.START_HORSE_JUMP, GenericMath.floor(session.getInputCache().getJumpScale() * 100f)));
+                    PlayerState.START_HORSE_JUMP, finalVehicleJumpStrength));
                 session.getInputCache().setJumpingTicks(-10);
+                session.getPlayerEntity().setVehicleJumpStrength(finalVehicleJumpStrength);
             } else if (!wasJumping && holdingJump) {
                 session.getInputCache().setJumpingTicks(0);
                 session.getInputCache().setJumpScale(0);
             } else if (holdingJump) {
                 session.getInputCache().setJumpingTicks(++currentJumpingTicks);
                 if (currentJumpingTicks < 10) {
-                    session.getInputCache().setJumpScale(session.getInputCache().getJumpScale() * 0.1F);
+                    session.getInputCache().setJumpScale(session.getInputCache().getJumpingTicks() * 0.1F);
                 } else {
                     session.getInputCache().setJumpScale(0.8f + 2.0f / (currentJumpingTicks - 9) * 0.1f);
                 }

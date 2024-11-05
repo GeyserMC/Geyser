@@ -1076,6 +1076,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
                 // Download and load the language for the player
                 MinecraftLocale.downloadAndLoadLocale(locale);
+
+//                if (sentSpawnPacket && !GameProtocol.isPre1_21_2(GeyserSession.this)) {
+//                    // Possible form to close.
+//                    upstream.sendPacket(new ClientboundCloseFormPacket());
+//                }
             }
 
             @Override
