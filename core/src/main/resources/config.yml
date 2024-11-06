@@ -16,7 +16,7 @@ bedrock:
   # Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.
   #address: 0.0.0.0
   # The port that will listen for connections
-  port: 19132
+  port: 15695
   # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
   # This option makes the Bedrock port the same as the Java port every time you start the server.
   # This option is for the plugin version only.
@@ -32,7 +32,7 @@ bedrock:
   compression-level: 6
   # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
   # DO NOT uncomment and change this unless Geyser runs on a different internal port than the one that is used to connect.
-  # broadcast-port: 19132
+  # broadcast-port: 15695
   # Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
   # in front of your Geyser instance.
   enable-proxy-protocol: false
