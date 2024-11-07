@@ -154,10 +154,11 @@ public class CollisionManager {
      * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
      *
      * @param bedrockPosition the current Bedrock position of the client
+     * @param onGround whether the Bedrock player is on the ground
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean teleported) {
+    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -198,9 +199,9 @@ public class CollisionManager {
 
         position = playerBoundingBox.getBottomCenter();
 
-        boolean onGround = (adjustedMovement.getY() != movement.getY() && movement.getY() < 0) || isOnGround();
+        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
-        if (movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
+        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Client will dismount if on a vehicle
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
@@ -208,7 +209,7 @@ public class CollisionManager {
             }
         }
 
-        if (!onGround) {
+        if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
@@ -415,8 +416,8 @@ public class CollisionManager {
         return BlockUtils.getCollision(blockId);
     }
 
-    private boolean isOnGround() {
-        // Someone smarter than me at collisions plz check this.
+    public boolean isOnGround() {
+        // Temporary until pre-1.21.30 support is dropped.
         Vector3d bottomCenter = playerBoundingBox.getBottomCenter();
         Vector3i groundPos = Vector3i.from(bottomCenter.getX(), bottomCenter.getY() - 1, bottomCenter.getZ());
         BlockCollision collision = BlockUtils.getCollisionAt(session, groundPos);
