@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,12 +42,9 @@ public class JavaMoveMinecartTranslator extends PacketTranslator<ClientboundMove
             Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
 
             MinecartStep lastStep = packet.getLerpSteps().get(packet.getLerpSteps().size() - 1);
-            Vector3d position = lastStep.position();
-            entity.moveAbsolute(position.toFloat(), lastStep.yRot(), lastStep.xRot(), entity.isOnGround(), false);
+            entity.moveAbsolute(lastStep.position().toFloat(), lastStep.yRot(), lastStep.xRot(), entity.isOnGround(), false);
 
-            Vector3d movement = lastStep.movement();
-            entity.setMotion(movement.toFloat());
-
+            entity.setMotion(lastStep.movement().toFloat());
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
             entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
             entityMotionPacket.setMotion(entity.getMotion());
