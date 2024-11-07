@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -72,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRem
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -238,10 +240,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                         );
                     }
 
-                    // In the future, we can probably search through and use subsets of tags as well.
-                    // I.E. if a Bedrock tag contains [stone stone_brick] and the Java tag uses [stone stone_brick bricks]
-                    // we can still use that Bedrock tag alongside plain item descriptors for "bricks".
-
                     Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
                     for (int item : key) {
                         itemDescriptors.add(fromItem(session, item));
@@ -252,6 +250,38 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         }
         session.getGeyser().getLogger().warning("Unimplemented slot display type for input: " + slotDisplay);
         return null;
+    }
+
+
+    private void gatherJavaIds(GeyserSession session, SlotDisplay slotDisplay, List<Integer> currentItems) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return;
+        }
+        if (slotDisplay instanceof CompositeSlotDisplay composite) {
+            for (var subDisplay : composite.contents()) {
+                gatherJavaIds(session, subDisplay, currentItems);
+            }
+            return;
+        }
+        if (slotDisplay instanceof WithRemainderSlotDisplay remainder) {
+            gatherJavaIds(session, remainder.input(), currentItems);
+            return;
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
+            currentItems.add(itemSlot.item());
+            return;
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
+            currentItems.add(itemStackSlot.itemStack().getId());
+            return;
+        }
+        if (slotDisplay instanceof TagSlotDisplay tagSlot) {
+            int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tagSlot.tag()));
+            currentItems.addAll(IntArrayList.wrap(items));
+            return;
+        }
+
+        session.getGeyser().getLogger().warning("Unimplemented slot display type for input: " + slotDisplay);
     }
 
     private Pair<Item, ItemData> translateToOutput(GeyserSession session, SlotDisplay slotDisplay) {
@@ -300,6 +330,15 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             if (translated == null) {
                 continue;
             }
+
+            // If we have more than one translated item, let's attempt to find a Bedrock tag
+            if (translated.size() > 1 && ingredients.size() > 2) {
+                var taggedInputs = attemptUseBedrockTags(session, input);
+                if (taggedInputs != null) {
+                    translated = taggedInputs;
+                }
+            }
+
             inputs.add(translated);
             if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
                 empty = false;
@@ -331,5 +370,78 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             Collections.singletonList(inputs.stream().map(descriptors -> descriptors.get(0)).toList()),
             output
         );
+    }
+
+    private List<ItemDescriptorWithCount> attemptUseBedrockTags(GeyserSession session, SlotDisplay input) {
+        IntArrayList itemIds = new IntArrayList();
+        gatherJavaIds(session, input, itemIds);
+
+        int[] ingredients = itemIds.toIntArray();
+        Arrays.sort(ingredients);
+
+        return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().computeIfAbsent(ingredients, key -> {
+            // Matchmaking: pt.1
+            var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
+            String bedrockTag = bedrockTags.get(ingredients);
+
+            // Exact match - neat!
+            if (bedrockTag != null) {
+                return Collections.singletonList(new ItemDescriptorWithCount(new ItemTagDescriptor(bedrockTag), 1));
+            }
+
+            int matchedItems = 0;
+            Map.Entry<int[], String> bestFittingTag = null;
+
+            for (Map.Entry<int[], String> entry : bedrockTags.entrySet()) {
+                int[] tagEntries = entry.getKey();
+                int matches = 0;
+
+                for (int tagEntry : tagEntries) {
+                    for (int recipeItem : ingredients) {
+                        if (tagEntry == recipeItem) {
+                            matches++;
+                        }
+                    }
+                }
+                if (matches < 2) {
+                    // Nothing found here / not enough matches
+                    continue;
+                }
+
+                // Let's make sure this isn't a completely unrelated tag
+                if (matches < (tagEntries.length / 2)) {
+                    continue;
+                }
+
+                if (matchedItems < matches) {
+                    matchedItems = matches; // current "record"
+                    bestFittingTag = entry;
+                }
+            }
+
+            if (matchedItems > 0) {
+                if (matchedItems == ingredients.length) {
+                    // We matched everything, so we just need to send the tag
+                    return Collections.singletonList(
+                        new ItemDescriptorWithCount(new ItemTagDescriptor(bestFittingTag.getValue()), 1)
+                    );
+                }
+
+                int[] tagItems = bestFittingTag.getKey();
+
+                // Remove all items already covered by the tag
+                itemIds.removeAll(IntArrayList.wrap(tagItems));
+
+                List<ItemDescriptorWithCount> list = new ArrayList<>();
+                list.add(new ItemDescriptorWithCount(new ItemTagDescriptor(bestFittingTag.getValue()), 1));
+                for (int itemId : itemIds) {
+                    list.add(fromItem(session, itemId));
+                }
+                return list;
+            }
+
+            // no match today :(
+            return null;
+        });
     }
 }
