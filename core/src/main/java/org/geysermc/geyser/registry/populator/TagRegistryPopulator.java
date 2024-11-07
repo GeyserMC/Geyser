@@ -47,6 +47,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public final class TagRegistryPopulator {
             ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()),
             ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion())
         );
-        TypeToken<Map<String, List<String>>> type = new TypeToken<>() {};
+        Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
