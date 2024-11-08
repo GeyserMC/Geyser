@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -43,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
@@ -65,6 +58,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
@@ -110,20 +110,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         this.username = username;
         this.nametag = username;
         this.texturesProperty = texturesProperty;
-    }
-
-    /**
-     * Do not use! For testing purposes only
-     */
-    public PlayerEntity(GeyserSession session, long geyserId, UUID uuid, String username) {
-        super(session, -1, geyserId, uuid, EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
-        this.username = username;
-        this.nametag = username;
-        this.texturesProperty = null;
-
-        // clear initial metadata
-        dirtyMetadata.apply(new EntityDataMap());
-        setFlagsDirty(false);
     }
 
     @Override
@@ -193,11 +179,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         if (session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
 
-        if (session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
-            session.getEntityCache().spawnEntity(this);
-        } else {
-            spawnEntity();
-        }
+        session.getEntityCache().spawnEntity(this);
     }
 
     @Override
@@ -267,10 +249,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         if (rightParrot != null) {
             rightParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
-    }
-
-    public void updateRotation(float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override

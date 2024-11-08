@@ -20,6 +20,9 @@
             <AppenderRef ref="TerminalConsole"/>
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
+            <filters>
+                <MarkerFilter marker="packet_logging" onMatch="DENY" onMismatch="ACCEPT" />
+            </filters>
         </Root>
     </Loggers>
 </Configuration>

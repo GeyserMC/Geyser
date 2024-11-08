@@ -47,6 +47,7 @@ public final class Properties {
     public static final BooleanProperty INVERTED = BooleanProperty.create("inverted");
     public static final BooleanProperty IN_WALL = BooleanProperty.create("in_wall");
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
+    public static final BooleanProperty TIP = BooleanProperty.create("tip");
     public static final BooleanProperty LOCKED = BooleanProperty.create("locked");
     public static final BooleanProperty OCCUPIED = BooleanProperty.create("occupied");
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
@@ -142,5 +143,6 @@ public final class Properties {
     public static final BooleanProperty CRAFTING = BooleanProperty.create("crafting");
     public static final BasicEnumProperty TRIAL_SPAWNER_STATE = BasicEnumProperty.create("trial_spawner_state", "inactive", "waiting_for_players", "active", "waiting_for_reward_ejection", "ejecting_reward", "cooldown");
     public static final BasicEnumProperty VAULT_STATE = BasicEnumProperty.create("vault_state", "inactive", "active", "unlocking", "ejecting");
+    public static final BasicEnumProperty CREAKING = BasicEnumProperty.create("creaking", "disabled", "dormant", "active");
     public static final BooleanProperty OMINOUS = BooleanProperty.create("ominous");
 }

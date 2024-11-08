@@ -23,27 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.entity.type.living;
 
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
-@Translator(packet = ClientboundFinishConfigurationPacket.class)
-public class JavaFinishConfigurationPacketTranslator extends PacketTranslator<ClientboundFinishConfigurationPacket> {
+import java.util.UUID;
+
+public abstract class AgeableWaterEntity extends AgeableEntity {
+    public AgeableWaterEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundFinishConfigurationPacket packet) {
-        // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
-        PlayerListPacket playerListPacket = new PlayerListPacket();
-        playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-        for (PlayerEntity otherEntity : session.getEntityCache().getAllPlayerEntities()) {
-            playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
-        }
-        session.sendUpstreamPacket(playerListPacket);
-        session.getEntityCache().removeAllPlayerEntities();
+    public boolean canBeLeashed() {
+        return false;
     }
 }

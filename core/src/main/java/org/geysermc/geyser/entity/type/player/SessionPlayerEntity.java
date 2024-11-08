@@ -38,8 +38,8 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -144,8 +144,31 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     /**
+     * Special method used only when updating the session player's rotation.
+     * For some reason, Mode#NORMAL ignored rotation. Yay.
+     * @param yaw the new yaw
+     * @param pitch the new pitch
+     * @param headYaw the head yaw
+     */
+    public void updateOwnRotation(float yaw, float pitch, float headYaw) {
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+        
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround());
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+
+        session.sendUpstreamPacket(movePlayerPacket);
+    }
+
+    /**
      * Set the player's position without applying an offset or moving the bounding box
-     * This is used in BedrockMovePlayerTranslator which receives the player's position
+     * This is used in BedrockMovePlayer which receives the player's position
      * with the offset pre-applied
      *
      * @param position the new position of the Bedrock player
@@ -247,9 +270,9 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_ATTACK_SPEED) {
+        if (javaAttribute.getType() == AttributeType.Builtin.ATTACK_SPEED) {
             session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
-        } else if (javaAttribute.getType() == AttributeType.Builtin.PLAYER_BLOCK_INTERACTION_RANGE) {
+        } else if (javaAttribute.getType() == AttributeType.Builtin.BLOCK_INTERACTION_RANGE) {
             this.blockInteractionRange = AttributeUtils.calculateValue(javaAttribute);
         } else {
             super.updateAttribute(javaAttribute, newAttributes);
