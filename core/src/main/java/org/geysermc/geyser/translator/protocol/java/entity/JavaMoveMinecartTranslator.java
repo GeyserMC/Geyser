@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.MinecartEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.MinecartStep;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveMinecartPacket;
 
 @Translator(packet = ClientboundMoveMinecartPacket.class)
@@ -40,15 +39,9 @@ public class JavaMoveMinecartTranslator extends PacketTranslator<ClientboundMove
     public void translate(GeyserSession session, ClientboundMoveMinecartPacket packet) {
         if (!packet.getLerpSteps().isEmpty()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-
-            MinecartStep lastStep = packet.getLerpSteps().get(packet.getLerpSteps().size() - 1);
-            entity.moveAbsolute(lastStep.position().toFloat(), lastStep.yRot(), lastStep.xRot(), entity.isOnGround(), false);
-
-            entity.setMotion(lastStep.movement().toFloat());
-            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-            entityMotionPacket.setMotion(entity.getMotion());
-            session.sendUpstreamPacket(entityMotionPacket);
+            if (entity instanceof MinecartEntity minecart) {
+                minecart.handleMinecartMovePacket(packet);
+            }
         }
     }
 }
