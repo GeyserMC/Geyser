@@ -23,23 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.inventory;
+package org.geysermc.geyser.item.type;
 
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundSetCursorItemPacket;
-
-@Translator(packet = ClientboundSetCursorItemPacket.class)
-public class JavaSetCursorItemTranslator extends PacketTranslator<ClientboundSetCursorItemPacket> {
-
-    @Override
-    public void translate(GeyserSession session, ClientboundSetCursorItemPacket packet) {
-        GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
-        session.getBundleCache().initialize(newItem);
-        session.getPlayerInventory().setCursor(newItem, session);
-        InventoryUtils.updateCursor(session);
+public class BundleItem extends Item {
+    public BundleItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 }

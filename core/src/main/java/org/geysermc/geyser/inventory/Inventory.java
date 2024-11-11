@@ -142,15 +142,21 @@ public abstract class Inventory {
         }
     }
 
-    protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
+    public static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             ItemDefinition oldMapping = ItemTranslator.getBedrockItemDefinition(session, oldItem);
             ItemDefinition newMapping = ItemTranslator.getBedrockItemDefinition(session, newItem);
             if (oldMapping.equals(newMapping)) {
                 newItem.setNetId(oldItem.getNetId());
+                newItem.mergeBundleData(session, oldItem.getBundleData());
             } else {
                 newItem.setNetId(session.getNextItemNetId());
+                session.getBundleCache().markNewBundle(newItem.getBundleData());
+                session.getBundleCache().onOldItemDelete(oldItem);
             }
+        } else {
+            // Empty item means no more bundle if one existed.
+            session.getBundleCache().onOldItemDelete(oldItem);
         }
     }
 

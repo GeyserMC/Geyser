@@ -264,6 +264,15 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request, false);
                     }
 
+                    // Might be a bundle action... let's check.
+                    // If we're in creative mode, instead of replacing logic (more hassle for updates),
+                    // let's just reuse as much logic as possible!!
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, true);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
+                    }
+
                     int transferAmount = transferAction.getCount();
                     if (isCursor(transferAction.getDestination())) {
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
