@@ -162,11 +162,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     }
 
     /**
-     * Gets the block the item places.
+     * Gets the block placer settings, if it's null then the component won't be added.
      *
-     * @return the block the item places
+     * @return the block placer settings
      */
-    String block();
+    @Nullable CustomBlockPlacer blockPlacer();
 
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
@@ -208,7 +208,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder chargeable(boolean isChargeable);
 
-        Builder block(String block);
+        Builder blockPlacer(CustomBlockPlacer blockPlacer);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
