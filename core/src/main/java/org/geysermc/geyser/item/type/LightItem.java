@@ -31,6 +31,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -42,14 +43,12 @@ public class LightItem extends BlockItem {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings)  {
         ItemMapping lightLevelMapping = getLightLevelMapping(components, mappings);
         if (lightLevelMapping != null) {
-            return super.translateToBedrock(count, components, lightLevelMapping, mappings);
+            return super.translateToBedrock(session, count, components, lightLevelMapping, mappings);
         }
-
-        return super.translateToBedrock(count, components, mapping, mappings);
-
+        return super.translateToBedrock(session, count, components, mapping, mappings);
     }
 
     @Override
