@@ -70,6 +70,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -508,6 +509,26 @@ public class ItemRegistryPopulator {
                 javaItemToMapping.put(javaItem, mapping);
             }
 
+            // Add the light block level since it doesn't exist on java but we need it for item conversion
+            Int2ObjectMap<ItemMapping> lightBlocks = new Int2ObjectOpenHashMap<>();
+
+            for (int i = 0; i <= Properties.LEVEL.high(); i++) {
+                ItemDefinition lightBlock = definitions.get("minecraft:light_block_" + i);
+                if (lightBlock == null) {
+                    break;
+                }
+
+                ItemMapping lightBlockEntry = ItemMapping.builder()
+                    .javaItem(Items.LIGHT)
+                    .bedrockIdentifier("minecraft:light_block_" + i)
+                    .bedrockDefinition(lightBlock)
+                    .bedrockData(0)
+                    .bedrockBlockDefinition(null)
+                    .customItemOptions(Collections.emptyList())
+                    .build();
+                lightBlocks.put(lightBlock.getRuntimeId(), lightBlockEntry);
+            }
+
             ItemDefinition lodestoneCompass = definitions.get("minecraft:lodestone_compass");
             if (lodestoneCompass == null) {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
@@ -641,6 +662,7 @@ public class ItemRegistryPopulator {
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)
                     .componentItemData(componentItemData)
+                    .lightBlocks(lightBlocks)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
                     .customBlockItemDefinitions(customBlockItemDefinitions)
