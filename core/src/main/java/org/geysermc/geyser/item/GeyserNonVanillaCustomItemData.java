@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.item.custom.CustomBlockPlacer;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -55,7 +56,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean isEdible;
     private final boolean canAlwaysEat;
     private final boolean isChargeable;
-    private final String block;
+    private final CustomBlockPlacer blockPlacer;
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
@@ -79,7 +80,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.isEdible = builder.edible;
         this.canAlwaysEat = builder.canAlwaysEat;
         this.isChargeable = builder.chargeable;
-        this.block = builder.block;
+        this.blockPlacer = builder.blockPlacer;
     }
 
     @Override
@@ -163,8 +164,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public String block() {
-        return block;
+    public CustomBlockPlacer blockPlacer() {
+        return blockPlacer;
     }
 
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
@@ -193,7 +194,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private boolean edible = false;
         private boolean canAlwaysEat = false;
         private boolean chargeable = false;
-        private String block = null;
+        private CustomBlockPlacer blockPlacer = null;
 
         @Override
         public Builder name(@NonNull String name) {
@@ -348,8 +349,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder block(String block) {
-            this.block = block;
+        public Builder blockPlacer(CustomBlockPlacer blockPlacer) {
+            this.blockPlacer = blockPlacer;
             return this;
         }
 
