@@ -23,11 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-/**
- * Represents anything that could be tracked like a enum, without also creating a name and enum-wide array.
- */
-public interface Ordered {
-    int ordinal();
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerRotationPacket;
+
+@Translator(packet = ClientboundPlayerRotationPacket.class)
+public class JavaPlayerRotationTranslator extends PacketTranslator<ClientboundPlayerRotationPacket> {
+
+    @Override
+    public void translate(GeyserSession session, ClientboundPlayerRotationPacket packet) {
+        session.getPlayerEntity().updateOwnRotation(packet.getYRot(), packet.getXRot(), packet.getYRot());
+    }
 }

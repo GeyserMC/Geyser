@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
@@ -36,6 +38,10 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.
 
 @Translator(packet = ClientboundResetScorePacket.class)
 public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScorePacket> {
+    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+
+    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+
     @Override
     public void translate(GeyserSession session, ClientboundResetScorePacket packet) {
         WorldCache worldCache = session.getWorldCache();
@@ -47,6 +53,14 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
             scoreboard.resetPlayerScores(packet.getOwner());
         } else {
             Objective objective = scoreboard.getObjective(packet.getObjective());
+            if (objective == null) {
+                if (SHOW_SCOREBOARD_LOGS) {
+                    logger.info(String.format(
+                        "Tried to reset score %s for %s without the existence of its requested objective %s",
+                        packet.getOwner(), session.javaUsername(), packet.getObjective()));
+                }
+                return;
+            }
             objective.removeScore(packet.getOwner());
         }
 

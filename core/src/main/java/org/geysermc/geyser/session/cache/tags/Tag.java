@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.player;
+package org.geysermc.geyser.session.cache.tags;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundSetCarriedItemPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
-@Translator(packet = ClientboundSetCarriedItemPacket.class)
-public class JavaSetCarriedItemTranslator extends PacketTranslator<ClientboundSetCarriedItemPacket> {
-
-    @Override
-    public void translate(GeyserSession session, ClientboundSetCarriedItemPacket packet) {
-        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-        hotbarPacket.setContainerId(0);
-        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
-        hotbarPacket.setSelectHotbarSlot(true);
-        session.sendUpstreamPacket(hotbarPacket);
-
-        session.getPlayerInventory().setHeldItemSlot(packet.getSlot());
-    }
+/**
+ * A tag in any of the registries that tags are loaded for by Geyser.
+ */
+public record Tag<T>(JavaRegistryKey<T> registry, Key tag) {
 }

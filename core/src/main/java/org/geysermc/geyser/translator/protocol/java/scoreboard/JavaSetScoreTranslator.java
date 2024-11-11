@@ -32,7 +32,6 @@ import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
@@ -41,11 +40,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.
 public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScorePacket> {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
 
-    private final GeyserLogger logger;
-
-    public JavaSetScoreTranslator() {
-        logger = GeyserImpl.getInstance().getLogger();
-    }
+    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
     @Override
     public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
@@ -56,7 +51,9 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         Objective objective = scoreboard.getObjective(packet.getObjective());
         if (objective == null) {
             if (SHOW_SCOREBOARD_LOGS) {
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+                logger.info(String.format(
+                    "Tried to update score %s for %s without the existence of its requested objective %s",
+                    packet.getOwner(), session.javaUsername(), packet.getObjective()));
             }
             return;
         }

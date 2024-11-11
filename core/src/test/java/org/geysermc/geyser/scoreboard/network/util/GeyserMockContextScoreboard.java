@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContext.mockContext;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +35,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 import java.util.function.Consumer;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -82,15 +85,20 @@ public class GeyserMockContextScoreboard {
         when(worldCache.increaseAndGetScoreboardPacketsPerSecond()).thenReturn(0);
     }
 
-    public static PlayerEntity mockAndAddPlayerEntity(GeyserMockContext context, String username, long geyserId) {
-        var playerEntity = spy(new PlayerEntity(context.session(), geyserId, UUID.randomUUID(), username));
-        // fake the player being spawned
-        when(playerEntity.isValid()).thenReturn(true);
+    public static PlayerEntity spawnPlayerSilently(GeyserMockContext context, String username, long geyserId) {
+        var player = spawnPlayer(context, username, geyserId);
+        assertNextPacketType(context, AddPlayerPacket.class);
+        return player;
+    }
+
+    public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {
+        var playerEntity = spy(new PlayerEntity(context.session(), (int) geyserId, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, username, null));
 
         var entityCache = context.mockOrSpy(EntityCache.class);
         entityCache.addPlayerEntity(playerEntity);
         // called when the player spawns
-        entityCache.cacheEntity(playerEntity);
+        entityCache.spawnEntity(playerEntity);
+
         return playerEntity;
     }
 }

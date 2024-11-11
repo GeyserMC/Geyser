@@ -49,9 +49,10 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -60,15 +61,22 @@ import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTransl
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
@@ -305,14 +313,7 @@ public class InventoryUtils {
 
         // If we still have not found the item, and we're in creative, ask for the item from the server.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = findEmptyHotbarSlot(inventory);
-
-            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
-                    itemStack);
-            if ((slot - 36) != inventory.getHeldItemSlot()) {
-                setHotbarItem(session, slot);
-            }
-            session.sendDownstreamGamePacket(actionPacket);
+            setPickedItem(session, inventory, GeyserItemStack.from(itemStack));
         }
     }
 
@@ -372,24 +373,15 @@ public class InventoryUtils {
             return;
         }
 
-        // If we still have not found the item, and we're in creative, ask for the item from the server.
+        // If we still have not found the item, and we're in creative, set the item ourselves.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = findEmptyHotbarSlot(inventory);
-
-            ItemMapping mapping = session.getItemMappings().getMapping(item);
-            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short)slot,
-                    new ItemStack(mapping.getJavaItem().javaId()));
-            if ((slot - 36) != inventory.getHeldItemSlot()) {
-                setHotbarItem(session, slot);
-            }
-            session.sendDownstreamGamePacket(actionPacket);
+            GeyserItemStack itemStack = item.newItemStack(1, null);
+            setPickedItem(session, inventory, itemStack);
         }
     }
 
-    /**
-     * @return the first empty slot found in this inventory, or else the player's currently held slot.
-     */
-    private static int findEmptyHotbarSlot(PlayerInventory inventory) {
+    private static void setPickedItem(GeyserSession session, PlayerInventory inventory, GeyserItemStack itemStack) {
+        // Try to find an empty hotbar slot.
         int slot = inventory.getHeldItemSlot() + 36;
         if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
             for (int i = 36; i < 45; i++) {
@@ -399,7 +391,32 @@ public class InventoryUtils {
                 }
             }
         }
-        return slot;
+        GeyserItemStack existingItem = inventory.getItem(slot);
+        if (!existingItem.isEmpty()) {
+            // Try to move the item to another slot.
+            for (int i = 9; i < 36; i++) {
+                if (inventory.getItem(i).isEmpty()) {
+                    inventory.setItem(i, existingItem, session);
+                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, i);
+
+                    ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) i,
+                        existingItem.getItemStack());
+                    session.sendDownstreamGamePacket(actionPacket);
+                    break;
+                }
+            }
+        }
+
+        // As of 1.21.3 - the client does this on its own end and the server doesn't send a slot response back.
+        inventory.setItem(slot, itemStack, session);
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, slot);
+
+        ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
+            itemStack.getItemStack());
+        if ((slot - 36) != inventory.getHeldItemSlot()) {
+            setHotbarItem(session, slot);
+        }
+        session.sendDownstreamGamePacket(actionPacket);
     }
 
     /**
@@ -434,6 +451,38 @@ public class InventoryUtils {
     }
 
     /**
+     * Returns if the provided item stack would be accepted by the slot display.
+     */
+    public static boolean acceptsAsInput(GeyserSession session, SlotDisplay slotDisplay, GeyserItemStack itemStack) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return itemStack.isEmpty();
+        }
+        if (slotDisplay instanceof CompositeSlotDisplay compositeSlotDisplay) {
+            if (compositeSlotDisplay.contents().size() == 1) {
+                return acceptsAsInput(session, compositeSlotDisplay.contents().get(0), itemStack);
+            }
+            return compositeSlotDisplay.contents().stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
+        }
+        if (slotDisplay instanceof WithRemainderSlotDisplay remainderSlotDisplay) {
+            return acceptsAsInput(session, remainderSlotDisplay.input(), itemStack);
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
+            return itemStack.getJavaId() == itemSlotDisplay.item();
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
+            ItemStack other = itemStackSlotDisplay.itemStack();
+            // Amount check might be flimsy?
+            return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
+                && Objects.equals(itemStack.getComponents(), other.getDataComponents());
+        }
+        if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
+            return session.getTagCache().is(new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()), itemStack.asItem());
+        }
+        session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
+        return false;
+    }
+
+    /**
      * Test all known recipes to find a valid match
      *
      * @param output if not null, the recipe has to output this item
@@ -454,59 +503,55 @@ public class InventoryUtils {
         for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
             if (recipe.isShaped()) {
                 GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
-                if (output != null && !shapedRecipe.result().equals(output)) {
+                if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(output))) {
                     continue;
                 }
-                Ingredient[] ingredients = shapedRecipe.ingredients();
-                if (shapedRecipe.width() != width || shapedRecipe.height() != height || width * height != ingredients.length) {
+                List<SlotDisplay> ingredients = shapedRecipe.ingredients();
+                if (shapedRecipe.width() != width || shapedRecipe.height() != height || width * height != ingredients.size()) {
                     continue;
                 }
 
-                if (!testShapedRecipe(ingredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
-                    Ingredient[] mirroredIngredients = new Ingredient[ingredients.length];
+                if (!testShapedRecipe(session, ingredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
+                    List<SlotDisplay> mirroredIngredients = new ArrayList<>(ingredients.size());
                     for (int row = 0; row < height; row++) {
                         for (int col = 0; col < width; col++) {
-                            mirroredIngredients[col + (row * width)] = ingredients[(width - 1 - col) + (row * width)];
+                            int index = col + (row * width);
+                            while (mirroredIngredients.size() <= index) {
+                                mirroredIngredients.add(null);
+                            }
+                            mirroredIngredients.set(index, ingredients.get((width - 1 - col) + (row * width)));
                         }
                     }
 
-                    if (Arrays.equals(ingredients, mirroredIngredients) ||
-                            !testShapedRecipe(mirroredIngredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
+                    if (ingredients.equals(mirroredIngredients) ||
+                            !testShapedRecipe(session, mirroredIngredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
                         continue;
                     }
                 }
             } else {
                 GeyserShapelessRecipe data = (GeyserShapelessRecipe) recipe;
-                if (output != null && !data.result().equals(output)) {
+                if (output != null && !acceptsAsInput(session, data.result(), GeyserItemStack.from(output))) {
                     continue;
                 }
-                if (nonAirCount != data.ingredients().length) {
+                if (nonAirCount != data.ingredients().size()) {
                     // There is an amount of items on the crafting table that is not the same as the ingredient count so this is invalid
                     continue;
                 }
-                for (int i = 0; i < data.ingredients().length; i++) {
-                    Ingredient ingredient = data.ingredients()[i];
-                    for (ItemStack itemStack : ingredient.getOptions()) {
-                        boolean inventoryHasItem = false;
-                        // Iterate only over the crafting table to find this item
-                        crafting:
-                        for (int row = firstRow; row < height + firstRow; row++) {
-                            for (int col = firstCol; col < width + firstCol; col++) {
-                                GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
-                                if (geyserItemStack.isEmpty()) {
-                                    inventoryHasItem = itemStack == null || itemStack.getId() == 0;
-                                    if (inventoryHasItem) {
-                                        break crafting;
-                                    }
-                                } else if (itemStack.equals(geyserItemStack.getItemStack(1))) {
-                                    inventoryHasItem = true;
-                                    break crafting;
-                                }
+                for (int i = 0; i < data.ingredients().size(); i++) {
+                    SlotDisplay slotDisplay = data.ingredients().get(i);
+                    boolean inventoryHasItem = false;
+                    // Iterate only over the crafting table to find this item
+                    for (int row = firstRow; row < height + firstRow; row++) {
+                        for (int col = firstCol; col < width + firstCol; col++) {
+                            GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
+                            if (acceptsAsInput(session, slotDisplay, geyserItemStack)) {
+                                inventoryHasItem = true;
+                                break;
                             }
                         }
-                        if (!inventoryHasItem) {
-                            continue recipes;
-                        }
+                    }
+                    if (!inventoryHasItem) {
+                        continue recipes;
                     }
                 }
             }
@@ -516,28 +561,15 @@ public class InventoryUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean testShapedRecipe(final Ingredient[] ingredients, final IntFunction<GeyserItemStack> inventoryGetter,
+    private static boolean testShapedRecipe(final GeyserSession session, final List<SlotDisplay> ingredients, final IntFunction<GeyserItemStack> inventoryGetter,
                                             final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
         int ingredientIndex = 0;
         for (int row = firstRow; row < height + firstRow; row++) {
             for (int col = firstCol; col < width + firstCol; col++) {
                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
-                Ingredient ingredient = ingredients[ingredientIndex++];
-                if (ingredient.getOptions().length == 0) {
-                    if (!geyserItemStack.isEmpty()) {
-                        return false;
-                    }
-                } else {
-                    boolean inventoryHasItem = false;
-                    for (ItemStack item : ingredient.getOptions()) {
-                        if (Objects.equals(geyserItemStack.getItemStack(1), item)) {
-                            inventoryHasItem = true;
-                            break;
-                        }
-                    }
-                    if (!inventoryHasItem) {
-                        return false;
-                    }
+                SlotDisplay slotDisplay = ingredients.get(ingredientIndex++);
+                if (!acceptsAsInput(session, slotDisplay, geyserItemStack)) {
+                    return false;
                 }
             }
         }

@@ -38,7 +38,7 @@ public class JavaCookieRequestTranslator extends PacketTranslator<ClientboundCoo
     public void translate(GeyserSession session, ClientboundCookieRequestPacket packet) {
         ServerboundCookieResponsePacket responsePacket = new ServerboundCookieResponsePacket(
                 packet.getKey(),
-                session.getCookies().get(packet.getKey())
+                session.getCookies().get(packet.getKey().asString())
         );
         session.sendDownstreamPacket(responsePacket);
     }
