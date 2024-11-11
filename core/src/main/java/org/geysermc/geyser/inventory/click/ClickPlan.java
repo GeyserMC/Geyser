@@ -183,8 +183,10 @@ public final class ClickPlan {
             inventory.setItem(simulatedSlot.getIntKey(), simulatedSlot.getValue(), session);
         }
         for (Int2ObjectMap.Entry<ItemStack> changedSlot : changedItems.int2ObjectEntrySet()) {
+            ItemStack value = changedSlot.getValue();
+            ItemStack toSend = InventoryUtils.isEmpty(value) ? new ItemStack(-1, 0, null) : value;
             session.sendDownstreamGamePacket(
-                new ServerboundSetCreativeModeSlotPacket((short) changedSlot.getIntKey(), changedSlot.getValue())
+                new ServerboundSetCreativeModeSlotPacket((short) changedSlot.getIntKey(), toSend)
             );
         }
     }

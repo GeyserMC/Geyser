@@ -195,7 +195,6 @@ public final class BundleInventoryTranslator {
 
                 if (bundleSlotData.getStackNetworkId() != contents.get(0).getNetId()) {
                     // We're pulling out the first item; if something mismatches, wuh oh.
-                    System.out.println(bundleSlotData.getStackNetworkId() + " " + contents.get(0).getNetId());
                     return rejectRequest(request);
                 }
 
@@ -324,7 +323,7 @@ public final class BundleInventoryTranslator {
     }
 
     static boolean isBundle(GeyserSession session, GeyserItemStack stack) {
-        // Client as of 1.21.3 does use this, and
+        // Client as of 1.21.3 does use this
         return session.getTagCache().is(ItemTag.BUNDLES, stack);
     }
 

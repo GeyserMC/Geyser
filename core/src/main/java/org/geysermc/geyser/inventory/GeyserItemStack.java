@@ -54,7 +54,6 @@ import java.util.HashMap;
 @Data
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(Items.AIR_ID, 0, null);
-    public static final int UNSET_NET_ID = 1;
 
     private final int javaId;
     private int amount;
@@ -157,13 +156,6 @@ public class GeyserItemStack {
         }
         return def;
     }
-
-//    public boolean hasComponent(DataComponentType<?> type) {
-//        if (components == null) {
-//            return false;
-//        }
-//        return components.getDataComponents().containsKey(type);
-//    }
 
     public int getNetId() {
         return isEmpty() ? 0 : netId;
