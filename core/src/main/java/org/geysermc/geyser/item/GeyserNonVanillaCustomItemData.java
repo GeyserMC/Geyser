@@ -164,6 +164,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
+    public String block() {
+        return blockPlacer == null ? null : blockPlacer.block();
+    }
+
+    @Override
     public CustomBlockPlacer blockPlacer() {
         return blockPlacer;
     }
@@ -345,6 +350,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder chargeable(boolean isChargeable) {
             this.chargeable = isChargeable;
+            return this;
+        }
+
+        @Override
+        public Builder block(String block) {
+            this.blockPlacer = new CustomBlockPlacer(block, false);
             return this;
         }
 

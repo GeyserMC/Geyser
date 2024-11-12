@@ -50,12 +50,7 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
@@ -173,7 +168,7 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), false, customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -201,7 +196,8 @@ public class CustomItemRegistryPopulator {
             case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties(new CustomBlockPlacer("minecraft:fire", false), componentBuilder);
             case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, mapping.getBedrockIdentifier(), protocolVersion);
             case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> computeConsumableProperties(itemProperties, componentBuilder, 2, true);
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" ->
+                computeThrowableProperties(componentBuilder);
         }
 
         // Hardcoded on Java, and should extend to the custom item
@@ -227,7 +223,10 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
+        // this can replace minecraft:icon, so we have to add this here.
+        boolean replaceBlockItem = customItemData.blockPlacer() != null && customItemData.blockPlacer().replaceBlockItem();
+
+        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, replaceBlockItem, customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -269,13 +268,15 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int protocolVersion) {
-        NbtMap iconMap = NbtMap.builder()
-            .putCompound("textures", NbtMap.builder()
-                .putString("default", customItemData.icon())
-                .build())
-            .build();
-        itemProperties.putCompound("minecraft:icon", iconMap);
+    private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, boolean replaceBlockItem, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int protocolVersion) {
+        if (!replaceBlockItem) {
+            NbtMap iconMap = NbtMap.builder()
+                .putCompound("textures", NbtMap.builder()
+                    .putString("default", customItemData.icon())
+                    .build())
+                .build();
+            itemProperties.putCompound("minecraft:icon", iconMap);
+        }
 
         if (customItemData.creativeCategory().isPresent()) {
             itemProperties.putInt("creative_category", customItemData.creativeCategory().getAsInt());
@@ -499,7 +500,7 @@ public class CustomItemRegistryPopulator {
 
     private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
         // all items registered that place entities should be given this component to prevent double placement
-        // it is okay that the entity here does not match the actual one since we control what entity actually spawns 
+        // it is okay that the entity here does not match the actual one since we control what entity actually spawns
         componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
     }
 

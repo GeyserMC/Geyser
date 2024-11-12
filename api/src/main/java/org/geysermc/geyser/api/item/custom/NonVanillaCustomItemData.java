@@ -162,6 +162,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     }
 
     /**
+     * @deprecated Use {@link #blockPlacer()} instead.
+     * Gets the block the item places.
+     *
+     * @return the block the item places
+     */
+    String block();
+
+    /**
      * Gets the block placer settings, if it's null then the component won't be added.
      *
      * @return the block placer settings
@@ -207,6 +215,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder canAlwaysEat(boolean canAlwaysEat);
 
         Builder chargeable(boolean isChargeable);
+
+        /**
+         * @deprecated Use {@link #blockPlacer(CustomBlockPlacer)} instead.
+         */
+        @Deprecated
+        Builder block(String block);
 
         Builder blockPlacer(CustomBlockPlacer blockPlacer);
 
