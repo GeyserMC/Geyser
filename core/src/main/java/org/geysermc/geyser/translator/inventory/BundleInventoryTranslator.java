@@ -41,7 +41,6 @@ import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.thirdparty.Fraction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -318,13 +317,12 @@ public final class BundleInventoryTranslator {
         return slotData.getContainerName().getContainer() == ContainerSlotType.DYNAMIC_CONTAINER;
     }
 
-    static boolean isBundle(GeyserSession session, ClickPlan plan, int slot) {
-        return isBundle(session, plan.getItem(slot));
+    static boolean isBundle(ClickPlan plan, int slot) {
+        return isBundle(plan.getItem(slot));
     }
 
-    static boolean isBundle(GeyserSession session, GeyserItemStack stack) {
-        // Client as of 1.21.3 does use this
-        return session.getTagCache().is(ItemTag.BUNDLES, stack);
+    static boolean isBundle(GeyserItemStack stack) {
+        return stack.getBundleData() != null;
     }
 
     private BundleInventoryTranslator() {

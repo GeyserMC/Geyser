@@ -449,12 +449,12 @@ public abstract class InventoryTranslator {
                         if (InventoryUtils.canStack(cursor, plan.getItem(destSlot))) { //TODO: cannot simply swap if cursor stacks with slot (temp slot)
                             return rejectRequest(request);
                         }
-                        plan.add(isBundle(session, plan, destSlot) || isBundle(session, cursor) ? Click.RIGHT : Click.LEFT, destSlot);
+                        plan.add(isBundle(plan, destSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, destSlot);
                     } else if (isDestCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(sourceSlot))) { //TODO
                             return rejectRequest(request);
                         }
-                        plan.add(isBundle(session, plan, sourceSlot) || isBundle(session, cursor) ? Click.RIGHT : Click.LEFT, sourceSlot);
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, sourceSlot);
                     } else {
                         if (!cursor.isEmpty()) { //TODO: (temp slot)
                             return rejectRequest(request);
@@ -466,7 +466,7 @@ public abstract class InventoryTranslator {
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, sourceSlot); //pickup source into cursor
-                        plan.add(isBundle(session, plan, sourceSlot) || isBundle(session, plan, destSlot) ? Click.RIGHT : Click.LEFT, destSlot); //swap cursor with dest slot
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(plan, destSlot) ? Click.RIGHT : Click.LEFT, destSlot); //swap cursor with dest slot
                         plan.add(Click.LEFT, sourceSlot); //release cursor onto source
                     }
                     break;
