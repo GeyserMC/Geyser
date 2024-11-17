@@ -87,6 +87,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
+
 @AllArgsConstructor
 public abstract class InventoryTranslator {
 
@@ -242,6 +244,13 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
 
+                    // Might be a bundle action... let's check.
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, false);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
+                    }
+
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     boolean isSourceCursor = isCursor(transferAction.getSource());
@@ -394,6 +403,7 @@ public abstract class InventoryTranslator {
                     break;
                 }
                 case SWAP: {
+                    // TODO breaks with bundles
                     SwapAction swapAction = (SwapAction) action;
                     ItemStackRequestSlotData source = swapAction.getSource();
                     ItemStackRequestSlotData destination = swapAction.getDestination();
@@ -427,18 +437,24 @@ public abstract class InventoryTranslator {
                         }
                     }
 
+                    // A note on all the bundle checks for clicks...
+                    // Left clicking in these contexts can count as using the bundle
+                    // and adding the stack to the contents of the bundle.
+                    // In these cases, we can safely use right-clicking while holding the bundle
+                    // as its stack size is 1.
+
                     if (isSourceCursor && isDestCursor) { //???
                         return rejectRequest(request);
                     } else if (isSourceCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(destSlot))) { //TODO: cannot simply swap if cursor stacks with slot (temp slot)
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, destSlot);
+                        plan.add(isBundle(plan, destSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, destSlot);
                     } else if (isDestCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(sourceSlot))) { //TODO
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, sourceSlot);
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, sourceSlot);
                     } else {
                         if (!cursor.isEmpty()) { //TODO: (temp slot)
                             return rejectRequest(request);
@@ -450,7 +466,7 @@ public abstract class InventoryTranslator {
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, sourceSlot); //pickup source into cursor
-                        plan.add(Click.LEFT, destSlot); //swap cursor with dest slot
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(plan, destSlot) ? Click.RIGHT : Click.LEFT, destSlot); //swap cursor with dest slot
                         plan.add(Click.LEFT, sourceSlot); //release cursor onto source
                     }
                     break;
@@ -916,6 +932,11 @@ public abstract class InventoryTranslator {
     }
 
     public boolean checkNetId(GeyserSession session, Inventory inventory, ItemStackRequestSlotData slotInfoData) {
+        if (BundleInventoryTranslator.isBundle(slotInfoData)) {
+            // Will thoroughly be investigated, if needed, in bundle checks.
+            return true;
+        }
+
         int netId = slotInfoData.getStackNetworkId();
         // "In my testing, sometimes the client thinks the netId of an item in the crafting grid is 1, even though we never said it was.
         // I think it only happens when we manually set the grid but that was my quick fix"
