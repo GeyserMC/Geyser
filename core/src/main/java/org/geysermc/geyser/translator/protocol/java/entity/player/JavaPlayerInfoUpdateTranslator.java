@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
@@ -35,6 +34,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
@@ -95,8 +95,6 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (self) {
                     SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
                             GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
-                } else {
-                    playerEntity.setValid(true);
                 }
             }
         }

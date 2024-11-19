@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network;
 
 import io.netty.buffer.Unpooled;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
@@ -38,9 +39,9 @@ import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
@@ -209,7 +210,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
                     header.uuid().toString(), header.version().toString(), codec.size(), pack.contentKey(),
-                    "", header.uuid().toString(), false, false, false));
+                    "", header.uuid().toString(), false, false, false, ""));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().forceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -290,8 +291,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(MovePlayerPacket packet) {
-        if (session.isLoggingIn()) {
+    public PacketSignal handle(PlayerAuthInputPacket packet) {
+        // This doesn't catch rotation, but for a niche case I don't exactly want to cache rotation...
+        if (session.isLoggingIn() && !packet.getMotion().equals(Vector2f.ZERO)) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.locale()));

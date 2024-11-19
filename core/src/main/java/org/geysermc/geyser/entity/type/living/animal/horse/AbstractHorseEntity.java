@@ -39,8 +39,10 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
@@ -119,7 +121,7 @@ public class AbstractHorseEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.HORSE_FOOD;
     }
 

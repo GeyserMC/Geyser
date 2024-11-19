@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.codec.v686.Bedrock_v686;
 import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
@@ -50,8 +51,8 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v729.CODEC.toBuilder()
-        .minecraftVersion("1.21.30")
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v748.CODEC.toBuilder()
+        .minecraftVersion("1.21.44")
         .build());
 
     /**
@@ -78,7 +79,12 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v712.CODEC.toBuilder()
             .minecraftVersion("1.21.20 - 1.21.23")
             .build()));
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v729.CODEC.toBuilder()
+            .minecraftVersion("1.21.30/1.21.31")
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+            .minecraftVersion("1.21.40 - 1.21.44")
+            .build());
     }
 
     /**
@@ -103,6 +109,14 @@ public final class GameProtocol {
 
     public static boolean isPre1_21_2(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() < Bedrock_v686.CODEC.getProtocolVersion();
+    }
+
+    public static boolean isPre1_21_30(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v729.CODEC.getProtocolVersion();
+    }
+
+    public static boolean isPre1_21_40(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v748.CODEC.getProtocolVersion();
     }
 
     /**

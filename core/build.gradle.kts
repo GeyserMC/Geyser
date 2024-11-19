@@ -70,6 +70,7 @@ dependencies {
     // Test
     testImplementation(libs.junit)
     testImplementation(libs.gson.runtime) // Record support
+    testImplementation(libs.mockito)
 
     // Annotation Processors
     compileOnly(projects.ap)

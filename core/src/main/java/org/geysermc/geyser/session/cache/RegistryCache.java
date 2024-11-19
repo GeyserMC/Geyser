@@ -40,13 +40,16 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.ChatDecoration;
@@ -80,7 +83,8 @@ public final class RegistryCache {
     static {
         register("chat_type", cache -> cache.chatTypes, ChatDecoration::readChatType);
         register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
-        register("enchantment", cache -> cache.enchantments, Enchantment::read);
+        register(JavaRegistries.ENCHANTMENT, cache -> cache.enchantments, Enchantment::read);
+        register("instrument", cache -> cache.instruments, GeyserInstrument::read);
         register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
         register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
@@ -94,8 +98,7 @@ public final class RegistryCache {
         Map<Key, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
         REGISTRIES.forEach((key, $) -> {
-            List<NbtMap> rawValues = tag.getCompound(key.asString())
-                    .getList("value", NbtType.COMPOUND);
+            List<NbtMap> rawValues = tag.getCompound(key.asString()).getList("value", NbtType.COMPOUND);
             Map<Key, NbtMap> values = new HashMap<>();
             for (NbtMap value : rawValues) {
                 Key name = MinecraftKey.key(value.getString("name"));
@@ -128,6 +131,7 @@ public final class RegistryCache {
 
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
     private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<GeyserInstrument> instruments = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
@@ -152,8 +156,27 @@ public final class RegistryCache {
      * @param <T> the class that represents these entries.
      */
     private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
-        Key registryKey = MinecraftKey.key(registry);
-        REGISTRIES.put(registryKey, (registryCache, entries) -> {
+        register(MinecraftKey.key(registry), localCacheFunction, reader);
+    }
+
+    /**
+     * @param registry the Java registry resource location.
+     * @param localCacheFunction which local field in RegistryCache are we caching entries for this registry?
+     * @param reader converts the RegistryEntry NBT into a class file
+     * @param <T> the class that represents these entries.
+     */
+    private static <T> void register(JavaRegistryKey<?> registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
+        register(registry.registryKey(), localCacheFunction, reader);
+    }
+
+    /**
+     * @param registry the Java registry resource location.
+     * @param localCacheFunction which local field in RegistryCache are we caching entries for this registry?
+     * @param reader converts the RegistryEntry NBT into a class file
+     * @param <T> the class that represents these entries.
+     */
+    private static <T> void register(Key registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, Function<RegistryEntryContext, T> reader) {
+        REGISTRIES.put(registry, (registryCache, entries) -> {
             Map<Key, NbtMap> localRegistry = null;
             JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
@@ -172,7 +195,7 @@ public final class RegistryCache {
                 // If the data is null, that's the server telling us we need to use our default values.
                 if (entry.getData() == null) {
                     if (localRegistry == null) { // Lazy initialize
-                        localRegistry = DEFAULTS.get(registryKey);
+                        localRegistry = DEFAULTS.get(registry);
                     }
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }

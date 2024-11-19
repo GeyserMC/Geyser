@@ -23,27 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RiderJumpPacket;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundSetHeldSlotPacket;
 
-@Translator(packet = RiderJumpPacket.class)
-public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket> {
+@Translator(packet = ClientboundSetHeldSlotPacket.class)
+public class JavaSetHeldSlotTranslator extends PacketTranslator<ClientboundSetHeldSlotPacket> {
+
     @Override
-    public void translate(GeyserSession session, RiderJumpPacket packet) {
-        session.getPlayerEntity().setVehicleJumpStrength(packet.getJumpStrength());
+    public void translate(GeyserSession session, ClientboundSetHeldSlotPacket packet) {
+        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+        hotbarPacket.setContainerId(0);
+        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
+        hotbarPacket.setSelectHotbarSlot(true);
+        session.sendUpstreamPacket(hotbarPacket);
 
-        Entity vehicle = session.getPlayerEntity().getVehicle();
-        if (vehicle instanceof AbstractHorseEntity) {
-            ServerboundPlayerCommandPacket playerCommandPacket = new ServerboundPlayerCommandPacket(vehicle.getEntityId(), PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
-            session.sendDownstreamGamePacket(playerCommandPacket);
-        }
+        session.getPlayerInventory().setHeldItemSlot(packet.getSlot());
     }
 }

@@ -49,6 +49,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -69,6 +70,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -85,6 +87,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,7 +99,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ItemRegistryPopulator {
 
-    record PaletteVersion(String version, int protocolVersion, Map<Item, String> javaOnlyItems, Remapper remapper) {
+    record PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
             this(version, protocolVersion, Collections.emptyMap(), (item, mapping) -> mapping);
@@ -110,11 +113,18 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        List<Item> bundles = List.of(Items.BUNDLE, Items.BLACK_BUNDLE, Items.BLUE_BUNDLE, Items.BROWN_BUNDLE, Items.CYAN_BUNDLE, Items.GRAY_BUNDLE,
+            Items.GREEN_BUNDLE, Items.LIGHT_BLUE_BUNDLE, Items.LIGHT_GRAY_BUNDLE, Items.LIME_BUNDLE, Items.MAGENTA_BUNDLE, Items.ORANGE_BUNDLE, Items.RED_BUNDLE,
+            Items.PINK_BUNDLE, Items.PURPLE_BUNDLE, Items.WHITE_BUNDLE, Items.YELLOW_BUNDLE);
+        Map<Item, Item> pre1_21_2Items = new HashMap<>();
+        bundles.forEach(bundle -> pre1_21_2Items.put(bundle, Items.SHULKER_SHELL));
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion685_671::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion712_685::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion729_712::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion685_671::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion712_685::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion729_712::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion748_729::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -227,7 +237,7 @@ public class ItemRegistryPopulator {
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
-                    Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW, Items.BUNDLE);
+                    Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW);
             if (!customItemsAllowed) {
                 javaOnlyItems.add(Items.FURNACE_MINECART);
             }
@@ -243,9 +253,9 @@ public class ItemRegistryPopulator {
                     throw new RuntimeException("Extra item in mappings? " + entry.getKey());
                 }
                 GeyserMappingItem mappingItem;
-                String replacementItem = palette.javaOnlyItems().get(javaItem);
+                Item replacementItem = palette.javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
-                    mappingItem = items.get(replacementItem); // java only item, a java id fallback has been provided
+                    mappingItem = items.get(replacementItem.javaIdentifier()); // java only item, a java id fallback has been provided
                 } else {
                     // check if any mapping changes need to be made on this version
                     mappingItem = palette.remapper().remap(javaItem, entry.getValue());
@@ -501,6 +511,26 @@ public class ItemRegistryPopulator {
                 javaItemToMapping.put(javaItem, mapping);
             }
 
+            // Add the light block level since it doesn't exist on java but we need it for item conversion
+            Int2ObjectMap<ItemMapping> lightBlocks = new Int2ObjectOpenHashMap<>();
+
+            for (int i = 0; i <= Properties.LEVEL.high(); i++) {
+                ItemDefinition lightBlock = definitions.get("minecraft:light_block_" + i);
+                if (lightBlock == null) {
+                    break;
+                }
+
+                ItemMapping lightBlockEntry = ItemMapping.builder()
+                    .javaItem(Items.LIGHT)
+                    .bedrockIdentifier("minecraft:light_block_" + i)
+                    .bedrockDefinition(lightBlock)
+                    .bedrockData(0)
+                    .bedrockBlockDefinition(null)
+                    .customItemOptions(Collections.emptyList())
+                    .build();
+                lightBlocks.put(lightBlock.getRuntimeId(), lightBlockEntry);
+            }
+
             ItemDefinition lodestoneCompass = definitions.get("minecraft:lodestone_compass");
             if (lodestoneCompass == null) {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
@@ -634,6 +664,7 @@ public class ItemRegistryPopulator {
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)
                     .componentItemData(componentItemData)
+                    .lightBlocks(lightBlocks)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
                     .customBlockItemDefinitions(customBlockItemDefinitions)

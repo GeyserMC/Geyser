@@ -29,6 +29,7 @@ import lombok.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -38,6 +39,10 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.HashMap;
 
@@ -75,6 +80,20 @@ public class GeyserItemStack {
 
     public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
+    }
+
+    public static @NonNull GeyserItemStack from(@NonNull SlotDisplay slotDisplay) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return GeyserItemStack.EMPTY;
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
+            return GeyserItemStack.of(itemSlotDisplay.item(), 1);
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
+            return GeyserItemStack.from(itemStackSlotDisplay.itemStack());
+        }
+        GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
+        return GeyserItemStack.EMPTY;
     }
 
     public int getJavaId() {
@@ -163,7 +182,17 @@ public class GeyserItemStack {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
+    public SlotDisplay asSlotDisplay() {
+        if (isEmpty()) {
+            return EmptySlotDisplay.INSTANCE;
+        }
+        return new ItemStackSlotDisplay(this.getItemStack());
+    }
+
     public Item asItem() {
+        if (isEmpty()) {
+            return Items.AIR;
+        }
         if (item == null) {
             return (item = Registries.JAVA_ITEMS.get().get(javaId));
         }

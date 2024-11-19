@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -211,6 +212,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (!helpAdded) {
             // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
             commandData.add(createFakeHelpCommand());
+        }
+
+        if (session.getGeyser().platformType() == PlatformType.STANDALONE) {
+            session.getGeyser().commandRegistry().export(session, commandData, knownAliases);
         }
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client

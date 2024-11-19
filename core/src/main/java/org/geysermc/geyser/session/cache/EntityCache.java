@@ -31,14 +31,17 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
@@ -66,6 +69,11 @@ public class EntityCache {
 
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
+            // start tracking newly spawned entities. Doing this before the actual entity spawn can result in combining
+            // the otherwise sent metadata packet (in the case of team visibility, which sets the NAME metadata to
+            // empty) with the entity spawn packet (which also includes metadata). Resulting in 1 less packet sent.
+            session.getWorldCache().getScoreboard().entityRegistered(entity);
+
             entity.spawnEntity();
 
             if (entity instanceof Tickable) {
@@ -86,21 +94,24 @@ public class EntityCache {
     }
 
     public void removeEntity(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
         if (entity instanceof PlayerEntity player) {
             session.getPlayerWithCustomHeads().remove(player.getUuid());
         }
 
-        if (entity != null) {
-            if (entity.isValid()) {
-                entity.despawnEntity();
-            }
+        if (entity.isValid()) {
+            entity.despawnEntity();
+        }
+        entities.remove(entityIdTranslations.remove(entity.getEntityId()));
 
-            long geyserId = entityIdTranslations.remove(entity.getEntityId());
-            entities.remove(geyserId);
+        // don't track the entity anymore, now that it's removed
+        session.getWorldCache().getScoreboard().entityRemoved(entity);
 
-            if (entity instanceof Tickable) {
-                tickableEntities.remove(entity);
-            }
+        if (entity instanceof Tickable) {
+            tickableEntities.remove(entity);
         }
     }
 
@@ -126,15 +137,37 @@ public class EntityCache {
 
     public void addPlayerEntity(PlayerEntity entity) {
         // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
-        playerEntities.putIfAbsent(entity.getUuid(), entity);
+        boolean exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
+        if (exists) {
+            return;
+        }
+
+        // notify scoreboard for new entity
+        var scoreboard = session.getWorldCache().getScoreboard();
+        scoreboard.playerRegistered(entity);
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {
         return playerEntities.get(uuid);
     }
 
+    public List<PlayerEntity> getPlayersByName(String name) {
+        var list = new ArrayList<PlayerEntity>();
+        for (PlayerEntity player : playerEntities.values()) {
+            if (name.equals(player.getUsername())) {
+                list.add(player);
+            }
+        }
+        return list;
+    }
+
     public PlayerEntity removePlayerEntity(UUID uuid) {
-        return playerEntities.remove(uuid);
+        var player = playerEntities.remove(uuid);
+        if (player != null) {
+            // notify scoreboard
+            session.getWorldCache().getScoreboard().playerRemoved(player);
+        }
+        return player;
     }
 
     public Collection<PlayerEntity> getAllPlayerEntities() {

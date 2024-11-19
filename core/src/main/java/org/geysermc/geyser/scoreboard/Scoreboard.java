@@ -25,43 +25,72 @@
 
 package org.geysermc.geyser.scoreboard;
 
+import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
-import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.scoreboard.display.slot.BelownameDisplaySlot;
+import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
+import org.geysermc.geyser.scoreboard.display.slot.PlayerlistDisplaySlot;
+import org.geysermc.geyser.scoreboard.display.slot.SidebarDisplaySlot;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import org.jetbrains.annotations.Contract;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.geysermc.geyser.scoreboard.UpdateType.*;
-
+/**
+ * Here follows some information about how scoreboards work in Java Edition, that is related to the workings of this
+ * class:
+ * <p>
+ * Objectives can be divided in two states: inactive and active.
+ * Inactive objectives is the default state for objectives that have been created using the SetObjective packet.
+ * Scores can be added, updated and removed, but as long as they're inactive they aren't shown to the player.
+ * An objective becomes active when a SetDisplayObjective packet is received, which contains the slot that
+ * the objective should be displayed at.
+ * <p>
+ * While Bedrock can handle showing one objective on multiple slots at the same time, we have to help Bedrock a bit
+ * for example by limiting the amount of sidebar scores to the amount of lines that can be shown
+ * (otherwise Bedrock may lag) and only showing online players in the playerlist (otherwise it's too cluttered.)
+ * This fact is the biggest contributor for the class being structured like it is.
+ */
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
     private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(System.getProperty("Geyser.AddTeamSuggestions", "true"));
 
     private final GeyserSession session;
     private final GeyserLogger logger;
-    @Getter
     private final AtomicLong nextId = new AtomicLong(0);
 
     private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
     @Getter
-    private final Map<ScoreboardPosition, Objective> objectiveSlots = new EnumMap<>(ScoreboardPosition.class);
+    private final Map<ScoreboardPosition, DisplaySlot> objectiveSlots = Collections.synchronizedMap(new EnumMap<>(ScoreboardPosition.class));
+    private final List<DisplaySlot> removedSlots = Collections.synchronizedList(new ArrayList<>());
+
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
     /**
      * Required to preserve vanilla behavior, which also uses a map.
@@ -71,6 +100,7 @@ public final class Scoreboard {
     @Getter
     private final Map<String, Team> playerToTeam = new Object2ObjectOpenHashMap<>();
 
+    private final AtomicBoolean updateLockActive = new AtomicBoolean(false);
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
 
@@ -80,24 +110,22 @@ public final class Scoreboard {
     }
 
     public void removeScoreboard() {
-        Iterator<Objective> iterator = objectives.values().iterator();
-        while (iterator.hasNext()) {
-            Objective objective = iterator.next();
-            iterator.remove();
+        var copy = new HashMap<>(objectiveSlots);
+        objectiveSlots.clear();
 
-            deleteObjective(objective, false);
+        for (DisplaySlot slot : copy.values()) {
+            slot.remove();
         }
     }
 
     public @Nullable Objective registerNewObjective(String objectiveId) {
         Objective objective = objectives.get(objectiveId);
         if (objective != null) {
-            // we have no other choice, or we have to make a new map?
-            // if the objective hasn't been deleted, we have to force it
-            if (objective.getUpdateType() != REMOVE) {
-                return null;
+            // matches vanilla behaviour
+            if (SHOW_SCOREBOARD_LOGS) {
+                logger.warning("An objective with the same name '" + objectiveId + "' already exists! Ignoring new objective!");
             }
-            deleteObjective(objective, true);
+            return null;
         }
 
         objective = new Objective(this, objectiveId);
@@ -105,273 +133,162 @@ public final class Scoreboard {
         return objective;
     }
 
-    public void displayObjective(String objectiveId, ScoreboardPosition displaySlot) {
+    public void displayObjective(String objectiveId, ScoreboardPosition slot) {
+        if (objectiveId.isEmpty()) {
+            // matches vanilla behaviour
+            var display = objectiveSlots.get(slot);
+            if (display != null) {
+                removedSlots.add(display);
+                objectiveSlots.remove(slot, display);
+                var objective = display.objective();
+                objective.removeDisplaySlot(display);
+            }
+            return;
+        }
+
         Objective objective = objectives.get(objectiveId);
         if (objective == null) {
             return;
         }
 
-        if (!objective.isActive()) {
-            objective.setActive(displaySlot);
-            // for reactivated objectives
-            objective.setUpdateType(ADD);
+        var display = objectiveSlots.get(slot);
+        if (display != null && display.objective() != objective) {
+            removedSlots.add(display);
         }
 
-        Objective storedObjective = objectiveSlots.get(displaySlot);
-        if (storedObjective != null && storedObjective != objective) {
-            storedObjective.pendingRemove();
-        }
-        objectiveSlots.put(displaySlot, objective);
-
-        if (displaySlot == ScoreboardPosition.BELOW_NAME) {
-            // Display the below name score option to all players
-            // Of note: unlike Bedrock, if there is an objective in the below name slot, everyone has a display
-            for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
-                if (!entity.isValid()) {
-                    // Player hasn't spawned yet - don't bother, it'll be done then
-                    continue;
-                }
-
-                entity.setBelowNameText(objective);
-            }
-        }
+        display = switch (DisplaySlot.slotCategory(slot)) {
+            case SIDEBAR -> new SidebarDisplaySlot(session, objective, slot);
+            case BELOW_NAME -> new BelownameDisplaySlot(session, objective);
+            case PLAYER_LIST -> new PlayerlistDisplaySlot(session, objective);
+            default -> throw new IllegalStateException("Unexpected value: " + slot);
+        };
+        objectiveSlots.put(slot, display);
+        objective.addDisplaySlot(display);
     }
 
-    public Team registerNewTeam(String teamName, String[] players) {
+    public void registerNewTeam(
+        String teamName,
+        String[] players,
+        Component name,
+        Component prefix,
+        Component suffix,
+        NameTagVisibility visibility,
+        TeamColor color
+    ) {
         Team team = teams.get(teamName);
         if (team != null) {
             if (SHOW_SCOREBOARD_LOGS) {
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+                logger.info("Ignoring team %s for %s. It overrides without removing old team.".formatted(teamName, session.javaUsername()));
             }
-            return team;
+            return;
         }
 
-        team = new Team(this, teamName);
-        team.addEntities(players);
+        team = new Team(this, teamName, players, name, prefix, suffix, visibility, color);
         teams.put(teamName, team);
 
         // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
         if (ADD_TEAM_SUGGESTIONS) {
-            session.addCommandEnum("Geyser_Teams", team.getId());
+            session.addCommandEnum("Geyser_Teams", team.id());
         }
-        return team;
     }
 
     public void onUpdate() {
+        // if an update is already running, let it finish
+        if (updateLockActive.getAndSet(true)) {
+            return;
+        }
+
         List<ScoreInfo> addScores = new ArrayList<>(lastAddScoreCount);
         List<ScoreInfo> removeScores = new ArrayList<>(lastRemoveScoreCount);
-        List<Objective> removedObjectives = new ArrayList<>();
 
         Team playerTeam = getTeamFor(session.getPlayerEntity().getUsername());
-        Objective correctSidebar = null;
+        DisplaySlot correctSidebarSlot = null;
 
-        for (Objective objective : objectives.values()) {
-            // objective has been deleted
-            if (objective.getUpdateType() == REMOVE) {
-                removedObjectives.add(objective);
+        for (DisplaySlot slot : objectiveSlots.values()) {
+            // slot has been removed
+            if (slot.updateType() == REMOVE) {
                 continue;
             }
 
-            // there's nothing we can do with inactive objectives
-            // after checking if the objective has been deleted,
-            // except waiting for the objective to become activated (:
-            if (!objective.isActive()) {
-                continue;
-            }
-
-            if (playerTeam != null && playerTeam.getColor() == objective.getTeamColor()) {
-                correctSidebar = objective;
+            if (playerTeam != null && playerTeam.color() == slot.teamColor()) {
+                correctSidebarSlot = slot;
             }
         }
 
-        if (correctSidebar == null) {
-            correctSidebar = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
+        if (correctSidebarSlot == null) {
+            correctSidebarSlot = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
         }
 
-        for (Objective objective : removedObjectives) {
+        var actualRemovedSlots = new ArrayList<>(removedSlots);
+        for (var slot : actualRemovedSlots) {
             // Deletion must be handled before the active objectives are handled - otherwise if a scoreboard display is changed before the current
             // scoreboard is removed, the client can crash
-            deleteObjective(objective, true);
+            slot.remove();
         }
+        removedSlots.removeAll(actualRemovedSlots);
 
-        handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
-        handleObjective(correctSidebar, addScores, removeScores);
-        handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
-
-        Iterator<Team> teamIterator = teams.values().iterator();
-        while (teamIterator.hasNext()) {
-            Team current = teamIterator.next();
-
-            switch (current.getCachedUpdateType()) {
-                case ADD, UPDATE -> current.markUpdated();
-                case REMOVE -> teamIterator.remove();
-            }
-        }
+        handleDisplaySlot(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
+        handleDisplaySlot(correctSidebarSlot, addScores, removeScores);
+        handleDisplaySlot(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
 
         if (!removeScores.isEmpty()) {
-            SetScorePacket setScorePacket = new SetScorePacket();
-            setScorePacket.setAction(SetScorePacket.Action.REMOVE);
-            setScorePacket.setInfos(removeScores);
-            session.sendUpstreamPacket(setScorePacket);
+            SetScorePacket packet = new SetScorePacket();
+            packet.setAction(SetScorePacket.Action.REMOVE);
+            packet.setInfos(removeScores);
+            session.sendUpstreamPacket(packet);
         }
 
         if (!addScores.isEmpty()) {
-            SetScorePacket setScorePacket = new SetScorePacket();
-            setScorePacket.setAction(SetScorePacket.Action.SET);
-            setScorePacket.setInfos(addScores);
-            session.sendUpstreamPacket(setScorePacket);
+            SetScorePacket packet = new SetScorePacket();
+            packet.setAction(SetScorePacket.Action.SET);
+            packet.setInfos(addScores);
+            session.sendUpstreamPacket(packet);
         }
 
         lastAddScoreCount = addScores.size();
         lastRemoveScoreCount = removeScores.size();
+        updateLockActive.set(false);
     }
 
-    private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
-        if (objective == null || objective.getUpdateType() == REMOVE) {
-            return;
+    private void handleDisplaySlot(DisplaySlot slot, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
+        if (slot != null) {
+            slot.render(addScores, removeScores);
         }
-
-        // hearts can't hold teams, so we treat them differently
-        if (objective.getType() == 1) {
-            for (Score score : objective.getScores().values()) {
-                boolean update = score.shouldUpdate();
-
-                if (update) {
-                    score.update(objective);
-                }
-
-                if (score.getUpdateType() != REMOVE && update) {
-                    addScores.add(score.getCachedInfo());
-                }
-                if (score.getUpdateType() != ADD && update) {
-                    removeScores.add(score.getCachedInfo());
-                }
-            }
-            return;
-        }
-
-        boolean objectiveAdd = objective.getUpdateType() == ADD;
-        boolean objectiveUpdate = objective.getUpdateType() == UPDATE;
-
-        for (Score score : objective.getScores().values()) {
-            if (score.getUpdateType() == REMOVE) {
-                ScoreInfo cachedInfo = score.getCachedInfo();
-                // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
-                // removed before a single update cycle is performed
-                if (cachedInfo != null) {
-                    removeScores.add(cachedInfo);
-                }
-                // score is pending to be removed, so we can remove it from the objective
-                objective.removeScore0(score.getName());
-                break;
-            }
-
-            Team team = score.getTeam();
-
-            boolean add = objectiveAdd || objectiveUpdate;
-
-            if (team != null) {
-                if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
-                    score.setTeam(null);
-                    add = true;
-                }
-            }
-
-            if (score.shouldUpdate()) {
-                score.update(objective);
-                add = true;
-            }
-
-            if (add) {
-                addScores.add(score.getCachedInfo());
-            }
-
-            // we need this as long as MCPE-143063 hasn't been fixed.
-            // the checks after 'add' are there to prevent removing scores that
-            // are going to be removed anyway / don't need to be removed
-            if (add && score.getUpdateType() != ADD && !(objectiveUpdate || objectiveAdd)) {
-                removeScores.add(score.getCachedInfo());
-            }
-
-            score.setUpdateType(NOTHING);
-        }
-
-        if (objectiveUpdate) {
-            RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-            removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-            session.sendUpstreamPacket(removeObjectivePacket);
-        }
-
-        if (objectiveAdd || objectiveUpdate) {
-            SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
-            displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
-            displayObjectivePacket.setDisplayName(objective.getDisplayName());
-            displayObjectivePacket.setCriteria("dummy");
-            displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
-            displayObjectivePacket.setSortOrder(1); // 0 = ascending, 1 = descending
-            session.sendUpstreamPacket(displayObjectivePacket);
-        }
-
-        objective.setUpdateType(NOTHING);
-    }
-
-    /**
-     * @param remove if we should remove the objective from the objectives map.
-     */
-    public void deleteObjective(Objective objective, boolean remove) {
-        if (remove) {
-            objectives.remove(objective.getObjectiveName());
-        }
-        objectiveSlots.remove(objective.getDisplaySlot(), objective);
-
-        objective.removed();
-
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-        session.sendUpstreamPacket(removeObjectivePacket);
     }
 
     public Objective getObjective(String objectiveName) {
         return objectives.get(objectiveName);
     }
 
-    public Collection<Objective> getObjectives() {
-        return objectives.values();
-    }
-
-    public void unregisterObjective(String objectiveName) {
-        Objective objective = getObjective(objectiveName);
-        if (objective != null) {
-            objective.pendingRemove();
+    public void removeObjective(Objective objective) {
+        objectives.remove(objective.getObjectiveName());
+        for (DisplaySlot slot : objective.getActiveSlots()) {
+            objectiveSlots.remove(slot.position(), slot);
+            removedSlots.add(slot);
         }
     }
 
-    public Objective getSlot(ScoreboardPosition slot) {
-        return objectiveSlots.get(slot);
+    public void resetPlayerScores(String playerNameOrEntityUuid) {
+        for (Objective objective : objectives.values()) {
+            objective.removeScore(playerNameOrEntityUuid);
+        }
     }
 
     public Team getTeam(String teamName) {
         return teams.get(teamName);
     }
 
-    public Team getTeamFor(String entity) {
-        return playerToTeam.get(entity);
+    public Team getTeamFor(String playerNameOrEntityUuid) {
+        return playerToTeam.get(playerNameOrEntityUuid);
     }
 
     public void removeTeam(String teamName) {
         Team remove = teams.remove(teamName);
-        if (remove != null) {
-            remove.setUpdateType(REMOVE);
-            // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
-            // With the player's lack of a team in visibility checks
-            updateEntityNames(remove, remove.getEntities(), true);
-            for (String name : remove.getEntities()) {
-                // 1.19.3 Mojmap Scoreboard#removePlayerTeam(PlayerTeam)
-                playerToTeam.remove(name);
-            }
-
-            session.removeCommandEnum("Geyser_Teams", remove.getId());
+        if (remove == null) {
+            return;
         }
+        remove.remove();
+        session.removeCommandEnum("Geyser_Teams", remove.id());
     }
 
     @Contract("-> new")
@@ -381,48 +298,46 @@ public final class Scoreboard {
                         (o1, o2) -> o1, LinkedHashMap::new));
     }
 
-    /**
-     * Updates the display names of all entities in a given team.
-     * @param teamChange the players have either joined or left the team. Used for optimizations when just the display name updated.
-     */
-    public void updateEntityNames(Team team, boolean teamChange) {
-        Set<String> names = new HashSet<>(team.getEntities());
-        updateEntityNames(team, names, teamChange);
+    public void playerRegistered(PlayerEntity player) {
+        for (DisplaySlot slot : objectiveSlots.values()) {
+            slot.playerRegistered(player);
+        }
     }
 
-    /**
-     * Updates the display name of a set of entities within a given team. The team may also be null if the set is being removed
-     * from a team.
-     */
-    public void updateEntityNames(@Nullable Team team, Set<String> names, boolean teamChange) {
-        if (names.remove(session.getPlayerEntity().getUsername()) && teamChange) {
-            // If the player's team changed, then other entities' teams may modify their visibility based on team status
-            refreshSessionPlayerDisplays();
+    public void playerRemoved(PlayerEntity player) {
+        for (DisplaySlot slot : objectiveSlots.values()) {
+            slot.playerRemoved(player);
         }
-        if (!names.isEmpty()) {
-            for (Entity entity : session.getEntityCache().getEntities().values()) {
-                // This more complex logic is for the future to iterate over all entities, not just players
-                if (entity instanceof PlayerEntity player && names.remove(player.getUsername())) {
-                    player.updateDisplayName(team);
-                    player.updateBedrockMetadata();
-                    if (names.isEmpty()) {
-                        break;
-                    }
-                }
+    }
+
+    public void entityRegistered(Entity entity) {
+        var team = getTeamFor(entity.teamIdentifier());
+        if (team != null) {
+            team.onEntitySpawn(entity);
+        }
+    }
+
+    public void entityRemoved(Entity entity) {
+        var team = getTeamFor(entity.teamIdentifier());
+        if (team != null) {
+            team.onEntityRemove(entity);
+        }
+    }
+
+    public void setTeamFor(Team team, Set<String> entities) {
+        for (DisplaySlot slot : objectiveSlots.values()) {
+            // only sidebar slots use teams
+            if (slot instanceof SidebarDisplaySlot sidebar) {
+                sidebar.setTeamFor(team, entities);
             }
         }
     }
 
-    /**
-     * If the team's player was refreshed, then we need to go through every entity and check...
-     */
-    private void refreshSessionPlayerDisplays() {
-        for (Entity entity : session.getEntityCache().getEntities().values()) {
-            if (entity instanceof PlayerEntity player) {
-                Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(player.getUsername());
-                player.updateDisplayName(playerTeam);
-                player.updateBedrockMetadata();
-            }
-        }
+    public long nextId() {
+        return nextId.getAndIncrement();
+    }
+
+    public GeyserSession session() {
+        return session;
     }
 }

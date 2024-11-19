@@ -25,18 +25,23 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.UUID;
 
 public class RabbitEntity extends AnimalEntity {
+    private boolean isKillerBunny;
 
     public RabbitEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -46,7 +51,7 @@ public class RabbitEntity extends AnimalEntity {
         int variant = entityMetadata.getPrimitiveValue();
 
         // Change the killer bunny to display as white since it only exists on Java Edition
-        boolean isKillerBunny = variant == 99;
+        isKillerBunny = variant == 99;
         if (isKillerBunny) {
             variant = 1;
         }
@@ -54,6 +59,14 @@ public class RabbitEntity extends AnimalEntity {
         setFlag(EntityFlag.BRIBED, isKillerBunny);
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant);
+    }
+
+    @Override
+    protected String standardDisplayName() {
+        if (isKillerBunny) {
+            return EntityUtils.translatedEntityName(Key.key("killer_bunny"), session);
+        }
+        return super.standardDisplayName();
     }
 
     @Override
@@ -68,7 +81,7 @@ public class RabbitEntity extends AnimalEntity {
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.RABBIT_FOOD;
     }
 }

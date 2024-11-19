@@ -26,8 +26,6 @@
 package org.geysermc.geyser.inventory.updater;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
@@ -58,7 +56,6 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getBedrockId());
         contentPacket.setContents(Arrays.asList(bedrockItems));
-        contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(contentPacket);
 
         // inventory and hotbar
@@ -70,7 +67,6 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(ContainerId.INVENTORY);
         contentPacket.setContents(Arrays.asList(bedrockItems));
-        contentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(contentPacket);
 
         // Crafter result - it doesn't come after the grid, as explained elsewhere.
@@ -92,7 +88,6 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         packet.setContainerId(containerId);
         packet.setSlot(translator.javaSlotToBedrock(javaSlot));
         packet.setItem(inventory.getItem(javaSlot).getItemData(session));
-        packet.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(packet);
         return true;
     }
