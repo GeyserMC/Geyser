@@ -74,6 +74,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     private void calculateLines() {
         if (text == null) {
+            lines = 0;
             return;
         }
         lines = PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
