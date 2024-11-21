@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.entity.type;
 
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -36,17 +38,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import java.util.UUID;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
+@Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
     private Component text;
+    private int lines;
 
     public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position.add(0, definition.offset() + 20, 0), motion, yaw, pitch, headYaw);
+        super(session, entityId, geyserId, uuid, definition, position.add(0, definition.offset(), 0), motion, yaw, pitch, headYaw);
     }
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + definition.offset() + 20, relZ, yaw, pitch, isOnGround);
+        super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
     }
 
     @Override
@@ -65,9 +69,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
         this.text = entityMetadata.getValue();
         this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue()));
+        calculateLines();
     }
 
-    public Component getText() {
-        return text;
+    private void calculateLines() {
+        if (text == null) {
+            return;
+        }
+        lines = PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
     }
 }

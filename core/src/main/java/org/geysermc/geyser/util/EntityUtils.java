@@ -26,7 +26,6 @@
 package org.geysermc.geyser.util;
 
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -214,7 +213,7 @@ public final class EntityUtils {
                     if (passenger instanceof  TextDisplayEntity textDisplay) {
                         Vector3f displayTranslation = textDisplay.getTranslation();
                         if (displayTranslation != null && textDisplay.getText() != null) {
-                            int lines = PlainTextComponentSerializer.plainText().serialize(textDisplay.getText()).split("\n").length;
+                            int lines = textDisplay.getLines();
                             float multiplier = (float) Math.max(0.22f, 0.45f - (0.06f * Math.floor((lines - 4) / 2f)));
                             xOffset = displayTranslation.getX();
                             yOffset = displayTranslation.getY() + multiplier * lines;
