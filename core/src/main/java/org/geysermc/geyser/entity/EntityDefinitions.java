@@ -492,6 +492,7 @@ public final class EntityDefinitions {
             EntityDefinition<AbstractArrowEntity> abstractArrowBase = EntityDefinition.inherited(AbstractArrowEntity::new, entityBase)
                     .addTranslator(MetadataType.BYTE, AbstractArrowEntity::setArrowFlags)
                     .addTranslator(null) // "Piercing level"
+                    .addTranslator(null) // If the arrow is in the ground
                     .build();
             ARROW = EntityDefinition.inherited(ArrowEntity::new, abstractArrowBase)
                     .type(EntityType.ARROW)

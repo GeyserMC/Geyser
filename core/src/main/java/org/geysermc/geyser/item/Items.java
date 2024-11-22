@@ -45,8 +45,10 @@ import org.geysermc.geyser.item.type.FireworkStarItem;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.GoatHornItem;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.LightItem;
 import org.geysermc.geyser.item.type.MaceItem;
 import org.geysermc.geyser.item.type.MapItem;
+import org.geysermc.geyser.item.type.OminousBottleItem;
 import org.geysermc.geyser.item.type.PlayerHeadItem;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.item.type.ShieldItem;
@@ -526,7 +528,7 @@ public final class Items {
     public static final Item RED_TERRACOTTA = register(new BlockItem(builder(), Blocks.RED_TERRACOTTA));
     public static final Item BLACK_TERRACOTTA = register(new BlockItem(builder(), Blocks.BLACK_TERRACOTTA));
     public static final Item BARRIER = register(new BlockItem(builder(), Blocks.BARRIER));
-    public static final Item LIGHT = register(new BlockItem(builder(), Blocks.LIGHT));
+    public static final Item LIGHT = register(new LightItem(builder(), Blocks.LIGHT));
     public static final Item HAY_BLOCK = register(new BlockItem(builder(), Blocks.HAY_BLOCK));
     public static final Item WHITE_CARPET = register(new BlockItem(builder(), Blocks.WHITE_CARPET));
     public static final Item ORANGE_CARPET = register(new BlockItem(builder(), Blocks.ORANGE_CARPET));
@@ -1442,7 +1444,7 @@ public final class Items {
     public static final Item TRIAL_KEY = register(new Item("trial_key", builder()));
     public static final Item OMINOUS_TRIAL_KEY = register(new Item("ominous_trial_key", builder()));
     public static final Item VAULT = register(new BlockItem(builder(), Blocks.VAULT));
-    public static final Item OMINOUS_BOTTLE = register(new Item("ominous_bottle", builder()));
+    public static final Item OMINOUS_BOTTLE = register(new OminousBottleItem("ominous_bottle", builder()));
 
     public static final int AIR_ID = AIR.javaId();
 

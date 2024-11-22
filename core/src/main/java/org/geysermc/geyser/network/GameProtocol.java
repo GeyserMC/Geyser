@@ -111,6 +111,10 @@ public final class GameProtocol {
         return session.getUpstream().getProtocolVersion() < Bedrock_v686.CODEC.getProtocolVersion();
     }
 
+    public static boolean isPre1_21_30(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v729.CODEC.getProtocolVersion();
+    }
+
     public static boolean isPre1_21_40(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() < Bedrock_v748.CODEC.getProtocolVersion();
     }

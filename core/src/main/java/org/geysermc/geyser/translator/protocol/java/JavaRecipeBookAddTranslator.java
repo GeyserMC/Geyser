@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
@@ -72,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRem
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -202,11 +204,39 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             if (composite.contents().size() == 1) {
                 return translateToInput(session, composite.contents().get(0));
             }
-            return composite.contents().stream()
-                .map(subDisplay -> translateToInput(session, subDisplay))
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .toList();
+
+            // Try and see if the contents match a tag.
+            // ViaVersion maps pre-1.21.2 ingredient lists to CompositeSlotDisplays.
+            int[] items = new int[composite.contents().size()];
+            List<SlotDisplay> contents = composite.contents();
+            for (int i = 0; i < contents.size(); i++) {
+                SlotDisplay subDisplay = contents.get(i);
+                int id;
+                if (subDisplay instanceof ItemSlotDisplay item) {
+                    id = item.item();
+                } else if (!(subDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay)) {
+                    id = -1;
+                } else if (itemStackSlotDisplay.itemStack().getAmount() == 1
+                    && itemStackSlotDisplay.itemStack().getDataComponents() == null) {
+                    id = itemStackSlotDisplay.itemStack().getId();
+                } else {
+                    id = -1;
+                }
+                if (id == -1) {
+                    // We couldn't guarantee a "normal" item from this stack.
+                    return fallbackCompositeMapping(session, composite);
+                }
+                items[i] = id;
+            }
+            // For searching in the tag map.
+            Arrays.sort(items);
+
+            List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, items);
+            if (tagDescriptor != null) {
+                return tagDescriptor;
+            }
+
+            return fallbackCompositeMapping(session, composite);
         }
         if (slotDisplay instanceof WithRemainderSlotDisplay remainder) {
             // Don't need to worry about what will stay in the crafting table after crafting for the purposes of sending recipes to Bedrock
@@ -230,12 +260,9 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 // Cache is implemented as, presumably, an item tag will be used multiple times in succession
                 // (E.G. a chest with planks tags)
                 return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().computeIfAbsent(items, key -> {
-                    var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
-                    String bedrockTag = bedrockTags.get(key);
-                    if (bedrockTag != null) {
-                        return Collections.singletonList(
-                            new ItemDescriptorWithCount(new ItemTagDescriptor(bedrockTag), 1)
-                        );
+                    List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, key);
+                    if (tagDescriptor != null) {
+                        return tagDescriptor;
                     }
 
                     // In the future, we can probably search through and use subsets of tags as well.
@@ -276,6 +303,33 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         }
         ItemMapping mapping = session.getItemMappings().getMapping(item);
         return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); // Need to check count
+    }
+
+    /**
+     * Checks to see if this list of items matches with one of this Bedrock version's tags.
+     */
+    @Nullable
+    private List<ItemDescriptorWithCount> lookupBedrockTag(GeyserSession session, int[] items) {
+        var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
+        String bedrockTag = bedrockTags.get(items);
+        if (bedrockTag != null) {
+            return Collections.singletonList(
+                new ItemDescriptorWithCount(new ItemTagDescriptor(bedrockTag), 1)
+            );
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts CompositeSlotDisplay contents to a list of basic ItemDescriptorWithCounts.
+     */
+    private List<ItemDescriptorWithCount> fallbackCompositeMapping(GeyserSession session, CompositeSlotDisplay composite) {
+        return composite.contents().stream()
+            .map(subDisplay -> translateToInput(session, subDisplay))
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .toList();
     }
 
     private Pair<List<List<ItemDescriptorWithCount>>, ItemData> combinations(GeyserSession session, RecipeDisplay display, List<SlotDisplay> ingredients) {
@@ -327,6 +381,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 return Pair.of(Lists.cartesianProduct(inputs), output);
             }
         }
+        // TODO:
         return Pair.of(
             Collections.singletonList(inputs.stream().map(descriptors -> descriptors.get(0)).toList()),
             output
