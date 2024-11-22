@@ -34,6 +34,8 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -41,7 +43,6 @@ import java.util.UUID;
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
-    private Component text;
     private int lines;
 
     public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -67,12 +68,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.text = entityMetadata.getValue();
         this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue()));
-        calculateLines();
+        calculateLines(entityMetadata.getValue());
     }
 
-    private void calculateLines() {
+    private void calculateLines(@Nullable Component text) {
         if (text == null) {
             lines = 0;
             return;

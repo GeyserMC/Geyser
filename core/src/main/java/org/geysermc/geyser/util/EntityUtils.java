@@ -212,8 +212,8 @@ public final class EntityUtils {
                 case PLAYER -> {
                     if (passenger instanceof  TextDisplayEntity textDisplay) {
                         Vector3f displayTranslation = textDisplay.getTranslation();
-                        if (displayTranslation != null && textDisplay.getText() != null) {
-                            int lines = textDisplay.getLines();
+                        int lines = textDisplay.getLines();
+                        if (displayTranslation != null && lines != 0) {
                             float multiplier = (float) Math.max(0.22f, 0.45f - (0.06f * Math.floor((lines - 4) / 2f)));
                             xOffset = displayTranslation.getX();
                             yOffset = displayTranslation.getY() + multiplier * lines;
