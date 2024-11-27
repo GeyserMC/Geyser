@@ -185,8 +185,13 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             }
         }
 
-        session.sendUpstreamPacket(craftingDataPacket);
-        session.sendUpstreamPacket(recipesPacket);
+        if (!recipesPacket.getUnlockedRecipes().isEmpty()) {
+            // Sending an empty list here will crash the client as of 1.20.60
+            // This was definitely in the codebase the entire time and did not
+            // accidentally get refactored out during Java 1.21.3. :)
+            session.sendUpstreamPacket(craftingDataPacket);
+            session.sendUpstreamPacket(recipesPacket);
+        }
         session.getLastRecipeNetId().set(netId);
 
         // Multi-version can mean different Bedrock item IDs
