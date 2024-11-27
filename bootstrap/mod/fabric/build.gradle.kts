@@ -38,6 +38,7 @@ dependencies {
 
     modImplementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
+    include(libs.fabric.permissions.api)
 }
 
 tasks.withType<Jar> {
