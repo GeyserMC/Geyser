@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -40,8 +41,8 @@ public class OminousBottleItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(int count, @Nullable DataComponents components, ItemMapping mapping, ItemMappings mappings) {
-        var builder = super.translateToBedrock(count, components, mapping, mappings);
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, @Nullable DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        var builder = super.translateToBedrock(session, count, components, mapping, mappings);
         if (components == null) {
             // Level 1 ominous bottle is null components - Java 1.21.
             return builder;
@@ -54,9 +55,9 @@ public class OminousBottleItem extends Item {
     }
 
     @Override
-    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         // This item can be pulled from the creative inventory with amplifiers.
-        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
         int damage = itemData.getDamage();
         if (damage == 0) {
             return itemStack;

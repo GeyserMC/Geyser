@@ -25,26 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
 
 @Translator(packet = ClientboundTeleportEntityPacket.class)
 public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (entity == null) return;
-
-        if (entity instanceof ClientVehicle clientVehicle) {
-            clientVehicle.getVehicleComponent().moveAbsolute(packet.getX(), packet.getY(), packet.getZ());
-        }
-
-        entity.teleport(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround());
+        session.getGeyser().getLogger().info(packet.toString());
     }
 }

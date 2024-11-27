@@ -40,7 +40,7 @@ import java.util.Set;
 @Translator(packet = ClientboundSelectKnownPacks.class)
 public class JavaSelectKnownPacksTranslator extends PacketTranslator<ClientboundSelectKnownPacks> {
     // todo: dump from client?
-    private static final Set<String> KNOWN_PACK_IDS = Set.of("core", "update_1_21", "bundle", "trade_rebalance");
+    private static final Set<String> KNOWN_PACK_IDS = Set.of("core", "winter_drop", "trade_rebalance", "redstone_experiments", "minecart_improvements");
 
     @Override
     public void translate(GeyserSession session, ClientboundSelectKnownPacks packet) {
@@ -62,6 +62,7 @@ public class JavaSelectKnownPacksTranslator extends PacketTranslator<Clientbound
 
     @Override
     public boolean shouldExecuteInEventLoop() {
+        // This technically isn't correct behavior, but it prevents race conditions between MCProtocolLib's packet handler and ours.
         return false;
     }
 }
