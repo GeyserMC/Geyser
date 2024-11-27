@@ -163,7 +163,7 @@ public final class Registries {
     public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link GeyserResourcePack}'s with the pack uuid as keys.
+     * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
     public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
