@@ -69,7 +69,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDis
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import org.jetbrains.annotations.Contract;
 
@@ -305,8 +304,9 @@ public class InventoryUtils {
             }
             // If this is the item we're looking for
             if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getComponents(), itemStack.getDataComponents())) { //TODO verify
-                ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamGamePacket(packetToSend);
+                //ServerboundPickItemFromBlockPacket packetToSend = new ServerboundPickItemFromBlockPacket(i); // https://wiki.vg/Protocol#Pick_Item
+                //session.sendDownstreamGamePacket(packetToSend);
+                // TODO 1.21.4
                 return;
             }
         }
@@ -368,8 +368,9 @@ public class InventoryUtils {
                 continue;
             }
 
-            ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamGamePacket(packetToSend);
+            // TODO 1.21.4
+            //ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
+            //session.sendDownstreamGamePacket(packetToSend);
             return;
         }
 

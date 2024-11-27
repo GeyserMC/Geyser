@@ -62,11 +62,15 @@ public class Item {
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
+
+    // TODO remove these
     private final int stackSize;
     private final int attackDamage;
     private final int maxDamage;
     private final Rarity rarity;
     private final boolean glint;
+
+    private DataComponents dataComponents;
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
@@ -86,7 +90,7 @@ public class Item {
     }
 
     public int maxDamage() {
-        return maxDamage;
+        return dataComponents.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
     }
 
     public int attackDamage() {
@@ -94,7 +98,7 @@ public class Item {
     }
 
     public int maxStackSize() {
-        return stackSize;
+        return dataComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
     }
 
     public Rarity rarity() {
@@ -314,16 +318,6 @@ public class Item {
 
         public Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
-            return this;
-        }
-
-        public Builder rarity(Rarity rarity) {
-            this.rarity = rarity;
-            return this;
-        }
-
-        public Builder glint(boolean glintOverride) {
-            this.glint = glintOverride;
             return this;
         }
 
