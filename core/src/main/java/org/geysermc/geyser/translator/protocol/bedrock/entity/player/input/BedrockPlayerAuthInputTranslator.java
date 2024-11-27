@@ -250,7 +250,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             }
         }
 
-        if (vehicle instanceof AbstractHorseEntity) {
+        if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {

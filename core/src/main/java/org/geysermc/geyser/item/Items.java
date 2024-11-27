@@ -48,6 +48,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.LightItem;
 import org.geysermc.geyser.item.type.MaceItem;
 import org.geysermc.geyser.item.type.MapItem;
+import org.geysermc.geyser.item.type.OminousBottleItem;
 import org.geysermc.geyser.item.type.PlayerHeadItem;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.item.type.ShieldItem;
@@ -1443,7 +1444,7 @@ public final class Items {
     public static final Item TRIAL_KEY = register(new Item("trial_key", builder()));
     public static final Item OMINOUS_TRIAL_KEY = register(new Item("ominous_trial_key", builder()));
     public static final Item VAULT = register(new BlockItem(builder(), Blocks.VAULT));
-    public static final Item OMINOUS_BOTTLE = register(new Item("ominous_bottle", builder()));
+    public static final Item OMINOUS_BOTTLE = register(new OminousBottleItem("ominous_bottle", builder()));
 
     public static final int AIR_ID = AIR.javaId();
 
