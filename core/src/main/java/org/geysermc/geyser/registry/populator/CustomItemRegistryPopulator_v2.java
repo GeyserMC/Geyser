@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -61,6 +60,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator_v2 {
+    // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
+    private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
+        Consumable.ItemUseAnimation.NONE, 0,
+        Consumable.ItemUseAnimation.EAT, 1,
+        Consumable.ItemUseAnimation.DRINK, 2,
+        Consumable.ItemUseAnimation.BLOCK, 3,
+        Consumable.ItemUseAnimation.BOW, 4,
+        Consumable.ItemUseAnimation.SPEAR, 6,
+        Consumable.ItemUseAnimation.CROSSBOW, 9,
+        Consumable.ItemUseAnimation.SPYGLASS, 10,
+        Consumable.ItemUseAnimation.BRUSH, 12
+    );
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems /* TODO */) {
         // TODO
@@ -256,34 +267,31 @@ public class CustomItemRegistryPopulator_v2 {
             case BOOTS -> {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.FEET.getSlotNbt());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
 
-                itemProperties.putString("enchantable_slot", "armor_feet");
-                itemProperties.putInt("enchantable_value", 15);
+                //itemProperties.putString("enchantable_slot", "armor_feet");
+                //itemProperties.putInt("enchantable_value", 15); TODO
             }
             case CHESTPLATE -> {
                 componentBuilder.putString("minecraft:render_offsets", "chestplates");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.CHEST.getSlotNbt());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
 
-                itemProperties.putString("enchantable_slot", "armor_torso");
-                itemProperties.putInt("enchantable_value", 15);
+                //itemProperties.putString("enchantable_slot", "armor_torso");
+                //itemProperties.putInt("enchantable_value", 15); TODO
             }
             case LEGGINGS -> {
                 componentBuilder.putString("minecraft:render_offsets", "leggings");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.LEGS.getSlotNbt());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
 
-                itemProperties.putString("enchantable_slot", "armor_legs");
-                itemProperties.putInt("enchantable_value", 15);
+                //itemProperties.putString("enchantable_slot", "armor_legs");
+                //itemProperties.putInt("enchantable_value", 15); TODO
             }
             case HELMET -> {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+                //componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
 
-                itemProperties.putString("enchantable_slot", "armor_head");
-                itemProperties.putInt("enchantable_value", 15);
+                //itemProperties.putString("enchantable_slot", "armor_head");
+                //itemProperties.putInt("enchantable_value", 15);
             }
         }
     }
@@ -291,9 +299,9 @@ public class CustomItemRegistryPopulator_v2 {
     private static void computeConsumableProperties(Consumable consumable, boolean canAlwaysEat, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20)); // TODO check and confirm
-        // this dictates that the item will use the eat or drink animation (in the first person) and play eat or drink sounds
-        // note that in behavior packs this is set as the string "eat" or "drink", but over the network it as an int, with these values being 1 and 2 respectively
-        itemProperties.putInt("use_animation", 0); // TODO
+
+        itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
+
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
     }

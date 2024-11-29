@@ -34,7 +34,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
+import java.util.Map;
+
 public class EquippableReader extends DataComponentReader<Equippable> {
+    private static final Map<String, EquipmentSlot> SLOTS = Map.of(
+        "head", EquipmentSlot.HELMET,
+        "chest", EquipmentSlot.CHESTPLATE,
+        "legs", EquipmentSlot.LEGGINGS,
+        "feet", EquipmentSlot.BOOTS
+    );
 
     public EquippableReader() {
         super(DataComponentType.EQUIPPABLE);
@@ -44,12 +52,16 @@ public class EquippableReader extends DataComponentReader<Equippable> {
     protected Equippable readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
         requireObject(node);
 
-        JsonNode slot = node.get("slot");
-        if (slot == null || !slot.isTextual()) {
-            throw new InvalidCustomMappingsFileException("Expected slot to be helmet, chestplate, leggings or boots");
+        JsonNode slotNode = node.get("slot");
+        if (slotNode == null) {
+            throw new InvalidCustomMappingsFileException("Expected slot to be present");
+        }
+        EquipmentSlot slot = SLOTS.get(slotNode.asText());
+        if (slot == null) {
+            throw new InvalidCustomMappingsFileException("Expected slot to be head, chest, legs or feet");
         }
 
-        return new Equippable(EquipmentSlot.valueOf(slot.asText().toUpperCase()), BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
+        return new Equippable(slot, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
             null, null, null, false, false, false); // Other properties are unused
     }
 }
