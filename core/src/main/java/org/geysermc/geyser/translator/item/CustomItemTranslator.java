@@ -25,17 +25,17 @@
 
 package org.geysermc.geyser.translator.item;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.List;
-import java.util.OptionalInt;
 
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
@@ -47,6 +47,21 @@ public final class CustomItemTranslator {
         if (components == null) {
             return null;
         }
+
+        List<Pair<CustomItemDefinition, ItemDefinition>> customItems = mapping.getCustomItemDefinitions();
+        if (customItems.isEmpty()) {
+            return null;
+        }
+
+        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air")); // TODO fallback onto default item model (when thats done by chris)
+
+        for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) { // TODO Predicates
+            if (customModel.first().model().equals(itemModel)) {
+                return customModel.second();
+            }
+        }
+        return null;
+        /*
         List<Pair<CustomItemOptions, ItemDefinition>> customMappings = mapping.getCustomItemOptions();
         if (customMappings.isEmpty()) {
             return null;
@@ -99,7 +114,7 @@ public final class CustomItemTranslator {
             return mappingTypes.value();
         }
 
-        return null;
+        return null;*/
     }
 
     /* These two functions are based off their Mojmap equivalents from 1.19.2 */

@@ -34,6 +34,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 
@@ -54,6 +55,7 @@ public class ItemMapping {
             null,
             null,
             Collections.emptyList(),
+            Collections.emptyList(),
             Items.AIR
     );
 
@@ -72,8 +74,12 @@ public class ItemMapping {
 
     String translationString;
 
+    @Deprecated
     @NonNull
-    List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
+    List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions; // TODO remove
+
+    @NonNull
+    List<Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
 
     @NonNull
     Item javaItem;

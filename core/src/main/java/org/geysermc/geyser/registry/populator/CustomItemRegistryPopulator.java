@@ -56,9 +56,9 @@ public class CustomItemRegistryPopulator {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((key, item) -> {
-            if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
-                customItems.get(key).add(item);
-            }
+            //if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
+                //customItems.get(key).add(item);
+            //} // TODO
         });
 
         GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {

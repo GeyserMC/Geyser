@@ -8,6 +8,15 @@ plugins {
 dependencies {
     api(libs.base.api)
     api(libs.math)
+
+    // Adventure text serialization
+    api(libs.bundles.adventure)
+
+    // TODO? can we exclude more
+    api(libs.mcprotocollib) {
+        exclude("io.netty", "netty-all")
+        exclude("net.raphimc", "MinecraftAuth")
+    }
 }
 
 version = property("version")!!

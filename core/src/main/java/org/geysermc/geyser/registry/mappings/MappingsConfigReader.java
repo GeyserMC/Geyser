@@ -30,10 +30,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v1;
+import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v2;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +47,7 @@ public class MappingsConfigReader {
 
     public MappingsConfigReader() {
         this.mappingReaders.put(1, new MappingsReader_v1());
+        this.mappingReaders.put(2, new MappingsReader_v2());
     }
 
     public Path[] getCustomMappingsFiles() {
@@ -73,7 +75,7 @@ public class MappingsConfigReader {
         return true;
     }
 
-    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
+    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemDefinition> consumer) {
         if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
             return;
         }
@@ -121,7 +123,7 @@ public class MappingsConfigReader {
         return formatVersion;
     }
 
-    public void readItemMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
+    public void readItemMappingsFromJson(Path file, BiConsumer<String, CustomItemDefinition> consumer) {
         JsonNode mappingsRoot = getMappingsRoot(file);
 
         if (mappingsRoot == null) {
