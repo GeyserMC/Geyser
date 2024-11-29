@@ -51,12 +51,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator_v2 {
@@ -139,6 +141,11 @@ public class CustomItemRegistryPopulator_v2 {
         if (consumable != null) {
             FoodProperties foodProperties = components.get(DataComponentType.FOOD);
             computeConsumableProperties(consumable, foodProperties == null || foodProperties.isCanAlwaysEat(), itemProperties, componentBuilder);
+        }
+
+        UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
+        if (useCooldown != null) {
+            computeUseCooldownProperties(useCooldown, componentBuilder);
         }
 
         // TODO block item/runtime ID, entity placer, chargeable, throwable, item cooldown, hat hardcoded on java,
@@ -304,6 +311,15 @@ public class CustomItemRegistryPopulator_v2 {
 
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
+    }
+
+    private static void computeUseCooldownProperties(UseCooldown cooldown, NbtMapBuilder componentBuilder) {
+        Objects.requireNonNull(cooldown.cooldownGroup(), "Cooldown group can't be null");
+        componentBuilder.putCompound("minecraft:cooldown", NbtMap.builder()
+            .putString("category", cooldown.cooldownGroup().asString())
+            .putFloat("duration", cooldown.seconds())
+            .build()
+        );
     }
 
     private static void computeRenderOffsets(boolean isHat, CustomItemBedrockOptions bedrockOptions, NbtMapBuilder componentBuilder) {
