@@ -69,7 +69,6 @@ public class CustomItemRegistryPopulator_v2 {
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {
             if (initialCheck(item, items)) {
-                System.out.println("read item " + id + " item " + item);
                 customItems.get(id).add(item);
             }
         });

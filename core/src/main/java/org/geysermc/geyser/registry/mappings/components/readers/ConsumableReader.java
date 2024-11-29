@@ -43,10 +43,7 @@ public class ConsumableReader extends DataComponentReader<Consumable> {
 
     @Override
     protected Consumable readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected consumable component to be an object");
-        }
-
+        requireObject(node);
         float consumeSeconds = 1.6F;
         if (node.has("consume_seconds")) {
             consumeSeconds = (float) node.get("consume_seconds").asDouble();
@@ -57,6 +54,6 @@ public class ConsumableReader extends DataComponentReader<Consumable> {
             animation = Consumable.ItemUseAnimation.valueOf(node.get("animation").asText().toUpperCase()); // TODO maybe not rely on the enum
         }
 
-        return new Consumable(consumeSeconds, animation, BuiltinSound.ENTITY_GENERIC_EAT, false, List.of()); // TODO
+        return new Consumable(consumeSeconds, animation, BuiltinSound.ENTITY_GENERIC_EAT, false, List.of()); // TODO are sound and particles supported on bedrock?
     }
 }

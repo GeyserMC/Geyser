@@ -23,33 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
-@Getter
-public abstract class DataComponentReader<V> {
-    private final DataComponentType<V> type;
+public class IntComponentReader extends DataComponentReader<Integer> {
+    private final int minimum;
+    private final int maximum;
 
-    protected DataComponentReader(DataComponentType<V> type) {
-        this.type = type;
+    public IntComponentReader(DataComponentType<Integer> type, int minimum, int maximum) {
+        super(type);
+        this.minimum = minimum;
+        this.maximum = maximum;
     }
 
-    protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
-
-    DataComponent<V, ? extends DataComponentType<V>> read(JsonNode node) throws InvalidCustomMappingsFileException {
-        // TODO primitives??
-        return type.getDataComponentFactory().create(type, readDataComponent(node));
+    public IntComponentReader(DataComponentType<Integer> type, int minimum) {
+        this(type, minimum, Integer.MAX_VALUE);
     }
 
-    protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected an object");
+    @Override
+    protected Integer readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        if (!node.isIntegralNumber()) {
+            throw new InvalidCustomMappingsFileException("Expected an integer number");
         }
+        int value = node.asInt();
+        if (value < minimum || value > maximum) {
+            throw new InvalidCustomMappingsFileException("Expected integer to be in the range of [" + minimum + ", " + maximum + "]");
+        }
+        return value;
     }
 }

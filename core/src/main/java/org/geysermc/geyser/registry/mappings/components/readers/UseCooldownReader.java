@@ -23,33 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
-@Getter
-public abstract class DataComponentReader<V> {
-    private final DataComponentType<V> type;
+public class UseCooldownReader extends DataComponentReader<UseCooldown> {
 
-    protected DataComponentReader(DataComponentType<V> type) {
-        this.type = type;
+    public UseCooldownReader() {
+        super(DataComponentType.USE_COOLDOWN);
     }
 
-    protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
+    @Override
+    protected UseCooldown readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        requireObject(node);
 
-    DataComponent<V, ? extends DataComponentType<V>> read(JsonNode node) throws InvalidCustomMappingsFileException {
-        // TODO primitives??
-        return type.getDataComponentFactory().create(type, readDataComponent(node));
-    }
+        JsonNode seconds = node.get("seconds");
+        JsonNode cooldown_group = node.get("cooldown_group");
 
-    protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected an object");
+        if (seconds == null || !seconds.isNumber()) {
+            throw new InvalidCustomMappingsFileException("Expected seconds to be a number");
         }
+
+        if (cooldown_group == null || !cooldown_group.isTextual()) {
+            throw new InvalidCustomMappingsFileException("Expected cooldown group to be a resource location");
+        }
+
+        return new UseCooldown((float) seconds.asDouble(), Key.key(cooldown_group.asText()));
     }
 }

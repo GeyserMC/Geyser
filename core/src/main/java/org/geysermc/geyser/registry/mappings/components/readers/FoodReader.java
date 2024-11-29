@@ -23,33 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 
-@Getter
-public abstract class DataComponentReader<V> {
-    private final DataComponentType<V> type;
+public class FoodReader extends DataComponentReader<FoodProperties> {
 
-    protected DataComponentReader(DataComponentType<V> type) {
-        this.type = type;
+    public FoodReader() {
+        super(DataComponentType.FOOD);
     }
 
-    protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
+    @Override
+    protected FoodProperties readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        requireObject(node);
 
-    DataComponent<V, ? extends DataComponentType<V>> read(JsonNode node) throws InvalidCustomMappingsFileException {
-        // TODO primitives??
-        return type.getDataComponentFactory().create(type, readDataComponent(node));
-    }
-
-    protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected an object");
-        }
+        JsonNode canAlwaysEat = node.get("can_always_eat");
+        return new FoodProperties(0, 0, canAlwaysEat != null && canAlwaysEat.asBoolean());
     }
 }

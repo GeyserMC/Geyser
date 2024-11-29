@@ -23,33 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
+import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
-@Getter
-public abstract class DataComponentReader<V> {
-    private final DataComponentType<V> type;
+public class EquippableReader extends DataComponentReader<Equippable> {
 
-    protected DataComponentReader(DataComponentType<V> type) {
-        this.type = type;
+    public EquippableReader() {
+        super(DataComponentType.EQUIPPABLE);
     }
 
-    protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
+    @Override
+    protected Equippable readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        requireObject(node);
 
-    DataComponent<V, ? extends DataComponentType<V>> read(JsonNode node) throws InvalidCustomMappingsFileException {
-        // TODO primitives??
-        return type.getDataComponentFactory().create(type, readDataComponent(node));
-    }
-
-    protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected an object");
+        JsonNode slot = node.get("slot");
+        if (slot == null || !slot.isTextual()) {
+            throw new InvalidCustomMappingsFileException("Expected slot to be helmet, chestplate, leggings or boots");
         }
+
+        return new Equippable(EquipmentSlot.valueOf(slot.asText().toUpperCase()), BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
+            null, null, null, false, false, false); // Other properties are unused
     }
 }
