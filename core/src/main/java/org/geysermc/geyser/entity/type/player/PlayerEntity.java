@@ -97,11 +97,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
      */
-    private ParrotEntity leftParrot;
+    private @Nullable ParrotEntity leftParrot;
     /**
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
-    private ParrotEntity rightParrot;
+    private @Nullable ParrotEntity rightParrot;
 
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
@@ -450,6 +450,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     public Vector3f position() {
-        return this.position.clone();
+        return this.position.down(definition.offset());
     }
 }
