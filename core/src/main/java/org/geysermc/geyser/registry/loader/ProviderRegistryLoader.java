@@ -90,7 +90,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.Builder());
 
         // items v2
-        providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Key) args[0]));
+        providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Key) args[0], (Key) args[1]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
 
         // cameras

@@ -36,10 +36,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 public interface CustomItemDefinition {
 
     /**
-     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If no namespace is given in the builder, the default
+     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If the {@code minecraft} namespace is given in the builder, the default
      * namespace of the implementation is used.
      *
-     * @implNote for Geyser, this is the {@code geyser_custom} namespace.
+     * @implNote for Geyser, the default namespace is the {@code geyser_custom} namespace.
      */
     @NonNull Key bedrockIdentifier();
 
@@ -89,11 +89,13 @@ public interface CustomItemDefinition {
      */
     @NonNull DataComponents components();
 
-    static Builder builder(Key itemModel) {
-        return GeyserApi.api().provider(Builder.class, itemModel);
+    static Builder builder(Key identifier, Key itemModel) {
+        return GeyserApi.api().provider(Builder.class, identifier, itemModel);
     }
 
     interface Builder {
+
+        Builder displayName(String displayName);
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 

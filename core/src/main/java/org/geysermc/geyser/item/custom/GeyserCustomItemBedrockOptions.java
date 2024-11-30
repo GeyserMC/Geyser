@@ -28,21 +28,21 @@ package org.geysermc.geyser.item.custom;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Set;
 
-public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, @NonNull OptionalInt creativeCategory, @Nullable String creativeGroup,
+public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, @NonNull BedrockCreativeTab creativeCategory, @Nullable String creativeGroup,
                                              int textureSize, @Nullable CustomRenderOffsets renderOffsets, @NonNull Set<String> tags) implements CustomItemBedrockOptions {
 
     public static class Builder implements CustomItemBedrockOptions.Builder {
         private String icon = null;
         private boolean allowOffhand = true;
         private boolean displayHandheld = false;
-        private OptionalInt creativeCategory = OptionalInt.empty();
+        private BedrockCreativeTab creativeCategory = BedrockCreativeTab.NONE;
         private String creativeGroup = null;
         private int textureSize = 16;
         private CustomRenderOffsets renderOffsets = null;
@@ -67,9 +67,8 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        public Builder creativeCategory(int creativeCategory) {
-            this.creativeCategory = OptionalInt.of(creativeCategory);
-            // TODO validation?
+        public Builder creativeCategory(BedrockCreativeTab creativeCategory) {
+            this.creativeCategory = creativeCategory;
             return this;
         }
 

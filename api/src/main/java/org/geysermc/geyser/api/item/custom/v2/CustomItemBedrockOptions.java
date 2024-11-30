@@ -30,7 +30,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 
-import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -113,7 +112,7 @@ public interface CustomItemBedrockOptions {
 
         Builder displayHandheld(boolean displayHandheld);
 
-        Builder creativeCategory(int creativeCategory);
+        Builder creativeCategory(BedrockCreativeTab creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
 

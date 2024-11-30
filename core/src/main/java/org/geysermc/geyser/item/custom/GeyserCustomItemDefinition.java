@@ -31,15 +31,28 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public record GeyserCustomItemDefinition(@NonNull Key model, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
+import java.util.HashMap;
+
+public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model,
+                                         @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
+        private final Key bedrockIdentifier;
         private final Key model;
+        private String displayName;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
-        private DataComponents components;
+        private DataComponents components = new DataComponents(new HashMap<>());
 
-        public Builder(Key model) {
+        public Builder(Key bedrockIdentifier, Key model) {
+            this.bedrockIdentifier = bedrockIdentifier;
+            this.displayName = bedrockIdentifier.asString();
             this.model = model;
+        }
+
+        @Override
+        public CustomItemDefinition.Builder displayName(String displayName) {
+            this.displayName = displayName;
+            return this;
         }
 
         @Override
@@ -56,7 +69,7 @@ public record GeyserCustomItemDefinition(@NonNull Key model, @NonNull CustomItem
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(model, bedrockOptions, components);
+            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, bedrockOptions, components);
         }
     }
 }
