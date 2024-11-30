@@ -93,10 +93,10 @@ public class CustomItemRegistryPopulator_v2 {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping,
-                                                             CustomItemDefinition customItemDefinition, int bedrockId, int protocolVersion) {
+                                                             CustomItemDefinition customItemDefinition, int bedrockId) {
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
 
-        NbtMapBuilder builder = createComponentNbt(customItemDefinition, javaItem, mapping, customItemName, bedrockId, protocolVersion);
+        NbtMapBuilder builder = createComponentNbt(customItemDefinition, javaItem, mapping, customItemName, bedrockId);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
 
         return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
@@ -114,8 +114,8 @@ public class CustomItemRegistryPopulator_v2 {
         return true;
     }
 
-    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item javaItem, GeyserMappingItem mapping,
-                                                    String customItemName, int customItemId, int protocolVersion) {
+    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item vanillaJavaItem, GeyserMappingItem vanillaMapping,
+                                                    String customItemName, int customItemId) {
         NbtMapBuilder builder = NbtMap.builder()
             .putString("name", customItemName)
             .putInt("id", customItemId);
@@ -123,12 +123,12 @@ public class CustomItemRegistryPopulator_v2 {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        DataComponents components = patchDataComponents(javaItem, customItemDefinition);
-        setupBasicItemInfo(customItemDefinition.name(), customItemDefinition, components, itemProperties, componentBuilder, protocolVersion);
+        DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
+        setupBasicItemInfo(customItemDefinition.name(), customItemDefinition, components, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
-        if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
+        if (vanillaMapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
+            canDestroyInCreative = computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder, vanillaJavaItem.attackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -137,10 +137,18 @@ public class CustomItemRegistryPopulator_v2 {
             computeArmorProperties(equippable, itemProperties, componentBuilder);
         }
 
+        if (vanillaMapping.getFirstBlockRuntimeId() != null) {
+            computeBlockItemProperties(vanillaMapping.getBedrockIdentifier(), componentBuilder);
+        }
+
         Consumable consumable = components.get(DataComponentType.CONSUMABLE);
         if (consumable != null) {
             FoodProperties foodProperties = components.get(DataComponentType.FOOD);
             computeConsumableProperties(consumable, foodProperties == null || foodProperties.isCanAlwaysEat(), itemProperties, componentBuilder);
+        }
+
+        if (vanillaMapping.isEntityPlacer()) {
+            computeEntityPlacerProperties(componentBuilder);
         }
 
         UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
@@ -148,9 +156,9 @@ public class CustomItemRegistryPopulator_v2 {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
 
-        // TODO block item/runtime ID, entity placer, chargeable, throwable, item cooldown, hat hardcoded on java,
+        // TODO that switch statement
 
-        computeRenderOffsets(false, customItemDefinition.bedrockOptions(), componentBuilder);
+        computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder); // TODO check "hats" the hardcoded ones, once default components are here, check stack size
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -158,7 +166,7 @@ public class CustomItemRegistryPopulator_v2 {
         return builder;
     }
 
-    private static void setupBasicItemInfo(String name, CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int protocolVersion) {
+    private static void setupBasicItemInfo(String name, CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         CustomItemBedrockOptions options = definition.bedrockOptions();
         NbtMap iconMap = NbtMap.builder()
             .putCompound("textures", NbtMap.builder()
@@ -269,6 +277,15 @@ public class CustomItemRegistryPopulator_v2 {
         return canDestroyInCreative;
     }
 
+    private static void computeBlockItemProperties(String blockItem, NbtMapBuilder componentBuilder) {
+        // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
+        // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
+        // it also causes the item to glitch when right clicked to "equip" so this should only be added here later if these issues can be overcome
+
+        // all block items registered should be given this component to prevent double placement
+        componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
+    }
+
     private static void computeArmorProperties(Equippable equippable, /*String armorType, int protectionValue,*/ NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         int protectionValue = 0;
         // TODO protection value
@@ -315,6 +332,12 @@ public class CustomItemRegistryPopulator_v2 {
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
     }
 
+    private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
+        // all items registered that place entities should be given this component to prevent double placement
+        // it is okay that the entity here does not match the actual one since we control what entity actually spawns
+        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
+    }
+
     private static void computeUseCooldownProperties(UseCooldown cooldown, NbtMapBuilder componentBuilder) {
         Objects.requireNonNull(cooldown.cooldownGroup(), "Cooldown group can't be null");
         componentBuilder.putCompound("minecraft:cooldown", NbtMap.builder()
@@ -324,15 +347,7 @@ public class CustomItemRegistryPopulator_v2 {
         );
     }
 
-    private static void computeRenderOffsets(boolean isHat, CustomItemBedrockOptions bedrockOptions, NbtMapBuilder componentBuilder) {
-        if (isHat) {
-            componentBuilder.remove("minecraft:render_offsets");
-            componentBuilder.putString("minecraft:render_offsets", "helmets");
-
-            componentBuilder.remove("minecraft:wearable");
-            componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
-        }
-
+    private static void computeRenderOffsets(CustomItemBedrockOptions bedrockOptions, NbtMapBuilder componentBuilder) {
         CustomRenderOffsets renderOffsets = bedrockOptions.renderOffsets();
         if (renderOffsets != null) {
             componentBuilder.remove("minecraft:render_offsets");

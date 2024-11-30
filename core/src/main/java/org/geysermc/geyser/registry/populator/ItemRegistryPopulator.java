@@ -472,7 +472,7 @@ public class ItemRegistryPopulator {
                         }
 
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator_v2.registerCustomItem(
-                            customItemName, javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion);
+                            customItemName, javaItem, mappingItem, customItem, customProtocolId);
 
                         if (customItem.bedrockOptions().creativeCategory().isPresent()) {
                             creativeItems.add(ItemData.builder()
