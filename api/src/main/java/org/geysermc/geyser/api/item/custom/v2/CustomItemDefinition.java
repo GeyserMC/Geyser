@@ -50,6 +50,8 @@ public interface CustomItemDefinition {
 
     /**
      * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition is required to have a predicate.
+     *
+     * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
      */
     @NonNull Key model();
 
@@ -63,7 +65,13 @@ public interface CustomItemDefinition {
         return bedrockOptions().icon() == null ? bedrockIdentifier().asString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
     }
 
-    // TODO predicate
+    /**
+     * The predicate that has to match for this item to be used. These predicates are similar to the Java item model predicates.
+     *
+     * <p>If multiple predicates match, then the first registered item with a matching predicate is used. If no predicates match, then the item definition without a predicate
+     * is used, if any.</p>
+     */
+    void predicate();
 
     /**
      * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.

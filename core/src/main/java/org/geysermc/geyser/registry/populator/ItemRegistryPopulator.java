@@ -489,9 +489,6 @@ public class ItemRegistryPopulator {
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
-
-                    // Important for later to find the best match and accurately replicate Java behavior
-                    Collections.reverse(customItemDefinitions);
                 } else {
                     customItemDefinitions = Collections.emptyList();
                 }
