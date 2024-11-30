@@ -40,7 +40,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -150,42 +149,24 @@ public final class ItemTranslator {
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
-        boolean hideTooltips = false;
-        if (components != null) {
-            javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
-            if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
-        }
+        // Populates default components that aren't sent over the network
+        components = javaItem.gatherComponents(components);
 
-        // Fixes fireworks crafting recipe: they always contain a tag
-        // TODO remove once all items have their default components
-        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
-            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
-        }
+        // Translate item-specific components
+        javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
-        Rarity rarity = javaItem.rarity();
-        boolean enchantmentGlint = javaItem.glint();
-        if (components != null) {
-            Integer rarityIndex = components.get(DataComponentType.RARITY);
-            if (rarityIndex != null) {
-                rarity = Rarity.fromId(rarityIndex);
-            }
-            Boolean enchantmentGlintOverride = components.get(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE);
-            if (enchantmentGlintOverride != null) {
-                enchantmentGlint = enchantmentGlintOverride;
-            }
-        }
-
+        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
         String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
 
-        if (components != null) {
-            ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
-            if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
-                // only add if attribute modifiers do not indicate to hide them
-                addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
-            }
+        boolean hideTooltips = components.get(DataComponentType.HIDE_TOOLTIP) != null;
+
+        ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
+        if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
+            // only add if attribute modifiers do not indicate to hide them
+            addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
         }
 
         if (session.isAdvancedTooltips() && !hideTooltips) {
@@ -193,7 +174,7 @@ public final class ItemTranslator {
         }
 
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
-        if (enchantmentGlint) {
+        if (components.getOrDefault(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, false)) {
             NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
@@ -217,18 +198,16 @@ public final class ItemTranslator {
 
         translateCustomItem(components, builder, bedrockItem);
 
-        if (components != null) {
-            // Translate the canDestroy and canPlaceOn Java components
-            AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
-            AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
-            String[] canBreak = getCanModify(session, canDestroy);
-            String[] canPlace = getCanModify(session, canPlaceOn);
-            if (canBreak != null) {
-                builder.canBreak(canBreak);
-            }
-            if (canPlace != null) {
-                builder.canPlace(canPlace);
-            }
+        // Translate the canDestroy and canPlaceOn Java components
+        AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
+        AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
+        String[] canBreak = getCanModify(session, canDestroy);
+        String[] canPlace = getCanModify(session, canPlaceOn);
+        if (canBreak != null) {
+            builder.canBreak(canBreak);
+        }
+        if (canPlace != null) {
+            builder.canPlace(canPlace);
         }
 
         return builder;
@@ -325,7 +304,7 @@ public final class ItemTranslator {
     }
 
     private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
-        int maxDurability = item.maxDamage();
+        int maxDurability = item.defaultMaxDamage();
 
         if (maxDurability != 0 && components != null) {
             Integer durabilityComponent = components.get(DataComponentType.DAMAGE);

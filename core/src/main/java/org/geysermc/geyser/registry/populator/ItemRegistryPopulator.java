@@ -447,7 +447,7 @@ public class ItemRegistryPopulator {
                     }
                 }
 
-                if (javaOnlyItems.contains(javaItem) || javaItem.rarity() != Rarity.COMMON) {
+                if (javaOnlyItems.contains(javaItem) || javaItem.defaultRarity() != Rarity.COMMON) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     // Or, ensure that we are translating these at all times to account for rarity colouring
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));

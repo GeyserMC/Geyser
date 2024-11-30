@@ -52,7 +52,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 public class AnvilInventoryUpdater extends InventoryUpdater {
     public static final AnvilInventoryUpdater INSTANCE = new AnvilInventoryUpdater();
@@ -266,14 +265,14 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcRepairLevelCost(GeyserItemStack input, GeyserItemStack material) {
         int newDamage = getDamage(input);
-        int unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
+        int unitRepair = Math.min(newDamage, input.asItem().defaultMaxDamage() / 4);
         if (unitRepair <= 0) {
             // No damage to repair
             return -1;
         }
         for (int i = 0; i < material.getAmount(); i++) {
             newDamage -= unitRepair;
-            unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
+            unitRepair = Math.min(newDamage, input.asItem().defaultMaxDamage() / 4);
             if (unitRepair <= 0) {
                 return i + 1;
             }
@@ -290,7 +289,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeRepairCost(GeyserItemStack input, GeyserItemStack material) {
         // If the material item is damaged 112% or more, then the input item will not be repaired
-        if (getDamage(input) > 0 && getDamage(material) < (material.asItem().maxDamage() * 112 / 100)) {
+        if (getDamage(input) > 0 && getDamage(material) < (material.asItem().defaultMaxDamage() * 112 / 100)) {
             return 2;
         }
         return 0;
@@ -419,7 +418,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean hasDurability(GeyserItemStack itemStack) {
-        if (itemStack.asItem().maxDamage() > 0) {
+        if (itemStack.asItem().defaultMaxDamage() > 0) {
             return itemStack.getComponent(DataComponentType.UNBREAKABLE, false);
         }
         return false;

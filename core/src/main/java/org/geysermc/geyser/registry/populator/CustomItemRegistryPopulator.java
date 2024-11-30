@@ -48,6 +48,8 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.*;
 
@@ -129,10 +131,11 @@ public class CustomItemRegistryPopulator {
 
         Set<String> repairMaterials = customItemData.repairMaterials();
 
-        Item.Builder itemBuilder = Item.builder()
-                .stackSize(customItemData.stackSize())
-                .maxDamage(customItemData.maxDamage());
-        Item item = new Item(customIdentifier, itemBuilder) {
+        DataComponents components = new DataComponents(new HashMap<>());
+        components.put(DataComponentType.MAX_STACK_SIZE, customItemData.stackSize());
+        components.put(DataComponentType.MAX_DAMAGE, customItemData.maxDamage());
+
+        Item item = new Item(customIdentifier, Item.builder().components(components)) {
             @Override
             public boolean isValidRepairItem(Item other) {
                 return repairMaterials != null && repairMaterials.contains(other.javaIdentifier());
@@ -167,11 +170,11 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(javaItem.defaultMaxDamage(), javaItem.defaultMaxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.defaultAttackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 

@@ -62,7 +62,7 @@ public final class CustomItemTranslator {
             }
         }
 
-        boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
+        boolean checkDamage = mapping.getJavaItem().defaultMaxDamage() > 0;
         int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentType.DAMAGE, 0);
         boolean unbreakable = checkDamage && !isDamaged(components, damage);
 

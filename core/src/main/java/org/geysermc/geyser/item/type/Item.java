@@ -62,23 +62,16 @@ public class Item {
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
-
-    // TODO remove these
-    private final int stackSize;
     private final int attackDamage;
-    private final int maxDamage;
-    private final Rarity rarity;
-    private final boolean glint;
+    private final DataComponents baseComponents;
 
-    private DataComponents dataComponents;
+    private final List<Item> enchantmentGlintPresent = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
+        Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
-        this.stackSize = builder.stackSize;
-        this.maxDamage = builder.maxDamage;
+        this.baseComponents = builder.components;
         this.attackDamage = builder.attackDamage;
-        this.rarity = builder.rarity;
-        this.glint = builder.glint;
     }
 
     public String javaIdentifier() {
@@ -89,24 +82,28 @@ public class Item {
         return javaId;
     }
 
-    public int maxDamage() {
-        return dataComponents.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+    public int defaultMaxDamage() {
+        return baseComponents.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
     }
 
-    public int attackDamage() {
+    public int defaultAttackDamage() {
         return attackDamage;
     }
 
-    public int maxStackSize() {
-        return dataComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
+    public int defaultMaxStackSize() {
+        return baseComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
     }
 
-    public Rarity rarity() {
-        return rarity;
+    public Rarity defaultRarity() {
+        return Rarity.fromId(baseComponents.getOrDefault(DataComponentType.RARITY, 0));
     }
 
-    public boolean glint() {
-        return glint;
+    public DataComponents gatherComponents(DataComponents others) {
+        if (others == null) return baseComponents.clone();
+
+        DataComponents components = baseComponents.clone();
+        components.getDataComponents().putAll(others.getDataComponents());
+        return components;
     }
 
     public boolean isValidRepairItem(Item other) {
@@ -295,30 +292,26 @@ public class Item {
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder().components(new DataComponents(new HashMap<>())); // TODO actually set components here
     }
 
     public static final class Builder {
-        private int stackSize = 64;
-        private int maxDamage;
+        private DataComponents components;
         private int attackDamage;
-        private Rarity rarity = Rarity.COMMON;
-        private boolean glint = false;
-
-        public Builder stackSize(int stackSize) {
-            this.stackSize = stackSize;
-            return this;
-        }
 
         public Builder attackDamage(double attackDamage) {
-            // TODO properly store/send a double value once Bedrock supports it.. pls
+            // Bedrock edition does not support attack damage being a double
             this.attackDamage = (int) attackDamage;
             return this;
         }
 
-        public Builder maxDamage(int maxDamage) {
-            this.maxDamage = maxDamage;
+        public Builder components(DataComponents components) {
+            this.components = components;
             return this;
+        }
+
+        public DataComponents components() {
+            return this.components;
         }
 
         private Builder() {
