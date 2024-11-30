@@ -55,7 +55,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -498,7 +497,6 @@ public class ItemRegistryPopulator {
                     customItemDefinitions = Collections.emptyList();
                 }
                 mappingBuilder.customItemDefinitions(customItemDefinitions);
-                mappingBuilder.customItemOptions(Collections.emptyList());
 
                 ItemMapping mapping = mappingBuilder.build();
 
@@ -525,7 +523,6 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lightBlock)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemOptions(Collections.emptyList())
                     .customItemDefinitions(Collections.emptyList())
                     .build();
                 lightBlocks.put(lightBlock.getRuntimeId(), lightBlockEntry);
@@ -543,7 +540,6 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lodestoneCompass)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemOptions(Collections.emptyList())
                     .customItemDefinitions(Collections.emptyList())
                     .build();
 
@@ -559,8 +555,7 @@ public class ItemRegistryPopulator {
                         .bedrockDefinition(definition)
                         .bedrockData(0)
                         .bedrockBlockDefinition(null)
-                        .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
-                        .customItemDefinitions(Collections.emptyList()) // TODO do not remove the above todo
+                        .customItemDefinitions(Collections.emptyList()) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()

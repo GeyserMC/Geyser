@@ -55,7 +55,6 @@ public class ItemMapping {
             null,
             null,
             Collections.emptyList(),
-            Collections.emptyList(),
             Items.AIR
     );
 
@@ -73,10 +72,6 @@ public class ItemMapping {
     String toolTier;
 
     String translationString;
-
-    @Deprecated
-    @NonNull
-    List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions; // TODO remove
 
     @NonNull
     List<Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
