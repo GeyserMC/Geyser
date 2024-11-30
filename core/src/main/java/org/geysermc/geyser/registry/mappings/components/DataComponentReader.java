@@ -26,13 +26,11 @@
 package org.geysermc.geyser.registry.mappings.components;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-@Getter
 public abstract class DataComponentReader<V> {
     private final DataComponentType<V> type;
 
@@ -42,9 +40,8 @@ public abstract class DataComponentReader<V> {
 
     protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
 
-    DataComponent<V, ? extends DataComponentType<V>> read(JsonNode node) throws InvalidCustomMappingsFileException {
-        // TODO primitives??
-        return type.getDataComponentFactory().create(type, readDataComponent(node));
+    void read(DataComponents components, JsonNode node) throws InvalidCustomMappingsFileException {
+        components.put(type, readDataComponent(node));
     }
 
     protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {

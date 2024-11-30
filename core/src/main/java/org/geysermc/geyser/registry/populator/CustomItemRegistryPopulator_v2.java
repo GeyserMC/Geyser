@@ -192,7 +192,9 @@ public class CustomItemRegistryPopulator_v2 {
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
         int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
-        int stackSize = maxDamage > 0 ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
+        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
+        // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
+        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
 
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0/* && customItemData.customItemOptions().unbreakable() != TriState.TRUE*/) { // TODO Insert check back in once predicates are here?
@@ -444,8 +446,6 @@ public class CustomItemRegistryPopulator_v2 {
         if (javaItem.glint()) {
             components.put(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, true);
         }
-
-        // TODO repairable?
 
         if (javaItem instanceof ArmorItem armor) { // TODO equippable
         }

@@ -49,7 +49,7 @@ public class DataComponentReaders {
         if (reader == null) {
             throw new InvalidCustomMappingsFileException("Unknown data component " + key);
         }
-        components.getDataComponents().put(reader.getType(), reader.read(node));
+        reader.read(components, node);
     }
 
     static {
