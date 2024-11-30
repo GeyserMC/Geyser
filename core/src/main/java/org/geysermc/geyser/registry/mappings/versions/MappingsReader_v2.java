@@ -29,7 +29,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -79,13 +81,27 @@ public class MappingsReader_v2 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
 
+        JsonNode bedrockIdentifierNode = node.get("bedrock_identifier");
         JsonNode model = node.get("model");
+
+        if (bedrockIdentifierNode == null || !bedrockIdentifierNode.isTextual() || bedrockIdentifierNode.asText().isEmpty()) {
+            throw new InvalidCustomMappingsFileException("An item entry has no bedrock identifier");
+        }
         if (model == null || !model.isTextual() || model.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no model");
         }
-        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(Key.key(model.asText()));
 
-        // TODO name, predicate
+        Key bedrockIdentifier = Key.key(bedrockIdentifierNode.asText());
+        if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            bedrockIdentifier = Key.key(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.value());
+        }
+        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, Key.key(model.asText()));
+
+        if (node.has("display_name")) {
+            builder.displayName(node.get("display_name").asText());
+        }
+
+        // TODO predicate
 
         builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options")));
 
@@ -116,7 +132,7 @@ public class MappingsReader_v2 extends MappingsReader {
         }
 
         if (node.has("creative_category")) {
-            builder.creativeCategory(node.get("creative_category").asInt());
+            builder.creativeCategory(BedrockCreativeTab.valueOf(node.get("creative_category").asText().toUpperCase()));
         }
 
         if (node.has("creative_group")) {

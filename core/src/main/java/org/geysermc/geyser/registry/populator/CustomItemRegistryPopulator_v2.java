@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -36,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -77,7 +79,6 @@ public class CustomItemRegistryPopulator_v2 {
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems /* TODO */) {
         // TODO
-        System.out.println("reading mappings");
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {
@@ -104,12 +105,9 @@ public class CustomItemRegistryPopulator_v2 {
 
     static boolean initialCheck(CustomItemDefinition item, Map<String, GeyserMappingItem> mappings) {
         // TODO check if there's already a same model without predicate and this hasn't a predicate either
-        String name = item.bedrockIdentifier(); // TODO rename to identifier
-        if (name.isEmpty()) {
-            GeyserImpl.getInstance().getLogger().warning("Custom item name is empty?");
-        } else if (Character.isDigit(name.charAt(0))) {
-            // As of 1.19.31
-            GeyserImpl.getInstance().getLogger().warning("Custom item name (" + name + ") begins with a digit. This may cause issues!");
+        Key name = item.bedrockIdentifier();
+        if (name.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            GeyserImpl.getInstance().getLogger().warning("Custom item namespace can't be minecraft");
         }
         return true;
     }
@@ -124,7 +122,7 @@ public class CustomItemRegistryPopulator_v2 {
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
         DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
-        setupBasicItemInfo(customItemDefinition.bedrockIdentifier(), customItemDefinition, components, itemProperties, componentBuilder);
+        setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
         if (vanillaMapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -166,7 +164,7 @@ public class CustomItemRegistryPopulator_v2 {
         return builder;
     }
 
-    private static void setupBasicItemInfo(String name, CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         CustomItemBedrockOptions options = definition.bedrockOptions();
         NbtMap iconMap = NbtMap.builder()
             .putCompound("textures", NbtMap.builder()
@@ -175,15 +173,15 @@ public class CustomItemRegistryPopulator_v2 {
             .build();
         itemProperties.putCompound("minecraft:icon", iconMap);
 
-        if (options.creativeCategory().isPresent()) {
-            itemProperties.putInt("creative_category", options.creativeCategory().getAsInt());
+        if (options.creativeCategory() != BedrockCreativeTab.NONE) {
+            itemProperties.putInt("creative_category", options.creativeCategory().ordinal());
 
             if (options.creativeGroup() != null) {
                 itemProperties.putString("creative_group", options.creativeGroup());
             }
         }
 
-        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", name).build()); // TODO
+        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build()); // TODO
 
         // Add a Geyser tag to the item, allowing Molang queries
         addItemTag(componentBuilder, "geyser:is_custom");
@@ -324,7 +322,7 @@ public class CustomItemRegistryPopulator_v2 {
 
     private static void computeConsumableProperties(Consumable consumable, boolean canAlwaysEat, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
-        itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20)); // TODO check and confirm
+        itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
 
         itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
 

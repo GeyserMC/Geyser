@@ -62,6 +62,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -463,7 +464,7 @@ public class ItemRegistryPopulator {
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : Constants.GEYSER_CUSTOM_NAMESPACE + ":" + customItem.bedrockIdentifier(); // TODO bedrock identifier + non vanilla stuff
+                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : customItem.bedrockIdentifier().asString(); // TODO non vanilla stuff
                         if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
@@ -474,7 +475,7 @@ public class ItemRegistryPopulator {
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator_v2.registerCustomItem(
                             customItemName, javaItem, mappingItem, customItem, customProtocolId);
 
-                        if (customItem.bedrockOptions().creativeCategory().isPresent()) {
+                        if (customItem.bedrockOptions().creativeCategory() != BedrockCreativeTab.NONE) {
                             creativeItems.add(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())
