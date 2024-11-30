@@ -151,7 +151,6 @@ public class ItemRegistryPopulator {
         List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
 
         if (customItemsAllowed) {
-            //CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems); // TODO
             CustomItemRegistryPopulator_v2.populate(items, customItems, nonVanillaCustomItems);
         }
 
