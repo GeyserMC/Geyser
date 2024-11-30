@@ -39,34 +39,35 @@ import java.util.Set;
 public interface CustomItemBedrockOptions {
 
     /**
-     * Gets the item's icon. When not present, {@code <item model namespace>.<item model path>} is used.
+     * Gets the item's icon. When not present, the item's Bedrock identifier is used.
      *
      * @return the item's icon
+     * @see CustomItemDefinition#icon()
      */
     @Nullable
     String icon();
 
     /**
-     * Gets if the item is allowed to be put into the offhand.
+     * If the item is allowed to be put into the offhand. Defaults to true.
      *
      * @return true if the item is allowed to be used in the offhand, false otherwise
      */
     boolean allowOffhand();
 
     /**
-     * Gets if the item should be displayed as handheld, like a tool.
+     * If the item should be displayed as handheld, like a tool.
      *
      * @return true if the item should be displayed as handheld, false otherwise
      */
     boolean displayHandheld();
 
     /**
-     * Gets the item's creative category, or tab id.
+     * The item's creative category. Defaults to {@code NONE}.
      *
      * @return the item's creative category
      */
     @NonNull
-    OptionalInt creativeCategory();
+    BedrockCreativeTab creativeCategory();
 
     /**
      * Gets the item's creative group.

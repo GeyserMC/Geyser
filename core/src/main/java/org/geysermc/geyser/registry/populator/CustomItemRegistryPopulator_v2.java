@@ -104,7 +104,7 @@ public class CustomItemRegistryPopulator_v2 {
 
     static boolean initialCheck(CustomItemDefinition item, Map<String, GeyserMappingItem> mappings) {
         // TODO check if there's already a same model without predicate and this hasn't a predicate either
-        String name = item.name(); // TODO rename to identifier
+        String name = item.bedrockIdentifier(); // TODO rename to identifier
         if (name.isEmpty()) {
             GeyserImpl.getInstance().getLogger().warning("Custom item name is empty?");
         } else if (Character.isDigit(name.charAt(0))) {
@@ -124,7 +124,7 @@ public class CustomItemRegistryPopulator_v2 {
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
         DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
-        setupBasicItemInfo(customItemDefinition.name(), customItemDefinition, components, itemProperties, componentBuilder);
+        setupBasicItemInfo(customItemDefinition.bedrockIdentifier(), customItemDefinition, components, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
         if (vanillaMapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.

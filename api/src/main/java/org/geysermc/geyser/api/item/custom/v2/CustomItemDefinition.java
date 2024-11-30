@@ -31,33 +31,62 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 /**
- * This is used to store data for a custom item.
- *
- * V2. TODO.
+ * This is used to define a custom item and its properties.
  */
 public interface CustomItemDefinition {
 
     /**
-     * Gets the item model this definition is for. This model can't be in the Minecraft namespace.
+     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If no namespace is given in the builder, the default
+     * namespace of the implementation is used.
+     *
+     * @implNote for Geyser, this is the {@code geyser_custom} namespace.
      */
-    @NonNull Key model(); // TODO name??
+    @NonNull Key bedrockIdentifier();
 
-    default String name() {
-        return model().namespace() + "_" + model().value();
-    } // TODO, also display name ? also, rename to identifier
+    /**
+     * The display name of the item. If none is set, the display name is taken from the item's Bedrock identifier.
+     */
+    @NonNull String displayName();
 
-    default String icon() {
-        return bedrockOptions().icon() == null ? name() : bedrockOptions().icon();
-    } // TODO
+    /**
+     * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition is required to have a predicate.
+     */
+    @NonNull Key model();
+
+    /**
+     * The icon used for this item.
+     *
+     * <p>If none is set in the item's Bedrock options, then the item's Bedrock identifier is used,
+     * the namespace separator replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}.</p>
+     */
+    default @NonNull String icon() {
+        return bedrockOptions().icon() == null ? bedrockIdentifier().asString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
+    }
 
     // TODO predicate
 
-    // TODO bedrock options
-
+    /**
+     * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
+     */
     @NonNull CustomItemBedrockOptions bedrockOptions();
 
-    // TODO components
-
+    /**
+     * The item's data components. It is expected that the item <em>always</em> has these components on the server. If the components mismatch, bugs will occur.
+     *
+     * <p>Currently, the following components are supported:</p>
+     *
+     * <ul>
+     *     <li>{@code minecraft:consumable}</li>
+     *     <li>{@code minecraft:equippable}</li>
+     *     <li>{@code minecraft:food}</li>
+     *     <li>{@code minecraft:max_damage}</li>
+     *     <li>{@code minecraft:max_stack_size}</li>
+     *     <li>{@code minecraft:use_cooldown}</li>
+     * </ul>
+     *
+     * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
+     * and do not have to be specified here.</p>
+     */
     @NonNull DataComponents components();
 
     static Builder builder(Key itemModel) {
