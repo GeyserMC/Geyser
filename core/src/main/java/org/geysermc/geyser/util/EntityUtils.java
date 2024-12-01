@@ -210,13 +210,13 @@ public final class EntityUtils {
                     }
                 }
                 case PLAYER -> {
-                    if (passenger instanceof  TextDisplayEntity textDisplay) {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
                         Vector3f displayTranslation = textDisplay.getTranslation();
                         int lines = textDisplay.getLines();
                         if (displayTranslation != null && lines != 0) {
-                            float multiplier = (float) Math.max(0.22f, 0.45f - (0.06f * Math.floor((lines - 4) / 2f)));
+                            float multiplier = .16f;
                             xOffset = displayTranslation.getX();
-                            yOffset = displayTranslation.getY() + multiplier * lines;
+                            yOffset = displayTranslation.getY() + 1.2f + multiplier * lines;
                             zOffset = displayTranslation.getZ();
                         }
                     }
