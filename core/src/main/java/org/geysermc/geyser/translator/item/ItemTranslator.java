@@ -521,6 +521,19 @@ public final class ItemTranslator {
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
+            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            if (potionContents != null) {
+                // "custom_name" tag in "potion_contents" component
+                String customPotionName = potionContents.getCustomName();
+                if (customPotionName != null) {
+                    Component component = Component.text()
+                        .resetStyle()
+                        .color(NamedTextColor.WHITE)
+                        .append(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName))
+                        .build();
+                    return MessageTranslator.convertMessage(component, session.locale());
+                }
+            }
             customName = components.get(DataComponentType.ITEM_NAME);
             if (customName != null) {
                 // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
