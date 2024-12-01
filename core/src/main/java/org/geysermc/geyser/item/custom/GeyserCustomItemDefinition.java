@@ -29,16 +29,20 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model,
+public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model, @NonNull List<CustomItemPredicate<?>> predicates,
                                          @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Key bedrockIdentifier;
         private final Key model;
+        private final List<CustomItemPredicate<?>> predicates = new ArrayList<>();
         private String displayName;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private DataComponents components = new DataComponents(new HashMap<>());
@@ -56,6 +60,12 @@ public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String 
         }
 
         @Override
+        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate<?> predicate) {
+            predicates.add(predicate);
+            return this;
+        }
+
+        @Override
         public CustomItemDefinition.Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options) {
             this.bedrockOptions = options.build();
             return this;
@@ -69,7 +79,7 @@ public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String 
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, bedrockOptions, components);
+            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), bedrockOptions, components);
         }
     }
 }

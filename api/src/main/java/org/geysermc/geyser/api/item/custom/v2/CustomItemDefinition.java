@@ -28,7 +28,10 @@ package org.geysermc.geyser.api.item.custom.v2;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+
+import java.util.List;
 
 /**
  * This is used to define a custom item and its properties.
@@ -66,12 +69,12 @@ public interface CustomItemDefinition {
     }
 
     /**
-     * The predicate that has to match for this item to be used. These predicates are similar to the Java item model predicates.
+     * The predicates that have to match for this item to be used. These predicates are similar to the Java item model predicates.
      *
-     * <p>If multiple predicates match, then the first registered item with a matching predicate is used. If no predicates match, then the item definition without a predicate
+     * <p>If all predicates match for multiple definitions, then the first registered item with all matching predicates is used. If no predicates match, then the item definition without any predicates
      * is used, if any.</p>
      */
-    void predicate();
+    @NonNull List<CustomItemPredicate<?>> predicates();
 
     /**
      * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
@@ -104,6 +107,8 @@ public interface CustomItemDefinition {
     interface Builder {
 
         Builder displayName(String displayName);
+
+        Builder predicate(@NonNull CustomItemPredicate<?> predicate);
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,44 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.checkerframework.checker.index.qual.NonNegative;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * A wrapper for a list, holding Java registry values.
- */
-public interface JavaRegistry<T> {
+public class ItemPredicateType<T> {
+    private static final Map<String, ItemPredicateType<?>> TYPES = new HashMap<>();
 
-    /**
-     * Looks up a registry entry by its ID. The object can be null, or not present.
-     */
-    T byId(@NonNegative int id);
+    public static final ItemPredicateType<ConditionPredicateData> CONDITION = create("condition");
+    public static final ItemPredicateType<MatchPredicateData<?>> MATCH = create("match");
 
-    /**
-     * Looks up a registry entry by its ID, and returns it wrapped in {@link RegistryEntryData} so that its registered key is also known. The object can be null, or not present.
-     */
-    RegistryEntryData<T> entryById(@NonNegative int id);
+    public static ItemPredicateType<?> getType(String name) {
+        return TYPES.get(name);
+    }
 
-    /**
-     * Reverse looks-up an object to return its network ID, or -1.
-     */
-    int byValue(T value);
-
-    /**
-     * Reverse looks-up an object to return it wrapped in {@link RegistryEntryData}, or null.
-     */
-    RegistryEntryData<T> entryByValue(T value);
-
-    /**
-     * Resets the objects by these IDs.
-     */
-    void reset(List<RegistryEntryData<T>> values);
-
-    /**
-     * All values of this registry, as a list.
-     */
-    List<T> values();
+    private static <T> ItemPredicateType<T> create(String name) {
+        ItemPredicateType<T> type = new ItemPredicateType<>();
+        TYPES.put(name, type);
+        return type;
+    }
 }

@@ -29,11 +29,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ItemPredicateType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.CustomModelDataPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
@@ -101,7 +109,7 @@ public class MappingsReader_v2 extends MappingsReader {
             builder.displayName(node.get("display_name").asText());
         }
 
-        // TODO predicate
+        readPredicates(builder, node.get("predicate"));
 
         builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options")));
 
@@ -164,6 +172,86 @@ public class MappingsReader_v2 extends MappingsReader {
         }
 
         return builder;
+    }
+
+    private void readPredicates(CustomItemDefinition.Builder builder, JsonNode node) throws InvalidCustomMappingsFileException {
+        if (node == null) {
+            return;
+        }
+
+        if (node.isObject()) {
+            readPredicate(builder, node);
+        } else if (node.isArray()) {
+            node.forEach(predicate -> {
+                try {
+                    readPredicate(builder, predicate);
+                } catch (InvalidCustomMappingsFileException e) {
+                    GeyserImpl.getInstance().getLogger().error("Error in reading predicate", e); // TODO log this better
+                }
+            });
+        } else {
+            throw new InvalidCustomMappingsFileException("Expected predicate key to be a list of predicates or a predicate");
+        }
+    }
+
+    private void readPredicate(CustomItemDefinition.Builder builder, @NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        if (!node.isObject()) {
+            throw new InvalidCustomMappingsFileException("Expected predicate to be an object");
+        }
+
+        JsonNode typeNode = node.get("type");
+        if (typeNode == null || !typeNode.isTextual()) {
+            throw new InvalidCustomMappingsFileException("Predicate missing type key");
+        }
+
+        ItemPredicateType<?> type = ItemPredicateType.getType(typeNode.asText());
+        JsonNode propertyNode = node.get("property");
+        if (propertyNode == null || !propertyNode.isTextual()) {
+            throw new InvalidCustomMappingsFileException("Predicate missing property key");
+        }
+
+        if (type == ItemPredicateType.CONDITION) {
+            try {
+                ConditionPredicateData.ConditionProperty property = ConditionPredicateData.ConditionProperty.valueOf(propertyNode.asText().toUpperCase());
+                JsonNode expected = node.get("expected");
+                JsonNode index = node.get("index");
+
+                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.CONDITION, new ConditionPredicateData(property,
+                    expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt())));
+            } catch (IllegalArgumentException exception) {
+                throw new InvalidCustomMappingsFileException("Unknown property " + propertyNode.asText());
+            }
+        } else if (type == ItemPredicateType.MATCH) {
+            MatchPredicateProperty<?> property = MatchPredicateProperty.getProperty(propertyNode.asText());
+            if (property == null) {
+                throw new InvalidCustomMappingsFileException("Unknown property " + propertyNode.asText());
+            }
+
+            JsonNode value = node.get("value");
+            if (value == null || !value.isTextual()) {
+                throw new InvalidCustomMappingsFileException("Predicate missing value key");
+            }
+
+            if (property == MatchPredicateProperty.CHARGE_TYPE) {
+                try {
+                    ChargeType chargeType = ChargeType.valueOf(value.asText().toUpperCase());
+                    builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
+                        new MatchPredicateData<>(MatchPredicateProperty.CHARGE_TYPE, chargeType)));
+                } catch (IllegalArgumentException exception) {
+                    throw new InvalidCustomMappingsFileException("Unknown charge type " + value.asText());
+                }
+            } else if (property == MatchPredicateProperty.TRIM_MATERIAL || property == MatchPredicateProperty.CONTEXT_DIMENSION) {
+                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
+                    new MatchPredicateData<>((MatchPredicateProperty<Key>) property, Key.key(value.asText())))); // TODO
+            } else if (property == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
+                JsonNode index = node.get("index");
+                if (index == null || !index.isIntegralNumber()) {
+                    throw new InvalidCustomMappingsFileException("Predicate missing index key");
+                }
+                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
+                    new MatchPredicateData<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataPredicate<>(value.asText(), index.asInt()))));
+            }
+        }
     }
 
     @Override

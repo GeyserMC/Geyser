@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
@@ -61,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator_v2 {
@@ -82,7 +84,7 @@ public class CustomItemRegistryPopulator_v2 {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {
-            if (initialCheck(item, items)) {
+            if (initialCheck(id, item, customItems, items)) {
                 customItems.get(id).add(item);
             }
         });
@@ -103,13 +105,82 @@ public class CustomItemRegistryPopulator_v2 {
         return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
     }
 
-    static boolean initialCheck(CustomItemDefinition item, Map<String, GeyserMappingItem> mappings) {
+    private static boolean initialCheck(String identifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
         // TODO check if there's already a same model without predicate and this hasn't a predicate either
-        Key name = item.bedrockIdentifier();
-        if (name.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            GeyserImpl.getInstance().getLogger().warning("Custom item namespace can't be minecraft");
+        if (!mappings.containsKey(identifier)) {
+            GeyserImpl.getInstance().getLogger().error("Could not find the Java item to add custom item properties to for " + item.bedrockIdentifier());
+            return false;
         }
+        Key bedrockIdentifier = item.bedrockIdentifier();
+        if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            GeyserImpl.getInstance().getLogger().error("Custom item bedrock identifier namespace can't be minecraft");
+            return false;
+        } else if (item.model().namespace().equals(Key.MINECRAFT_NAMESPACE) && item.predicates().isEmpty()) {
+            GeyserImpl.getInstance().getLogger().error("Custom item definition model can't be minecraft without a predicate");
+            return false;
+        }
+
+        for (Map.Entry<String, CustomItemDefinition> entry : registered.entries()) {
+            if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
+                GeyserImpl.getInstance().getLogger().error("Duplicate custom item definition for Bedrock ID " + item.bedrockIdentifier());
+                return false;
+            }
+            Optional<String> error = checkPredicate(entry, identifier, item);
+            if (error.isPresent()) {
+                GeyserImpl.getInstance().getLogger().error("An existing item definition for the Java item " + identifier + " was already registered that conflicts with this one!");
+                GeyserImpl.getInstance().getLogger().error("First entry: " + entry.getValue().bedrockIdentifier());
+                GeyserImpl.getInstance().getLogger().error("Second entry: " + item.bedrockIdentifier());
+                GeyserImpl.getInstance().getLogger().error(error.orElseThrow());
+            }
+        }
+
         return true;
+    }
+
+    /**
+     * Returns an error message if there was a conflict, or an empty optional otherwise
+     */
+    private static Optional<String> checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String identifier, CustomItemDefinition item) {
+        // TODO this is probably wrong
+        // If the definitions are for different Java items or models then it doesn't matter
+        if (!identifier.equals(existing.getKey()) || !item.model().equals(existing.getValue().model())) {
+            return Optional.empty();
+        }
+        // If they both don't have predicates they conflict
+        if (existing.getValue().predicates().isEmpty() && item.predicates().isEmpty()) {
+            return Optional.of("Both entries don't have predicates, the first must have a predicate");
+        }
+
+        // If a previously registered entry does have predicates, and this entry doesn't, then they also conflict
+        // Entries with predicates must always be first
+        if (existing.getValue().predicates().isEmpty() && !item.predicates().isEmpty()) {
+            return Optional.of("The first entry has no predicates, meaning that one will always be used");
+        } else if (item.predicates().isEmpty()) {
+            return Optional.empty(); // Item definitions are correctly ordered
+        }
+
+        // If all predicates of an existing entry also exist in a new entry, then the new entry is invalid
+        // This makes it required to order definitions correctly, so that "fallback predicates" are added last:
+        //
+        // A && B -> item1
+        // A -> item2
+        //
+        // Is the correct order, not
+        //
+        // A -> item2
+        // A && B -> item1
+        boolean existingHasAllPredicates = true;
+        for (CustomItemPredicate<?> predicate : existing.getValue().predicates()) {
+            if (!item.predicates().contains(predicate)) {
+                existingHasAllPredicates = false;
+                break;
+            }
+        }
+
+        if (existingHasAllPredicates) {
+            return Optional.of("Reorder your entries so that the one with the least amount of predicates is last");
+        }
+        return Optional.empty();
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item vanillaJavaItem, GeyserMappingItem vanillaMapping,
@@ -325,6 +396,9 @@ public class CustomItemRegistryPopulator_v2 {
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
 
         itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
+        componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
+            .putString("value", consumable.animation().toString().toLowerCase())
+            .build()); // TODO check
 
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());

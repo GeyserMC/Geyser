@@ -26,8 +26,21 @@
 package org.geysermc.geyser.translator.item;
 
 import net.kyori.adventure.key.Key;
+import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ItemPredicateType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import it.unimi.dsi.fastutil.Pair;
@@ -43,7 +56,7 @@ import java.util.List;
 public final class CustomItemTranslator {
 
     @Nullable
-    public static ItemDefinition getCustomItem(DataComponents components, ItemMapping mapping) {
+    public static ItemDefinition getCustomItem(GeyserSession session, DataComponents components, ItemMapping mapping) {
         if (components == null) {
             return null;
         }
@@ -55,79 +68,82 @@ public final class CustomItemTranslator {
 
         Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air")); // TODO fallback onto default item model (when thats done by chris)
 
+        // TODO check if definitions/predicates are in the correct order
         for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) { // TODO Predicates
             if (customModel.first().model().equals(itemModel)) {
-                return customModel.second();
+                boolean allMatch = true;
+                for (CustomItemPredicate<?> predicate : customModel.first().predicates()) {
+                    if (!predicateMatches(session, predicate, components)) {
+                        allMatch = false;
+                        break;
+                    }
+                }
+                if (allMatch) {
+                    return customModel.second();
+                }
             }
         }
         return null;
-        /*
-        List<Pair<CustomItemOptions, ItemDefinition>> customMappings = mapping.getCustomItemOptions();
-        if (customMappings.isEmpty()) {
-            return null;
-        }
-
-        int customModelData = components.getOrDefault(DataComponentType.CUSTOM_MODEL_DATA, 0);
-        boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
-        int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentType.DAMAGE, 0);
-        boolean unbreakable = checkDamage && !isDamaged(components, damage);
-
-        for (Pair<CustomItemOptions, ItemDefinition> mappingTypes : customMappings) {
-            CustomItemOptions options = mappingTypes.key();
-
-            // Code note: there may be two or more conditions that a custom item must follow, hence the "continues"
-            // here with the return at the end.
-
-            // Implementation details: Java's predicate system works exclusively on comparing float numbers.
-            // A value doesn't necessarily have to match 100%; it just has to be the first to meet all predicate conditions.
-            // This is also why the order of iteration is important as the first to match will be the chosen display item.
-            // For example, if CustomModelData is set to 2f as the requirement, then the NBT can be any number greater or equal (2, 3, 4...)
-            // The same behavior exists for Damage (in fraction form instead of whole numbers),
-            // and Damaged/Unbreakable handles no damage as 0f and damaged as 1f.
-
-            if (checkDamage) {
-                if (unbreakable && options.unbreakable() == TriState.FALSE) {
-                    continue;
-                }
-
-                OptionalInt damagePredicate = options.damagePredicate();
-                if (damagePredicate.isPresent() && damage < damagePredicate.getAsInt()) {
-                    continue;
-                }
-            } else {
-                if (options.unbreakable() != TriState.NOT_SET || options.damagePredicate().isPresent()) {
-                    // These will never match on this item. 1.19.2 behavior
-                    // Maybe move this to CustomItemRegistryPopulator since it'll be the same for every item? If so, add a test.
-                    continue;
-                }
-            }
-
-            OptionalInt customModelDataOption = options.customModelData();
-            if (customModelDataOption.isPresent() && customModelData < customModelDataOption.getAsInt()) {
-                continue;
-            }
-
-            if (options.defaultItem()) {
-                return null;
-            }
-
-            return mappingTypes.value();
-        }
-
-        return null;*/
     }
 
-    /* These two functions are based off their Mojmap equivalents from 1.19.2 */
+    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate<?> predicate, DataComponents components) {
+        if (predicate.type() == ItemPredicateType.CONDITION) {
+            ConditionPredicateData data = (ConditionPredicateData) predicate.data();
+            return switch (data.property()) {
+                case BROKEN -> nextDamageWillBreak(components);
+                case DAMAGED -> isDamaged(components);
+                case CUSTOM_MODEL_DATA -> false; // TODO 1.21.4
+            };
+        } else if (predicate.type() == ItemPredicateType.MATCH) {
+            MatchPredicateData<?> data = (MatchPredicateData<?>) predicate.data();
 
-    private static boolean isDamaged(DataComponents components, int damage) {
-        return isDamagableItem(components) && damage > 0;
+            if (data.property() == MatchPredicateProperty.CHARGE_TYPE) {
+                ChargeType expected = (ChargeType) data.data();
+                List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
+                if (charged == null) {
+                    return expected == ChargeType.NONE;
+                } else if (expected == ChargeType.ROCKET) {
+                    for (ItemStack projectile : charged) {
+                        if (projectile.getId() == Items.FIREWORK_ROCKET.javaId()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                return true;
+            } else if (data.property() == MatchPredicateProperty.TRIM_MATERIAL) {
+                Key material = (Key) data.data();
+                ArmorTrim trim = components.get(DataComponentType.TRIM);
+                if (trim == null || trim.material().isCustom()) {
+                    return false;
+                }
+                RegistryEntryData<TrimMaterial> registered = session.getRegistryCache().trimMaterials().entryById(trim.material().id());
+                return registered != null && registered.key().equals(material);
+            } else if (data.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
+                Key dimension = (Key) data.data();
+                RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
+                return registered != null && dimension.equals(registered.key()); // TODO check if this works
+            } else if (data.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
+                // TODO 1.21.4
+                return false;
+            }
+        }
+
+        throw new IllegalStateException("Unimplemented predicate type");
     }
 
-    private static boolean isDamagableItem(DataComponents components) {
-        // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
-        Boolean unbreakable = components.get(DataComponentType.UNBREAKABLE);
-        // Tag must either not be present or be set to false
-        return unbreakable == null || !unbreakable;
+    /* These three functions are based off their Mojmap equivalents from 1.21.3 */
+
+    private static boolean nextDamageWillBreak(DataComponents components) {
+        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) >= components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) - 1;
+    }
+
+    private static boolean isDamaged(DataComponents components) {
+        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) > 0;
+    }
+
+    private static boolean isDamageableItem(DataComponents components) {
+        return components.getOrDefault(DataComponentType.UNBREAKABLE, false) && components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) > 0;
     }
 
     private CustomItemTranslator() {

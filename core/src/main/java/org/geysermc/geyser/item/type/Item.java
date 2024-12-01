@@ -125,7 +125,7 @@ public class Item {
                 .damage(mapping.getBedrockData())
                 .count(count);
 
-        ItemTranslator.translateCustomItem(components, builder, mapping);
+        ItemTranslator.translateCustomItem(session, components, builder, mapping);
 
         return builder;
     }
