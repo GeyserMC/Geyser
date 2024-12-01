@@ -38,6 +38,8 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -51,6 +53,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -58,7 +62,7 @@ import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
     private byte collarColor = 14; // Red - default
-
+    private GeyserHolderSet<Item> repairableItems = null;
     private boolean isCurseOfBinding = false;
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -123,9 +127,11 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public void setChestplate(ItemStack stack) {
-        super.setChestplate(stack);
-        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
+    public void setBody(ItemStack stack) {
+        super.setBody(stack);
+        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
+        HolderSet set = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
+        repairableItems = GeyserHolderSet.convertHolderSet(JavaRegistries.ITEM, set);
     }
 
     @Override
@@ -152,16 +158,17 @@ public class WolfEntity extends TameableEntity {
                     return super.testMobInteraction(hand, itemInHand);
                 }
             }
-            if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.chestplate.isValid() && !getFlag(EntityFlag.BABY)) {
+            if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.body.isValid() && !getFlag(EntityFlag.BABY)) {
                 return InteractiveTag.EQUIP_WOLF_ARMOR;
             }
-            if (itemInHand.asItem() == Items.SHEARS && this.chestplate.isValid()
+            if (itemInHand.asItem() == Items.SHEARS && this.body.isValid()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
-            if (Items.WOLF_ARMOR.isValidRepairItem(itemInHand.asItem()) && getFlag(EntityFlag.SITTING) &&
-                    this.chestplate.isValid() && this.chestplate.getTag() != null &&
-                    this.chestplate.getTag().getInt("Damage") > 0) {
+            if (getFlag(EntityFlag.SITTING) &&
+                    session.getTagCache().is(repairableItems, itemInHand.asItem()) &&
+                    this.body.isValid() && this.body.getTag() != null &&
+                    this.body.getTag().getInt("Damage") > 0) {
                 return InteractiveTag.REPAIR_WOLF_ARMOR;
             }
             // Tamed and owned by player - can sit/stand

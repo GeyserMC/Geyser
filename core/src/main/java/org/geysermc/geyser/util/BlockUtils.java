@@ -131,6 +131,7 @@ public final class BlockUtils {
         return 1.0 / speed;
     }
 
+    // TODO 1.21.4 this changed probably; no more tiers
     public static double getBreakTime(GeyserSession session, Block block, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
         boolean isShearsEffective = session.getTagCache().is(BlockTag.LEAVES, block) || session.getTagCache().is(BlockTag.WOOL, block); //TODO called twice
         boolean canHarvestWithHand = !block.requiresCorrectToolForDrops();
@@ -160,7 +161,7 @@ public final class BlockUtils {
 
         boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
         boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-                ItemUtils.getEnchantmentLevel(session, session.getPlayerInventory().getItem(5).getComponents(), BedrockEnchantment.AQUA_AFFINITY) < 1;
+                ItemUtils.getEnchantmentLevel(session, session.getPlayerInventory().getItem(5).getAllComponents(), BedrockEnchantment.AQUA_AFFINITY) < 1;
 
         return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());
@@ -173,7 +174,7 @@ public final class BlockUtils {
         DataComponents components = null;
         if (item != null) {
             mapping = item.getMapping(session);
-            components = item.getComponents();
+            components = item.getAllComponents();
         }
         return getBreakTime(session, block, mapping, components, true);
     }

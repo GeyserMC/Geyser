@@ -30,7 +30,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -158,13 +157,13 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                     session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
             NbtMap blockEntityTag;
-            if (book.getComponents() != null) {
+            if (book.hasNonBaseComponents()) {
                 int pages = 0;
-                WrittenBookContent writtenBookComponents = book.getComponents().get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                WrittenBookContent writtenBookComponents = book.getComponent(DataComponentType.WRITTEN_BOOK_CONTENT);
                 if (writtenBookComponents != null) {
                     pages = writtenBookComponents.getPages().size();
                 } else {
-                    WritableBookContent writableBookComponents = book.getComponents().get(DataComponentType.WRITABLE_BOOK_CONTENT);
+                    WritableBookContent writableBookComponents = book.getComponent(DataComponentType.WRITABLE_BOOK_CONTENT);
                     if (writableBookComponents != null) {
                         pages = writableBookComponents.getPages().size();
                     }

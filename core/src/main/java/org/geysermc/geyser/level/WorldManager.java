@@ -193,16 +193,6 @@ public abstract class WorldManager {
     }
 
     /**
-     * Used for pick block, so we don't need to cache more data than necessary.
-     *
-     * @return expected NBT for this item.
-     */
-    @NonNull
-    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addExtraData) {
-        return CompletableFuture.completedFuture(null);
-    }
-
-    /**
      * Retrieves decorated pot sherds from the server. Used to ensure the data is not erased on animation sent
      * through the BlockEntityDataPacket.
      */

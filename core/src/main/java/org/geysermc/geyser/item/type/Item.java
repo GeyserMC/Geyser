@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.google.common.collect.ImmutableMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -45,7 +46,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -98,16 +98,23 @@ public class Item {
         return Rarity.fromId(baseComponents.getOrDefault(DataComponentType.RARITY, 0));
     }
 
+    /**
+     * Returns a modifiable DataComponents map. Should only be used when it must be modified.
+     * Otherwise, prefer using GeyserItemStack's getComponent
+     */
+    @NonNull
     public DataComponents gatherComponents(DataComponents others) {
-        if (others == null) return baseComponents.clone();
-
         DataComponents components = baseComponents.clone();
+        if (others == null) {
+            return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
+        }
         components.getDataComponents().putAll(others.getDataComponents());
-        return components;
+        return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
 
-    public boolean isValidRepairItem(Item other) {
-        return false;
+    @Nullable
+    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+        return baseComponents.get(type);
     }
 
     public String translationKey() {
@@ -121,14 +128,11 @@ public class Item {
             // Return, essentially, air
             return ItemData.builder();
         }
-        ItemData.Builder builder = ItemData.builder()
+
+        return ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
                 .count(count);
-
-        ItemTranslator.translateCustomItem(components, builder, mapping);
-
-        return builder;
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
@@ -292,7 +296,7 @@ public class Item {
     }
 
     public static Builder builder() {
-        return new Builder().components(new DataComponents(new HashMap<>())); // TODO actually set components here
+        return new Builder().components(new DataComponents(ImmutableMap.of())); // TODO actually set components here
     }
 
     public static final class Builder {

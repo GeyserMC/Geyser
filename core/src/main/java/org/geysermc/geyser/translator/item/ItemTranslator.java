@@ -112,7 +112,7 @@ public final class ItemTranslator {
         NbtMap nbt = data.getTag();
         if (nbt != null && !nbt.isEmpty()) {
             // translateToJava may have added components
-            DataComponents components = itemStack.getComponents() == null ? new DataComponents(new HashMap<>()) : itemStack.getComponents();
+            DataComponents components = itemStack.getOrCreateComponents();
             javaItem.translateNbtToJava(session, nbt, components, bedrockItem);
             if (!components.getDataComponents().isEmpty()) {
                 itemStack.setComponents(components);
@@ -193,7 +193,7 @@ public final class ItemTranslator {
         }
 
         if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            translatePlayerHead(session, components, builder);
+            translatePlayerHead(session, components.get(DataComponentType.PROFILE), builder);
         }
 
         translateCustomItem(components, builder, bedrockItem);
@@ -391,7 +391,7 @@ public final class ItemTranslator {
             return ItemDefinition.AIR;
         }
 
-        ItemMapping mapping = itemStack.asItem().toBedrockDefinition(itemStack.getComponents(), session.getItemMappings());
+        ItemMapping mapping = itemStack.asItem().toBedrockDefinition(itemStack.getAllComponents(), session.getItemMappings());
 
         ItemDefinition itemDefinition = mapping.getBedrockDefinition();
         CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
@@ -401,7 +401,7 @@ public final class ItemTranslator {
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            CustomSkull customSkull = getCustomSkull(itemStack.getComponents());
+            CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentType.PROFILE));
             if (customSkull != null) {
                 itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
             }
@@ -466,39 +466,35 @@ public final class ItemTranslator {
         builder.blockDefinition(blockDefinition);
     }
 
-    private static @Nullable CustomSkull getCustomSkull(DataComponents components) {
-        if (components == null) {
+    private static @Nullable CustomSkull getCustomSkull(@Nullable GameProfile profile) {
+        if (profile == null) {
             return null;
         }
-        
-        GameProfile profile = components.get(DataComponentType.PROFILE);
-        if (profile != null) {
-            Map<TextureType, Texture> textures;
-            try {
-                textures = profile.getTextures(false);
-            } catch (IllegalStateException e) {
-                GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
-                return null;
-            }
 
-            if (textures == null || textures.isEmpty()) {
-                return null;
-            }
-
-            Texture skinTexture = textures.get(TextureType.SKIN);
-
-            if (skinTexture == null) {
-                return null;
-            }
-
-            String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
-            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        Map<TextureType, Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            return null;
         }
-        return null;
+
+        if (textures == null || textures.isEmpty()) {
+            return null;
+        }
+
+        Texture skinTexture = textures.get(TextureType.SKIN);
+
+        if (skinTexture == null) {
+            return null;
+        }
+
+        String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
+        return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
     }
 
-    private static void translatePlayerHead(GeyserSession session, DataComponents components, ItemData.Builder builder) {
-        CustomSkull customSkull = getCustomSkull(components);
+    private static void translatePlayerHead(GeyserSession session, GameProfile profile, ItemData.Builder builder) {
+        CustomSkull customSkull = getCustomSkull(profile);
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();
             ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);

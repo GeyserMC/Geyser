@@ -49,11 +49,9 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
@@ -156,16 +154,11 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
         GeyserItemStack inputCopy = inventory.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
-        // Add the pattern manually, for better item synchronization
-        if (inputCopy.getComponents() == null) {
-            inputCopy.setComponents(new DataComponents(new HashMap<>()));
-        }
-
         BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
         if (bannerPatternLayer != null) {
-            List<BannerPatternLayer> patternsList = inputCopy.getComponents().getOrDefault(DataComponentType.BANNER_PATTERNS, new ArrayList<>());
+            List<BannerPatternLayer> patternsList = inputCopy.getComponentOrFallback(DataComponentType.BANNER_PATTERNS, new ArrayList<>());
             patternsList.add(bannerPatternLayer);
-            inputCopy.getComponents().put(DataComponentType.BANNER_PATTERNS, patternsList);
+            inputCopy.getOrCreateComponents().put(DataComponentType.BANNER_PATTERNS, patternsList);
         }
 
         // Set the new item as the output

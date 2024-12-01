@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
@@ -119,7 +120,10 @@ public final class TagCache {
     /**
      * @return true if the specified network ID is in the given holder set.
      */
-    public <T> boolean is(GeyserHolderSet<T> holderSet, T object) {
+    public <T> boolean is(@Nullable GeyserHolderSet<T> holderSet, @Nullable T object) {
+        if (holderSet == null || object == null) {
+            return false;
+        }
         return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
     }
 

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item;
 
-import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.item.type.ArmorItem;
 import org.geysermc.geyser.item.type.ArrowItem;
 import org.geysermc.geyser.item.type.AxolotlBucketItem;
@@ -45,16 +44,13 @@ import org.geysermc.geyser.item.type.FireworkStarItem;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.GoatHornItem;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.item.type.LightItem;
 import org.geysermc.geyser.item.type.MaceItem;
 import org.geysermc.geyser.item.type.MapItem;
-import org.geysermc.geyser.item.type.OminousBottleItem;
 import org.geysermc.geyser.item.type.PlayerHeadItem;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.item.type.ShieldItem;
 import org.geysermc.geyser.item.type.ShulkerBoxItem;
 import org.geysermc.geyser.item.type.SpawnEggItem;
-import org.geysermc.geyser.item.type.TieredItem;
 import org.geysermc.geyser.item.type.TippedArrowItem;
 import org.geysermc.geyser.item.type.TropicalFishBucketItem;
 import org.geysermc.geyser.item.type.WolfArmorItem;

@@ -53,7 +53,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack != null) {
-            DataComponents components = itemStack.getComponents() != null ? itemStack.getComponents() : new DataComponents(new HashMap<>());
+            DataComponents components = itemStack.getOrCreateComponents();
             ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), components);
             List<String> pages = new LinkedList<>();
 
