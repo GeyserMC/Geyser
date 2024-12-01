@@ -36,13 +36,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model, @NonNull List<CustomItemPredicate<?>> predicates,
+public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model, @NonNull List<CustomItemPredicate> predicates,
                                          @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Key bedrockIdentifier;
         private final Key model;
-        private final List<CustomItemPredicate<?>> predicates = new ArrayList<>();
+        private final List<CustomItemPredicate> predicates = new ArrayList<>();
         private String displayName;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private DataComponents components = new DataComponents(new HashMap<>());
@@ -60,7 +60,7 @@ public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String 
         }
 
         @Override
-        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate<?> predicate) {
+        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
             predicates.add(predicate);
             return this;
         }

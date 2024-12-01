@@ -116,7 +116,7 @@ public class CustomItemRegistryPopulator_v2 {
             GeyserImpl.getInstance().getLogger().error("Custom item bedrock identifier namespace can't be minecraft");
             return false;
         } else if (item.model().namespace().equals(Key.MINECRAFT_NAMESPACE) && item.predicates().isEmpty()) {
-            GeyserImpl.getInstance().getLogger().error("Custom item definition model can't be minecraft without a predicate");
+            GeyserImpl.getInstance().getLogger().error("Custom item definition model can't be in the minecraft namespace without a predicate");
             return false;
         }
 
@@ -140,46 +140,29 @@ public class CustomItemRegistryPopulator_v2 {
     /**
      * Returns an error message if there was a conflict, or an empty optional otherwise
      */
+    // TODO maybe simplify this
     private static Optional<String> checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String identifier, CustomItemDefinition item) {
-        // TODO this is probably wrong
         // If the definitions are for different Java items or models then it doesn't matter
         if (!identifier.equals(existing.getKey()) || !item.model().equals(existing.getValue().model())) {
             return Optional.empty();
         }
         // If they both don't have predicates they conflict
         if (existing.getValue().predicates().isEmpty() && item.predicates().isEmpty()) {
-            return Optional.of("Both entries don't have predicates, the first must have a predicate");
+            return Optional.of("Both entries don't have predicates, one must have a predicate");
         }
-
-        // If a previously registered entry does have predicates, and this entry doesn't, then they also conflict
-        // Entries with predicates must always be first
-        if (existing.getValue().predicates().isEmpty() && !item.predicates().isEmpty()) {
-            return Optional.of("The first entry has no predicates, meaning that one will always be used");
-        } else if (item.predicates().isEmpty()) {
-            return Optional.empty(); // Item definitions are correctly ordered
-        }
-
-        // If all predicates of an existing entry also exist in a new entry, then the new entry is invalid
-        // This makes it required to order definitions correctly, so that "fallback predicates" are added last:
-        //
-        // A && B -> item1
-        // A -> item2
-        //
-        // Is the correct order, not
-        //
-        // A -> item2
-        // A && B -> item1
-        boolean existingHasAllPredicates = true;
-        for (CustomItemPredicate<?> predicate : existing.getValue().predicates()) {
-            if (!item.predicates().contains(predicate)) {
-                existingHasAllPredicates = false;
-                break;
+        // If their predicates are equal then they also conflict
+        if (existing.getValue().predicates().size() == item.predicates().size()) {
+            boolean equal = true;
+            for (CustomItemPredicate predicate : existing.getValue().predicates()) {
+                if (!item.predicates().contains(predicate)) {
+                    equal = false;
+                }
+            }
+            if (equal) {
+                return Optional.of("Both entries have the same predicates");
             }
         }
 
-        if (existingHasAllPredicates) {
-            return Optional.of("Reorder your entries so that the one with the least amount of predicates is last");
-        }
         return Optional.empty();
     }
 

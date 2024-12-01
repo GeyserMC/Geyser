@@ -23,27 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.item.custom.v2.predicate.data;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 
-import java.util.HashMap;
-import java.util.Map;
+// TODO maybe type should be a generic class with data, but this works for now
+public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
 
-public class ItemPredicateType<T> {
-    private static final Map<String, ItemPredicateType<?>> TYPES = new HashMap<>();
-
-    public static final ItemPredicateType<ConditionPredicateData> CONDITION = create("condition");
-    public static final ItemPredicateType<MatchPredicateData<?>> MATCH = create("match");
-
-    public static ItemPredicateType<?> getType(String name) {
-        return TYPES.get(name);
-    }
-
-    private static <T> ItemPredicateType<T> create(String name) {
-        ItemPredicateType<T> type = new ItemPredicateType<>();
-        TYPES.put(name, type);
-        return type;
+    // TODO maybe we can extend this
+    public enum ConditionProperty {
+        BROKEN,
+        DAMAGED,
+        CUSTOM_MODEL_DATA
     }
 }

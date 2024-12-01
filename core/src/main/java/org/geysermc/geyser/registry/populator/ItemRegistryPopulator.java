@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SortedSetMultimap;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -40,6 +41,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -84,6 +86,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -454,10 +457,11 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                List<Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
+                SortedSetMultimap<Key, Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
                 Collection<CustomItemDefinition> customItemsToLoad = customItems.get(javaItem.javaIdentifier());
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
-                    customItemDefinitions = new ObjectArrayList<>(customItemsToLoad.size());
+                    customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(Comparator.comparingInt(
+                        pair -> ((Pair<CustomItemDefinition, ItemDefinition>) pair).first().predicates().size()).reversed()).build();
 
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
@@ -484,13 +488,13 @@ public class ItemRegistryPopulator {
 
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        customItemDefinitions.add(Pair.of(customItem, customMapping.itemDefinition()));
+                        customItemDefinitions.put(customItem.model(), Pair.of(customItem, customMapping.itemDefinition()));
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
                 } else {
-                    customItemDefinitions = Collections.emptyList();
+                    customItemDefinitions = null;
                 }
                 mappingBuilder.customItemDefinitions(customItemDefinitions);
 
@@ -519,7 +523,7 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lightBlock)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemDefinitions(Collections.emptyList())
+                    .customItemDefinitions(null)
                     .build();
                 lightBlocks.put(lightBlock.getRuntimeId(), lightBlockEntry);
             }
@@ -536,7 +540,7 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lodestoneCompass)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemDefinitions(Collections.emptyList())
+                    .customItemDefinitions(null)
                     .build();
 
             if (customItemsAllowed) {
@@ -551,7 +555,7 @@ public class ItemRegistryPopulator {
                         .bedrockDefinition(definition)
                         .bedrockData(0)
                         .bedrockBlockDefinition(null)
-                        .customItemDefinitions(Collections.emptyList()) // TODO check for custom items with furnace minecart
+                        .customItemDefinitions(null) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()

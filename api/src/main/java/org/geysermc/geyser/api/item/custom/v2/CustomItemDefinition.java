@@ -36,6 +36,7 @@ import java.util.List;
 /**
  * This is used to define a custom item and its properties.
  */
+// TODO note that definitions will be sorted by predicates
 public interface CustomItemDefinition {
 
     /**
@@ -74,7 +75,7 @@ public interface CustomItemDefinition {
      * <p>If all predicates match for multiple definitions, then the first registered item with all matching predicates is used. If no predicates match, then the item definition without any predicates
      * is used, if any.</p>
      */
-    @NonNull List<CustomItemPredicate<?>> predicates();
+    @NonNull List<CustomItemPredicate> predicates();
 
     /**
      * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
@@ -108,7 +109,7 @@ public interface CustomItemDefinition {
 
         Builder displayName(String displayName);
 
-        Builder predicate(@NonNull CustomItemPredicate<?> predicate);
+        Builder predicate(@NonNull CustomItemPredicate predicate);
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 

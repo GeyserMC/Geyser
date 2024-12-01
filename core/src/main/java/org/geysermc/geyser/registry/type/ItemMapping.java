@@ -25,21 +25,19 @@
 
 package org.geysermc.geyser.registry.type;
 
+import com.google.common.collect.SortedSetMultimap;
 import it.unimi.dsi.fastutil.Pair;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-
-import java.util.Collections;
-import java.util.List;
 
 @Value
 @Builder
@@ -54,7 +52,7 @@ public class ItemMapping {
             null,
             null,
             null,
-            Collections.emptyList(),
+            null,
             Items.AIR
     );
 
@@ -73,8 +71,10 @@ public class ItemMapping {
 
     String translationString;
 
-    @NonNull
-    List<Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
+    /**
+     * A map of item models and their custom item definitions, sorted from most predicates to least, which is important when matching predicates.
+     */
+    SortedSetMultimap<Key, Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
 
     @NonNull
     Item javaItem;

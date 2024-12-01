@@ -28,25 +28,15 @@ package org.geysermc.geyser.api.item.custom.v2.predicate.data.match;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.CustomModelDataPredicate;
 
-import java.util.HashMap;
-import java.util.Map;
-
 // TODO can we do more?
 public class MatchPredicateProperty<T> {
-    private static final Map<String, MatchPredicateProperty<?>> PROPERTIES = new HashMap<>();
 
-    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create("charge_type");
-    public static final MatchPredicateProperty<Key> TRIM_MATERIAL = create("trim_material");
-    public static final MatchPredicateProperty<Key> CONTEXT_DIMENSION = create("context_dimension");
-    public static final MatchPredicateProperty<CustomModelDataPredicate<String>> CUSTOM_MODEL_DATA = create("custom_model_data");
+    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
+    public static final MatchPredicateProperty<Key> TRIM_MATERIAL = create();
+    public static final MatchPredicateProperty<Key> CONTEXT_DIMENSION = create();
+    public static final MatchPredicateProperty<CustomModelDataPredicate<String>> CUSTOM_MODEL_DATA = create();
 
-    public static MatchPredicateProperty<?> getProperty(String name) {
-        return PROPERTIES.get(name);
-    }
-
-    private static <T> MatchPredicateProperty<T> create(String name) {
-        MatchPredicateProperty<T> property = new MatchPredicateProperty<>();
-        PROPERTIES.put(name, property);
-        return property;
+    private static <T> MatchPredicateProperty<T> create() {
+        return new MatchPredicateProperty<>();
     }
 }

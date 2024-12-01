@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.translator.item;
 
+import com.google.common.collect.Multimap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ItemPredicateType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
@@ -48,6 +48,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,18 +62,22 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        List<Pair<CustomItemDefinition, ItemDefinition>> customItems = mapping.getCustomItemDefinitions();
-        if (customItems.isEmpty()) {
+        Multimap<Key, Pair<CustomItemDefinition, ItemDefinition>> allCustomItems = mapping.getCustomItemDefinitions();
+        if (allCustomItems == null) {
             return null;
         }
 
         Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air")); // TODO fallback onto default item model (when thats done by chris)
+        Collection<Pair<CustomItemDefinition, ItemDefinition>> customItems = allCustomItems.get(itemModel);
+        if (customItems.isEmpty()) {
+            return null;
+        }
 
         // TODO check if definitions/predicates are in the correct order
-        for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) { // TODO Predicates
+        for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) {
             if (customModel.first().model().equals(itemModel)) {
                 boolean allMatch = true;
-                for (CustomItemPredicate<?> predicate : customModel.first().predicates()) {
+                for (CustomItemPredicate predicate : customModel.first().predicates()) {
                     if (!predicateMatches(session, predicate, components)) {
                         allMatch = false;
                         break;
@@ -86,19 +91,16 @@ public final class CustomItemTranslator {
         return null;
     }
 
-    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate<?> predicate, DataComponents components) {
-        if (predicate.type() == ItemPredicateType.CONDITION) {
-            ConditionPredicateData data = (ConditionPredicateData) predicate.data();
-            return switch (data.property()) {
+    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate predicate, DataComponents components) {
+        if (predicate instanceof ConditionPredicate condition) {
+            return switch (condition.property()) {
                 case BROKEN -> nextDamageWillBreak(components);
                 case DAMAGED -> isDamaged(components);
                 case CUSTOM_MODEL_DATA -> false; // TODO 1.21.4
             };
-        } else if (predicate.type() == ItemPredicateType.MATCH) {
-            MatchPredicateData<?> data = (MatchPredicateData<?>) predicate.data();
-
-            if (data.property() == MatchPredicateProperty.CHARGE_TYPE) {
-                ChargeType expected = (ChargeType) data.data();
+        } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fun of the casts here, find a solution for the types?
+            if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
+                ChargeType expected = (ChargeType) match.data();
                 List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
                 if (charged == null) {
                     return expected == ChargeType.NONE;
@@ -111,19 +113,19 @@ public final class CustomItemTranslator {
                     return false;
                 }
                 return true;
-            } else if (data.property() == MatchPredicateProperty.TRIM_MATERIAL) {
-                Key material = (Key) data.data();
+            } else if (match.property() == MatchPredicateProperty.TRIM_MATERIAL) {
+                Key material = (Key) match.data();
                 ArmorTrim trim = components.get(DataComponentType.TRIM);
                 if (trim == null || trim.material().isCustom()) {
                     return false;
                 }
                 RegistryEntryData<TrimMaterial> registered = session.getRegistryCache().trimMaterials().entryById(trim.material().id());
                 return registered != null && registered.key().equals(material);
-            } else if (data.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
-                Key dimension = (Key) data.data();
+            } else if (match.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
+                Key dimension = (Key) match.data();
                 RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
                 return registered != null && dimension.equals(registered.key()); // TODO check if this works
-            } else if (data.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
+            } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
                 // TODO 1.21.4
                 return false;
             }

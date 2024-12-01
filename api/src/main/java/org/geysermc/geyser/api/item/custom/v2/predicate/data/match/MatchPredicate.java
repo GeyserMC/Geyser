@@ -25,5 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate.data.match;
 
-public record MatchPredicateData<T>(MatchPredicateProperty<T> property, T data) {
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+
+public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements CustomItemPredicate {
 }

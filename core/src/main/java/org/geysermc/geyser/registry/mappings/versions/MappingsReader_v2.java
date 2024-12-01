@@ -35,12 +35,10 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ItemPredicateType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.CustomModelDataPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateData;
+import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
@@ -203,53 +201,50 @@ public class MappingsReader_v2 extends MappingsReader {
         if (typeNode == null || !typeNode.isTextual()) {
             throw new InvalidCustomMappingsFileException("Predicate missing type key");
         }
+        String type = typeNode.asText();
 
-        ItemPredicateType<?> type = ItemPredicateType.getType(typeNode.asText());
         JsonNode propertyNode = node.get("property");
         if (propertyNode == null || !propertyNode.isTextual()) {
             throw new InvalidCustomMappingsFileException("Predicate missing property key");
         }
+        String property = propertyNode.asText();
 
-        if (type == ItemPredicateType.CONDITION) {
+        if (type.equals("condition")) {
             try {
-                ConditionPredicateData.ConditionProperty property = ConditionPredicateData.ConditionProperty.valueOf(propertyNode.asText().toUpperCase());
+                ConditionPredicate.ConditionProperty conditionProperty = ConditionPredicate.ConditionProperty.valueOf(property.toUpperCase());
                 JsonNode expected = node.get("expected");
                 JsonNode index = node.get("index");
 
-                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.CONDITION, new ConditionPredicateData(property,
-                    expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt())));
+                builder.predicate(new ConditionPredicate(conditionProperty,
+                    expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt()));
             } catch (IllegalArgumentException exception) {
-                throw new InvalidCustomMappingsFileException("Unknown property " + propertyNode.asText());
+                throw new InvalidCustomMappingsFileException("Unknown property " + property);
             }
-        } else if (type == ItemPredicateType.MATCH) {
-            MatchPredicateProperty<?> property = MatchPredicateProperty.getProperty(propertyNode.asText());
-            if (property == null) {
-                throw new InvalidCustomMappingsFileException("Unknown property " + propertyNode.asText());
-            }
-
+        } else if (type.equals("match")) {
             JsonNode value = node.get("value");
             if (value == null || !value.isTextual()) {
                 throw new InvalidCustomMappingsFileException("Predicate missing value key");
             }
 
-            if (property == MatchPredicateProperty.CHARGE_TYPE) {
-                try {
-                    ChargeType chargeType = ChargeType.valueOf(value.asText().toUpperCase());
-                    builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
-                        new MatchPredicateData<>(MatchPredicateProperty.CHARGE_TYPE, chargeType)));
-                } catch (IllegalArgumentException exception) {
-                    throw new InvalidCustomMappingsFileException("Unknown charge type " + value.asText());
+            switch (property) {
+                case "charge_type" -> {
+                    try {
+                        ChargeType chargeType = ChargeType.valueOf(value.asText().toUpperCase());
+                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CHARGE_TYPE, chargeType));
+                    } catch (IllegalArgumentException exception) {
+                        throw new InvalidCustomMappingsFileException("Unknown charge type " + value.asText());
+                    }
                 }
-            } else if (property == MatchPredicateProperty.TRIM_MATERIAL || property == MatchPredicateProperty.CONTEXT_DIMENSION) {
-                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
-                    new MatchPredicateData<>((MatchPredicateProperty<Key>) property, Key.key(value.asText())))); // TODO
-            } else if (property == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
-                JsonNode index = node.get("index");
-                if (index == null || !index.isIntegralNumber()) {
-                    throw new InvalidCustomMappingsFileException("Predicate missing index key");
+                case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, Key.key(value.asText()))); // TODO
+                case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, Key.key(value.asText()))); // TODO
+                case "custom_model_data" -> {
+                    JsonNode index = node.get("index");
+                    if (index == null || !index.isIntegralNumber()) {
+                        throw new InvalidCustomMappingsFileException("Predicate missing index key");
+                    }
+                    builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataPredicate<>(value.asText(), index.asInt())));
                 }
-                builder.predicate(new CustomItemPredicate<>(ItemPredicateType.MATCH,
-                    new MatchPredicateData<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataPredicate<>(value.asText(), index.asInt()))));
+                default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
             }
         }
     }

@@ -25,5 +25,5 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public record CustomItemPredicate<T>(ItemPredicateType<T> type, T data) {
+public interface CustomItemPredicate { // TODO this probably needs to be different since people can implement this
 }

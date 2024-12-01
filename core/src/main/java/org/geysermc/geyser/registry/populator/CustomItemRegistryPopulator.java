@@ -147,7 +147,7 @@ public class CustomItemRegistryPopulator {
                 .toolType(customItemData.toolType())
                 .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
-                .customItemDefinitions(Collections.emptyList())
+                .customItemDefinitions(null)
                 .javaItem(item)
                 .build();
 
