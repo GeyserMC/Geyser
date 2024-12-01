@@ -63,7 +63,7 @@ public class Item {
     protected final Key javaIdentifier;
     private int javaId = -1;
     private final int attackDamage;
-    private final DataComponents baseComponents;
+    private final DataComponents baseComponents; // unmodifiable
 
     private final List<Item> enchantmentGlintPresent = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
         Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
@@ -104,10 +104,11 @@ public class Item {
      */
     @NonNull
     public DataComponents gatherComponents(DataComponents others) {
-        DataComponents components = baseComponents.clone();
         if (others == null) {
-            return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
+            return baseComponents;
         }
+
+        DataComponents components = baseComponents.clone();
         components.getDataComponents().putAll(others.getDataComponents());
         return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
@@ -315,7 +316,7 @@ public class Item {
         }
 
         public DataComponents components() {
-            return this.components;
+            return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
         }
 
         private Builder() {
