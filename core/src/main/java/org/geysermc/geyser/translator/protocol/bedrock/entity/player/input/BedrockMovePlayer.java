@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
@@ -88,14 +87,8 @@ final class BedrockMovePlayer {
             session.setLookBackScheduledFuture(null);
         }
 
-        TriState maybeOnGround;
-        if (GameProtocol.isPre1_21_30(session)) {
-            // VERTICAL_COLLISION input data does not exist.
-            maybeOnGround = TriState.NOT_SET;
-        } else {
-            // Client is telling us it wants to move down, but something is blocking it from doing so.
-            maybeOnGround = TriState.byBoolean(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && packet.getDelta().getY() < 0);
-        }
+        // Client is telling us it wants to move down, but something is blocking it from doing so.
+        TriState maybeOnGround = TriState.byBoolean(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && packet.getDelta().getY() < 0);
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
         boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
