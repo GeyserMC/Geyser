@@ -71,10 +71,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionConten
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class ItemTranslator {
@@ -155,14 +155,6 @@ public final class ItemTranslator {
 
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
-
-        if (components != null) {
-            // Make custom effect information visible
-            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
-            if (potionContents != null) {
-                addPotionEffectLore(potionContents, nbtBuilder, session.locale());
-            }
-        }
 
         boolean hideTooltips = false;
         if (components != null) {
@@ -338,7 +330,7 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    private static final List<Effect> negativeEffectList = Arrays.asList(
+    private static final List<Effect> negativeEffectList = List.of(
         Effect.SLOWNESS,
         Effect.MINING_FATIGUE,
         Effect.INSTANT_DAMAGE,
@@ -357,14 +349,14 @@ public final class ItemTranslator {
         Effect.INFESTED
     );
 
-    private static void addPotionEffectLore(PotionContents contents, BedrockItemBuilder builder, String language) {
+    public static void addPotionEffectLore(PotionContents contents, BedrockItemBuilder builder, String language) {
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
             Effect effect = effectInstance.getEffect();
             MobEffectDetails details = effectInstance.getDetails();
             int amplifier = details.getAmplifier();
             int durations = details.getDuration();
-            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase());
+            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase(Locale.ROOT));
             if (amplifier != 0) {
                 appendTranslatable = Component.translatable("potion.withAmplifier",
                     appendTranslatable,
