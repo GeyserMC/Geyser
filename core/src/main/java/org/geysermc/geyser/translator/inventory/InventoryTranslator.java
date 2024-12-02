@@ -261,9 +261,9 @@ public abstract class InventoryTranslator {
                         }
                     }
 
-                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            transferAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
+                            transferAction.getDestination().getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -411,14 +411,14 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(source);
                     boolean isDestCursor = isCursor(destination);
 
-                    if (shouldRejectItemPlace(session, inventory, source.getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, source.getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            destination.getContainer(), isDestCursor ? -1 : destSlot)) {
+                            destination.getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
 
-                    if (!isSourceCursor && destination.getContainer() == ContainerSlotType.HOTBAR || destination.getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
+                    if (!isSourceCursor && destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR || destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
                         // Tell the server we're pressing one of the hotbar keys to save clicks
                         Click click = InventoryUtils.getClickForHotbarSwap(destination.getSlot());
                         if (click != null) {
@@ -587,7 +587,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -780,7 +780,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -1028,15 +1028,15 @@ public abstract class InventoryTranslator {
                 }
             }
 
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability, "");
         } else {
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0, "");
         }
         return itemEntry;
     }
 
     protected static boolean isCursor(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CURSOR;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CURSOR;
     }
 
     /**
