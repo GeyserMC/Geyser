@@ -81,6 +81,7 @@ public class CustomItemRegistryPopulator_v2 {
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems /* TODO */) {
         // TODO
+        // TODO better error handling?
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {

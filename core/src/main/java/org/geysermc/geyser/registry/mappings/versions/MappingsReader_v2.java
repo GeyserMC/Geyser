@@ -64,11 +64,39 @@ public class MappingsReader_v2 extends MappingsReader {
             itemModels.fields().forEachRemaining(entry -> {
                 if (entry.getValue().isArray()) {
                     entry.getValue().forEach(data -> {
-                        try {
-                            CustomItemDefinition customItemDefinition = readItemMappingEntry(entry.getKey(), data);
-                            consumer.accept(entry.getKey(), customItemDefinition);
-                        } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                        // TODO better error handling
+                        JsonNode type = data.get("type");
+                        if (type == null || !type.isTextual()) {
+                            GeyserImpl.getInstance().getLogger().error("Error reading type in custom mappings file: " + file.toString());
+                        } else if (type.asText().equals("group")) {
+                            JsonNode modelNode = data.get("model");
+                            if (modelNode == null || !modelNode.isTextual()) {
+                                GeyserImpl.getInstance().getLogger().error("Error reading model in custom mappings file: " + file.toString());
+                            } else {
+                                String model = modelNode.asText();
+                                JsonNode definitions = data.get("definitions");
+                                if (definitions == null || !definitions.isArray()) {
+                                    GeyserImpl.getInstance().getLogger().error("Error reading item definitions in custom mappings file: " + file.toString());
+                                } else {
+                                    definitions.forEach(definition -> {
+                                        try {
+                                            CustomItemDefinition customItemDefinition = readItemMappingEntry(model, definition);
+                                            consumer.accept(entry.getKey(), customItemDefinition);
+                                        } catch (InvalidCustomMappingsFileException e) {
+                                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                                        }
+                                    });
+                                }
+                            }
+                        } else if (type.asText().equals("definition")) {
+                            try {
+                                CustomItemDefinition customItemDefinition = readItemMappingEntry(null, data);
+                                consumer.accept(entry.getKey(), customItemDefinition);
+                            } catch (InvalidCustomMappingsFileException e) {
+                                GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                            }
+                        } else {
+                            GeyserImpl.getInstance().getLogger().error("Unknown type " + type.asText() + " in custom mappings file: " + file.toString());
                         }
                     });
                 }
@@ -88,12 +116,14 @@ public class MappingsReader_v2 extends MappingsReader {
         }
 
         JsonNode bedrockIdentifierNode = node.get("bedrock_identifier");
-        JsonNode model = node.get("model");
+
+        JsonNode modelNode = node.get("model");
+        String model = identifier != null || modelNode == null || !modelNode.isTextual() ? identifier : modelNode.asText();
 
         if (bedrockIdentifierNode == null || !bedrockIdentifierNode.isTextual() || bedrockIdentifierNode.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no bedrock identifier");
         }
-        if (model == null || !model.isTextual() || model.asText().isEmpty()) {
+        if (model == null) {
             throw new InvalidCustomMappingsFileException("An item entry has no model");
         }
 
@@ -101,7 +131,7 @@ public class MappingsReader_v2 extends MappingsReader {
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
             bedrockIdentifier = Key.key(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.value());
         }
-        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, Key.key(model.asText()));
+        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, Key.key(model));
 
         if (node.has("display_name")) {
             builder.displayName(node.get("display_name").asText());
@@ -118,7 +148,7 @@ public class MappingsReader_v2 extends MappingsReader {
                 try {
                     DataComponentReaders.readDataComponent(components, Key.key(entry.getKey()), entry.getValue());
                 } catch (InvalidCustomMappingsFileException e) {
-                    GeyserImpl.getInstance().getLogger().error("Error reading component " + entry.getKey() + " for item model " + model.textValue(), e);
+                    GeyserImpl.getInstance().getLogger().error("Error reading component " + entry.getKey() + " for item model " + modelNode.textValue(), e);
                 }
             });
         }
