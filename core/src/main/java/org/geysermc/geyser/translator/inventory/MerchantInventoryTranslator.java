@@ -77,7 +77,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case TRADE2_INGREDIENT_1 -> 0;
             case TRADE2_INGREDIENT_2 -> 1;
             case TRADE2_RESULT, CREATED_OUTPUT -> 2;

@@ -28,11 +28,7 @@ package org.geysermc.geyser.util;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -40,10 +36,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.translator.collision.BlockCollision;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
@@ -145,50 +139,11 @@ public final class BlockUtils {
 
     // TODO 1.21.4 this changed probably; no more tiers
     public static double getBreakTime(GeyserSession session, Block block, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
-//        boolean isShearsEffective = session.getTagCache().is(BlockTag.LEAVES, block) || session.getTagCache().is(BlockTag.WOOL, block); //TODO called twice
-//        boolean canHarvestWithHand = !block.requiresCorrectToolForDrops();
-//        String toolType = "";
-//        String toolTier = "";
-//        boolean correctTool = false;
-//        boolean toolCanBreak = false;
-//        if (item.isTool()) {
-//            toolType = item.getToolType();
-//            toolTier = item.getToolTier();
-//            correctTool = correctTool(session, block, toolType);
-//            toolCanBreak = canToolTierBreakBlock(session, block, toolTier);
-//        }
-//
-//        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(session, components, BedrockEnchantment.EFFICIENCY);
-//        int hasteLevel = 0;
-//        int miningFatigueLevel = 0;
-//
-//        if (!isSessionPlayer) {
-//            // Another entity is currently mining; we have all the information we know
-//            return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
-//                    toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false, true);
-//        }
-//
-//        hasteLevel = Math.max(session.getEffectCache().getHaste(), session.getEffectCache().getConduitPower());
-//        miningFatigueLevel = session.getEffectCache().getMiningFatigue();
-//
-//        boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
-//        boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-//                ItemUtils.getEnchantmentLevel(session, session.getPlayerInventory().getItem(5).getAllComponents(), BedrockEnchantment.AQUA_AFFINITY) < 1;
-//
-//        return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
-//                toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());
+        return 0.0; // TODO 1.21.4
     }
 
     public static double getSessionBreakTime(GeyserSession session, Block block) {
-//        PlayerInventory inventory = session.getPlayerInventory();
-//        GeyserItemStack item = inventory.getItemInHand();
-//        ItemMapping mapping = ItemMapping.AIR;
-//        DataComponents components = null;
-//        if (item != null) {
-//            mapping = item.getMapping(session);
-//            components = item.getAllComponents();
-//        }
-//        return getBreakTime(session, block, mapping, components, true);
+        return 0.0; // TODO 1.21.4
     }
 
     /**

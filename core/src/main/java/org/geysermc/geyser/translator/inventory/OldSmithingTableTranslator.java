@@ -63,7 +63,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
             case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
@@ -130,7 +130,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     private boolean isInvalidAction(ItemStackRequestSlotData slotData) {
-        return slotData.getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
+        return slotData.getContainerName().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
     }
 
     @Override
