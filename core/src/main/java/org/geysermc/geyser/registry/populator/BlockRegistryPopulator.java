@@ -45,6 +45,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v765.Bedrock_v765;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -65,6 +66,7 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -123,16 +125,8 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), tag -> {
-                    final String name = tag.getString("name");
-                    if (name.endsWith("_wood") && tag.getCompound("states").containsKey("stripped_bit")) {
-                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
-                        builder.remove("stripped_bit");
-                        NbtMap states = builder.build();
-                        return tag.toBuilder().putCompound("states", states).build();
-                    }
-                    return tag;
-                })
+                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
+                .put(ObjectIntPair.of("1_21_50", Bedrock_v765.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -417,6 +411,19 @@ public final class BlockRegistryPopulator {
                     .extendedCollisionBoxes(extendedCollisionBoxes)
                     .build());
         }
+    }
+
+    private static @NotNull Remapper faultyStrippedWoodRemapper() {
+        return tag -> {
+            final String name = tag.getString("name");
+            if (name.endsWith("_wood") && tag.getCompound("states").containsKey("stripped_bit")) {
+                NbtMapBuilder builder = tag.getCompound("states").toBuilder();
+                builder.remove("stripped_bit");
+                NbtMap states = builder.build();
+                return tag.toBuilder().putCompound("states", states).build();
+            }
+            return tag;
+        };
     }
 
     private static void registerJavaBlocks() {

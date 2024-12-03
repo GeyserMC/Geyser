@@ -212,6 +212,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     "", header.uuid().toString(), false, false, false, ""));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
+        resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
+        resourcePacksInfo.setWorldTemplateVersion("*");
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());

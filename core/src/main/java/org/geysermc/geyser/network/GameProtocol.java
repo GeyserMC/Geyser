@@ -48,6 +48,7 @@ public final class GameProtocol {
      */
     public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v765.CODEC.toBuilder()
         .minecraftVersion("1.21.50")
+        .protocolVersion(766)
         .build());
 
     /**
@@ -63,7 +64,7 @@ public final class GameProtocol {
 
     static {
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v748.CODEC.toBuilder()
-            .minecraftVersion("1.21.50")
+            .minecraftVersion("1.21.40 - 1.21.44")
             .build()));
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
