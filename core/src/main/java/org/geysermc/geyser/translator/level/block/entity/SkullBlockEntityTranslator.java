@@ -35,8 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SkullBlock;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -57,9 +55,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (rotation != null) {
             // Could be a wall skull block otherwise, which has rotation in its Bedrock state
             bedrockNbt.putFloat("Rotation", rotation * 22.5f);
-        }
-        if (GameProtocol.isPre1_21_40(session)) {
-            bedrockNbt.putByte("SkullType", (byte) (blockState.block() instanceof SkullBlock skull ? skull.skullType().bedrockId() : 0));
         }
         if (blockState.getValue(Properties.POWERED)) {
             bedrockNbt.putBoolean("MouthMoving", true);

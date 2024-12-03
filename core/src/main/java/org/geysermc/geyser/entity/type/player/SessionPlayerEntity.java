@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -235,12 +234,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         // the bubbles visually pop
         setFlag(EntityFlag.BREATHING, amount >= this.lastAirSupply);
         this.lastAirSupply = amount;
-
-        if (amount == getMaxAir() && GameProtocol.isPre1_21_0(session)) {
-            super.setAirSupply(0); // Hide the bubble counter from the UI for the player
-        } else {
-            super.setAirSupply(amount);
-        }
+        super.setAirSupply(amount);
     }
 
     @Override

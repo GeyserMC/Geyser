@@ -45,11 +45,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
-import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
-import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
-import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v765.Bedrock_v765;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -85,7 +82,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -111,18 +107,9 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        List<Item> bundles = List.of(Items.BUNDLE, Items.BLACK_BUNDLE, Items.BLUE_BUNDLE, Items.BROWN_BUNDLE, Items.CYAN_BUNDLE, Items.GRAY_BUNDLE,
-            Items.GREEN_BUNDLE, Items.LIGHT_BLUE_BUNDLE, Items.LIGHT_GRAY_BUNDLE, Items.LIME_BUNDLE, Items.MAGENTA_BUNDLE, Items.ORANGE_BUNDLE, Items.RED_BUNDLE,
-            Items.PINK_BUNDLE, Items.PURPLE_BUNDLE, Items.WHITE_BUNDLE, Items.YELLOW_BUNDLE);
-        Map<Item, Item> pre1_21_2Items = new HashMap<>();
-        bundles.forEach(bundle -> pre1_21_2Items.put(bundle, Items.SHULKER_SHELL));
-
-        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion685_671::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion712_685::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion729_712::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), pre1_21_2Items, Conversion748_729::remapItem));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(2);
         paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v765.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -207,7 +194,7 @@ public class ItemRegistryPopulator {
             noBlockDefinitions.add("minecraft:structure_void");
 
             AtomicInteger creativeNetId = new AtomicInteger();
-            CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
+            CreativeItemRegistryPopulator.populate(palette, definitions, items, itemBuilder -> {
                 ItemData item = itemBuilder.netId(creativeNetId.incrementAndGet()).build();
                 creativeItems.add(item);
 

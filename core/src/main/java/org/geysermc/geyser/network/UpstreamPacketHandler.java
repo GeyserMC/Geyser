@@ -77,11 +77,12 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.OptionalInt;
+import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
-    private final Deque<String> packsToSent = new ArrayDeque<>();
+    private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
@@ -133,8 +134,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         session.getUpstream().getSession().setCodec(packetCodec);
-        // FIXME temporary until 1.20.80 is dropped
-        session.getPlayerEntity().resetAir();
         return true;
     }
 
@@ -209,10 +208,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             PackCodec codec = pack.codec();
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.uuid().toString(), header.version().toString(), codec.size(), pack.contentKey(),
+                    header.uuid(), header.version().toString(), codec.size(), pack.contentKey(),
                     "", header.uuid().toString(), false, false, false, ""));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
+        resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
+        resourcePacksInfo.setWorldTemplateVersion("*");
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
@@ -233,8 +234,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case SEND_PACKS:
-                packsToSent.addAll(packet.getPackIds());
-                sendPackDataInfo(packsToSent.pop());
+                packsToSend.addAll(packet.getPackIds());
+                sendPackDataInfo(packsToSend.pop());
                 break;
 
             case HAVE_ALL_PACKS:
@@ -311,7 +312,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
+        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
         PackCodec codec = pack.codec();
 
         data.setChunkIndex(packet.getChunkIndex());
@@ -335,8 +336,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(data);
 
         // Check if it is the last chunk and send next pack in queue when available.
-        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSent.isEmpty()) {
-            sendPackDataInfo(packsToSent.pop());
+        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
+            sendPackDataInfo(packsToSend.pop());
         }
 
         return PacketSignal.HANDLED;
@@ -345,7 +346,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private void sendPackDataInfo(String id) {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
         String[] packID = id.split("_");
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
+        UUID uuid = UUID.fromString(packID[0]);
+        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(uuid);
         PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();
 
