@@ -23,58 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.scoreboard.network.util;
+package org.geysermc.geyser.api.pack.option;
 
-import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.GeyserApi;
 
-public class EmptyGeyserLogger implements GeyserLogger {
-    @Override
-    public void severe(String message) {
+/**
+ * Allows specifying a pack priority that decides the order on how packs are sent to the client.
+ * Multiple resource packs can override each other. The higher the priority, the "higher" in the stack
+ * a pack is, and the more a pack can override other packs.
+ */
+public interface PriorityOption extends ResourcePackOption<Double> {
 
-    }
+    PriorityOption HIGHEST = PriorityOption.priority(10);
+    PriorityOption HIGH = PriorityOption.priority(8);
+    PriorityOption NORMAL = PriorityOption.priority(5);
+    PriorityOption LOW = PriorityOption.priority(3);
+    PriorityOption LOWEST = PriorityOption.priority(0);
 
-    @Override
-    public void severe(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void error(String message) {
-
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void warning(String message) {
-
-    }
-
-    @Override
-    public void info(String message) {
-
-    }
-
-    @Override
-    public void debug(String message) {
-
-    }
-
-    @Override
-    public void debug(String message, Object... arguments) {
-
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-
-    }
-
-    @Override
-    public boolean isDebug() {
-        return false;
+    /**
+     * Constructs a priority option based on a value between 0 and 10
+     *
+     * @param priority an integer that is above 0, but smaller than 10
+     * @return the priority option
+     */
+    static PriorityOption priority(double priority) {
+        if (priority < 0 || priority > 10) {
+            throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
+        }
+        return GeyserApi.api().provider(PriorityOption.class, priority);
     }
 }

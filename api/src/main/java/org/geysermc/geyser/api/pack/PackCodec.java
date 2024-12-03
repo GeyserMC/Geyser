@@ -53,13 +53,21 @@ public abstract class PackCodec {
     public abstract long size();
 
     /**
-     * Serializes the given resource pack into a byte buffer.
+     * Use {@link #serialize()} instead.
+     */
+    @Deprecated
+    @NonNull
+    public SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+        return serialize();
+    };
+
+    /**
+     * Serializes the given codec into a byte buffer.
      *
-     * @param resourcePack the resource pack to serialize
      * @return the serialized resource pack
      */
     @NonNull
-    public abstract SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException;
+    public abstract SeekableByteChannel serialize() throws IOException;
 
     /**
      * Creates a new resource pack from this codec.
@@ -70,13 +78,31 @@ public abstract class PackCodec {
     protected abstract ResourcePack create();
 
     /**
+     * Creates a new resource pack builder from this codec.
+     *
+     * @return the new resource pack builder
+     */
+    protected abstract ResourcePack.@NonNull Builder createBuilder();
+
+    /**
      * Creates a new pack provider from the given path.
      *
      * @param path the path to create the pack provider from
      * @return the new pack provider
      */
     @NonNull
-    public static PackCodec path(@NonNull Path path) {
+    public static PathPackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
+    }
+
+    /**
+     * Creates a new pack provider from the given url.
+     *
+     * @param url the url to create the pack provider from
+     * @return the new pack provider
+     */
+    @NonNull
+    public static UrlPackCodec url(@NonNull String url) {
+        return GeyserApi.api().provider(UrlPackCodec.class, url);
     }
 }

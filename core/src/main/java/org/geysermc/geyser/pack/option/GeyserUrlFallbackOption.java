@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,61 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity;
+package org.geysermc.geyser.pack.option;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.slf4j.Logger;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 
-@RequiredArgsConstructor
-public class GeyserVelocityLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
+public record GeyserUrlFallbackOption(Boolean enabled) implements UrlFallbackOption {
 
     @Override
-    public void severe(String message) {
-        logger.error(message);
+    public @NonNull Type type() {
+        return Type.FALLBACK;
     }
 
     @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
+    public @NonNull Boolean value() {
+        return enabled;
     }
 
     @Override
-    public void error(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
-        }
-    }
-
-    @Override
-    public void debug(String message, Object... arguments) {
-        if (debug) {
-            logger.info(message, arguments);
+    public void validate(@NonNull ResourcePack pack) {
+        if (!(pack.codec() instanceof UrlPackCodec)) {
+            throw new IllegalArgumentException("UrlFallbackOption cannot be set on resource packs that " +
+                "are not created using the url pack codec!");
         }
     }
 }
