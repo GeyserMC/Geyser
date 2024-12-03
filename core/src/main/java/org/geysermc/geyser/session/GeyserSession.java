@@ -524,6 +524,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long blockBreakStartTime;
 
     /**
+     * // TODO
+     */
+    private long destroyProgress;
+
+    /**
      * Stores whether the player intended to place a bucket.
      */
     @Setter
