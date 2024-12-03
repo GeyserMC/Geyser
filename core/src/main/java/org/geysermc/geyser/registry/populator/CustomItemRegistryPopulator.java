@@ -51,7 +51,13 @@ import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
@@ -129,18 +135,11 @@ public class CustomItemRegistryPopulator {
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
         String customIdentifier = customItemData.identifier();
 
-        Set<String> repairMaterials = customItemData.repairMaterials();
-
         DataComponents components = new DataComponents(new HashMap<>());
         components.put(DataComponentType.MAX_STACK_SIZE, customItemData.stackSize());
         components.put(DataComponentType.MAX_DAMAGE, customItemData.maxDamage());
 
-        Item item = new Item(customIdentifier, Item.builder().components(components)) {
-            @Override
-            public boolean isValidRepairItem(Item other) {
-                return repairMaterials != null && repairMaterials.contains(other.javaIdentifier());
-            }
-        };
+        Item item = new Item(customIdentifier, Item.builder().components(components));
         Items.register(item, customItemData.javaId());
 
         ItemMapping customItemMapping = ItemMapping.builder()
@@ -148,7 +147,6 @@ public class CustomItemRegistryPopulator {
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
                 .toolType(customItemData.toolType())
-                .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
