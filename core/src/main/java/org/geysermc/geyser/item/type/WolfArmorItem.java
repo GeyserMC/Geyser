@@ -30,7 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public class WolfArmorItem extends ArmorItem {
+public class WolfArmorItem extends Item {
     public WolfArmorItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }

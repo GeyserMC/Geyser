@@ -425,13 +425,7 @@ public class ItemRegistryPopulator {
                         .javaItem(javaItem);
 
                 if (mappingItem.getToolType() != null) {
-                    if (mappingItem.getToolTier() != null) {
-                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern())
-                                .toolTier(mappingItem.getToolTier().intern());
-                    } else {
-                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern())
-                                .toolTier("");
-                    }
+                    mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern());
                 }
 
                 if (javaOnlyItems.contains(javaItem) || javaItem.defaultRarity() != Rarity.COMMON) {
