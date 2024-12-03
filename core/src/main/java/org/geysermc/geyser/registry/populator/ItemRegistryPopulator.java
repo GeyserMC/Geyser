@@ -194,7 +194,7 @@ public class ItemRegistryPopulator {
             noBlockDefinitions.add("minecraft:structure_void");
 
             AtomicInteger creativeNetId = new AtomicInteger();
-            CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
+            CreativeItemRegistryPopulator.populate(palette, definitions, items, itemBuilder -> {
                 ItemData item = itemBuilder.netId(creativeNetId.incrementAndGet()).build();
                 creativeItems.add(item);
 
