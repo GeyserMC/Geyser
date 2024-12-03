@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.item;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -55,6 +56,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
 import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -63,12 +65,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class ItemTranslator {
@@ -324,6 +330,65 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
+    private static final List<Effect> negativeEffectList = List.of(
+        Effect.SLOWNESS,
+        Effect.MINING_FATIGUE,
+        Effect.INSTANT_DAMAGE,
+        Effect.NAUSEA,
+        Effect.BLINDNESS,
+        Effect.HUNGER,
+        Effect.WEAKNESS,
+        Effect.POISON,
+        Effect.WITHER,
+        Effect.LEVITATION,
+        Effect.UNLUCK,
+        Effect.DARKNESS,
+        Effect.WIND_CHARGED,
+        Effect.WEAVING,
+        Effect.OOZING,
+        Effect.INFESTED
+    );
+
+    public static void addPotionEffectLore(PotionContents contents, BedrockItemBuilder builder, String language) {
+        List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
+        for (MobEffectInstance effectInstance : effectInstanceList) {
+            Effect effect = effectInstance.getEffect();
+            MobEffectDetails details = effectInstance.getDetails();
+            int amplifier = details.getAmplifier();
+            int durations = details.getDuration();
+            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase(Locale.ROOT));
+            if (amplifier != 0) {
+                appendTranslatable = Component.translatable("potion.withAmplifier",
+                    appendTranslatable,
+                    Component.translatable("potion.potency." + amplifier));
+            }
+            if (durations > 20) {
+                int seconds = durations / 20;
+                int secondsFormat = seconds % 60;
+                int minutes = seconds / 60;
+                int minutesFormat = minutes % 60;
+                int hours = minutes / 60;
+                String text = ((minutesFormat > 9) ? "" : "0") + minutesFormat + ":" + ((secondsFormat > 9) ? "" : "0") + secondsFormat;
+                if (minutes >= 60) {
+                    text = ((hours > 9) ? "" : "0") + hours + ":" + text;
+                }
+                appendTranslatable = Component.translatable("potion.withDuration",
+                    appendTranslatable,
+                    Component.text(text));
+            } else if (durations == -1) {
+                appendTranslatable = Component.translatable("potion.withDuration",
+                    appendTranslatable,
+                    Component.translatable("effect.duration.infinite"));
+            }
+            Component component = Component.text()
+                .resetStyle()
+                .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
+                .append(appendTranslatable)
+                .build();
+            builder.getOrCreateLore().add(MessageTranslator.convertMessage(component, language));
+        }
+    }
+
     private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
         int maxDurability = item.maxDamage();
 
@@ -447,6 +512,19 @@ public final class ItemTranslator {
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
+            }
+            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            if (potionContents != null) {
+                // "custom_name" tag in "potion_contents" component
+                String customPotionName = potionContents.getCustomName();
+                if (customPotionName != null) {
+                    Component component = Component.text()
+                        .resetStyle()
+                        .color(NamedTextColor.WHITE)
+                        .append(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName))
+                        .build();
+                    return MessageTranslator.convertMessage(component, session.locale());
+                }
             }
             customName = components.get(DataComponentType.ITEM_NAME);
             if (customName != null) {
