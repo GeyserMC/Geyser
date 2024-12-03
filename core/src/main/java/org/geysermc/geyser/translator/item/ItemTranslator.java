@@ -102,6 +102,9 @@ public final class ItemTranslator {
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.BODY, "body");
     }
 
+    private final static List<Item> GLINT_PRESENT = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
+        Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
+
     private ItemTranslator() {
     }
 
@@ -180,7 +183,7 @@ public final class ItemTranslator {
         }
 
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
-        if (components.getOrDefault(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, false)) {
+        if (components.getOrDefault(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, false) && !GLINT_PRESENT.contains(javaItem)) {
             NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }

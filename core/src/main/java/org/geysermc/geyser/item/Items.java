@@ -66,11 +66,6 @@ import static org.geysermc.geyser.item.type.Item.builder;
  */
 @SuppressWarnings("unused")
 public final class Items {
-
-    static {
-        // Load data components here
-    }
-
     public static final Item AIR = register(new Item("air", builder()));
     public static final Item STONE = register(new BlockItem(builder(), Blocks.STONE));
     public static final Item GRANITE = register(new BlockItem(builder(), Blocks.GRANITE));

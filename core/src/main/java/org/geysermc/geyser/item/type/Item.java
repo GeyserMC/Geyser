@@ -40,6 +40,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
@@ -65,12 +66,9 @@ public class Item {
     private final int attackDamage;
     private final DataComponents baseComponents; // unmodifiable
 
-    private final List<Item> enchantmentGlintPresent = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
-        Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
-
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
-        this.baseComponents = builder.components;
+        this.baseComponents = builder.components == null ? Registries.DEFAULT_DATA_COMPONENTS.get(javaId) : builder.components;
         this.attackDamage = builder.attackDamage;
     }
 
@@ -297,7 +295,7 @@ public class Item {
     }
 
     public static Builder builder() {
-        return new Builder().components(new DataComponents(ImmutableMap.of())); // TODO actually set components here
+        return new Builder();
     }
 
     public static final class Builder {
@@ -313,10 +311,6 @@ public class Item {
         public Builder components(DataComponents components) {
             this.components = components;
             return this;
-        }
-
-        public DataComponents components() {
-            return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
         }
 
         private Builder() {
