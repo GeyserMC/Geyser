@@ -33,11 +33,8 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
-import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
-import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
-import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v765.Bedrock_v765;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
@@ -70,11 +67,8 @@ public final class TagRegistryPopulator {
         };
 
         List<ObjectIntPair<String>> paletteVersions = List.of(
-            ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion())
+            ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()),
+            ObjectIntPair.of("1_21_50", Bedrock_v765.CODEC.getProtocolVersion())
         );
         Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 
