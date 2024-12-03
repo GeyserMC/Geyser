@@ -72,13 +72,13 @@ public class PotionItem extends Item {
 
     @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
-
         // Make custom effect information visible
         PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
         if (potionContents != null) {
             ItemTranslator.addPotionEffectLore(potionContents, builder, session.locale());
         }
+
+        super.translateComponentsToBedrock(session, components, builder);
     }
 
     @Override
