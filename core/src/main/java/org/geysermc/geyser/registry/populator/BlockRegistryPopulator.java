@@ -45,7 +45,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
-import org.cloudburstmc.protocol.bedrock.codec.v765.Bedrock_v765;
+import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -126,7 +126,7 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
-                .put(ObjectIntPair.of("1_21_50", Bedrock_v765.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
+                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
