@@ -43,7 +43,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -58,7 +57,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -117,7 +115,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);
 
-        Int2ObjectMap<List<SelectableRecipe>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<List<SelectableRecipe>> rawStonecutterData = new Int2ObjectOpenHashMap<>();
 
         List<SelectableRecipe> stonecutterRecipes = packet.getStonecutterRecipes();
         for (SelectableRecipe recipe : stonecutterRecipes) {
@@ -131,19 +129,15 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 session.getGeyser().getLogger().debug("Ignoring stonecutter recipe for weird output: " + recipe);
                 continue;
             }
-            unsortedStonecutterData.computeIfAbsent(ingredient.getHolders()[0], $ -> new ArrayList<>()).add(recipe);
+            rawStonecutterData.computeIfAbsent(ingredient.getHolders()[0], $ -> new ArrayList<>()).add(recipe);
         }
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
-        for (Int2ObjectMap.Entry<List<SelectableRecipe>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
-            // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
-            // We can get the correct order for button pressing
-            data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                Registries.JAVA_ITEMS.get().get(((ItemStackSlotDisplay) stoneCuttingRecipeData.recipe()).itemStack().getId())
-                    // See RecipeManager#getRecipesFor as of 1.21
-                    .translationKey())));
-
-            // Now that it's sorted, let's translate these recipes
+        for (Int2ObjectMap.Entry<List<SelectableRecipe>> data : rawStonecutterData.int2ObjectEntrySet()) {
+            // Implementation note: data used to have to be sorted according to the item translation key.
+            // This is no longer necessary as of 1.21.2, and is instead presented in the order the server sends us.
+            // (Recipes are ordered differently between Paper and vanilla)
+            // See #5150.
             int buttonId = 0;
             for (SelectableRecipe recipe : data.getValue()) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option

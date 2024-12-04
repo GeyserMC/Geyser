@@ -70,6 +70,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Holds all the common registries in Geyser.
@@ -163,7 +164,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<String, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
