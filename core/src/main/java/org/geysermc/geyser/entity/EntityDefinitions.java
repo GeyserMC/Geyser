@@ -116,6 +116,7 @@ import org.geysermc.geyser.entity.type.living.monster.BasePiglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.BlazeEntity;
 import org.geysermc.geyser.entity.type.living.monster.BoggedEntity;
 import org.geysermc.geyser.entity.type.living.monster.BreezeEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.CreeperEntity;
 import org.geysermc.geyser.entity.type.living.monster.ElderGuardianEntity;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonEntity;
@@ -179,6 +180,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
+    public static final EntityDefinition<CreakingEntity> CREAKING;
     public static final EntityDefinition<CreeperEntity> CREEPER;
     public static final EntityDefinition<BoatEntity> DARK_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> DARK_OAK_CHEST_BOAT;
@@ -670,6 +672,14 @@ public final class EntityDefinitions {
             BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
                     .type(EntityType.BREEZE)
                     .height(1.77f).width(0.6f)
+                    .build();
+            CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
+                    .type(EntityType.CREAKING)
+                    .height(2.7f).width(0.9f)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setCanMove)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setActive)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setIsTearingDown)
+                    .addTranslator(MetadataType.OPTIONAL_POSITION, CreakingEntity::setHomePos)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
