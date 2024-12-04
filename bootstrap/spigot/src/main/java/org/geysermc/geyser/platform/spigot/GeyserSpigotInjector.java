@@ -180,7 +180,6 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
                 InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();
-        session.disconnect("");
     }
 
     @Override
