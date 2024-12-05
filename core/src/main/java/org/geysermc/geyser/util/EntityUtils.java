@@ -209,6 +209,18 @@ public final class EntityUtils {
                         zOffset = displayTranslation.getZ();
                     }
                 }
+                case PLAYER -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        int lines = textDisplay.getLines();
+                        if (displayTranslation != null && lines != 0) {
+                            float multiplier = .16f;
+                            xOffset = displayTranslation.getX();
+                            yOffset = displayTranslation.getY() + 1.2f + multiplier * lines;
+                            zOffset = displayTranslation.getZ();
+                        }
+                    }
+                }
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
