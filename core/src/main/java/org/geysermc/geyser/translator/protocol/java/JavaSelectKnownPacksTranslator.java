@@ -59,10 +59,4 @@ public class JavaSelectKnownPacksTranslator extends PacketTranslator<Clientbound
         }
         session.sendDownstreamPacket(new ServerboundSelectKnownPacks(knownPacks));
     }
-
-    @Override
-    public boolean shouldExecuteInEventLoop() {
-        // This technically isn't correct behavior, but it prevents race conditions between MCProtocolLib's packet handler and ours.
-        return false;
-    }
 }

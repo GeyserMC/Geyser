@@ -253,7 +253,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
      */
-    private final EventLoop eventLoop;
+    private final EventLoop tickEventLoop;
     @Setter
     private AuthData authData;
     private BedrockClientData clientData;
@@ -653,10 +653,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
-        this.eventLoop = eventLoop;
+        this.tickEventLoop = tickEventLoop;
 
         this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
 
@@ -947,17 +947,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
+        tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
         TcpSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
             downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                    this.protocol, this.protocol.createHelper());
+                    this.protocol, tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
         } else {
-            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
+            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), "0.0.0.0", 0, this.protocol, null, tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
 
             boolean resolveSrv = false;
@@ -1143,7 +1143,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             @Override
             public void packetReceived(Session session, Packet packet) {
-                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
+                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this, true);
             }
 
             @Override
@@ -1213,10 +1213,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
      */
     public void ensureInEventLoop(Runnable runnable) {
-        if (eventLoop.inEventLoop()) {
-            runnable.run();
+        if (tickEventLoop.inEventLoop()) {
+            executeRunnable(runnable);
             return;
         }
+
         executeInEventLoop(runnable);
     }
 
@@ -1224,15 +1225,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
-        eventLoop.execute(() -> {
-            try {
-                runnable.run();
-            } catch (ErosionCancellationException e) {
-                geyser.getLogger().debug("Caught ErosionCancellationException");
-            } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
-            }
-        });
+        tickEventLoop.execute(() -> executeRunnable(runnable));
     }
 
     /**
@@ -1241,17 +1234,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The task will not run if the session is closed.
      */
     public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
-        return eventLoop.schedule(() -> {
-            try {
+        return tickEventLoop.schedule(() -> {
+            executeRunnable(() -> {
                 if (!closed) {
                     runnable.run();
                 }
-            } catch (ErosionCancellationException e) {
-                geyser.getLogger().debug("Caught ErosionCancellationException");
-            } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
-            }
+            });
         }, duration, timeUnit);
+    }
+
+    private void executeRunnable(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (ErosionCancellationException e) {
+            geyser.getLogger().debug("Caught ErosionCancellationException");
+        } catch (Throwable e) {
+            geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
+        }
     }
 
     /**

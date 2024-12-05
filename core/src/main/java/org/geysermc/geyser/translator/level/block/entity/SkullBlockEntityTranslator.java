@@ -131,11 +131,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
                 session.getGeyser().getLogger().debug("Custom skull with invalid profile tag: " + blockPosition + " " + javaNbt);
                 return;
             }
-            if (session.getEventLoop().inEventLoop()) {
-                putSkull(session, blockPosition, uuid, texturesProperty, blockState);
-            } else {
-                session.executeInEventLoop(() -> putSkull(session, blockPosition, uuid, texturesProperty, blockState));
-            }
+
+            session.ensureInEventLoop(() -> putSkull(session, blockPosition, uuid, texturesProperty, blockState));
         });
 
         // We don't have the textures yet, so we can't determine if a custom block was defined for this skull
