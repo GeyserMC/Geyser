@@ -159,6 +159,7 @@ import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
@@ -275,6 +276,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final AdvancementsCache advancementsCache;
     private final BookEditCache bookEditCache;
+    private final BundleCache bundleCache;
     private final ChunkCache chunkCache;
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
@@ -662,6 +664,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
+        this.bundleCache = new BundleCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();

@@ -31,7 +31,10 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum Click {
     LEFT(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
+    LEFT_BUNDLE(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
+    LEFT_BUNDLE_FROM_CURSOR(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
     RIGHT(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK),
+    RIGHT_BUNDLE(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK),
     LEFT_SHIFT(ContainerActionType.SHIFT_CLICK_ITEM, ShiftClickItemAction.LEFT_CLICK),
     DROP_ONE(ContainerActionType.DROP_ITEM, DropItemAction.DROP_FROM_SELECTED),
     DROP_ALL(ContainerActionType.DROP_ITEM, DropItemAction.DROP_SELECTED_STACK),
