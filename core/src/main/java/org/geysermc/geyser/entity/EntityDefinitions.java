@@ -238,6 +238,8 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
     public static final EntityDefinition<PaintingEntity> PAINTING;
+    public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
     public static final EntityDefinition<PandaEntity> PANDA;
     public static final EntityDefinition<ParrotEntity> PARROT;
     public static final EntityDefinition<PhantomEntity> PHANTOM;
@@ -593,6 +595,7 @@ public final class EntityDefinitions {
             MANGROVE_BOAT = buildBoat(boatBase, EntityType.MANGROVE_BOAT, BoatEntity.BoatVariant.MANGROVE);
             OAK_BOAT = buildBoat(boatBase, EntityType.OAK_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_BOAT = buildBoat(boatBase, EntityType.SPRUCE_BOAT, BoatEntity.BoatVariant.SPRUCE);
+            PALE_OAK_BOAT = buildBoat(boatBase, EntityType.PALE_OAK_BOAT, BoatEntity.BoatVariant.PALE_OAK);
 
             EntityDefinition<ChestBoatEntity> chestBoatBase = EntityDefinition.<ChestBoatEntity>inherited(null, boatBase)
                 .build();
@@ -606,6 +609,7 @@ public final class EntityDefinitions {
             MANGROVE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.MANGROVE_CHEST_BOAT, BoatEntity.BoatVariant.MANGROVE);
             OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.OAK_CHEST_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.SPRUCE_CHEST_BOAT, BoatEntity.BoatVariant.SPRUCE);
+            PALE_OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.PALE_OAK_CHEST_BOAT, BoatEntity.BoatVariant.PALE_OAK);
         }
 
         EntityDefinition<LivingEntity> livingEntityBase = EntityDefinition.inherited(LivingEntity::new, entityBase)

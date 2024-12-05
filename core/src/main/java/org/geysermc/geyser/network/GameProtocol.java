@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
 import org.geysermc.mcprotocollib.protocol.codec.PacketCodec;
 
@@ -83,6 +84,10 @@ public final class GameProtocol {
     }
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
+
+    public static boolean isPreWinterDrop(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() == Bedrock_v748.CODEC.getProtocolVersion();
+    }
 
     /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.
