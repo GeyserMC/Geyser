@@ -186,15 +186,17 @@ import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
+import org.geysermc.mcprotocollib.network.ClientSession;
+import org.geysermc.mcprotocollib.network.NetworkConstants;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
 import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
 import org.geysermc.mcprotocollib.network.event.session.PacketErrorEvent;
 import org.geysermc.mcprotocollib.network.event.session.PacketSendingEvent;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
+import org.geysermc.mcprotocollib.network.net.NetClientSession;
+import org.geysermc.mcprotocollib.network.net.NetSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
-import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
@@ -949,15 +951,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Start ticking
         tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
-        TcpSession downstream;
+        ClientSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
-            downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
-                    geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                    this.protocol, tickEventLoop);
+            downstream = new LocalSession(geyser.getBootstrap().getSocketAddress(),
+                upstream.getAddress().getAddress().getHostAddress(),
+                this.protocol, tickEventLoop);
+            downstream.setFlag(MinecraftConstants.CLIENT_HOST, this.remoteServer.address());
+            downstream.setFlag(MinecraftConstants.CLIENT_PORT, this.remoteServer.port());
             this.downstream = new DownstreamSession(downstream);
         } else {
-            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), "0.0.0.0", 0, this.protocol, null, tickEventLoop);
+            downstream = new NetClientSession(new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()), null, this.protocol, null, tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
 
             boolean resolveSrv = false;
@@ -1159,7 +1163,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             setDaylightCycle(true);
         }
 
-        downstream.connect(false, loginEvent.transferring());
+        downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
+        downstream.connect(false);
     }
 
     public void disconnect(String reason) {
