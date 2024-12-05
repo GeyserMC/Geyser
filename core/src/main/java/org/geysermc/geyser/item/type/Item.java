@@ -64,11 +64,13 @@ public class Item {
     protected final Key javaIdentifier;
     private int javaId = -1;
     private final int attackDamage;
-    private final DataComponents baseComponents; // unmodifiable
+    private DataComponents baseComponents; // unmodifiable
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
-        this.baseComponents = builder.components == null ? Registries.DEFAULT_DATA_COMPONENTS.get(javaId) : builder.components;
+        if (builder.components != null) {
+            this.baseComponents = builder.components;
+        }
         this.attackDamage = builder.attackDamage;
     }
 
@@ -272,6 +274,9 @@ public class Item {
             throw new RuntimeException("Item ID has already been set!");
         }
         this.javaId = javaId;
+        if (this.baseComponents == null) {
+            this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
+        }
     }
 
     @Override

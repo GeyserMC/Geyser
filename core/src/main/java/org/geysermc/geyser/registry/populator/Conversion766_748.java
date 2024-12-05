@@ -25,19 +25,20 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import io.jsonwebtoken.lang.Collections;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.Blocks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Conversion766_748 {
-    static List<String> newBlockIds = new ArrayList<>();
-    static List<String> bedrockIds = new ArrayList<>(); // TODO temp remove
+    static List<String> PALE_WOODEN_BLOCKS = new ArrayList<>();
+    static List<String> OTHER_NEW_BLOCKS = new ArrayList<>();
+
     static {
-        var blocks = Collections.of(
+         Set.of(
             Blocks.PALE_OAK_WOOD,
             Blocks.PALE_OAK_PLANKS,
             Blocks.PALE_OAK_SAPLING,
@@ -45,27 +46,29 @@ public class Conversion766_748 {
             Blocks.STRIPPED_PALE_OAK_LOG,
             Blocks.STRIPPED_PALE_OAK_WOOD,
             Blocks.PALE_OAK_LEAVES,
-            Blocks.PALE_OAK_SIGN,
-            Blocks.PALE_OAK_WALL_SIGN,
             Blocks.PALE_OAK_HANGING_SIGN,
-            Blocks.PALE_OAK_WALL_HANGING_SIGN,
             Blocks.PALE_OAK_PRESSURE_PLATE,
             Blocks.PALE_OAK_TRAPDOOR,
-            Blocks.POTTED_PALE_OAK_SAPLING,
             Blocks.PALE_OAK_BUTTON,
             Blocks.PALE_OAK_STAIRS,
             Blocks.PALE_OAK_SLAB,
             Blocks.PALE_OAK_FENCE_GATE,
             Blocks.PALE_OAK_FENCE,
-            Blocks.PALE_OAK_DOOR,
+            Blocks.PALE_OAK_DOOR
+        ).forEach(block -> PALE_WOODEN_BLOCKS.add(block.javaIdentifier().value()));
+
+        // Some things are of course stupid
+        PALE_WOODEN_BLOCKS.add("pale_oak_standing_sign");
+        PALE_WOODEN_BLOCKS.add("pale_oak_wall_sign");
+        PALE_WOODEN_BLOCKS.add("pale_oak_double_slab");
+
+        Set.of(
             Blocks.PALE_MOSS_BLOCK,
             Blocks.PALE_MOSS_CARPET,
             Blocks.PALE_HANGING_MOSS,
 
             Blocks.OPEN_EYEBLOSSOM,
             Blocks.CLOSED_EYEBLOSSOM,
-            Blocks.POTTED_OPEN_EYEBLOSSOM,
-            Blocks.POTTED_CLOSED_EYEBLOSSOM,
 
             Blocks.RESIN_CLUMP,
             Blocks.RESIN_BLOCK,
@@ -76,29 +79,50 @@ public class Conversion766_748 {
             Blocks.CHISELED_RESIN_BRICKS,
 
             Blocks.CREAKING_HEART
-        );
+        ).forEach(block -> OTHER_NEW_BLOCKS.add(block.javaIdentifier().value()));
 
-        blocks.forEach(block -> newBlockIds.add(block.javaIdentifier().value()));
+        OTHER_NEW_BLOCKS.add("resin_brick_double_slab");
     }
 
     static NbtMap remapBlock(NbtMap tag) {
-
-        GeyserImpl.getInstance().getLogger().info(tag.toString());
-
-        String name = tag.getString("name");
-        if (newBlockIds.contains(name)) {
-            bedrockIds.add(name);
-            // TODO
-            return tag.toBuilder()
-                .putCompound("states", NbtMap.builder().build())
-                .putString("name", "minecraft:unknown")
-                .build();
+        String name = tag.getString("name").replace("minecraft:", "");
+        if (PALE_WOODEN_BLOCKS.contains(name)) {
+            return withName(tag, name.replace("pale_oak", "birch"));
         }
 
-        if (name.contains("resin") || name.contains("creaking") || name.contains("pale")) {
-            throw new RuntimeException("ya missed " + name);
+        if (OTHER_NEW_BLOCKS.contains(name)) {
+            return switch (name) {
+                case "resin_brick_double_slab" -> withName(tag,"red_sandstone_double_slab");
+                case "pale_moss_block" -> withName(tag, "moss_block");
+                case "pale_moss_carpet" -> withoutStates("moss_carpet");
+                case "pale_hanging_moss" -> withoutStates("hanging_roots");
+                case "open_eyeblossom" -> withoutStates("oxeye_daisy");
+                case "closed_eyeblossom" -> withoutStates("white_tulip");
+                case "resin_clump" -> withoutStates("unknown");
+                case "resin_block" -> withoutStates("red_sandstone");
+                case "resin_bricks" -> withoutStates("cut_red_sandstone");
+                case "resin_brick_stairs" -> withName(tag, "red_sandstone_stairs");
+                case "resin_brick_slab" -> withName(tag, "red_sandstone_slab");
+                case "resin_brick_wall" -> withName(tag, "red_sandstone_wall");
+                case "chiseled_resin_bricks" -> withName(tag, "chiseled_red_sandstone");
+                case "creaking_heart" -> withoutStates("chiseled_polished_blackstone");
+                default -> throw new IllegalStateException("missing replacement for new block! " + name);
+            };
         }
 
         return tag;
+    }
+
+    static NbtMap withName(NbtMap tag, String name) {
+        NbtMapBuilder builder = tag.toBuilder();
+        builder.replace("name", "minecraft:" + name);
+        return builder.build();
+    }
+
+    static NbtMap withoutStates(String name) {
+        NbtMapBuilder tagBuilder = NbtMap.builder();
+        tagBuilder.putString("name", "minecraft:" + name);
+        tagBuilder.putCompound("states", NbtMap.builder().build());
+        return tagBuilder.build();
     }
 }
