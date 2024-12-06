@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.item.custom.v2.predicate.match;
 
-public record CustomModelDataProperty<T>(T data, int index) {
+public record CustomModelDataString(String value, int index) {
 }

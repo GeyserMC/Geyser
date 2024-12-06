@@ -36,7 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomModelDataProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
@@ -278,7 +278,7 @@ public class MappingsReader_v2 extends MappingsReader {
                         if (indexNode != null && indexNode.isIntegralNumber()) {
                             index = indexNode.asInt();
                         }
-                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataProperty<>(value, index)));
+                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataString(value, index)));
                     }
                     default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }

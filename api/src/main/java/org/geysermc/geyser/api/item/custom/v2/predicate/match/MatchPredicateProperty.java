@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.predicate.match;
 
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomModelDataProperty;
 
 // TODO can we do more?
 public class MatchPredicateProperty<T> {
@@ -34,7 +33,7 @@ public class MatchPredicateProperty<T> {
     public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
     public static final MatchPredicateProperty<Key> TRIM_MATERIAL = create();
     public static final MatchPredicateProperty<Key> CONTEXT_DIMENSION = create();
-    public static final MatchPredicateProperty<CustomModelDataProperty<String>> CUSTOM_MODEL_DATA = create();
+    public static final MatchPredicateProperty<CustomModelDataString> CUSTOM_MODEL_DATA = create();
 
     private MatchPredicateProperty() {}
 
