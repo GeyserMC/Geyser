@@ -1153,7 +1153,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             @Override
             public void packetError(PacketErrorEvent event) {
-                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
+                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error",
+                    (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ")" : "") +
+                    event.getCause().getMessage())
+                );
                 if (geyser.getConfig().isDebugMode())
                     event.getCause().printStackTrace();
                 event.setSuppress(true);

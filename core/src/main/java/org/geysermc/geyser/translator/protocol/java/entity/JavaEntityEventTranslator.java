@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -286,6 +287,11 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case ARMADILLO_PEEKING:
                 if (entity instanceof ArmadilloEntity armadilloEntity) {
                     armadilloEntity.onPeeking();
+                }
+                break;
+            case SHAKE:
+                if (entity instanceof CreakingEntity creakingEntity) {
+                    creakingEntity.createParticleBeam();
                 }
                 break;
         }
