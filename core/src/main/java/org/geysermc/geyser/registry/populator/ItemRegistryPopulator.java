@@ -65,6 +65,8 @@ import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
@@ -91,6 +93,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -460,8 +463,7 @@ public class ItemRegistryPopulator {
                 SortedSetMultimap<Key, Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
                 Collection<CustomItemDefinition> customItemsToLoad = customItems.get(javaItem.javaIdentifier());
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
-                    customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(Comparator.comparingInt(
-                        pair -> ((Pair<CustomItemDefinition, ItemDefinition>) pair).first().predicates().size()).reversed()).build();
+                    customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
 
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
@@ -709,5 +711,35 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
+    }
+
+    /**
+     * Compares custom item definitions based on their predicates:
+     *
+     * <p>First by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first,
+     * and then by the amount of predicates, from most to least.</p>
+     */
+    private static class CustomItemDefinitionComparator implements Comparator<Pair<CustomItemDefinition, ItemDefinition>> {
+
+        @Override
+        public int compare(Pair<CustomItemDefinition, ItemDefinition> firstPair, Pair<CustomItemDefinition, ItemDefinition> secondPair) {
+            CustomItemDefinition first = firstPair.first();
+            CustomItemDefinition second = secondPair.first();
+            if (first.equals(second)) {
+                return 0;
+            }
+            for (CustomItemPredicate predicate : first.predicates()) {
+                if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
+                    Optional<RangeDispatchPredicate> other = second.predicates().stream()
+                        .filter(otherPredicate -> otherPredicate instanceof RangeDispatchPredicate otherDispatch && otherDispatch.property() == rangeDispatch.property())
+                        .map(otherPredicate -> (RangeDispatchPredicate) otherPredicate)
+                        .findFirst();
+                    if (other.isPresent()) {
+                        return (int) (rangeDispatch.threshold() - other.orElseThrow().threshold());
+                    }
+                }
+            }
+            return first.predicates().size() - second.predicates().size();
+        }
     }
 }
