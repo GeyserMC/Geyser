@@ -27,18 +27,14 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.BlockPickRequestPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.type.BannerBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemFromBlockPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemFromEntityPacket;
 
 @Translator(packet = BlockPickRequestPacket.class)
 public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
@@ -52,42 +48,14 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         if (blockToPick.is(Blocks.AIR)) {
             // Check for an item frame since the client thinks that's a block when it's an entity in Java
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+
             if (entity != null) {
-                // Check to see if the item frame has an item in it first
-                if (!InventoryUtils.isEmpty(entity.getHeldItem())) {
-                    // Grab the item in the frame
-                    InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
-                } else {
-                    // Grab the frame as the item
-                    InventoryUtils.findOrCreateItem(session, entity.getDefinition() == EntityDefinitions.GLOW_ITEM_FRAME ? Items.GLOW_ITEM_FRAME : Items.ITEM_FRAME);
-                }
+                session.sendDownstreamGamePacket(new ServerboundPickItemFromEntityPacket(entity.javaId(), packet.isAddUserData()));
             }
             return;
         }
 
         boolean addExtraData = packet.isAddUserData() && blockToPick.block().hasBlockEntity(); // Holding down CTRL
-        if (session.isInstabuild() && addExtraData && blockToPick.block() instanceof SkullBlock skull) {
-            InventoryUtils.findOrCreateItem(session, skull.pickItem(session, blockToPick, vector));
-            return;
-        }
-        if (blockToPick.block() instanceof BannerBlock) {
-            session.getGeyser().getWorldManager().getPickItemComponents(session, vector.getX(), vector.getY(), vector.getZ(), addExtraData)
-                    .whenComplete((components, ex) -> session.ensureInEventLoop(() -> {
-                        if (components == null) {
-                            pickItem(session, blockToPick);
-                            return;
-                        }
-
-                        ItemStack itemStack = new ItemStack(blockToPick.block().asItem().javaId(), 1, components);
-                        InventoryUtils.findOrCreateItem(session, itemStack);
-                    }));
-            return;
-        }
-
-        pickItem(session, blockToPick);
-    }
-
-    private void pickItem(GeyserSession session, BlockState state) {
-        InventoryUtils.findOrCreateItem(session, state.block().pickItem(state));
+        session.sendDownstreamGamePacket(new ServerboundPickItemFromBlockPacket(vector, addExtraData));
     }
 }

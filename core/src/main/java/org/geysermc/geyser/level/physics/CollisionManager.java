@@ -416,40 +416,6 @@ public class CollisionManager {
         return BlockUtils.getCollision(blockId);
     }
 
-    public boolean isOnGround() {
-        // Temporary until pre-1.21.30 support is dropped.
-        Vector3d bottomCenter = playerBoundingBox.getBottomCenter();
-        Vector3i groundPos = Vector3i.from(bottomCenter.getX(), bottomCenter.getY() - 1, bottomCenter.getZ());
-        BlockCollision collision = BlockUtils.getCollisionAt(session, groundPos);
-        if (collision == null) {
-            return false; // Probably air.
-        }
-
-        // Hack to not check below the player
-        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
-        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
-
-        boolean intersected = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
-
-        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
-        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
-
-        boolean result;
-        if (intersected) {
-            result = true;
-        } else {
-            // Hack to check slightly below the player
-            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
-            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
-
-            result = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
-
-            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
-            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
-        }
-        return result;
-    }
-
     /**
      * @return if the player is currently in a water block
      */

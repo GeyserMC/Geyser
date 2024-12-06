@@ -52,7 +52,6 @@ public class ItemMapping {
             null,
             null,
             null,
-            null,
             Items.AIR
     );
 
@@ -67,7 +66,6 @@ public class ItemMapping {
     BlockDefinition bedrockBlockDefinition;
 
     String toolType;
-    String toolTier;
 
     String translationString;
 

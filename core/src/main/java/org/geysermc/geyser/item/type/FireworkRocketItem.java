@@ -27,7 +27,6 @@ package org.geysermc.geyser.item.type;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -141,21 +140,5 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder) {
-        if (components != null) {
-            Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
-            if (fireworks != null) {
-                // Already translated
-                return;
-            }
-        }
-
-        NbtMapBuilder fireworksNbt = NbtMap.builder();
-        fireworksNbt.putByte("Flight", (byte) 1);
-        fireworksNbt.put("Explosions", NbtList.EMPTY);
-        builder.putCompound("Fireworks", fireworksNbt.build());
     }
 }

@@ -35,6 +35,6 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
 
     @Override
     public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
-        session.getGeyser().getLogger().info(packet.toString());
+        session.getGeyser().getLogger().debug(packet.toString());
     }
 }

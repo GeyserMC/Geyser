@@ -34,6 +34,7 @@ public abstract class PacketTranslator<T> {
     /**
      * Determines if this packet should be handled in the session's event loop. This should generally be true -
      * only when the packet has to be executed immediately should it be false.
+     * This method is only used for bedrock packets, java packets have a more sophisticated system through MCProtocolLib.
      */
     public boolean shouldExecuteInEventLoop() {
         return true;

@@ -59,6 +59,7 @@ import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,11 +73,11 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
-        super(host, port, protocol);
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, Executor packetHandlerExecutor) {
+        super(host, port, protocol, packetHandlerExecutor);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
-        this.codecHelper = codecHelper;
+        this.codecHelper = protocol.createHelper();
     }
 
     @Override

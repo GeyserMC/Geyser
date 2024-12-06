@@ -23,24 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.entity.type.living.monster;
 
-import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundStartConfigurationPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 
-@Translator(packet = ClientboundStartConfigurationPacket.class)
-public class JavaStartConfigurationTranslator extends PacketTranslator<ClientboundStartConfigurationPacket> {
+import java.util.Optional;
+import java.util.UUID;
 
-    @Override
-    public void translate(GeyserSession session, ClientboundStartConfigurationPacket packet) {
-        var erosionHandler = session.getErosionHandler();
-        if (erosionHandler.isActive()) {
-            // Set new handler before closing
-            session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
-            erosionHandler.close();
-        }
+public class CreakingEntity extends MonsterEntity {
+    public CreakingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
+    }
+
+    public void setActive(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
+    }
+
+    public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
+    }
+
+    public void setHomePos(EntityMetadata<Optional<Vector3i>,? extends MetadataType<Optional<Vector3i>>> optionalEntityMetadata) {
     }
 }

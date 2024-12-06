@@ -414,9 +414,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
-        TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
-
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());

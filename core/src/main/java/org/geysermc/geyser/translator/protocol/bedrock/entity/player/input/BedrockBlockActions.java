@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -88,7 +89,7 @@ final class BedrockBlockActions {
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20; // TODO afdaöwelfunöwoaenf
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -169,6 +170,7 @@ final class BedrockBlockActions {
                 if (session.getGameMode() != GameMode.CREATIVE) {
                     // As of 1.16.210: item frame items are taken out here.
                     // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
+                    GeyserImpl.getInstance().getLogger().warning("abort break, not creative - item frame???");
                     Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
                     if (itemFrameEntity != null) {
                         ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
@@ -180,6 +182,7 @@ final class BedrockBlockActions {
 
                 ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, 0);
                 session.sendDownstreamGamePacket(abortBreakingPacket);
+
                 LevelEventPacket stopBreak = new LevelEventPacket();
                 stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
                 stopBreak.setPosition(vector.toFloat());

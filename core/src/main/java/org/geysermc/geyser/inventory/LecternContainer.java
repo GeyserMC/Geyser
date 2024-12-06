@@ -34,17 +34,15 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
+@Getter
 public class LecternContainer extends Container {
-    @Getter @Setter
+    @Setter
     private int currentBedrockPage = 0;
-    @Getter @Setter
+    @Setter
     private NbtMap blockEntityTag;
-    @Getter @Setter
+    @Setter
     private Vector3i position;
 
-    // Sigh. When the lectern container is created, we don't know (yet) if it's fake or not.
-    // So... time for a manual check :/
-    @Getter
     private boolean isFakeLectern = false;
 
     public LecternContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
@@ -52,8 +50,8 @@ public class LecternContainer extends Container {
     }
 
     /**
-     * When we are using a fake lectern, the Java server expects us to still be in a player inventory.
-     * We can't use {@link #isUsingRealBlock()} as that may not be determined yet.
+     * When the Java server asks the client to open a book in their hotbar, we create a fake lectern to show it to the client.
+     * We can't use the {@link #isUsingRealBlock()} check as we may also be dealing with a real virtual lectern (with its own inventory).
      */
     @Override
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {

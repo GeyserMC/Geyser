@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,12 +51,10 @@ import java.util.function.Consumer;
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
             // Bedrock-only as its own item
-            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2,
-            // Bedrock-only banner patterns
-            (identifier, data) -> identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")
+            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
-    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
+    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, Consumer<ItemData.Builder> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
@@ -68,7 +67,7 @@ public class CreativeItemRegistryPopulator {
 
         BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
         for (JsonNode itemNode : creativeItemEntries) {
-            ItemData.Builder itemBuilder = createItemData(itemNode, blockMappings, definitions);
+            ItemData.Builder itemBuilder = createItemData(itemNode, items, blockMappings, definitions);
             if (itemBuilder == null) {
                 continue;
             }
@@ -77,7 +76,7 @@ public class CreativeItemRegistryPopulator {
         }
     }
 
-    private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
+    private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, Map<String, GeyserMappingItem> items, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
         NbtMap tag = null;
@@ -85,6 +84,23 @@ public class CreativeItemRegistryPopulator {
         String identifier = itemNode.get("id").textValue();
         for (BiPredicate<String, Integer> predicate : JAVA_ONLY_ITEM_FILTER) {
             if (predicate.test(identifier, damage)) {
+                return null;
+            }
+        }
+
+        // Attempt to remove items that do not exist in Java (1.21.50 has 1.21.4 items, that don't exist on 1.21.2)
+        // we still add the lodestone compass - we're going to translate it.
+        if (!items.containsKey(identifier) && !identifier.equals("minecraft:lodestone_compass")) {
+            // bedrock identifier not found, let's make sure it's not just different
+            boolean found = false;
+            for (var mapping : items.values()) {
+                if (mapping.getBedrockIdentifier().equals(identifier)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
                 return null;
             }
         }

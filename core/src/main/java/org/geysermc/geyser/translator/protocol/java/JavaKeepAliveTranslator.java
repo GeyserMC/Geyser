@@ -67,9 +67,4 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         latencyPacket.setTimestamp(timestamp);
         session.sendUpstreamPacketImmediately(latencyPacket);
     }
-
-    @Override
-    public boolean shouldExecuteInEventLoop() {
-        return false;
-    }
 }

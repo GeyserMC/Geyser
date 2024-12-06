@@ -97,11 +97,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
      */
-    private ParrotEntity leftParrot;
+    private @Nullable ParrotEntity leftParrot;
     /**
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
-    private ParrotEntity rightParrot;
+    private @Nullable ParrotEntity rightParrot;
 
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
@@ -335,7 +335,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
@@ -450,6 +450,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     public Vector3f position() {
-        return this.position.clone();
+        return this.position.down(definition.offset());
     }
 }

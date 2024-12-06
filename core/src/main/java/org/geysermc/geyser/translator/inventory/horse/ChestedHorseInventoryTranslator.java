@@ -53,10 +53,10 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.HORSE_EQUIP) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.HORSE_EQUIP) {
             return this.equipSlot;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.LEVEL_ENTITY) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.LEVEL_ENTITY) {
             return slotInfoData.getSlot() + 1;
         }
         return super.bedrockSlotToJava(slotInfoData);
