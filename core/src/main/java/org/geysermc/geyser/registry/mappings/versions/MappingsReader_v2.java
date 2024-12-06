@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomModelDataProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
@@ -239,43 +240,75 @@ public class MappingsReader_v2 extends MappingsReader {
         }
         String property = propertyNode.asText();
 
-        if (type.equals("condition")) {
-            try {
-                ConditionPredicate.ConditionProperty conditionProperty = ConditionPredicate.ConditionProperty.valueOf(property.toUpperCase());
-                JsonNode expected = node.get("expected");
-                JsonNode index = node.get("index");
-
-                builder.predicate(new ConditionPredicate(conditionProperty,
-                    expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt()));
-            } catch (IllegalArgumentException exception) {
-                throw new InvalidCustomMappingsFileException("Unknown property " + property);
-            }
-        } else if (type.equals("match")) {
-            JsonNode value = node.get("value");
-            if (value == null || !value.isTextual()) {
-                throw new InvalidCustomMappingsFileException("Predicate missing value key");
-            }
-
-            switch (property) {
-                case "charge_type" -> {
-                    try {
-                        ChargeType chargeType = ChargeType.valueOf(value.asText().toUpperCase());
-                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CHARGE_TYPE, chargeType));
-                    } catch (IllegalArgumentException exception) {
-                        throw new InvalidCustomMappingsFileException("Unknown charge type " + value.asText());
-                    }
-                }
-                case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, Key.key(value.asText()))); // TODO
-                case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, Key.key(value.asText()))); // TODO
-                case "custom_model_data" -> {
+        // TODO helper methods to lessen code duplication
+        switch (type) {
+            case "condition" -> {
+                try {
+                    ConditionPredicate.ConditionProperty conditionProperty = ConditionPredicate.ConditionProperty.valueOf(property.toUpperCase());
+                    JsonNode expected = node.get("expected");
                     JsonNode index = node.get("index");
-                    if (index == null || !index.isIntegralNumber()) {
-                        throw new InvalidCustomMappingsFileException("Predicate missing index key"); // TODO default to 0
-                    }
-                    builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataProperty<>(value.asText(), index.asInt())));
+
+                    builder.predicate(new ConditionPredicate(conditionProperty,
+                        expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt()));
+                } catch (IllegalArgumentException exception) {
+                    throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }
-                default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
             }
+            case "match" -> {
+                JsonNode valueNode = node.get("value");
+                if (valueNode == null || !valueNode.isTextual()) {
+                    throw new InvalidCustomMappingsFileException("Predicate missing value key");
+                }
+                String value = valueNode.asText();
+
+                switch (property) {
+                    case "charge_type" -> {
+                        try {
+                            ChargeType chargeType = ChargeType.valueOf(value.toUpperCase());
+                            builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CHARGE_TYPE, chargeType));
+                        } catch (IllegalArgumentException exception) {
+                            throw new InvalidCustomMappingsFileException("Unknown charge type " + value);
+                        }
+                    }
+                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, Key.key(value))); // TODO
+                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, Key.key(value))); // TODO
+                    case "custom_model_data" -> {
+                        JsonNode indexNode = node.get("index");
+                        int index = 0;
+                        if (indexNode != null && indexNode.isIntegralNumber()) {
+                            index = indexNode.asInt();
+                        }
+                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataProperty<>(value, index)));
+                    }
+                    default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
+                }
+            }
+            case "range_dispatch" -> {
+                JsonNode threshold = node.get("threshold");
+                if (threshold == null || !threshold.isNumber()) {
+                    throw new InvalidCustomMappingsFileException("Predicate missing threshold key");
+                }
+                JsonNode scaleNode = node.get("scale");
+                double scale = 1.0;
+                if (scaleNode != null && scaleNode.isNumber()) {
+                    scale = scaleNode.asDouble();
+                }
+                JsonNode normalizeNode = node.get("normalize");
+                boolean normalizeIfPossible = normalizeNode != null && normalizeNode.booleanValue();
+                JsonNode indexNode = node.get("index");
+                int index = 0;
+                if (indexNode != null && indexNode.isIntegralNumber()) {
+                    index = indexNode.asInt();
+                }
+
+                try {
+                    RangeDispatchPredicate.RangeDispatchProperty rangeDispatchProperty = RangeDispatchPredicate.RangeDispatchProperty.valueOf(property.toUpperCase());
+                    builder.predicate(new RangeDispatchPredicate(rangeDispatchProperty, threshold.asDouble(), scale, normalizeIfPossible, index));
+                } catch (IllegalArgumentException exception) {
+                    throw new InvalidCustomMappingsFileException("Unknown property " + property);
+                }
+            }
+            default -> throw new InvalidCustomMappingsFileException("Unknown predicate type " + type);
         }
     }
 
