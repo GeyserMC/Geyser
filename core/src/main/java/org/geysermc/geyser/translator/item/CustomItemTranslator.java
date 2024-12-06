@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.item;
 
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -34,6 +35,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
@@ -42,6 +44,7 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import it.unimi.dsi.fastutil.Pair;
@@ -51,10 +54,12 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
+@Slf4j
 public final class CustomItemTranslator {
 
     @Nullable
@@ -68,13 +73,13 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air")); // TODO fallback onto default item model (when thats done by chris)
+        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air"));
+        System.out.println(itemModel + " is the model!");
         Collection<Pair<CustomItemDefinition, ItemDefinition>> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
         }
 
-        // TODO check if definitions/predicates are in the correct order
         for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) {
             if (customModel.first().model().equals(itemModel)) {
                 boolean allMatch = true;
@@ -97,9 +102,9 @@ public final class CustomItemTranslator {
             return switch (condition.property()) {
                 case BROKEN -> nextDamageWillBreak(components);
                 case DAMAGED -> isDamaged(components);
-                case CUSTOM_MODEL_DATA -> false; // TODO 1.21.4
-            };
-        } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fun of the casts here, find a solution for the types?
+                case CUSTOM_MODEL_DATA -> getCustomBoolean(components, condition.index());
+            } == condition.expected();
+        } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fan of the casts here, find a solution for the types?
             if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
                 ChargeType expected = (ChargeType) match.data();
                 List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
@@ -127,8 +132,8 @@ public final class CustomItemTranslator {
                 RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
                 return registered != null && dimension.equals(registered.key());
             } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
-                // TODO 1.21.4
-                return false;
+                CustomModelDataString expected = (CustomModelDataString) match.data();
+                return expected.value().equals(getSafeCustomModelData(components, CustomModelData::strings, expected.index()));
             }
         } else if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
             double propertyValue = switch (rangeDispatch.property()) {
@@ -145,12 +150,34 @@ public final class CustomItemTranslator {
                 }
                 case DAMAGE -> tryNormalize(rangeDispatch, components.get(DataComponentType.DAMAGE), components.get(DataComponentType.MAX_DAMAGE));
                 case COUNT -> tryNormalize(rangeDispatch, stackSize, components.get(DataComponentType.MAX_STACK_SIZE));
-                case CUSTOM_MODEL_DATA -> 0.0; // TODO 1.21.4
+                case CUSTOM_MODEL_DATA -> getCustomFloat(components, rangeDispatch.index());
             } * rangeDispatch.scale();
             return propertyValue >= rangeDispatch.threshold();
         }
 
         throw new IllegalStateException("Unimplemented predicate type");
+    }
+
+    private static boolean getCustomBoolean(DataComponents components, int index) {
+        Boolean b = getSafeCustomModelData(components, CustomModelData::flags, index);
+        return b != null && b;
+    }
+
+    private static float getCustomFloat(DataComponents components, int index) {
+        Float f = getSafeCustomModelData(components, CustomModelData::floats, index);
+        return f == null ? 0.0F : f;
+    }
+
+    private static <T> T getSafeCustomModelData(DataComponents components, Function<CustomModelData, List<T>> listGetter, int index) {
+        CustomModelData modelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
+        if (modelData == null || index < 0) {
+            return null;
+        }
+        List<T> list = listGetter.apply(modelData);
+        if (index < list.size()) {
+            return list.get(index);
+        }
+        return null;
     }
 
     private static double tryNormalize(RangeDispatchPredicate predicate, @Nullable Integer value, @Nullable Integer max) {
