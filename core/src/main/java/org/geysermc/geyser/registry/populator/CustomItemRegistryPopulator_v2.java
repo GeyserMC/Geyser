@@ -42,23 +42,18 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
-import org.geysermc.geyser.item.type.ArmorItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
-import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -181,7 +176,7 @@ public class CustomItemRegistryPopulator_v2 {
 
         boolean canDestroyInCreative = true;
         if (vanillaMapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder, vanillaJavaItem.attackDamage());
+            canDestroyInCreative = computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder, vanillaJavaItem.defaultAttackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -498,60 +493,9 @@ public class CustomItemRegistryPopulator_v2 {
         return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
     }
 
-    // TODO this needs to be a simpler method once we just load default vanilla components from mappings or something
+    // TODO is this right?
     private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
-        DataComponents components = new DataComponents(new HashMap<>()); // TODO faster map ?
-
-        components.put(DataComponentType.MAX_STACK_SIZE, javaItem.maxStackSize());
-        components.put(DataComponentType.MAX_DAMAGE, javaItem.maxDamage());
-
-        Consumable consumable = getItemConsumable(javaItem);
-        if (consumable != null) {
-            components.put(DataComponentType.CONSUMABLE, consumable);
-        }
-
-        if (canAlwaysEat(javaItem)) {
-            components.put(DataComponentType.FOOD, new FoodProperties(0, 0, true));
-        }
-
-        if (javaItem.glint()) {
-            components.put(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, true);
-        }
-
-        if (javaItem instanceof ArmorItem armor) { // TODO equippable
-        }
-
-        components.put(DataComponentType.RARITY, javaItem.rarity().ordinal());
-
-        components.getDataComponents().putAll(definition.components().getDataComponents());
-        return components;
-    }
-
-    private static Consumable getItemConsumable(Item item) {
-        if (item == Items.APPLE || item == Items.BAKED_POTATO || item == Items.BEETROOT || item == Items.BEETROOT_SOUP || item == Items.BREAD
-            || item == Items.CARROT || item == Items.CHORUS_FRUIT || item == Items.COOKED_CHICKEN || item == Items.COOKED_COD
-            || item == Items.COOKED_MUTTON || item == Items.COOKED_PORKCHOP || item == Items.COOKED_RABBIT || item == Items.COOKED_SALMON
-            || item == Items.COOKIE || item == Items.ENCHANTED_GOLDEN_APPLE || item == Items.GOLDEN_APPLE || item == Items.GLOW_BERRIES
-            || item == Items.GOLDEN_CARROT || item == Items.MELON_SLICE || item == Items.MUSHROOM_STEW || item == Items.POISONOUS_POTATO
-            || item == Items.POTATO || item == Items.PUFFERFISH || item == Items.PUMPKIN_PIE || item == Items.RABBIT_STEW
-            || item == Items.BEEF || item == Items.CHICKEN || item == Items.COD || item == Items.MUTTON || item == Items.PORKCHOP
-            || item == Items.RABBIT || item == Items.ROTTEN_FLESH || item == Items.SPIDER_EYE || item == Items.COOKED_BEEF
-            || item == Items.SUSPICIOUS_STEW || item == Items.SWEET_BERRIES || item == Items.TROPICAL_FISH) {
-            return Consumables.DEFAULT_FOOD;
-        } else if (item == Items.POTION) {
-            return Consumables.DEFAULT_DRINK;
-        } else if (item == Items.HONEY_BOTTLE) {
-            return Consumables.HONEY_BOTTLE;
-        } else if (item == Items.OMINOUS_BOTTLE) {
-            return Consumables.OMINOUS_BOTTLE;
-        } else if (item == Items.DRIED_KELP) {
-            return Consumables.DRIED_KELP;
-        }
-        return null;
-    }
-
-    private static boolean canAlwaysEat(Item item) {
-        return item == Items.CHORUS_FRUIT || item == Items.ENCHANTED_GOLDEN_APPLE || item == Items.GOLDEN_APPLE || item == Items.HONEY_BOTTLE || item == Items.SUSPICIOUS_STEW;
+        return javaItem.gatherComponents(definition.components());
     }
 
     @SuppressWarnings("unchecked")
@@ -567,14 +511,5 @@ public class CustomItemRegistryPopulator_v2 {
                 builder.putList("item_tags", NbtType.STRING, tagList);
             }
         }
-    }
-
-    private static final class Consumables {
-        private static final Consumable DEFAULT_FOOD = new Consumable(1.6F, Consumable.ItemUseAnimation.EAT, BuiltinSound.ENTITY_GENERIC_EAT, true, List.of());
-        private static final Consumable DEFAULT_DRINK = new Consumable(1.6F, Consumable.ItemUseAnimation.DRINK, BuiltinSound.ENTITY_GENERIC_DRINK, false, List.of());
-        private static final Consumable HONEY_BOTTLE = new Consumable(2.0F, Consumable.ItemUseAnimation.DRINK, BuiltinSound.ITEM_HONEY_BOTTLE_DRINK, false, List.of());
-        private static final Consumable OMINOUS_BOTTLE = new Consumable(2.0F, Consumable.ItemUseAnimation.DRINK, BuiltinSound.ITEM_HONEY_BOTTLE_DRINK,
-            false, List.of(new ConsumeEffect.PlaySound(BuiltinSound.ITEM_OMINOUS_BOTTLE_DISPOSE)));
-        private static final Consumable DRIED_KELP = new Consumable(0.8F, Consumable.ItemUseAnimation.EAT, BuiltinSound.ENTITY_GENERIC_EAT, false, List.of());
     }
 }
