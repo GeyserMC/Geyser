@@ -215,7 +215,7 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.tags(tagsSet);
         }
 
-        return customItemData.build().toDefinition(identifier);
+        return customItemData.build().toDefinition(identifier).build();
     }
 
     /**

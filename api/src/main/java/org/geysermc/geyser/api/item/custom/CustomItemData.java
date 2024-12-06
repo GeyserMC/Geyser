@@ -32,7 +32,9 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -125,9 +127,9 @@ public interface CustomItemData {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
 
-    default CustomItemDefinition toDefinition(String javaItem) {
-        // TODO predicate
-        return CustomItemDefinition.builder(Key.key(javaItem), Key.key(javaItem))
+    default CustomItemDefinition.Builder toDefinition(String javaItem) {
+        // TODO non vanilla, unbreakable predicate?
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(Key.key(javaItem), Key.key(javaItem))
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
                 .icon(icon())
@@ -138,8 +140,17 @@ public interface CustomItemData {
                 .textureSize(textureSize())
                 .renderOffsets(renderOffsets())
                 .tags(tags())
-            )
-            .build();
+            );
+
+        CustomItemOptions options = customItemOptions();
+        if (options.customModelData().isPresent()) {
+            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.CUSTOM_MODEL_DATA,
+                options.customModelData().getAsInt(), 1.0, false, 0));
+        }
+        if (options.damagePredicate().isPresent()) {
+            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.DAMAGE, options.damagePredicate().getAsInt()));
+        }
+        return definition;
     }
 
     interface Builder {

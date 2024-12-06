@@ -27,6 +27,14 @@ package org.geysermc.geyser.api.item.custom.v2.predicate;
 
 public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
 
+    public ConditionPredicate(ConditionProperty property, boolean expected) {
+        this(property, expected, 0);
+    }
+
+    public ConditionPredicate(ConditionProperty property) {
+        this(property, true);
+    }
+
     // TODO maybe we can extend this
     public enum ConditionProperty {
         BROKEN,

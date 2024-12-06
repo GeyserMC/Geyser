@@ -27,6 +27,18 @@ package org.geysermc.geyser.api.item.custom.v2.predicate;
 
 public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements CustomItemPredicate {
 
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible) {
+        this(property, threshold, scale, normalizeIfPossible, 0);
+    }
+
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale) {
+        this(property, threshold, scale, false);
+    }
+
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold) {
+        this(property, threshold, 1.0);
+    }
+
     // TODO check if we can change items while bedrock is using them, and if bedrock will continue to use them
     public enum RangeDispatchProperty {
         BUNDLE_FULLNESS,
