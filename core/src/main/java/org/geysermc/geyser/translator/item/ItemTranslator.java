@@ -215,7 +215,7 @@ public final class ItemTranslator {
             translatePlayerHead(session, components, builder);
         }
 
-        translateCustomItem(session, components, builder, bedrockItem);
+        translateCustomItem(session, count, components, builder, bedrockItem);
 
         if (components != null) {
             // Translate the canDestroy and canPlaceOn Java components
@@ -428,7 +428,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;
@@ -469,8 +469,8 @@ public final class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static void translateCustomItem(GeyserSession session, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, components, mapping);
+    public static void translateCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, stackSize, components, mapping);
         if (definition != null) {
             builder.definition(definition);
             builder.blockDefinition(null);

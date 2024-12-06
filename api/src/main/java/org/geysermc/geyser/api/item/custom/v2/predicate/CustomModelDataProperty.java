@@ -23,10 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.data.match;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public enum ChargeType {
-    NONE,
-    ARROW,
-    ROCKET
+public record CustomModelDataProperty<T>(T data, int index) {
 }

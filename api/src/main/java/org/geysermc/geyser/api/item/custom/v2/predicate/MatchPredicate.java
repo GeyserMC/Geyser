@@ -25,5 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public sealed interface CustomItemPredicate permits ConditionPredicate, MatchPredicate, RangeDispatchPredicate { // TODO maybe we need to move the predicate classes out of API
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+
+public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements CustomItemPredicate {
 }

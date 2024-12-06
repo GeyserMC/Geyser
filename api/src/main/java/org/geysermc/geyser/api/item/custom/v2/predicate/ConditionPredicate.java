@@ -23,11 +23,8 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.data;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-
-// TODO maybe type should be a generic class with data, but this works for now
 public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
 
     // TODO maybe we can extend this

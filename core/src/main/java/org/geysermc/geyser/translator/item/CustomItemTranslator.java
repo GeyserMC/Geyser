@@ -30,10 +30,11 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
@@ -57,7 +58,7 @@ import java.util.List;
 public final class CustomItemTranslator {
 
     @Nullable
-    public static ItemDefinition getCustomItem(GeyserSession session, DataComponents components, ItemMapping mapping) {
+    public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
         if (components == null) {
             return null;
         }
@@ -78,7 +79,7 @@ public final class CustomItemTranslator {
             if (customModel.first().model().equals(itemModel)) {
                 boolean allMatch = true;
                 for (CustomItemPredicate predicate : customModel.first().predicates()) {
-                    if (!predicateMatches(session, predicate, components)) {
+                    if (!predicateMatches(session, predicate, stackSize, components)) {
                         allMatch = false;
                         break;
                     }
@@ -91,7 +92,7 @@ public final class CustomItemTranslator {
         return null;
     }
 
-    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate predicate, DataComponents components) {
+    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate predicate, int stackSize, DataComponents components) {
         if (predicate instanceof ConditionPredicate condition) {
             return switch (condition.property()) {
                 case BROKEN -> nextDamageWillBreak(components);
@@ -124,18 +125,46 @@ public final class CustomItemTranslator {
             } else if (match.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
                 Key dimension = (Key) match.data();
                 RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
-                return registered != null && dimension.equals(registered.key()); // TODO check if this works
+                return registered != null && dimension.equals(registered.key());
             } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
                 // TODO 1.21.4
                 return false;
             }
+        } else if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
+            double propertyValue = switch (rangeDispatch.property()) {
+                case BUNDLE_FULLNESS -> {
+                    List<ItemStack> stacks = components.get(DataComponentType.BUNDLE_CONTENTS);
+                    if (stacks == null) {
+                        yield 0;
+                    }
+                    int bundleWeight = 0;
+                    for (ItemStack stack : stacks) {
+                        bundleWeight += stack.getAmount();
+                    }
+                    yield bundleWeight;
+                }
+                case DAMAGE -> tryNormalize(rangeDispatch, components.get(DataComponentType.DAMAGE), components.get(DataComponentType.MAX_DAMAGE));
+                case COUNT -> tryNormalize(rangeDispatch, stackSize, components.get(DataComponentType.MAX_STACK_SIZE));
+                case CUSTOM_MODEL_DATA -> 0.0; // TODO 1.21.4
+            } * rangeDispatch.scale();
+            return propertyValue >= rangeDispatch.threshold();
         }
 
         throw new IllegalStateException("Unimplemented predicate type");
     }
 
-    /* These three functions are based off their Mojmap equivalents from 1.21.3 */
+    private static double tryNormalize(RangeDispatchPredicate predicate, @Nullable Integer value, @Nullable Integer max) {
+        if (value == null) {
+            return 0.0;
+        } else if (max == null) {
+            return value;
+        } else if (!predicate.normalizeIfPossible()) {
+            return Math.min(value, max);
+        }
+        return Math.max(0.0, Math.min(1.0, (double) value / max));
+    }
 
+    /* These three functions are based off their Mojmap equivalents from 1.21.3 */
     private static boolean nextDamageWillBreak(DataComponents components) {
         return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) >= components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) - 1;
     }

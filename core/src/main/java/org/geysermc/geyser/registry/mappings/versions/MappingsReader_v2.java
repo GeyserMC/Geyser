@@ -35,11 +35,11 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.ConditionPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.CustomModelDataPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.data.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomModelDataProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
@@ -270,9 +270,9 @@ public class MappingsReader_v2 extends MappingsReader {
                 case "custom_model_data" -> {
                     JsonNode index = node.get("index");
                     if (index == null || !index.isIntegralNumber()) {
-                        throw new InvalidCustomMappingsFileException("Predicate missing index key");
+                        throw new InvalidCustomMappingsFileException("Predicate missing index key"); // TODO default to 0
                     }
-                    builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataPredicate<>(value.asText(), index.asInt())));
+                    builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataProperty<>(value.asText(), index.asInt())));
                 }
                 default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
             }

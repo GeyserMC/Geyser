@@ -23,7 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.data;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public record CustomModelDataPredicate<T>(T data, int index) {
+public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements CustomItemPredicate {
+
+    // TODO check if we can change items while bedrock is using them, and if bedrock will continue to use them
+    public enum RangeDispatchProperty {
+        BUNDLE_FULLNESS,
+        DAMAGE,
+        COUNT,
+        CUSTOM_MODEL_DATA
+    }
 }

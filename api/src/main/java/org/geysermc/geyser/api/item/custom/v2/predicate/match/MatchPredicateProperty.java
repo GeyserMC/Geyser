@@ -23,9 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.data.match;
+package org.geysermc.geyser.api.item.custom.v2.predicate.match;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomModelDataProperty;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements CustomItemPredicate {
+// TODO can we do more?
+public class MatchPredicateProperty<T> {
+
+    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
+    public static final MatchPredicateProperty<Key> TRIM_MATERIAL = create();
+    public static final MatchPredicateProperty<Key> CONTEXT_DIMENSION = create();
+    public static final MatchPredicateProperty<CustomModelDataProperty<String>> CUSTOM_MODEL_DATA = create();
+
+    private MatchPredicateProperty() {}
+
+    private static <T> MatchPredicateProperty<T> create() {
+        return new MatchPredicateProperty<>();
+    }
 }
