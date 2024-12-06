@@ -38,6 +38,7 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
 @Translator(packet = ClientboundRespawnPacket.class)
 public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPacket> {
@@ -93,5 +94,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
 
             ChunkUtils.loadDimension(session);
         }
+
+        session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);
     }
 }

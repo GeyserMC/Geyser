@@ -25,16 +25,24 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 
 import java.util.OptionalInt;
 import java.util.Set;
 
 /**
  * This is used to store data for a custom item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
  */
+@Deprecated
 public interface CustomItemData {
     /**
      * Gets the item's name.
@@ -116,6 +124,32 @@ public interface CustomItemData {
 
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
+    }
+
+    default CustomItemDefinition.Builder toDefinition(String javaItem) {
+        // TODO non vanilla, unbreakable predicate?
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(Key.key(javaItem), Key.key(javaItem))
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? BedrockCreativeTab.NONE : BedrockCreativeTab.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .textureSize(textureSize())
+                .renderOffsets(renderOffsets())
+                .tags(tags())
+            );
+
+        CustomItemOptions options = customItemOptions();
+        if (options.customModelData().isPresent()) {
+            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.CUSTOM_MODEL_DATA,
+                options.customModelData().getAsInt(), 1.0, false, 0));
+        }
+        if (options.damagePredicate().isPresent()) {
+            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.DAMAGE, options.damagePredicate().getAsInt()));
+        }
+        return definition;
     }
 
     interface Builder {

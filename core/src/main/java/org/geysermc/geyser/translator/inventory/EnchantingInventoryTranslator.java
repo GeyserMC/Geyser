@@ -135,10 +135,10 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
             return 0;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_MATERIAL) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.ENCHANTING_MATERIAL) {
             return 1;
         }
         return super.bedrockSlotToJava(slotInfoData);

@@ -41,7 +41,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -103,6 +102,9 @@ public final class ItemTranslator {
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.BODY, "body");
     }
 
+    private final static List<Item> GLINT_PRESENT = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
+        Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
+
     private ItemTranslator() {
     }
 
@@ -119,7 +121,7 @@ public final class ItemTranslator {
         NbtMap nbt = data.getTag();
         if (nbt != null && !nbt.isEmpty()) {
             // translateToJava may have added components
-            DataComponents components = itemStack.getComponents() == null ? new DataComponents(new HashMap<>()) : itemStack.getComponents();
+            DataComponents components = itemStack.getOrCreateComponents();
             javaItem.translateNbtToJava(session, nbt, components, bedrockItem);
             if (!components.getDataComponents().isEmpty()) {
                 itemStack.setComponents(components);
@@ -156,42 +158,24 @@ public final class ItemTranslator {
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
-        boolean hideTooltips = false;
-        if (components != null) {
-            javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
-            if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
-        }
+        // Populates default components that aren't sent over the network
+        components = javaItem.gatherComponents(components);
 
-        // Fixes fireworks crafting recipe: they always contain a tag
-        // TODO remove once all items have their default components
-        if (javaItem instanceof BedrockRequiresTagItem requiresTagItem) {
-            requiresTagItem.addRequiredNbt(session, components, nbtBuilder);
-        }
+        // Translate item-specific components
+        javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
-        Rarity rarity = javaItem.rarity();
-        boolean enchantmentGlint = javaItem.glint();
-        if (components != null) {
-            Integer rarityIndex = components.get(DataComponentType.RARITY);
-            if (rarityIndex != null) {
-                rarity = Rarity.fromId(rarityIndex);
-            }
-            Boolean enchantmentGlintOverride = components.get(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE);
-            if (enchantmentGlintOverride != null) {
-                enchantmentGlint = enchantmentGlintOverride;
-            }
-        }
-
+        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
         String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
 
-        if (components != null) {
-            ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
-            if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
-                // only add if attribute modifiers do not indicate to hide them
-                addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
-            }
+        boolean hideTooltips = components.get(DataComponentType.HIDE_TOOLTIP) != null;
+
+        ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
+        if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
+            // only add if attribute modifiers do not indicate to hide them
+            addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
         }
 
         if (session.isAdvancedTooltips() && !hideTooltips) {
@@ -199,7 +183,7 @@ public final class ItemTranslator {
         }
 
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
-        if (enchantmentGlint) {
+        if (components.getOrDefault(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, false) && !GLINT_PRESENT.contains(javaItem)) {
             NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
@@ -218,23 +202,21 @@ public final class ItemTranslator {
         }
 
         if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            translatePlayerHead(session, components, builder);
+            translatePlayerHead(session, components.get(DataComponentType.PROFILE), builder);
         }
 
-        translateCustomItem(components, builder, bedrockItem);
+        translateCustomItem(session, count, components, builder, bedrockItem);
 
-        if (components != null) {
-            // Translate the canDestroy and canPlaceOn Java components
-            AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
-            AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
-            String[] canBreak = getCanModify(session, canDestroy);
-            String[] canPlace = getCanModify(session, canPlaceOn);
-            if (canBreak != null) {
-                builder.canBreak(canBreak);
-            }
-            if (canPlace != null) {
-                builder.canPlace(canPlace);
-            }
+        // Translate the canDestroy and canPlaceOn Java components
+        AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
+        AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
+        String[] canBreak = getCanModify(session, canDestroy);
+        String[] canPlace = getCanModify(session, canPlaceOn);
+        if (canBreak != null) {
+            builder.canBreak(canBreak);
+        }
+        if (canPlace != null) {
+            builder.canPlace(canPlace);
         }
 
         return builder;
@@ -390,7 +372,7 @@ public final class ItemTranslator {
     }
 
     private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
-        int maxDurability = item.maxDamage();
+        int maxDurability = item.defaultMaxDamage();
 
         if (maxDurability != 0 && components != null) {
             Integer durabilityComponent = components.get(DataComponentType.DAMAGE);
@@ -477,7 +459,7 @@ public final class ItemTranslator {
             return ItemDefinition.AIR;
         }
 
-        ItemMapping mapping = itemStack.asItem().toBedrockDefinition(itemStack.getComponents(), session.getItemMappings());
+        ItemMapping mapping = itemStack.asItem().toBedrockDefinition(itemStack.getAllComponents(), session.getItemMappings());
 
         ItemDefinition itemDefinition = mapping.getBedrockDefinition();
         CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
@@ -487,13 +469,13 @@ public final class ItemTranslator {
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            CustomSkull customSkull = getCustomSkull(itemStack.getComponents());
+            CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentType.PROFILE));
             if (customSkull != null) {
                 itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;
@@ -547,8 +529,8 @@ public final class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static void translateCustomItem(DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(components, mapping);
+    public static void translateCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, stackSize, components, mapping);
         if (definition != null) {
             builder.definition(definition);
             builder.blockDefinition(null);
@@ -565,39 +547,35 @@ public final class ItemTranslator {
         builder.blockDefinition(blockDefinition);
     }
 
-    private static @Nullable CustomSkull getCustomSkull(DataComponents components) {
-        if (components == null) {
+    private static @Nullable CustomSkull getCustomSkull(@Nullable GameProfile profile) {
+        if (profile == null) {
             return null;
         }
-        
-        GameProfile profile = components.get(DataComponentType.PROFILE);
-        if (profile != null) {
-            Map<TextureType, Texture> textures;
-            try {
-                textures = profile.getTextures(false);
-            } catch (IllegalStateException e) {
-                GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
-                return null;
-            }
 
-            if (textures == null || textures.isEmpty()) {
-                return null;
-            }
-
-            Texture skinTexture = textures.get(TextureType.SKIN);
-
-            if (skinTexture == null) {
-                return null;
-            }
-
-            String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
-            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        Map<TextureType, Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            return null;
         }
-        return null;
+
+        if (textures == null || textures.isEmpty()) {
+            return null;
+        }
+
+        Texture skinTexture = textures.get(TextureType.SKIN);
+
+        if (skinTexture == null) {
+            return null;
+        }
+
+        String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
+        return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
     }
 
-    private static void translatePlayerHead(GeyserSession session, DataComponents components, ItemData.Builder builder) {
-        CustomSkull customSkull = getCustomSkull(components);
+    private static void translatePlayerHead(GeyserSession session, GameProfile profile, ItemData.Builder builder) {
+        CustomSkull customSkull = getCustomSkull(profile);
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();
             ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);

@@ -77,7 +77,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slot = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY, HOTBAR, INVENTORY -> {
                 //hotbar
                 if (slot >= 9) {

@@ -23,26 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 
-import java.util.Map;
+public class FoodReader extends DataComponentReader<FoodProperties> {
 
-public class Conversion748_729 {
-
-    private static final Map<String, Integer> NEW_PLAYER_HEADS = Map.of("minecraft:skeleton_skull", 0, "minecraft:wither_skeleton_skull", 1, "minecraft:zombie_head", 2, "minecraft:player_head", 3, "minecraft:creeper_head", 4, "minecraft:dragon_head", 5, "minecraft:piglin_head", 6);
-
-    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        String identifier = mapping.getBedrockIdentifier();
-
-        if (NEW_PLAYER_HEADS.containsKey(identifier)) {
-            return mapping.withBedrockIdentifier("minecraft:skull")
-                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
-        }
-
-        return mapping;
+    public FoodReader() {
+        super(DataComponentType.FOOD);
     }
 
+    @Override
+    protected FoodProperties readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        requireObject(node);
+
+        JsonNode canAlwaysEat = node.get("can_always_eat");
+        return new FoodProperties(0, 0, canAlwaysEat != null && canAlwaysEat.asBoolean());
+    }
 }
