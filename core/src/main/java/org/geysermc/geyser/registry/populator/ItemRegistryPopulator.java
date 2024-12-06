@@ -718,6 +718,9 @@ public class ItemRegistryPopulator {
      *
      * <p>First by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first,
      * and then by the amount of predicates, from most to least.</p>
+     *
+     * <p>This comparator regards 2 custom item definitions as the same if their model differs, since it is only checking for predicates, and those
+     * don't matter if their models are different.</p>
      */
     private static class CustomItemDefinitionComparator implements Comparator<Pair<CustomItemDefinition, ItemDefinition>> {
 
@@ -725,7 +728,7 @@ public class ItemRegistryPopulator {
         public int compare(Pair<CustomItemDefinition, ItemDefinition> firstPair, Pair<CustomItemDefinition, ItemDefinition> secondPair) {
             CustomItemDefinition first = firstPair.first();
             CustomItemDefinition second = secondPair.first();
-            if (first.equals(second)) {
+            if (first.equals(second) || !first.model().equals(second.model())) {
                 return 0;
             }
             for (CustomItemPredicate predicate : first.predicates()) {
