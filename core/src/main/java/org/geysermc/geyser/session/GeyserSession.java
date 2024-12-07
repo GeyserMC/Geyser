@@ -968,7 +968,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     this.protocol, this.tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
         } else {
-            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
+            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), "0.0.0.0", 0, this.protocol, null, tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
 
             boolean resolveSrv = false;
