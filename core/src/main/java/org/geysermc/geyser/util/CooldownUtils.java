@@ -164,6 +164,7 @@ public class CooldownUtils {
          * Convert the CooldownType string (from config) to the enum, DISABLED on fail
          *
          * @param name CooldownType string
+         * 
          * @return The converted CooldownType
          */
         public static CooldownType getByName(String name) {
