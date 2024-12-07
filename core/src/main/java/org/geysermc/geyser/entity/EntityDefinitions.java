@@ -38,6 +38,7 @@ import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
+import org.geysermc.geyser.entity.type.EnderEyeEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.ExpOrbEntity;
