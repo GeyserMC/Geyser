@@ -905,7 +905,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
         return task.getAuthentication().handle((result, ex) -> {
-
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 if (ex instanceof CompletionException ce
@@ -918,7 +917,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 }
                 return false;
             }
-
 
             StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
             StepMCToken.MCToken mcToken = mcProfile.getMcToken();

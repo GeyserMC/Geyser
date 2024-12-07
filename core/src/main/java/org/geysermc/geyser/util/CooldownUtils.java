@@ -94,8 +94,7 @@ public class CooldownUtils {
      */
     private static void computeCooldown(GeyserSession session, CooldownType sessionPreference, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
-        if (lastHitTime != session.getLastHitTime())
-            return; // Means another cooldown has started so there's no need to continue this one
+        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
         if (sessionPreference == CooldownType.ACTIONBAR) {
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
