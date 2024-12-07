@@ -31,6 +31,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.Clien
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -55,15 +56,15 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
+    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session, boolean canRunImmediately) {
         if (session.getUpstream().isClosed() || session.isClosed()) {
             return false;
         }
 
         PacketTranslator<P> translator = (PacketTranslator<P>) this.mappings.get(clazz);
         if (translator != null) {
-            EventLoop eventLoop = session.getEventLoop();
-            if (!translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
+            EventLoop eventLoop = session.getTickEventLoop();
+            if (canRunImmediately || !translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
                 translate0(session, translator, packet);
             } else {
                 eventLoop.execute(() -> translate0(session, translator, packet));
@@ -87,6 +88,8 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
 
         try {
             translator.translate(session, packet);
+        } catch (ErosionCancellationException ex) {
+            GeyserImpl.getInstance().getLogger().debug("Caught ErosionCancellationException");
         } catch (Throwable ex) {
             GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
             ex.printStackTrace();

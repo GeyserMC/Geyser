@@ -223,10 +223,6 @@ public final class BlockUtils {
         return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, blockPos));
     }
 
-    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
-        return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, x, y, z));
-    }
-
     private BlockUtils() {
     }
 }

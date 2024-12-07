@@ -35,6 +35,7 @@ import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPac
 import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPickBlockPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -49,6 +50,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return session.getChunkCache().getBlockAt(x, y, z);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         erosionHandler.setPendingLookup(future);
@@ -61,6 +64,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlockAtAsync(session, x, y, z);
+        } else if (session.isClosed()) {
+            return CompletableFuture.failedFuture(new ErosionCancellationException());
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         int transactionId = erosionHandler.getNextTransactionId();
@@ -74,6 +79,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlocksAt(session, iter);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<int[]> future = new CompletableFuture<>();
         erosionHandler.setPendingBatchLookup(future);
@@ -124,6 +131,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getPickItemComponents(session, x, y, z, addNbtData);
+        } else if (session.isClosed()) {
+            return CompletableFuture.failedFuture(new ErosionCancellationException());
         }
         CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
         erosionHandler.setPickBlockLookup(future);

@@ -30,8 +30,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -55,7 +53,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
      * Hack: Java opens a lectern first, and then follows it up with a ClientboundContainerSetContentPacket
      * to actually send the book's contents. We delay opening the inventory until the book was sent.
      */
-    private boolean initialized = false;
+    private boolean receivedBook = false;
 
     public LecternInventoryTranslator() {
         super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
@@ -64,11 +62,12 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         super.prepareInventory(session, inventory);
-        if (((Container) inventory).isUsingRealBlock()) {
-            initialized = false; // We have to wait until we get the book to show to the client
+        if (((LecternContainer) inventory).isFakeLectern()) {
+            // See JavaOpenBookTranslator; this isn't a lectern but a book in the player inventory
+            updateBook(session, inventory, inventory.getItem(0));
+            receivedBook = true;
         } else {
-            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; placed here manually
-            initialized = true;
+            receivedBook = false; // We have to wait until we get the book
         }
         return true;
     }
@@ -79,7 +78,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // "initialized" indicates whether we've received the book from the Java server yet.
         // dropping lectern book is the fun workaround when we have to enter the gui to drop the book.
         // Since we leave it immediately... don't open it!
-        if (initialized && !session.isDroppingLecternBook()) {
+        if (receivedBook && !session.isDroppingLecternBook()) {
             super.openInventory(session, inventory);
         }
     }
@@ -122,8 +121,8 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             boolean isDropping = session.isDroppingLecternBook();
             updateBook(session, inventory, itemStack);
 
-            if (!initialized && !isDropping) {
-                initialized = true;
+            if (!receivedBook && !isDropping) {
+                receivedBook = true;
                 openInventory(session, inventory);
             }
         }

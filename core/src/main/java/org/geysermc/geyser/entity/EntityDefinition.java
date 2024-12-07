@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.entity;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.BiConsumer;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
@@ -37,10 +37,9 @@ import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.function.BiConsumer;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 /**
  * Represents data for an entity. This includes properties such as height and width, as well as the list of entity
