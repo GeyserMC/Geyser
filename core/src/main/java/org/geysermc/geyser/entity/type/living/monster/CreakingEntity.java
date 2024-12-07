@@ -41,9 +41,20 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import java.util.Optional;
 import java.util.UUID;
 
+/*
+ * Relevant bits:
+ * - LevelSoundEvent2Packet(sound=SPAWN, position=(233.5, 112.295, 4717.5), extraData=-1, identifier=minecraft:creaking, babySound=false, relativeVolumeDisabled=false)
+ * - [11:29:34:768] [CLIENT BOUND] - LevelSoundEvent2Packet(sound=CREAKING_HEART_SPAWN, position=(233.0, 110.0, 4717.0), extraData=-1, identifier=minecraft:creaking, babySound=false, relativeVolumeDisabled=false)
+ * - [11:29:34:768] [CLIENT BOUND] - LevelSoundEvent2Packet(sound=CREAKING_HEART_SPAWN, position=(235.0, 113.0, 4722.0), extraData=13734, identifier=, babySound=false, relativeVolumeDisabled=false)
+ * - [11:29:34:768] [CLIENT BOUND] - LevelEventPacket(type=PARTICLE_MOB_BLOCK_SPAWN, position=(233.0, 110.0, 4717.0), data=769)
+ *
+ */
 public class CreakingEntity extends MonsterEntity {
 
     private Vector3i homePosition;
+
+    public static final String CREAKING_STATE = "minecraft:creaking_state";
+    public static final String CREAKING_SWAYING_TICKS = "minecraft:creaking_swaying_ticks";
 
     public CreakingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -58,7 +69,7 @@ public class CreakingEntity extends MonsterEntity {
 
     @Override
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add("minecraft:creaking_state", "neutral");
+        propertyManager.add(CREAKING_STATE, "neutral");
         propertyManager.add("minecraft:creaking_swaying_ticks", 0);
         propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
@@ -68,11 +79,11 @@ public class CreakingEntity extends MonsterEntity {
             setFlag(EntityFlag.BODY_ROTATION_BLOCKED, false);
 
             // unfreeze sound? SoundEvent.UNFREEZE
-            propertyManager.add("minecraft:creaking_state", "hostile_unobserved");
+            propertyManager.add(CREAKING_STATE, "hostile_unobserved");
             updateBedrockEntityProperties();
         } else {
             setFlag(EntityFlag.BODY_ROTATION_BLOCKED, true);
-            propertyManager.add("minecraft:creaking_state", "hostile_observed");
+            propertyManager.add(CREAKING_STATE, "hostile_observed");
             updateBedrockEntityProperties();
         }
 
@@ -92,7 +103,7 @@ public class CreakingEntity extends MonsterEntity {
 //            setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
 //            setFlag(EntityFlag.BODY_ROTATION_BLOCKED, true);
         } else {
-            propertyManager.add("minecraft:creaking_state", "neutral");
+            propertyManager.add(CREAKING_STATE, "neutral");
         }
         GeyserImpl.getInstance().getLogger().warning("set active; " + booleanEntityMetadata.toString());
     }
@@ -100,7 +111,7 @@ public class CreakingEntity extends MonsterEntity {
     public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         GeyserImpl.getInstance().getLogger().warning("set isTearingDown; " + booleanEntityMetadata.toString());
         if (booleanEntityMetadata.getValue()) {
-            propertyManager.add("minecraft:creaking_state", "crumbling");
+            propertyManager.add(CREAKING_STATE, "crumbling");
             updateBedrockEntityProperties();
 //            LevelEventPacket levelEventPacket = new LevelEventPacket();
 //            levelEventPacket.setType(ParticleType.CREAKING_CRUMBLE);

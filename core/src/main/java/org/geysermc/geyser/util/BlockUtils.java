@@ -25,33 +25,31 @@
 
 package org.geysermc.geyser.util;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
 public final class BlockUtils {
 
-    public static float getBlockDestroyProgress(GeyserSession session, BlockState blockState, GeyserItemStack itemInHand) {
-        float destroySpeed = blockState.block().destroyTime();
+    /**
+     * Returns the total mining progress added by mining the block in a single tick
+     * @return the mining progress added by this tick.
+     */
+    public static float getBlockMiningProgressPerTick(GeyserSession session, Block block, GeyserItemStack itemInHand) {
+        float destroySpeed = block.destroyTime();
         if (destroySpeed == -1) {
             return 0;
         }
 
-        int speedMultiplier = hasCorrectTool(session, blockState.block(), itemInHand) ? 30 : 100;
-        return getPlayerDestroySpeed(session, blockState, itemInHand) / destroySpeed / speedMultiplier;
+        int speedMultiplier = hasCorrectTool(session, block, itemInHand) ? 30 : 100;
+        return getPlayerDestroySpeed(session, block, itemInHand) / destroySpeed / speedMultiplier;
     }
 
     private static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
@@ -66,8 +64,7 @@ public final class BlockUtils {
 
         for (ToolData.Rule rule : tool.getRules()) {
             if (rule.getCorrectForDrops() != null) {
-                GeyserHolderSet<Block> set = GeyserHolderSet.convertHolderSet(JavaRegistries.BLOCK, rule.getBlocks());
-                if (session.getTagCache().is(set, block)) {
+                if (session.getTagCache().isBlock(rule.getBlocks(), block)) {
                     return rule.getCorrectForDrops();
                 }
             }
@@ -84,8 +81,7 @@ public final class BlockUtils {
 
         for (ToolData.Rule rule : tool.getRules()) {
             if (rule.getSpeed() != null) {
-                GeyserHolderSet<Block> set = GeyserHolderSet.convertHolderSet(JavaRegistries.BLOCK, rule.getBlocks());
-                if (session.getTagCache().is(set, block)) {
+                if (session.getTagCache().isBlock(rule.getBlocks(), block)) {
                     return rule.getSpeed();
                 }
             }
@@ -94,8 +90,8 @@ public final class BlockUtils {
         return tool.getDefaultMiningSpeed();
     }
 
-    private static float getPlayerDestroySpeed(GeyserSession session, BlockState blockState, GeyserItemStack itemInHand) {
-        float destroySpeed = getItemDestroySpeed(session, blockState.block(), itemInHand);
+    private static float getPlayerDestroySpeed(GeyserSession session, Block block, GeyserItemStack itemInHand) {
+        float destroySpeed = getItemDestroySpeed(session, block, itemInHand);
         EntityEffectCache effectCache = session.getEffectCache();
 
         if (destroySpeed > 1.0F) {
@@ -133,17 +129,8 @@ public final class BlockUtils {
         return Math.max(cache.getHaste(), cache.getConduitPower());
     }
 
-    public int getDestroyStage(GeyserSession session) {
-        return session.getDestroyProgress() > 0F ? (int) session.getDestroyProgress() * 10 : -1;
-    }
-
-    // TODO 1.21.4 this changed probably; no more tiers
-    public static double getBreakTime(GeyserSession session, Block block, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
-        return 0.0; // TODO 1.21.4
-    }
-
-    public static double getSessionBreakTime(GeyserSession session, Block block) {
-        return 0.0; // TODO 1.21.4
+    public static double getSessionBreakTimeTicks(GeyserSession session, Block block) {
+        return Math.ceil(1 / getBlockMiningProgressPerTick(session, block, session.getPlayerInventory().getItemInHand()));
     }
 
     /**

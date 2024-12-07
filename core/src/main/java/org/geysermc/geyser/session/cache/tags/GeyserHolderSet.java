@@ -33,7 +33,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.List;
 import java.util.Objects;
@@ -86,27 +85,6 @@ public final class GeyserHolderSet<T> {
         }
 
         return tagCache.getRaw(Objects.requireNonNull(tag, "HolderSet must have a tag if it doesn't have a list of IDs"));
-    }
-
-    /**
-     * Reads a MCPL {@link HolderSet} and turns it into a GeyserHolderSet.
-     * @param registry the registry the HolderSet contains IDs from.
-     * @param holderSet the HolderSet as the MCPL HolderSet object
-     */
-    public static <T> GeyserHolderSet<T> convertHolderSet(@NonNull JavaRegistryKey<T> registry, @Nullable HolderSet holderSet) {
-        if (holderSet == null) {
-            return new GeyserHolderSet<>(registry, IntArrays.EMPTY_ARRAY);
-        }
-
-        if (holderSet.getHolders() != null) {
-            return new GeyserHolderSet<>(registry, holderSet.getHolders());
-        }
-
-        if (holderSet.getLocation() != null) {
-            return new GeyserHolderSet<>(registry, new Tag<>(registry, holderSet.getLocation()));
-        }
-
-        throw new IllegalStateException("HolderSet must have a tag or a list of IDs! " + holderSet);
     }
 
     /**

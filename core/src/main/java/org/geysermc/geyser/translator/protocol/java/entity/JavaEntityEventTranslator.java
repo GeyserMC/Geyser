@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
@@ -294,6 +295,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     creakingEntity.createParticleBeam();
                 }
                 break;
+            default:
+                GeyserImpl.getInstance().getLogger().debug("unhandled entity event: " + packet);
         }
 
         if (entityEventPacket.getType() != null) {

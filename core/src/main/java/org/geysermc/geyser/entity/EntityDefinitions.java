@@ -685,13 +685,13 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setIsTearingDown)
                     .addTranslator(MetadataType.OPTIONAL_POSITION, CreakingEntity::setHomePos)
                     .properties(new GeyserEntityProperties.Builder()
-                        .addEnum("minecraft:creaking_state",
+                        .addEnum(CreakingEntity.CREAKING_STATE,
                             "neutral",
                             "hostile_observed",
                             "hostile_unobserved",
                             "twitching",
                             "crumbling")
-                        .addInt("minecraft:creaking_swaying_ticks", 0, 6)
+                        .addInt(CreakingEntity.CREAKING_SWAYING_TICKS, 0, 6)
                         .build())
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)

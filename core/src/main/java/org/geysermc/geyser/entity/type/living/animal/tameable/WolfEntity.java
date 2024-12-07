@@ -38,8 +38,6 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -62,7 +60,7 @@ import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
     private byte collarColor = 14; // Red - default
-    private GeyserHolderSet<Item> repairableItems = null;
+    private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -130,8 +128,7 @@ public class WolfEntity extends TameableEntity {
     public void setBody(ItemStack stack) {
         super.setBody(stack);
         isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
-        HolderSet set = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
-        repairableItems = GeyserHolderSet.convertHolderSet(JavaRegistries.ITEM, set);
+        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
     }
 
     @Override
@@ -166,7 +163,7 @@ public class WolfEntity extends TameableEntity {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
             if (getFlag(EntityFlag.SITTING) &&
-                    session.getTagCache().is(repairableItems, itemInHand.asItem()) &&
+                    session.getTagCache().isItem(repairableItems, itemInHand.asItem()) &&
                     this.body.isValid() && this.body.getTag() != null &&
                     this.body.getTag().getInt("Damage") > 0) {
                 return InteractiveTag.REPAIR_WOLF_ARMOR;

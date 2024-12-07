@@ -89,7 +89,7 @@ final class BedrockBlockActions {
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20; // TODO afdaöwelfunöwoaenf
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, BlockState.of(blockState).block());
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -137,7 +137,7 @@ final class BedrockBlockActions {
                 Direction direction = Direction.VALUES[blockFace];
                 spawnBlockBreakParticles(session, direction, vector, breakingBlockState);
 
-                double breakTime = BlockUtils.getSessionBreakTime(session, breakingBlockState.block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, breakingBlockState.block());
                 // If the block is custom, we must keep track of when it should break ourselves
                 long blockBreakStartTime = session.getBlockBreakStartTime();
                 if (blockBreakStartTime != 0) {
