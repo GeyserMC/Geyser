@@ -32,7 +32,6 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -41,14 +40,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import java.util.Optional;
 import java.util.UUID;
 
-/*
- * Relevant bits:
- * - LevelSoundEvent2Packet(sound=SPAWN, position=(233.5, 112.295, 4717.5), extraData=-1, identifier=minecraft:creaking, babySound=false, relativeVolumeDisabled=false)
- * - [11:29:34:768] [CLIENT BOUND] - LevelSoundEvent2Packet(sound=CREAKING_HEART_SPAWN, position=(233.0, 110.0, 4717.0), extraData=-1, identifier=minecraft:creaking, babySound=false, relativeVolumeDisabled=false)
- * - [11:29:34:768] [CLIENT BOUND] - LevelSoundEvent2Packet(sound=CREAKING_HEART_SPAWN, position=(235.0, 113.0, 4722.0), extraData=13734, identifier=, babySound=false, relativeVolumeDisabled=false)
- * - [11:29:34:768] [CLIENT BOUND] - LevelEventPacket(type=PARTICLE_MOB_BLOCK_SPAWN, position=(233.0, 110.0, 4717.0), data=769)
- *
- */
+
 public class CreakingEntity extends MonsterEntity {
 
     private Vector3i homePosition;
@@ -70,53 +62,26 @@ public class CreakingEntity extends MonsterEntity {
     @Override
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
         propertyManager.add(CREAKING_STATE, "neutral");
-        propertyManager.add("minecraft:creaking_swaying_ticks", 0);
+        propertyManager.add(CREAKING_SWAYING_TICKS, 0);
         propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
     public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
-        if (booleanEntityMetadata.getValue()) {
-            setFlag(EntityFlag.BODY_ROTATION_BLOCKED, false);
-
-            // unfreeze sound? SoundEvent.UNFREEZE
-            propertyManager.add(CREAKING_STATE, "hostile_unobserved");
-            updateBedrockEntityProperties();
-        } else {
-            setFlag(EntityFlag.BODY_ROTATION_BLOCKED, true);
-            propertyManager.add(CREAKING_STATE, "hostile_observed");
-            updateBedrockEntityProperties();
-        }
-
-        GeyserImpl.getInstance().getLogger().warning("set can move; " + booleanEntityMetadata.toString());
+        setFlag(EntityFlag.BODY_ROTATION_BLOCKED, !booleanEntityMetadata.getValue());
+        propertyManager.add(CREAKING_STATE, booleanEntityMetadata.getValue() ? "hostile_unobserved" : "hostile_observed");
+        updateBedrockEntityProperties();
     }
 
     public void setActive(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
-        if (booleanEntityMetadata.getValue()) {
-//            LevelSoundEvent2Packet addEntityPacket = new LevelSoundEvent2Packet();
-//            addEntityPacket.setIdentifier("minecraft:creaking");
-//            addEntityPacket.setPosition(position);
-//            addEntityPacket.setBabySound(false);
-//            addEntityPacket.setSound(SoundEvent.ACTIVATE);
-//            addEntityPacket.setExtraData(-1);
-//            session.sendUpstreamPacket(addEntityPacket);
-
-//            setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
-//            setFlag(EntityFlag.BODY_ROTATION_BLOCKED, true);
-        } else {
+        if (!booleanEntityMetadata.getValue()) {
             propertyManager.add(CREAKING_STATE, "neutral");
         }
-        GeyserImpl.getInstance().getLogger().warning("set active; " + booleanEntityMetadata.toString());
     }
 
     public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
-        GeyserImpl.getInstance().getLogger().warning("set isTearingDown; " + booleanEntityMetadata.toString());
         if (booleanEntityMetadata.getValue()) {
             propertyManager.add(CREAKING_STATE, "crumbling");
             updateBedrockEntityProperties();
-//            LevelEventPacket levelEventPacket = new LevelEventPacket();
-//            levelEventPacket.setType(ParticleType.CREAKING_CRUMBLE);
-//            levelEventPacket.setPosition(position);
-//            levelEventPacket.setData(0);
         }
     }
 
@@ -134,7 +99,7 @@ public class CreakingEntity extends MonsterEntity {
             levelEventGenericPacket.setType(LevelEvent.PARTICLE_CREAKING_HEART_TRIAL);
             levelEventGenericPacket.setTag(
                 NbtMap.builder()
-                    .putInt("CreakingAmount", 0)
+                    .putInt("CreakingAmount", 20)
                     .putFloat("CreakingX", position.getX())
                     .putFloat("CreakingY", position.getY())
                     .putFloat("CreakingZ", position.getZ())
@@ -145,7 +110,6 @@ public class CreakingEntity extends MonsterEntity {
                     .build()
             );
 
-            GeyserImpl.getInstance().getLogger().warning(levelEventGenericPacket.toString());
             session.sendUpstreamPacket(levelEventGenericPacket);
         }
     }

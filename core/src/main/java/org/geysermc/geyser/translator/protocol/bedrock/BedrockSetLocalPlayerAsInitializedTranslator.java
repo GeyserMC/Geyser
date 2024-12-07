@@ -40,7 +40,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
     public void translate(GeyserSession session, SetLocalPlayerAsInitializedPacket packet) {
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
