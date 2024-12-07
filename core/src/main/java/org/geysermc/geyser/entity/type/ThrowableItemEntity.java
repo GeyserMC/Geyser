@@ -65,7 +65,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
         // Prevent projectiles from blocking the player's screen
         if (session.isTickingFrozen()) {
             // This may seem odd, but it matches java edition
-            Vector3f playerPos = session.getPlayerEntity().getPosition().sub(0, session.getPlayerEntity().getDefinition().offset(), 0);
+            Vector3f playerPos = session.getPlayerEntity().getPosition().down(EntityDefinitions.PLAYER.offset());
             setInvisible(playerPos.distanceSquared(position.add(0, definition.offset(), 0)) < 12.25);
         } else {
             setInvisible(age < 2);
