@@ -653,10 +653,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private MinecraftProtocol protocol;
 
-
-    @Getter
     private int nanosecondsPerTick = 50000000;
-    @Getter
     private float millisecondsPerTick = 50.0f;
     private boolean tickingFrozen = false;
     /**
