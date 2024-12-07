@@ -490,4 +490,3 @@ public class LivingEntity extends Entity {
         return type.getAttribute((float) AttributeUtils.calculateValue(javaAttribute));
     }
 }
-
