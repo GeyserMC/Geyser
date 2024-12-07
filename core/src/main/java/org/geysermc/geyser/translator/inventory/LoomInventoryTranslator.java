@@ -156,7 +156,10 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         inputCopy.setNetId(session.getNextItemNetId());
         BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
         if (bannerPatternLayer != null) {
-            List<BannerPatternLayer> patternsList = inputCopy.getComponentOrFallback(DataComponentType.BANNER_PATTERNS, new ArrayList<>());
+            List<BannerPatternLayer> patternsList = inputCopy.getComponent(DataComponentType.BANNER_PATTERNS);
+            if (patternsList == null) {
+                patternsList = new ArrayList<>();
+            }
             patternsList.add(bannerPatternLayer);
             inputCopy.getOrCreateComponents().put(DataComponentType.BANNER_PATTERNS, patternsList);
         }
