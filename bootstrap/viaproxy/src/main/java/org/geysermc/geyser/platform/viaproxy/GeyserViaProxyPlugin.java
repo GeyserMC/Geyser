@@ -24,15 +24,19 @@
  */
 package org.geysermc.geyser.platform.viaproxy;
 
+import io.netty.channel.AbstractChannel;
 import net.lenni0451.lambdaevents.EventHandler;
+import net.lenni0451.reflect.stream.RStream;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
+import net.raphimc.viaproxy.plugins.events.Client2ProxyChannelInitializeEvent;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
+import net.raphimc.viaproxy.plugins.events.types.ITyped;
 import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -56,6 +60,7 @@ import org.geysermc.geyser.util.LoopbackUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -106,6 +111,27 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
         if (connection.javaUsername().equals(event.getProxyConnection().getGameProfile().getName())) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onClient2ProxyChannelInitialize(Client2ProxyChannelInitializeEvent event) {
+        if (event.getType() != ITyped.Type.POST || event.isLegacyPassthrough()) {
+            return;
+        }
+        if (System.getProperty("geyser.viaproxy.disableIpPassthrough") != null) { // Temporary until Configurate branch is merged
+            return;
+        }
+
+        final GeyserSession session = GeyserImpl.getInstance().onlineConnections().stream()
+            .filter(c -> c.getDownstream() != null)
+            .filter(c -> c.getDownstream().getSession().getLocalAddress().equals(event.getChannel().remoteAddress()))
+            .findAny().orElse(null);
+        if (session != null) {
+            final SocketAddress realAddress = session.getSocketAddress();
+            if (event.getChannel() instanceof AbstractChannel) {
+                RStream.of(AbstractChannel.class, event.getChannel()).fields().by("remoteAddress").set(realAddress);
+            }
         }
     }
 
