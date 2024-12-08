@@ -150,7 +150,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -522,6 +521,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private long blockBreakStartTime;
+
+    /**
+     * // TODO
+     */
+    private long destroyProgress;
 
     /**
      * Stores whether the player intended to place a bucket.
@@ -1148,7 +1152,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             @Override
             public void packetError(PacketErrorEvent event) {
-                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
+                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error",
+                    (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ")" : "") +
+                    event.getCause().getMessage())
+                );
                 if (geyser.getConfig().isDebugMode())
                     event.getCause().printStackTrace();
                 event.setSuppress(true);
@@ -1663,8 +1670,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
-        // Required for experimental 1.21 features
-        startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

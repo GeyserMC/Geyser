@@ -25,18 +25,14 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
-import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
@@ -44,7 +40,6 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
 import java.util.Objects;
@@ -126,20 +121,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
-    }
-
-    @Override
-    public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
-            return CompletableFuture.completedFuture(null);
-        }
-        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
-        Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
-        // Paper 1.19.3 complains about async access otherwise.
-        // java.lang.IllegalStateException: Tile is null, asynchronous access?
-        SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
-        return future.thenApply(RAW_TRANSFORMER);
     }
 
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {

@@ -6,6 +6,7 @@
         "minecraft:banner"
     ],
     "minecraft:boat": [
+        "minecraft:pale_oak_chest_boat",
         "minecraft:cherry_chest_boat",
         "minecraft:oak_chest_boat",
         "minecraft:mangrove_boat",
@@ -23,9 +24,11 @@
         "minecraft:mangrove_chest_boat",
         "minecraft:cherry_boat",
         "minecraft:bamboo_raft",
-        "minecraft:bamboo_chest_raft"
+        "minecraft:bamboo_chest_raft",
+        "minecraft:pale_oak_boat"
     ],
     "minecraft:boats": [
+        "minecraft:pale_oak_chest_boat",
         "minecraft:cherry_chest_boat",
         "minecraft:oak_chest_boat",
         "minecraft:mangrove_boat",
@@ -43,7 +46,8 @@
         "minecraft:mangrove_chest_boat",
         "minecraft:cherry_boat",
         "minecraft:bamboo_raft",
-        "minecraft:bamboo_chest_raft"
+        "minecraft:bamboo_chest_raft",
+        "minecraft:pale_oak_boat"
     ],
     "minecraft:bookshelf_books": [
         "minecraft:written_book",
@@ -151,7 +155,8 @@
         "minecraft:oxidized_copper_door",
         "minecraft:waxed_copper_door",
         "minecraft:waxed_exposed_copper_door",
-        "minecraft:waxed_oxidized_copper_door"
+        "minecraft:waxed_oxidized_copper_door",
+        "minecraft:pale_oak_door"
     ],
     "minecraft:golden_tier": [
         "minecraft:golden_sword",
@@ -170,6 +175,7 @@
     "minecraft:hanging_sign": [
         "minecraft:mangrove_hanging_sign",
         "minecraft:bamboo_hanging_sign",
+        "minecraft:pale_oak_hanging_sign",
         "minecraft:spruce_hanging_sign",
         "minecraft:birch_hanging_sign",
         "minecraft:cherry_hanging_sign",
@@ -318,6 +324,9 @@
         "minecraft:golden_pickaxe",
         "minecraft:netherite_pickaxe"
     ],
+    "minecraft:is_shears": [
+        "minecraft:shears"
+    ],
     "minecraft:is_shovel": [
         "minecraft:iron_shovel",
         "minecraft:wooden_shovel",
@@ -382,6 +391,7 @@
         "minecraft:writable_book"
     ],
     "minecraft:logs": [
+        "minecraft:stripped_oak_log",
         "minecraft:mangrove_wood",
         "minecraft:spruce_wood",
         "minecraft:stripped_cherry_wood",
@@ -390,12 +400,14 @@
         "minecraft:spruce_log",
         "minecraft:acacia_wood",
         "minecraft:stripped_acacia_wood",
+        "minecraft:pale_oak_wood",
         "minecraft:stripped_warped_hyphae",
         "minecraft:acacia_log",
         "minecraft:stripped_warped_stem",
         "minecraft:oak_log",
         "minecraft:birch_log",
         "minecraft:jungle_log",
+        "minecraft:stripped_pale_oak_wood",
         "minecraft:dark_oak_log",
         "minecraft:jungle_wood",
         "minecraft:stripped_jungle_wood",
@@ -405,10 +417,10 @@
         "minecraft:stripped_oak_wood",
         "minecraft:stripped_birch_wood",
         "minecraft:stripped_dark_oak_wood",
-        "minecraft:stripped_oak_log",
         "minecraft:stripped_dark_oak_log",
         "minecraft:mangrove_log",
         "minecraft:stripped_jungle_log",
+        "minecraft:stripped_pale_oak_log",
         "minecraft:stripped_mangrove_wood",
         "minecraft:crimson_hyphae",
         "minecraft:stripped_cherry_log",
@@ -416,6 +428,7 @@
         "minecraft:stripped_acacia_log",
         "minecraft:crimson_stem",
         "minecraft:warped_hyphae",
+        "minecraft:pale_oak_log",
         "minecraft:stripped_spruce_log",
         "minecraft:warped_stem",
         "minecraft:stripped_crimson_hyphae",
@@ -424,6 +437,7 @@
         "minecraft:stripped_mangrove_log"
     ],
     "minecraft:logs_that_burn": [
+        "minecraft:stripped_oak_log",
         "minecraft:mangrove_wood",
         "minecraft:spruce_wood",
         "minecraft:stripped_cherry_wood",
@@ -431,10 +445,12 @@
         "minecraft:spruce_log",
         "minecraft:acacia_wood",
         "minecraft:stripped_acacia_wood",
+        "minecraft:pale_oak_wood",
         "minecraft:acacia_log",
         "minecraft:oak_log",
         "minecraft:birch_log",
         "minecraft:jungle_log",
+        "minecraft:stripped_pale_oak_wood",
         "minecraft:dark_oak_log",
         "minecraft:jungle_wood",
         "minecraft:stripped_jungle_wood",
@@ -444,14 +460,15 @@
         "minecraft:stripped_oak_wood",
         "minecraft:stripped_birch_wood",
         "minecraft:stripped_dark_oak_wood",
-        "minecraft:stripped_oak_log",
         "minecraft:stripped_dark_oak_log",
         "minecraft:mangrove_log",
         "minecraft:stripped_jungle_log",
+        "minecraft:stripped_pale_oak_log",
         "minecraft:stripped_mangrove_wood",
         "minecraft:stripped_cherry_log",
         "minecraft:stripped_birch_log",
         "minecraft:stripped_acacia_log",
+        "minecraft:pale_oak_log",
         "minecraft:stripped_spruce_log",
         "minecraft:cherry_wood",
         "minecraft:cherry_log",
@@ -505,6 +522,7 @@
         "minecraft:acacia_planks",
         "minecraft:bamboo_planks",
         "minecraft:warped_planks",
+        "minecraft:pale_oak_planks",
         "minecraft:crimson_planks",
         "minecraft:cherry_planks"
     ],
@@ -521,6 +539,7 @@
         "minecraft:bamboo_hanging_sign",
         "minecraft:warped_sign",
         "minecraft:spruce_sign",
+        "minecraft:pale_oak_hanging_sign",
         "minecraft:spruce_hanging_sign",
         "minecraft:acacia_sign",
         "minecraft:birch_hanging_sign",
@@ -534,7 +553,8 @@
         "minecraft:acacia_hanging_sign",
         "minecraft:dark_oak_hanging_sign",
         "minecraft:crimson_hanging_sign",
-        "minecraft:warped_hanging_sign"
+        "minecraft:warped_hanging_sign",
+        "minecraft:pale_oak_sign"
     ],
     "minecraft:soul_fire_base_blocks": [
         "minecraft:soul_soil",
@@ -596,6 +616,7 @@
         "minecraft:piglin_spawn_egg",
         "minecraft:wither_skeleton_spawn_egg",
         "minecraft:donkey_spawn_egg",
+        "minecraft:creaking_spawn_egg",
         "minecraft:mule_spawn_egg",
         "minecraft:skeleton_horse_spawn_egg",
         "minecraft:zombie_horse_spawn_egg",
@@ -667,6 +688,7 @@
         "minecraft:golden_boots"
     ],
     "minecraft:trim_materials": [
+        "minecraft:resin_brick",
         "minecraft:diamond",
         "minecraft:iron_ingot",
         "minecraft:gold_ingot",
@@ -743,6 +765,7 @@
         "minecraft:red_carpet",
         "minecraft:brown_carpet",
         "minecraft:light_blue_wool",
+        "minecraft:green_carpet",
         "minecraft:white_wool",
         "minecraft:magenta_wool",
         "minecraft:yellow_wool",
@@ -756,8 +779,7 @@
         "minecraft:orange_carpet",
         "minecraft:light_blue_carpet",
         "minecraft:gray_carpet",
-        "minecraft:light_gray_carpet",
-        "minecraft:green_carpet"
+        "minecraft:light_gray_carpet"
     ],
     "minecraft:warped_stems": [
         "minecraft:stripped_warped_hyphae",
@@ -771,6 +793,7 @@
         "minecraft:spruce_slab",
         "minecraft:bamboo_slab",
         "minecraft:warped_slab",
+        "minecraft:pale_oak_slab",
         "minecraft:mangrove_slab",
         "minecraft:cherry_slab",
         "minecraft:jungle_slab",

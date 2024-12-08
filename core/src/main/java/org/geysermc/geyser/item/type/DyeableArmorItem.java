@@ -26,14 +26,13 @@
 package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.ArmorMaterial;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class DyeableArmorItem extends ArmorItem {
-    public DyeableArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
-        super(javaIdentifier, material, builder);
+    public DyeableArmorItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
     @Override

@@ -62,6 +62,11 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         Vector3i position = packet.getPosition();
         BlockValue value = packet.getValue();
 
+        if (value == null) {
+            session.getGeyser().getLogger().debug("Unable to handle packet %s - null value! ".formatted(packet.toString()));
+            return;
+        }
+
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(position);
 

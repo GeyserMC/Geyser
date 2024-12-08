@@ -52,7 +52,6 @@ public class ItemMapping {
             null, // Air is never sent in full over the network for this to serialize.
             null,
             null,
-            null,
             Collections.emptyList(),
             Items.AIR
     );
@@ -68,7 +67,6 @@ public class ItemMapping {
     BlockDefinition bedrockBlockDefinition;
 
     String toolType;
-    String toolTier;
 
     String translationString;
 

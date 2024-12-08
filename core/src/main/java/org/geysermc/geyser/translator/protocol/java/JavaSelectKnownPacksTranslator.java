@@ -40,7 +40,7 @@ import java.util.Set;
 @Translator(packet = ClientboundSelectKnownPacks.class)
 public class JavaSelectKnownPacksTranslator extends PacketTranslator<ClientboundSelectKnownPacks> {
     // todo: dump from client?
-    private static final Set<String> KNOWN_PACK_IDS = Set.of("core", "winter_drop", "trade_rebalance", "redstone_experiments", "minecart_improvements");
+    private static final Set<String> KNOWN_PACK_IDS = Set.of("core", "trade_rebalance", "redstone_experiments", "minecart_improvements");
 
     @Override
     public void translate(GeyserSession session, ClientboundSelectKnownPacks packet) {

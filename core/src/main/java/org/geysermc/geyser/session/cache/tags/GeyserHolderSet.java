@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.function.ToIntFunction;
-
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import lombok.Data;
 import net.kyori.adventure.key.Key;
@@ -37,6 +33,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.function.ToIntFunction;
 
 /**
  * Similar to vanilla Minecraft's HolderSets, stores either a tag or a list of IDs (this list can also be represented as a single ID in vanilla HolderSets).
