@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,22 +25,24 @@
 
 package org.geysermc.geyser.entity.type;
 
-/**
- * Implemented onto anything that should have code ran every Minecraft tick.
- * By default, the Java server runs at 20 TPS, 50 milliseconds for each tick.
- */
-public interface Tickable {
-    /**
-     * This function gets called every tick at all times, even when the server requests that
-     * the game should be frozen. This should be used for updating things that are always
-     * client side updated on Java, regardless of if the server is frozen or not.
-     */
-    default void drawTick() {
+
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.UUID;
+
+public class EnderEyeEntity extends Entity {
+    public EnderEyeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    /**
-     * This function gets called every game tick as long as the
-     * game tick loop isn't frozen.
-     */
-    void tick();
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Correct sizing
+        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
+    }
 }

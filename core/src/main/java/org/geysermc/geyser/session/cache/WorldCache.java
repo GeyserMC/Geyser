@@ -123,9 +123,13 @@ public final class WorldCache {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");
-        titlePacket.setFadeInTime(trueTitleFadeInTime);
-        titlePacket.setStayTime(trueTitleStayTime);
-        titlePacket.setFadeOutTime(trueTitleFadeOutTime);
+
+        // We need a tick rate multiplier as otherwise the timings are incorrect on different tick rates because
+        // bedrock can only run at 20 TPS (50ms = 1 tick)
+        int tickrateMultiplier = Math.round(session.getMillisecondsPerTick()) / 50;
+        titlePacket.setFadeInTime(trueTitleFadeInTime * tickrateMultiplier);
+        titlePacket.setStayTime(trueTitleStayTime * tickrateMultiplier);
+        titlePacket.setFadeOutTime(trueTitleFadeOutTime * tickrateMultiplier);
         titlePacket.setPlatformOnlineId("");
         titlePacket.setXuid("");
 
