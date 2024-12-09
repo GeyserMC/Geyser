@@ -189,7 +189,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             session.sendDownstreamGamePacket(steerPacket);
             return;
         }
-        doTick = !doTick; // Run every 100 ms
+        doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
         }
