@@ -28,14 +28,14 @@ package org.geysermc.geyser.session;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 
 @Getter
 @RequiredArgsConstructor
 public class DownstreamSession {
-    private final TcpSession session;
+    private final ClientSession session;
 
     public void sendPacket(@NonNull Packet packet) {
         this.session.send(packet);
