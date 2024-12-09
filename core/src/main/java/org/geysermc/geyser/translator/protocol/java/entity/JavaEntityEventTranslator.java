@@ -295,6 +295,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     creakingEntity.createParticleBeam();
                 }
                 break;
+            case SQUID_RESET_ROTATION:
+                // unused, but spams a bit
+                break;
             default:
                 GeyserImpl.getInstance().getLogger().debug("unhandled entity event: " + packet);
         }
