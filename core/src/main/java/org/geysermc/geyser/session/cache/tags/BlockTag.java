@@ -56,6 +56,7 @@ public final class BlockTag {
     public static final Tag<Block> OVERWORLD_NATURAL_LOGS = create("overworld_natural_logs");
     public static final Tag<Block> LOGS = create("logs");
     public static final Tag<Block> DARK_OAK_LOGS = create("dark_oak_logs");
+    public static final Tag<Block> PALE_OAK_LOGS = create("pale_oak_logs");
     public static final Tag<Block> OAK_LOGS = create("oak_logs");
     public static final Tag<Block> BIRCH_LOGS = create("birch_logs");
     public static final Tag<Block> ACACIA_LOGS = create("acacia_logs");
@@ -80,8 +81,8 @@ public final class BlockTag {
     public static final Tag<Block> SMALL_FLOWERS = create("small_flowers");
     public static final Tag<Block> BEDS = create("beds");
     public static final Tag<Block> FENCES = create("fences");
-    public static final Tag<Block> TALL_FLOWERS = create("tall_flowers");
     public static final Tag<Block> FLOWERS = create("flowers");
+    public static final Tag<Block> BEE_ATTRACTIVE = create("bee_attractive");
     public static final Tag<Block> PIGLIN_REPELLENTS = create("piglin_repellents");
     public static final Tag<Block> GOLD_ORES = create("gold_ores");
     public static final Tag<Block> IRON_ORES = create("iron_ores");
@@ -97,6 +98,7 @@ public final class BlockTag {
     public static final Tag<Block> BADLANDS_TERRACOTTA = create("badlands_terracotta");
     public static final Tag<Block> CONCRETE_POWDER = create("concrete_powder");
     public static final Tag<Block> COMPLETES_FIND_TREE_TUTORIAL = create("completes_find_tree_tutorial");
+    public static final Tag<Block> SHULKER_BOXES = create("shulker_boxes");
     public static final Tag<Block> FLOWER_POTS = create("flower_pots");
     public static final Tag<Block> ENDERMAN_HOLDABLE = create("enderman_holdable");
     public static final Tag<Block> ICE = create("ice");
@@ -130,7 +132,6 @@ public final class BlockTag {
     public static final Tag<Block> WALL_POST_OVERRIDE = create("wall_post_override");
     public static final Tag<Block> CLIMBABLE = create("climbable");
     public static final Tag<Block> FALL_DAMAGE_RESETTING = create("fall_damage_resetting");
-    public static final Tag<Block> SHULKER_BOXES = create("shulker_boxes");
     public static final Tag<Block> HOGLIN_REPELLENTS = create("hoglin_repellents");
     public static final Tag<Block> SOUL_FIRE_BASE_BLOCKS = create("soul_fire_base_blocks");
     public static final Tag<Block> STRIDER_WARM_BLOCKS = create("strider_warm_blocks");
@@ -198,6 +199,7 @@ public final class BlockTag {
     public static final Tag<Block> FOXES_SPAWNABLE_ON = create("foxes_spawnable_on");
     public static final Tag<Block> WOLVES_SPAWNABLE_ON = create("wolves_spawnable_on");
     public static final Tag<Block> FROGS_SPAWNABLE_ON = create("frogs_spawnable_on");
+    public static final Tag<Block> BATS_SPAWNABLE_ON = create("bats_spawnable_on");
     public static final Tag<Block> AZALEA_GROWS_ON = create("azalea_grows_on");
     public static final Tag<Block> CONVERTABLE_TO_MUD = create("convertable_to_mud");
     public static final Tag<Block> MANGROVE_LOGS_CAN_GROW_THROUGH = create("mangrove_logs_can_grow_through");

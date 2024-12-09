@@ -48,7 +48,6 @@ public class GeyserMappingItem {
     Integer firstBlockRuntimeId;
     Integer lastBlockRuntimeId;
     @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
     @JsonProperty("armor_type") String armorType;
     @JsonProperty("protection_value") int protectionValue;
     @JsonProperty("is_edible") boolean edible = false;

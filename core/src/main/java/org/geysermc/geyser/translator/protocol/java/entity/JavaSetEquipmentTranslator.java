@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -35,6 +36,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Equipment;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
 
 @Translator(packet = ClientboundSetEquipmentPacket.class)
@@ -64,7 +66,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                             && javaItem != null
                             && javaItem.getId() == Items.PLAYER_HEAD.javaId()
                             && javaItem.getDataComponents() != null) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getDataComponents());
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, GeyserItemStack.from(javaItem).getComponent(DataComponentType.PROFILE));
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }

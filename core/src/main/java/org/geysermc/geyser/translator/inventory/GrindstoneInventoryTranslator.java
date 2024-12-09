@@ -39,7 +39,7 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case GRINDSTONE_INPUT -> 0;
             case GRINDSTONE_ADDITIONAL -> 1;
             case GRINDSTONE_RESULT, CREATED_OUTPUT -> 2;

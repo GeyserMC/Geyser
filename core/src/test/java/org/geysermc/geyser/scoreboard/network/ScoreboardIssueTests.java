@@ -154,7 +154,7 @@ public class ScoreboardIssueTests {
                 new ClientboundPlayerInfoUpdatePacket(
                     EnumSet.of(PlayerListEntryAction.ADD_PLAYER, PlayerListEntryAction.UPDATE_LISTED),
                     new PlayerListEntry[] {
-                        new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, 0, null, 0, null, null)
+                        new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, false, 0, null, 0, null, null)
                     }));
 
             //todo we don't have to remove an entry that was never in the playerlist in the first place

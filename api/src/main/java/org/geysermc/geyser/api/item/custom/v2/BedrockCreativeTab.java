@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.api.item.custom.v2;
 
-import org.geysermc.geyser.item.Items;
-
-public class ElytraItem extends Item {
-    public ElytraItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
-
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return other == Items.PHANTOM_MEMBRANE;
-    }
+public enum BedrockCreativeTab {
+    NONE,
+    CONSTRUCTION,
+    NATURE,
+    EQUIPMENT,
+    ITEMS
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.geysermc.geyser.item.components.ToolTier;
+public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements CustomItemPredicate {
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
-
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
-        super(javaIdentifier, builder);
-        this.tier = tier;
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible) {
+        this(property, threshold, scale, normalizeIfPossible, 0);
     }
 
-    public ToolTier tier() {
-        return tier;
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale) {
+        this(property, threshold, scale, false);
     }
 
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+    public RangeDispatchPredicate(RangeDispatchProperty property, double threshold) {
+        this(property, threshold, 1.0);
+    }
+
+    // TODO check if we can change items while bedrock is using them, and if bedrock will continue to use them
+    public enum RangeDispatchProperty {
+        BUNDLE_FULLNESS,
+        DAMAGE,
+        COUNT,
+        CUSTOM_MODEL_DATA
     }
 }

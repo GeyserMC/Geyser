@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.geysermc.geyser.item.Items;
+public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
 
-public class MaceItem extends Item {
-    public MaceItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+    public ConditionPredicate(ConditionProperty property, boolean expected) {
+        this(property, expected, 0);
     }
 
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return other == Items.BREEZE_ROD;
+    public ConditionPredicate(ConditionProperty property) {
+        this(property, true);
+    }
+
+    // TODO maybe we can extend this
+    public enum ConditionProperty {
+        BROKEN,
+        DAMAGED,
+        CUSTOM_MODEL_DATA
     }
 }

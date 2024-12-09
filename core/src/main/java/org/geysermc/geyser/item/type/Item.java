@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.google.common.collect.ImmutableMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -39,13 +40,13 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -62,19 +63,15 @@ public class Item {
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
-    private final int stackSize;
     private final int attackDamage;
-    private final int maxDamage;
-    private final Rarity rarity;
-    private final boolean glint;
+    private DataComponents baseComponents; // unmodifiable
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
-        this.stackSize = builder.stackSize;
-        this.maxDamage = builder.maxDamage;
+        if (builder.components != null) {
+            this.baseComponents = builder.components;
+        }
         this.attackDamage = builder.attackDamage;
-        this.rarity = builder.rarity;
-        this.glint = builder.glint;
     }
 
     public String javaIdentifier() {
@@ -85,28 +82,40 @@ public class Item {
         return javaId;
     }
 
-    public int maxDamage() {
-        return maxDamage;
+    public int defaultMaxDamage() {
+        return baseComponents.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
     }
 
-    public int attackDamage() {
+    public int defaultAttackDamage() {
         return attackDamage;
     }
 
-    public int maxStackSize() {
-        return stackSize;
+    public int defaultMaxStackSize() {
+        return baseComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
     }
 
-    public Rarity rarity() {
-        return rarity;
+    public Rarity defaultRarity() {
+        return Rarity.fromId(baseComponents.getOrDefault(DataComponentType.RARITY, 0));
     }
 
-    public boolean glint() {
-        return glint;
+    /**
+     * Returns a modifiable DataComponents map. Should only be used when it must be modified.
+     * Otherwise, prefer using GeyserItemStack's getComponent
+     */
+    @NonNull
+    public DataComponents gatherComponents(DataComponents others) {
+        if (others == null) {
+            return baseComponents;
+        }
+
+        DataComponents components = baseComponents.clone();
+        components.getDataComponents().putAll(others.getDataComponents());
+        return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
 
-    public boolean isValidRepairItem(Item other) {
-        return false;
+    @Nullable
+    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+        return baseComponents.get(type);
     }
 
     public String translationKey() {
@@ -120,14 +129,11 @@ public class Item {
             // Return, essentially, air
             return ItemData.builder();
         }
-        ItemData.Builder builder = ItemData.builder()
+
+        return ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
                 .count(count);
-
-        ItemTranslator.translateCustomItem(components, builder, mapping);
-
-        return builder;
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
@@ -268,6 +274,9 @@ public class Item {
             throw new RuntimeException("Item ID has already been set!");
         }
         this.javaId = javaId;
+        if (this.baseComponents == null) {
+            this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
+        }
     }
 
     @Override
@@ -295,35 +304,17 @@ public class Item {
     }
 
     public static final class Builder {
-        private int stackSize = 64;
-        private int maxDamage;
+        private DataComponents components;
         private int attackDamage;
-        private Rarity rarity = Rarity.COMMON;
-        private boolean glint = false;
-
-        public Builder stackSize(int stackSize) {
-            this.stackSize = stackSize;
-            return this;
-        }
 
         public Builder attackDamage(double attackDamage) {
-            // TODO properly store/send a double value once Bedrock supports it.. pls
+            // Bedrock edition does not support attack damage being a double
             this.attackDamage = (int) attackDamage;
             return this;
         }
 
-        public Builder maxDamage(int maxDamage) {
-            this.maxDamage = maxDamage;
-            return this;
-        }
-
-        public Builder rarity(Rarity rarity) {
-            this.rarity = rarity;
-            return this;
-        }
-
-        public Builder glint(boolean glintOverride) {
-            this.glint = glintOverride;
+        public Builder components(DataComponents components) {
+            this.components = components;
             return this;
         }
 
