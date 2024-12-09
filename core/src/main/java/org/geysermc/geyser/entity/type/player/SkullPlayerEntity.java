@@ -102,17 +102,6 @@ public class SkullPlayerEntity extends PlayerEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
-    /**
-     * Hide the player entity so that it can be reused for a different skull.
-     */
-    public void free() {
-        setFlag(EntityFlag.INVISIBLE, true);
-        updateBedrockMetadata();
-
-        // Move skull entity out of the way
-        moveAbsolute(session.getPlayerEntity().getPosition().up(128), 0, 0, 0, false, true);
-    }
-
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
