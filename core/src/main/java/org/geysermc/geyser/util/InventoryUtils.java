@@ -146,6 +146,7 @@ public class InventoryUtils {
             }
         }
         session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        session.getBundleCache().onInventoryClose(inventory);
         session.setOpenInventory(null);
     }
 
