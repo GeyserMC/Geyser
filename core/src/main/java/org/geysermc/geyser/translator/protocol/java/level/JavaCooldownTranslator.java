@@ -59,7 +59,7 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
         if (cooldownCategory != null) {
             PlayerStartItemCooldownPacket bedrockPacket = new PlayerStartItemCooldownPacket();
             bedrockPacket.setItemCategory(cooldownCategory);
-            bedrockPacket.setCooldownDuration(packet.getCooldownTicks());
+            bedrockPacket.setCooldownDuration(Math.round(packet.getCooldownTicks() * (session.getMillisecondsPerTick() / 50)));
             session.sendUpstreamPacket(bedrockPacket);
         }
 
