@@ -83,7 +83,6 @@ import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.TickSyncPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 
 /**
@@ -293,8 +292,7 @@ class CodecProcessor {
             // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER);
+            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
 
             return codecBuilder.build();
     }
