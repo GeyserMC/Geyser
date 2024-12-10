@@ -58,6 +58,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 
 import java.util.Arrays;
@@ -103,8 +104,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 5] = item.getItemData(session);
             if (i == 5 &&
                     item.asItem() == Items.PLAYER_HEAD &&
-                    item.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponents());
+                    item.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentType.PROFILE));
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
@@ -147,8 +148,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         if (slot == 5) {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
+                    && javaItem.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
@@ -183,7 +184,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slotnum = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY:
             case HOTBAR:
             case INVENTORY:
@@ -461,7 +462,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
 
@@ -494,7 +495,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     DropAction dropAction = (DropAction) action;
-                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                    if (dropAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
                         return rejectRequest(request);
                     }
 
@@ -531,7 +532,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CRAFTING_INPUT;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CRAFTING_INPUT;
     }
 
     @Override

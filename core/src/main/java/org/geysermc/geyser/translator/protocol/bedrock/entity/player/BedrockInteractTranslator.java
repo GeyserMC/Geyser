@@ -91,7 +91,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
                             // then remount the player.
                             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
                             session.sendUpstreamPacket(linkPacket);
                         }
                     }, 1, TimeUnit.SECONDS));

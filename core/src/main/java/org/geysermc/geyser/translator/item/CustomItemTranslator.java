@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.item;
 
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import it.unimi.dsi.fastutil.Pair;
@@ -52,8 +53,16 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        int customModelData = components.getOrDefault(DataComponentType.CUSTOM_MODEL_DATA, 0);
-        boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
+        // TODO 1.21.4
+        float customModelDataInt = 0;
+        CustomModelData customModelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
+        if (customModelData != null) {
+            if (!customModelData.floats().isEmpty()) {
+                customModelDataInt = customModelData.floats().get(0);
+            }
+        }
+
+        boolean checkDamage = mapping.getJavaItem().defaultMaxDamage() > 0;
         int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentType.DAMAGE, 0);
         boolean unbreakable = checkDamage && !isDamaged(components, damage);
 
@@ -88,7 +97,7 @@ public final class CustomItemTranslator {
             }
 
             OptionalInt customModelDataOption = options.customModelData();
-            if (customModelDataOption.isPresent() && customModelData < customModelDataOption.getAsInt()) {
+            if (customModelDataOption.isPresent() && customModelDataInt < customModelDataOption.getAsInt()) {
                 continue;
             }
 

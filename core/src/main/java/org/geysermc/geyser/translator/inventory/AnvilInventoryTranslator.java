@@ -73,7 +73,7 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case ANVIL_INPUT -> 0;
             case ANVIL_MATERIAL -> 1;
             case ANVIL_RESULT, CREATED_OUTPUT -> 2;
