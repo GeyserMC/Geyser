@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.item;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -38,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
@@ -52,6 +54,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
 import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
@@ -89,16 +92,21 @@ public final class ItemTranslator {
         ItemAttributeModifiers.EquipmentSlotGroup.FEET
     };
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
+    private static final Key BASE_ATTACK_DAMAGE_ID = MinecraftKey.key("base_attack_damage");
+    private static final Key BASE_ATTACK_SPEED_ID = MinecraftKey.key("base_attack_speed");
 
     static {
-        // These are the only slots that are used and have translation strings
+        // Maps slot groups to their respective translation names, ordered in their Java edition order in the item tooltip
         SLOT_NAMES = new EnumMap<>(ItemAttributeModifiers.EquipmentSlotGroup.class);
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.ANY, "any");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.MAIN_HAND, "mainhand");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.OFF_HAND, "offhand");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.HAND, "hand");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.FEET, "feet");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.LEGS, "legs");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.CHEST, "chest");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.HEAD, "head");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.ARMOR, "armor");
         SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.BODY, "body");
     }
 
@@ -175,7 +183,7 @@ public final class ItemTranslator {
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
         if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
             // only add if attribute modifiers do not indicate to hide them
-            addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
+            addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
         if (session.isAdvancedTooltips() && !hideTooltips) {
@@ -229,31 +237,17 @@ public final class ItemTranslator {
      * @param modifiers the attribute modifiers of the ItemStack
      * @param language the locale of the player
      */
-    private static void addAttributeLore(ItemAttributeModifiers modifiers, BedrockItemBuilder builder, String language) {
+    private static void addAttributeLore(GeyserSession session, ItemAttributeModifiers modifiers, BedrockItemBuilder builder, String language) {
         // maps each slot to the modifiers applied when in such slot
         Map<ItemAttributeModifiers.EquipmentSlotGroup, List<String>> slotsToModifiers = new HashMap<>();
         for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(entry.getAttribute(), entry.getModifier(), language);
+            String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), language);
             if (loreEntry == null) {
                 continue; // invalid or failed
             }
 
-            ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
-            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ARMOR) {
-                // modifier applies to all armor slots
-                for (ItemAttributeModifiers.EquipmentSlotGroup slot : ARMOR_SLOT_NAMES) {
-                    slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
-                }
-            } else if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
-                // modifier applies to all slots implicitly
-                for (var slot : SLOT_NAMES.keySet()) {
-                    slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
-                }
-            } else {
-                // modifier applies to only the specified slot
-                slotsToModifiers.computeIfAbsent(slotGroup, s -> new ArrayList<>()).add(loreEntry);
-            }
+            slotsToModifiers.computeIfAbsent(entry.getSlot(), s -> new ArrayList<>()).add(loreEntry);
         }
 
         // iterate through the small array, not the map, so that ordering matches Java Edition
@@ -279,7 +273,7 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
+    private static String attributeToLore(GeyserSession session, int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
         double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
@@ -289,24 +283,35 @@ public final class ItemTranslator {
         // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
         ModifierOperation operation = modifier.getOperation();
+        boolean baseModifier = false;
         String operationTotal = switch (operation) {
             case ADD -> {
-                if (name.equals("generic.knockback_resistance")) {
+                if (name.equals("knockback_resistance")) {
                     amount *= 10;
                 }
+
+                if (modifier.getId().equals(BASE_ATTACK_DAMAGE_ID)) {
+                    amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_DAMAGE);
+                    baseModifier = true;
+                } else if (modifier.getId().equals(BASE_ATTACK_SPEED_ID)) {
+                    amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_SPEED);
+                    baseModifier = true;
+                }
+
                 yield ATTRIBUTE_FORMAT.format(amount);
             }
             case ADD_MULTIPLIED_BASE, ADD_MULTIPLIED_TOTAL ->
                     ATTRIBUTE_FORMAT.format(amount * 100) + "%";
         };
-        if (amount > 0) {
+        if (amount > 0 && !baseModifier) {
             operationTotal = "+" + operationTotal;
         }
 
+
         Component attributeComponent = Component.text()
                 .resetStyle()
-                .color(amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
-                .append(Component.text(operationTotal + " "), Component.translatable("attribute.name." + name))
+                .color(baseModifier ? NamedTextColor.DARK_GREEN : amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
+                .append(Component.text(" " + operationTotal + " "), Component.translatable("attribute.name." + name))
                 .build();
 
         return MessageTranslator.convertMessage(attributeComponent, language);
