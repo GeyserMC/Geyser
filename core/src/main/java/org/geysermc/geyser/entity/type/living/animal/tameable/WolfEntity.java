@@ -128,11 +128,7 @@ public class WolfEntity extends TameableEntity {
     public void setBody(ItemStack stack) {
         super.setBody(stack);
         isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
-        if (stack != null && stack.getDataComponents() != null) {
-            repairableItems = stack.getDataComponents().get(DataComponentType.REPAIRABLE);
-        } else {
-            repairableItems = null;
-        }
+        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
     }
 
     @Override

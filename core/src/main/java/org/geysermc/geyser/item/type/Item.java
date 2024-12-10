@@ -49,7 +49,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
@@ -111,12 +110,9 @@ public class Item {
             return baseComponents;
         }
 
-        //noinspection UnstableApiUsage
-        var builder = ImmutableMap.<DataComponentType<?>, DataComponent<?, ?>>builderWithExpectedSize(
-            baseComponents.getDataComponents().size() + others.getDataComponents().size());
-        builder.putAll(baseComponents.getDataComponents());
-        builder.putAll(others.getDataComponents());
-        return new DataComponents(builder.build());
+        DataComponents components = baseComponents.clone();
+        components.getDataComponents().putAll(others.getDataComponents());
+        return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
 
     @Nullable
