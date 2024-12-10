@@ -40,13 +40,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import java.util.Optional;
 import java.util.UUID;
 
-
 public class CreakingEntity extends MonsterEntity {
-
-    private Vector3i homePosition;
-
     public static final String CREAKING_STATE = "minecraft:creaking_state";
     public static final String CREAKING_SWAYING_TICKS = "minecraft:creaking_swaying_ticks";
+
+    private Vector3i homePosition;
 
     public CreakingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -62,6 +60,11 @@ public class CreakingEntity extends MonsterEntity {
     @Override
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
         propertyManager.add(CREAKING_STATE, "neutral");
+        // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
+        // which i guess is responsible for some animation?
+        // it's sent over the network, all 6 "stages" 50ms in between of each other.
+        // no clue what it's used for tbh, so i'm not gonna bother implementing it
+        // - chris
         propertyManager.add(CREAKING_SWAYING_TICKS, 0);
         propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }

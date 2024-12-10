@@ -26,6 +26,8 @@ dependencies {
 }
 
 repositories {
+    // mavenLocal()
+
     mavenCentral()
 
     // Floodgate, Cumulus etc.
@@ -67,6 +69,4 @@ repositories {
 
     // For Adventure snapshots
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-
-    //mavenLocal()
 }

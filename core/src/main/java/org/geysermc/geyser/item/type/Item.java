@@ -49,10 +49,12 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,14 +105,18 @@ public class Item {
      * Otherwise, prefer using GeyserItemStack's getComponent
      */
     @NonNull
+    @UnmodifiableView
     public DataComponents gatherComponents(DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
 
-        DataComponents components = baseComponents.clone();
-        components.getDataComponents().putAll(others.getDataComponents());
-        return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
+        //noinspection UnstableApiUsage
+        var builder = ImmutableMap.<DataComponentType<?>, DataComponent<?, ?>>builderWithExpectedSize(
+            baseComponents.getDataComponents().size() + others.getDataComponents().size());
+        builder.putAll(baseComponents.getDataComponents());
+        builder.putAll(others.getDataComponents());
+        return new DataComponents(builder.build());
     }
 
     @Nullable
