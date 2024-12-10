@@ -83,7 +83,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_21");
+            ProtocolConstants.class.getField("MINECRAFT_1_21_4");
         } catch (NoSuchFieldException e) {
             geyserLogger.error("      / \\");
             geyserLogger.error("     /   \\");

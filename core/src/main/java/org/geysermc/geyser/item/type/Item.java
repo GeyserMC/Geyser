@@ -100,21 +100,33 @@ public class Item {
     }
 
     /**
-     * Returns a modifiable DataComponents map. Should only be used when it must be modified.
-     * Otherwise, prefer using GeyserItemStack's getComponent
+     * Returns an unmodifiable {@link DataComponents} view containing known data components.
+     * Optionally, additional components can be provided to replace (or add to)
+     * the items' base components.
+     * To add data components, use {@link GeyserItemStack#getOrCreateComponents()}.
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(DataComponents others) {
+    public DataComponents gatherComponents(@Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
 
+        // Start with the base components that always exist
         DataComponents components = baseComponents.clone();
+        // Add all additional components; these can override base components!
+        // e.g. custom stack size
         components.getDataComponents().putAll(others.getDataComponents());
+
+        // Return an unmodified map of the merged components
         return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
 
+    /**
+     * Returns this items value (or null) for a specific {@link DataComponentType}.
+     * Prefer using {@link GeyserItemStack#getComponent(DataComponentType)}
+     * to also query additional components that would override the default ones.
+     */
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
         return baseComponents.get(type);

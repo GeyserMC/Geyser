@@ -125,6 +125,10 @@ public class GeyserItemStack {
         return isEmpty() ? null : components;
     }
 
+    /**
+     * @return whether this GeyserItemStack has any additional components on top of
+     * the base item components.
+     */
     public boolean hasNonBaseComponents() {
         return components != null;
     }
@@ -137,6 +141,15 @@ public class GeyserItemStack {
         return components;
     }
 
+    /**
+     * Returns the stored data component for a given {@link DataComponentType}, or null.
+     * <p>
+     * This method will first check the additional components that may exist,
+     * and fallback to the item's default (or, "base") components if need be.
+     * @param type the {@link DataComponentType} to query
+     * @return the value for said type, or null.
+     * @param <T> the value's type
+     */
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
         if (components == null) {
