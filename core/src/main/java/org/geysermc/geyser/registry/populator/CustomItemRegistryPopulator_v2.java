@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -35,12 +36,14 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.type.Item;
@@ -82,6 +85,30 @@ public class CustomItemRegistryPopulator_v2 {
         mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {
             if (initialCheck(id, item, customItems, items)) {
                 customItems.get(id).add(item);
+            }
+        });
+
+        GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
+
+            @Override
+            @Deprecated
+            public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
+                return register(identifier, customItemData.toDefinition(identifier).build());
+            }
+
+            @Override
+            public boolean register(@NonNull String identifier, @NonNull CustomItemDefinition definition) {
+                if (initialCheck(identifier, definition, customItems, items)) {
+                    customItems.get(identifier).add(definition);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
+                // TODO
+                return false;
             }
         });
 

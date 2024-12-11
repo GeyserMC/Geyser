@@ -41,9 +41,7 @@ public interface CustomItemDefinition {
 
     /**
      * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If the {@code minecraft} namespace is given in the builder, the default
-     * namespace of the implementation is used.
-     *
-     * @implNote for Geyser, the default namespace is the {@code geyser_custom} namespace.
+     * namespace of the implementation is used. For Geyser, the default namespace is the {@code geyser_custom} namespace.
      */
     @NonNull Key bedrockIdentifier();
 

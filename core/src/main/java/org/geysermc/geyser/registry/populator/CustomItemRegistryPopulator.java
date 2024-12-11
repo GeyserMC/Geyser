@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,7 +38,6 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.util.TriState;
-import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
@@ -52,7 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,35 +66,6 @@ public class CustomItemRegistryPopulator {
             //} // TODO
         });
 
-        GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
-            @Override
-            public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
-                if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
-                    customItems.get(identifier).add(customItemData);
-                    return true;
-                }
-                return false;
-            }
-
-            @Override
-            public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
-                if (customItemData.identifier().startsWith("minecraft:")) {
-                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
-                            " is attempting to masquerade as a vanilla Minecraft item!");
-                    return false;
-                }
-
-                if (customItemData.javaId() < items.size()) {
-                    // Attempting to overwrite an item that already exists in the protocol
-                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
-                            " is attempting to overwrite a vanilla Minecraft item!");
-                    return false;
-                }
-
-                nonVanillaCustomItems.add(customItemData);
-                return true;
-            }
-        });
 
         int customItemCount = customItems.size() + nonVanillaCustomItems.size();
         if (customItemCount > 0) {
