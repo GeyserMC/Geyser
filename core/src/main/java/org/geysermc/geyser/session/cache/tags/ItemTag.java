@@ -181,6 +181,7 @@ public final class ItemTag {
     public static final Tag<Item> ENCHANTABLE_CROSSBOW = create("enchantable/crossbow");
     public static final Tag<Item> ENCHANTABLE_VANISHING = create("enchantable/vanishing");
     public static final Tag<Item> ENCHANTABLE_MACE = create("enchantable/mace");
+    public static final Tag<Item> BUNDLES = create("bundles");
 
     private ItemTag() {}
 

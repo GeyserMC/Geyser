@@ -38,6 +38,7 @@ public class JavaSetCursorItemTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetCursorItemPacket packet) {
         GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
+        session.getBundleCache().initialize(newItem);
         session.getPlayerInventory().setCursor(newItem, session);
         InventoryUtils.updateCursor(session);
     }

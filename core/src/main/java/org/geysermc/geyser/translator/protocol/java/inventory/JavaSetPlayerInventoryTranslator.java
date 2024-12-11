@@ -55,7 +55,9 @@ public class JavaSetPlayerInventoryTranslator extends PacketTranslator<Clientbou
             return;
         }
 
-        session.getPlayerInventory().setItem(slot, GeyserItemStack.from(packet.getContents()), session);
+        GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
+        session.getBundleCache().initialize(newItem);
+        session.getPlayerInventory().setItem(slot, newItem, session);
         InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
     }
 }
