@@ -37,12 +37,14 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -288,6 +290,16 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     armadilloEntity.onPeeking();
                 }
                 break;
+            case SHAKE:
+                if (entity instanceof CreakingEntity creakingEntity) {
+                    creakingEntity.createParticleBeam();
+                }
+                break;
+            case SQUID_RESET_ROTATION:
+                // unused, but spams a bit
+                break;
+            default:
+                GeyserImpl.getInstance().getLogger().debug("unhandled entity event: " + packet);
         }
 
         if (entityEventPacket.getType() != null) {

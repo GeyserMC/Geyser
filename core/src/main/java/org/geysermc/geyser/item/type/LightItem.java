@@ -60,7 +60,6 @@ public class LightItem extends BlockItem {
         return super.toBedrockDefinition(components, mappings);
     }
 
-
     private static ItemMapping getLightLevelMapping(DataComponents components, ItemMappings mappings) {
         String lightLevel = "15";
         if (components != null) {

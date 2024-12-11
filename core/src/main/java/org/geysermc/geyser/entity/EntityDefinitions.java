@@ -117,6 +117,7 @@ import org.geysermc.geyser.entity.type.living.monster.BasePiglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.BlazeEntity;
 import org.geysermc.geyser.entity.type.living.monster.BoggedEntity;
 import org.geysermc.geyser.entity.type.living.monster.BreezeEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.CreeperEntity;
 import org.geysermc.geyser.entity.type.living.monster.ElderGuardianEntity;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonEntity;
@@ -180,6 +181,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
+    public static final EntityDefinition<CreakingEntity> CREAKING;
     public static final EntityDefinition<CreeperEntity> CREEPER;
     public static final EntityDefinition<BoatEntity> DARK_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> DARK_OAK_CHEST_BOAT;
@@ -237,6 +239,8 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
     public static final EntityDefinition<PaintingEntity> PAINTING;
+    public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
     public static final EntityDefinition<PandaEntity> PANDA;
     public static final EntityDefinition<ParrotEntity> PARROT;
     public static final EntityDefinition<PhantomEntity> PHANTOM;
@@ -592,6 +596,7 @@ public final class EntityDefinitions {
             MANGROVE_BOAT = buildBoat(boatBase, EntityType.MANGROVE_BOAT, BoatEntity.BoatVariant.MANGROVE);
             OAK_BOAT = buildBoat(boatBase, EntityType.OAK_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_BOAT = buildBoat(boatBase, EntityType.SPRUCE_BOAT, BoatEntity.BoatVariant.SPRUCE);
+            PALE_OAK_BOAT = buildBoat(boatBase, EntityType.PALE_OAK_BOAT, BoatEntity.BoatVariant.PALE_OAK);
 
             EntityDefinition<ChestBoatEntity> chestBoatBase = EntityDefinition.<ChestBoatEntity>inherited(null, boatBase)
                 .build();
@@ -605,6 +610,7 @@ public final class EntityDefinitions {
             MANGROVE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.MANGROVE_CHEST_BOAT, BoatEntity.BoatVariant.MANGROVE);
             OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.OAK_CHEST_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.SPRUCE_CHEST_BOAT, BoatEntity.BoatVariant.SPRUCE);
+            PALE_OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.PALE_OAK_CHEST_BOAT, BoatEntity.BoatVariant.PALE_OAK);
         }
 
         EntityDefinition<LivingEntity> livingEntityBase = EntityDefinition.inherited(LivingEntity::new, entityBase)
@@ -671,6 +677,23 @@ public final class EntityDefinitions {
             BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
                     .type(EntityType.BREEZE)
                     .height(1.77f).width(0.6f)
+                    .build();
+            CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
+                    .type(EntityType.CREAKING)
+                    .height(2.7f).width(0.9f)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setCanMove)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setActive)
+                    .addTranslator(MetadataType.BOOLEAN, CreakingEntity::setIsTearingDown)
+                    .addTranslator(MetadataType.OPTIONAL_POSITION, CreakingEntity::setHomePos)
+                    .properties(new GeyserEntityProperties.Builder()
+                        .addEnum(CreakingEntity.CREAKING_STATE,
+                            "neutral",
+                            "hostile_observed",
+                            "hostile_unobserved",
+                            "twitching",
+                            "crumbling")
+                        .addInt(CreakingEntity.CREAKING_SWAYING_TICKS, 0, 6)
+                        .build())
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)

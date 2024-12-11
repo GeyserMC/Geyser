@@ -112,6 +112,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return toolType;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public String toolTier() {
         return toolTier;
@@ -132,6 +133,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return translationString;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public Set<String> repairMaterials() {
         return repairMaterials;

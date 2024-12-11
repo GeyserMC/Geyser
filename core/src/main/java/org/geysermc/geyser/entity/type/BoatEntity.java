@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -76,6 +77,11 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
         this.variant = variant;
+
+        // TODO remove once 1.21.40 is dropped
+        if (variant == BoatVariant.PALE_OAK && GameProtocol.isPreWinterDrop(session)) {
+            variant = BoatVariant.BIRCH;
+        }
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
@@ -238,7 +244,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         DARK_OAK(Items.DARK_OAK_BOAT, Items.DARK_OAK_CHEST_BOAT),
         MANGROVE(Items.MANGROVE_BOAT, Items.MANGROVE_CHEST_BOAT),
         BAMBOO(Items.BAMBOO_RAFT, Items.BAMBOO_CHEST_RAFT),
-        CHERRY(Items.CHERRY_BOAT, Items.CHERRY_CHEST_BOAT);
+        CHERRY(Items.CHERRY_BOAT, Items.CHERRY_CHEST_BOAT),
+        PALE_OAK(Items.PALE_OAK_BOAT, Items.PALE_OAK_CHEST_BOAT);
 
         private final Item pickItem;
         final Item chestPickItem;

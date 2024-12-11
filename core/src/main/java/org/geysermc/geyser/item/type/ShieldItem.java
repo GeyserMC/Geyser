@@ -26,7 +26,6 @@
 package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
@@ -53,11 +52,5 @@ public class ShieldItem extends Item {
         if (baseColor != null) {
             builder.putInt("Base", 15 - baseColor);
         }
-    }
-
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        // Java Edition 1.19.3 checks the tag, but TODO check to see if we want it or are simulating what Bedrock is doing
-        return ToolTier.WOODEN.getRepairIngredients().contains(other);
     }
 }

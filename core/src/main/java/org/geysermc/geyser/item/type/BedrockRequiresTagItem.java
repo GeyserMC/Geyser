@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-
+// Whether this item should have its NBT data kept in the recipe book.
 public interface BedrockRequiresTagItem {
-
-    void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder);
 }

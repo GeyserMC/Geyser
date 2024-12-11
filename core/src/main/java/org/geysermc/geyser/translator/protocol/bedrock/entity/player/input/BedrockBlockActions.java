@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -88,7 +89,7 @@ final class BedrockBlockActions {
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, BlockState.of(blockState).block());
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -136,7 +137,7 @@ final class BedrockBlockActions {
                 Direction direction = Direction.VALUES[blockFace];
                 spawnBlockBreakParticles(session, direction, vector, breakingBlockState);
 
-                double breakTime = BlockUtils.getSessionBreakTime(session, breakingBlockState.block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, breakingBlockState.block());
                 // If the block is custom, we must keep track of when it should break ourselves
                 long blockBreakStartTime = session.getBlockBreakStartTime();
                 if (blockBreakStartTime != 0) {
@@ -180,6 +181,7 @@ final class BedrockBlockActions {
 
                 ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, 0);
                 session.sendDownstreamGamePacket(abortBreakingPacket);
+
                 LevelEventPacket stopBreak = new LevelEventPacket();
                 stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
                 stopBreak.setPosition(vector.toFloat());

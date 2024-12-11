@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
-import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
@@ -248,14 +247,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     ResourcePackManifest.Header header = pack.manifest().header();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.version().toString(), ""));
                 }
-
-                if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
-                    // Allow custom items to work
-                    stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
-                }
-
-                // Required for experimental 1.21 features
-                stackPacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;
