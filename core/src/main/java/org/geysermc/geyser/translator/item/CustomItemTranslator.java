@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataStr
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -81,7 +82,8 @@ public final class CustomItemTranslator {
         }
 
         for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) {
-            if (customModel.first().model().equals(itemModel)) {
+            Key expectedModel = ItemRegistryPopulator.identifierToKey(customModel.first().model());
+            if (expectedModel.equals(itemModel)) {
                 boolean allMatch = true;
                 for (CustomItemPredicate predicate : customModel.first().predicates()) {
                     if (!predicateMatches(session, predicate, stackSize, components)) {

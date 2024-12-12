@@ -729,6 +729,7 @@ public class ItemRegistryPopulator {
         componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
     }
 
+    // TODO this needs to be moved elsewhere
     public static Key identifierToKey(Identifier identifier) {
         return Key.key(identifier.namespace(), identifier.path());
     }

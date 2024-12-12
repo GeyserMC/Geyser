@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
