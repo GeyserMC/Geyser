@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.util;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public final class Identifier {
@@ -63,6 +64,20 @@ public final class Identifier {
 
     public String path() {
         return path;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Identifier other = (Identifier) o;
+        return Objects.equals(namespace, other.namespace) && Objects.equals(path, other.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(namespace, path);
     }
 
     @Override

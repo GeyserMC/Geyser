@@ -90,7 +90,6 @@ public final class CustomItemTranslator {
                     }
                 }
                 if (allMatch) {
-                    System.out.println("using " + customMapping.definition().bedrockIdentifier());
                     return customMapping.itemDefinition();
                 }
             }

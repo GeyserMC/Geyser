@@ -505,15 +505,7 @@ public class ItemRegistryPopulator {
 
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        System.out.println("putting " + customItem.bedrockIdentifier() + " for model " + identifierToKey(customItem.model()));
-                        for (GeyserCustomMappingData existing : customItemDefinitions.get(identifierToKey(customItem.model()))) {
-                            System.out.println("existing - " + existing);
-                            System.out.println("trying to add - " + customMapping);
-                            System.out.println("trying to add " + (customMapping.equals(existing) ? "DOES" : "does NOT") + " equal existing");
-                        }
-                        System.out.println("map size: " + customItemDefinitions.size());
                         customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
-                        System.out.println("map size after: " + customItemDefinitions.size());
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
@@ -746,7 +738,7 @@ public class ItemRegistryPopulator {
      * Compares custom item definitions based on their predicates:
      *
      * <ol>
-     *     <li>First by checking their priority values.</li>
+     *     <li>First by checking their priority values, higher priority values going first.</li>
      *     <li>Then by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first.</li>
      *     <li>Lastly by the amount of predicates, from most to least.</li>
      * </ol>
@@ -765,7 +757,11 @@ public class ItemRegistryPopulator {
             }
 
             if (first.priority() != second.priority()) {
-                return first.priority() - second.priority();
+                return second.priority() - first.priority();
+            }
+
+            if (first.predicates().isEmpty() || second.predicates().isEmpty()) {
+                return second.predicates().size() - first.predicates().size(); // No need checking for range predicates if either one has no predicates
             }
 
             for (CustomItemPredicate predicate : first.predicates()) {
@@ -775,11 +771,11 @@ public class ItemRegistryPopulator {
                         .map(otherPredicate -> (RangeDispatchPredicate) otherPredicate)
                         .findFirst();
                     if (other.isPresent()) {
-                        return (int) (rangeDispatch.threshold() - other.orElseThrow().threshold());
+                        return (int) (other.orElseThrow().threshold() - rangeDispatch.threshold());
                     }
-                }
+                } // TODO not a fan of how this looks
             }
-            return first.predicates().size() - second.predicates().size();
+            return second.predicates().size() - first.predicates().size();
         }
     }
 }
