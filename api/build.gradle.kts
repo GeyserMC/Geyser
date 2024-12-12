@@ -9,10 +9,7 @@ dependencies {
     api(libs.base.api)
     api(libs.math)
 
-    // Adventure text serialization
-    api(libs.bundles.adventure)
-
-    // TODO? can we exclude more
+    // TODO remove MCPL from API
     api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
         exclude("net.raphimc", "MinecraftAuth")

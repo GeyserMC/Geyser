@@ -25,32 +25,32 @@
 
 package org.geysermc.geyser.item.custom;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model, @NonNull List<CustomItemPredicate> predicates,
+public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
                                          int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
-        private final Key bedrockIdentifier;
-        private final Key model;
+        private final Identifier bedrockIdentifier;
+        private final Identifier model;
         private final List<CustomItemPredicate> predicates = new ArrayList<>();
         private int priority = 0;
         private String displayName;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private DataComponents components = new DataComponents(new HashMap<>());
 
-        public Builder(Key bedrockIdentifier, Key model) {
+        public Builder(Identifier bedrockIdentifier, Identifier model) {
             this.bedrockIdentifier = bedrockIdentifier;
-            this.displayName = bedrockIdentifier.asString();
+            this.displayName = bedrockIdentifier.toString();
             this.model = model;
         }
 

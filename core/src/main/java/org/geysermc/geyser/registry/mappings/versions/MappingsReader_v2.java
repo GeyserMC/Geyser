@@ -41,9 +41,11 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.nio.file.Path;
@@ -128,11 +130,11 @@ public class MappingsReader_v2 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("An item entry has no model");
         }
 
-        Key bedrockIdentifier = Key.key(bedrockIdentifierNode.asText());
+        Identifier bedrockIdentifier = new Identifier(bedrockIdentifierNode.asText());
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            bedrockIdentifier = Key.key(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.value());
+            bedrockIdentifier = new Identifier(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.path());
         }
-        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, Key.key(model));
+        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, new Identifier(model));
 
         if (node.has("display_name")) {
             builder.displayName(node.get("display_name").asText());
@@ -151,7 +153,7 @@ public class MappingsReader_v2 extends MappingsReader {
         if (componentsNode != null && componentsNode.isObject()) {
             componentsNode.fields().forEachRemaining(entry -> {
                 try {
-                    DataComponentReaders.readDataComponent(components, Key.key(entry.getKey()), entry.getValue());
+                    DataComponentReaders.readDataComponent(components, MinecraftKey.key(entry.getKey()), entry.getValue());
                 } catch (InvalidCustomMappingsFileException e) {
                     GeyserImpl.getInstance().getLogger().error("Error reading component " + entry.getKey() + " for item model " + modelNode.textValue(), e);
                 }
@@ -274,8 +276,8 @@ public class MappingsReader_v2 extends MappingsReader {
                             throw new InvalidCustomMappingsFileException("Unknown charge type " + value);
                         }
                     }
-                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, Key.key(value))); // TODO
-                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, Key.key(value))); // TODO
+                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, MinecraftKey.key(value))); // TODO
+                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, MinecraftKey.key(value))); // TODO
                     case "custom_model_data" -> {
                         JsonNode indexNode = node.get("index");
                         int index = 0;

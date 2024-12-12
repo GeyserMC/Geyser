@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -34,6 +33,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.TriState;
 
 import java.util.Objects;
@@ -130,8 +130,8 @@ public interface CustomItemData {
     }
 
     default CustomItemDefinition.Builder toDefinition(String javaItem) {
-        // TODO non vanilla, unbreakable predicate?
-        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(Key.key(javaItem), Key.key(javaItem))
+        // TODO non vanilla
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(new Identifier(javaItem), new Identifier(javaItem))
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
                 .icon(icon())

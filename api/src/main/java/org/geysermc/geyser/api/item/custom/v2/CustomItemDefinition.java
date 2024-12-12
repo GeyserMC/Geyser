@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.api.item.custom.v2;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
@@ -43,7 +43,7 @@ public interface CustomItemDefinition {
      * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If the {@code minecraft} namespace is given in the builder, the default
      * namespace of the implementation is used. For Geyser, the default namespace is the {@code geyser_custom} namespace.
      */
-    @NonNull Key bedrockIdentifier();
+    @NonNull Identifier bedrockIdentifier();
 
     /**
      * The display name of the item. If none is set, the display name is taken from the item's Bedrock identifier.
@@ -55,7 +55,7 @@ public interface CustomItemDefinition {
      *
      * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
      */
-    @NonNull Key model();
+    @NonNull Identifier model();
 
     /**
      * The icon used for this item.
@@ -64,7 +64,7 @@ public interface CustomItemDefinition {
      * the namespace separator replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}.</p>
      */
     default @NonNull String icon() {
-        return bedrockOptions().icon() == null ? bedrockIdentifier().asString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
+        return bedrockOptions().icon() == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
     }
 
     /**
@@ -104,7 +104,7 @@ public interface CustomItemDefinition {
      */
     @NonNull DataComponents components();
 
-    static Builder builder(Key identifier, Key itemModel) {
+    static Builder builder(Identifier identifier, Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, identifier, itemModel);
     }
 

@@ -43,6 +43,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.WearableSlot;
@@ -136,7 +137,7 @@ public class CustomItemRegistryPopulator {
             GeyserImpl.getInstance().getLogger().error("Could not find the Java item to add custom item properties to for " + item.bedrockIdentifier());
             return false;
         }
-        Key bedrockIdentifier = item.bedrockIdentifier();
+        Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
             GeyserImpl.getInstance().getLogger().error("Custom item bedrock identifier namespace can't be minecraft");
             return false;
