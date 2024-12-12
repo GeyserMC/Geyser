@@ -585,6 +585,7 @@ public class ItemRegistryPopulator {
                 registerFurnaceMinecart(nextFreeBedrockId++, componentItemData, palette.protocolVersion);
 
                 // Register any completely custom items given to us
+                // TODO broken as of right now
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
                 for (NonVanillaCustomItemData customItem : nonVanillaCustomItems) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
@@ -595,7 +596,7 @@ public class ItemRegistryPopulator {
                     }
 
                     int customItemId = nextFreeBedrockId++;
-                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator_v1.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
                     componentItemData.add(registration.componentItemData());
                     ItemMapping mapping = registration.mapping();
