@@ -148,10 +148,6 @@ public class Item {
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
                 .count(count);
-
-        ItemTranslator.translateCustomItem(session, count, components, builder, mapping);
-
-        return builder;
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {

@@ -174,14 +174,11 @@ public class ItemRegistryPopulator {
 
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
-        // List values here is important compared to HashSet - we need to preserve the order of what's given to us
-        // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
-        // of the list first, then ascends.
         Multimap<String, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
 
         if (customItemsAllowed) {
-            CustomItemRegistryPopulator_v2.populate(items, customItems, nonVanillaCustomItems);
+            CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);
         }
 
         // We can reduce some operations as Java information is the same across all palette versions
@@ -494,7 +491,7 @@ public class ItemRegistryPopulator {
                             continue;
                         }
 
-                        GeyserCustomMappingData customMapping = CustomItemRegistryPopulator_v2.registerCustomItem(
+                        GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
                             customItemName, javaItem, mappingItem, customItem, customProtocolId);
 
                         if (customItem.bedrockOptions().creativeCategory() != BedrockCreativeTab.NONE) {
@@ -597,7 +594,7 @@ public class ItemRegistryPopulator {
                     }
 
                     int customItemId = nextFreeBedrockId++;
-                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator_v1.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
                     componentItemData.add(registration.componentItemData());
                     ItemMapping mapping = registration.mapping();
