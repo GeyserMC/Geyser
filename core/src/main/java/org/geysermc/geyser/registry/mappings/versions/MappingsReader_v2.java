@@ -140,6 +140,10 @@ public class MappingsReader_v2 extends MappingsReader {
 
         readPredicates(builder, node.get("predicate"));
 
+        if (node.has("priority")) {
+            builder.priority(node.get("priority").asInt());
+        }
+
         builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options")));
 
         DataComponents components = new DataComponents(new HashMap<>()); // TODO faster map ?
