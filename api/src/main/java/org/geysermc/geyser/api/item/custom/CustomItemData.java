@@ -29,11 +29,11 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.TriState;
 
 import java.util.Objects;
@@ -137,7 +137,7 @@ public interface CustomItemData {
                 .icon(icon())
                 .allowOffhand(allowOffhand())
                 .displayHandheld(displayHandheld())
-                .creativeCategory(creativeCategory().isEmpty() ? BedrockCreativeTab.NONE : BedrockCreativeTab.values()[creativeCategory().getAsInt()])
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
                 .creativeGroup(creativeGroup())
                 .textureSize(textureSize())
                 .renderOffsets(renderOffsets())

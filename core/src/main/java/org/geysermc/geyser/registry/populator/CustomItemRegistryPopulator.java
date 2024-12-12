@@ -39,10 +39,10 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.WearableSlot;
@@ -269,8 +269,8 @@ public class CustomItemRegistryPopulator {
             .build();
         itemProperties.putCompound("minecraft:icon", iconMap);
 
-        if (options.creativeCategory() != BedrockCreativeTab.NONE) {
-            itemProperties.putInt("creative_category", options.creativeCategory().ordinal());
+        if (options.creativeCategory() != CreativeCategory.NONE) {
+            itemProperties.putInt("creative_category", options.creativeCategory().id());
 
             if (options.creativeGroup() != null) {
                 itemProperties.putString("creative_group", options.creativeGroup());

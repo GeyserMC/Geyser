@@ -60,10 +60,10 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
@@ -494,7 +494,7 @@ public class ItemRegistryPopulator {
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
                             customItemName, javaItem, mappingItem, customItem, customProtocolId);
 
-                        if (customItem.bedrockOptions().creativeCategory() != BedrockCreativeTab.NONE) {
+                        if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                             creativeItems.add(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())

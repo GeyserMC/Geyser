@@ -32,7 +32,6 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.v2.BedrockCreativeTab;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
@@ -41,6 +40,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
@@ -173,7 +173,7 @@ public class MappingsReader_v2 extends MappingsReader {
         }
 
         if (node.has("creative_category")) {
-            builder.creativeCategory(BedrockCreativeTab.valueOf(node.get("creative_category").asText().toUpperCase()));
+            builder.creativeCategory(CreativeCategory.fromName(node.get("creative_category").asText()));
         }
 
         if (node.has("creative_group")) {

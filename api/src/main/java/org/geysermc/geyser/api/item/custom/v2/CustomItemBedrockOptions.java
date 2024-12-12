@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.util.CreativeCategory;
 
 import java.util.Set;
 
@@ -66,7 +67,7 @@ public interface CustomItemBedrockOptions {
      * @return the item's creative category
      */
     @NonNull
-    BedrockCreativeTab creativeCategory();
+    CreativeCategory creativeCategory();
 
     /**
      * Gets the item's creative group.
@@ -116,7 +117,7 @@ public interface CustomItemBedrockOptions {
 
         Builder displayHandheld(boolean displayHandheld);
 
-        Builder creativeCategory(BedrockCreativeTab creativeCategory);
+        Builder creativeCategory(CreativeCategory creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
