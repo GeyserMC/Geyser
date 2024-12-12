@@ -45,6 +45,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -128,5 +129,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
 
         ChunkUtils.loadDimension(session);
+
+        if (!needsSpawnPacket) {
+            session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);
+        }
     }
 }

@@ -98,9 +98,4 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
     private boolean testForMissingProfilePublicKey(Component disconnectReason) {
         return disconnectReason instanceof TranslatableComponent component && "multiplayer.disconnect.missing_public_key".equals(component.key());
     }
-
-    @Override
-    public boolean shouldExecuteInEventLoop() {
-        return false;
-    }
 }

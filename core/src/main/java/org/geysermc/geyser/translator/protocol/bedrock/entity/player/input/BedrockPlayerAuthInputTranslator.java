@@ -312,8 +312,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
-                vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
-                vehicleRotation.getY() - 90, vehiclePosition.getX() // TODO I wonder if this is related to the horse spinning bugs...
+                vehiclePosition.toDouble(),
+                vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...
+                vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);
         }

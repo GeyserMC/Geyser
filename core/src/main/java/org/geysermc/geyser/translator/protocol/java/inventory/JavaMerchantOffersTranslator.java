@@ -173,7 +173,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
         // Bedrock expects all price adjustments to be applied to the item's count
         int count = stack.getAmount() + ((int) Math.max(Math.floor(stack.getAmount() * demand * priceMultiplier), 0)) + specialPrice;
-        count = MathUtils.constrain(count, 1, Registries.JAVA_ITEMS.get().get(stack.getId()).maxStackSize());
+        count = MathUtils.constrain(count, 1, Registries.JAVA_ITEMS.get().get(stack.getId()).defaultMaxStackSize());
 
         return getItemTag(session, stack, mapping, count);
     }

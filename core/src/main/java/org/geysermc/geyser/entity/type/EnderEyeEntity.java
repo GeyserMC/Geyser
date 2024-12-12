@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.entity.type;
 
-import org.geysermc.geyser.item.components.ToolTier;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.session.GeyserSession;
 
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
-        super(javaIdentifier, builder);
-        this.tier = tier;
-    }
+import java.util.UUID;
 
-    public ToolTier tier() {
-        return tier;
+public class EnderEyeEntity extends Entity {
+    public EnderEyeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Correct sizing
+        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
     }
 }

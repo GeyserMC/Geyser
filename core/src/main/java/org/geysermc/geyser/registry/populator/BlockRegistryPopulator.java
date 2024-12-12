@@ -44,11 +44,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
-import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
-import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
-import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -61,7 +58,6 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -127,20 +123,8 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Conversion685_671::remapBlock)
-                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Conversion712_685::remapBlock)
-                .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), Conversion729_712::remapBlock)
-                .put(ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), tag -> {
-                    final String name = tag.getString("name");
-                    if (name.endsWith("_wood") && tag.getCompound("states").containsKey("stripped_bit")) {
-                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
-                        builder.remove("stripped_bit");
-                        NbtMap states = builder.build();
-                        return tag.toBuilder().putCompound("states", states).build();
-                    }
-                    return tag;
-                })
+                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), Conversion766_748::remapBlock)
+                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -272,15 +256,6 @@ public final class BlockRegistryPopulator {
 
                 NbtMap originalBedrockTag = buildBedrockState(blockState, entry);
                 NbtMap bedrockTag = stateMapper.remap(originalBedrockTag);
-
-                // FIXME TEMPORARY
-                if (blockState.block() instanceof SkullBlock && palette.valueInt() >= Bedrock_v748.CODEC.getProtocolVersion()) {
-                    // The flattening must be a very interesting process.
-                    String skullName = blockState.block().javaIdentifier().asString().replace("_wall", "");
-                    bedrockTag = bedrockTag.toBuilder()
-                        .putString("name", skullName)
-                        .build();
-                }
 
                 GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
 
