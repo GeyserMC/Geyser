@@ -41,6 +41,7 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
@@ -300,7 +301,7 @@ public class CustomItemRegistryPopulator {
         int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
 
         itemProperties.putInt("max_stack_size", stackSize);
-        if (maxDamage > 0/* && customItemData.customItemOptions().unbreakable() != TriState.TRUE*/) { // TODO Insert check back in once predicates are here?
+        if (maxDamage > 0 && !isUnbreakableItem(definition)) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                 .putCompound("damage_chance", NbtMap.builder()
                     .putInt("max", 1)
@@ -612,6 +613,15 @@ public class CustomItemRegistryPopulator {
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {
         return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
+    }
+
+    private static boolean isUnbreakableItem(CustomItemDefinition definition) {
+        for (CustomItemPredicate predicate : definition.predicates()) {
+            if (predicate instanceof ConditionPredicate condition && condition.property() == ConditionPredicate.ConditionProperty.UNBREAKABLE && condition.expected()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // TODO is this right?
