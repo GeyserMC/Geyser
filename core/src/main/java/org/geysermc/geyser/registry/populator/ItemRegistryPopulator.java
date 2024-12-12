@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -476,7 +475,7 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                SortedSetMultimap<Key, Pair<CustomItemDefinition, ItemDefinition>> customItemDefinitions;
+                SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
                 Collection<CustomItemDefinition> customItemsToLoad = customItems.get(javaItem.javaIdentifier());
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
                     customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
@@ -506,7 +505,15 @@ public class ItemRegistryPopulator {
 
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        customItemDefinitions.put(identifierToKey(customItem.model()), Pair.of(customItem, customMapping.itemDefinition()));
+                        System.out.println("putting " + customItem.bedrockIdentifier() + " for model " + identifierToKey(customItem.model()));
+                        for (GeyserCustomMappingData existing : customItemDefinitions.get(identifierToKey(customItem.model()))) {
+                            System.out.println("existing - " + existing);
+                            System.out.println("trying to add - " + customMapping);
+                            System.out.println("trying to add " + (customMapping.equals(existing) ? "DOES" : "does NOT") + " equal existing");
+                        }
+                        System.out.println("map size: " + customItemDefinitions.size());
+                        customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
+                        System.out.println("map size after: " + customItemDefinitions.size());
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
@@ -747,12 +754,12 @@ public class ItemRegistryPopulator {
      * <p>This comparator regards 2 custom item definitions as the same if their model differs, since it is only checking for predicates, and those
      * don't matter if their models are different.</p>
      */
-    private static class CustomItemDefinitionComparator implements Comparator<Pair<CustomItemDefinition, ItemDefinition>> {
+    private static class CustomItemDefinitionComparator implements Comparator<GeyserCustomMappingData> {
 
         @Override
-        public int compare(Pair<CustomItemDefinition, ItemDefinition> firstPair, Pair<CustomItemDefinition, ItemDefinition> secondPair) {
-            CustomItemDefinition first = firstPair.first();
-            CustomItemDefinition second = secondPair.first();
+        public int compare(GeyserCustomMappingData firstData, GeyserCustomMappingData secondData) {
+            CustomItemDefinition first = firstData.definition();
+            CustomItemDefinition second = secondData.definition();
             if (first.equals(second) || !first.model().equals(second.model())) {
                 return 0;
             }

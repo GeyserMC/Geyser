@@ -29,7 +29,6 @@ import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
@@ -37,6 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
@@ -48,7 +48,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -69,29 +68,30 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Multimap<Key, Pair<CustomItemDefinition, ItemDefinition>> allCustomItems = mapping.getCustomItemDefinitions();
+        Multimap<Key, GeyserCustomMappingData> allCustomItems = mapping.getCustomItemDefinitions();
         if (allCustomItems == null) {
             return null;
         }
 
         Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air"));
-        Collection<Pair<CustomItemDefinition, ItemDefinition>> customItems = allCustomItems.get(itemModel);
+        Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
         }
 
-        for (Pair<CustomItemDefinition, ItemDefinition> customModel : customItems) {
-            Key expectedModel = ItemRegistryPopulator.identifierToKey(customModel.first().model());
+        for (GeyserCustomMappingData customMapping : customItems) {
+            Key expectedModel = ItemRegistryPopulator.identifierToKey(customMapping.definition().model());
             if (expectedModel.equals(itemModel)) {
                 boolean allMatch = true;
-                for (CustomItemPredicate predicate : customModel.first().predicates()) {
+                for (CustomItemPredicate predicate : customMapping.definition().predicates()) {
                     if (!predicateMatches(session, predicate, stackSize, components)) {
                         allMatch = false;
                         break;
                     }
                 }
                 if (allMatch) {
-                    return customModel.second();
+                    System.out.println("using " + customMapping.definition().bedrockIdentifier());
+                    return customMapping.itemDefinition();
                 }
             }
         }

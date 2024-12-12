@@ -129,7 +129,7 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder builder = createComponentNbt(customItemDefinition, javaItem, mapping, customItemName, bedrockId);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
 
-        return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
+        return new GeyserCustomMappingData(customItemDefinition, componentItemData, itemDefinition, customItemName, bedrockId);
     }
 
     private static boolean initialCheck(String identifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
