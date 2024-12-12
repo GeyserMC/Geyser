@@ -775,6 +775,11 @@ public class ItemRegistryPopulator {
                     }
                 } // TODO not a fan of how this looks
             }
+
+            if (first.predicates().size() == second.predicates().size()) {
+                return -1; // If there's no preferred range predicate order and they both have the same amount of predicates, prefer the first
+            }
+
             return second.predicates().size() - first.predicates().size();
         }
     }
