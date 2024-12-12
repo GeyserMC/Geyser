@@ -51,6 +51,9 @@ public enum GeyserAttributeType {
     MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
     SCALE("minecraft:generic.scale", null, 0.0625f, 16f, 1f),
     BLOCK_INTERACTION_RANGE("minecraft:player.block_interaction_range", null, 0.0f, 64f, 4.5f),
+    MINING_EFFICIENCY("minecraft:mining_efficiency", null, 0f, 1024f, 0f),
+    BLOCK_BREAK_SPEED("minecraft:block_break_speed", null, 0f, 1024f, 1f),
+    SUBMERGED_MINING_SPEED("minecraft:submerged_mining_speed", null, 0f, 20f, 0.2f),
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),

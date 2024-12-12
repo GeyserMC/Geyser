@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntComparators;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -75,12 +76,14 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Translator(packet = ClientboundRecipeBookAddPacket.class)
 public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRecipeBookAddPacket> {
@@ -386,10 +389,64 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 return Pair.of(Lists.cartesianProduct(inputs), output);
             }
         }
-        // TODO:
-        return Pair.of(
-            Collections.singletonList(inputs.stream().map(descriptors -> descriptors.get(0)).toList()),
-            output
-        );
+
+        int totalSimpleRecipes = inputs.stream().mapToInt(List::size).max().orElse(1);
+
+        // Sort inputs to create "uniform" simple recipes, if possible
+        inputs = inputs.stream()
+            .map(descriptors -> descriptors.stream()
+                .sorted(ItemDescriptorWithCountComparator.INSTANCE)
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
+
+        List<List<ItemDescriptorWithCount>> finalRecipes = new ArrayList<>(totalSimpleRecipes);
+        for (int i = 0; i < totalSimpleRecipes; i++) {
+            int current = i;
+            finalRecipes.add(inputs.stream().map(descriptors -> {
+                if (descriptors.size() > current) {
+                    return descriptors.get(current);
+                }
+                return descriptors.get(0);
+            }).toList());
+        }
+
+        return Pair.of(finalRecipes, output);
+    }
+
+    static class ItemDescriptorWithCountComparator implements Comparator<ItemDescriptorWithCount> {
+
+        static ItemDescriptorWithCountComparator INSTANCE = new ItemDescriptorWithCountComparator();
+
+        @Override
+        public int compare(ItemDescriptorWithCount o1, ItemDescriptorWithCount o2) {
+            String tag1 = null, tag2 = null;
+
+            // Collect item tags first
+            if (o1.getDescriptor() instanceof ItemTagDescriptor itemTagDescriptor) {
+                tag1 = itemTagDescriptor.getItemTag();
+            }
+
+            if (o2.getDescriptor() instanceof ItemTagDescriptor itemTagDescriptor) {
+                tag2 = itemTagDescriptor.getItemTag();
+            }
+
+            if (tag1 != null || tag2 != null) {
+                if (tag1 != null && tag2 != null) {
+                    return tag1.compareTo(tag2); // Just sort based on their string id
+                }
+
+                if (tag1 != null) {
+                    return -1;
+                }
+
+                return 1; // the second is an item tag; which should be r
+            }
+
+            if (o1.getDescriptor() instanceof DefaultDescriptor defaultDescriptor1 && o2.getDescriptor() instanceof DefaultDescriptor defaultDescriptor2) {
+                return IntComparators.NATURAL_COMPARATOR.compare(defaultDescriptor1.getItemId().getRuntimeId(), defaultDescriptor2.getItemId().getRuntimeId());
+            }
+
+            throw new IllegalStateException("Unable to compare unknown item descriptors: " + o1 + " and " + o2);
+        }
     }
 }

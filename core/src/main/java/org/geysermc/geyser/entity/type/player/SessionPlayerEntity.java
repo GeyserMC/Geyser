@@ -280,6 +280,15 @@ public class SessionPlayerEntity extends PlayerEntity {
         return attributeData;
     }
 
+    public float attributeOrDefault(GeyserAttributeType type) {
+        var attribute = this.attributes.get(type);
+        if (attribute == null) {
+            return type.getDefaultValue();
+        }
+
+        return attribute.getValue();
+    }
+
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
             dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());

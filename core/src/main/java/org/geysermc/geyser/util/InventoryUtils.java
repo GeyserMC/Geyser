@@ -34,19 +34,16 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -58,7 +55,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
@@ -69,8 +65,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDis
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
@@ -269,169 +263,6 @@ public class InventoryUtils {
         return protocolVersion -> ItemData.builder()
             .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().totem().getBedrockDefinition())
             .count(1).build();
-    }
-
-    /**
-     * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
-     *
-     * @param session the Bedrock client's session
-     * @param itemStack the item to try to find a match for. NBT will also be accounted for.
-     */
-    public static void findOrCreateItem(GeyserSession session, ItemStack itemStack) {
-        if (isEmpty(itemStack)) {
-            return;
-        }
-        PlayerInventory inventory = session.getPlayerInventory();
-
-        // Check hotbar for item
-        for (int i = 36; i < 45; i++) {
-            GeyserItemStack geyserItem = inventory.getItem(i);
-            if (geyserItem.isEmpty()) {
-                continue;
-            }
-            // If this is the item we're looking for
-            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getComponents(), itemStack.getDataComponents())) { //TODO verify
-                setHotbarItem(session, i);
-                // Don't check inventory if item was in hotbar
-                return;
-            }
-        }
-
-        // Check inventory for item
-        for (int i = 9; i < 36; i++) {
-            GeyserItemStack geyserItem = inventory.getItem(i);
-            if (geyserItem.isEmpty()) {
-                continue;
-            }
-            // If this is the item we're looking for
-            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getComponents(), itemStack.getDataComponents())) { //TODO verify
-                ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamGamePacket(packetToSend);
-                return;
-            }
-        }
-
-        // If we still have not found the item, and we're in creative, ask for the item from the server.
-        if (session.getGameMode() == GameMode.CREATIVE) {
-            setPickedItem(session, inventory, GeyserItemStack.from(itemStack));
-        }
-    }
-
-    // Please remove!!!
-    public static void findOrCreateItem(GeyserSession session, String itemName) {
-        findOrCreateItem(session, Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemName, Items.AIR));
-    }
-
-    /**
-     * Attempt to find the specified item name in the session's inventory.
-     * If it is found and in the hotbar, set the user's held item to that slot.
-     * If it is found in another part of the inventory, move it.
-     * If it is not found and the user is in creative mode, create the item,
-     * overriding the current item slot if no other hotbar slots are empty, or otherwise selecting the empty slot.
-     * <p>
-     * This attempts to mimic Java Edition behavior as best as it can.
-     * @param session the Bedrock client's session
-     * @param item the Java item to search/select for
-     */
-    public static void findOrCreateItem(GeyserSession session, Item item) {
-        // Get the inventory to choose a slot to pick
-        PlayerInventory inventory = session.getPlayerInventory();
-
-        if (item == Items.AIR) {
-            return;
-        }
-
-        // Check hotbar for item
-        for (int i = 36; i < 45; i++) {
-            GeyserItemStack geyserItem = inventory.getItem(i);
-            if (geyserItem.isEmpty()) {
-                continue;
-            }
-            // If this isn't the item we're looking for
-            if (!geyserItem.asItem().equals(item)) {
-                continue;
-            }
-
-            setHotbarItem(session, i);
-            // Don't check inventory if item was in hotbar
-            return;
-        }
-
-        // Check inventory for item
-        for (int i = 9; i < 36; i++) {
-            GeyserItemStack geyserItem = inventory.getItem(i);
-            if (geyserItem.isEmpty()) {
-                continue;
-            }
-            // If this isn't the item we're looking for
-            if (!geyserItem.asItem().equals(item)) {
-                continue;
-            }
-
-            ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamGamePacket(packetToSend);
-            return;
-        }
-
-        // If we still have not found the item, and we're in creative, set the item ourselves.
-        if (session.getGameMode() == GameMode.CREATIVE) {
-            GeyserItemStack itemStack = item.newItemStack(1, null);
-            setPickedItem(session, inventory, itemStack);
-        }
-    }
-
-    private static void setPickedItem(GeyserSession session, PlayerInventory inventory, GeyserItemStack itemStack) {
-        // Try to find an empty hotbar slot.
-        int slot = inventory.getHeldItemSlot() + 36;
-        if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
-            for (int i = 36; i < 45; i++) {
-                if (inventory.getItem(i).isEmpty()) {
-                    slot = i;
-                    break;
-                }
-            }
-        }
-        GeyserItemStack existingItem = inventory.getItem(slot);
-        if (!existingItem.isEmpty()) {
-            // Try to move the item to another slot.
-            for (int i = 9; i < 36; i++) {
-                if (inventory.getItem(i).isEmpty()) {
-                    inventory.setItem(i, existingItem, session);
-                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, i);
-
-                    ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) i,
-                        existingItem.getItemStack());
-                    session.sendDownstreamGamePacket(actionPacket);
-                    break;
-                }
-            }
-        }
-
-        // As of 1.21.3 - the client does this on its own end and the server doesn't send a slot response back.
-        inventory.setItem(slot, itemStack, session);
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, inventory, slot);
-
-        ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
-            itemStack.getItemStack());
-        if ((slot - 36) != inventory.getHeldItemSlot()) {
-            setHotbarItem(session, slot);
-        }
-        session.sendDownstreamGamePacket(actionPacket);
-    }
-
-    /**
-     * Changes the held item slot to the specified slot
-     * @param session GeyserSession
-     * @param slot inventory slot to be selected
-     */
-    private static void setHotbarItem(GeyserSession session, int slot) {
-        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-        hotbarPacket.setContainerId(0);
-        // Java inventory slot to hotbar slot ID
-        hotbarPacket.setSelectedHotbarSlot(slot - 36);
-        hotbarPacket.setSelectHotbarSlot(true);
-        session.sendUpstreamPacket(hotbarPacket);
-        // No need to send a Java packet as Bedrock sends a confirmation packet back that we translate
     }
 
     @Nullable

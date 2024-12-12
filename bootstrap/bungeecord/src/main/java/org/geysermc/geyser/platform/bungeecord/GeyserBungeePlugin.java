@@ -41,6 +41,7 @@ import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
@@ -58,6 +59,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -80,18 +82,19 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        // Copied from ViaVersion.
-        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_21");
-        } catch (NoSuchFieldException e) {
-            geyserLogger.error("      / \\");
-            geyserLogger.error("     /   \\");
-            geyserLogger.error("    /  |  \\");
-            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            geyserLogger.error(" /     o     \\");
-            geyserLogger.error("/_____________\\");
+            List<Integer> supportedProtocols = ProtocolConstants.SUPPORTED_VERSION_IDS;
+            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion())) {
+                geyserLogger.error("      / \\");
+                geyserLogger.error("     /   \\");
+                geyserLogger.error("    /  |  \\");
+                geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+                geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+                geyserLogger.error(" /     o     \\");
+                geyserLogger.error("/_____________\\");
+            }
+        } catch (Throwable e) {
+            geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
         }
 
         if (!this.loadConfig()) {
