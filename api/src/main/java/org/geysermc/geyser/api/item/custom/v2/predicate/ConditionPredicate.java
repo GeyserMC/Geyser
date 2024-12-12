@@ -39,6 +39,7 @@ public record ConditionPredicate(ConditionProperty property, boolean expected, i
     public enum ConditionProperty {
         BROKEN,
         DAMAGED,
+        UNBREAKABLE,
         CUSTOM_MODEL_DATA
     }
 }

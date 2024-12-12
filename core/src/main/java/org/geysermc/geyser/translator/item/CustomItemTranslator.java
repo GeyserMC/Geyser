@@ -102,6 +102,7 @@ public final class CustomItemTranslator {
             return switch (condition.property()) {
                 case BROKEN -> nextDamageWillBreak(components);
                 case DAMAGED -> isDamaged(components);
+                case UNBREAKABLE -> components.getOrDefault(DataComponentType.UNBREAKABLE, false);
                 case CUSTOM_MODEL_DATA -> getCustomBoolean(components, condition.index());
             } == condition.expected();
         } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fan of the casts here, find a solution for the types?
