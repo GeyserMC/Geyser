@@ -79,12 +79,14 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
+        @Deprecated
         public Builder textureSize(int textureSize) {
             this.textureSize = textureSize;
             return this;
         }
 
         @Override
+        @Deprecated
         public Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
             this.renderOffsets = renderOffsets;
             return this;

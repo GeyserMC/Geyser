@@ -37,12 +37,13 @@ import java.util.HashMap;
 import java.util.List;
 
 public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String displayName, @NonNull Key model, @NonNull List<CustomItemPredicate> predicates,
-                                         @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
+                                         int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Key bedrockIdentifier;
         private final Key model;
         private final List<CustomItemPredicate> predicates = new ArrayList<>();
+        private int priority = 0;
         private String displayName;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private DataComponents components = new DataComponents(new HashMap<>());
@@ -66,6 +67,12 @@ public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String 
         }
 
         @Override
+        public CustomItemDefinition.Builder priority(int priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        @Override
         public CustomItemDefinition.Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options) {
             this.bedrockOptions = options.build();
             return this;
@@ -79,7 +86,7 @@ public record GeyserCustomItemDefinition(@NonNull Key bedrockIdentifier, String 
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), bedrockOptions, components);
+            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), priority, bedrockOptions, components);
         }
     }
 }

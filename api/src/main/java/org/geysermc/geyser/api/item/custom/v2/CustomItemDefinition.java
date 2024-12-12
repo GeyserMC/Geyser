@@ -76,6 +76,11 @@ public interface CustomItemDefinition {
     @NonNull List<CustomItemPredicate> predicates();
 
     /**
+     * The priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
+     */
+    int priority();
+
+    /**
      * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
      */
     @NonNull CustomItemBedrockOptions bedrockOptions();
@@ -110,6 +115,8 @@ public interface CustomItemDefinition {
         Builder predicate(@NonNull CustomItemPredicate predicate);
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
+
+        Builder priority(int priority);
 
         // TODO do we want another format for this?
         Builder components(@NonNull DataComponents components);
