@@ -731,8 +731,11 @@ public class ItemRegistryPopulator {
     /**
      * Compares custom item definitions based on their predicates:
      *
-     * <p>First by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first,
-     * and then by the amount of predicates, from most to least.</p>
+     * <ol>
+     *     <li>First by checking their priority values.</li>
+     *     <li>Then by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first.</li>
+     *     <li>Lastly by the amount of predicates, from most to least.</li>
+     * </ol>
      *
      * <p>This comparator regards 2 custom item definitions as the same if their model differs, since it is only checking for predicates, and those
      * don't matter if their models are different.</p>
@@ -746,6 +749,11 @@ public class ItemRegistryPopulator {
             if (first.equals(second) || !first.model().equals(second.model())) {
                 return 0;
             }
+
+            if (first.priority() != second.priority()) {
+                return first.priority() - second.priority();
+            }
+
             for (CustomItemPredicate predicate : first.predicates()) {
                 if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
                     Optional<RangeDispatchPredicate> other = second.predicates().stream()
