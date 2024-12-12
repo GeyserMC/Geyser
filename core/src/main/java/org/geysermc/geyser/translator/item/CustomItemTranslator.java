@@ -75,7 +75,6 @@ public final class CustomItemTranslator {
         }
 
         Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air"));
-        System.out.println(itemModel + " is the model!");
         Collection<Pair<CustomItemDefinition, ItemDefinition>> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
@@ -111,7 +110,7 @@ public final class CustomItemTranslator {
             if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
                 ChargeType expected = (ChargeType) match.data();
                 List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
-                if (charged == null) {
+                if (charged == null || charged.isEmpty()) {
                     return expected == ChargeType.NONE;
                 } else if (expected == ChargeType.ROCKET) {
                     for (ItemStack projectile : charged) {
