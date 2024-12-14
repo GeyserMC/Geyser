@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.item;
 
 import com.google.common.collect.Multimap;
-import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
@@ -39,7 +38,6 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProp
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -79,18 +77,15 @@ public final class CustomItemTranslator {
         }
 
         for (GeyserCustomMappingData customMapping : customItems) {
-            Key expectedModel = ItemRegistryPopulator.identifierToKey(customMapping.definition().model());
-            if (expectedModel.equals(itemModel)) {
-                boolean allMatch = true;
-                for (CustomItemPredicate predicate : customMapping.definition().predicates()) {
-                    if (!predicateMatches(session, predicate, stackSize, components)) {
-                        allMatch = false;
-                        break;
-                    }
+            boolean allMatch = true;
+            for (CustomItemPredicate predicate : customMapping.definition().predicates()) {
+                if (!predicateMatches(session, predicate, stackSize, components)) {
+                    allMatch = false;
+                    break;
                 }
-                if (allMatch) {
-                    return customMapping.itemDefinition();
-                }
+            }
+            if (allMatch) {
+                return customMapping.itemDefinition();
             }
         }
         return null;
