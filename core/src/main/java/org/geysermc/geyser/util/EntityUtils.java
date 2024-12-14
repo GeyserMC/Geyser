@@ -212,11 +212,11 @@ public final class EntityUtils {
                 case PLAYER -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
                         Vector3f displayTranslation = textDisplay.getTranslation();
-                        int lines = textDisplay.getLines();
+                        int lines = textDisplay.getLineCount();
                         if (displayTranslation != null && lines != 0) {
-                            float multiplier = .16f;
+                            float multiplier = .1414f;
                             xOffset = displayTranslation.getX();
-                            yOffset = displayTranslation.getY() + 1.2f + multiplier * lines;
+                            yOffset += displayTranslation.getY() + multiplier * lines;
                             zOffset = displayTranslation.getZ();
                         }
                     }
