@@ -55,7 +55,8 @@ public final class DataComponentRegistryPopulator {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
         List<DataComponents> defaultComponents;
         try (InputStream stream = bootstrap.getResourceOrThrow("java/item_data_components.json")) {
-            JsonElement rootElement = JsonParser.parseReader(new InputStreamReader(stream));
+            //noinspection deprecation - 1.16.5 breaks otherwise
+            JsonElement rootElement = new JsonParser().parse(new InputStreamReader(stream));
             JsonArray jsonArray = rootElement.getAsJsonArray();
 
             defaultComponents = new ObjectArrayList<>(jsonArray.size());

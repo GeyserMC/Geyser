@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -48,10 +47,5 @@ public class ChestBoatEntity extends BoatEntity {
     @Override
     public InteractionResult interact(Hand hand) {
         return passengers.isEmpty() && !session.isSneaking() ? super.interact(hand) : InteractionResult.SUCCESS;
-    }
-
-    @Override
-    public Item getPickItem() {
-        return this.variant.chestPickItem;
     }
 }
