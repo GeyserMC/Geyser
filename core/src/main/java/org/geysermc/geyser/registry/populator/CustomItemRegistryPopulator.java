@@ -81,14 +81,15 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.BRUSH, 12
     );
 
-    public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems /* TODO */) {
-        // TODO
-        // TODO better error handling?
+    public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
-        mappingsConfigReader.loadItemMappingsFromJson((id, item) -> {
-            if (initialCheck(id, item, customItems, items)) {
-                customItems.get(id).add(item);
+        mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
+            Optional<String> error = validate(identifier, item, customItems, items);
+            if (error.isEmpty()) {
+                customItems.get(identifier).add(item);
+            } else {
+                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + error.get());
             }
         });
 
@@ -102,10 +103,12 @@ public class CustomItemRegistryPopulator {
 
             @Override
             public boolean register(@NonNull String identifier, @NonNull CustomItemDefinition definition) {
-                if (initialCheck(identifier, definition, customItems, items)) {
+                Optional<String> error = validate(identifier, definition, customItems, items);
+                if (error.isEmpty()) {
                     customItems.get(identifier).add(definition);
                     return true;
                 }
+                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + error.get());
                 return false;
             }
 
@@ -132,56 +135,50 @@ public class CustomItemRegistryPopulator {
         return new GeyserCustomMappingData(customItemDefinition, componentItemData, itemDefinition, customItemName, bedrockId);
     }
 
-    private static boolean initialCheck(String identifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
-        // TODO check if there's already a same model without predicate and this hasn't a predicate either
-        if (!mappings.containsKey(identifier)) {
-            GeyserImpl.getInstance().getLogger().error("Could not find the Java item to add custom item properties to for " + item.bedrockIdentifier());
-            return false;
+    /**
+     * @return an empty optional if there are no errors with the registration, and an optional with an error message if there are
+     */
+    private static Optional<String> validate(String vanillaIdentifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
+        if (!mappings.containsKey(vanillaIdentifier)) {
+            return Optional.of("Unknown Java item " + vanillaIdentifier);
         }
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            GeyserImpl.getInstance().getLogger().error("Custom item bedrock identifier namespace can't be minecraft");
-            return false;
+            return Optional.of("Custom item bedrock identifier namespace can't be minecraft");
         } else if (item.model().namespace().equals(Key.MINECRAFT_NAMESPACE) && item.predicates().isEmpty()) {
-            GeyserImpl.getInstance().getLogger().error("Custom item definition model can't be in the minecraft namespace without a predicate");
-            return false;
+            return Optional.of("Custom item definition model can't be in the minecraft namespace without a predicate");
         }
 
         for (Map.Entry<String, CustomItemDefinition> entry : registered.entries()) {
             if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
-                GeyserImpl.getInstance().getLogger().error("Duplicate custom item definition for Bedrock ID " + item.bedrockIdentifier());
-                return false;
+                return Optional.of("Conflicts with another custom item definition with the same bedrock identifier");
             }
-            Optional<String> error = checkPredicate(entry, identifier, item);
+            Optional<String> error = checkPredicate(entry, vanillaIdentifier, item);
             if (error.isPresent()) {
-                GeyserImpl.getInstance().getLogger().error("An existing item definition for the Java item " + identifier + " was already registered that conflicts with this one!");
-                GeyserImpl.getInstance().getLogger().error("First entry: " + entry.getValue().bedrockIdentifier());
-                GeyserImpl.getInstance().getLogger().error("Second entry: " + item.bedrockIdentifier());
-                GeyserImpl.getInstance().getLogger().error(error.orElseThrow());
+                return Optional.of("Conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + error.get());
             }
         }
 
-        return true;
+        return Optional.empty();
     }
 
     /**
-     * Returns an error message if there was a conflict, or an empty optional otherwise
+     * @return an error message if there was a conflict, or an empty optional otherwise
      */
-    // TODO maybe simplify this
-    private static Optional<String> checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String identifier, CustomItemDefinition item) {
+    private static Optional<String> checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String vanillaIdentifier, CustomItemDefinition newItem) {
         // If the definitions are for different Java items or models then it doesn't matter
-        if (!identifier.equals(existing.getKey()) || !item.model().equals(existing.getValue().model())) {
+        if (!vanillaIdentifier.equals(existing.getKey()) || !newItem.model().equals(existing.getValue().model())) {
             return Optional.empty();
         }
         // If they both don't have predicates they conflict
-        if (existing.getValue().predicates().isEmpty() && item.predicates().isEmpty()) {
+        if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
             return Optional.of("Both entries don't have predicates, one must have a predicate");
         }
         // If their predicates are equal then they also conflict
-        if (existing.getValue().predicates().size() == item.predicates().size()) {
+        if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
             for (CustomItemPredicate predicate : existing.getValue().predicates()) {
-                if (!item.predicates().contains(predicate)) {
+                if (!newItem.predicates().contains(predicate)) {
                     equal = false;
                 }
             }
