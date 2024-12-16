@@ -47,7 +47,7 @@ public class DataComponentReaders {
     public static void readDataComponent(DataComponents components, Key key, @NonNull JsonNode node) throws InvalidCustomMappingsFileException {
         DataComponentReader<?> reader = READERS.get(key);
         if (reader == null) {
-            throw new InvalidCustomMappingsFileException("Unknown data component " + key);
+            throw new InvalidCustomMappingsFileException("Unknown data component");
         }
         reader.read(components, node);
     }

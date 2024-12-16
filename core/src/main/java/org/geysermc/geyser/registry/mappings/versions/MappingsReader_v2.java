@@ -50,6 +50,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -61,45 +63,19 @@ public class MappingsReader_v2 extends MappingsReader {
     }
 
     public void readItemMappingsV2(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+        // TODO - do we want to continue allowing type conversions, or do we want to enforce strict typing in JSON mappings?
+        // E.g., do we want to allow reading "210" as 210 and reading 1 as true, or do we throw exceptions in that case?
         JsonNode itemModels = mappingsRoot.get("items");
 
         if (itemModels != null && itemModels.isObject()) {
             itemModels.fields().forEachRemaining(entry -> {
                 if (entry.getValue().isArray()) {
                     entry.getValue().forEach(data -> {
-                        // TODO better error handling
-                        JsonNode type = data.get("type");
-                        if (type == null || !type.isTextual()) {
-                            GeyserImpl.getInstance().getLogger().error("Error reading type in custom mappings file: " + file.toString());
-                        } else if (type.asText().equals("group")) {
-                            JsonNode modelNode = data.get("model");
-                            if (modelNode == null || !modelNode.isTextual()) {
-                                GeyserImpl.getInstance().getLogger().error("Error reading model in custom mappings file: " + file.toString());
-                            } else {
-                                String model = modelNode.asText();
-                                JsonNode definitions = data.get("definitions");
-                                if (definitions == null || !definitions.isArray()) {
-                                    GeyserImpl.getInstance().getLogger().error("Error reading item definitions in custom mappings file: " + file.toString());
-                                } else {
-                                    definitions.forEach(definition -> {
-                                        try {
-                                            CustomItemDefinition customItemDefinition = readItemMappingEntry(model, definition);
-                                            consumer.accept(entry.getKey(), customItemDefinition);
-                                        } catch (InvalidCustomMappingsFileException e) {
-                                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
-                                        }
-                                    });
-                                }
-                            }
-                        } else if (type.asText().equals("definition")) {
-                            try {
-                                CustomItemDefinition customItemDefinition = readItemMappingEntry(null, data);
-                                consumer.accept(entry.getKey(), customItemDefinition);
-                            } catch (InvalidCustomMappingsFileException e) {
-                                GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
-                            }
-                        } else {
-                            GeyserImpl.getInstance().getLogger().error("Unknown type " + type.asText() + " in custom mappings file: " + file.toString());
+                        try {
+                            readItemDefinitionEntry(data, entry.getKey(), null, consumer);
+                        } catch (InvalidCustomMappingsFileException exception) {
+                            GeyserImpl.getInstance().getLogger().error(
+                                "Error reading definition for item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
                         }
                     });
                 }
@@ -112,22 +88,45 @@ public class MappingsReader_v2 extends MappingsReader {
         // TODO
     }
 
+    private void readItemDefinitionEntry(JsonNode data, String itemIdentifier, String model,
+                                         BiConsumer<String, CustomItemDefinition> definitionConsumer) throws InvalidCustomMappingsFileException {
+        String type = readOrThrow(data, "type", JsonNode::asText, "Missing type key in definition");
+        if (type.equals("group")) {
+            // Read model of group if it's present, or default to the model of the parent group, if that's present
+            // If the parent group model is not present (or there is no parent group), and this group also doesn't have a model, then it is expected the definitions supply their model themselves
+            String groupModel = readOrDefault(data, "model", JsonNode::asText, model);
+            JsonNode definitions = data.get("definitions");
+            if (definitions == null || !definitions.isArray()) {
+                throw new InvalidCustomMappingsFileException("An item entry group has no definitions key, or it wasn't an array");
+            } else {
+                for (JsonNode definition : definitions) {
+                    readItemDefinitionEntry(definition, itemIdentifier, groupModel, definitionConsumer);
+                }
+            }
+        } else if (type.equals("definition")) {
+            CustomItemDefinition customItemDefinition = readItemMappingEntry(model, data);
+            definitionConsumer.accept(itemIdentifier, customItemDefinition);
+        } else {
+            throw new InvalidCustomMappingsFileException("Unknown definition type " + type);
+        }
+    }
+
     @Override
-    public CustomItemDefinition readItemMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException {
+    public CustomItemDefinition readItemMappingEntry(String itemModel, JsonNode node) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
+            throw new InvalidCustomMappingsFileException("Invalid item definition entry");
         }
 
         JsonNode bedrockIdentifierNode = node.get("bedrock_identifier");
 
         JsonNode modelNode = node.get("model");
-        String model = identifier != null || modelNode == null || !modelNode.isTextual() ? identifier : modelNode.asText();
+        String model = itemModel != null || modelNode == null || !modelNode.isTextual() ? itemModel : modelNode.asText();
 
         if (bedrockIdentifierNode == null || !bedrockIdentifierNode.isTextual() || bedrockIdentifierNode.asText().isEmpty()) {
-            throw new InvalidCustomMappingsFileException("An item entry has no bedrock identifier");
+            throw new InvalidCustomMappingsFileException("An item definition has no bedrock identifier");
         }
         if (model == null) {
-            throw new InvalidCustomMappingsFileException("An item entry has no model");
+            throw new InvalidCustomMappingsFileException("An item definition has no model");
         }
 
         Identifier bedrockIdentifier = new Identifier(bedrockIdentifierNode.asText());
@@ -136,30 +135,31 @@ public class MappingsReader_v2 extends MappingsReader {
         }
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, new Identifier(model));
 
-        if (node.has("display_name")) {
-            builder.displayName(node.get("display_name").asText());
-        }
+        // We now know the Bedrock identifier, put it in the exception message so that the error can be easily located in the JSON file
+        try {
+            readTextIfPresent(node, "display_name", builder::displayName);
+            readIfPresent(node, "priority", builder::priority, JsonNode::asInt);
 
-        readPredicates(builder, node.get("predicate"));
+            readPredicates(builder, node.get("predicate"));
 
-        if (node.has("priority")) {
-            builder.priority(node.get("priority").asInt());
-        }
+            builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options")));
 
-        builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options")));
-
-        DataComponents components = new DataComponents(new HashMap<>()); // TODO faster map ?
-        JsonNode componentsNode = node.get("components");
-        if (componentsNode != null && componentsNode.isObject()) {
-            componentsNode.fields().forEachRemaining(entry -> {
-                try {
-                    DataComponentReaders.readDataComponent(components, MinecraftKey.key(entry.getKey()), entry.getValue());
-                } catch (InvalidCustomMappingsFileException e) {
-                    GeyserImpl.getInstance().getLogger().error("Error reading component " + entry.getKey() + " for item model " + modelNode.textValue(), e);
+            JsonNode componentsNode = node.get("components");
+            if (componentsNode != null && componentsNode.isObject()) {
+                DataComponents components = new DataComponents(new HashMap<>()); // TODO faster map ?
+                for (Iterator<Map.Entry<String, JsonNode>> iterator = componentsNode.fields(); iterator.hasNext();) {
+                    Map.Entry<String, JsonNode> entry = iterator.next();
+                    try {
+                        DataComponentReaders.readDataComponent(components, MinecraftKey.key(entry.getKey()), entry.getValue());
+                    } catch (InvalidCustomMappingsFileException exception) {
+                        throw new InvalidCustomMappingsFileException("While reading data component " + entry.getKey() + ": " + exception.getMessage());
+                    }
                 }
-            });
+                builder.components(components);
+            }
+        } catch (InvalidCustomMappingsFileException exception) {
+            throw new InvalidCustomMappingsFileException("While reading item definition (bedrock identifier=" + bedrockIdentifier + "): " + exception.getMessage());
         }
-        builder.components(components);
 
         return builder.build();
     }
@@ -170,35 +170,13 @@ public class MappingsReader_v2 extends MappingsReader {
             return builder;
         }
 
-        if (node.has("icon")) {
-            builder.icon(node.get("icon").asText());
-        }
-
-        if (node.has("creative_category")) {
-            builder.creativeCategory(CreativeCategory.fromName(node.get("creative_category").asText()));
-        }
-
-        if (node.has("creative_group")) {
-            builder.creativeGroup(node.get("creative_group").asText());
-        }
-
-        if (node.has("allow_offhand")) {
-            builder.allowOffhand(node.get("allow_offhand").asBoolean());
-        }
-
-        if (node.has("display_handheld")) {
-            builder.displayHandheld(node.get("display_handheld").asBoolean());
-        }
-
-        if (node.has("texture_size")) {
-            builder.textureSize(node.get("texture_size").asInt());
-        }
-
-        if (node.has("render_offsets")) {
-            JsonNode tmpNode = node.get("render_offsets");
-
-            builder.renderOffsets(fromJsonNode(tmpNode));
-        }
+        readTextIfPresent(node, "icon", builder::icon);
+        readIfPresent(node, "creative_category", builder::creativeCategory, category -> CreativeCategory.fromName(category.asText()));
+        readTextIfPresent(node, "creative_group", builder::creativeGroup);
+        readIfPresent(node, "allow_offhand", builder::allowOffhand, JsonNode::asBoolean);
+        readIfPresent(node, "display_handheld", builder::displayHandheld, JsonNode::asBoolean);
+        readIfPresent(node, "texture_size", builder::textureSize, JsonNode::asInt);
+        readIfPresent(node, "render_offsets", builder::renderOffsets, MappingsReader::renderOffsetsFromJsonNode);
 
         if (node.get("tags") instanceof ArrayNode tags) {
             Set<String> tagsSet = new ObjectOpenHashSet<>();
@@ -234,38 +212,24 @@ public class MappingsReader_v2 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Expected predicate to be an object");
         }
 
-        JsonNode typeNode = node.get("type");
-        if (typeNode == null || !typeNode.isTextual()) {
-            throw new InvalidCustomMappingsFileException("Predicate missing type key");
-        }
-        String type = typeNode.asText();
+        String type = readOrThrow(node, "type", JsonNode::asText, "Predicate requires type key");
+        String property = readOrThrow(node, "property", JsonNode::asText, "Predicate requires property key");
 
-        JsonNode propertyNode = node.get("property");
-        if (propertyNode == null || !propertyNode.isTextual()) {
-            throw new InvalidCustomMappingsFileException("Predicate missing property key");
-        }
-        String property = propertyNode.asText();
-
-        // TODO helper methods to lessen code duplication
         switch (type) {
             case "condition" -> {
                 try {
                     ConditionPredicate.ConditionProperty conditionProperty = ConditionPredicate.ConditionProperty.valueOf(property.toUpperCase());
                     JsonNode expected = node.get("expected");
-                    JsonNode index = node.get("index");
 
+                    // Note that index is only used for the CUSTOM_MODEL_DATA property, but we allow specifying it for other properties anyway
                     builder.predicate(new ConditionPredicate(conditionProperty,
-                        expected == null || expected.asBoolean(), index == null || !index.isIntegralNumber() ? 0 : index.asInt()));
+                        expected == null || expected.asBoolean(), readOrDefault(node, "index", JsonNode::asInt, 0)));
                 } catch (IllegalArgumentException exception) {
                     throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }
             }
             case "match" -> {
-                JsonNode valueNode = node.get("value");
-                if (valueNode == null || !valueNode.isTextual()) {
-                    throw new InvalidCustomMappingsFileException("Predicate missing value key");
-                }
-                String value = valueNode.asText();
+                String value = readOrThrow(node, "value", JsonNode::asText, "Predicate requires value key");
 
                 switch (property) {
                     case "charge_type" -> {
@@ -279,37 +243,28 @@ public class MappingsReader_v2 extends MappingsReader {
                     case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, MinecraftKey.key(value))); // TODO
                     case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, MinecraftKey.key(value))); // TODO
                     case "custom_model_data" -> {
-                        JsonNode indexNode = node.get("index");
-                        int index = 0;
-                        if (indexNode != null && indexNode.isIntegralNumber()) {
-                            index = indexNode.asInt();
-                        }
-                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA, new CustomModelDataString(value, index)));
+                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA,
+                            new CustomModelDataString(value, readOrDefault(node, "index", JsonNode::asInt, 0))));
                     }
                     default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }
             }
             case "range_dispatch" -> {
-                JsonNode threshold = node.get("threshold");
-                if (threshold == null || !threshold.isNumber()) {
-                    throw new InvalidCustomMappingsFileException("Predicate missing threshold key");
-                }
+                double threshold = readOrThrow(node, "threshold", JsonNode::asDouble, "Predicate requires threshold key");
                 JsonNode scaleNode = node.get("scale");
                 double scale = 1.0;
                 if (scaleNode != null && scaleNode.isNumber()) {
                     scale = scaleNode.asDouble();
                 }
+
                 JsonNode normalizeNode = node.get("normalize");
                 boolean normalizeIfPossible = normalizeNode != null && normalizeNode.booleanValue();
-                JsonNode indexNode = node.get("index");
-                int index = 0;
-                if (indexNode != null && indexNode.isIntegralNumber()) {
-                    index = indexNode.asInt();
-                }
+
+                int index = readOrDefault(node, "index", JsonNode::asInt, 0);
 
                 try {
                     RangeDispatchPredicate.RangeDispatchProperty rangeDispatchProperty = RangeDispatchPredicate.RangeDispatchProperty.valueOf(property.toUpperCase());
-                    builder.predicate(new RangeDispatchPredicate(rangeDispatchProperty, threshold.asDouble(), scale, normalizeIfPossible, index));
+                    builder.predicate(new RangeDispatchPredicate(rangeDispatchProperty, threshold, scale, normalizeIfPossible, index));
                 } catch (IllegalArgumentException exception) {
                     throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }

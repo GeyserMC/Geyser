@@ -206,7 +206,7 @@ public class MappingsReader_v1 extends MappingsReader {
         if (node.has("render_offsets")) {
             JsonNode tmpNode = node.get("render_offsets");
 
-            customItemData.renderOffsets(fromJsonNode(tmpNode));
+            customItemData.renderOffsets(renderOffsetsFromJsonNode(tmpNode));
         }
 
         if (node.get("tags") instanceof ArrayNode tags) {
