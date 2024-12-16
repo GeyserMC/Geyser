@@ -25,6 +25,15 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
+/**
+ * A predicate that checks for a certain numeric property of the item stack and returns true if it is above the specified threshold.
+ *
+ * @param property the property to check.
+ * @param threshold the threshold the property should be above.
+ * @param scale factor to multiply the property value with before checking it with the threshold. Defaults to 1.0.
+ * @param normalizeIfPossible if the property value should be normalised to a value between 0.0 and 1.0. Defaults to false. Only works for certain properties.
+ * @param index only used for the {@code CUSTOM_MODEL_DATA} property, determines which float of the item's custom model data to check. Defaults to 0.
+ */
 public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements CustomItemPredicate {
 
     public RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible) {
@@ -39,11 +48,24 @@ public record RangeDispatchPredicate(RangeDispatchProperty property, double thre
         this(property, threshold, 1.0);
     }
 
-    // TODO check if we can change items while bedrock is using them, and if bedrock will continue to use them
     public enum RangeDispatchProperty {
+        /**
+         * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
+         *
+         * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
+         */
         BUNDLE_FULLNESS,
+        /**
+         * Checks the item's damage value. Can be normalised.
+         */
         DAMAGE,
+        /**
+         * Checks the item's stack count. Can be normalised.
+         */
         COUNT,
+        /**
+         * Checks one of the item's custom model data floats, defaults to 0.0.
+         */
         CUSTOM_MODEL_DATA
     }
 }

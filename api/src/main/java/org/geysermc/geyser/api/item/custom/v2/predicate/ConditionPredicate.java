@@ -25,6 +25,13 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
+/**
+ * A predicate that checks for a certain boolean property of the item stack and returns true if it matches the expected value.
+ *
+ * @param property the property to check.
+ * @param expected whether the property should be true or false. Defaults to true.
+ * @param index only used for the {@code CUSTOM_MODEL_DATA} property, determines which flag of the item's custom model data to check. Defaults to 0.
+ */
 public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
 
     public ConditionPredicate(ConditionProperty property, boolean expected) {
@@ -35,11 +42,22 @@ public record ConditionPredicate(ConditionProperty property, boolean expected, i
         this(property, true);
     }
 
-    // TODO maybe we can extend this
     public enum ConditionProperty {
+        /**
+         * Checks if the item is broken (has 1 durability point left).
+         */
         BROKEN,
+        /**
+         * Checks if the item is damaged (has non-full durability).
+         */
         DAMAGED,
+        /**
+         * Checks if the item is unbreakable.
+         */
         UNBREAKABLE,
+        /**
+         * Returns one of the item's custom model data flags, defaults to false.
+         */
         CUSTOM_MODEL_DATA
     }
 }

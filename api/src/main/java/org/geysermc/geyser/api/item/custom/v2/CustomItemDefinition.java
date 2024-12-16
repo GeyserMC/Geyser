@@ -34,14 +34,28 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import java.util.List;
 
 /**
- * This is used to define a custom item and its properties.
+ * This is used to define a custom item and its properties for a specific Java item and item model definition combination.
+ *
+ * <p>A custom item definition will be used for all item stacks that match the Java item and item model this item is for.
+ * Additionally, predicates can be added that allow fine-grained control as to when to use this custom item. These predicates are similar
+ * to the predicates available in Java item model definitions.</p>
+ *
+ * <p>In Geyser, all registered custom item definitions for a Java item model will be checked in a specific order:
+ *
+ * <ol>
+ *     <li>First by checking their priority values, higher priority values going first.</li>
+ *     <li>Then by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first.</li>
+ *     <li>Lastly by the amount of predicates, from most to least.</li>
+ * </ol>
+ *
+ * This ensures predicates will be checked in a correct order, and that in most cases specifying a priority value isn't necessary, and in the few cases
+ * where Geyser doesn't properly sort definitions, specifying a priority value will.
+ * </p>
  */
-// TODO note that definitions will be sorted by predicates
 public interface CustomItemDefinition {
 
     /**
-     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace. If the {@code minecraft} namespace is given in the builder, the default
-     * namespace of the implementation is used. For Geyser, the default namespace is the {@code geyser_custom} namespace.
+     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace.
      */
     @NonNull Identifier bedrockIdentifier();
 
@@ -51,7 +65,7 @@ public interface CustomItemDefinition {
     @NonNull String displayName();
 
     /**
-     * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition is required to have a predicate.
+     * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition must have at least one predicate.
      *
      * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
      */
@@ -61,7 +75,10 @@ public interface CustomItemDefinition {
      * The icon used for this item.
      *
      * <p>If none is set in the item's Bedrock options, then the item's Bedrock identifier is used,
-     * the namespace separator replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}.</p>
+     * the namespace separator ({@code :}) replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}. For example:</p>
+     *
+     * <p>{@code my_datapack:my_custom_item} => {@code my_datapack.my_custom_item}</p>
+     * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      */
     default @NonNull String icon() {
         return bedrockOptions().icon() == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
@@ -69,9 +86,6 @@ public interface CustomItemDefinition {
 
     /**
      * The predicates that have to match for this item to be used. These predicates are similar to the Java item model predicates.
-     *
-     * <p>If all predicates match for multiple definitions, then the first registered item with all matching predicates is used. If no predicates match, then the item definition without any predicates
-     * is used, if any.</p>
      */
     @NonNull List<CustomItemPredicate> predicates();
 
@@ -118,7 +132,7 @@ public interface CustomItemDefinition {
 
         Builder priority(int priority);
 
-        // TODO do we want another format for this?
+        // TODO do we want a component(Type, Value) method instead?
         Builder components(@NonNull DataComponents components);
 
         CustomItemDefinition build();
