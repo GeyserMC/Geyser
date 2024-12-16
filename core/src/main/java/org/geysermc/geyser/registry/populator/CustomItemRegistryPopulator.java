@@ -245,7 +245,7 @@ public class CustomItemRegistryPopulator {
                 computeThrowableProperties(componentBuilder);
         }
 
-        computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder); // TODO check "hats" the hardcoded ones, once default components are here, check stack size
+        computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -310,11 +310,11 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    // TODO minecraft java tool component - also needs work elsewhere to calculate correct break speed (server authorised block breaking)
     /**
      * @return can destroy in creative
      */
     private static boolean computeToolProperties(String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int attackDamage) {
+        // TODO check this, it's probably wrong by now, also check what the minecraft:tool java component can do here, if anything
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
 
@@ -374,8 +374,10 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeArmorProperties(Equippable equippable, /*String armorType, int protectionValue,*/ NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        // TODO set stack size to 1 when armour is effective as Bedrock doesn't allow armour with a stack size above 1
+        // This should also be noted in the docs and maybe we should not allow armour with a stack size above 1 at all to prevent issues
         int protectionValue = 0;
-        // TODO protection value, check if it's just visual or not, also enchantable stuff
+        // TODO protection value, enchantable stuff and armour type?
         switch (equippable.slot()) {
             case BOOTS -> {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
@@ -418,8 +420,9 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
     }
 
-    // TODO this isn't right
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, String mapping) {
+        // TODO check this, it's probably wrong by now
+
         // setting high use_duration prevents the consume animation from playing
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
         // display item as tool (mainly for crossbow and bow)
@@ -481,13 +484,14 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeConsumableProperties(Consumable consumable, boolean canAlwaysEat, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        // TODO check the animations, it didn't work properly
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
 
         itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
         componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
             .putString("value", consumable.animation().toString().toLowerCase())
-            .build()); // TODO check
+            .build());
 
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
@@ -499,8 +503,9 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
     }
 
-    // TODO this also probably isn't right
     private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
+        // TODO check this, it's probably wrong by now
+
         // allows item to be thrown when holding down right click (individual presses are required w/o this component)
         componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
         // this must be set to something for the swing animation to play
@@ -509,6 +514,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeUseCooldownProperties(UseCooldown cooldown, NbtMapBuilder componentBuilder) {
+        // TODO the non null check can probably be removed when no longer using MCPL in API
         Objects.requireNonNull(cooldown.cooldownGroup(), "Cooldown group can't be null");
         componentBuilder.putCompound("minecraft:cooldown", NbtMap.builder()
             .putString("category", cooldown.cooldownGroup().asString())
@@ -518,6 +524,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeRenderOffsets(CustomItemBedrockOptions bedrockOptions, NbtMapBuilder componentBuilder) {
+        // TODO remove this one day when, probably when removing the old format, as render offsets are deprecated
         CustomRenderOffsets renderOffsets = bedrockOptions.renderOffsets();
         if (renderOffsets != null) {
             componentBuilder.remove("minecraft:render_offsets");
@@ -621,7 +628,6 @@ public class CustomItemRegistryPopulator {
         return false;
     }
 
-    // TODO is this right?
     private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
         return javaItem.gatherComponents(definition.components());
     }
