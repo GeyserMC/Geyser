@@ -30,8 +30,8 @@ package org.geysermc.geyser.api.item.custom.v2.predicate;
  *
  * @param property the property to check.
  * @param threshold the threshold the property should be above.
- * @param scale factor to multiply the property value with before checking it with the threshold. Defaults to 1.0.
- * @param normalizeIfPossible if the property value should be normalised to a value between 0.0 and 1.0. Defaults to false. Only works for certain properties.
+ * @param scale factor to multiply the property value with before comparing it with the threshold. Defaults to 1.0.
+ * @param normalizeIfPossible if the property value should be normalised to a value between 0.0 and 1.0 before scaling and comparing. Defaults to false. Only works for certain properties.
  * @param index only used for the {@code CUSTOM_MODEL_DATA} property, determines which float of the item's custom model data to check. Defaults to 0.
  */
 public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements CustomItemPredicate {
