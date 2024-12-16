@@ -125,7 +125,7 @@ public class MappingsReader_v2 extends MappingsReader {
         if (bedrockIdentifierNode == null || !bedrockIdentifierNode.isTextual() || bedrockIdentifierNode.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item definition has no bedrock identifier");
         }
-        if (model == null) {
+        if (model == null || model.isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item definition has no model");
         }
 
@@ -240,8 +240,8 @@ public class MappingsReader_v2 extends MappingsReader {
                             throw new InvalidCustomMappingsFileException("Unknown charge type " + value);
                         }
                     }
-                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, MinecraftKey.key(value))); // TODO
-                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, MinecraftKey.key(value))); // TODO
+                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, new Identifier(value)));
+                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, new Identifier(value)));
                     case "custom_model_data" -> {
                         builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA,
                             new CustomModelDataString(value, readOrDefault(node, "index", JsonNode::asInt, 0))));
