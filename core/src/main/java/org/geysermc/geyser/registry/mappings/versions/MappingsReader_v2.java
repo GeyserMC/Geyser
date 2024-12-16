@@ -195,13 +195,9 @@ public class MappingsReader_v2 extends MappingsReader {
         if (node.isObject()) {
             readPredicate(builder, node);
         } else if (node.isArray()) {
-            node.forEach(predicate -> {
-                try {
-                    readPredicate(builder, predicate);
-                } catch (InvalidCustomMappingsFileException e) {
-                    GeyserImpl.getInstance().getLogger().error("Error in reading predicate", e); // TODO log this better
-                }
-            });
+            for (JsonNode predicate : node) {
+                readPredicate(builder, predicate);
+            }
         } else {
             throw new InvalidCustomMappingsFileException("Expected predicate key to be a list of predicates or a predicate");
         }
