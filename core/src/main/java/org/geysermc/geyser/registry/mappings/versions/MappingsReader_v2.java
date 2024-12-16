@@ -120,7 +120,7 @@ public class MappingsReader_v2 extends MappingsReader {
         JsonNode bedrockIdentifierNode = node.get("bedrock_identifier");
 
         JsonNode modelNode = node.get("model");
-        String model = itemModel != null || modelNode == null || !modelNode.isTextual() ? itemModel : modelNode.asText();
+        String model = modelNode == null || !modelNode.isTextual() ? itemModel : modelNode.asText();
 
         if (bedrockIdentifierNode == null || !bedrockIdentifierNode.isTextual() || bedrockIdentifierNode.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item definition has no bedrock identifier");
@@ -238,10 +238,8 @@ public class MappingsReader_v2 extends MappingsReader {
                     }
                     case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, new Identifier(value)));
                     case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, new Identifier(value)));
-                    case "custom_model_data" -> {
-                        builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA,
-                            new CustomModelDataString(value, readOrDefault(node, "index", JsonNode::asInt, 0))));
-                    }
+                    case "custom_model_data" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA,
+                        new CustomModelDataString(value, readOrDefault(node, "index", JsonNode::asInt, 0))));
                     default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }
             }
