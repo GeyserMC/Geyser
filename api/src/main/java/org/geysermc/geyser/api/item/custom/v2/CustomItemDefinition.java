@@ -40,7 +40,7 @@ import java.util.List;
  * Additionally, predicates can be added that allow fine-grained control as to when to use this custom item. These predicates are similar
  * to the predicates available in Java item model definitions.</p>
  *
- * <p>In Geyser, all registered custom item definitions for a Java item model will be checked in a specific order:
+ * <p>In Geyser, all registered custom item definitions for a Java item model will be checked in a specific order:</p>
  *
  * <ol>
  *     <li>First by checking their priority values, higher priority values going first.</li>
@@ -48,9 +48,8 @@ import java.util.List;
  *     <li>Lastly by the amount of predicates, from most to least.</li>
  * </ol>
  *
- * This ensures predicates will be checked in a correct order, and that in most cases specifying a priority value isn't necessary, and in the few cases
- * where Geyser doesn't properly sort definitions, specifying a priority value will.
- * </p>
+ * <p>This ensures predicates will be checked in a correct order, and that in most cases specifying a priority value isn't necessary, and in the few cases
+ * where Geyser doesn't properly sort definitions, specifying a priority value will.</p>
  */
 public interface CustomItemDefinition {
 
