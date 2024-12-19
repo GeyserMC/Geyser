@@ -270,7 +270,7 @@ public class ItemRegistryPopulator {
             javaOnlyItems.addAll(palette.javaOnlyItems().keySet());
 
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
-            Set<String> registeredItemNames = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
+            Set<Identifier> registeredCustomItems = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(entry.getKey());
@@ -484,17 +484,16 @@ public class ItemRegistryPopulator {
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : customItem.bedrockIdentifier().toString(); // TODO non vanilla stuff, simplify this maybe cause it's all identifiers now
-                        if (!registeredItemNames.add(customItemName)) {
+                        Identifier customItemIdentifier = customItem.bedrockIdentifier(); // TODO don't forget to check if this works for non vanilla too, it probably does
+                        if (!registeredCustomItems.add(customItemIdentifier)) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
+                                GeyserImpl.getInstance().getLogger().error("Custom item '" + customItemIdentifier + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
 
                         try {
-                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                                customItemName, javaItem, mappingItem, customItem, customProtocolId);
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId);
 
                             if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                                 creativeItems.add(ItemData.builder()
@@ -510,7 +509,7 @@ public class ItemRegistryPopulator {
                             customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
                             registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
-                            customIdMappings.put(customMapping.integerId(), customMapping.stringId());
+                            customIdMappings.put(customMapping.integerId(), customItemIdentifier.toString());
                         } catch (InvalidItemComponentsException exception) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Not registering custom item " + customItem.bedrockIdentifier() + "!", exception);

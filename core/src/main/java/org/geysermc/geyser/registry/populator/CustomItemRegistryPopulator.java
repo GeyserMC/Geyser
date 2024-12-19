@@ -126,16 +126,16 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping,
-                                                             CustomItemDefinition customItemDefinition, int bedrockId) throws InvalidItemComponentsException {
-        checkComponents(customItemDefinition, javaItem);
+    public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem mapping, CustomItemDefinition customItem,
+                                                             int bedrockId) throws InvalidItemComponentsException {
+        checkComponents(customItem, javaItem);
 
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, true);
 
-        NbtMapBuilder builder = createComponentNbt(customItemDefinition, javaItem, mapping, customItemName, bedrockId);
-        ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
+        NbtMapBuilder builder = createComponentNbt(customItem, javaItem, mapping, bedrockId);
+        ComponentItemData componentItemData = new ComponentItemData(customItem.bedrockIdentifier().toString(), builder.build());
 
-        return new GeyserCustomMappingData(customItemDefinition, componentItemData, itemDefinition, customItemName, bedrockId);
+        return new GeyserCustomMappingData(customItem, componentItemData, itemDefinition, bedrockId);
     }
 
     /**
@@ -216,10 +216,9 @@ public class CustomItemRegistryPopulator {
         return null;
     }
 
-    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item vanillaJavaItem, GeyserMappingItem vanillaMapping,
-                                                    String customItemName, int customItemId) {
+    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item vanillaJavaItem, GeyserMappingItem vanillaMapping, int customItemId) {
         NbtMapBuilder builder = NbtMap.builder()
-            .putString("name", customItemName)
+            .putString("name", customItemDefinition.bedrockIdentifier().toString())
             .putInt("id", customItemId);
 
         NbtMapBuilder itemProperties = NbtMap.builder();
