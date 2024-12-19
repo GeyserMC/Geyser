@@ -90,7 +90,7 @@ public class MappingsReader_v2 extends MappingsReader {
 
     private void readItemDefinitionEntry(JsonNode data, String itemIdentifier, String model,
                                          BiConsumer<String, CustomItemDefinition> definitionConsumer) throws InvalidCustomMappingsFileException {
-        String type = readOrThrow(data, "type", JsonNode::asText, "Missing type key in definition");
+        String type = readOrDefault(data, "type", JsonNode::asText, "definition");
         if (type.equals("group")) {
             // Read model of group if it's present, or default to the model of the parent group, if that's present
             // If the parent group model is not present (or there is no parent group), and this group also doesn't have a model, then it is expected the definitions supply their model themselves
