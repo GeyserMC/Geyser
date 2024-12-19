@@ -48,6 +48,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.WearableSlot;
+import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -126,7 +127,9 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping,
-                                                             CustomItemDefinition customItemDefinition, int bedrockId) {
+                                                             CustomItemDefinition customItemDefinition, int bedrockId) throws InvalidItemComponentsException {
+        checkComponents(customItemDefinition, javaItem);
+
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
 
         NbtMapBuilder builder = createComponentNbt(customItemDefinition, javaItem, mapping, customItemName, bedrockId);
@@ -188,6 +191,24 @@ public class CustomItemRegistryPopulator {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Check for illegal combinations of item components that can be specified in the custom item API.
+     *
+     * <p>Note that, this method only checks for illegal <em>combinations</em> of item components. It is expected that the values of the components separately have
+     * already been validated (for example, it is expected that stack size is in the range [1, 99]).</p>
+     */
+    private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
+        DataComponents components = patchDataComponents(javaItem, definition);
+        int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
+        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+
+        if (components.get(DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
+            throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
+        } else if (stackSize > 1 && maxDamage > 0) {
+            throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
+        }
     }
 
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
@@ -374,8 +395,6 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeArmorProperties(Equippable equippable, /*String armorType, int protectionValue,*/ NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        // TODO set stack size to 1 when armour is effective as Bedrock doesn't allow armour with a stack size above 1
-        // This should also be noted in the docs and maybe we should not allow armour with a stack size above 1 at all to prevent issues
         int protectionValue = 0;
         // TODO protection value, enchantable stuff and armour type?
         switch (equippable.slot()) {

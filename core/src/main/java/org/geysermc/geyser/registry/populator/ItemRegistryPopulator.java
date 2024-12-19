@@ -68,6 +68,7 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -483,7 +484,7 @@ public class ItemRegistryPopulator {
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : customItem.bedrockIdentifier().toString(); // TODO non vanilla stuff
+                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : customItem.bedrockIdentifier().toString(); // TODO non vanilla stuff, simplify this maybe cause it's all identifiers now
                         if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
@@ -491,24 +492,30 @@ public class ItemRegistryPopulator {
                             continue;
                         }
 
-                        GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                            customItemName, javaItem, mappingItem, customItem, customProtocolId);
+                        try {
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
+                                customItemName, javaItem, mappingItem, customItem, customProtocolId);
 
-                        if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
-                            creativeItems.add(ItemData.builder()
+                            if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
+                                creativeItems.add(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())
                                     .blockDefinition(null)
                                     .count(1)
                                     .build());
+                            }
+
+                            // ComponentItemData - used to register some custom properties
+                            componentItemData.add(customMapping.componentItemData());
+                            customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
+                            registry.put(customMapping.integerId(), customMapping.itemDefinition());
+
+                            customIdMappings.put(customMapping.integerId(), customMapping.stringId());
+                        } catch (InvalidItemComponentsException exception) {
+                            if (firstMappingsPass) {
+                                GeyserImpl.getInstance().getLogger().error("Not registering custom item " + customItem.bedrockIdentifier() + "!", exception);
+                            }
                         }
-
-                        // ComponentItemData - used to register some custom properties
-                        componentItemData.add(customMapping.componentItemData());
-                        customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
-                        registry.put(customMapping.integerId(), customMapping.itemDefinition());
-
-                        customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
                 } else {
                     customItemDefinitions = null;
