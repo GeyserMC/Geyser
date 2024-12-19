@@ -85,7 +85,10 @@ public class MappingsReader_v2 extends MappingsReader {
 
     @Override
     public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
-        throw new RuntimeException("Unimplemented; use the v1 format of block mappings");
+        JsonNode blocksNode = mappingsRoot.get("blocks");
+        if (blocksNode != null) {
+            throw new RuntimeException("Unimplemented; use the v1 format of block mappings");
+        }
     }
 
     private void readItemDefinitionEntry(JsonNode data, String itemIdentifier, String model,
