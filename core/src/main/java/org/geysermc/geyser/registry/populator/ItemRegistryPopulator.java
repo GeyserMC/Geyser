@@ -771,7 +771,9 @@ public class ItemRegistryPopulator {
                         .map(otherPredicate -> (RangeDispatchPredicate) otherPredicate)
                         .findFirst();
                     if (other.isPresent()) {
-                        return (int) (other.orElseThrow().threshold() - rangeDispatch.threshold());
+                        double otherScaledThreshold = other.get().threshold() / other.get().scale();
+                        double thisThreshold = rangeDispatch.threshold() / rangeDispatch.scale();
+                        return (int) (otherScaledThreshold - thisThreshold);
                     }
                 } // TODO not a fan of how this looks
             }
