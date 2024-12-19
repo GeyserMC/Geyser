@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Represents the creative menu categories or tabs.
@@ -61,5 +62,19 @@ public enum CreativeCategory {
      */
     public int id() {
         return id;
+    }
+
+    /**
+     * Gets the creative category from its internal name.
+     *
+     * @return the creative category, or null if not found.
+     */
+    public static @Nullable CreativeCategory fromName(String name) {
+        for (CreativeCategory category : values()) {
+            if (category.internalName.equals(name)) {
+                return category;
+            }
+        }
+        return null;
     }
 }

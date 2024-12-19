@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,44 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
-import org.checkerframework.checker.index.qual.NonNegative;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 
-import java.util.List;
+public class FoodReader extends DataComponentReader<FoodProperties> {
 
-/**
- * A wrapper for a list, holding Java registry values.
- */
-public interface JavaRegistry<T> {
+    public FoodReader() {
+        super(DataComponentType.FOOD);
+    }
 
-    /**
-     * Looks up a registry entry by its ID. The object can be null, or not present.
-     */
-    T byId(@NonNegative int id);
+    @Override
+    protected FoodProperties readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+        requireObject(node);
 
-    /**
-     * Looks up a registry entry by its ID, and returns it wrapped in {@link RegistryEntryData} so that its registered key is also known. The object can be null, or not present.
-     */
-    RegistryEntryData<T> entryById(@NonNegative int id);
-
-    /**
-     * Reverse looks-up an object to return its network ID, or -1.
-     */
-    int byValue(T value);
-
-    /**
-     * Reverse looks-up an object to return it wrapped in {@link RegistryEntryData}, or null.
-     */
-    RegistryEntryData<T> entryByValue(T value);
-
-    /**
-     * Resets the objects by these IDs.
-     */
-    void reset(List<RegistryEntryData<T>> values);
-
-    /**
-     * All values of this registry, as a list.
-     */
-    List<T> values();
+        JsonNode canAlwaysEat = node.get("can_always_eat");
+        return new FoodProperties(0, 0, canAlwaysEat != null && canAlwaysEat.asBoolean());
+    }
 }
