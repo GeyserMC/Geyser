@@ -57,7 +57,7 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("equippable"), new EquippableReader());
         READERS.put(MinecraftKey.key("food"), new FoodReader());
         READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponentType.MAX_DAMAGE, 0));
-        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponentType.MAX_STACK_SIZE, 0, 99));
+        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponentType.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
     }
 }
