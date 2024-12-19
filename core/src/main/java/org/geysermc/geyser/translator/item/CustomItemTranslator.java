@@ -41,7 +41,6 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -128,11 +127,11 @@ public final class CustomItemTranslator {
                     return false;
                 }
                 RegistryEntryData<TrimMaterial> registered = session.getRegistryCache().trimMaterials().entryById(trim.material().id());
-                return ItemRegistryPopulator.identifierToKey(material).equals(registered.key());
+                return MinecraftKey.identifierToKey(material).equals(registered.key());
             } else if (match.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
                 Identifier dimension = (Identifier) match.data();
                 RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
-                return ItemRegistryPopulator.identifierToKey(dimension).equals(registered.key());
+                return MinecraftKey.identifierToKey(dimension).equals(registered.key());
             } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
                 CustomModelDataString expected = (CustomModelDataString) match.data();
                 return expected.value().equals(getSafeCustomModelData(components, CustomModelData::strings, expected.index()));

@@ -81,6 +81,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -506,7 +507,7 @@ public class ItemRegistryPopulator {
 
                             // ComponentItemData - used to register some custom properties
                             componentItemData.add(customMapping.componentItemData());
-                            customItemDefinitions.put(identifierToKey(customItem.model()), customMapping);
+                            customItemDefinitions.put(MinecraftKey.identifierToKey(customItem.model()), customMapping);
                             registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
                             customIdMappings.put(customMapping.integerId(), customItemIdentifier.toString());
@@ -733,11 +734,6 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
-    }
-
-    // TODO this needs to be moved elsewhere
-    public static Key identifierToKey(Identifier identifier) {
-        return Key.key(identifier.namespace(), identifier.path());
     }
 
     /**
