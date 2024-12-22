@@ -27,22 +27,50 @@ package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public abstract class MappingsReader {
-    public abstract void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
+    public abstract void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer);
     public abstract void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer);
 
-    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+    public abstract CustomItemDefinition readItemMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException;
     public abstract CustomBlockMapping readBlockMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException;
 
-    protected @Nullable CustomRenderOffsets fromJsonNode(JsonNode node) {
+    protected static <T> T readOrThrow(JsonNode node, String name, Function<JsonNode, T> converter, String exceptionMessage) throws InvalidCustomMappingsFileException {
+        JsonNode object = node.get(name);
+        if (object == null) {
+            throw new InvalidCustomMappingsFileException(exceptionMessage);
+        }
+        return converter.apply(object);
+    }
+
+    protected static <T> T readOrDefault(JsonNode node, String name, Function<JsonNode, T> converter, T defaultValue) {
+        JsonNode object = node.get(name);
+        if (object == null) {
+            return defaultValue;
+        }
+        return converter.apply(object);
+    }
+
+    protected static void readTextIfPresent(JsonNode node, String name, Consumer<String> consumer) {
+        readIfPresent(node, name, consumer, JsonNode::asText);
+    }
+
+    protected static <T> void readIfPresent(JsonNode node, String name, Consumer<T> consumer, Function<JsonNode, T> converter) {
+        if (node.has(name)) {
+            consumer.accept(converter.apply(node.get(name)));
+        }
+    }
+
+    protected static @Nullable CustomRenderOffsets renderOffsetsFromJsonNode(JsonNode node) {
         if (node == null || !node.isObject()) {
             return null;
         }
@@ -53,7 +81,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.@Nullable Hand getHandOffsets(JsonNode node, String hand) {
+    protected static CustomRenderOffsets.@Nullable Hand getHandOffsets(JsonNode node, String hand) {
         JsonNode tmpNode = node.get(hand);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;
@@ -65,7 +93,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.@Nullable Offset getPerspectiveOffsets(JsonNode node, String perspective) {
+    protected static CustomRenderOffsets.@Nullable Offset getPerspectiveOffsets(JsonNode node, String perspective) {
         JsonNode tmpNode = node.get(perspective);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;
@@ -78,7 +106,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.@Nullable OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
+    protected static CustomRenderOffsets.@Nullable OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
         JsonNode tmpNode = node.get(offsetType);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;

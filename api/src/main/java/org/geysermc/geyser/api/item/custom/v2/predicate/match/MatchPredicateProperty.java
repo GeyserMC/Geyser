@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,44 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.api.item.custom.v2.predicate.match;
 
-import org.checkerframework.checker.index.qual.NonNegative;
+import org.geysermc.geyser.api.util.Identifier;
 
-import java.util.List;
-
-/**
- * A wrapper for a list, holding Java registry values.
- */
-public interface JavaRegistry<T> {
+public class MatchPredicateProperty<T> {
 
     /**
-     * Looks up a registry entry by its ID. The object can be null, or not present.
+     * Matches for the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
      */
-    T byId(@NonNegative int id);
-
+    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
     /**
-     * Looks up a registry entry by its ID, and returns it wrapped in {@link RegistryEntryData} so that its registered key is also known. The object can be null, or not present.
+     * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
      */
-    RegistryEntryData<T> entryById(@NonNegative int id);
-
+    public static final MatchPredicateProperty<Identifier> TRIM_MATERIAL = create();
     /**
-     * Reverse looks-up an object to return its network ID, or -1.
+     * Matches the dimension identifier the Bedrock session player is currently in.
      */
-    int byValue(T value);
-
+    public static final MatchPredicateProperty<Identifier> CONTEXT_DIMENSION = create();
     /**
-     * Reverse looks-up an object to return it wrapped in {@link RegistryEntryData}, or null.
+     * Matches a string of the item's custom model data strings.
      */
-    RegistryEntryData<T> entryByValue(T value);
+    public static final MatchPredicateProperty<CustomModelDataString> CUSTOM_MODEL_DATA = create();
 
-    /**
-     * Resets the objects by these IDs.
-     */
-    void reset(List<RegistryEntryData<T>> values);
+    private MatchPredicateProperty() {}
 
-    /**
-     * All values of this registry, as a list.
-     */
-    List<T> values();
+    private static <T> MatchPredicateProperty<T> create() {
+        return new MatchPredicateProperty<>();
+    }
 }
