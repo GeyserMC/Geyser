@@ -42,6 +42,8 @@ import java.util.Set;
 @ToString
 public class GeyserCustomItemData implements CustomItemData {
     private final String name;
+    private final boolean haveStackSize;
+    private final int stackSize;
     private final CustomItemOptions customItemOptions;
     private final String displayName;
     private final String icon;
@@ -54,6 +56,8 @@ public class GeyserCustomItemData implements CustomItemData {
     private final Set<String> tags;
 
     public GeyserCustomItemData(String name,
+                                boolean haveStackSize,
+                                int stackSize,
                                 CustomItemOptions customItemOptions,
                                 String displayName,
                                 String icon,
@@ -65,6 +69,8 @@ public class GeyserCustomItemData implements CustomItemData {
                                 CustomRenderOffsets renderOffsets,
                                 Set<String> tags) {
         this.name = name;
+        this.haveStackSize = haveStackSize;
+        this.stackSize = stackSize;
         this.customItemOptions = customItemOptions;
         this.displayName = displayName;
         this.icon = icon;
@@ -80,6 +86,16 @@ public class GeyserCustomItemData implements CustomItemData {
     @Override
     public @NonNull String name() {
         return name;
+    }
+
+    @Override
+    public int stackSize() {
+        return stackSize;
+    }
+
+    @Override
+    public boolean haveStackSize() {
+        return haveStackSize;
     }
 
     @Override
@@ -134,6 +150,8 @@ public class GeyserCustomItemData implements CustomItemData {
 
     public static class Builder implements CustomItemData.Builder {
         protected String name = null;
+        protected boolean haveStackSize = false;
+        protected int stackSize = 64;
         protected CustomItemOptions customItemOptions = null;
         protected String displayName = null;
         protected String icon = null;
@@ -148,6 +166,13 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder name(@NonNull String name) {
             this.name = name;
+            return this;
+        }
+
+        @Override
+        public Builder stackSize(int stackSize) {
+            this.stackSize = stackSize;
+            this.haveStackSize = true;
             return this;
         }
 
@@ -223,7 +248,7 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
+            return new GeyserCustomItemData(this.name, this.haveStackSize, this.stackSize, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
                     this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
         }
     }

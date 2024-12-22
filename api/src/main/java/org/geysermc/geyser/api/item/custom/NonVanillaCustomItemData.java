@@ -51,13 +51,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNegative int javaId();
 
     /**
-     * Gets the stack size of the item.
-     *
-     * @return the stack size of the item
-     */
-    @NonNegative int stackSize();
-
-    /**
      * Gets the max damage of the item.
      *
      * @return the max damage of the item
@@ -177,8 +170,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder identifier(@NonNull String identifier);
 
         Builder javaId(@NonNegative int javaId);
-
-        Builder stackSize(@NonNegative int stackSize);
 
         Builder maxDamage(int maxDamage);
 

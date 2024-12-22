@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -42,6 +43,14 @@ public interface CustomItemData {
      * @return the item's name
      */
     @NonNull String name();
+
+    /**
+     * Gets the stack size of the item.
+     *
+     * @return the stack size of the item
+     */
+    @NonNegative int stackSize();
+    boolean haveStackSize();
 
     /**
      * Gets the custom item options of the item.
@@ -123,6 +132,8 @@ public interface CustomItemData {
          * Will also set the display name and icon to the provided parameter, if it is currently not set.
          */
         Builder name(@NonNull String name);
+
+        Builder stackSize(@NonNegative int stackSize);
 
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
 

@@ -181,6 +181,10 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.icon(node.get("icon").asText());
         }
 
+        if (node.has("max_stack_size")) {
+            customItemData.stackSize(node.get("max_stack_size").asInt());
+        }
+
         if (node.has("creative_category")) {
             customItemData.creativeCategory(node.get("creative_category").asInt());
         }

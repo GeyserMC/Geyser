@@ -40,7 +40,6 @@ import java.util.Set;
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
-    private final int stackSize;
     private final int maxDamage;
     private final int attackDamage;
     private final String toolType;
@@ -58,13 +57,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final String block;
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
-        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
+        super(builder.name, builder.haveStackSize, builder.stackSize, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
                 builder.displayHandheld, builder.creativeCategory, builder.creativeGroup,
                 builder.textureSize, builder.renderOffsets, builder.tags);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
-        this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;
         this.toolType = builder.toolType;
@@ -90,11 +88,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public int javaId() {
         return javaId;
-    }
-
-    @Override
-    public int stackSize() {
-        return stackSize;
     }
 
     @Override
@@ -172,8 +165,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
-
-        private int stackSize = 64;
 
         private int maxDamage = 0;
 
@@ -257,8 +248,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         @Override
         public Builder stackSize(int stackSize) {
-            this.stackSize = stackSize;
-            return this;
+            return (Builder) super.stackSize(stackSize);
         }
 
         @Override
