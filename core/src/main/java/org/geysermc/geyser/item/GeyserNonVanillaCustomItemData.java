@@ -57,7 +57,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final String block;
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
-        super(builder.name, builder.haveStackSize, builder.stackSize, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
+        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.haveStackSize, builder.stackSize, builder.allowOffhand,
                 builder.displayHandheld, builder.creativeCategory, builder.creativeGroup,
                 builder.textureSize, builder.renderOffsets, builder.tags);
 
@@ -220,6 +220,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public Builder stackSize(int stackSize) {
+            return (Builder) super.stackSize(stackSize);
+        }
+
+        @Override
         public Builder textureSize(int textureSize) {
             return (Builder) super.textureSize(textureSize);
         }
@@ -244,11 +249,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         public Builder javaId(int javaId) {
             this.javaId = javaId;
             return this;
-        }
-
-        @Override
-        public Builder stackSize(int stackSize) {
-            return (Builder) super.stackSize(stackSize);
         }
 
         @Override

@@ -42,11 +42,11 @@ import java.util.Set;
 @ToString
 public class GeyserCustomItemData implements CustomItemData {
     private final String name;
-    private final boolean haveStackSize;
-    private final int stackSize;
     private final CustomItemOptions customItemOptions;
     private final String displayName;
     private final String icon;
+    private final boolean haveStackSize;
+    private final int stackSize;
     private final boolean allowOffhand;
     private final boolean displayHandheld;
     private final OptionalInt creativeCategory;
@@ -56,11 +56,11 @@ public class GeyserCustomItemData implements CustomItemData {
     private final Set<String> tags;
 
     public GeyserCustomItemData(String name,
-                                boolean haveStackSize,
-                                int stackSize,
                                 CustomItemOptions customItemOptions,
                                 String displayName,
                                 String icon,
+                                boolean haveStackSize,
+                                int stackSize,
                                 boolean allowOffhand,
                                 boolean displayHandheld,
                                 OptionalInt creativeCategory,
@@ -69,11 +69,11 @@ public class GeyserCustomItemData implements CustomItemData {
                                 CustomRenderOffsets renderOffsets,
                                 Set<String> tags) {
         this.name = name;
-        this.haveStackSize = haveStackSize;
-        this.stackSize = stackSize;
         this.customItemOptions = customItemOptions;
         this.displayName = displayName;
         this.icon = icon;
+        this.haveStackSize = haveStackSize;
+        this.stackSize = stackSize;
         this.allowOffhand = allowOffhand;
         this.displayHandheld = displayHandheld;
         this.creativeCategory = creativeCategory;
@@ -170,13 +170,6 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder stackSize(int stackSize) {
-            this.stackSize = stackSize;
-            this.haveStackSize = true;
-            return this;
-        }
-
-        @Override
         public Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
             this.customItemOptions = customItemOptions;
             return this;
@@ -191,6 +184,13 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder icon(@NonNull String icon) {
             this.icon = icon;
+            return this;
+        }
+
+        @Override
+        public Builder stackSize(int stackSize) {
+            this.stackSize = stackSize;
+            this.haveStackSize = true;
             return this;
         }
 
@@ -248,7 +248,7 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.haveStackSize, this.stackSize, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.haveStackSize, this.stackSize, this.allowOffhand,
                     this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
         }
     }

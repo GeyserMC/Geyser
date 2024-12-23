@@ -45,14 +45,6 @@ public interface CustomItemData {
     @NonNull String name();
 
     /**
-     * Gets the stack size of the item.
-     *
-     * @return the stack size of the item
-     */
-    @NonNegative int stackSize();
-    boolean haveStackSize();
-
-    /**
      * Gets the custom item options of the item.
      *
      * @return the custom item options of the item.
@@ -72,6 +64,14 @@ public interface CustomItemData {
      * @return the item's icon
      */
     @NonNull String icon();
+
+    /**
+     * Gets the stack size of the item.
+     *
+     * @return the stack size of the item
+     */
+    @NonNegative int stackSize();
+    boolean haveStackSize();
 
     /**
      * Gets if the item is allowed to be put into the offhand.
@@ -133,13 +133,13 @@ public interface CustomItemData {
          */
         Builder name(@NonNull String name);
 
-        Builder stackSize(@NonNegative int stackSize);
-
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
 
         Builder displayName(@NonNull String displayName);
 
         Builder icon(@NonNull String icon);
+
+        Builder stackSize(@NonNegative int stackSize);
 
         Builder allowOffhand(boolean allowOffhand);
 
