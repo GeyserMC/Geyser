@@ -65,7 +65,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
 
             int idx = 0;
             for (byte colorId : data.getData()) {
-                colors[idx++] = MapColor.fromId(colorId & 0xFF).getARGB();
+                colors[idx++] = MapColor.fromId(colorId & 0xFF).getABGR();
             }
 
             mapItemDataPacket.setColors(colors);
