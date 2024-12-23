@@ -173,7 +173,7 @@ public final class ItemTranslator {
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
-        String customName = getCustomName(session, components, bedrockItem, rarity.getColor());
+        String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), true);
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }
@@ -493,7 +493,7 @@ public final class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor) {
+    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean includeDefault) {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
@@ -514,7 +514,7 @@ public final class ItemTranslator {
                 }
             }
             customName = components.get(DataComponentType.ITEM_NAME);
-            if (customName != null) {
+            if (customName != null && includeDefault) {
                 // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                 // behavior as of 1.21
                 return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
