@@ -150,11 +150,11 @@ public class GeyserCustomItemData implements CustomItemData {
 
     public static class Builder implements CustomItemData.Builder {
         protected String name = null;
-        protected boolean haveStackSize = false;
-        protected int stackSize = 64;
         protected CustomItemOptions customItemOptions = null;
         protected String displayName = null;
         protected String icon = null;
+        protected boolean haveStackSize = false;
+        protected int stackSize = 64;
         protected boolean allowOffhand = true; // Bedrock doesn't give items offhand allowance unless they serve gameplay purpose, but we want to be friendly with Java
         protected boolean displayHandheld = false;
         protected OptionalInt creativeCategory = OptionalInt.empty();
