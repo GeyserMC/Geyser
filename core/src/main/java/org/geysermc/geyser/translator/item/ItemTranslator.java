@@ -173,7 +173,7 @@ public final class ItemTranslator {
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
-        String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), true);
+        String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), false);
         if (customName != null) {
             nbtBuilder.setCustomName(customName);
         }

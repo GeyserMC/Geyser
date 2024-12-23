@@ -118,17 +118,7 @@ public class ItemFrameEntity extends Entity {
             NbtMapBuilder builder = NbtMap.builder();
             builder.putByte("Count", (byte) itemData.getCount());
             NbtMap itemDataTag = itemData.getTag();
-            if (itemDataTag != null) {
-                // Remove custom name that Geyser sets for items due to translating default components
-                String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponents(),
-                    session.getItemMappings().getMapping(heldItem), 'f', false);
-                if (customName == null) {
-                    // No custom name found, must modify tag if custom name exists
-                    NbtMapBuilder copy = itemDataTag.toBuilder();
-                    copy.remove("display"); // Also removes lore, but, should not matter
-                    itemDataTag = copy.build();
-                }
-
+            if (itemData.getTag() != null) {
                 builder.put("tag", itemDataTag);
             }
             builder.putShort("Damage", (short) itemData.getDamage());

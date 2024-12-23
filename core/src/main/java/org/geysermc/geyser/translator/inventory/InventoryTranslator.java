@@ -246,7 +246,7 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
 
-                    if ((this) instanceof PlayerInventoryTranslator) {
+                    if (this instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
