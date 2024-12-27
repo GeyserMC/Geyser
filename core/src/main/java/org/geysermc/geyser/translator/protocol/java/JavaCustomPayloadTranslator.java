@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnknownPacket;
 import org.geysermc.cumulus.Forms;
@@ -67,6 +69,12 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
+                // If the data is empty, we just need to close the form
+                if (data.length == 0) {
+                    session.sendUpstreamPacketImmediately(new ClientboundCloseFormPacket());
+                    return;
+                }
+
                 // receive: first byte is form type, second and third are the id, remaining is the form data
                 // respond: first and second byte id, remaining is form response data
 
@@ -96,7 +104,6 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 });
                 session.sendForm(form);
             });
-
         } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
