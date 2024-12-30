@@ -41,6 +41,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
@@ -175,6 +176,13 @@ public final class ItemTranslator {
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
         String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), false);
         if (customName != null) {
+            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            // Make custom effect information visible
+            // Ignore when item have "hide_additional_tooltip" component
+            if (potionContents != null && components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) == null) {
+                customName += getPotionEffectInfo(potionContents, session.locale());
+            }
+
             nbtBuilder.setCustomName(customName);
         }
 
@@ -336,7 +344,8 @@ public final class ItemTranslator {
         Effect.INFESTED
     );
 
-    public static void addPotionEffectLore(PotionContents contents, BedrockItemBuilder builder, String language) {
+    public static String getPotionEffectInfo(PotionContents contents, String language) {
+        StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
             Effect effect = effectInstance.getEffect();
@@ -372,8 +381,35 @@ public final class ItemTranslator {
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
-            builder.getOrCreateLore().add(MessageTranslator.convertMessage(component, language));
+            finalText.append('\n').append(MessageTranslator.convertMessage(component, language));
         }
+        return finalText.toString();
+    }
+
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
+        String customPotionName = contents.getCustomName();
+        Potion potion = Potion.getByJavaId(contents.getPotionId());
+
+        if (customPotionName != null) {
+            // "custom_name" tag in "potion_contents" component
+            return MessageTranslator.convertMessage(
+                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
+                language);
+        }
+        if (!contents.getCustomEffects().isEmpty()) {
+            // Make a name when has custom effects
+            String potionName;
+            if (potion != null) {
+                potionName = potion.toString().toLowerCase(Locale.ROOT);
+                if (potionName.startsWith("strong_")) potionName = potionName.substring(6);
+                else if (potionName.startsWith("long_")) potionName = potionName.substring(4);
+            }
+            else potionName = "empty";
+            return MessageTranslator.convertMessage(
+                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName),
+                language);
+        }
+        return null;
     }
 
     private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
@@ -502,16 +538,8 @@ public final class ItemTranslator {
             }
             PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
             if (potionContents != null) {
-                // "custom_name" tag in "potion_contents" component
-                String customPotionName = potionContents.getCustomName();
-                if (customPotionName != null) {
-                    Component component = Component.text()
-                        .resetStyle()
-                        .color(NamedTextColor.WHITE)
-                        .append(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName))
-                        .build();
-                    return MessageTranslator.convertMessage(component, session.locale());
-                }
+                String potionName = getPotionName(potionContents, mapping, session.locale());
+                if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
             }
             customName = components.get(DataComponentType.ITEM_NAME);
             if (customName != null && includeDefault) {
