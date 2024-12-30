@@ -175,7 +175,7 @@ public final class ItemTranslator {
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
-        String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), true);
+        String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
             // Make custom effect information visible
@@ -530,18 +530,24 @@ public final class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean includeNonCustomName) {
+    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
-            if (includeNonCustomName) {
+            if (!customNameOnly) {
                 PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
                 if (potionContents != null) {
                     String potionName = getPotionName(potionContents, mapping, session.locale());
                     if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                }
+                if (includeAll) {
+                    WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                    if (bookContent != null) {
+                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();
+                    }
                 }
                 customName = components.get(DataComponentType.ITEM_NAME);
                 if (customName != null) {
