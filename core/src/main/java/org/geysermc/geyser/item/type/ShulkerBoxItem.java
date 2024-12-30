@@ -35,6 +35,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -100,6 +101,7 @@ public class ShulkerBoxItem extends BlockItem {
             if (boxComponents != null) {
                 String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
                 if (customName != null) {
+                    if (customName.contains("" + ChatColor.ESCAPE)) customName += ChatColor.RESET + ChatColor.GRAY;
                     boxItemNbt.putCompound("tag", NbtMap.builder()
                             .putCompound("display", NbtMap.builder()
                                     .putString("Name", customName)
