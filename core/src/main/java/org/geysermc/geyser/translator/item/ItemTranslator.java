@@ -382,6 +382,7 @@ public final class ItemTranslator {
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
+            // Bedrock supports wrap lines with '\n' in a single string in custom name
             finalText.append('\n').append(MessageTranslator.convertMessage(component, language));
         }
         return finalText.toString();
@@ -544,6 +545,7 @@ public final class ItemTranslator {
                     if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                 }
                 if (includeAll) {
+                    // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();

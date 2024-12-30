@@ -101,6 +101,7 @@ public class ShulkerBoxItem extends BlockItem {
             if (boxComponents != null) {
                 String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
                 if (customName != null) {
+                    // Fix count display (e.g., x16) with incorrect color due to some items with colored names
                     if (customName.contains("" + ChatColor.ESCAPE)) customName += ChatColor.RESET + ChatColor.GRAY;
                     boxItemNbt.putCompound("tag", NbtMap.builder()
                             .putCompound("display", NbtMap.builder()
