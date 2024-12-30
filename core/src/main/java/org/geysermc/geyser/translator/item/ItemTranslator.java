@@ -388,7 +388,7 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean hideAdditionalTooltip, String language) {
         String customPotionName = contents.getCustomName();
         Potion potion = Potion.getByJavaId(contents.getPotionId());
 
@@ -398,7 +398,7 @@ public final class ItemTranslator {
                 Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
                 language);
         }
-        if (!contents.getCustomEffects().isEmpty()) {
+        if (!hideAdditionalTooltip && !contents.getCustomEffects().isEmpty()) {
             // Make a name when has custom effects
             String potionName;
             if (potion != null) {
@@ -541,7 +541,7 @@ public final class ItemTranslator {
             if (!customNameOnly) {
                 PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
                 if (potionContents != null) {
-                    String potionName = getPotionName(potionContents, mapping, session.locale());
+                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
                     if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                 }
                 if (includeAll) {
