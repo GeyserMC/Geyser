@@ -71,6 +71,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttribut
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -164,17 +165,17 @@ public final class ItemTranslator {
                 .build();
     }
 
-    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
+    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        components = javaItem.gatherComponents(components);
+        DataComponents components = javaItem.gatherComponents(customComponents);
 
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
-        String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), false);
+        String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), true);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
             // Make custom effect information visible
@@ -529,23 +530,25 @@ public final class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean includeDefault) {
+    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean includeNonCustomName) {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
-            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
-            if (potionContents != null) {
-                String potionName = getPotionName(potionContents, mapping, session.locale());
-                if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
-            }
-            customName = components.get(DataComponentType.ITEM_NAME);
-            if (customName != null && includeDefault) {
-                // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
-                // behavior as of 1.21
-                return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+            if (includeNonCustomName) {
+                PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+                if (potionContents != null) {
+                    String potionName = getPotionName(potionContents, mapping, session.locale());
+                    if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                }
+                customName = components.get(DataComponentType.ITEM_NAME);
+                if (customName != null) {
+                    // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
+                    // behavior as of 1.21
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                }
             }
         }
 
