@@ -403,10 +403,14 @@ public final class ItemTranslator {
             String potionName;
             if (potion != null) {
                 potionName = potion.toString().toLowerCase(Locale.ROOT);
-                if (potionName.startsWith("strong_")) potionName = potionName.substring(6);
-                else if (potionName.startsWith("long_")) potionName = potionName.substring(4);
+                if (potionName.startsWith("strong_")) {
+                    potionName = potionName.substring(6);
+                } else if (potionName.startsWith("long_")) {
+                    potionName = potionName.substring(4);
+                }
+            } else {
+                potionName = "empty";
             }
-            else potionName = "empty";
             return MessageTranslator.convertMessage(
                 Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName),
                 language);
@@ -542,7 +546,9 @@ public final class ItemTranslator {
                 PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
                 if (potionContents != null) {
                     String potionName = getPotionName(potionContents, mapping, components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
-                    if (potionName != null) return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                    if (potionName != null) {
+                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                    }
                 }
                 if (includeAll) {
                     // Fix book title display in tooltips of shulker box
