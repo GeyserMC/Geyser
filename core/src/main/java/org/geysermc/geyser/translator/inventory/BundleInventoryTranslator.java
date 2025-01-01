@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -58,8 +59,16 @@ public final class BundleInventoryTranslator {
     static ItemStackResponse handleBundle(GeyserSession session, InventoryTranslator translator, Inventory inventory, ItemStackRequest request, boolean sendCreativePackets) {
         TransferItemStackRequestAction action = null;
         for (ItemStackRequestAction requestAction : request.getActions()) {
+            if (requestAction instanceof SwapAction swapAction) {
+                if (isBundle(swapAction.getSource()) && isBundle(swapAction.getDestination())) {
+                    // Can be seen when inserting an item that's already present within the bundle
+                    continue;
+                }
+                return null;
+            }
+
             if (!(requestAction instanceof TransferItemStackRequestAction transferAction)) {
-                // No known bundle action that does not use transfer actions
+                // No other known bundle action that does not use transfer actions
                 return null;
             }
             boolean sourceIsBundle = isBundle(transferAction.getSource());
@@ -305,7 +314,7 @@ public final class BundleInventoryTranslator {
                 return Fraction.ONE;
             }
         }
-        return Fraction.getFraction(1, itemStack.asItem().maxStackSize());
+        return Fraction.getFraction(1, itemStack.getComponentOrFallback(DataComponentType.MAX_STACK_SIZE, itemStack.asItem().defaultMaxStackSize()));
     }
 
     public static int capacityForItemStack(Fraction bundleWeight, GeyserItemStack itemStack) {
