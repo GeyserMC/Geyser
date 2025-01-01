@@ -1355,6 +1355,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 }
             }
 
+            this.bundleCache.tick();
+
             if (spawned) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
@@ -1471,6 +1473,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void useItem(Hand hand) {
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
                 hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+    }
+
+    public void releaseItem() {
+        // Followed to the Minecraft Protocol specification outlined at wiki.vg
+        ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
+            Direction.DOWN, 0);
+        sendDownstreamGamePacket(releaseItemPacket);
     }
 
     /**

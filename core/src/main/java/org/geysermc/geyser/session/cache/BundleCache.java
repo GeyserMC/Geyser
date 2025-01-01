@@ -52,6 +52,8 @@ public final class BundleCache {
     private final GeyserSession session;
     private int nextBundleId;
 
+    private int releaseTick = -1;
+
     public BundleCache(GeyserSession session) {
         this.session = session;
     }
@@ -213,6 +215,31 @@ public final class BundleCache {
         for (int i = 0; i < inventory.getSize(); i++) {
             GeyserItemStack item = inventory.getItem(i);
             onOldItemDelete(item);
+        }
+    }
+
+    /* All utilities to track when a release item packet should be sent.
+    * As of 1.21.50, Bedrock seems to be picky and inspecific when sending its own release packet,
+    * but if Java does not receive a release packet, then it will continue to drop items out of a bundle.
+    * This workaround releases items on behalf of the client if it does not send a packet, while respecting
+    * if Bedrock sends its own. */
+
+    public void awaitRelease() {
+        if (session.getTagCache().is(ItemTag.BUNDLES, session.getPlayerInventory().getItemInHand())) {
+            releaseTick = session.getTicks() + 1;
+        }
+    }
+
+    public void markRelease() {
+        releaseTick = -1;
+    }
+
+    public void tick() {
+        if (this.releaseTick != -1) {
+            if (session.getTicks() >= this.releaseTick) {
+                session.releaseItem();
+                markRelease();
+            }
         }
     }
 
