@@ -43,10 +43,4 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
             erosionHandler.close();
         }
     }
-
-    @Override
-    public boolean shouldExecuteInEventLoop() {
-        // Execute outside of event loop to cancel any pending erosion futures
-        return false;
-    }
 }

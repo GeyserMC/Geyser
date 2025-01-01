@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -150,7 +150,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -184,6 +183,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
@@ -254,7 +254,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
      */
-    private final EventLoop eventLoop;
+    private final EventLoop tickEventLoop;
     @Setter
     private AuthData authData;
     private BedrockClientData clientData;
@@ -526,6 +526,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long blockBreakStartTime;
 
     /**
+     * // TODO
+     */
+    private long destroyProgress;
+
+    /**
      * Stores whether the player intended to place a bucket.
      */
     @Setter
@@ -602,7 +607,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean advancedTooltips = false;
 
     /**
-     * The thread that will run every 50 milliseconds - one Minecraft tick.
+     * The thread that will run every game tick.
      */
     private ScheduledFuture<?> tickThread = null;
 
@@ -646,7 +651,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Stores cookies sent by the Java server.
      */
-    @Setter @Getter
+    @Setter
     private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
 
     private final GeyserCameraData cameraData;
@@ -655,10 +660,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
+    private int nanosecondsPerTick = 50000000;
+    private float millisecondsPerTick = 50.0f;
+    private boolean tickingFrozen = false;
+    /**
+     * The amount of ticks requested by the server that the game should proceed with, even if the game tick loop is frozen.
+     */
+    @Setter
+    private int stepTicks = 0;
+
+
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
-        this.eventLoop = eventLoop;
+        this.tickEventLoop = tickEventLoop;
 
         this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
 
@@ -898,38 +913,38 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
         return task.getAuthentication().handle((result, ex) -> {
-             if (ex != null) {
-                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                 if (ex instanceof CompletionException ce
-                     && ce.getCause() instanceof MinecraftRequestException mre
-                     && mre.getResponse().getStatusCode() == 404) {
-                     // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
-                     disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
-                 } else {
-                     disconnect(ex.toString());
-                 }
-                 return false;
-             }
+            if (ex != null) {
+                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                if (ex instanceof CompletionException ce
+                        && ce.getCause() instanceof MinecraftRequestException mre
+                        && mre.getResponse().getStatusCode() == 404) {
+                    // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
+                    disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
+                } else {
+                    disconnect(ex.toString());
+                }
+                return false;
+            }
 
-             StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
-             StepMCToken.MCToken mcToken = mcProfile.getMcToken();
+            StepMCProfile.MCProfile mcProfile = result.session().getMcProfile();
+            StepMCToken.MCToken mcToken = mcProfile.getMcToken();
 
-             this.protocol = new MinecraftProtocol(
-                     new GameProfile(mcProfile.getId(), mcProfile.getName()),
-                     mcToken.getAccessToken()
-             );
+            this.protocol = new MinecraftProtocol(
+                    new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                    mcToken.getAccessToken()
+            );
 
-             try {
-                 connectDownstream();
-             } catch (Throwable t) {
-                 t.printStackTrace();
-                 return false;
-             }
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                return false;
+            }
 
-             // Save our auth chain for later use
-             geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
-             return true;
-         }).getNow(false);
+            // Save our auth chain for later use
+            geyser.saveAuthChain(bedrockUsername(), GSON.toJson(result.step().toJson(result.session())));
+            return true;
+        }).getNow(false);
     }
 
     /**
@@ -950,17 +965,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
+        tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
 
         TcpSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
             downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                    this.protocol, this.protocol.createHelper());
+                    this.protocol, this.tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
         } else {
-            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
+            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), "0.0.0.0", 0, this.protocol, null, tickEventLoop);
             this.downstream = new DownstreamSession(downstream);
 
             boolean resolveSrv = false;
@@ -1080,11 +1095,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
                 // Download and load the language for the player
                 MinecraftLocale.downloadAndLoadLocale(locale);
-
-//                if (sentSpawnPacket && !GameProtocol.isPre1_21_2(GeyserSession.this)) {
-//                    // Possible form to close.
-//                    upstream.sendPacket(new ClientboundCloseFormPacket());
-//                }
             }
 
             @Override
@@ -1146,12 +1156,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             @Override
             public void packetReceived(Session session, Packet packet) {
-                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
+                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this, true);
             }
 
             @Override
             public void packetError(PacketErrorEvent event) {
-                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
+                geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error",
+                    (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ")" : "") +
+                    event.getCause().getMessage())
+                );
                 if (geyser.getConfig().isDebugMode())
                     event.getCause().printStackTrace();
                 event.setSuppress(true);
@@ -1216,10 +1229,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
      */
     public void ensureInEventLoop(Runnable runnable) {
-        if (eventLoop.inEventLoop()) {
-            runnable.run();
+        if (tickEventLoop.inEventLoop()) {
+            executeRunnable(runnable);
             return;
         }
+
         executeInEventLoop(runnable);
     }
 
@@ -1227,15 +1241,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
-        eventLoop.execute(() -> {
-            try {
-                runnable.run();
-            } catch (ErosionCancellationException e) {
-                geyser.getLogger().debug("Caught ErosionCancellationException");
-            } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
-            }
-        });
+        tickEventLoop.execute(() -> executeRunnable(runnable));
     }
 
     /**
@@ -1244,21 +1250,41 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The task will not run if the session is closed.
      */
     public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
-        return eventLoop.schedule(() -> {
-            try {
+        return tickEventLoop.schedule(() -> {
+            executeRunnable(() -> {
                 if (!closed) {
                     runnable.run();
                 }
-            } catch (ErosionCancellationException e) {
-                geyser.getLogger().debug("Caught ErosionCancellationException");
-            } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
-            }
+            });
         }, duration, timeUnit);
     }
 
+    public void updateTickingState(float tickRate, boolean frozen) {
+        tickThread.cancel(false);
+
+        this.tickingFrozen = frozen;
+
+        tickRate = MathUtils.clamp(tickRate, 1.0f, 10000.0f);
+
+        millisecondsPerTick = 1000.0f / tickRate;
+
+        nanosecondsPerTick = MathUtils.ceil(1000000000.0f / tickRate);
+        tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
+    }
+
+    private void executeRunnable(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (ErosionCancellationException e) {
+            geyser.getLogger().debug("Caught ErosionCancellationException");
+        } catch (Throwable e) {
+            geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
+        }
+
+    }
+
     /**
-     * Called every 50 milliseconds - one Minecraft tick.
+     * Called every Minecraft tick.
      */
     protected void tick() {
         try {
@@ -1284,13 +1310,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 isInWorldBorderWarningArea = false;
             }
 
+            boolean gameShouldUpdate = !tickingFrozen || stepTicks > 0;
+            if (stepTicks > 0) {
+                --stepTicks;
+            }
+
             Entity vehicle = playerEntity.getVehicle();
             if (vehicle instanceof ClientVehicle clientVehicle && vehicle.isValid()) {
                 clientVehicle.getVehicleComponent().tickVehicle();
             }
 
             for (Tickable entity : entityCache.getTickableEntities()) {
-                entity.tick();
+                entity.drawTick();
+                if (gameShouldUpdate) {
+                    entity.tick();
+                }
             }
 
             if (armAnimationTicks >= 0) {
@@ -1428,7 +1462,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setClientData(BedrockClientData data) {
         this.clientData = data;
         this.inputCache.setInputMode(
-            org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+                org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
     }
 
     /**
@@ -1667,8 +1701,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
-        // Required for experimental 1.21 features
-        startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1848,7 +1880,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send a gamerule value to the client
      *
      * @param gameRule The gamerule to send
-     * @param value    The value of the gamerule
+     * @param value The value of the gamerule
      */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
@@ -2114,7 +2146,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public UUID javaUuid() {
-        return playerEntity != null ? playerEntity.getUuid() : null ;
+        return playerEntity != null ? playerEntity.getUuid() : null;
     }
 
     @Override
@@ -2244,9 +2276,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void closeForm() {
-        if (!GameProtocol.isPre1_21_2(this)) {
-            sendUpstreamPacket(new ClientboundCloseFormPacket());
-        }
+        sendUpstreamPacket(new ClientboundCloseFormPacket());
     }
 
     public void addCommandEnum(String name, String enums) {

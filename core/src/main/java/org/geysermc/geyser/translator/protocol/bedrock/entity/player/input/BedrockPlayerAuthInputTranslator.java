@@ -250,7 +250,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             }
         }
 
-        if (vehicle instanceof AbstractHorseEntity) {
+        if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
@@ -312,8 +312,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
-                vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
-                vehicleRotation.getY() - 90, vehiclePosition.getX() // TODO I wonder if this is related to the horse spinning bugs...
+                vehiclePosition.toDouble(),
+                vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...
+                vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);
         }

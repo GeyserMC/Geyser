@@ -47,6 +47,7 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
+import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.TagRegistryPopulator;
@@ -60,6 +61,7 @@ import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
@@ -70,6 +72,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Holds all the common registries in Geyser.
@@ -138,6 +141,8 @@ public final class Registries {
      */
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
+    public static final ListRegistry<DataComponents> DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
+
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
      * primarily Bedrock version-specific data.
@@ -163,7 +168,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<String, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
@@ -208,6 +213,7 @@ public final class Registries {
 
     public static void populate() {
         PacketRegistryPopulator.populate();
+        DataComponentRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
 

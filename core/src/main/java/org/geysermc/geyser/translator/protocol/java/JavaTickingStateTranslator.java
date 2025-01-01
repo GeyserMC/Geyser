@@ -23,26 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTickingStatePacket;
 
-import java.util.Map;
+@Translator(packet = ClientboundTickingStatePacket.class)
+public class JavaTickingStateTranslator extends PacketTranslator<ClientboundTickingStatePacket> {
 
-public class Conversion748_729 {
-
-    private static final Map<String, Integer> NEW_PLAYER_HEADS = Map.of("minecraft:skeleton_skull", 0, "minecraft:wither_skeleton_skull", 1, "minecraft:zombie_head", 2, "minecraft:player_head", 3, "minecraft:creeper_head", 4, "minecraft:dragon_head", 5, "minecraft:piglin_head", 6);
-
-    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        String identifier = mapping.getBedrockIdentifier();
-
-        if (NEW_PLAYER_HEADS.containsKey(identifier)) {
-            return mapping.withBedrockIdentifier("minecraft:skull")
-                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
-        }
-
-        return mapping;
+    @Override
+    public void translate(GeyserSession session, ClientboundTickingStatePacket packet) {
+        session.updateTickingState(packet.getTickRate(), packet.isFrozen());
     }
-
 }
