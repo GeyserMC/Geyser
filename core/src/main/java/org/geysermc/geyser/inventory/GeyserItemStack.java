@@ -216,10 +216,7 @@ public class GeyserItemStack {
         // Not fresh from server? Then we have changes to apply!~
         if (bundleData != null && !bundleData.freshFromServer()) {
             if (!bundleData.contents().isEmpty()) {
-                if (components == null) {
-                    components = new DataComponents(new HashMap<>());
-                }
-                components.put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
+                getOrCreateComponents().put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
             } else {
                 if (components != null) {
                     // Empty list = no component = should delete

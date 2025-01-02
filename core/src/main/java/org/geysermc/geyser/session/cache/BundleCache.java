@@ -63,9 +63,15 @@ public final class BundleCache {
      * If so, we initialize our bundle cache.
      */
     public void initialize(GeyserItemStack itemStack) {
-        if (session.getTagCache().is(ItemTag.BUNDLES, itemStack)) { // Can't check for BUNDLE_CONTENTS, which may be missing if the bundle is empty.
+        // Message before 1.21.4 - "Can't check for BUNDLE_CONTENTS, which may be missing if the bundle is empty."
+        // Now irrelevant, but keeping as-is for the time being.
+        if (session.getTagCache().is(ItemTag.BUNDLES, itemStack)) {
             if (itemStack.getBundleData() != null) {
                 session.getGeyser().getLogger().warning("Stack has bundle data already! It should not!");
+                if (session.getGeyser().getConfig().isDebugMode()) {
+                    session.getGeyser().getLogger().debug("Player: " + session.javaUsername());
+                    session.getGeyser().getLogger().debug("Stack: " + itemStack);
+                }
             }
 
             BundleData bundleData;
