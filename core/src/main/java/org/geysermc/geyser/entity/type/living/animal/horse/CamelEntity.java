@@ -35,12 +35,14 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -100,7 +102,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     @Override
-    protected @Nullable ItemTag getFoodTag() {
+    protected @Nullable Tag<Item> getFoodTag() {
         return ItemTag.CAMEL_FOOD;
     }
 
@@ -141,7 +143,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_JUMP_STRENGTH) {
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
             vehicleComponent.setHorseJumpStrength(attributeData.getValue());
         }
         return attributeData;

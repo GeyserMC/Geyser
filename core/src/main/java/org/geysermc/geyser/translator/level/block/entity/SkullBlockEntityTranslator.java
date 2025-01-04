@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -57,7 +56,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             // Could be a wall skull block otherwise, which has rotation in its Bedrock state
             bedrockNbt.putFloat("Rotation", rotation * 22.5f);
         }
-        bedrockNbt.putByte("SkullType", (byte) (blockState.block() instanceof SkullBlock skull ? skull.skullType().bedrockId() : 0));
         if (blockState.getValue(Properties.POWERED)) {
             bedrockNbt.putBoolean("MouthMoving", true);
         }
@@ -133,11 +131,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
                 session.getGeyser().getLogger().debug("Custom skull with invalid profile tag: " + blockPosition + " " + javaNbt);
                 return;
             }
-            if (session.getEventLoop().inEventLoop()) {
-                putSkull(session, blockPosition, uuid, texturesProperty, blockState);
-            } else {
-                session.executeInEventLoop(() -> putSkull(session, blockPosition, uuid, texturesProperty, blockState));
-            }
+
+            session.ensureInEventLoop(() -> putSkull(session, blockPosition, uuid, texturesProperty, blockState));
         });
 
         // We don't have the textures yet, so we can't determine if a custom block was defined for this skull

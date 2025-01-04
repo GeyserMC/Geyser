@@ -113,14 +113,13 @@ public class ItemFrameEntity extends Entity {
         if (entityMetadata.getValue() != null) {
             this.heldItem = entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
-
             String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getDefinition().getRuntimeId());
 
             NbtMapBuilder builder = NbtMap.builder();
-
             builder.putByte("Count", (byte) itemData.getCount());
+            NbtMap itemDataTag = itemData.getTag();
             if (itemData.getTag() != null) {
-                builder.put("tag", itemData.getTag());
+                builder.put("tag", itemDataTag);
             }
             builder.putShort("Damage", (short) itemData.getDamage());
             builder.putString("Name", customIdentifier != null ? customIdentifier : session.getItemMappings().getMapping(entityMetadata.getValue()).getBedrockIdentifier());

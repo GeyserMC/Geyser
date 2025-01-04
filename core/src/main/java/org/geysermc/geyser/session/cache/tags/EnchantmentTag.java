@@ -25,67 +25,55 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.item.enchantment.Enchantment;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.geyser.util.Ordered;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Lists vanilla enchantment tags.
+ */
 @SuppressWarnings("unused")
-public final class EnchantmentTag implements Ordered {
-    public static final Map<Key, EnchantmentTag> ALL_ENCHANTMENT_TAGS = new HashMap<>();
+public final class EnchantmentTag {
+    public static final Tag<Enchantment> TOOLTIP_ORDER = create("tooltip_order");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_ARMOR = create("exclusive_set/armor");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_BOOTS = create("exclusive_set/boots");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_BOW = create("exclusive_set/bow");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_CROSSBOW = create("exclusive_set/crossbow");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_DAMAGE = create("exclusive_set/damage");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_MINING = create("exclusive_set/mining");
+    public static final Tag<Enchantment> EXCLUSIVE_SET_RIPTIDE = create("exclusive_set/riptide");
+    public static final Tag<Enchantment> TRADEABLE = create("tradeable");
+    public static final Tag<Enchantment> DOUBLE_TRADE_PRICE = create("double_trade_price");
+    public static final Tag<Enchantment> IN_ENCHANTING_TABLE = create("in_enchanting_table");
+    public static final Tag<Enchantment> ON_MOB_SPAWN_EQUIPMENT = create("on_mob_spawn_equipment");
+    public static final Tag<Enchantment> ON_TRADED_EQUIPMENT = create("on_traded_equipment");
+    public static final Tag<Enchantment> ON_RANDOM_LOOT = create("on_random_loot");
+    public static final Tag<Enchantment> CURSE = create("curse");
+    public static final Tag<Enchantment> SMELTS_LOOT = create("smelts_loot");
+    public static final Tag<Enchantment> PREVENTS_BEE_SPAWNS_WHEN_MINING = create("prevents_bee_spawns_when_mining");
+    public static final Tag<Enchantment> PREVENTS_DECORATED_POT_SHATTERING = create("prevents_decorated_pot_shattering");
+    public static final Tag<Enchantment> PREVENTS_ICE_MELTING = create("prevents_ice_melting");
+    public static final Tag<Enchantment> PREVENTS_INFESTED_SPAWNS = create("prevents_infested_spawns");
+    public static final Tag<Enchantment> TREASURE = create("treasure");
+    public static final Tag<Enchantment> NON_TREASURE = create("non_treasure");
+    public static final Tag<Enchantment> TRADES_DESERT_COMMON = create("trades/desert_common");
+    public static final Tag<Enchantment> TRADES_JUNGLE_COMMON = create("trades/jungle_common");
+    public static final Tag<Enchantment> TRADES_PLAINS_COMMON = create("trades/plains_common");
+    public static final Tag<Enchantment> TRADES_SAVANNA_COMMON = create("trades/savanna_common");
+    public static final Tag<Enchantment> TRADES_SNOW_COMMON = create("trades/snow_common");
+    public static final Tag<Enchantment> TRADES_SWAMP_COMMON = create("trades/swamp_common");
+    public static final Tag<Enchantment> TRADES_TAIGA_COMMON = create("trades/taiga_common");
+    public static final Tag<Enchantment> TRADES_DESERT_SPECIAL = create("trades/desert_special");
+    public static final Tag<Enchantment> TRADES_JUNGLE_SPECIAL = create("trades/jungle_special");
+    public static final Tag<Enchantment> TRADES_PLAINS_SPECIAL = create("trades/plains_special");
+    public static final Tag<Enchantment> TRADES_SAVANNA_SPECIAL = create("trades/savanna_special");
+    public static final Tag<Enchantment> TRADES_SNOW_SPECIAL = create("trades/snow_special");
+    public static final Tag<Enchantment> TRADES_SWAMP_SPECIAL = create("trades/swamp_special");
+    public static final Tag<Enchantment> TRADES_TAIGA_SPECIAL = create("trades/taiga_special");
 
-    public static final EnchantmentTag TOOLTIP_ORDER = new EnchantmentTag("tooltip_order");
-    public static final EnchantmentTag EXCLUSIVE_SET_ARMOR = new EnchantmentTag("exclusive_set/armor");
-    public static final EnchantmentTag EXCLUSIVE_SET_BOOTS = new EnchantmentTag("exclusive_set/boots");
-    public static final EnchantmentTag EXCLUSIVE_SET_BOW = new EnchantmentTag("exclusive_set/bow");
-    public static final EnchantmentTag EXCLUSIVE_SET_CROSSBOW = new EnchantmentTag("exclusive_set/crossbow");
-    public static final EnchantmentTag EXCLUSIVE_SET_DAMAGE = new EnchantmentTag("exclusive_set/damage");
-    public static final EnchantmentTag EXCLUSIVE_SET_MINING = new EnchantmentTag("exclusive_set/mining");
-    public static final EnchantmentTag EXCLUSIVE_SET_RIPTIDE = new EnchantmentTag("exclusive_set/riptide");
-    public static final EnchantmentTag TRADEABLE = new EnchantmentTag("tradeable");
-    public static final EnchantmentTag DOUBLE_TRADE_PRICE = new EnchantmentTag("double_trade_price");
-    public static final EnchantmentTag IN_ENCHANTING_TABLE = new EnchantmentTag("in_enchanting_table");
-    public static final EnchantmentTag ON_MOB_SPAWN_EQUIPMENT = new EnchantmentTag("on_mob_spawn_equipment");
-    public static final EnchantmentTag ON_TRADED_EQUIPMENT = new EnchantmentTag("on_traded_equipment");
-    public static final EnchantmentTag ON_RANDOM_LOOT = new EnchantmentTag("on_random_loot");
-    public static final EnchantmentTag CURSE = new EnchantmentTag("curse");
-    public static final EnchantmentTag SMELTS_LOOT = new EnchantmentTag("smelts_loot");
-    public static final EnchantmentTag PREVENTS_BEE_SPAWNS_WHEN_MINING = new EnchantmentTag("prevents_bee_spawns_when_mining");
-    public static final EnchantmentTag PREVENTS_DECORATED_POT_SHATTERING = new EnchantmentTag("prevents_decorated_pot_shattering");
-    public static final EnchantmentTag PREVENTS_ICE_MELTING = new EnchantmentTag("prevents_ice_melting");
-    public static final EnchantmentTag PREVENTS_INFESTED_SPAWNS = new EnchantmentTag("prevents_infested_spawns");
-    public static final EnchantmentTag TREASURE = new EnchantmentTag("treasure");
-    public static final EnchantmentTag NON_TREASURE = new EnchantmentTag("non_treasure");
-    public static final EnchantmentTag TRADES_DESERT_COMMON = new EnchantmentTag("trades/desert_common");
-    public static final EnchantmentTag TRADES_JUNGLE_COMMON = new EnchantmentTag("trades/jungle_common");
-    public static final EnchantmentTag TRADES_PLAINS_COMMON = new EnchantmentTag("trades/plains_common");
-    public static final EnchantmentTag TRADES_SAVANNA_COMMON = new EnchantmentTag("trades/savanna_common");
-    public static final EnchantmentTag TRADES_SNOW_COMMON = new EnchantmentTag("trades/snow_common");
-    public static final EnchantmentTag TRADES_SWAMP_COMMON = new EnchantmentTag("trades/swamp_common");
-    public static final EnchantmentTag TRADES_TAIGA_COMMON = new EnchantmentTag("trades/taiga_common");
-    public static final EnchantmentTag TRADES_DESERT_SPECIAL = new EnchantmentTag("trades/desert_special");
-    public static final EnchantmentTag TRADES_JUNGLE_SPECIAL = new EnchantmentTag("trades/jungle_special");
-    public static final EnchantmentTag TRADES_PLAINS_SPECIAL = new EnchantmentTag("trades/plains_special");
-    public static final EnchantmentTag TRADES_SAVANNA_SPECIAL = new EnchantmentTag("trades/savanna_special");
-    public static final EnchantmentTag TRADES_SNOW_SPECIAL = new EnchantmentTag("trades/snow_special");
-    public static final EnchantmentTag TRADES_SWAMP_SPECIAL = new EnchantmentTag("trades/swamp_special");
-    public static final EnchantmentTag TRADES_TAIGA_SPECIAL = new EnchantmentTag("trades/taiga_special");
+    private EnchantmentTag() {}
 
-    private final int id;
-
-    private EnchantmentTag(String identifier) {
-        this.id = ALL_ENCHANTMENT_TAGS.size();
-        register(identifier, this);
-    }
-
-    @Override
-    public int ordinal() {
-        return id;
-    }
-
-    private static void register(String name, EnchantmentTag tag) {
-        ALL_ENCHANTMENT_TAGS.put(MinecraftKey.key(name), tag);
+    private static Tag<Enchantment> create(String name) {
+        return new Tag<>(JavaRegistries.ENCHANTMENT, MinecraftKey.key(name));
     }
 }

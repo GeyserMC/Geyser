@@ -98,7 +98,7 @@ public class ShulkerBoxItem extends BlockItem {
 
             // Only the display name is what we have interest in, so just translate that if relevant
             if (boxComponents != null) {
-                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7');
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', true);
                 if (customName != null) {
                     boxItemNbt.putCompound("tag", NbtMap.builder()
                             .putCompound("display", NbtMap.builder()

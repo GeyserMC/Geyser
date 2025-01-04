@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
 
 @Translator(packet = ClientboundSetDisplayObjectivePacket.class)
 public class JavaSetDisplayObjectiveTranslator extends PacketTranslator<ClientboundSetDisplayObjectivePacket> {

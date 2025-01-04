@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,6 +65,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -445,35 +446,35 @@ public class LivingEntity extends Entity {
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
-                case GENERIC_MAX_HEALTH -> {
+                case MAX_HEALTH -> {
                     // Since 1.18.0, setting the max health to 0 or below causes the entity to die on Bedrock but not on Java
                     // See https://github.com/GeyserMC/Geyser/issues/2971
                     this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
-                case GENERIC_MOVEMENT_SPEED -> {
+                case MOVEMENT_SPEED -> {
                     AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED);
                     newAttributes.add(attributeData);
                     if (this instanceof ClientVehicle clientVehicle) {
                         clientVehicle.getVehicleComponent().setMoveSpeed(attributeData.getValue());
                     }
                 }
-                case GENERIC_STEP_HEIGHT -> {
+                case STEP_HEIGHT -> {
                     if (this instanceof ClientVehicle clientVehicle) {
                         clientVehicle.getVehicleComponent().setStepHeight((float) AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
-                case GENERIC_GRAVITY ->  {
+                case GRAVITY ->  {
                     if (this instanceof ClientVehicle clientVehicle) {
                         clientVehicle.getVehicleComponent().setGravity(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
-                case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-                case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-                case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
-                case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
-                case GENERIC_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
-                case GENERIC_SCALE -> {
+                case ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
+                case FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+                case FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
+                case KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
+                case JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
+                case SCALE -> {
                     // Attribute on Java, entity data on Bedrock
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();

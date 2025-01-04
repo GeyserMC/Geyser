@@ -80,10 +80,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String toolType();
 
     /**
-     * Gets the tool tier of the item.
-     *
-     * @return the tool tier of the item
+     * @deprecated no longer used
      */
+    @Deprecated(forRemoval = true)
     @Nullable String toolTier();
 
     /**
@@ -108,10 +107,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String translationString();
 
     /**
-     * Gets the repair materials of the item.
-     *
-     * @return the repair materials of the item
+     * @deprecated No longer used.
      */
+    @Deprecated(forRemoval = true)
     @Nullable Set<String> repairMaterials();
 
     /**

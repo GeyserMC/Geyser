@@ -28,11 +28,14 @@ package org.geysermc.geyser.translator.inventory;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.PlaceAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TakeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
@@ -60,7 +63,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
             case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
@@ -127,7 +130,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     private boolean isInvalidAction(ItemStackRequestSlotData slotData) {
-        return slotData.getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
+        return slotData.getContainerName().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
     }
 
     @Override
@@ -140,7 +143,6 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(53);
         slotPacket.setItem(UPGRADE_TEMPLATE.apply(session.getUpstream().getProtocolVersion()));
-        slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(slotPacket);
     }
 }

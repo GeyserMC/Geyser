@@ -38,6 +38,7 @@ dependencies {
 
     modImplementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
+    include(libs.fabric.permissions.api)
 }
 
 tasks.withType<Jar> {
@@ -46,7 +47,6 @@ tasks.withType<Jar> {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
-relocate("com.github.steveice10.mc.auth")
 
 tasks {
     remapJar {

@@ -25,10 +25,15 @@
 
 package org.geysermc.geyser.inventory;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -38,6 +43,10 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.HashMap;
 
@@ -77,6 +86,20 @@ public class GeyserItemStack {
         return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
     }
 
+    public static @NonNull GeyserItemStack from(@NonNull SlotDisplay slotDisplay) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return GeyserItemStack.EMPTY;
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
+            return GeyserItemStack.of(itemSlotDisplay.item(), 1);
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
+            return GeyserItemStack.from(itemStackSlotDisplay.itemStack());
+        }
+        GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
+        return GeyserItemStack.EMPTY;
+    }
+
     public int getJavaId() {
         return isEmpty() ? 0 : javaId;
     }
@@ -85,8 +108,29 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
+    /**
+     * Returns all components of this item - base and additional components sent over the network.
+     * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
+     *
+     * @return the item's base data components and the "additional" ones that may exist.
+     */
+    public @Nullable DataComponents getAllComponents() {
+        return isEmpty() ? null : asItem().gatherComponents(components);
+    }
+
+    /**
+     * @return the {@link DataComponents} that aren't the base/default components.
+     */
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
+    }
+
+    /**
+     * @return whether this GeyserItemStack has any additional components on top of
+     * the base item components.
+     */
+    public boolean hasNonBaseComponents() {
+        return components != null;
     }
 
     @NonNull
@@ -97,36 +141,32 @@ public class GeyserItemStack {
         return components;
     }
 
+    /**
+     * Returns the stored data component for a given {@link DataComponentType}, or null.
+     * <p>
+     * This method will first check the additional components that may exist,
+     * and fallback to the item's default (or, "base") components if need be.
+     * @param type the {@link DataComponentType} to query
+     * @return the value for said type, or null.
+     * @param <T> the value's type
+     */
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
         if (components == null) {
-            return null;
+            return asItem().getComponent(type);
         }
-        return components.get(type);
+
+        T value = components.get(type);
+        if (value == null) {
+            return asItem().getComponent(type);
+        }
+
+        return value;
     }
 
-    public <T extends Boolean> boolean getComponent(@NonNull DataComponentType<T> type, boolean def) {
-        if (components == null) {
-            return def;
-        }
-
-        Boolean result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
-    }
-
-    public <T extends Integer> int getComponent(@NonNull DataComponentType<T> type, int def) {
-        if (components == null) {
-            return def;
-        }
-
-        Integer result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
+    public <T> T getComponentOrFallback(@NonNull DataComponentType<T> type, T def) {
+        T value = getComponent(type);
+        return value == null ? def : value;
     }
 
     public int getNetId() {
@@ -163,7 +203,17 @@ public class GeyserItemStack {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
+    public SlotDisplay asSlotDisplay() {
+        if (isEmpty()) {
+            return EmptySlotDisplay.INSTANCE;
+        }
+        return new ItemStackSlotDisplay(this.getItemStack());
+    }
+
     public Item asItem() {
+        if (isEmpty()) {
+            return Items.AIR;
+        }
         if (item == null) {
             return (item = Registries.JAVA_ITEMS.get().get(javaId));
         }

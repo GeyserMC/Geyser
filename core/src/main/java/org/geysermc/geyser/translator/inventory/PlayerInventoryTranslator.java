@@ -30,17 +30,25 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftCreativeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DestroyAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -50,6 +58,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 
 import java.util.Arrays;
@@ -84,7 +93,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
         inventoryContentPacket.setContents(Arrays.asList(contents));
-        inventoryContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
@@ -96,19 +104,17 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 5] = item.getItemData(session);
             if (i == 5 &&
                     item.asItem() == Items.PLAYER_HEAD &&
-                    item.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponents());
+                    item.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentType.PROFILE));
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
-        armorContentPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
-        offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -130,7 +136,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
             }
 
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -143,8 +148,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         if (slot == 5) {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
+                    && javaItem.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
@@ -167,13 +172,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setSlot(slot + 27);
             }
             slotPacket.setItem(bedrockItem);
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
             offhandPacket.setContents(Collections.singletonList(bedrockItem));
-            offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(offhandPacket);
         }
     }
@@ -181,7 +184,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slotnum = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY:
             case HOTBAR:
             case INVENTORY:
@@ -459,7 +462,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
 
@@ -492,7 +495,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     DropAction dropAction = (DropAction) action;
-                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                    if (dropAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
                         return rejectRequest(request);
                     }
 
@@ -529,7 +532,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CRAFTING_INPUT;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CRAFTING_INPUT;
     }
 
     @Override

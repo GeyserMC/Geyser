@@ -140,10 +140,4 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             });
         }
     }
-
-    @Override
-    public boolean shouldExecuteInEventLoop() {
-        // For Erosion packets
-        return false;
-    }
 }
