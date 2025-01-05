@@ -35,6 +35,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -98,8 +99,12 @@ public class ShulkerBoxItem extends BlockItem {
 
             // Only the display name is what we have interest in, so just translate that if relevant
             if (boxComponents != null) {
-                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', true);
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
                 if (customName != null) {
+                    // Fix count display (e.g., x16) with incorrect color due to some items with colored names
+                    if (customName.contains("" + ChatColor.ESCAPE)) {
+                        customName += ChatColor.RESET + ChatColor.GRAY;
+                    }
                     boxItemNbt.putCompound("tag", NbtMap.builder()
                             .putCompound("display", NbtMap.builder()
                                     .putString("Name", customName)

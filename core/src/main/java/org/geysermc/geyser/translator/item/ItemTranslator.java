@@ -41,6 +41,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
@@ -70,6 +71,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttribut
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -163,18 +165,25 @@ public final class ItemTranslator {
                 .build();
     }
 
-    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
+    public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        components = javaItem.gatherComponents(components);
+        DataComponents components = javaItem.gatherComponents(customComponents);
 
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
-        String customName = getCustomName(session, components, bedrockItem, rarity.getColor(), false);
+        String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
+            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            // Make custom effect information visible
+            // Ignore when item have "hide_additional_tooltip" component
+            if (potionContents != null && components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) == null) {
+                customName += getPotionEffectInfo(potionContents, session.locale());
+            }
+
             nbtBuilder.setCustomName(customName);
         }
 
@@ -336,7 +345,8 @@ public final class ItemTranslator {
         Effect.INFESTED
     );
 
-    public static void addPotionEffectLore(PotionContents contents, BedrockItemBuilder builder, String language) {
+    public static String getPotionEffectInfo(PotionContents contents, String language) {
+        StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
             Effect effect = effectInstance.getEffect();
@@ -372,8 +382,40 @@ public final class ItemTranslator {
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
-            builder.getOrCreateLore().add(MessageTranslator.convertMessage(component, language));
+            // Bedrock supports wrap lines with '\n' in a single string in custom name
+            finalText.append('\n').append(MessageTranslator.convertMessage(component, language));
         }
+        return finalText.toString();
+    }
+
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean hideAdditionalTooltip, String language) {
+        String customPotionName = contents.getCustomName();
+        Potion potion = Potion.getByJavaId(contents.getPotionId());
+
+        if (customPotionName != null) {
+            // "custom_name" tag in "potion_contents" component
+            return MessageTranslator.convertMessage(
+                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
+                language);
+        }
+        if (!hideAdditionalTooltip && !contents.getCustomEffects().isEmpty()) {
+            // Make a name when has custom effects
+            String potionName;
+            if (potion != null) {
+                potionName = potion.toString().toLowerCase(Locale.ROOT);
+                if (potionName.startsWith("strong_")) {
+                    potionName = potionName.substring(6);
+                } else if (potionName.startsWith("long_")) {
+                    potionName = potionName.substring(4);
+                }
+            } else {
+                potionName = "empty";
+            }
+            return MessageTranslator.convertMessage(
+                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName),
+                language);
+        }
+        return null;
     }
 
     private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
@@ -493,31 +535,34 @@ public final class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean includeDefault) {
+    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentType.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
-            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
-            if (potionContents != null) {
-                // "custom_name" tag in "potion_contents" component
-                String customPotionName = potionContents.getCustomName();
-                if (customPotionName != null) {
-                    Component component = Component.text()
-                        .resetStyle()
-                        .color(NamedTextColor.WHITE)
-                        .append(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName))
-                        .build();
-                    return MessageTranslator.convertMessage(component, session.locale());
+            if (!customNameOnly) {
+                PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+                if (potionContents != null) {
+                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
+                    if (potionName != null) {
+                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                    }
                 }
-            }
-            customName = components.get(DataComponentType.ITEM_NAME);
-            if (customName != null && includeDefault) {
-                // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
-                // behavior as of 1.21
-                return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                if (includeAll) {
+                    // Fix book title display in tooltips of shulker box
+                    WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                    if (bookContent != null) {
+                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();
+                    }
+                }
+                customName = components.get(DataComponentType.ITEM_NAME);
+                if (customName != null) {
+                    // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
+                    // behavior as of 1.21
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                }
             }
         }
 
