@@ -25,19 +25,26 @@
 
 package org.geysermc.geyser.inventory.click;
 
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarAction;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.BundleInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.CraftingInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.thirdparty.Fraction;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSelectBundleItemPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
@@ -52,7 +59,8 @@ public final class ClickPlan {
      */
     private Int2ObjectMap<ItemStack> changedItems;
     private GeyserItemStack simulatedCursor;
-    private boolean finished;
+    private int desiredBundleSlot;
+    private boolean executionBegan;
 
     private final GeyserSession session;
     private final InventoryTranslator translator;
@@ -67,7 +75,7 @@ public final class ClickPlan {
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.changedItems = null;
         this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
-        this.finished = false;
+        this.executionBegan = false;
 
         gridSize = translator.getGridSize();
     }
@@ -82,7 +90,7 @@ public final class ClickPlan {
     }
 
     public void add(Click click, int slot, boolean force) {
-        if (finished)
+        if (executionBegan)
             throw new UnsupportedOperationException("ClickPlan already executed");
 
         if (click == Click.LEFT_OUTSIDE || click == Click.RIGHT_OUTSIDE) {
@@ -97,6 +105,7 @@ public final class ClickPlan {
     }
 
     public void execute(boolean refresh) {
+        executionBegan = true;
         //update geyser inventory after simulation to avoid net id desync
         resetSimulation();
         ListIterator<ClickAction> planIter = plan.listIterator();
@@ -159,7 +168,27 @@ public final class ClickPlan {
         for (Int2ObjectMap.Entry<GeyserItemStack> simulatedSlot : simulatedItems.int2ObjectEntrySet()) {
             inventory.setItem(simulatedSlot.getIntKey(), simulatedSlot.getValue(), session);
         }
-        finished = true;
+    }
+
+    public void executeForCreativeMode() {
+        executionBegan = true;
+        //update geyser inventory after simulation to avoid net id desync
+        resetSimulation();
+        changedItems = new Int2ObjectOpenHashMap<>();
+        for (ClickAction action : plan) {
+            simulateAction(action);
+        }
+        session.getPlayerInventory().setCursor(simulatedCursor, session);
+        for (Int2ObjectMap.Entry<GeyserItemStack> simulatedSlot : simulatedItems.int2ObjectEntrySet()) {
+            inventory.setItem(simulatedSlot.getIntKey(), simulatedSlot.getValue(), session);
+        }
+        for (Int2ObjectMap.Entry<ItemStack> changedSlot : changedItems.int2ObjectEntrySet()) {
+            ItemStack value = changedSlot.getValue();
+            ItemStack toSend = InventoryUtils.isEmpty(value) ? new ItemStack(-1, 0, null) : value;
+            session.sendDownstreamGamePacket(
+                new ServerboundSetCreativeModeSlotPacket((short) changedSlot.getIntKey(), toSend)
+            );
+        }
     }
 
     public Inventory getInventory() {
@@ -185,6 +214,10 @@ public final class ClickPlan {
 
     public GeyserItemStack getItem(int slot) {
         return simulatedItems.computeIfAbsent(slot, k -> inventory.getItem(slot).copy());
+    }
+
+    public void setDesiredBundleSlot(int desiredBundleSlot) {
+        this.desiredBundleSlot = desiredBundleSlot;
     }
 
     public GeyserItemStack getCursor() {
@@ -275,7 +308,59 @@ public final class ClickPlan {
                     } else if (InventoryUtils.canStack(cursor, clicked)) {
                         cursor.sub(1);
                         add(action.slot, clicked, 1);
+                    } else {
+                        // Can't stack, but both the cursor and the slot have an item
+                        // (Called for bundles)
+                        setCursor(clicked);
+                        setItem(action.slot, cursor);
                     }
+                    break;
+                case LEFT_BUNDLE:
+                    Fraction bundleWeight = BundleInventoryTranslator.calculateBundleWeight(clicked.getBundleData().contents());
+                    int amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, cursor), cursor.getAmount());
+                    GeyserItemStack toInsertInBundle = cursor.copy(amountToAddInBundle);
+                    if (executionBegan) {
+                        clicked.getBundleData().contents().add(0, toInsertInBundle);
+                        session.getBundleCache().onItemAdded(clicked); // Must be run before onSlotItemChange as the latter exports an ItemStack from the bundle
+                    }
+                    onSlotItemChange(action.slot, clicked);
+                    cursor.sub(amountToAddInBundle);
+                    break;
+                case LEFT_BUNDLE_FROM_CURSOR:
+                    List<GeyserItemStack> contents = cursor.getBundleData().contents();
+                    bundleWeight = BundleInventoryTranslator.calculateBundleWeight(contents);
+                    amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, clicked), clicked.getAmount());
+                    toInsertInBundle = clicked.copy(amountToAddInBundle);
+                    if (executionBegan) {
+                        cursor.getBundleData().contents().add(0, toInsertInBundle);
+                        session.getBundleCache().onItemAdded(cursor);
+                    }
+                    sub(action.slot, clicked, amountToAddInBundle);
+                    break;
+                case RIGHT_BUNDLE:
+                    if (!cursor.isEmpty()) {
+                        // Bundle should be in player's hand.
+                        GeyserItemStack itemStack = cursor.getBundleData()
+                            .contents()
+                            .remove(0);
+                        if (executionBegan) {
+                            session.getBundleCache().onItemRemoved(cursor, 0);
+                        }
+                        setItem(action.slot, itemStack);
+                        break;
+                    }
+
+                    if (executionBegan) {
+                        sendSelectedBundleSlot(action.slot);
+                    }
+                    GeyserItemStack itemStack = clicked.getBundleData()
+                        .contents()
+                        .remove(desiredBundleSlot);
+                    if (executionBegan) {
+                        session.getBundleCache().onItemRemoved(clicked, desiredBundleSlot);
+                    }
+                    onSlotItemChange(action.slot, clicked);
+                    setCursor(itemStack);
                     break;
                 case SWAP_TO_HOTBAR_1:
                     swap(action.slot, inventory.getOffsetForHotbar(0), clicked);
@@ -317,6 +402,11 @@ public final class ClickPlan {
                     break;
             }
         }
+    }
+
+    private void sendSelectedBundleSlot(int slot) {
+        // Looks like this is also technically sent in creative mode.
+        session.sendDownstreamGamePacket(new ServerboundSelectBundleItemPacket(slot, desiredBundleSlot));
     }
 
     /**
