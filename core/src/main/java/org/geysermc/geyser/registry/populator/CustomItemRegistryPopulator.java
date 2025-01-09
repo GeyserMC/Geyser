@@ -143,6 +143,7 @@ public class CustomItemRegistryPopulator {
         Items.register(item, customItemData.javaId());
 
         ItemMapping customItemMapping = ItemMapping.builder()
+                .bedrockIdentifier(customIdentifier)
                 .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, true))
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
