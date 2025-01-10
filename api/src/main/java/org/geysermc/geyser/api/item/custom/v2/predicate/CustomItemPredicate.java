@@ -25,5 +25,48 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public sealed interface CustomItemPredicate permits ConditionPredicate, MatchPredicate, RangeDispatchPredicate { // TODO maybe we need to move the predicate classes out of API
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+
+public interface CustomItemPredicate {
+
+    int CONDITION = 0;
+    int MATCH = 1;
+    int RANGE_DISPATCH = 2;
+
+    static CustomItemPredicate condition(ConditionProperty property) {
+        return condition(property, true);
+    }
+
+    static CustomItemPredicate condition(ConditionProperty property, boolean expected) {
+        return condition(property, expected, 0);
+    }
+
+    static CustomItemPredicate condition(ConditionProperty property, boolean expected, int index) {
+        return GeyserApi.api().provider(CustomItemPredicate.class, CONDITION, property, expected, index);
+    }
+
+    static <T> CustomItemPredicate match(MatchPredicateProperty<T> property, T data) {
+        return GeyserApi.api().provider(CustomItemPredicate.class, MATCH, property, data);
+    }
+
+    static CustomItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold) {
+        return rangeDispatch(property, threshold, 1.0);
+    }
+
+    static CustomItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale) {
+        return rangeDispatch(property, threshold, scale, false, 0);
+    }
+
+    static CustomItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, boolean normalizeIfPossible) {
+        return rangeDispatch(property, threshold, 1.0, normalizeIfPossible, 0);
+    }
+
+    static CustomItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible) {
+        return rangeDispatch(property, threshold, scale, normalizeIfPossible, 0);
+    }
+
+    static CustomItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) {
+        return GeyserApi.api().provider(CustomItemPredicate.class, RANGE_DISPATCH, property, threshold, scale, normalizeIfPossible, index);
+    }
 }

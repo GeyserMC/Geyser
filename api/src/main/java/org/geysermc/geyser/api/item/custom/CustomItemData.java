@@ -30,8 +30,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.TriState;
@@ -146,14 +147,13 @@ public interface CustomItemData {
 
         CustomItemOptions options = customItemOptions();
         if (options.customModelData().isPresent()) {
-            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.CUSTOM_MODEL_DATA,
-                options.customModelData().getAsInt(), 1.0, false, 0));
+            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchProperty.CUSTOM_MODEL_DATA, options.customModelData().getAsInt()));
         }
         if (options.damagePredicate().isPresent()) {
-            definition.predicate(new RangeDispatchPredicate(RangeDispatchPredicate.RangeDispatchProperty.DAMAGE, options.damagePredicate().getAsInt()));
+            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchProperty.DAMAGE, options.damagePredicate().getAsInt()));
         }
         if (options.unbreakable() != TriState.NOT_SET) {
-            definition.predicate(new ConditionPredicate(ConditionPredicate.ConditionProperty.UNBREAKABLE, Objects.requireNonNull(options.unbreakable().toBoolean())));
+            definition.predicate(CustomItemPredicate.condition(ConditionProperty.UNBREAKABLE, Objects.requireNonNull(options.unbreakable().toBoolean())));
         }
         return definition;
     }

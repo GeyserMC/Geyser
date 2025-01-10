@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,21 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
-
-/**
- * A predicate that matches a property of the item stack and returns true if it matches the expected value.
- * 
- * @param property the property to check for.
- * @param data the value expected.
- */
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements CustomItemPredicate {
+public enum ConditionProperty {
+    /**
+     * Checks if the item is broken (has 1 durability point left).
+     */
+    BROKEN,
+    /**
+     * Checks if the item is damaged (has non-full durability).
+     */
+    DAMAGED,
+    /**
+     * Checks if the item is unbreakable.
+     */
+    UNBREAKABLE,
+    /**
+     * Returns one of the item's custom model data flags, defaults to false.
+     */
+    CUSTOM_MODEL_DATA
 }

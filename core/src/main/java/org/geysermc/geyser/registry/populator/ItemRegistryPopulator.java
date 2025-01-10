@@ -61,7 +61,7 @@ import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
+import org.geysermc.geyser.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;

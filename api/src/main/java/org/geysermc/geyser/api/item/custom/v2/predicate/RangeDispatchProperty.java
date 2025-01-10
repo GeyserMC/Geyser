@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.match;
+package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-import org.geysermc.geyser.api.util.Identifier;
-
-public final class MatchPredicateProperty<T> {
-
+public enum RangeDispatchProperty {
     /**
-     * Matches for the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
+     * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
+     *
+     * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
      */
-    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
+    BUNDLE_FULLNESS,
     /**
-     * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
+     * Checks the item's damage value. Can be normalised.
      */
-    public static final MatchPredicateProperty<Identifier> TRIM_MATERIAL = create();
+    DAMAGE,
     /**
-     * Matches the dimension identifier the Bedrock session player is currently in.
+     * Checks the item's stack count. Can be normalised.
      */
-    public static final MatchPredicateProperty<Identifier> CONTEXT_DIMENSION = create();
+    COUNT,
     /**
-     * Matches a string of the item's custom model data strings.
+     * Checks one of the item's custom model data floats, defaults to 0.0.
      */
-    public static final MatchPredicateProperty<CustomModelDataString> CUSTOM_MODEL_DATA = create();
-
-    private MatchPredicateProperty() {}
-
-    private static <T> MatchPredicateProperty<T> create() {
-        return new MatchPredicateProperty<>();
-    }
+    CUSTOM_MODEL_DATA
 }

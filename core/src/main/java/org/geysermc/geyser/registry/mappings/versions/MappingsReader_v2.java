@@ -34,11 +34,11 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.MatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
@@ -217,11 +217,11 @@ public class MappingsReader_v2 extends MappingsReader {
         switch (type) {
             case "condition" -> {
                 try {
-                    ConditionPredicate.ConditionProperty conditionProperty = ConditionPredicate.ConditionProperty.valueOf(property.toUpperCase());
+                    ConditionProperty conditionProperty = ConditionProperty.valueOf(property.toUpperCase());
                     JsonNode expected = node.get("expected");
 
                     // Note that index is only used for the CUSTOM_MODEL_DATA property, but we allow specifying it for other properties anyway
-                    builder.predicate(new ConditionPredicate(conditionProperty,
+                    builder.predicate(CustomItemPredicate.condition(conditionProperty,
                         expected == null || expected.asBoolean(), readOrDefault(node, "index", JsonNode::asInt, 0)));
                 } catch (IllegalArgumentException exception) {
                     throw new InvalidCustomMappingsFileException("Unknown property " + property);
@@ -234,14 +234,14 @@ public class MappingsReader_v2 extends MappingsReader {
                     case "charge_type" -> {
                         try {
                             ChargeType chargeType = ChargeType.valueOf(value.toUpperCase());
-                            builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CHARGE_TYPE, chargeType));
+                            builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CHARGE_TYPE, chargeType));
                         } catch (IllegalArgumentException exception) {
                             throw new InvalidCustomMappingsFileException("Unknown charge type " + value);
                         }
                     }
-                    case "trim_material" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.TRIM_MATERIAL, new Identifier(value)));
-                    case "context_dimension" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CONTEXT_DIMENSION, new Identifier(value)));
-                    case "custom_model_data" -> builder.predicate(new MatchPredicate<>(MatchPredicateProperty.CUSTOM_MODEL_DATA,
+                    case "trim_material" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.TRIM_MATERIAL, new Identifier(value)));
+                    case "context_dimension" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CONTEXT_DIMENSION, new Identifier(value)));
+                    case "custom_model_data" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CUSTOM_MODEL_DATA,
                         new CustomModelDataString(value, readOrDefault(node, "index", JsonNode::asInt, 0))));
                     default -> throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }
@@ -260,8 +260,8 @@ public class MappingsReader_v2 extends MappingsReader {
                 int index = readOrDefault(node, "index", JsonNode::asInt, 0);
 
                 try {
-                    RangeDispatchPredicate.RangeDispatchProperty rangeDispatchProperty = RangeDispatchPredicate.RangeDispatchProperty.valueOf(property.toUpperCase());
-                    builder.predicate(new RangeDispatchPredicate(rangeDispatchProperty, threshold, scale, normalizeIfPossible, index));
+                    RangeDispatchProperty rangeDispatchProperty = RangeDispatchProperty.valueOf(property.toUpperCase());
+                    builder.predicate(CustomItemPredicate.rangeDispatch(rangeDispatchProperty, threshold, scale, normalizeIfPossible, index));
                 } catch (IllegalArgumentException exception) {
                     throw new InvalidCustomMappingsFileException("Unknown property " + property);
                 }

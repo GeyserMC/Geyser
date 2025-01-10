@@ -41,6 +41,10 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
@@ -52,6 +56,9 @@ import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
+import org.geysermc.geyser.item.custom.v2.predicate.ConditionPredicate;
+import org.geysermc.geyser.item.custom.v2.predicate.MatchPredicate;
+import org.geysermc.geyser.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
@@ -92,6 +99,12 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // items v2
         providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
+        providers.put(CustomItemPredicate.class, args -> switch ((int) args[0]) {
+            case CustomItemPredicate.CONDITION -> new ConditionPredicate((ConditionProperty) args[1], (boolean) args[2], (int) args[3]);
+            case CustomItemPredicate.MATCH -> new MatchPredicate<>((MatchPredicateProperty<? super Object>) args[1], args[2]);
+            case CustomItemPredicate.RANGE_DISPATCH -> new RangeDispatchPredicate((RangeDispatchProperty) args[1], (double) args[2], (double) args[3], (boolean) args[4], (int) args[5]);
+            default -> throw new IllegalArgumentException("Unknown predicate");
+        });
 
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
