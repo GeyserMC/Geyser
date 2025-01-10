@@ -43,10 +43,4 @@ public abstract class DataComponentReader<V> {
     void read(DataComponents components, JsonNode node, String... context) throws InvalidCustomMappingsFileException {
         components.put(type, readDataComponent(node, context));
     }
-
-    protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Expected an object");
-        }
-    }
 }

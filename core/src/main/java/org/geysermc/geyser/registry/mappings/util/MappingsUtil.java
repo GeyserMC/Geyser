@@ -35,7 +35,7 @@ public class MappingsUtil {
     public static <T> T readOrThrow(JsonNode node, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
         JsonNode object = node.get(name);
         if (object == null) {
-            throw new InvalidCustomMappingsFileException(formatTask(name), "key " + name + " is required but was not present", context);
+            throw new InvalidCustomMappingsFileException(formatTask(name), "key is required but was not present", context);
         }
         return converter.read(object, formatTask(name), context);
     }
