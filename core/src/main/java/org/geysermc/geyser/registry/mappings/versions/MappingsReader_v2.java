@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
@@ -144,6 +145,7 @@ public class MappingsReader_v2 extends MappingsReader {
         MappingsUtil.readIfPresent(node, "priority", builder::priority, NodeReader.INT, context);
 
         readPredicates(builder, node.get("predicate"), context);
+        MappingsUtil.readIfPresent(node, "predicate_strategy", builder::predicateStrategy, NodeReader.PREDICATE_STRATEGY, context);
 
         builder.bedrockOptions(readBedrockOptions(node.get("bedrock_options"), context));
 

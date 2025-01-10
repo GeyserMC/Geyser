@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -95,6 +96,8 @@ public interface NodeReader<T> {
     NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::new);
 
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
+
+    NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
 
     NodeReader<ConditionProperty> CONDITION_PROPERTY = ofEnum(ConditionProperty.class);
 
