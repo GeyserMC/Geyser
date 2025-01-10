@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -37,15 +38,18 @@ import java.util.HashMap;
 import java.util.List;
 
 public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
+                                         PredicateStrategy predicateStrategy,
                                          int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
         private final List<CustomItemPredicate> predicates = new ArrayList<>();
-        private int priority = 0;
+
         private String displayName;
+        private int priority = 0;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
+        private PredicateStrategy predicateStrategy = PredicateStrategy.AND;
         private DataComponents components = new DataComponents(new HashMap<>());
 
         public Builder(Identifier bedrockIdentifier, Identifier model) {
@@ -57,12 +61,6 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         @Override
         public CustomItemDefinition.Builder displayName(String displayName) {
             this.displayName = displayName;
-            return this;
-        }
-
-        @Override
-        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
-            predicates.add(predicate);
             return this;
         }
 
@@ -79,6 +77,18 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
 
         @Override
+        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
+            predicates.add(predicate);
+            return this;
+        }
+
+        @Override
+        public CustomItemDefinition.Builder predicateStrategy(@NonNull PredicateStrategy strategy) {
+            predicateStrategy = strategy;
+            return this;
+        }
+
+        @Override
         public CustomItemDefinition.Builder components(@NonNull DataComponents components) {
             this.components = components;
             return this;
@@ -86,7 +96,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), priority, bedrockOptions, components);
+            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), predicateStrategy, priority, bedrockOptions, components);
         }
     }
 }

@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.custom.v2.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
@@ -82,11 +83,15 @@ public final class CustomItemTranslator {
         // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
         Object2BooleanMap<CustomItemPredicate> calculatedPredicates = new Object2BooleanOpenHashMap<>();
         for (GeyserCustomMappingData customMapping : customItems) {
+            boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
             boolean allMatch = true;
+
             for (CustomItemPredicate predicate : customMapping.definition().predicates()) {
                 boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicateMatches(session, predicate, stackSize, components));
                 if (!value) {
                     allMatch = false;
+                    break;
+                } else if (needsOnlyOneMatch) {
                     break;
                 }
             }

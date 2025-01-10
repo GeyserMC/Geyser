@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.item.custom.v2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -84,9 +85,14 @@ public interface CustomItemDefinition {
     }
 
     /**
-     * The predicates that have to match for this item to be used. These predicates are similar to the Java item model predicates.
+     * The predicates that have to match for this item definition to be used. These predicates are similar to the Java item model predicates.
      */
     @NonNull List<CustomItemPredicate> predicates();
+
+    /**
+     * The predicate strategy to be used. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
+     */
+    PredicateStrategy predicateStrategy();
 
     /**
      * The priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
@@ -125,11 +131,13 @@ public interface CustomItemDefinition {
 
         Builder displayName(String displayName);
 
-        Builder predicate(@NonNull CustomItemPredicate predicate);
+        Builder priority(int priority);
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
-        Builder priority(int priority);
+        Builder predicate(@NonNull CustomItemPredicate predicate);
+
+        Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
         // TODO do we want a component(Type, Value) method instead?
         Builder components(@NonNull DataComponents components);
