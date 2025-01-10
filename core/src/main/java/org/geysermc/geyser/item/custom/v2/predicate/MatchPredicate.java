@@ -25,14 +25,8 @@
 
 package org.geysermc.geyser.item.custom.v2.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 
-/**
- * A predicate that matches a property of the item stack and returns true if it matches the expected value.
- * 
- * @param property the property to check for.
- * @param data the value expected.
- */
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements CustomItemPredicate {
+public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements MatchItemPredicate<T> {
 }

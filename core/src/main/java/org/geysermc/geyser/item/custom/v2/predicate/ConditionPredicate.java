@@ -25,15 +25,8 @@
 
 package org.geysermc.geyser.item.custom.v2.predicate;
 
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 
-/**
- * A predicate that checks for a certain boolean property of the item stack and returns true if it matches the expected value.
- *
- * @param property the property to check.
- * @param expected whether the property should be true or false. Defaults to true.
- * @param index only used for the {@code CUSTOM_MODEL_DATA} property, determines which flag of the item's custom model data to check. Defaults to 0.
- */
-public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements CustomItemPredicate {
+public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements ConditionItemPredicate {
 }
