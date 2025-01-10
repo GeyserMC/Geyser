@@ -100,7 +100,7 @@ public class CustomItemRegistryPopulator {
             @Override
             @Deprecated
             public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
-                return register(identifier, customItemData.toDefinition(identifier).build());
+                return register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
             }
 
             @Override

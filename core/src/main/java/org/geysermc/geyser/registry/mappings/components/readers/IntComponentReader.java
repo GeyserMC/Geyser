@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.geyser.registry.mappings.util.NodeReader;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
 public class IntComponentReader extends DataComponentReader<Integer> {
@@ -46,14 +47,7 @@ public class IntComponentReader extends DataComponentReader<Integer> {
     }
 
     @Override
-    protected Integer readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
-        if (!node.isIntegralNumber()) {
-            throw new InvalidCustomMappingsFileException("Expected an integer number");
-        }
-        int value = node.asInt();
-        if (value < minimum || value > maximum) {
-            throw new InvalidCustomMappingsFileException("Expected integer to be in the range of [" + minimum + ", " + maximum + "]");
-        }
-        return value;
+    protected Integer readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+        return NodeReader.boundedInt(minimum, maximum).read(node, "reading component", context);
     }
 }

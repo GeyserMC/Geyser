@@ -38,10 +38,10 @@ public abstract class DataComponentReader<V> {
         this.type = type;
     }
 
-    protected abstract V readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException;
+    protected abstract V readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException;
 
-    void read(DataComponents components, JsonNode node) throws InvalidCustomMappingsFileException {
-        components.put(type, readDataComponent(node));
+    void read(DataComponents components, JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+        components.put(type, readDataComponent(node, context));
     }
 
     protected static void requireObject(JsonNode node) throws InvalidCustomMappingsFileException {

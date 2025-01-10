@@ -26,10 +26,13 @@
 package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
+import org.geysermc.geyser.registry.mappings.util.NodeReader;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
@@ -40,20 +43,10 @@ public class UseCooldownReader extends DataComponentReader<UseCooldown> {
     }
 
     @Override
-    protected UseCooldown readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
-        requireObject(node);
+    protected UseCooldown readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+        float seconds = MappingsUtil.readOrThrow(node, "seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), context);
+        Identifier cooldownGroup = MappingsUtil.readOrThrow(node, "cooldown_group", NodeReader.IDENTIFIER, context);
 
-        JsonNode seconds = node.get("seconds");
-        JsonNode cooldown_group = node.get("cooldown_group");
-
-        if (seconds == null || !seconds.isNumber()) {
-            throw new InvalidCustomMappingsFileException("Expected seconds to be a number");
-        }
-
-        if (cooldown_group == null || !cooldown_group.isTextual()) {
-            throw new InvalidCustomMappingsFileException("Expected cooldown group to be a resource location");
-        }
-
-        return new UseCooldown((float) seconds.asDouble(), Key.key(cooldown_group.asText()));
+        return new UseCooldown(seconds, MinecraftKey.identifierToKey(cooldownGroup));
     }
 }

@@ -130,9 +130,9 @@ public interface CustomItemData {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
 
-    default CustomItemDefinition.Builder toDefinition(String javaItem) {
+    default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
         // TODO non vanilla
-        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(new Identifier(javaItem), new Identifier(javaItem))
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(javaItem, javaItem)
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
                 .icon(icon())

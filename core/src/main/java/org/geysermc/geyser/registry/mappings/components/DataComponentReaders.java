@@ -44,12 +44,12 @@ import java.util.Map;
 public class DataComponentReaders {
     private static final Map<Key, DataComponentReader<?>> READERS = new HashMap<>();
 
-    public static void readDataComponent(DataComponents components, Key key, @NonNull JsonNode node) throws InvalidCustomMappingsFileException {
+    public static void readDataComponent(DataComponents components, Key key, @NonNull JsonNode node, String baseContext) throws InvalidCustomMappingsFileException {
         DataComponentReader<?> reader = READERS.get(key);
         if (reader == null) {
-            throw new InvalidCustomMappingsFileException("Unknown data component");
+            throw new InvalidCustomMappingsFileException("reading data components", "unknown data component " + key, baseContext);
         }
-        reader.read(components, node);
+        reader.read(components, node, "component " + key, baseContext);
     }
 
     static {

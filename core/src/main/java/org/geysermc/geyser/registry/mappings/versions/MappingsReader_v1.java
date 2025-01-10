@@ -41,6 +41,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
@@ -95,7 +96,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (entry.getValue().isArray()) {
                     entry.getValue().forEach(data -> {
                         try {
-                            CustomItemDefinition customItemData = this.readItemMappingEntry(entry.getKey(), data);
+                            CustomItemDefinition customItemData = this.readItemMappingEntry(new Identifier(entry.getKey()), data);
                             consumer.accept(entry.getKey(), customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
                             GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
@@ -160,7 +161,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     @Override
-    public CustomItemDefinition readItemMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException {
+    public CustomItemDefinition readItemMappingEntry(Identifier identifier, JsonNode node) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }

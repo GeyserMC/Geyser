@@ -29,12 +29,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
+import org.geysermc.geyser.registry.mappings.util.NodeReader;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class EquippableReader extends DataComponentReader<Equippable> {
     private static final Map<String, EquipmentSlot> SLOTS = Map.of(
@@ -49,17 +52,11 @@ public class EquippableReader extends DataComponentReader<Equippable> {
     }
 
     @Override
-    protected Equippable readDataComponent(@NonNull JsonNode node) throws InvalidCustomMappingsFileException {
-        requireObject(node);
+    protected Equippable readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+        MappingsUtil.requireObject(node, "reading component", context);
 
-        JsonNode slotNode = node.get("slot");
-        if (slotNode == null) {
-            throw new InvalidCustomMappingsFileException("Expected slot to be present");
-        }
-        EquipmentSlot slot = SLOTS.get(slotNode.asText());
-        if (slot == null) {
-            throw new InvalidCustomMappingsFileException("Expected slot to be head, chest, legs or feet");
-        }
+        EquipmentSlot slot = MappingsUtil.readOrThrow(node, "slot",
+            NodeReader.NON_EMPTY_STRING.andThen(SLOTS::get).validate(Objects::nonNull, "expected slot to be head, chest, legs or feet"), context);
 
         return new Equippable(slot, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
             null, null, null, false, false, false); // Other properties are unused
