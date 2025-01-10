@@ -50,7 +50,7 @@ public class SessionDisconnectEvent extends ConnectionEvent {
     }
 
     /**
-     * Sets the disconnect reason, thereby overriding th original reason.
+     * Sets the disconnect message shown to the Bedrock client.
      *
      * @param disconnectReason the reason for the disconnect
      */

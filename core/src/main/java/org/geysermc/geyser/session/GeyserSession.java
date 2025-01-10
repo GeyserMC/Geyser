@@ -41,6 +41,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.raphimc.minecraftauth.responsehandler.exception.MinecraftRequestException;
 import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
@@ -133,6 +134,7 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
+import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.inventory.Inventory;
@@ -986,10 +988,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void disconnect(String reason) {
+        disconnect(Component.text(reason));
+    }
+
+    public void disconnect(Component reason) {
         if (!closed) {
             loggedIn = false;
 
-            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
+            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEventImpl(this, reason);
             if (authData != null && clientData != null) { // can occur if player disconnects before Bedrock auth finishes
                 // Fire SessionDisconnectEvent
                 geyser.getEventBus().fire(disconnectEvent);

@@ -166,12 +166,12 @@ public class GeyserSessionAdapter extends SessionAdapter {
     public void disconnected(DisconnectedEvent event) {
         geyserSession.loggingIn = false;
 
-        String disconnectMessage;
+        String disconnectMessage, customDisconnectMessage = null;
         Throwable cause = event.getCause();
         if (cause instanceof UnexpectedEncryptionException) {
             if (geyserSession.remoteServer().authType() != AuthType.FLOODGATE) {
                 // Server expects online mode
-                disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale);
+                customDisconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale);
                 // Explain that they may be looking for Floodgate.
                 geyser.getLogger().warning(GeyserLocale.getLocaleStringLog(
                     geyser.getPlatformType() == PlatformType.STANDALONE ?
@@ -181,17 +181,18 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 ));
             } else {
                 // Likely that Floodgate is not configured correctly.
-                disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", locale);
+                customDisconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", locale);
                 if (geyser.getPlatformType() == PlatformType.STANDALONE) {
                     geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.remote.floodgate_login_error_standalone"));
                 }
             }
         } else if (cause instanceof ConnectException) {
             // Server is offline, probably
-            disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", locale);
-        } else {
-            disconnectMessage = MessageTranslator.convertMessage(event.getReason());
+            customDisconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", locale);
         }
+
+        // Use our helpful disconnect message whenever possible
+        disconnectMessage = customDisconnectMessage != null ? customDisconnectMessage : MessageTranslator.convertMessage(event.getReason());;
 
         if (geyserSession.getDownstream().getSession() instanceof LocalSession) {
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect_internal", geyserSession.bedrockUsername(), disconnectMessage));
@@ -213,7 +214,11 @@ public class GeyserSessionAdapter extends SessionAdapter {
             // This needs to be "initiated" here when there is an exception, but also when the Netty connection
             // is closed without a disconnect packet - in this case, closed will still be false, but loggedIn
             // will also be true as GeyserSession#disconnect will not have been called.
-            geyserSession.disconnect(disconnectMessage);
+            if (customDisconnectMessage != null) {
+                geyserSession.disconnect(customDisconnectMessage);
+            } else {
+                geyserSession.disconnect(event.getReason());
+            }
         }
 
         geyserSession.loggedIn = false;
