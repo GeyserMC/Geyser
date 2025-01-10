@@ -191,7 +191,9 @@ public class Item {
         }
 
         Integer repairCost = components.get(DataComponentType.REPAIR_COST);
-        if (repairCost != null) {
+        // Java sets repair cost to 0 on all items via default components, that trips up Bedrock crafting.
+        // See https://github.com/GeyserMC/Geyser/issues/5220 for more details
+        if (repairCost != null && repairCost != 0) {
             builder.putInt("RepairCost", repairCost);
         }
 
@@ -202,7 +204,12 @@ public class Item {
 
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
-        builder.putInt("GeyserHash", components.hashCode()); // TODO: don't rely on this
+        // However, we should only set a hash when the components differ from the default ones,
+        // otherwise Bedrock can't stack these when crafting items since it's predicted recipe output
+        // does not contain the GeyserHash. See https://github.com/GeyserMC/Geyser/issues/5220 for more details
+        if (!baseComponents.equals(components)) {
+            builder.putInt("GeyserHash", components.hashCode()); // TODO: don't rely on this
+        }
     }
 
     /**

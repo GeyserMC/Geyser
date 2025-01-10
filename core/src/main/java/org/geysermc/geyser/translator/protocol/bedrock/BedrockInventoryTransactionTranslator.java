@@ -411,6 +411,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         session.useItem(Hand.MAIN_HAND);
 
+                        session.getBundleCache().awaitRelease();
+
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
                             InventoryActionData actionData = packet.getActions().get(0);
@@ -439,10 +441,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, 0);
-                    session.sendDownstreamGamePacket(releaseItemPacket);
+                    session.releaseItem();
+                    session.getBundleCache().markRelease();
                 }
                 break;
             case ITEM_USE_ON_ENTITY:

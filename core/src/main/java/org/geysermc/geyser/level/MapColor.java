@@ -285,16 +285,20 @@ public enum MapColor {
             alpha = 0; // transparent
 
         this.value = ((alpha & 0xFF) << 24) |
-            ((red & 0xFF) << 16) |
+            ((blue & 0xFF) << 16) |
             ((green & 0xFF) << 8) |
-            (blue & 0xFF);
+            (red & 0xFF);
     }
 
     public static MapColor fromId(int id) {
         return id >= 0 && id < VALUES.length ? VALUES[id] : COLOR_0;
     }
 
-    public int getARGB() {
+    /**
+     * Get the ABGR value of the color, bedrock uses this over the network
+     * @return the int value of the color
+     */
+    public int getABGR() {
         return value;
     }
 }
