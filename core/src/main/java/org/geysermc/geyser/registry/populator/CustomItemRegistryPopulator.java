@@ -246,7 +246,7 @@ public class CustomItemRegistryPopulator {
         Consumable consumable = components.get(DataComponentType.CONSUMABLE);
         if (consumable != null) {
             FoodProperties foodProperties = components.get(DataComponentType.FOOD);
-            computeConsumableProperties(consumable, foodProperties == null || foodProperties.isCanAlwaysEat(), itemProperties, componentBuilder);
+            computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
         if (vanillaMapping.isEntityPlacer()) {
@@ -502,21 +502,28 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    private static void computeConsumableProperties(Consumable consumable, boolean canAlwaysEat, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         // TODO check the animations, it didn't work properly
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
-
         itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
+
         componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
             .putString("value", consumable.animation().toString().toLowerCase())
             .build());
 
-        // this component is required to allow the eat animation to play
-        componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
+        int nutrition = foodProperties == null ? 0 : foodProperties.getNutrition();
+        float saturationModifier = foodProperties == null ? 0.0F : foodProperties.getSaturationModifier();
+        boolean canAlwaysEat = foodProperties == null || foodProperties.isCanAlwaysEat();
+        componentBuilder.putCompound("minecraft:food", NbtMap.builder()
+            .putBoolean("can_always_eat", canAlwaysEat)
+            .putInt("nutrition", nutrition)
+            .putFloat("saturation_modifier", saturationModifier)
+            .putCompound("using_converts_to", NbtMap.EMPTY)
+            .build());
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", 0.2F)
+            .putFloat("movement_modifier", 0.2F) // TODO is this the right value
             .putFloat("use_duration", consumable.consumeSeconds())
             .build());
     }
