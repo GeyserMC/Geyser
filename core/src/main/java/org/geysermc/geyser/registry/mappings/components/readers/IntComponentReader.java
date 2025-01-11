@@ -27,10 +27,10 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
 public class IntComponentReader extends DataComponentReader<Integer> {
     private final int minimum;

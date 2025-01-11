@@ -26,6 +26,8 @@
 package org.geysermc.geyser.registry.mappings.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
@@ -33,7 +35,6 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -105,7 +106,9 @@ public interface NodeReader<T> {
 
     NodeReader<RangeDispatchProperty> RANGE_DISPATCH_PROPERTY = ofEnum(RangeDispatchProperty.class);
 
-    NodeReader<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = ofEnum(Consumable.ItemUseAnimation.class);
+    NodeReader<Consumable.Animation> CONSUMABLE_ANIMATION = ofEnum(Consumable.Animation.class);
+
+    NodeReader<Equippable.EquipmentSlot> EQUIPMENT_SLOT = ofEnum(Equippable.EquipmentSlot.class);
 
     static <E extends Enum<E>> NodeReader<E> ofEnum(Class<E> clazz) {
         return NON_EMPTY_STRING.andThen(String::toUpperCase).andThen(s -> {

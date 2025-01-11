@@ -27,14 +27,13 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.UseCooldown;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
-import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 public class UseCooldownReader extends DataComponentReader<UseCooldown> {
 
@@ -47,6 +46,6 @@ public class UseCooldownReader extends DataComponentReader<UseCooldown> {
         float seconds = MappingsUtil.readOrThrow(node, "seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), context);
         Identifier cooldownGroup = MappingsUtil.readOrThrow(node, "cooldown_group", NodeReader.IDENTIFIER, context);
 
-        return new UseCooldown(seconds, MinecraftKey.identifierToKey(cooldownGroup));
+        return new UseCooldown(seconds, cooldownGroup);
     }
 }

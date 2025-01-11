@@ -27,9 +27,9 @@ package org.geysermc.geyser.registry.mappings.components;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public abstract class DataComponentReader<V> {
     private final DataComponentType<V> type;
@@ -40,7 +40,7 @@ public abstract class DataComponentReader<V> {
 
     protected abstract V readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException;
 
-    void read(DataComponents components, JsonNode node, String... context) throws InvalidCustomMappingsFileException {
-        components.put(type, readDataComponent(node, context));
+    void read(CustomItemDefinition.Builder builder, JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+        builder.component(type, readDataComponent(node, context));
     }
 }

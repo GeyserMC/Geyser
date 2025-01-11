@@ -72,6 +72,7 @@ fastutil-int-boolean-maps = { group = "com.nukkitx.fastutil", name = "fastutil-i
 fastutil-object-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-int-maps", version.ref = "fastutil" }
 fastutil-object-object-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-object-maps", version.ref = "fastutil" }
 fastutil-object-boolean-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-boolean-maps", version.ref = "fastutil" }
+fastutil-reference-object-maps = { group = "com.nukkitx.fastutil", name = "fastutil-reference-object-maps", version.ref = "fastutil" }
 
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
@@ -154,7 +155,7 @@ blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-object-boolean-maps" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-object-boolean-maps", "fastutil-reference-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

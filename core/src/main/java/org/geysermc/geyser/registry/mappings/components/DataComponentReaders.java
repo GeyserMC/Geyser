@@ -28,15 +28,15 @@ package org.geysermc.geyser.registry.mappings.components;
 import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
-import org.geysermc.geyser.registry.mappings.components.readers.FoodReader;
+import org.geysermc.geyser.registry.mappings.components.readers.FoodPropertiesReader;
 import org.geysermc.geyser.registry.mappings.components.readers.IntComponentReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UseCooldownReader;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,18 +44,18 @@ import java.util.Map;
 public class DataComponentReaders {
     private static final Map<Key, DataComponentReader<?>> READERS = new HashMap<>();
 
-    public static void readDataComponent(DataComponents components, Key key, @NonNull JsonNode node, String baseContext) throws InvalidCustomMappingsFileException {
+    public static void readDataComponent(CustomItemDefinition.Builder builder, Key key, @NonNull JsonNode node, String baseContext) throws InvalidCustomMappingsFileException {
         DataComponentReader<?> reader = READERS.get(key);
         if (reader == null) {
             throw new InvalidCustomMappingsFileException("reading data components", "unknown data component " + key, baseContext);
         }
-        reader.read(components, node, "component " + key, baseContext);
+        reader.read(builder, node, "component " + key, baseContext);
     }
 
     static {
         READERS.put(MinecraftKey.key("consumable"), new ConsumableReader());
         READERS.put(MinecraftKey.key("equippable"), new EquippableReader());
-        READERS.put(MinecraftKey.key("food"), new FoodReader());
+        READERS.put(MinecraftKey.key("food"), new FoodPropertiesReader());
         READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponentType.MAX_DAMAGE, 0));
         READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponentType.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());

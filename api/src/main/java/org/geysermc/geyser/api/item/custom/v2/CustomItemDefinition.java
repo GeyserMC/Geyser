@@ -122,7 +122,8 @@ public interface CustomItemDefinition {
      * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
      * and do not have to be specified here.</p>
      */
-    @NonNull DataComponentMap components();
+    @NonNull
+    DataComponentMap components();
 
     static Builder builder(Identifier identifier, Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, identifier, itemModel);
@@ -140,7 +141,7 @@ public interface CustomItemDefinition {
 
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
-        <T> Builder components(@NonNull DataComponentType<T> component, @NonNull T value);
+        <T> Builder component(@NonNull DataComponentType<T> component, @NonNull T value);
 
         CustomItemDefinition build();
     }

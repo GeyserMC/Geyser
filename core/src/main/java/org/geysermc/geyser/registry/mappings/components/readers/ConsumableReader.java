@@ -27,15 +27,12 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
-
-import java.util.List;
 
 public class ConsumableReader extends DataComponentReader<Consumable> {
 
@@ -48,8 +45,8 @@ public class ConsumableReader extends DataComponentReader<Consumable> {
         MappingsUtil.requireObject(node, "reading component", context);
 
         float consumeSeconds = MappingsUtil.readOrDefault(node, "consume_seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), 1.6F, context);
-        Consumable.ItemUseAnimation animation = MappingsUtil.readOrDefault(node, "animation", NodeReader.ITEM_USE_ANIMATION, Consumable.ItemUseAnimation.EAT, context);
+        Consumable.Animation animation = MappingsUtil.readOrDefault(node, "animation", NodeReader.CONSUMABLE_ANIMATION, Consumable.Animation.EAT, context);
 
-        return new Consumable(consumeSeconds, animation, BuiltinSound.ENTITY_GENERIC_EAT, false, List.of()); // TODO are sound and particles supported on bedrock?
+        return new Consumable(consumeSeconds, animation); // TODO are sound and particles supported on bedrock?
     }
 }

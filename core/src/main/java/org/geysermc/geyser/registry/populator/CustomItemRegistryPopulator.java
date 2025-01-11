@@ -41,6 +41,8 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.item.custom.v2.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
@@ -55,13 +57,13 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -202,10 +204,10 @@ public class CustomItemRegistryPopulator {
      */
     private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition);
-        int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
-        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+        int stackSize = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_STACK_SIZE, 0);
+        int maxDamage = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_DAMAGE, 0);
 
-        if (components.get(DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
+        if (components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
             throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
@@ -234,7 +236,7 @@ public class CustomItemRegistryPopulator {
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
-        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
+        Equippable equippable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE);
         if (equippable != null) {
             computeArmorProperties(equippable, itemProperties, componentBuilder);
         }
@@ -243,9 +245,9 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(vanillaMapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        Consumable consumable = components.get(DataComponentType.CONSUMABLE);
+        Consumable consumable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.CONSUMABLE);
         if (consumable != null) {
-            FoodProperties foodProperties = components.get(DataComponentType.FOOD);
+            FoodProperties foodProperties = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.FOOD);
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
@@ -253,7 +255,7 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
-        UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
+        UseCooldown useCooldown = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
@@ -313,10 +315,10 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
-        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
-        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
+        int maxDamage = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_DAMAGE, 0);
+        Equippable equippable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE);
         // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
+        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
 
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
@@ -660,7 +662,8 @@ public class CustomItemRegistryPopulator {
     }
 
     private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
-        return javaItem.gatherComponents(definition.components());
+        //return javaItem.gatherComponents(definition.components());
+        return javaItem.gatherComponents(new DataComponents(new HashMap<>())); // TODO FIXME
     }
 
     @SuppressWarnings("unchecked")

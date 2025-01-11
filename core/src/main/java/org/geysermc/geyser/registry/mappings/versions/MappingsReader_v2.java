@@ -36,12 +36,9 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
-import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
@@ -152,12 +149,10 @@ public class MappingsReader_v2 extends MappingsReader {
         JsonNode componentsNode = node.get("components");
         if (componentsNode != null) {
             if (componentsNode.isObject()) {
-                DataComponents components = new DataComponents(new HashMap<>()); // TODO faster map ?
                 for (Iterator<Map.Entry<String, JsonNode>> iterator = componentsNode.fields(); iterator.hasNext();) {
                     Map.Entry<String, JsonNode> entry = iterator.next();
-                    DataComponentReaders.readDataComponent(components, MinecraftKey.key(entry.getKey()), entry.getValue(), context);
+                    DataComponentReaders.readDataComponent(builder, MinecraftKey.key(entry.getKey()), entry.getValue(), context);
                 }
-                builder.components(components);
             } else {
                 throw new InvalidCustomMappingsFileException("reading components", "expected components key to be an object", context);
             }

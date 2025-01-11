@@ -25,32 +25,35 @@
 
 package org.geysermc.geyser.item.custom;
 
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
                                          PredicateStrategy predicateStrategy,
-                                         int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponents components) implements CustomItemDefinition {
+                                         int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponentMap components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
         private final List<CustomItemPredicate> predicates = new ArrayList<>();
+        private final Reference2ObjectMap<DataComponentType<?>, Object> components = new Reference2ObjectOpenHashMap<>();
 
         private String displayName;
         private int priority = 0;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private PredicateStrategy predicateStrategy = PredicateStrategy.AND;
-        private DataComponents components = new DataComponents(new HashMap<>());
 
         public Builder(Identifier bedrockIdentifier, Identifier model) {
             this.bedrockIdentifier = bedrockIdentifier;
@@ -89,14 +92,23 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
 
         @Override
-        public CustomItemDefinition.Builder components(@NonNull DataComponents components) {
-            this.components = components;
+        public <T> CustomItemDefinition.Builder component(@NonNull DataComponentType<T> component, @NonNull T value) {
+            components.put(component, value);
             return this;
         }
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), predicateStrategy, priority, bedrockOptions, components);
+            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), predicateStrategy, priority, bedrockOptions,
+                new GeyserCustomItemDefinition.ComponentMap(components));
+        }
+    }
+
+    private record ComponentMap(Reference2ObjectMap<DataComponentType<?>, Object> components) implements DataComponentMap {
+
+        @Override
+        public <T> T get(DataComponentType<T> type) {
+            return (T) components.get(type);
         }
     }
 }
