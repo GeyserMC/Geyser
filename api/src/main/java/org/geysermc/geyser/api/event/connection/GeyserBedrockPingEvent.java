@@ -36,7 +36,7 @@ import java.net.InetSocketAddress;
  * Called whenever Geyser gets pinged by a Bedrock client.
  * <p>
  * This event allows you to modify/obtain the MOTD, maximum player count, and current number of players online.
- * Geyser will reply to the client with the information provided in this event
+ * Geyser will reply to the client with the information provided in this event.
  */
 public interface GeyserBedrockPingEvent extends Event {
 
