@@ -25,17 +25,46 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
+import org.geysermc.geyser.api.util.Identifier;
+
+import java.util.function.Predicate;
+
 public final class DataComponent<T> {
-    public static final DataComponent<Consumable> CONSUMABLE = create();
-    public static final DataComponent<Equippable> EQUIPPABLE = create();
-    public static final DataComponent<FoodProperties> FOOD = create();
-    public static final DataComponent<Integer> MAX_DAMAGE = create();
-    public static final DataComponent<Integer> MAX_STACK_SIZE = create();
-    public static final DataComponent<UseCooldown> USE_COOLDOWN = create();
+    public static final DataComponent<Consumable> CONSUMABLE = create("consumable");
+    public static final DataComponent<Equippable> EQUIPPABLE = create("equippable");
+    public static final DataComponent<FoodProperties> FOOD = create("food");
+    /**
+     * Must be at or above 0.
+     */
+    public static final DataComponent<Integer> MAX_DAMAGE = create("max_damage", i -> i >= 0);
+    /**
+     * Must be between 1 and 99.
+     */
+    public static final DataComponent<Integer> MAX_STACK_SIZE = create("max_stack_size", i -> i >= 1 && i <= 99); // Reverse lambda
+    public static final DataComponent<UseCooldown> USE_COOLDOWN = create("use_cooldown");
 
-    private DataComponent() {}
+    private final Identifier identifier;
+    private final Predicate<T> validator;
 
-    private static <T> DataComponent<T> create() {
-        return new DataComponent<>();
+    private DataComponent(Identifier identifier, Predicate<T> validator) {
+        this.identifier = identifier;
+        this.validator = validator;
+    }
+
+    private static <T> DataComponent<T> create(String name) {
+        return new DataComponent<>(new Identifier(Identifier.DEFAULT_NAMESPACE, name), t -> true);
+    }
+
+    private static <T> DataComponent<T> create(String name, Predicate<T> validator) {
+        return new DataComponent<>(new Identifier(Identifier.DEFAULT_NAMESPACE, name), validator);
+    }
+
+    public boolean validate(T value) {
+        return validator.test(value);
+    }
+
+    @Override
+    public String toString() {
+        return "data component " + identifier.toString();
     }
 }

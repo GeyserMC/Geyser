@@ -25,5 +25,13 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
-public record FoodProperties(int nutrition, float saturation, boolean canAlwaysEat) {
+import org.checkerframework.checker.index.qual.NonNegative;
+
+public record FoodProperties(@NonNegative int nutrition, @NonNegative float saturation, boolean canAlwaysEat) {
+
+    public FoodProperties {
+        if (nutrition < 0 || saturation < 0.0F) {
+            throw new IllegalStateException("Nutrition and saturation must be at or above 0");
+        }
+    }
 }

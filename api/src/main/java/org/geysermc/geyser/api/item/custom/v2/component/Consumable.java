@@ -25,7 +25,15 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
-public record Consumable(float consumeSeconds, Animation animation) {
+import org.checkerframework.checker.index.qual.Positive;
+
+public record Consumable(@Positive float consumeSeconds, Animation animation) {
+
+    public Consumable {
+        if (consumeSeconds <= 0.0F) {
+            throw new IllegalStateException("Consume seconds must be above 0");
+        }
+    }
 
     public enum Animation {
         NONE,

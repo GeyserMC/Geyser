@@ -93,6 +93,9 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
 
         @Override
         public <T> CustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
+            if (!component.validate(value)) {
+                throw new IllegalArgumentException("Value " + value + " is invalid for " + component);
+            }
             components.put(component, value);
             return this;
         }

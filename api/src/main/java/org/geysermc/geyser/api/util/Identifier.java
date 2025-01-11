@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public final class Identifier {
-    private static final String DEFAULT_NAMESPACE = "minecraft";
+    public static final String DEFAULT_NAMESPACE = "minecraft";
     private final String namespace;
     private final String path;
 
