@@ -28,7 +28,7 @@ package org.geysermc.geyser.api.item.custom.v2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
@@ -140,7 +140,7 @@ public interface CustomItemDefinition {
 
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
-        <T> Builder component(@NonNull DataComponentType<T> component, @NonNull T value);
+        <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
         CustomItemDefinition build();
     }

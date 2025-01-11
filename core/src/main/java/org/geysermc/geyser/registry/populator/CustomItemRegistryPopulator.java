@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -660,8 +661,9 @@ public class CustomItemRegistryPopulator {
     }
 
     private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
-        //return javaItem.gatherComponents(definition.components());
-        return javaItem.gatherComponents(new DataComponents(new HashMap<>())); // TODO FIXME
+        DataComponents convertedComponents = new DataComponents(new HashMap<>());
+        ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
+        return javaItem.gatherComponents(convertedComponents);
     }
 
     @SuppressWarnings("unchecked")

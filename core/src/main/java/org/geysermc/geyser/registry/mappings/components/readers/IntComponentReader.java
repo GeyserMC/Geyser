@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
@@ -36,13 +36,13 @@ public class IntComponentReader extends DataComponentReader<Integer> {
     private final int minimum;
     private final int maximum;
 
-    public IntComponentReader(DataComponentType<Integer> type, int minimum, int maximum) {
+    public IntComponentReader(DataComponent<Integer> type, int minimum, int maximum) {
         super(type);
         this.minimum = minimum;
         this.maximum = maximum;
     }
 
-    public IntComponentReader(DataComponentType<Integer> type, int minimum) {
+    public IntComponentReader(DataComponent<Integer> type, int minimum) {
         this(type, minimum, Integer.MAX_VALUE);
     }
 

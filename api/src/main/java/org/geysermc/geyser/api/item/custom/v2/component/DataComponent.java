@@ -25,17 +25,17 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
-public final class DataComponentType<T> {
-    public static final DataComponentType<Consumable> CONSUMABLE = create();
-    public static final DataComponentType<Equippable> EQUIPPABLE = create();
-    public static final DataComponentType<FoodProperties> FOOD = create();
-    public static final DataComponentType<Integer> MAX_DAMAGE = create();
-    public static final DataComponentType<Integer> MAX_STACK_SIZE = create();
-    public static final DataComponentType<UseCooldown> USE_COOLDOWN = create();
+public final class DataComponent<T> {
+    public static final DataComponent<Consumable> CONSUMABLE = create();
+    public static final DataComponent<Equippable> EQUIPPABLE = create();
+    public static final DataComponent<FoodProperties> FOOD = create();
+    public static final DataComponent<Integer> MAX_DAMAGE = create();
+    public static final DataComponent<Integer> MAX_STACK_SIZE = create();
+    public static final DataComponent<UseCooldown> USE_COOLDOWN = create();
 
-    private DataComponentType() {}
+    private DataComponent() {}
 
-    private static <T> DataComponentType<T> create() {
-        return new DataComponentType<>();
+    private static <T> DataComponent<T> create() {
+        return new DataComponent<>();
     }
 }

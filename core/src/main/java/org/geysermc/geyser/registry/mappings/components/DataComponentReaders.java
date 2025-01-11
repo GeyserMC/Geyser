@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
@@ -56,8 +56,8 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("consumable"), new ConsumableReader());
         READERS.put(MinecraftKey.key("equippable"), new EquippableReader());
         READERS.put(MinecraftKey.key("food"), new FoodPropertiesReader());
-        READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponentType.MAX_DAMAGE, 0));
-        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponentType.MAX_STACK_SIZE, 1, 99));
+        READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponent.MAX_DAMAGE, 0));
+        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponent.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
     }
 }

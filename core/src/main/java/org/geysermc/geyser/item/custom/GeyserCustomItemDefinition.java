@@ -31,14 +31,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Set;
 
 public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
                                          PredicateStrategy predicateStrategy,
@@ -48,7 +48,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         private final Identifier bedrockIdentifier;
         private final Identifier model;
         private final List<CustomItemPredicate> predicates = new ArrayList<>();
-        private final Reference2ObjectMap<DataComponentType<?>, Object> components = new Reference2ObjectOpenHashMap<>();
+        private final Reference2ObjectMap<DataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
 
         private String displayName;
         private int priority = 0;
@@ -92,7 +92,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
 
         @Override
-        public <T> CustomItemDefinition.Builder component(@NonNull DataComponentType<T> component, @NonNull T value) {
+        public <T> CustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
             components.put(component, value);
             return this;
         }
@@ -104,11 +104,16 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
     }
 
-    private record ComponentMap(Reference2ObjectMap<DataComponentType<?>, Object> components) implements DataComponentMap {
+    private record ComponentMap(Reference2ObjectMap<DataComponent<?>, Object> components) implements DataComponentMap {
 
         @Override
-        public <T> T get(DataComponentType<T> type) {
+        public <T> T get(DataComponent<T> type) {
             return (T) components.get(type);
+        }
+
+        @Override
+        public Set<DataComponent<?>> keySet() {
+            return components.keySet();
         }
     }
 }

@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.UseCooldown;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 public class UseCooldownReader extends DataComponentReader<UseCooldown> {
 
     public UseCooldownReader() {
-        super(DataComponentType.USE_COOLDOWN);
+        super(DataComponent.USE_COOLDOWN);
     }
 
     @Override

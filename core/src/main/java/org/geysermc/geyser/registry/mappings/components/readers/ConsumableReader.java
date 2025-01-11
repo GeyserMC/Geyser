@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
@@ -37,7 +37,7 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 public class ConsumableReader extends DataComponentReader<Consumable> {
 
     public ConsumableReader() {
-        super(DataComponentType.CONSUMABLE);
+        super(DataComponent.CONSUMABLE);
     }
 
     @Override

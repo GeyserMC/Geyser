@@ -28,13 +28,13 @@ package org.geysermc.geyser.registry.mappings.components;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 public abstract class DataComponentReader<V> {
-    private final DataComponentType<V> type;
+    private final DataComponent<V> type;
 
-    protected DataComponentReader(DataComponentType<V> type) {
+    protected DataComponentReader(DataComponent<V> type) {
         this.type = type;
     }
 

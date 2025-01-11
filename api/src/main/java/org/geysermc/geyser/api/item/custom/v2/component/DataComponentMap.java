@@ -25,7 +25,11 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
+import java.util.Set;
+
 public interface DataComponentMap {
 
-    <T> T get(DataComponentType<T> type);
+    <T> T get(DataComponent<T> type);
+
+    Set<DataComponent<?>> keySet();
 }
