@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.v2.predicate;
+package org.geysermc.geyser.item.custom.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements MatchItemPredicate<T> {
+public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements ConditionItemPredicate {
 }

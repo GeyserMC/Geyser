@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.v2.predicate;
+package org.geysermc.geyser.item.custom.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
 
-public record ConditionPredicate(ConditionProperty property, boolean expected, int index) implements ConditionItemPredicate {
+public record RangeDispatchPredicate(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements RangeDispatchItemPredicate {
 }
