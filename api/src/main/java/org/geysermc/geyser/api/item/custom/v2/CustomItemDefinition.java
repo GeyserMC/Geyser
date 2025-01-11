@@ -27,10 +27,11 @@ package org.geysermc.geyser.api.item.custom.v2;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentType;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
 
@@ -121,7 +122,7 @@ public interface CustomItemDefinition {
      * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
      * and do not have to be specified here.</p>
      */
-    @NonNull DataComponents components();
+    @NonNull DataComponentMap components();
 
     static Builder builder(Identifier identifier, Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, identifier, itemModel);
@@ -139,8 +140,7 @@ public interface CustomItemDefinition {
 
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
-        // TODO do we want a component(Type, Value) method instead?
-        Builder components(@NonNull DataComponents components);
+        <T> Builder components(@NonNull DataComponentType<T> component, @NonNull T value);
 
         CustomItemDefinition build();
     }

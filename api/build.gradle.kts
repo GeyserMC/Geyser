@@ -8,12 +8,6 @@ plugins {
 dependencies {
     api(libs.base.api)
     api(libs.math)
-
-    // TODO remove MCPL from API
-    api(libs.mcprotocollib) {
-        exclude("io.netty", "netty-all")
-        exclude("net.raphimc", "MinecraftAuth")
-    }
 }
 
 version = property("version")!!
