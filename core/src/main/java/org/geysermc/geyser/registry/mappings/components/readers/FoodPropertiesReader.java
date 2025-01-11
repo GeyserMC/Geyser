@@ -45,9 +45,9 @@ public class FoodPropertiesReader extends DataComponentReader<FoodProperties> {
         MappingsUtil.requireObject(node, "reading component", context);
 
         int nutrition = MappingsUtil.readOrDefault(node, "nutrition", NodeReader.NON_NEGATIVE_INT, 0, context);
-        float saturationModifier = MappingsUtil.readOrDefault(node, "saturation", NodeReader.NON_NEGATIVE_DOUBLE.andThen(Double::floatValue), 0.0F, context);
+        float saturation = MappingsUtil.readOrDefault(node, "saturation", NodeReader.NON_NEGATIVE_DOUBLE.andThen(Double::floatValue), 0.0F, context);
         boolean canAlwaysEat = MappingsUtil.readOrDefault(node, "can_always_eat", NodeReader.BOOLEAN, false, context);
 
-        return new FoodProperties(nutrition, saturationModifier, canAlwaysEat);
+        return new FoodProperties(nutrition, saturation, canAlwaysEat);
     }
 }

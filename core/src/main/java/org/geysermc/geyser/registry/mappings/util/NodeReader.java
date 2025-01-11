@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -115,7 +116,8 @@ public interface NodeReader<T> {
             try {
                 return Enum.valueOf(clazz, s);
             } catch (IllegalArgumentException exception) {
-                throw new InvalidCustomMappingsFileException("unknown element");
+                throw new InvalidCustomMappingsFileException("unknown element, must be one of ["
+                    + String.join(", ", Arrays.stream(clazz.getEnumConstants()).map(E::toString).toArray(String[]::new)).toLowerCase() + "]");
             }
         });
     }
