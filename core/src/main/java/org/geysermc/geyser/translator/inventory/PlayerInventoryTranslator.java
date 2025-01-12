@@ -265,6 +265,15 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request, false);
                     }
 
+                    // Might be a bundle action... let's check.
+                    // If we're in creative mode, instead of replacing logic (more hassle for updates),
+                    // let's just reuse as much logic as possible!!
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, true);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
+                    }
+
                     int transferAmount = transferAction.getCount();
                     if (isCursor(transferAction.getDestination())) {
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
@@ -415,6 +424,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     protected ItemStackResponse translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         ItemStack javaCreativeItem = null;
+        boolean bundle = false;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
         for (ItemStackRequestAction action : request.getActions()) {
@@ -469,8 +479,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
                             GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             session.getPlayerInventory().setCursor(newItemStack, session);
+                            bundle = newItemStack.getBundleData() != null;
                         } else {
                             session.getPlayerInventory().getCursor().add(transferAction.getCount());
                         }
@@ -479,8 +491,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
                             GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             inventory.setItem(destSlot, newItemStack, session);
+                            bundle = newItemStack.getBundleData() != null;
                         } else {
                             inventory.getItem(destSlot).add(transferAction.getCount());
                         }
@@ -520,7 +534,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             int slot = it.nextInt();
             sendCreativeAction(session, inventory, slot);
         }
-        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+        // On the bundle check:
+        // We can also accept the request, but sending a bad request indicates to Geyser to refresh the inventory
+        // and we need to refresh the inventory to send the bundle ID/inventory to the client.
+        // It's not great, but I don't want to create a container class for request responses
+        return bundle ? rejectRequest(request, false) : acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
     private static void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {

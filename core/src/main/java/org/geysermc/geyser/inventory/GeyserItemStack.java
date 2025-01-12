@@ -39,6 +39,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -59,19 +60,23 @@ public class GeyserItemStack {
     private DataComponents components;
     private int netId;
 
+    @EqualsAndHashCode.Exclude
+    private BundleCache.BundleData bundleData;
+
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Item item;
 
     private GeyserItemStack(int javaId, int amount, DataComponents components) {
-        this(javaId, amount, components, 1);
+        this(javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId) {
+    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
         this.netId = netId;
+        this.bundleData = bundleData;
     }
 
     public static @NonNull GeyserItemStack of(int javaId, int amount) {
@@ -173,6 +178,24 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : netId;
     }
 
+    public int getBundleId() {
+        if (isEmpty()) {
+            return -1;
+        }
+
+        return bundleData == null ? -1 : bundleData.bundleId();
+    }
+
+    public void mergeBundleData(GeyserSession session, BundleCache.BundleData oldBundleData) {
+        if (oldBundleData != null && this.bundleData != null) {
+            // Old bundle; re-use old IDs
+            this.bundleData.updateNetIds(session, oldBundleData);
+        } else if (this.bundleData != null) {
+            // New bundle; allocate new ID
+            session.getBundleCache().markNewBundle(this.bundleData);
+        }
+    }
+
     public void add(int add) {
         amount += add;
     }
@@ -186,6 +209,21 @@ public class GeyserItemStack {
     }
 
     public @Nullable ItemStack getItemStack(int newAmount) {
+        if (isEmpty()) {
+            return null;
+        }
+        // Sync our updated bundle data to server, if applicable
+        // Not fresh from server? Then we have changes to apply!~
+        if (bundleData != null && !bundleData.freshFromServer()) {
+            if (!bundleData.contents().isEmpty()) {
+                getOrCreateComponents().put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
+            } else {
+                if (components != null) {
+                    // Empty list = no component = should delete
+                    components.getDataComponents().remove(DataComponentType.BUNDLE_CONTENTS);
+                }
+            }
+        }
         return isEmpty() ? null : new ItemStack(javaId, newAmount, components);
     }
 
@@ -196,7 +234,8 @@ public class GeyserItemStack {
         ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, components);
         itemData.netId(getNetId());
         itemData.usingNetId(true);
-        return itemData.build();
+
+        return session.getBundleCache().checkForBundle(this, itemData);
     }
 
     public ItemMapping getMapping(GeyserSession session) {
@@ -229,6 +268,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, components == null ? null : components.clone(), netId);
+        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
     }
 }

@@ -155,6 +155,7 @@ import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
@@ -260,6 +261,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final AdvancementsCache advancementsCache;
     private final BookEditCache bookEditCache;
+    private final BundleCache bundleCache;
     private final ChunkCache chunkCache;
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
@@ -658,6 +660,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
+        this.bundleCache = new BundleCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
@@ -1168,6 +1171,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 }
             }
 
+            this.bundleCache.tick();
+
             if (spawned) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
@@ -1284,6 +1289,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void useItem(Hand hand) {
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
                 hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+    }
+
+    public void releaseItem() {
+        // Followed to the Minecraft Protocol specification outlined at wiki.vg
+        ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
+            Direction.DOWN, 0);
+        sendDownstreamGamePacket(releaseItemPacket);
     }
 
     /**
