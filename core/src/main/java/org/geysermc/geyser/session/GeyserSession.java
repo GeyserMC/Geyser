@@ -184,6 +184,7 @@ import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
+import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
@@ -981,10 +982,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // We'll handle this since we have the registry data on hand
         downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
 
-        // Connecting before adding our listener to make sure the MCPL listener goes first
+        // We manually add the default listener to ensure the order of listeners.
+        protocol.setUseDefaultListeners(false);
+
+        // MCPL listener comes first to handle protocol state switching before Geyser translates packets
+        downstream.addListener(new ClientListener(ProtocolState.LOGIN, loginEvent.transferring()));
+        // Geyser adapter second to ensure translating packets in the correct states
+        downstream.addListener(new GeyserSessionAdapter(this));
+
         downstream.connect(false, loginEvent.transferring());
 
-        downstream.addListener(new GeyserSessionAdapter(this));
         if (!daylightCycle) {
             setDaylightCycle(true);
         }
