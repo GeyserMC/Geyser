@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.event.type;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundDisconnectPacket;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundDisconnectPacket.class)
-public class JavaDisconnectTranslator extends PacketTranslator<ClientboundDisconnectPacket> {
+/**
+ * A wrapper around the {@link SessionDisconnectEvent} that allows
+ * Geyser to access the underlying component when replacing disconnect messages.
+ */
+@Getter
+public class SessionDisconnectEventImpl extends SessionDisconnectEvent {
 
-    @Override
-    public void translate(GeyserSession session, ClientboundDisconnectPacket packet) {
-        session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.locale()));
+    private final Component reasonComponent;
+
+    public SessionDisconnectEventImpl(@NonNull GeyserSession session, Component reason) {
+        super(session, MessageTranslator.convertToPlainText(reason, session.locale()));
+        this.reasonComponent = reason;
     }
 }

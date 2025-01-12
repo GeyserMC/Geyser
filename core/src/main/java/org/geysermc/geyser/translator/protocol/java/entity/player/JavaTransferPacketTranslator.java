@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
+import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerTransferEvent;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundTransferPacket;
@@ -49,7 +49,7 @@ public class JavaTransferPacketTranslator extends PacketTranslator<ClientboundTr
         if (event.bedrockHost() != null && !event.bedrockHost().isBlank() && event.bedrockPort() != -1) {
             session.transfer(event.bedrockHost(), event.bedrockPort());
         } else {
-            session.disconnect(MinecraftLocale.getLocaleString("disconnect.transfer", session.locale()));
+            session.disconnect(Component.translatable("disconnect.transfer"));
         }
     }
 }

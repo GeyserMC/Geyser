@@ -27,6 +27,7 @@ package org.geysermc.geyser.session;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
@@ -41,11 +42,11 @@ public class DownstreamSession {
         this.session.send(packet);
     }
 
-    public void disconnect(String reason) {
+    public void disconnect(Component reason) {
         this.session.disconnect(reason);
     }
 
-    public void disconnect(String reason, Throwable throwable) {
+    public void disconnect(Component reason, Throwable throwable) {
         this.session.disconnect(reason, throwable);
     }
 
