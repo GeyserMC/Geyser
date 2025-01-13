@@ -169,10 +169,11 @@ public class MappingsReader_v2 extends MappingsReader {
 
         String[] context = {"bedrock options", baseContext};
         MappingsUtil.readTextIfPresent(node, "icon", builder::icon, context);
-        MappingsUtil.readIfPresent(node, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
-        MappingsUtil.readTextIfPresent(node, "creative_group", builder::creativeGroup, context);
         MappingsUtil.readIfPresent(node, "allow_offhand", builder::allowOffhand, NodeReader.BOOLEAN, context);
         MappingsUtil.readIfPresent(node, "display_handheld", builder::displayHandheld, NodeReader.BOOLEAN, context);
+        MappingsUtil.readIfPresent(node, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
+        MappingsUtil.readIfPresent(node, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
+        MappingsUtil.readTextIfPresent(node, "creative_group", builder::creativeGroup, context);
         MappingsUtil.readIfPresent(node, "texture_size", builder::textureSize, NodeReader.POSITIVE_INT, context);
         MappingsUtil.readIfPresent(node, "render_offsets", builder::renderOffsets, MappingsReader::renderOffsetsFromJsonNode, context);
 

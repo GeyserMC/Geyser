@@ -35,13 +35,15 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup,
+public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup,
                                              int textureSize, @Nullable CustomRenderOffsets renderOffsets, @NonNull Set<String> tags) implements CustomItemBedrockOptions {
 
     public static class Builder implements CustomItemBedrockOptions.Builder {
         private String icon = null;
         private boolean allowOffhand = true;
         private boolean displayHandheld = false;
+        private int protectionValue = 0;
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
         private int textureSize = 16;
@@ -63,6 +65,12 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         @Override
         public Builder displayHandheld(boolean displayHandheld) {
             this.displayHandheld = displayHandheld;
+            return this;
+        }
+
+        @Override
+        public Builder protectionValue(int protectionValue) {
+            this.protectionValue = protectionValue;
             return this;
         }
 
@@ -100,7 +108,8 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
 
         @Override
         public CustomItemBedrockOptions build() {
-            return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, creativeCategory, creativeGroup, textureSize, renderOffsets, tags);
+            return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
+                creativeCategory, creativeGroup, textureSize, renderOffsets, tags);
         }
     }
 }

@@ -62,6 +62,16 @@ public interface CustomItemBedrockOptions {
     boolean displayHandheld();
 
     /**
+     * Since Bedrock doesn't properly support setting item armour values over attributes, this value
+     * determines how many armour points should be shown when this item is worn. This is purely visual.
+     *
+     * <p>Only has an effect when the item is equippable, and defaults to 0.</p>
+     *
+     * @return the item's protection value. Purely visual and for Bedrock only.
+     */
+    int protectionValue();
+
+    /**
      * The item's creative category. Defaults to {@code NONE}.
      *
      * @return the item's creative category
@@ -116,6 +126,8 @@ public interface CustomItemBedrockOptions {
         Builder allowOffhand(boolean allowOffhand);
 
         Builder displayHandheld(boolean displayHandheld);
+
+        Builder protectionValue(int protectionValue);
 
         Builder creativeCategory(CreativeCategory creativeCategory);
 

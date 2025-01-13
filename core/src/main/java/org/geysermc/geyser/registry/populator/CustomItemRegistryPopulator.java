@@ -238,7 +238,7 @@ public class CustomItemRegistryPopulator {
 
         Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         if (equippable != null) {
-            computeArmorProperties(equippable, itemProperties, componentBuilder);
+            computeArmorProperties(equippable, customItemDefinition.bedrockOptions().protectionValue(), componentBuilder);
         }
 
         Integer enchantmentValue = components.get(DataComponentType.ENCHANTABLE);
@@ -322,7 +322,7 @@ public class CustomItemRegistryPopulator {
         int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
         Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
+        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
 
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
@@ -388,10 +388,6 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("hand_equipped", true);
         itemProperties.putFloat("mining_speed", miningSpeed);
 
-        // This allows custom tools - shears, swords, shovels, axes etc to be enchanted or combined in the anvil
-        itemProperties.putInt("enchantable_value", 1);
-        itemProperties.putString("enchantable_slot", toolType);
-
         // Adds a "attack damage" indicator. Purely visual!
         if (attackDamage > 0) {
             itemProperties.putInt("damage", attackDamage);
@@ -400,38 +396,31 @@ public class CustomItemRegistryPopulator {
         return canDestroyInCreative;
     }
 
-    private static void computeArmorProperties(Equippable equippable, /*String armorType, int protectionValue,*/ NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        int protectionValue = 0;
-        // TODO protection value, enchantable stuff and armour type?
+    private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
         switch (equippable.slot()) {
-            case BOOTS -> {
-                componentBuilder.putString("minecraft:render_offsets", "boots");
-                componentBuilder.putCompound("minecraft:wearable", WearableSlot.FEET.getSlotNbt());
-
-                //itemProperties.putString("enchantable_slot", "armor_feet");
-                //itemProperties.putInt("enchantable_value", 15); TODO
+            case HELMET -> {
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
+                    .putString("slot", "slot.armor.head")
+                    .putInt("protection", protectionValue)
+                    .build());
             }
             case CHESTPLATE -> {
-                componentBuilder.putString("minecraft:render_offsets", "chestplates");
-                componentBuilder.putCompound("minecraft:wearable", WearableSlot.CHEST.getSlotNbt());
-
-                //itemProperties.putString("enchantable_slot", "armor_torso");
-                //itemProperties.putInt("enchantable_value", 15); TODO
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
+                    .putString("slot", "slot.armor.chest")
+                    .putInt("protection", protectionValue)
+                    .build());
             }
             case LEGGINGS -> {
-                componentBuilder.putString("minecraft:render_offsets", "leggings");
-                componentBuilder.putCompound("minecraft:wearable", WearableSlot.LEGS.getSlotNbt());
-
-                //itemProperties.putString("enchantable_slot", "armor_legs");
-                //itemProperties.putInt("enchantable_value", 15); TODO
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
+                    .putString("slot", "slot.armor.legs")
+                    .putInt("protection", protectionValue)
+                    .build());
             }
-            case HELMET -> {
-                componentBuilder.putString("minecraft:render_offsets", "helmets");
-                componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
-                //componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
-
-                //itemProperties.putString("enchantable_slot", "armor_head");
-                //itemProperties.putInt("enchantable_value", 15);
+            case BOOTS -> {
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
+                    .putString("slot", "slot.armor.feet")
+                    .putInt("protection", protectionValue)
+                    .build());
             }
         }
     }
