@@ -126,6 +126,9 @@ public interface NodeReader<T> {
         return INT.validate(i -> i >= min && i <= max, "integer must be in range [" + min + ", " + max + "]");
     }
 
+    /**
+     * {@link NodeReader#read(JsonNode, String, String...)} is preferably used as that properly formats the error when one is thrown.
+     */
     T read(JsonNode node) throws InvalidCustomMappingsFileException;
 
     default T read(JsonNode node, String task, String... context) throws InvalidCustomMappingsFileException {
