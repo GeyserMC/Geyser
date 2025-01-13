@@ -48,10 +48,6 @@ public class MappingsUtil {
         return converter.read(object, formatTask(name), context);
     }
 
-    public static void readTextIfPresent(JsonNode node, String name, Consumer<String> consumer, String... context) throws InvalidCustomMappingsFileException {
-        readIfPresent(node, name, consumer, NodeReader.STRING, context);
-    }
-
     public static <T> void readIfPresent(JsonNode node, String name, Consumer<T> consumer, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
         if (node.has(name)) {
             consumer.accept(converter.read(node.get(name), formatTask(name), context));
