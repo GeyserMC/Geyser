@@ -56,6 +56,7 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
@@ -235,9 +236,14 @@ public class CustomItemRegistryPopulator {
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
-        Equippable equippable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE);
+        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         if (equippable != null) {
             computeArmorProperties(equippable, itemProperties, componentBuilder);
+        }
+
+        Integer enchantmentValue = components.get(DataComponentType.ENCHANTABLE);
+        if (enchantmentValue != null) {
+            computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
 
         if (vanillaMapping.getFirstBlockRuntimeId() != null) {
@@ -429,6 +435,15 @@ public class CustomItemRegistryPopulator {
                 //itemProperties.putInt("enchantable_value", 15);
             }
         }
+    }
+
+    private static void computeEnchantableProperties(int enchantmentValue, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        itemProperties.putString("enchantable_slot", "all");
+        itemProperties.putInt("enchantable_value", enchantmentValue);
+        componentBuilder.putCompound("minecraft:enchantable", NbtMap.builder()
+            .putString("slot", "all")
+            .putByte("value", (byte) enchantmentValue)
+            .build());
     }
 
     private static void computeBlockItemProperties(String blockItem, NbtMapBuilder componentBuilder) {

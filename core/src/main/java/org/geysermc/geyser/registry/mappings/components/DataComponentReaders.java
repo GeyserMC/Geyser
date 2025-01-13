@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
+import org.geysermc.geyser.registry.mappings.components.readers.EnchantableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.FoodPropertiesReader;
 import org.geysermc.geyser.registry.mappings.components.readers.IntComponentReader;
@@ -59,5 +60,6 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponent.MAX_DAMAGE, 0));
         READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponent.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
+        READERS.put(MinecraftKey.key("enchantable"), new EnchantableReader());
     }
 }

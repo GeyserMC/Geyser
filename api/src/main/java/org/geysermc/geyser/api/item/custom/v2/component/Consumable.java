@@ -31,7 +31,7 @@ public record Consumable(@Positive float consumeSeconds, Animation animation) {
 
     public Consumable {
         if (consumeSeconds <= 0.0F) {
-            throw new IllegalStateException("Consume seconds must be above 0");
+            throw new IllegalArgumentException("Consume seconds must be above 0");
         }
     }
 

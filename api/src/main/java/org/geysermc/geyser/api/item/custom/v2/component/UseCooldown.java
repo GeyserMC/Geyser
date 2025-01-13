@@ -32,7 +32,7 @@ public record UseCooldown(@Positive float seconds, Identifier cooldownGroup) {
     
     public UseCooldown {
         if (seconds <= 0.0F) {
-            throw new IllegalStateException("Cooldown seconds must be above 0");
+            throw new IllegalArgumentException("Cooldown seconds must be above 0");
         }
     }
 }

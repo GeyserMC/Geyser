@@ -42,6 +42,13 @@ public final class DataComponent<T> {
      */
     public static final DataComponent<Integer> MAX_STACK_SIZE = create("max_stack_size", i -> i >= 1 && i <= 99); // Reverse lambda
     public static final DataComponent<UseCooldown> USE_COOLDOWN = create("use_cooldown");
+    /**
+     * Must be at or above 0.
+     *
+     * <p>Note that, on Bedrock, this will be mapped to the {@code minecraft:enchantable} component with {@code slot=all}. This should, but does not guarantee,
+     * allow for compatibility with vanilla enchantments. Non-vanilla enchantments are unlikely to work.</p>
+     */
+    public static final DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
 
     private final Identifier identifier;
     private final Predicate<T> validator;

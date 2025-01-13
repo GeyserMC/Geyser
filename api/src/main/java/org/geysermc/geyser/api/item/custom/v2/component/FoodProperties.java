@@ -31,7 +31,7 @@ public record FoodProperties(@NonNegative int nutrition, @NonNegative float satu
 
     public FoodProperties {
         if (nutrition < 0 || saturation < 0.0F) {
-            throw new IllegalStateException("Nutrition and saturation must be at or above 0");
+            throw new IllegalArgumentException("Nutrition and saturation must be at or above 0");
         }
     }
 }
