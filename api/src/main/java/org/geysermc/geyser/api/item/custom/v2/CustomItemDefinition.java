@@ -111,16 +111,19 @@ public interface CustomItemDefinition {
      * <p>Currently, the following components are supported:</p>
      *
      * <ul>
-     *     <li>{@code minecraft:consumable}</li>
-     *     <li>{@code minecraft:equippable}</li>
-     *     <li>{@code minecraft:food}</li>
-     *     <li>{@code minecraft:max_damage}</li>
-     *     <li>{@code minecraft:max_stack_size}</li>
-     *     <li>{@code minecraft:use_cooldown}</li>
+     *     <li>{@code minecraft:consumable} ({@link DataComponent#CONSUMABLE})</li>
+     *     <li>{@code minecraft:equippable} ({@link DataComponent#EQUIPPABLE})</li>
+     *     <li>{@code minecraft:food} ({@link DataComponent#FOOD})</li>
+     *     <li>{@code minecraft:max_damage} ({@link DataComponent#MAX_DAMAGE})</li>
+     *     <li>{@code minecraft:max_stack_size} ({@link DataComponent#MAX_STACK_SIZE})</li>
+     *     <li>{@code minecraft:use_cooldown} ({@link DataComponent#USE_COOLDOWN})</li>
+     *     <li>{@code minecraft:enchantable} ({@link DataComponent#ENCHANTABLE})</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
      * and do not have to be specified here.</p>
+     *
+     * @see DataComponent
      */
     @NonNull DataComponentMap components();
 

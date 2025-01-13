@@ -48,6 +48,8 @@ import java.util.Map;
 // However, those component classes have the same names as the MCPL ones, which causes some issues when they both have to be used in the same file.
 // One can't be imported, and as such its full qualifier (e.g. org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable) would have to be used.
 // That would be a mess to code in, and as such this code here was carefully designed to only require one set of component classes by name (the MCPL ones).
+//
+// It is VERY IMPORTANT to note that for every component in the API, a converter to MCPL must be put here (better solutions are welcome).
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ComponentConverter<?>> converters = new HashMap<>();
 
@@ -88,6 +90,8 @@ public class ComponentConverters {
 
         registerConverter(DataComponent.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentType.USE_COOLDOWN,
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
+
+        registerConverter(DataComponent.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentType.ENCHANTABLE, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
