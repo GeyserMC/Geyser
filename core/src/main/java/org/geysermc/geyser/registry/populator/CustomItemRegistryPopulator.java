@@ -47,7 +47,6 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
