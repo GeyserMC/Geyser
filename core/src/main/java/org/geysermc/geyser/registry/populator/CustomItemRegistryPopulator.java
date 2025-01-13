@@ -42,14 +42,14 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
-import org.geysermc.geyser.item.custom.ComponentConverters;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.WearableSlot;
+import org.geysermc.geyser.item.custom.ComponentConverters;
+import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
@@ -204,10 +204,10 @@ public class CustomItemRegistryPopulator {
      */
     private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition);
-        int stackSize = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_STACK_SIZE, 0);
-        int maxDamage = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_DAMAGE, 0);
+        int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
+        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
 
-        if (components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
+        if (components.get(DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
             throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
@@ -250,9 +250,9 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(vanillaMapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        Consumable consumable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.CONSUMABLE);
+        Consumable consumable = components.get(DataComponentType.CONSUMABLE);
         if (consumable != null) {
-            FoodProperties foodProperties = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.FOOD);
+            FoodProperties foodProperties = components.get(DataComponentType.FOOD);
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
@@ -260,7 +260,7 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
-        UseCooldown useCooldown = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.USE_COOLDOWN);
+        UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
@@ -269,8 +269,7 @@ public class CustomItemRegistryPopulator {
         switch (vanillaMapping.getBedrockIdentifier()) {
             case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
             case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaMapping.getBedrockIdentifier());
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" ->
-                computeThrowableProperties(componentBuilder);
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
         }
 
         computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder);
@@ -320,10 +319,10 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
-        int maxDamage = components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_DAMAGE, 0);
-        Equippable equippable = components.get(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.EQUIPPABLE);
+        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
+        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla one's
 
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
