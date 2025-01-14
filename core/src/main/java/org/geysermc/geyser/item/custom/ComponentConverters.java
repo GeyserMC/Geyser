@@ -55,18 +55,14 @@ import java.util.Map;
 /**
  * This class is used to convert components from the API module to MCPL ones.
  *
- * <p>
- *     Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
- *
- *     <ul>
- *         <li>The {@link DataComponent#TOOL} component doesn't convert over to its MCPL counterpart as the only reason it's in the API as of right now is the {@code canDestroyInCreative} property. This is a 1.21.5 property,
- *         and once Geyser for 1.21.5 releases, this component should have a converter in here.</li>
- *         <li>The MCPL counterpart of the {@link DataComponent#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
- *         Also see {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
- *     </ul>
- *
- *     For both of these cases proper accommodations have been made in the {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator}.
- * </p>
+ * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
+ * <ul>
+ *     <li>The {@link DataComponent#TOOL} component doesn't convert over to its MCPL counterpart as the only reason it's in the API as of right now is the {@code canDestroyInCreative} property. This is a 1.21.5 property,
+ *     and once Geyser for 1.21.5 releases, this component should have a converter in here.</li>
+ *     <li>The MCPL counterpart of the {@link DataComponent#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
+ *     Also see {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
+ * </ul>
+ * For both of these cases proper accommodations have been made in the {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator}.
  */
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ComponentConverter<?>> converters = new HashMap<>();
