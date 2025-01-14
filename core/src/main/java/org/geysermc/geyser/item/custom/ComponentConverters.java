@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.item.custom;
 
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
-import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -51,7 +51,23 @@ import java.util.Map;
 // One can't be imported, and as such its full qualifier (e.g. org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable) would have to be used.
 // That would be a mess to code in, and as such this code here was carefully designed to only require one set of component classes by name (the MCPL ones).
 //
-// It is VERY IMPORTANT to note that for every component in the API, a converter to MCPL must be put here (better solutions are welcome).
+// It is VERY IMPORTANT to note that for every component in the API, a converter to MCPL must be put here (there are some exceptions as noted in the Javadoc, better solutions are welcome).
+/**
+ * This class is used to convert components from the API module to MCPL ones.
+ *
+ * <p>
+ *     Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
+ *
+ *     <ul>
+ *         <li>The {@link DataComponent#TOOL} component doesn't convert over to its MCPL counterpart as the only reason it's in the API as of right now is the {@code canDestroyInCreative} property. This is a 1.21.5 property,
+ *         and once Geyser for 1.21.5 releases, this component should have a converter in here.</li>
+ *         <li>The MCPL counterpart of the {@link DataComponent#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
+ *         Also see {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
+ *     </ul>
+ *
+ *     For both of these cases proper accommodations have been made in the {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator}.
+ * </p>
+ */
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ComponentConverter<?>> converters = new HashMap<>();
 
@@ -100,24 +116,15 @@ public class ComponentConverters {
         converters.put(component, converter);
     }
 
-    /**
-     * Temporary workaround: while 1.21.5 has not released yet, this method returns the {@link ToolProperties#canDestroyBlocksInCreative()} value.
-     *
-     * <p>When 1.21.5 does release, this value will be mapped into the MCPL tool component, and this method will return nothing again.</p>
-     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static TriState convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
-        TriState canDestroyInCreative = TriState.NOT_SET;
+    public static void convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
         for (DataComponent<?> component : customDefinitionMap.keySet()) {
-            if (component == DataComponent.TOOL) {
-                canDestroyInCreative = TriState.fromBoolean(((ToolProperties) customDefinitionMap.get(component)).canDestroyBlocksInCreative());
-                continue;
-            }
             ComponentConverter converter = converters.get(component);
-            Object value = customDefinitionMap.get(component);
-            converter.convertAndPut(itemMap, value);
+            if (converter != null) {
+                Object value = customDefinitionMap.get(component);
+                converter.convertAndPut(itemMap, value);
+            }
         }
-        return canDestroyInCreative;
     }
 
     @FunctionalInterface

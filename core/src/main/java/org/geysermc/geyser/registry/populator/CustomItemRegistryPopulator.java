@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -42,18 +41,20 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -65,6 +66,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperti
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,13 +201,13 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * Check for illegal combinations of item components that can be specified in the custom item API.
+     * Check for illegal combinations of item components that can be specified in the custom item API, and validated components that can't be checked in the API, e.g. components that reference items.
      *
-     * <p>Note that, this method only checks for illegal <em>combinations</em> of item components. It is expected that the values of the components separately have
-     * already been validated (for example, it is expected that stack size is in the range [1, 99]).</p>
+     * <p>Note that, component validation is preferred to occur early in the API module. This method should primarily check for illegal <em>combinations</em> of item components.
+     * It is expected that the values of the components separately have already been validated when possible (for example, it is expected that stack size is in the range [1, 99]).</p>
      */
     private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
-        DataComponents components = patchDataComponents(javaItem, definition).first();
+        DataComponents components = patchDataComponents(javaItem, definition);
         int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
         int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
 
@@ -213,6 +215,15 @@ public class CustomItemRegistryPopulator {
             throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
+        }
+
+        Repairable repairable = definition.components().get(DataComponent.REPAIRABLE);
+        if (repairable != null) {
+            for (Identifier item : repairable.items()) {
+                if (Registries.JAVA_ITEM_IDENTIFIERS.get(item.toString()) == null) {
+                    throw new InvalidItemComponentsException("Unknown repair item " + item + " in minecraft:repairable component");
+                }
+            }
         }
     }
 
@@ -229,14 +240,22 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        Pair<DataComponents, TriState> patchedComponentInfo = patchDataComponents(vanillaJavaItem, customItemDefinition);
-        DataComponents components = patchedComponentInfo.first();
-        boolean canDestroyInCreative = patchedComponentInfo.second() == TriState.NOT_SET ? !"sword".equals(vanillaMapping.getToolType()) : patchedComponentInfo.second() == TriState.TRUE;
-
+        DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
         setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
+
+        // Temporary workaround: when 1.21.5 releases, this value will be mapped to an MCPL tool component, and this code will look nicer
+        // since we can get the value from the vanilla item component instead of using the vanilla mapping.
+        ToolProperties toolProperties = customItemDefinition.components().get(DataComponent.TOOL);
+        boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.getToolType()) : toolProperties.canDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
+
+        // Using API component here because MCPL one is just an ID holder set
+        Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
+        if (repairable != null) {
+            computeRepairableProperties(repairable, componentBuilder);
+        }
 
         Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         if (equippable != null) {
@@ -368,6 +387,25 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
         componentBuilder.putCompound("minecraft:can_destroy_in_creative", NbtMap.builder()
             .putBoolean("value", canDestroyInCreative)
+            .build());
+    }
+
+    /**
+     * Repairable component should already have been validated for valid Java items in {@link CustomItemRegistryPopulator#checkComponents(CustomItemDefinition, Item)}.
+     *
+     * <p>This method passes the Java identifiers straight to bedrock - which isn't perfect.</p>
+     */
+    private static void computeRepairableProperties(Repairable repairable, NbtMapBuilder componentBuilder) {
+        List<NbtMap> items = Arrays.stream(repairable.items())
+            .map(identifier -> NbtMap.builder()
+                .putString("name", identifier.toString())
+                .build()).toList();
+
+        componentBuilder.putCompound("minecraft:repairable", NbtMap.builder()
+            .putList("repair_items", NbtType.COMPOUND, NbtMap.builder()
+                .putList("items", NbtType.COMPOUND, items)
+                .putFloat("repair_amount", 0.0F)
+                .build())
             .build());
     }
 
@@ -639,12 +677,16 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * Temporary workaround to return can destroy in creative boolean in the pair, see {@link ComponentConverters#convertAndPutComponents(DataComponents, DataComponentMap)}.
+     * Converts the API components to MCPL ones using the converters in {@link ComponentConverters}, and applies these on top of the default item components.
+     *
+     * <p>Note that note every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
+     *
+     * @see ComponentConverters
      */
-    private static Pair<DataComponents, TriState> patchDataComponents(Item javaItem, CustomItemDefinition definition) {
+    private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
         DataComponents convertedComponents = new DataComponents(new HashMap<>());
-        TriState canDestroyInCreative = ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
-        return Pair.of(javaItem.gatherComponents(convertedComponents), canDestroyInCreative);
+        ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
+        return javaItem.gatherComponents(convertedComponents);
     }
 
     @SuppressWarnings("unchecked")
