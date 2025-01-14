@@ -230,8 +230,9 @@ public class CustomItemRegistryPopulator {
         setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
+        computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder);
         if (vanillaMapping.getToolType() != null) {
-            canDestroyInCreative = computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder, vanillaJavaItem.defaultAttackDamage());
+            canDestroyInCreative =
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -337,62 +338,28 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * @return can destroy in creative
+     * Adds properties to make the Bedrock client unable to destroy any block with this custom item.
+     * This works because the molang '1' for tags will be true for all blocks and the speed will be 0.
+     * We want this since we calculate break speed server side in BedrockActionTranslator
      */
-    private static boolean computeToolProperties(String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int attackDamage) {
-        // TODO check this, it's probably wrong by now, also check what the minecraft:tool java component can do here, if anything
-        boolean canDestroyInCreative = true;
-        float miningSpeed = 1.0f;
-
-        // This means client side the tool can never destroy a block
-        // This works because the molang '1' for tags will be true for all blocks and the speed will be 0
-        // We want this since we calculate break speed server side in BedrockActionTranslator
+    private static void computeToolProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         List<NbtMap> speed = new ArrayList<>(List.of(
             NbtMap.builder()
                 .putCompound("block", NbtMap.builder()
+                    .putString("name", "")
+                    .putCompound("states", NbtMap.EMPTY)
                     .putString("tags", "1")
-                    .build())
-                .putCompound("on_dig", NbtMap.builder()
-                    .putCompound("condition", NbtMap.builder()
-                        .putString("expression", "")
-                        .putInt("version", -1)
-                        .build())
-                    .putString("event", "tool_durability")
-                    .putString("target", "self")
                     .build())
                 .putInt("speed", 0)
                 .build()
         ));
 
-        componentBuilder.putCompound("minecraft:digger",
-            NbtMap.builder()
-                .putList("destroy_speeds", NbtType.COMPOUND, speed)
-                .putCompound("on_dig", NbtMap.builder()
-                    .putCompound("condition", NbtMap.builder()
-                        .putString("expression", "")
-                        .putInt("version", -1)
-                        .build())
-                    .putString("event", "tool_durability")
-                    .putString("target", "self")
-                    .build())
-                .putBoolean("use_efficiency", true)
-                .build()
-        );
+        componentBuilder.putCompound("minecraft:digger", NbtMap.builder()
+            .putList("destroy_speeds", NbtType.COMPOUND, speed)
+            .putBoolean("use_efficiency", false)
+            .build());
 
-        if (toolType.equals("sword")) {
-            miningSpeed = 1.5f;
-            canDestroyInCreative = false;
-        }
-
-        itemProperties.putBoolean("hand_equipped", true);
-        itemProperties.putFloat("mining_speed", miningSpeed);
-
-        // Adds a "attack damage" indicator. Purely visual!
-        if (attackDamage > 0) {
-            itemProperties.putInt("damage", attackDamage);
-        }
-
-        return canDestroyInCreative;
+        itemProperties.putFloat("mining_speed", 1.0F);
     }
 
     private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
