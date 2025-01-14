@@ -108,7 +108,7 @@ public interface CustomItemDefinition {
     /**
      * The item's data components. It is expected that the item <em>always</em> has these components on the server. If the components mismatch, bugs will occur.
      *
-     * <p>Currently, the following components are supported:</p>
+     * <p>Currently, the following components are (somewhat) supported:</p>
      *
      * <ul>
      *     <li>{@code minecraft:consumable} ({@link DataComponent#CONSUMABLE})</li>
@@ -118,6 +118,7 @@ public interface CustomItemDefinition {
      *     <li>{@code minecraft:max_stack_size} ({@link DataComponent#MAX_STACK_SIZE})</li>
      *     <li>{@code minecraft:use_cooldown} ({@link DataComponent#USE_COOLDOWN})</li>
      *     <li>{@code minecraft:enchantable} ({@link DataComponent#ENCHANTABLE})</li>
+     *     <li>{@code minecraft:tool} ({@link DataComponent#TOOL})</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
