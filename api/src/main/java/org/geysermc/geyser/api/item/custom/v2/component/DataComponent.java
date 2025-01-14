@@ -49,6 +49,12 @@ public final class DataComponent<T> {
      * allow for compatibility with vanilla enchantments. Non-vanilla enchantments are unlikely to work.</p>
      */
     public static final DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
+    /**
+     * At the moment only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option, which will be a feature in Java 1.21.5, but is already in use in Geyser.
+     *
+     * <p>Like other components, when not set this will fall back to the default value.</p>
+     */
+    public static final DataComponent<ToolProperties> TOOL = create("tool");
 
     private final Identifier identifier;
     private final Predicate<T> validator;
