@@ -55,6 +55,7 @@ public final class DataComponent<T> {
      * <p>Like other components, when not set this will fall back to the default value.</p>
      */
     public static final DataComponent<ToolProperties> TOOL = create("tool");
+    public static final DataComponent<Repairable> REPAIRABLE = create("repairable");
 
     private final Identifier identifier;
     private final Predicate<T> validator;

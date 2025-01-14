@@ -28,6 +28,8 @@ package org.geysermc.geyser.registry.mappings.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class MappingsUtil {
@@ -46,6 +48,22 @@ public class MappingsUtil {
             return defaultValue;
         }
         return converter.read(object, formatTask(name), context);
+    }
+
+    public static <T> List<T> readArrayOrThrow(JsonNode node, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
+        JsonNode array = node.get(name);
+        if (array == null) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), "key is required but was not present", context);
+        } else if (!array.isArray()) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), "key must be an array", context);
+        }
+
+        List<T> objects = new ArrayList<>();
+        for (int i = 0; i < node.size(); i++) {
+            JsonNode object = node.get(i);
+            objects.add(converter.read(object, "reading object " + i + " in key \"" + name + "\"", context));
+        }
+        return objects;
     }
 
     public static <T> void readIfPresent(JsonNode node, String name, Consumer<T> consumer, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
