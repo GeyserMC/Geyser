@@ -36,6 +36,7 @@ import org.geysermc.geyser.registry.mappings.components.readers.EnchantableReade
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.FoodPropertiesReader;
 import org.geysermc.geyser.registry.mappings.components.readers.IntComponentReader;
+import org.geysermc.geyser.registry.mappings.components.readers.ToolPropertiesReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UseCooldownReader;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -61,5 +62,6 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponent.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
         READERS.put(MinecraftKey.key("enchantable"), new EnchantableReader());
+        READERS.put(MinecraftKey.key("tool"), new ToolPropertiesReader());
     }
 }

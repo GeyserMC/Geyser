@@ -54,6 +54,7 @@ public class MappingsUtil {
         }
     }
 
+    // TODO don't use this method but throw an error in the above reading methods
     public static void requireObject(JsonNode node, String task, String... context) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
             throw new InvalidCustomMappingsFileException(task, "expected an object", context);
