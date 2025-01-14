@@ -28,13 +28,25 @@ package org.geysermc.geyser.api.item.custom;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.TriState;
 
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 
 /**
  * This is used to store data for a custom item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
  */
+@Deprecated
 public interface CustomItemData {
     /**
      * Gets the item's name.
@@ -116,6 +128,34 @@ public interface CustomItemData {
 
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
+    }
+
+    default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
+        // TODO non vanilla
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(javaItem, javaItem)
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .textureSize(textureSize())
+                .renderOffsets(renderOffsets())
+                .tags(tags())
+            );
+
+        CustomItemOptions options = customItemOptions();
+        if (options.customModelData().isPresent()) {
+            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchProperty.CUSTOM_MODEL_DATA, options.customModelData().getAsInt()));
+        }
+        if (options.damagePredicate().isPresent()) {
+            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchProperty.DAMAGE, options.damagePredicate().getAsInt()));
+        }
+        if (options.unbreakable() != TriState.NOT_SET) {
+            definition.predicate(CustomItemPredicate.condition(ConditionProperty.UNBREAKABLE, Objects.requireNonNull(options.unbreakable().toBoolean())));
+        }
+        return definition;
     }
 
     interface Builder {
