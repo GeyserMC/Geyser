@@ -27,6 +27,8 @@ package org.geysermc.geyser.item.custom;
 
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -98,13 +100,24 @@ public class ComponentConverters {
         converters.put(component, converter);
     }
 
+    /**
+     * Temporary workaround: while 1.21.5 has not released yet, this method returns the {@link ToolProperties#canDestroyBlocksInCreative()} value.
+     *
+     * <p>When 1.21.5 does release, this value will be mapped into the MCPL tool component, and this method will return nothing again.</p>
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
+    public static TriState convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
+        TriState canDestroyInCreative = TriState.NOT_SET;
         for (DataComponent<?> component : customDefinitionMap.keySet()) {
+            if (component == DataComponent.TOOL) {
+                canDestroyInCreative = TriState.fromBoolean(((ToolProperties) customDefinitionMap.get(component)).canDestroyBlocksInCreative());
+                continue;
+            }
             ComponentConverter converter = converters.get(component);
             Object value = customDefinitionMap.get(component);
             converter.convertAndPut(itemMap, value);
         }
+        return canDestroyInCreative;
     }
 
     @FunctionalInterface

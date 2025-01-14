@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -41,10 +42,12 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.ComponentConverters;
@@ -202,7 +205,7 @@ public class CustomItemRegistryPopulator {
      * already been validated (for example, it is expected that stack size is in the range [1, 99]).</p>
      */
     private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
-        DataComponents components = patchDataComponents(javaItem, definition);
+        DataComponents components = patchDataComponents(javaItem, definition).first();
         int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
         int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
 
@@ -226,15 +229,14 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
+        Pair<DataComponents, TriState> patchedComponentInfo = patchDataComponents(vanillaJavaItem, customItemDefinition);
+        DataComponents components = patchedComponentInfo.first();
+        boolean canDestroyInCreative = patchedComponentInfo.second() == TriState.NOT_SET ? !"sword".equals(vanillaMapping.getToolType()) : patchedComponentInfo.second() == TriState.TRUE;
+
         setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
-        boolean canDestroyInCreative = true;
-        computeToolProperties(vanillaMapping.getToolType(), itemProperties, componentBuilder);
-        if (vanillaMapping.getToolType() != null) {
-            canDestroyInCreative =
-        }
-        itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
+        computeToolProperties(itemProperties, componentBuilder);
+        computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
         Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
         if (equippable != null) {
@@ -360,6 +362,13 @@ public class CustomItemRegistryPopulator {
             .build());
 
         itemProperties.putFloat("mining_speed", 1.0F);
+    }
+
+    private static void computeCreativeDestroyProperties(boolean canDestroyInCreative, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
+        componentBuilder.putCompound("minecraft:can_destroy_in_creative", NbtMap.builder()
+            .putBoolean("value", canDestroyInCreative)
+            .build());
     }
 
     private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
@@ -629,10 +638,13 @@ public class CustomItemRegistryPopulator {
         return false;
     }
 
-    private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
+    /**
+     * Temporary workaround to return can destroy in creative boolean in the pair, see {@link ComponentConverters#convertAndPutComponents(DataComponents, DataComponentMap)}.
+     */
+    private static Pair<DataComponents, TriState> patchDataComponents(Item javaItem, CustomItemDefinition definition) {
         DataComponents convertedComponents = new DataComponents(new HashMap<>());
-        ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
-        return javaItem.gatherComponents(convertedComponents);
+        TriState canDestroyInCreative = ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
+        return Pair.of(javaItem.gatherComponents(convertedComponents), canDestroyInCreative);
     }
 
     @SuppressWarnings("unchecked")
