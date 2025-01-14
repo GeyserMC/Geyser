@@ -679,7 +679,7 @@ public class CustomItemRegistryPopulator {
     /**
      * Converts the API components to MCPL ones using the converters in {@link ComponentConverters}, and applies these on top of the default item components.
      *
-     * <p>Note that note every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
+     * <p>Note that not every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
      *
      * @see ComponentConverters
      */
