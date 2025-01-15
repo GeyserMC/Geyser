@@ -1180,7 +1180,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             this.bundleCache.tick();
 
-            if (spawned) {
+            if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
@@ -1400,7 +1400,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String locale() {
-        return clientData.getLanguageCode();
+        return clientData != null ? clientData.getLanguageCode() : GeyserLocale.getDefaultLocale();
     }
 
     @Override
