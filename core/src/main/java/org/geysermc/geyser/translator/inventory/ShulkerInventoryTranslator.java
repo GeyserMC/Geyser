@@ -70,7 +70,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
                 dataPacket.setBlockPosition(position);
                 session.sendUpstreamPacket(dataPacket);
             }
-        }, ContainerInventoryUpdater.INSTANCE);
+        }, ContainerInventoryUpdater.INSTANCE, ContainerType.CONTAINER);
     }
 
     @Override
