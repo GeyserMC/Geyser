@@ -26,11 +26,11 @@
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
 /**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#rangeDispatch(RangeDispatchProperty, double, double, boolean, int)
+ * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#rangeDispatch(RangeDispatchPredicateProperty, double, double, boolean, int)
  */
 public interface RangeDispatchItemPredicate extends CustomItemPredicate {
 
-    RangeDispatchProperty property();
+    RangeDispatchPredicateProperty property();
 
     double threshold();
 

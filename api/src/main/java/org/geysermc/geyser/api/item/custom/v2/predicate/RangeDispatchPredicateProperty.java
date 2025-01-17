@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-public enum RangeDispatchProperty {
+public enum RangeDispatchPredicateProperty {
     /**
      * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
      *

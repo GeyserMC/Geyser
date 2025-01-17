@@ -30,7 +30,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
@@ -105,7 +105,7 @@ public interface NodeReader<T> {
 
     NodeReader<ChargeType> CHARGE_TYPE = ofEnum(ChargeType.class);
 
-    NodeReader<RangeDispatchProperty> RANGE_DISPATCH_PROPERTY = ofEnum(RangeDispatchProperty.class);
+    NodeReader<RangeDispatchPredicateProperty> RANGE_DISPATCH_PROPERTY = ofEnum(RangeDispatchPredicateProperty.class);
 
     NodeReader<Consumable.Animation> CONSUMABLE_ANIMATION = ofEnum(Consumable.Animation.class);
 

@@ -59,19 +59,19 @@ public interface CustomItemPredicate {
         return GeyserApi.api().provider(MatchItemPredicate.class, property, data);
     }
 
-    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold) {
+    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchPredicateProperty property, double threshold) {
         return rangeDispatch(property, threshold, 1.0);
     }
 
-    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale) {
+    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchPredicateProperty property, double threshold, double scale) {
         return rangeDispatch(property, threshold, scale, false, 0);
     }
 
-    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, boolean normalizeIfPossible) {
+    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchPredicateProperty property, double threshold, boolean normalizeIfPossible) {
         return rangeDispatch(property, threshold, 1.0, normalizeIfPossible, 0);
     }
 
-    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible) {
+    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchPredicateProperty property, double threshold, double scale, boolean normalizeIfPossible) {
         return rangeDispatch(property, threshold, scale, normalizeIfPossible, 0);
     }
 
@@ -82,9 +82,9 @@ public interface CustomItemPredicate {
      * @param threshold the threshold the property should be above.
      * @param scale factor to multiply the property value with before comparing it with the threshold. Defaults to 1.0.
      * @param normalizeIfPossible if the property value should be normalised to a value between 0.0 and 1.0 before scaling and comparing. Defaults to false. Only works for certain properties.
-     * @param index only used for the {@link RangeDispatchProperty#CUSTOM_MODEL_DATA} property, determines which float of the item's custom model data to check. Defaults to 0.
+     * @param index only used for the {@link RangeDispatchPredicateProperty#CUSTOM_MODEL_DATA} property, determines which float of the item's custom model data to check. Defaults to 0.
      */
-    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) {
+    static RangeDispatchItemPredicate rangeDispatch(RangeDispatchPredicateProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) {
         return GeyserApi.api().provider(RangeDispatchItemPredicate.class, property, threshold, scale, normalizeIfPossible, index);
     }
 }

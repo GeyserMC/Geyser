@@ -45,7 +45,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.util.Identifier;
@@ -103,7 +103,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
         providers.put(ConditionItemPredicate.class, args -> new ConditionPredicate((ConditionProperty) args[0], (boolean) args[1], (int) args[2]));
         providers.put(MatchItemPredicate.class, args -> new MatchPredicate<>((MatchPredicateProperty<? super Object>) args[0], args[1]));
-        providers.put(RangeDispatchItemPredicate.class, args -> new RangeDispatchPredicate((RangeDispatchProperty) args[0], (double) args[1], (double) args[2], (boolean) args[3], (int) args[4]));
+        providers.put(RangeDispatchItemPredicate.class, args -> new RangeDispatchPredicate((RangeDispatchPredicateProperty) args[0], (double) args[1], (double) args[2], (boolean) args[3], (int) args[4]));
 
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());

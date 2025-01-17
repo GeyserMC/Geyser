@@ -36,7 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.Identifier;
@@ -236,7 +236,7 @@ public class MappingsReader_v2 extends MappingsReader {
                 }
             }
             case "range_dispatch" -> {
-                RangeDispatchProperty property = MappingsUtil.readOrThrow(node, "property", NodeReader.RANGE_DISPATCH_PROPERTY, context);
+                RangeDispatchPredicateProperty property = MappingsUtil.readOrThrow(node, "property", NodeReader.RANGE_DISPATCH_PROPERTY, context);
 
                 double threshold = MappingsUtil.readOrThrow(node, "threshold", NodeReader.DOUBLE, context);
                 double scale = MappingsUtil.readOrDefault(node, "scale", NodeReader.DOUBLE, 1.0, context);
