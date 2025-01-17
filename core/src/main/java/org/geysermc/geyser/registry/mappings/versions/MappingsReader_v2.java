@@ -34,7 +34,6 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;

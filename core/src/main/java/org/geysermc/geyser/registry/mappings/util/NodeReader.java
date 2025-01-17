@@ -28,7 +28,6 @@ package org.geysermc.geyser.registry.mappings.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;

@@ -25,14 +25,16 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
-/**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#condition(ConditionProperty, boolean, int)
- */
-public interface ConditionItemPredicate extends CustomItemPredicate {
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 
-    ConditionProperty property();
+/**
+ * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#condition(ConditionPredicateProperty, boolean, Object)
+ */
+public interface ConditionItemPredicate<T> extends CustomItemPredicate {
+
+    ConditionPredicateProperty<T> property();
 
     boolean expected();
 
-    int index();
+    T data();
 }

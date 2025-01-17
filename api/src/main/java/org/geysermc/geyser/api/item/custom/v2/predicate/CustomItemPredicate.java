@@ -26,16 +26,21 @@
 package org.geysermc.geyser.api.item.custom.v2.predicate;
 
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 
 public interface CustomItemPredicate {
 
-    static ConditionItemPredicate condition(ConditionProperty property) {
+    static ConditionItemPredicate<Void> condition(ConditionPredicateProperty<Void> property) {
         return condition(property, true);
     }
 
-    static ConditionItemPredicate condition(ConditionProperty property, boolean expected) {
-        return condition(property, expected, 0);
+    static <T> ConditionItemPredicate<T> condition(ConditionPredicateProperty<T> property, T data) {
+        return condition(property, true, data);
+    }
+
+    static ConditionItemPredicate<Void> condition(ConditionPredicateProperty<Void> property, boolean expected) {
+        return condition(property, expected, null);
     }
 
     /**
@@ -43,10 +48,10 @@ public interface CustomItemPredicate {
      *
      * @param property the property to check.
      * @param expected whether the property should be true or false. Defaults to true.
-     * @param index only used for the {@link ConditionProperty#CUSTOM_MODEL_DATA} property, determines which flag of the item's custom model data to check. Defaults to 0.
+     * @param data the data used by the predicate. Only used by some predicates, defaults to null.
      */
-    static ConditionItemPredicate condition(ConditionProperty property, boolean expected, int index) {
-        return GeyserApi.api().provider(ConditionItemPredicate.class, property, expected, index);
+    static <T> ConditionItemPredicate<T> condition(ConditionPredicateProperty<T> property, boolean expected, T data) {
+        return GeyserApi.api().provider(ConditionItemPredicate.class, property, expected, data);
     }
 
     /**

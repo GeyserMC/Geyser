@@ -42,7 +42,6 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;

@@ -25,5 +25,38 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate.condition;
 
-public class ConditionPredicateProperty {
+import org.geysermc.geyser.api.util.Identifier;
+
+public final class ConditionPredicateProperty<T> {
+
+    /**
+     * Checks if the item is broken (has 1 durability point left).
+     */
+    public static final ConditionPredicateProperty<Void> BROKEN = createNoData();
+    /**
+     * Checks if the item is damaged (has non-full durability).
+     */
+    public static final ConditionPredicateProperty<Void> DAMAGED = createNoData();
+    /**
+     * Returns one of the item's custom model data flags, defaults to false. Data in the predicate is an integer that sets the index of the flags to check.
+     */
+    public static final ConditionPredicateProperty<Integer> CUSTOM_MODEL_DATA = create();
+    /**
+     * Returns true if the item stack has a component with the identifier set in the predicate data.
+     */
+    public static final ConditionPredicateProperty<Identifier> HAS_COMPONENT = create();
+
+    public final boolean requiresData;
+
+    private ConditionPredicateProperty(boolean requiresData) {
+        this.requiresData = requiresData;
+    }
+
+    private static <T> ConditionPredicateProperty<T> create() {
+        return new ConditionPredicateProperty<>(true);
+    }
+
+    private static ConditionPredicateProperty<Void> createNoData() {
+        return new ConditionPredicateProperty<>(false);
+    }
 }
