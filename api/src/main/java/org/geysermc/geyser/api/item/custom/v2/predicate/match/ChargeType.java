@@ -25,8 +25,20 @@
 
 package org.geysermc.geyser.api.item.custom.v2.predicate.match;
 
+/**
+ * Values returned by the {@link MatchPredicateProperty#CHARGE_TYPE} predicate property.
+ */
 public enum ChargeType {
+    /**
+     * Returned if there are no projectiles loaded in the crossbow.
+     */
     NONE,
+    /**
+     * Returned if there are any projectiles (except fireworks) loaded in the crossbow.
+     */
     ARROW,
+    /**
+     * Returned if there are firework rocket projectiles loaded in the crossbow.
+     */
     ROCKET
 }
