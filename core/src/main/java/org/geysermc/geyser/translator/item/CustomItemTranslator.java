@@ -227,7 +227,7 @@ public final class CustomItemTranslator {
     }
 
     private static boolean isDamageableItem(DataComponents components) {
-        return components.getOrDefault(DataComponentType.UNBREAKABLE, false) && components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) > 0;
+        return components.get(DataComponentType.UNBREAKABLE) == null && components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) > 0;
     }
 
     private CustomItemTranslator() {
