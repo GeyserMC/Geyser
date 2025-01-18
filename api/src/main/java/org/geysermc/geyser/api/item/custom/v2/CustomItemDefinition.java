@@ -55,7 +55,7 @@ import java.util.List;
 public interface CustomItemDefinition {
 
     /**
-     * The Bedrock identifier for this custom item. This can't be in the {@code minecraft} namespace.
+     * The Bedrock identifier for this custom item. It cannot be in the {@code minecraft} namespace.
      */
     @NonNull Identifier bedrockIdentifier();
 
