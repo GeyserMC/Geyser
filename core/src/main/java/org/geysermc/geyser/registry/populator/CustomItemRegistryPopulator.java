@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -71,7 +72,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
@@ -95,11 +95,11 @@ public class CustomItemRegistryPopulator {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
-            Optional<String> error = validate(identifier, item, customItems, items);
-            if (error.isEmpty()) {
+            String error = validate(identifier, item, customItems, items);
+            if (error == null) {
                 customItems.get(identifier).add(item);
             } else {
-                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + error.get());
+                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + error);
             }
         });
 
@@ -108,18 +108,22 @@ public class CustomItemRegistryPopulator {
             @Override
             @Deprecated
             public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
-                return register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
+                try {
+                    register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
+                    return true;
+                } catch (CustomItemDefinitionRegisterException exception) {
+                    return false;
+                }
             }
 
             @Override
-            public boolean register(@NonNull String identifier, @NonNull CustomItemDefinition definition) {
-                Optional<String> error = validate(identifier, definition, customItems, items);
-                if (error.isEmpty()) {
+            public void register(@NonNull String identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
+                String error = validate(identifier, definition, customItems, items);
+                if (error == null) {
                     customItems.get(identifier).add(definition);
-                    return true;
+                } else {
+                    throw new CustomItemDefinitionRegisterException("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + error);
                 }
-                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + error.get());
-                return false;
             }
 
             @Override
@@ -148,43 +152,43 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * @return an empty optional if there are no errors with the registration, and an optional with an error message if there are
+     * @return null if there are no errors with the registration, and an error message if there are
      */
-    private static Optional<String> validate(String vanillaIdentifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
+    private static String validate(String vanillaIdentifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
         if (!mappings.containsKey(vanillaIdentifier)) {
-            return Optional.of("Unknown Java item " + vanillaIdentifier);
+            return "unknown Java item " + vanillaIdentifier;
         }
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            return Optional.of("Custom item bedrock identifier namespace can't be minecraft");
+            return "custom item bedrock identifier namespace can't be minecraft";
         } else if (item.model().namespace().equals(Key.MINECRAFT_NAMESPACE) && item.predicates().isEmpty()) {
-            return Optional.of("Custom item definition model can't be in the minecraft namespace without a predicate");
+            return "custom item definition model can't be in the minecraft namespace without a predicate";
         }
 
         for (Map.Entry<String, CustomItemDefinition> entry : registered.entries()) {
             if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
-                return Optional.of("Conflicts with another custom item definition with the same bedrock identifier");
+                return "conflicts with another custom item definition with the same bedrock identifier";
             }
-            Optional<String> error = checkPredicate(entry, vanillaIdentifier, item);
-            if (error.isPresent()) {
-                return Optional.of("Conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + error.get());
+            String error = checkPredicate(entry, vanillaIdentifier, item);
+            if (error != null) {
+                return "conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + error;
             }
         }
 
-        return Optional.empty();
+        return null;
     }
 
     /**
-     * @return an error message if there was a conflict, or an empty optional otherwise
+     * @return an error message if there was a conflict, or null otherwise
      */
-    private static Optional<String> checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String vanillaIdentifier, CustomItemDefinition newItem) {
+    private static String checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String vanillaIdentifier, CustomItemDefinition newItem) {
         // If the definitions are for different Java items or models then it doesn't matter
         if (!vanillaIdentifier.equals(existing.getKey()) || !newItem.model().equals(existing.getValue().model())) {
-            return Optional.empty();
+            return null;
         }
         // If they both don't have predicates they conflict
         if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
-            return Optional.of("Both entries don't have predicates, one must have a predicate");
+            return "both entries don't have predicates, one must have a predicate";
         }
         // If their predicates are equal then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
@@ -195,11 +199,11 @@ public class CustomItemRegistryPopulator {
                 }
             }
             if (equal) {
-                return Optional.of("Both entries have the same predicates");
+                return "both entries have the same predicates";
             }
         }
 
-        return Optional.empty();
+        return null;
     }
 
     /**

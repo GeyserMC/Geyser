@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -90,9 +91,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @param identifier the base (java) item
      * @param customItemDefinition the custom item definition to register
-     * @return if the item was registered
+     * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item.
      */
-    boolean register(@NonNull String identifier, @NonNull CustomItemDefinition customItemDefinition);
+    void register(@NonNull String identifier, @NonNull CustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
 
     /**
      * Registers a custom item with no base item. This is used for mods.
