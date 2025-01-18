@@ -462,10 +462,6 @@ public class CustomItemRegistryPopulator {
 
         // setting high use_duration prevents the consume animation from playing
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
-        // display item as tool (mainly for crossbow and bow)
-        itemProperties.putBoolean("hand_equipped", true);
-        // Make bows, tridents, and crossbows enchantable
-        itemProperties.putInt("enchantable_value", 1);
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
             .putFloat("use_duration", 100F)
@@ -474,7 +470,6 @@ public class CustomItemRegistryPopulator {
 
         switch (mapping) {
             case "minecraft:bow" -> {
-                itemProperties.putString("enchantable_slot", "bow");
                 itemProperties.putInt("frame_count", 3);
 
                 componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
@@ -494,11 +489,9 @@ public class CustomItemRegistryPopulator {
                 componentBuilder.putInt("minecraft:use_duration", 999);
             }
             case "minecraft:trident" -> {
-                itemProperties.putString("enchantable_slot", "trident");
                 componentBuilder.putInt("minecraft:use_duration", 999);
             }
             case "minecraft:crossbow" -> {
-                itemProperties.putString("enchantable_slot", "crossbow");
                 itemProperties.putInt("frame_count", 10);
 
                 componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
