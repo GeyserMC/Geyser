@@ -212,7 +212,7 @@ public class MappingsReader_v2 extends MappingsReader {
 
         switch (type) {
             case "condition" -> {
-                ConditionPredicateProperty<?> conditionProperty = MappingsUtil.readOrThrow(node, "property", NodeReader.CONDITION_PROPERTY, context);
+                ConditionPredicateProperty<?> conditionProperty = MappingsUtil.readOrThrow(node, "property", NodeReader.CONDITION_PREDICATE_PROPERTY, context);
                 boolean expected = MappingsUtil.readOrDefault(node, "expected", NodeReader.BOOLEAN, true, context);
 
                 if (!conditionProperty.requiresData) {
@@ -228,23 +228,24 @@ public class MappingsReader_v2 extends MappingsReader {
                 }
             }
             case "match" -> {
-                String property = MappingsUtil.readOrThrow(node, "property", NodeReader.NON_EMPTY_STRING, context);
+                MatchPredicateProperty<?> property = MappingsUtil.readOrThrow(node, "property", NodeReader.MATCH_PREDICATE_PROPERTY, context);
 
-                switch (property) {
-                    case "charge_type" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CHARGE_TYPE,
+                if (property == MatchPredicateProperty.CHARGE_TYPE) {
+                    builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CHARGE_TYPE,
                         MappingsUtil.readOrThrow(node, "value", NodeReader.CHARGE_TYPE, context)));
-                    case "trim_material" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.TRIM_MATERIAL,
+                } else if (property == MatchPredicateProperty.TRIM_MATERIAL || property == MatchPredicateProperty.CONTEXT_DIMENSION) {
+                    builder.predicate(CustomItemPredicate.match((MatchPredicateProperty<Identifier>) property,
                         MappingsUtil.readOrThrow(node, "value", NodeReader.IDENTIFIER, context)));
-                    case "context_dimension" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CONTEXT_DIMENSION,
-                        MappingsUtil.readOrThrow(node, "value", NodeReader.IDENTIFIER, context)));
-                    case "custom_model_data" -> builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CUSTOM_MODEL_DATA,
+                } else if (property == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
+                    builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CUSTOM_MODEL_DATA,
                         new CustomModelDataString(MappingsUtil.readOrThrow(node, "value", NodeReader.STRING, context),
                             MappingsUtil.readOrDefault(node, "index", NodeReader.NON_NEGATIVE_INT, 0, context))));
-                    default -> throw new InvalidCustomMappingsFileException("reading match predicate", "unknown property " + property, context);
+                } else {
+                    throw new InvalidCustomMappingsFileException("reading match predicate", "unimplemented reading of match predicate property!", context);
                 }
             }
             case "range_dispatch" -> {
-                RangeDispatchPredicateProperty property = MappingsUtil.readOrThrow(node, "property", NodeReader.RANGE_DISPATCH_PROPERTY, context);
+                RangeDispatchPredicateProperty property = MappingsUtil.readOrThrow(node, "property", NodeReader.RANGE_DISPATCH_PREDICATE_PROPERTY, context);
 
                 double threshold = MappingsUtil.readOrThrow(node, "threshold", NodeReader.DOUBLE, context);
                 double scale = MappingsUtil.readOrDefault(node, "scale", NodeReader.DOUBLE, 1.0, context);

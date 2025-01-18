@@ -32,9 +32,9 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
+import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.util.Arrays;
@@ -103,7 +103,7 @@ public interface NodeReader<T> {
 
     NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
 
-    NodeReader<ConditionPredicateProperty<?>> CONDITION_PROPERTY = ofMap(
+    NodeReader<ConditionPredicateProperty<?>> CONDITION_PREDICATE_PROPERTY = ofMap(
         Map.of(
             "broken", ConditionPredicateProperty.BROKEN,
             "damaged", ConditionPredicateProperty.DAMAGED,
@@ -112,9 +112,18 @@ public interface NodeReader<T> {
         )
     );
 
+    NodeReader<MatchPredicateProperty<?>> MATCH_PREDICATE_PROPERTY = ofMap(
+        Map.of(
+            "charge_type", MatchPredicateProperty.CHARGE_TYPE,
+            "trim_material", MatchPredicateProperty.TRIM_MATERIAL,
+            "context_dimension", MatchPredicateProperty.CONTEXT_DIMENSION,
+            "custom_model_data", MatchPredicateProperty.CUSTOM_MODEL_DATA
+        )
+    );
+
     NodeReader<ChargeType> CHARGE_TYPE = ofEnum(ChargeType.class);
 
-    NodeReader<RangeDispatchPredicateProperty> RANGE_DISPATCH_PROPERTY = ofEnum(RangeDispatchPredicateProperty.class);
+    NodeReader<RangeDispatchPredicateProperty> RANGE_DISPATCH_PREDICATE_PROPERTY = ofEnum(RangeDispatchPredicateProperty.class);
 
     NodeReader<Consumable.Animation> CONSUMABLE_ANIMATION = ofEnum(Consumable.Animation.class);
 
