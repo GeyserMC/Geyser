@@ -53,7 +53,6 @@ public class CreakingEntity extends MonsterEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 

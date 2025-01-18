@@ -42,7 +42,7 @@ public class SessionDisconnectEventImpl extends SessionDisconnectEvent {
     private final Component reasonComponent;
 
     public SessionDisconnectEventImpl(@NonNull GeyserSession session, Component reason) {
-        super(session, MessageTranslator.convertToPlainText(reason, session.locale()));
+        super(session, MessageTranslator.convertMessageRaw(reason, session.locale()));
         this.reasonComponent = reason;
     }
 }
