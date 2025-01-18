@@ -58,7 +58,6 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -66,7 +65,6 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -125,8 +123,8 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
-                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), faultyStrippedWoodRemapper())
+                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), Conversion766_748::remapBlock)
+                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -258,15 +256,6 @@ public final class BlockRegistryPopulator {
 
                 NbtMap originalBedrockTag = buildBedrockState(blockState, entry);
                 NbtMap bedrockTag = stateMapper.remap(originalBedrockTag);
-
-                // FIXME TEMPORARY
-                if (blockState.block() instanceof SkullBlock && palette.valueInt() >= Bedrock_v748.CODEC.getProtocolVersion()) {
-                    // The flattening must be a very interesting process.
-                    String skullName = blockState.block().javaIdentifier().asString().replace("_wall", "");
-                    bedrockTag = bedrockTag.toBuilder()
-                        .putString("name", skullName)
-                        .build();
-                }
 
                 GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
 
@@ -411,19 +400,6 @@ public final class BlockRegistryPopulator {
                     .extendedCollisionBoxes(extendedCollisionBoxes)
                     .build());
         }
-    }
-
-    private static @NotNull Remapper faultyStrippedWoodRemapper() {
-        return tag -> {
-            final String name = tag.getString("name");
-            if (name.endsWith("_wood") && tag.getCompound("states").containsKey("stripped_bit")) {
-                NbtMapBuilder builder = tag.getCompound("states").toBuilder();
-                builder.remove("stripped_bit");
-                NbtMap states = builder.build();
-                return tag.toBuilder().putCompound("states", states).build();
-            }
-            return tag;
-        };
     }
 
     private static void registerJavaBlocks() {

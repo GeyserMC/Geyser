@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundDisconnectPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTickingStatePacket;
 
-@Translator(packet = ClientboundDisconnectPacket.class)
-public class JavaDisconnectTranslator extends PacketTranslator<ClientboundDisconnectPacket> {
+@Translator(packet = ClientboundTickingStatePacket.class)
+public class JavaTickingStateTranslator extends PacketTranslator<ClientboundTickingStatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundDisconnectPacket packet) {
-        session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.locale()));
+    public void translate(GeyserSession session, ClientboundTickingStatePacket packet) {
+        session.updateTickingState(packet.getTickRate(), packet.isFrozen());
     }
 }

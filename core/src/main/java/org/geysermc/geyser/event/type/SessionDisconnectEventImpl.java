@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.event.type;
 
-import org.geysermc.geyser.item.components.ToolTier;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
+/**
+ * A wrapper around the {@link SessionDisconnectEvent} that allows
+ * Geyser to access the underlying component when replacing disconnect messages.
+ */
+@Getter
+public class SessionDisconnectEventImpl extends SessionDisconnectEvent {
 
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
-        super(javaIdentifier, builder);
-        this.tier = tier;
-    }
+    private final Component reasonComponent;
 
-    public ToolTier tier() {
-        return tier;
-    }
-
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+    public SessionDisconnectEventImpl(@NonNull GeyserSession session, Component reason) {
+        super(session, MessageTranslator.convertToPlainText(reason, session.locale()));
+        this.reasonComponent = reason;
     }
 }

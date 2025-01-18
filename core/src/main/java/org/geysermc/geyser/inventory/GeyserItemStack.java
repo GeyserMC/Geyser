@@ -25,7 +25,11 @@
 
 package org.geysermc.geyser.inventory;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -35,6 +39,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -55,19 +60,23 @@ public class GeyserItemStack {
     private DataComponents components;
     private int netId;
 
+    @EqualsAndHashCode.Exclude
+    private BundleCache.BundleData bundleData;
+
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Item item;
 
     private GeyserItemStack(int javaId, int amount, DataComponents components) {
-        this(javaId, amount, components, 1);
+        this(javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId) {
+    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
         this.netId = netId;
+        this.bundleData = bundleData;
     }
 
     public static @NonNull GeyserItemStack of(int javaId, int amount) {
@@ -104,8 +113,29 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
+    /**
+     * Returns all components of this item - base and additional components sent over the network.
+     * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
+     *
+     * @return the item's base data components and the "additional" ones that may exist.
+     */
+    public @Nullable DataComponents getAllComponents() {
+        return isEmpty() ? null : asItem().gatherComponents(components);
+    }
+
+    /**
+     * @return the {@link DataComponents} that aren't the base/default components.
+     */
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
+    }
+
+    /**
+     * @return whether this GeyserItemStack has any additional components on top of
+     * the base item components.
+     */
+    public boolean hasNonBaseComponents() {
+        return components != null;
     }
 
     @NonNull
@@ -116,40 +146,54 @@ public class GeyserItemStack {
         return components;
     }
 
+    /**
+     * Returns the stored data component for a given {@link DataComponentType}, or null.
+     * <p>
+     * This method will first check the additional components that may exist,
+     * and fallback to the item's default (or, "base") components if need be.
+     * @param type the {@link DataComponentType} to query
+     * @return the value for said type, or null.
+     * @param <T> the value's type
+     */
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
         if (components == null) {
-            return null;
+            return asItem().getComponent(type);
         }
-        return components.get(type);
+
+        T value = components.get(type);
+        if (value == null) {
+            return asItem().getComponent(type);
+        }
+
+        return value;
     }
 
-    public <T extends Boolean> boolean getComponent(@NonNull DataComponentType<T> type, boolean def) {
-        if (components == null) {
-            return def;
-        }
-
-        Boolean result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
-    }
-
-    public <T extends Integer> int getComponent(@NonNull DataComponentType<T> type, int def) {
-        if (components == null) {
-            return def;
-        }
-
-        Integer result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
+    public <T> T getComponentOrFallback(@NonNull DataComponentType<T> type, T def) {
+        T value = getComponent(type);
+        return value == null ? def : value;
     }
 
     public int getNetId() {
         return isEmpty() ? 0 : netId;
+    }
+
+    public int getBundleId() {
+        if (isEmpty()) {
+            return -1;
+        }
+
+        return bundleData == null ? -1 : bundleData.bundleId();
+    }
+
+    public void mergeBundleData(GeyserSession session, BundleCache.BundleData oldBundleData) {
+        if (oldBundleData != null && this.bundleData != null) {
+            // Old bundle; re-use old IDs
+            this.bundleData.updateNetIds(session, oldBundleData);
+        } else if (this.bundleData != null) {
+            // New bundle; allocate new ID
+            session.getBundleCache().markNewBundle(this.bundleData);
+        }
     }
 
     public void add(int add) {
@@ -165,6 +209,21 @@ public class GeyserItemStack {
     }
 
     public @Nullable ItemStack getItemStack(int newAmount) {
+        if (isEmpty()) {
+            return null;
+        }
+        // Sync our updated bundle data to server, if applicable
+        // Not fresh from server? Then we have changes to apply!~
+        if (bundleData != null && !bundleData.freshFromServer()) {
+            if (!bundleData.contents().isEmpty()) {
+                getOrCreateComponents().put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
+            } else {
+                if (components != null) {
+                    // Empty list = no component = should delete
+                    components.getDataComponents().remove(DataComponentType.BUNDLE_CONTENTS);
+                }
+            }
+        }
         return isEmpty() ? null : new ItemStack(javaId, newAmount, components);
     }
 
@@ -175,7 +234,8 @@ public class GeyserItemStack {
         ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, components);
         itemData.netId(getNetId());
         itemData.usingNetId(true);
-        return itemData.build();
+
+        return session.getBundleCache().checkForBundle(this, itemData);
     }
 
     public ItemMapping getMapping(GeyserSession session) {
@@ -208,6 +268,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, components == null ? null : components.clone(), netId);
+        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
     }
 }

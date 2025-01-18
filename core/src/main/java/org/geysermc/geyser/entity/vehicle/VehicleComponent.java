@@ -105,6 +105,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boundingBox.setMiddleZ(z);
     }
 
+    public void moveAbsolute(Vector3d vec) {
+        moveAbsolute(vec.getX(), vec.getY(), vec.getZ());
+    }
+
     public void moveRelative(double x, double y, double z) {
         boundingBox.translate(x, y, z);
     }
@@ -756,7 +760,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
-        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos.getX(), javaPos.getY(), javaPos.getZ(), rotation.getX(), rotation.getY());
+        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, rotation.getX(), rotation.getY(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
     }
 
