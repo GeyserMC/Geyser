@@ -204,7 +204,7 @@ public abstract class WorldManager {
             Int2ObjectMaps.fastForEach(map, entry -> {
                 DataComponentType<?> type = DataComponentType.from(entry.getIntKey());
                 ByteBuf buf = Unpooled.wrappedBuffer(entry.getValue());
-                DataComponent<?> value = type.readDataComponent(buf);
+                DataComponent<?, ?> value = type.readDataComponent(buf);
                 components.put(type, value);
             });
             return new DataComponents(components);
