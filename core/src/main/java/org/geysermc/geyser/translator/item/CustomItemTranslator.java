@@ -63,6 +63,7 @@ import java.util.function.Function;
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
 public final class CustomItemTranslator {
+    private static final Key FALLBACK_MODEL = MinecraftKey.key("air");
 
     @Nullable
     public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
@@ -75,7 +76,7 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, MinecraftKey.key("air"));
+        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, FALLBACK_MODEL);
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
