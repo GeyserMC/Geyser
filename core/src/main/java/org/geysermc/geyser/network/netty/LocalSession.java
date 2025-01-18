@@ -35,9 +35,9 @@ import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.helper.NettyHelper;
-import org.geysermc.mcprotocollib.network.net.MinecraftChannelInitializer;
-import org.geysermc.mcprotocollib.network.net.NetClientSession;
+import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
+import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -46,13 +46,13 @@ import java.util.concurrent.Executor;
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
-public final class LocalSession extends NetClientSession {
+public final class LocalSession extends ClientNetworkSession {
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 
     private final SocketAddress spoofedRemoteAddress;
 
     public LocalSession(SocketAddress targetAddress, String clientIp, PacketProtocol protocol, Executor packetHandlerExecutor) {
-        super(targetAddress, null, protocol, null, packetHandlerExecutor);
+        super(targetAddress, protocol, packetHandlerExecutor, null, null);
         this.spoofedRemoteAddress = new InetSocketAddress(clientIp, 0);
     }
 

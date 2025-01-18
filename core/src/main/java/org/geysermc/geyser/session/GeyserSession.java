@@ -182,16 +182,8 @@ import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.ClientSession;
-import org.geysermc.mcprotocollib.network.NetworkConstants;
-import org.geysermc.mcprotocollib.network.Session;
-import org.geysermc.mcprotocollib.network.event.session.ConnectedEvent;
-import org.geysermc.mcprotocollib.network.event.session.DisconnectedEvent;
-import org.geysermc.mcprotocollib.network.event.session.PacketErrorEvent;
-import org.geysermc.mcprotocollib.network.event.session.PacketSendingEvent;
-import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
-import org.geysermc.mcprotocollib.network.net.NetClientSession;
-import org.geysermc.mcprotocollib.network.net.NetSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
@@ -207,6 +199,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
+import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
@@ -966,7 +959,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             downstream.setFlag(MinecraftConstants.CLIENT_PORT, this.remoteServer.port());
             this.downstream = new DownstreamSession(downstream);
         } else {
-            downstream = new NetClientSession(new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()), null, this.protocol, null, tickEventLoop);
+            downstream = new ClientNetworkSession(new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()), this.protocol, tickEventLoop, null, null);
             this.downstream = new DownstreamSession(downstream);
 
             boolean resolveSrv = false;
@@ -996,7 +989,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         protocol.setUseDefaultListeners(false);
 
         // MCPL listener comes first to handle protocol state switching before Geyser translates packets
-        downstream.addListener(new ClientListener(ProtocolState.LOGIN, loginEvent.transferring()));
+        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN));
         // Geyser adapter second to ensure translating packets in the correct states
         downstream.addListener(new GeyserSessionAdapter(this));
 
