@@ -30,12 +30,15 @@ import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -100,7 +103,14 @@ public interface NodeReader<T> {
 
     NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
 
-    NodeReader<ConditionProperty> CONDITION_PROPERTY = ofEnum(ConditionProperty.class);
+    NodeReader<ConditionPredicateProperty<?>> CONDITION_PROPERTY = ofMap(
+        Map.of(
+            "broken", ConditionPredicateProperty.BROKEN,
+            "damaged", ConditionPredicateProperty.DAMAGED,
+            "custom_model_data", ConditionPredicateProperty.CUSTOM_MODEL_DATA,
+            "has_component", ConditionPredicateProperty.HAS_COMPONENT
+        )
+    );
 
     NodeReader<ChargeType> CHARGE_TYPE = ofEnum(ChargeType.class);
 
@@ -118,6 +128,17 @@ public interface NodeReader<T> {
                 throw new InvalidCustomMappingsFileException("unknown element, must be one of ["
                     + String.join(", ", Arrays.stream(clazz.getEnumConstants()).map(E::toString).toArray(String[]::new)).toLowerCase() + "]");
             }
+        });
+    }
+
+    static <T> NodeReader<T> ofMap(Map<String, T> map) {
+        return NON_EMPTY_STRING.andThen(String::toLowerCase).andThen(s -> {
+            T value = map.get(s);
+            if (value == null) {
+                throw new InvalidCustomMappingsFileException("unknown element, must be one of ["
+                    + String.join(", ", map.keySet()).toLowerCase() + "]");
+            }
+            return value;
         });
     }
 

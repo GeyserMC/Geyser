@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.Identifier;
@@ -211,12 +212,20 @@ public class MappingsReader_v2 extends MappingsReader {
 
         switch (type) {
             case "condition" -> {
-                ConditionProperty conditionProperty = MappingsUtil.readOrThrow(node, "property", NodeReader.CONDITION_PROPERTY, context);
+                ConditionPredicateProperty<?> conditionProperty = MappingsUtil.readOrThrow(node, "property", NodeReader.CONDITION_PROPERTY, context);
                 boolean expected = MappingsUtil.readOrDefault(node, "expected", NodeReader.BOOLEAN, true, context);
-                int index = MappingsUtil.readOrDefault(node, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
 
-                // Note that index is only used for the CUSTOM_MODEL_DATA property, but we allow specifying it for other properties anyway
-                builder.predicate(CustomItemPredicate.condition(conditionProperty, expected, index));
+                if (!conditionProperty.requiresData) {
+                    builder.predicate(CustomItemPredicate.condition((ConditionPredicateProperty<Void>) conditionProperty, expected));
+                } else if (conditionProperty == ConditionPredicateProperty.CUSTOM_MODEL_DATA) {
+                    int index = MappingsUtil.readOrDefault(node, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
+                    builder.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.CUSTOM_MODEL_DATA, expected, index));
+                } else if (conditionProperty == ConditionPredicateProperty.HAS_COMPONENT) {
+                    Identifier component = MappingsUtil.readOrThrow(node, "component", NodeReader.IDENTIFIER, context);
+                    builder.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.HAS_COMPONENT, expected, component));
+                } else {
+                    throw new InvalidCustomMappingsFileException("reading condition predicate", "unimplemented reading of condition predicate property!", context);
+                }
             }
             case "match" -> {
                 String property = MappingsUtil.readOrThrow(node, "property", NodeReader.NON_EMPTY_STRING, context);

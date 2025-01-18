@@ -32,6 +32,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
@@ -103,13 +104,29 @@ public final class CustomItemTranslator {
     }
 
     private static boolean predicateMatches(GeyserSession session, CustomItemPredicate predicate, int stackSize, DataComponents components) {
-        if (predicate instanceof ConditionPredicate condition) {
-            return switch (condition.property()) {
-                case BROKEN -> nextDamageWillBreak(components);
-                case DAMAGED -> isDamaged(components);
-                case UNBREAKABLE -> components.getOrDefault(DataComponentType.UNBREAKABLE, false);
-                case CUSTOM_MODEL_DATA -> getCustomBoolean(components, condition.index());
-            } == condition.expected();
+        if (predicate instanceof ConditionPredicate<?> condition) {
+            ConditionPredicateProperty<?> property = condition.property();
+            boolean expected = condition.expected();
+            if (property == ConditionPredicateProperty.BROKEN) {
+                return nextDamageWillBreak(components) == expected;
+            } else if (property == ConditionPredicateProperty.DAMAGED) {
+                return isDamaged(components) == expected;
+            } else if (property == ConditionPredicateProperty.CUSTOM_MODEL_DATA) {
+                Integer index = (Integer) condition.data();
+                return getCustomBoolean(components, index) == expected;
+            } else if (property == ConditionPredicateProperty.HAS_COMPONENT) {
+                Identifier identifier = (Identifier) condition.data();
+                if (identifier == null) {
+                    return false;
+                }
+                Key component = MinecraftKey.identifierToKey(identifier);
+                for (DataComponentType<?> componentType : components.getDataComponents().keySet()) {
+                    if (componentType.getKey().equals(component)) {
+                        return expected;
+                    }
+                }
+                return !expected;
+            }
         } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fan of the casts here, find a solution for the types?
             if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
                 ChargeType expected = (ChargeType) match.data();
@@ -161,10 +178,13 @@ public final class CustomItemTranslator {
             return propertyValue >= rangeDispatch.threshold();
         }
 
-        throw new IllegalStateException("Unimplemented predicate type");
+        throw new IllegalStateException("Unimplemented predicate type: " + predicate);
     }
 
-    private static boolean getCustomBoolean(DataComponents components, int index) {
+    private static boolean getCustomBoolean(DataComponents components, Integer index) {
+        if (index == null) {
+            return false;
+        }
         Boolean b = getSafeCustomModelData(components, CustomModelData::flags, index);
         return b != null && b;
     }

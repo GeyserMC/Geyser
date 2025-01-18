@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
@@ -74,6 +75,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
+    private static final Identifier UNBREAKABLE_COMPONENT = new Identifier("minecraft", "unbreakable");
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
     // TODO these don't seem to be applying correctly
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
@@ -668,8 +670,11 @@ public class CustomItemRegistryPopulator {
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
         for (CustomItemPredicate predicate : definition.predicates()) {
-            if (predicate instanceof ConditionPredicate condition && condition.property() == ConditionProperty.UNBREAKABLE && condition.expected()) {
-                return true;
+            if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
+                Identifier component = (Identifier) condition.data();
+                if (UNBREAKABLE_COMPONENT.equals(component)) {
+                    return true;
+                }
             }
         }
         return false;
