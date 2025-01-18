@@ -50,20 +50,14 @@ import java.util.*;
 public class SkullCache {
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;
-    
+
     private final int skullRenderDistanceSquared;
-    
-    /**
-     * The time in milliseconds before unused skull entities are despawned
-     */
-    private static final long CLEANUP_PERIOD = 10000;
 
     @Getter
     private final Map<Vector3i, Skull> skulls = new Object2ObjectOpenHashMap<>();
 
     private final List<Skull> inRangeSkulls = new ArrayList<>();
 
-    private final Deque<SkullPlayerEntity> unusedSkullEntities = new ArrayDeque<>();
     private int totalSkullEntities = 0;
 
     private final GeyserSession session;
@@ -188,43 +182,26 @@ public class SkullCache {
                 }
             }
         }
-
-        // Occasionally clean up unused entities as we want to keep skull
-        // entities around for later use, to reduce "player" pop-in
-        if ((System.currentTimeMillis() - lastCleanup) > CLEANUP_PERIOD) {
-            lastCleanup = System.currentTimeMillis();
-            for (SkullPlayerEntity entity : unusedSkullEntities) {
-                entity.despawnEntity();
-                totalSkullEntities--;
-            }
-            unusedSkullEntities.clear();
-        }
     }
 
     private void assignSkullEntity(Skull skull) {
         if (skull.entity != null) {
             return;
         }
-        if (unusedSkullEntities.isEmpty()) {
-            if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
-                // Create a new entity
-                long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-                skull.entity = new SkullPlayerEntity(session, geyserId);
-                skull.entity.spawnEntity();
-                skull.entity.updateSkull(skull);
-                totalSkullEntities++;
-            }
-        } else {
-            // Reuse an entity
-            skull.entity = unusedSkullEntities.removeFirst();
+        if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
+            // Create a new entity
+            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            skull.entity = new SkullPlayerEntity(session, geyserId);
+            skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
+            totalSkullEntities++;
         }
     }
 
     private void freeSkullEntity(Skull skull) {
         if (skull.entity != null) {
-            skull.entity.free();
-            unusedSkullEntities.addFirst(skull.entity);
+            skull.entity.despawnEntity();
+            totalSkullEntities--;
             skull.entity = null;
         }
     }
@@ -250,10 +227,6 @@ public class SkullCache {
         }
         skulls.clear();
         inRangeSkulls.clear();
-        for (SkullPlayerEntity skull : unusedSkullEntities) {
-            skull.despawnEntity();
-        }
-        unusedSkullEntities.clear();
         totalSkullEntities = 0;
         lastPlayerPosition = null;
     }

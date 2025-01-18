@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -65,6 +59,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
@@ -96,11 +97,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
      */
-    private ParrotEntity leftParrot;
+    private @Nullable ParrotEntity leftParrot;
     /**
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
-    private ParrotEntity rightParrot;
+    private @Nullable ParrotEntity rightParrot;
 
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
@@ -250,10 +251,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         }
     }
 
-    public void updateRotation(float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
-    }
-
     @Override
     public void setPosition(Vector3f position) {
         if (this.bedPosition != null) {
@@ -338,7 +335,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
@@ -453,6 +450,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     public Vector3f position() {
-        return this.position.clone();
+        return this.position.down(definition.offset());
     }
 }

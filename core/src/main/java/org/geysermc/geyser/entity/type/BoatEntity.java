@@ -32,12 +32,13 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
 
 import java.util.UUID;
 
@@ -63,16 +64,24 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
      * Saved for using the "pick" functionality on a boat.
      */
     @Getter
-    private int variant;
+    protected final BoatVariant variant;
 
     private long leashHolderBedrockId = -1;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.1f;
 
-    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
+        this.variant = variant;
+
+        // TODO remove once 1.21.40 is dropped
+        if (variant == BoatVariant.PALE_OAK && GameProtocol.isPreWinterDrop(session)) {
+            variant = BoatVariant.BIRCH;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
         dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
@@ -122,15 +131,6 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
         moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
-    }
-
-    public void setVariant(IntEntityMetadata entityMetadata) {
-        variant = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
-            case 6, 7, 8 -> variant - 1; // dark_oak, mangrove, bamboo
-            case 5 -> 8; // cherry
-            default -> variant;
-        });
     }
 
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
@@ -187,7 +187,13 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void tick() {
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
-        doTick = !doTick; // Run every 100 ms
+        if (session.getPlayerEntity().getVehicle() == this) {
+            // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
+            ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
+            session.sendDownstreamGamePacket(steerPacket);
+            return;
+        }
+        doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
         }
@@ -218,5 +224,23 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         packet.setAction(action);
         packet.setRowingTime(rowTime);
         session.sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Ordered by Bedrock ordinal
+     */
+    public enum BoatVariant {
+        OAK,
+        SPRUCE,
+        BIRCH,
+        JUNGLE,
+        ACACIA,
+        DARK_OAK,
+        MANGROVE,
+        BAMBOO,
+        CHERRY,
+        PALE_OAK;
+
+        BoatVariant() {}
     }
 }

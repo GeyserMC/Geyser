@@ -43,11 +43,11 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         if (isLodestoneCompass(components)) {
-            return super.translateToBedrock(count, components, mappings.getLodestoneCompass(), mappings);
+            return super.translateToBedrock(session, count, components, mappings.getLodestoneCompass(), mappings);
         }
-        return super.translateToBedrock(count, components, mapping, mappings);
+        return super.translateToBedrock(session, count, components, mapping, mappings);
     }
 
     @Override
@@ -78,12 +78,12 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
             mapping = mappings.getStoredItems().compass();
         }
 
-        return super.translateToJava(itemData, mapping, mappings);
+        return super.translateToJava(session, itemData, mapping, mappings);
     }
 }

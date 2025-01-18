@@ -28,8 +28,11 @@ package org.geysermc.geyser.item.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -41,24 +44,45 @@ public class GoatHornItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
-        ItemData.Builder builder = super.translateToBedrock(count, components, mapping, mappings);
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        ItemData.Builder builder = super.translateToBedrock(session, count, components, mapping, mappings);
         if (components == null) {
             return builder;
         }
-        Holder<Instrument> instrument = components.get(DataComponentType.INSTRUMENT);
-        if (instrument != null && instrument.isId()) {
-            builder.damage(instrument.id());
+
+        Holder<Instrument> holder = components.get(DataComponentType.INSTRUMENT);
+        if (holder != null) {
+            GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+            int bedrockId = instrument.bedrockId();
+            if (bedrockId >= 0) {
+                builder.damage(bedrockId);
+            }
         }
+
         return builder;
     }
 
     @Override
-    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
+
+        Holder<Instrument> holder = components.get(DataComponentType.INSTRUMENT);
+        if (holder != null && components.get(DataComponentType.HIDE_TOOLTIP) == null
+            && components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) == null) {
+            GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+            if (instrument.bedrockInstrument() == null) {
+                builder.getOrCreateLore().add(instrument.description());
+            }
+        }
+    }
+
+    @Override
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+        GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
 
         int damage = itemData.getDamage();
-        itemStack.getOrCreateComponents().put(DataComponentType.INSTRUMENT, Holder.ofId(damage));
+        // This could cause an issue since -1 is returned for non-vanilla goat horns
+        itemStack.getOrCreateComponents().put(DataComponentType.INSTRUMENT, Holder.ofId(GeyserInstrument.bedrockIdToJava(session, damage)));
 
         return itemStack;
     }

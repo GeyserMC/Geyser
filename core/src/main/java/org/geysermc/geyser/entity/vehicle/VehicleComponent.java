@@ -76,8 +76,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
         this.stepHeight = stepHeight;
-        this.moveSpeed = (float) AttributeType.Builtin.GENERIC_MOVEMENT_SPEED.getDef();
-        this.gravity = AttributeType.Builtin.GENERIC_GRAVITY.getDef();
+        this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
+        this.gravity = AttributeType.Builtin.GRAVITY.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
@@ -103,6 +103,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boundingBox.setMiddleX(x);
         boundingBox.setMiddleY(y + boundingBox.getSizeY() / 2);
         boundingBox.setMiddleZ(z);
+    }
+
+    public void moveAbsolute(Vector3d vec) {
+        moveAbsolute(vec.getX(), vec.getY(), vec.getZ());
     }
 
     public void moveRelative(double x, double y, double z) {
@@ -756,9 +760,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
-        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos.getX(), javaPos.getY(), javaPos.getZ(), rotation.getX(), rotation.getY());
+        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, rotation.getX(), rotation.getY(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
-        vehicle.getSession().setLastVehicleMoveTimestamp(System.currentTimeMillis());
     }
 
     protected double getGravity() {

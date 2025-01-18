@@ -58,6 +58,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 
 import java.util.Arrays;
@@ -103,8 +104,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 5] = item.getItemData(session);
             if (i == 5 &&
                     item.asItem() == Items.PLAYER_HEAD &&
-                    item.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponents());
+                    item.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentType.PROFILE));
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
@@ -147,8 +148,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         if (slot == 5) {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.getComponents() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
+                    && javaItem.hasNonBaseComponents()) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
@@ -183,7 +184,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slotnum = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY:
             case HOTBAR:
             case INVENTORY:
@@ -262,6 +263,15 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     if (isCraftingGrid(transferAction.getSource()) || isCraftingGrid(transferAction.getDestination())) {
                         return rejectRequest(request, false);
+                    }
+
+                    // Might be a bundle action... let's check.
+                    // If we're in creative mode, instead of replacing logic (more hassle for updates),
+                    // let's just reuse as much logic as possible!!
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, true);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
                     }
 
                     int transferAmount = transferAction.getCount();
@@ -414,6 +424,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     protected ItemStackResponse translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         ItemStack javaCreativeItem = null;
+        boolean bundle = false;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
         for (ItemStackRequestAction action : request.getActions()) {
@@ -461,15 +472,17 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
 
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
                             GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             session.getPlayerInventory().setCursor(newItemStack, session);
+                            bundle = newItemStack.getBundleData() != null;
                         } else {
                             session.getPlayerInventory().getCursor().add(transferAction.getCount());
                         }
@@ -478,8 +491,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
                             GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             inventory.setItem(destSlot, newItemStack, session);
+                            bundle = newItemStack.getBundleData() != null;
                         } else {
                             inventory.getItem(destSlot).add(transferAction.getCount());
                         }
@@ -494,7 +509,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     DropAction dropAction = (DropAction) action;
-                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                    if (dropAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
                         return rejectRequest(request);
                     }
 
@@ -519,7 +534,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             int slot = it.nextInt();
             sendCreativeAction(session, inventory, slot);
         }
-        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+        // On the bundle check:
+        // We can also accept the request, but sending a bad request indicates to Geyser to refresh the inventory
+        // and we need to refresh the inventory to send the bundle ID/inventory to the client.
+        // It's not great, but I don't want to create a container class for request responses
+        return bundle ? rejectRequest(request, false) : acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
     private static void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {
@@ -531,7 +550,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CRAFTING_INPUT;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CRAFTING_INPUT;
     }
 
     @Override

@@ -190,7 +190,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             GeyserResourcePack pack = holder.pack();
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
-                header.uuid().toString(), header.version().toString(), pack.codec().size(), pack.contentKey(),
+                header.uuid(), header.version().toString(), pack.codec().size(), pack.contentKey(),
                 subpackName(pack), header.uuid().toString(), false, false, false, subpackName(pack))
             );
         }
