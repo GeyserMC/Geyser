@@ -119,9 +119,7 @@ public final class CustomItemTranslator {
 
     private static boolean isDamagableItem(DataComponents components) {
         // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
-        Boolean unbreakable = components.get(DataComponentType.UNBREAKABLE);
-        // Tag must either not be present or be set to false
-        return unbreakable == null || !unbreakable;
+        return components.get(DataComponentType.UNBREAKABLE) == null;
     }
 
     private CustomItemTranslator() {
