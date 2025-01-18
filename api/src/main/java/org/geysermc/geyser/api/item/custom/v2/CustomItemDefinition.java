@@ -50,8 +50,7 @@ import java.util.List;
  *     <li>Lastly by the amount of predicates, from most to least.</li>
  * </ol>
  *
- * <p>This ensures predicates will be checked in a correct order, and that in most cases specifying a priority value isn't necessary, and in the few cases
- * where Geyser doesn't properly sort definitions, specifying a priority value will.</p>
+ * <p>This ensures predicates will be checked in the correct order. In most cases, specifying a priority value isn't necessary, but it can be added to ensure the intended order. </p>
  */
 public interface CustomItemDefinition {
 

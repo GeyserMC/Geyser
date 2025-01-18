@@ -85,7 +85,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
      * based on NBT data.
      *
-     * @param identifier the base (java) item
+     * @param identifier of the Java edition base item 
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item.
      */
