@@ -118,6 +118,7 @@ public interface CustomItemDefinition {
      *     <li>{@code minecraft:use_cooldown} ({@link DataComponent#USE_COOLDOWN})</li>
      *     <li>{@code minecraft:enchantable} ({@link DataComponent#ENCHANTABLE})</li>
      *     <li>{@code minecraft:tool} ({@link DataComponent#TOOL})</li>
+     *     <li>{@code minecraft:repairable} ({@link DataComponent#REPAIRABLE})</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,

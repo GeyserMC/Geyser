@@ -78,17 +78,18 @@ public class CustomItemRegistryPopulator {
     private static final Identifier UNBREAKABLE_COMPONENT = new Identifier("minecraft", "unbreakable");
 
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
-    // These don't all work correctly on Bedrock - their behaviour is described below
+    // These don't all work correctly on Bedrock - see the Consumable.Animation Javadoc in the API
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
-        Consumable.ItemUseAnimation.NONE, 0, // Does nothing in 1st person, eating in 3rd person
-        Consumable.ItemUseAnimation.EAT, 1, // Appears to look correctly
-        Consumable.ItemUseAnimation.DRINK, 2, // Appears to look correctly
-        Consumable.ItemUseAnimation.BLOCK, 3, // Does nothing in 1st person, eating in 3rd person
-        Consumable.ItemUseAnimation.BOW, 4, // Does nothing in 1st person, eating in 3rd person
-        Consumable.ItemUseAnimation.SPEAR, 6, // Does nothing, but looks like spear in 3rd person. Still has eating animation in 3rd person though, looks weird
-        Consumable.ItemUseAnimation.CROSSBOW, 9, // Does nothing in 1st person, eating in 3rd person
-        Consumable.ItemUseAnimation.SPYGLASS, 10, // Does nothing, but looks like spyglass in 3rd person. Same problems as spear.
-        Consumable.ItemUseAnimation.BRUSH, 12 // Brush in 1st and 3rd person. Same problems as spear. Looks weird when not displayed handheld.
+        Consumable.ItemUseAnimation.NONE, 0,
+        Consumable.ItemUseAnimation.EAT, 1,
+        Consumable.ItemUseAnimation.DRINK, 2,
+        Consumable.ItemUseAnimation.BLOCK, 3,
+        Consumable.ItemUseAnimation.BOW, 4,
+        Consumable.ItemUseAnimation.SPEAR, 6,
+        Consumable.ItemUseAnimation.CROSSBOW, 9,
+        Consumable.ItemUseAnimation.SPYGLASS, 10,
+        Consumable.ItemUseAnimation.TOOT_HORN, 11,
+        Consumable.ItemUseAnimation.BRUSH, 12
     );
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {

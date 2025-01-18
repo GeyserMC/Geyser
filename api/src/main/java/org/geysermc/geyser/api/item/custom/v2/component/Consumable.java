@@ -35,16 +35,46 @@ public record Consumable(@Positive float consumeSeconds, Animation animation) {
         }
     }
 
+    /**
+     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation.
+     */
     public enum Animation {
+        /**
+         * Does nothing in 1st person, appears as eating in 3rd person.
+         */
         NONE,
+        /**
+         * Appears to look correctly.
+         */
         EAT,
+        /**
+         * Appears to look correctly.
+         */
         DRINK,
+        /**
+         * Does nothing in 1st person, eating in 3rd person.
+         */
         BLOCK,
+        /**
+         * Does nothing in 1st person, eating in 3rd person.
+         */
         BOW,
+        /**
+         * Does nothing in 1st person, but looks like spear in 3rd person.
+         */
         SPEAR,
+        /**
+         * Does nothing in 1st person, eating in 3rd person.
+         */
         CROSSBOW,
+        /**
+         * Does nothing in 1st person, but looks like spyglass in 3rd person.
+         */
         SPYGLASS,
         TOOT_HORN,
+        /**
+         * Brush in 1st and 3rd person. Will look weird when not displayed handheld.
+         */
         BRUSH
     }
 }
