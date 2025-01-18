@@ -26,10 +26,14 @@
 package org.geysermc.geyser.event.type;
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
+import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,12 +41,19 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCustomItemsEvent {
+    private final Multimap<String, CustomItemData> deprecatedCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
     private final Multimap<String, CustomItemDefinition> customItems;
     private final List<NonVanillaCustomItemData> nonVanillaCustomItems;
 
     public GeyserDefineCustomItemsEventImpl(Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         this.customItems = customItems;
         this.nonVanillaCustomItems = nonVanillaCustomItems;
+    }
+
+    @Override
+    @Deprecated
+    public @NonNull Map<String, Collection<CustomItemData>> getExistingCustomItems() {
+        return Collections.unmodifiableMap(deprecatedCustomItems.asMap());
     }
 
     @Override
@@ -53,5 +64,17 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     @Override
     public @NonNull List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems() {
         return Collections.unmodifiableList(this.nonVanillaCustomItems);
+    }
+
+    @Override
+    @Deprecated
+    public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
+        try {
+            register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
+            deprecatedCustomItems.put(identifier, customItemData);
+            return true;
+        } catch (CustomItemDefinitionRegisterException exception) {
+            return false;
+        }
     }
 }

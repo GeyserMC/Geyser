@@ -106,17 +106,6 @@ public class CustomItemRegistryPopulator {
         GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
 
             @Override
-            @Deprecated
-            public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
-                try {
-                    register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
-                    return true;
-                } catch (CustomItemDefinitionRegisterException exception) {
-                    return false;
-                }
-            }
-
-            @Override
             public void register(@NonNull String identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
                 String error = validate(identifier, definition, customItems, items);
                 if (error == null) {

@@ -33,7 +33,6 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -45,17 +44,14 @@ import java.util.Map;
 public interface GeyserDefineCustomItemsEvent extends Event {
 
     /**
-     * Gets a multimap of all the already registered custom items indexed by the item's extended java item's identifier.
-     * This will always return an empty map since the switch to custom item definitions, use {@link GeyserDefineCustomItemsEvent#getExistingCustomItemDefinitions()}.
+     * Gets a multimap of all the already registered (using the deprecated method) custom items indexed by the item's extended java item's identifier.
      *
      * @deprecated use {@link GeyserDefineCustomItemsEvent#getExistingCustomItemDefinitions()}
-     * @return a multimap of all the already registered custom items
+     * @return a multimap of all the already custom items registered using {@link GeyserDefineCustomItemsEvent#register(String, CustomItemData)}
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated
     @NonNull
-    default Map<String, Collection<CustomItemData>> getExistingCustomItems() {
-        return Collections.emptyMap();
-    }
+    Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
      * Gets a multimap of all the already registered custom item definitions indexed by the item's extended java item's identifier.
