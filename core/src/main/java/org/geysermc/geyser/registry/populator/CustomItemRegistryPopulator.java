@@ -76,8 +76,9 @@ import java.util.Set;
 
 public class CustomItemRegistryPopulator {
     private static final Identifier UNBREAKABLE_COMPONENT = new Identifier("minecraft", "unbreakable");
+
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
-    // TODO these don't seem to be applying correctly
+    // These don't all work correctly on Bedrock - their behaviour is described below
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
         Consumable.ItemUseAnimation.NONE, 0, // Does nothing in 1st person, eating in 3rd person
         Consumable.ItemUseAnimation.EAT, 1, // Appears to look correctly
@@ -252,6 +253,12 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.getToolType()) : toolProperties.canDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
+        switch (vanillaMapping.getBedrockIdentifier()) {
+            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
+            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaMapping.getBedrockIdentifier());
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
+        }
+
         // Using API component here because MCPL one is just an ID holder set
         Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
         if (repairable != null) {
@@ -285,13 +292,6 @@ public class CustomItemRegistryPopulator {
         UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, componentBuilder);
-        }
-
-        // TODO not really a fan of this switch statement
-        switch (vanillaMapping.getBedrockIdentifier()) {
-            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
-            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaMapping.getBedrockIdentifier());
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
         }
 
         computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder);
@@ -355,7 +355,6 @@ public class CustomItemRegistryPopulator {
                     .build())
                 .putInt("max_durability", maxDamage)
                 .build());
-            itemProperties.putBoolean("use_duration", true);
         }
     }
 
@@ -451,21 +450,23 @@ public class CustomItemRegistryPopulator {
     private static void computeBlockItemProperties(String blockItem, NbtMapBuilder componentBuilder) {
         // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
         // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
-        // it also causes the item to glitch when right clicked to "equip" so this should only be added here later if these issues can be overcome
+        // it also causes the item to glitch when right-clicked to "equip" so this should only be added here later if these issues can be overcome
 
         // all block items registered should be given this component to prevent double placement
-        componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
+        componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder()
+            .putString("block", blockItem)
+            .putBoolean("canUseBlockAsIcon", false)
+            .putList("use_on", NbtType.STRING)
+            .build());
     }
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, String mapping) {
-        // TODO check this, it's probably wrong by now
-
         // setting high use_duration prevents the consume animation from playing
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("use_duration", 100F)
             .putFloat("movement_modifier", 0.35F)
+            .putFloat("use_duration", 100.0F)
             .build());
 
         switch (mapping) {
@@ -478,19 +479,17 @@ public class CustomItemRegistryPopulator {
                             .putCompound("item", NbtMap.builder()
                                 .putString("name", "minecraft:arrow")
                                 .build())
-                            .putBoolean("use_offhand", true)
                             .putBoolean("search_inventory", true)
+                            .putBoolean("use_in_creative", false)
+                            .putBoolean("use_offhand", true)
                             .build()
                     ))
-                    .putFloat("max_draw_duration", 0f)
                     .putBoolean("charge_on_draw", true)
+                    .putFloat("max_draw_duration", 0.0F)
                     .putBoolean("scale_power_by_draw_duration", true)
                     .build());
-                componentBuilder.putInt("minecraft:use_duration", 999);
             }
-            case "minecraft:trident" -> {
-                componentBuilder.putInt("minecraft:use_duration", 999);
-            }
+            case "minecraft:trident" -> itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(Consumable.ItemUseAnimation.SPEAR));
             case "minecraft:crossbow" -> {
                 itemProperties.putInt("frame_count", 10);
 
@@ -501,20 +500,19 @@ public class CustomItemRegistryPopulator {
                                 .putString("name", "minecraft:arrow")
                                 .build())
                             .putBoolean("use_offhand", true)
+                            .putBoolean("use_in_creative", false)
                             .putBoolean("search_inventory", true)
                             .build()
                     ))
-                    .putFloat("max_draw_duration", 1f)
                     .putBoolean("charge_on_draw", true)
+                    .putFloat("max_draw_duration", 1.0F)
                     .putBoolean("scale_power_by_draw_duration", true)
                     .build());
-                componentBuilder.putInt("minecraft:use_duration", 999);
             }
         }
     }
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        // TODO check the animations, it didn't work properly
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
         itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
@@ -534,7 +532,7 @@ public class CustomItemRegistryPopulator {
             .build());
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", 0.2F) // TODO is this the right value
+            .putFloat("movement_modifier", 0.35F)
             .putFloat("use_duration", consumable.consumeSeconds())
             .build());
     }
@@ -542,21 +540,23 @@ public class CustomItemRegistryPopulator {
     private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
         // all items registered that place entities should be given this component to prevent double placement
         // it is okay that the entity here does not match the actual one since we control what entity actually spawns
-        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
+        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder()
+            .putList("dispense_on", NbtType.STRING)
+            .putString("entity", "minecraft:minecart")
+            .putList("use_on", NbtType.STRING)
+            .build());
     }
 
     private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
-        // TODO check this, it's probably wrong by now
-
         // allows item to be thrown when holding down right click (individual presses are required w/o this component)
         componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+
         // this must be set to something for the swing animation to play
         // it is okay that the projectile here does not match the actual one since we control what entity actually spawns
         componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
     }
 
     private static void computeUseCooldownProperties(UseCooldown cooldown, NbtMapBuilder componentBuilder) {
-        // TODO the non null check can probably be removed when no longer using MCPL in API
         Objects.requireNonNull(cooldown.cooldownGroup(), "Cooldown group can't be null");
         componentBuilder.putCompound("minecraft:cooldown", NbtMap.builder()
             .putString("category", cooldown.cooldownGroup().asString())
