@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
@@ -41,9 +41,7 @@ public class ToolPropertiesReader extends DataComponentReader<ToolProperties> {
     }
 
     @Override
-    protected ToolProperties readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
-        MappingsUtil.requireObject(node, "reading component", context);
-
-        return new ToolProperties(MappingsUtil.readOrDefault(node, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));
+    protected ToolProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        return new ToolProperties(MappingsUtil.readOrDefault(element, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));
     }
 }

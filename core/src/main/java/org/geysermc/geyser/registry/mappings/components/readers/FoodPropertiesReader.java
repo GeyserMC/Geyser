@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.FoodProperties;
@@ -41,12 +41,10 @@ public class FoodPropertiesReader extends DataComponentReader<FoodProperties> {
     }
 
     @Override
-    protected FoodProperties readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
-        MappingsUtil.requireObject(node, "reading component", context);
-
-        int nutrition = MappingsUtil.readOrDefault(node, "nutrition", NodeReader.NON_NEGATIVE_INT, 0, context);
-        float saturation = MappingsUtil.readOrDefault(node, "saturation", NodeReader.NON_NEGATIVE_DOUBLE.andThen(Double::floatValue), 0.0F, context);
-        boolean canAlwaysEat = MappingsUtil.readOrDefault(node, "can_always_eat", NodeReader.BOOLEAN, false, context);
+    protected FoodProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        int nutrition = MappingsUtil.readOrDefault(element, "nutrition", NodeReader.NON_NEGATIVE_INT, 0, context);
+        float saturation = MappingsUtil.readOrDefault(element, "saturation", NodeReader.NON_NEGATIVE_DOUBLE.andThen(Double::floatValue), 0.0F, context);
+        boolean canAlwaysEat = MappingsUtil.readOrDefault(element, "can_always_eat", NodeReader.BOOLEAN, false, context);
 
         return new FoodProperties(nutrition, saturation, canAlwaysEat);
     }

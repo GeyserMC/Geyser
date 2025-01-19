@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
@@ -41,12 +41,10 @@ public class ConsumableReader extends DataComponentReader<Consumable> {
     }
 
     @Override
-    protected Consumable readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
-        MappingsUtil.requireObject(node, "reading component", context);
+    protected Consumable readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        float consumeSeconds = MappingsUtil.readOrDefault(element, "consume_seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), 1.6F, context);
+        Consumable.Animation animation = MappingsUtil.readOrDefault(element, "animation", NodeReader.CONSUMABLE_ANIMATION, Consumable.Animation.EAT, context);
 
-        float consumeSeconds = MappingsUtil.readOrDefault(node, "consume_seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), 1.6F, context);
-        Consumable.Animation animation = MappingsUtil.readOrDefault(node, "animation", NodeReader.CONSUMABLE_ANIMATION, Consumable.Animation.EAT, context);
-
-        return new Consumable(consumeSeconds, animation); // TODO are sound and particles supported on bedrock?
+        return new Consumable(consumeSeconds, animation);
     }
 }

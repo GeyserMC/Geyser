@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -65,12 +66,12 @@ public class EnchantableReader extends DataComponentReader<Integer> {
     }
 
     @Override
-    protected Integer readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
+    protected Integer readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         try {
-            return NodeReader.NON_NEGATIVE_INT.read(node, "reading component", context);
-        } catch (InvalidCustomMappingsFileException exception) {
-            MappingsUtil.requireObject(node, "reading component", context);
-            return MappingsUtil.readOrThrow(node, "value", NodeReader.NON_NEGATIVE_INT);
-        }
+            if (element instanceof JsonPrimitive primitive) {
+                return NodeReader.NON_NEGATIVE_INT.read(primitive, "reading component", context);
+            }
+        } catch (InvalidCustomMappingsFileException ignored) {}
+        return MappingsUtil.readOrThrow(element, "value", NodeReader.NON_NEGATIVE_INT);
     }
 }

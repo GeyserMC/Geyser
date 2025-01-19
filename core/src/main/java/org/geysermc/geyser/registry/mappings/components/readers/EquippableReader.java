@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
@@ -41,9 +41,8 @@ public class EquippableReader extends DataComponentReader<Equippable> {
     }
 
     @Override
-    protected Equippable readDataComponent(@NonNull JsonNode node, String... context) throws InvalidCustomMappingsFileException {
-        MappingsUtil.requireObject(node, "reading component", context);
-        Equippable.EquipmentSlot slot = MappingsUtil.readOrThrow(node, "slot", NodeReader.EQUIPMENT_SLOT, context);
+    protected Equippable readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        Equippable.EquipmentSlot slot = MappingsUtil.readOrThrow(element, "slot", NodeReader.EQUIPMENT_SLOT, context);
         return new Equippable(slot);
     }
 }
