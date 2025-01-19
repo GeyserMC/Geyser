@@ -99,6 +99,7 @@ public class MappingsReader_v2 extends MappingsReader {
             // Read model of group if it's present, or default to the model of the parent group, if that's present
             // If the parent group model is not present (or there is no parent group), and this group also doesn't have a model, then it is expected the definitions supply their model themselves
             Identifier groupModel = MappingsUtil.readOrDefault(data, "model", NodeReader.IDENTIFIER, model, context);
+
             // The method above should have already thrown a properly formatted error if data is not a JSON object
             JsonElement definitions = data.getAsJsonObject().get("definitions");
 
@@ -171,8 +172,6 @@ public class MappingsReader_v2 extends MappingsReader {
         MappingsUtil.readIfPresent(element, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
         MappingsUtil.readIfPresent(element, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
         MappingsUtil.readIfPresent(element, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readIfPresent(element, "texture_size", builder::textureSize, NodeReader.POSITIVE_INT, context);
-        MappingsUtil.readIfPresent(element, "render_offsets", builder::renderOffsets, MappingsReader::fromJsonObject, context);
 
         if (element.getAsJsonObject().get("tags") instanceof JsonArray tags) {
             Set<String> tagsSet = new ObjectOpenHashSet<>();

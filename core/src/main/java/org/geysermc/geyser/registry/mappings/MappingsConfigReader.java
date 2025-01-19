@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v1;
+import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v2;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class MappingsConfigReader {
 
     public MappingsConfigReader() {
         this.mappingReaders.put(1, new MappingsReader_v1());
+        this.mappingReaders.put(2, new MappingsReader_v2());
     }
 
     public Path[] getCustomMappingsFiles() {
@@ -75,7 +77,7 @@ public class MappingsConfigReader {
         return true;
     }
 
-    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
+    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemDefinition> consumer) {
         if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
             return;
         }
