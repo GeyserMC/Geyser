@@ -36,7 +36,7 @@ public record Consumable(@Positive float consumeSeconds, Animation animation) {
     }
 
     /**
-     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation.
+     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation. The {@code toot_horn} animation doesn't exist on bedrock, and is therefore not listed here.
      */
     public enum Animation {
         /**
@@ -71,7 +71,6 @@ public record Consumable(@Positive float consumeSeconds, Animation animation) {
          * Does nothing in 1st person, but looks like spyglass in 3rd person.
          */
         SPYGLASS,
-        TOOT_HORN,
         /**
          * Brush in 1st and 3rd person. Will look weird when not displayed handheld.
          */

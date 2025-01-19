@@ -88,7 +88,6 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.SPEAR, 6,
         Consumable.ItemUseAnimation.CROSSBOW, 9,
         Consumable.ItemUseAnimation.SPYGLASS, 10,
-        Consumable.ItemUseAnimation.TOOT_HORN, 11,
         Consumable.ItemUseAnimation.BRUSH, 12
     );
 
@@ -509,11 +508,14 @@ public class CustomItemRegistryPopulator {
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
-        itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(consumable.animation()));
 
-        componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
-            .putString("value", consumable.animation().toString().toLowerCase())
-            .build());
+        Integer animationId = BEDROCK_ANIMATIONS.get(consumable.animation());
+        if (animationId != null) {
+            itemProperties.putInt("use_animation", animationId);
+            componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
+                .putString("value", consumable.animation().toString().toLowerCase())
+                .build());
+        }
 
         int nutrition = foodProperties == null ? 0 : foodProperties.getNutrition();
         float saturationModifier = foodProperties == null ? 0.0F : foodProperties.getSaturationModifier();
