@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.mappings.versions;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -58,7 +57,7 @@ import java.util.function.BiConsumer;
 public class MappingsReader_v2 extends MappingsReader {
 
     @Override
-    public void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
         readItemMappingsV2(file, mappingsRoot, consumer);
     }
 
@@ -84,9 +83,9 @@ public class MappingsReader_v2 extends MappingsReader {
     }
 
     @Override
-    public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
-        JsonNode blocksNode = mappingsRoot.get("blocks");
-        if (blocksNode != null) {
+    public void readBlockMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
+        JsonElement blocks = mappingsRoot.get("blocks");
+        if (blocks != null) {
             throw new UnsupportedOperationException("Unimplemented; use the v1 format of block mappings");
         }
     }
@@ -173,7 +172,7 @@ public class MappingsReader_v2 extends MappingsReader {
         MappingsUtil.readIfPresent(element, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
         MappingsUtil.readIfPresent(element, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readIfPresent(element, "texture_size", builder::textureSize, NodeReader.POSITIVE_INT, context);
-        MappingsUtil.readIfPresent(element, "render_offsets", builder::renderOffsets, MappingsReader::renderOffsetsFromJsonNode, context);
+        MappingsUtil.readIfPresent(element, "render_offsets", builder::renderOffsets, MappingsReader::fromJsonObject, context);
 
         if (element.getAsJsonObject().get("tags") instanceof JsonArray tags) {
             Set<String> tagsSet = new ObjectOpenHashSet<>();
@@ -258,7 +257,7 @@ public class MappingsReader_v2 extends MappingsReader {
     }
 
     @Override
-    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException {
+    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement node) throws InvalidCustomMappingsFileException {
         throw new InvalidCustomMappingsFileException("Unimplemented; use the v1 format of block mappings");
     }
 }
