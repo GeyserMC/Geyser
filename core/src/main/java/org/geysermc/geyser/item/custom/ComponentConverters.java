@@ -78,7 +78,6 @@ public class ComponentConverters {
                 case SPEAR -> Consumable.ItemUseAnimation.SPEAR;
                 case CROSSBOW -> Consumable.ItemUseAnimation.CROSSBOW;
                 case SPYGLASS -> Consumable.ItemUseAnimation.SPYGLASS;
-                case TOOT_HORN -> Consumable.ItemUseAnimation.TOOT_HORN;
                 case BRUSH -> Consumable.ItemUseAnimation.BRUSH;
             };
             itemMap.put(DataComponentType.CONSUMABLE, new Consumable(value.consumeSeconds(), convertedAnimation, BuiltinSound.ENTITY_GENERIC_EAT,
