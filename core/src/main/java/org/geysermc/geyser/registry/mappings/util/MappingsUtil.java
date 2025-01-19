@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.registry.mappings.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.util.ArrayList;
@@ -33,42 +35,59 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MappingsUtil {
+    private static final String OBJECT_ERROR = "element was not an object";
+    private static final String REQUIRED_ERROR = "key is required but was not present";
+    private static final String PRIMITIVE_ERROR = "key must be a primitive";
 
-    public static <T> T readOrThrow(JsonNode node, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
-        JsonNode object = node.get(name);
-        if (object == null) {
-            throw new InvalidCustomMappingsFileException(formatTask(name), "key is required but was not present", context);
+    public static <T> T readOrThrow(JsonElement object, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
+        JsonElement element = getJsonElement(object, name, context);
+        if (element == null) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), REQUIRED_ERROR, context);
+        } else if (!element.isJsonPrimitive()) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), PRIMITIVE_ERROR, context);
         }
-        return converter.read(object, formatTask(name), context);
+        return converter.read((JsonPrimitive) element, formatTask(name), context);
     }
 
-    public static <T> T readOrDefault(JsonNode node, String name, NodeReader<T> converter, T defaultValue, String... context) throws InvalidCustomMappingsFileException {
-        JsonNode object = node.get(name);
-        if (object == null) {
+    public static <T> T readOrDefault(JsonElement object, String name, NodeReader<T> converter, T defaultValue, String... context) throws InvalidCustomMappingsFileException {
+        JsonElement element = getJsonElement(object, name, context);
+        if (element == null) {
             return defaultValue;
+        } else if (!element.isJsonPrimitive()) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), PRIMITIVE_ERROR, context);
         }
-        return converter.read(object, formatTask(name), context);
+        return converter.read((JsonPrimitive) element, formatTask(name), context);
     }
 
-    public static <T> List<T> readArrayOrThrow(JsonNode node, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
-        JsonNode array = node.get(name);
-        if (array == null) {
-            throw new InvalidCustomMappingsFileException(formatTask(name), "key is required but was not present", context);
-        } else if (!array.isArray()) {
+    public static <T> List<T> readArrayOrThrow(JsonElement object, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
+        JsonElement element = getJsonElement(object, name, context);
+        if (element == null) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), REQUIRED_ERROR, context);
+        } else if (!element.isJsonArray()) {
             throw new InvalidCustomMappingsFileException(formatTask(name), "key must be an array", context);
         }
 
+        JsonArray array = element.getAsJsonArray();
         List<T> objects = new ArrayList<>();
-        for (int i = 0; i < node.size(); i++) {
-            JsonNode object = node.get(i);
-            objects.add(converter.read(object, "reading object " + i + " in key \"" + name + "\"", context));
+        for (int i = 0; i < array.size(); i++) {
+            JsonElement item = array.get(i);
+            String task = "reading object " + i + " in key \"" + name + "\"";
+
+            if (!item.isJsonPrimitive()) {
+                throw new InvalidCustomMappingsFileException(task, PRIMITIVE_ERROR, context);
+            }
+            objects.add(converter.read((JsonPrimitive) item, task, context));
         }
         return objects;
     }
 
-    public static <T> void readIfPresent(JsonNode node, String name, Consumer<T> consumer, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
-        if (node.has(name)) {
-            consumer.accept(converter.read(node.get(name), formatTask(name), context));
+    public static <T> void readIfPresent(JsonElement node, String name, Consumer<T> consumer, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
+        JsonElement element = getJsonElement(node, name, context);
+        if (element != null) {
+            if (!element.isJsonPrimitive()) {
+                throw new InvalidCustomMappingsFileException(formatTask(name), PRIMITIVE_ERROR, context);
+            }
+            consumer.accept(converter.read((JsonPrimitive) element, formatTask(name), context));
         }
     }
 
@@ -77,6 +96,13 @@ public class MappingsUtil {
         if (node == null || !node.isObject()) {
             throw new InvalidCustomMappingsFileException(task, "expected an object", context);
         }
+    }
+
+    private static JsonElement getJsonElement(JsonElement element, String name, String... context) throws InvalidCustomMappingsFileException {
+        if (!element.isJsonObject()) {
+            throw new InvalidCustomMappingsFileException(formatTask(name), OBJECT_ERROR, context);
+        }
+        return element.getAsJsonObject().get(name);
     }
 
     private static String formatTask(String name) {

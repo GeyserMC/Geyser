@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
@@ -46,54 +46,44 @@ import java.util.function.Predicate;
 public interface NodeReader<T> {
 
     NodeReader<Integer> INT = node -> {
-        if (!node.isTextual() && !node.isIntegralNumber()) {
-            throw new InvalidCustomMappingsFileException("expected node to be an integer");
+        if (node.getAsNumber() instanceof Integer i) {
+            return i;
         }
-        return node.isTextual() ? Integer.parseInt(node.textValue()) : node.intValue(); // Not using asInt because that catches the exception parseInt throws, which we don't want
+        throw new InvalidCustomMappingsFileException("expected node to be an integer");
     };
 
     NodeReader<Integer> NON_NEGATIVE_INT = INT.validate(i -> i >= 0, "integer must be non-negative");
 
     NodeReader<Integer> POSITIVE_INT = INT.validate(i -> i > 0, "integer must be positive");
 
-    NodeReader<Double> DOUBLE = node -> {
-        if (!node.isTextual() && !node.isNumber()) {
-            throw new InvalidCustomMappingsFileException("expected node to be a number");
-        }
-        return node.isTextual() ? Double.parseDouble(node.textValue()) : node.doubleValue(); // Not using asDouble because that catches the exception parseDouble throws, which we don't want
-    };
+    NodeReader<Double> DOUBLE = JsonPrimitive::getAsDouble;
 
     NodeReader<Double> NON_NEGATIVE_DOUBLE = DOUBLE.validate(d -> d >= 0, "number must be non-negative");
 
     NodeReader<Double> POSITIVE_DOUBLE = DOUBLE.validate(d -> d > 0, "number must be positive");
 
     NodeReader<Boolean> BOOLEAN = node -> {
-        if (node.isTextual()) {
-            String s = node.textValue();
+        // Not directly using getAsBoolean here since that doesn't convert integers and doesn't throw an error when the string is not "true" or "false"
+        if (node.isString()) {
+            String s = node.getAsString();
             if (s.equals("true")) {
                 return true;
             } else if (s.equals("false")) {
                 return false;
             }
-        } else if (node.isIntegralNumber()) {
-            int i = node.intValue();
+        } else if (node.isNumber() && node.getAsNumber() instanceof Integer i) {
             if (i == 1) {
                 return true;
             } else if (i == 0) {
                 return false;
             }
         } else if (node.isBoolean()) {
-            return node.booleanValue();
+            return node.getAsBoolean();
         }
         throw new InvalidCustomMappingsFileException("expected node to be a boolean");
     };
 
-    NodeReader<String> STRING = node -> {
-        if (!node.isTextual() && !node.isNumber() && !node.isBoolean()) {
-            throw new InvalidCustomMappingsFileException("expected node to be a string");
-        }
-        return node.asText();
-    };
+    NodeReader<String> STRING = JsonPrimitive::getAsString;
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
@@ -156,11 +146,11 @@ public interface NodeReader<T> {
     }
 
     /**
-     * {@link NodeReader#read(JsonNode, String, String...)} is preferably used as that properly formats the error when one is thrown.
+     * {@link NodeReader#read(JsonPrimitive, String, String...)} is preferably used as that properly formats the error when one is thrown.
      */
-    T read(JsonNode node) throws InvalidCustomMappingsFileException;
+    T read(JsonPrimitive node) throws InvalidCustomMappingsFileException;
 
-    default T read(JsonNode node, String task, String... context) throws InvalidCustomMappingsFileException {
+    default T read(JsonPrimitive node, String task, String... context) throws InvalidCustomMappingsFileException {
         try {
             return read(node);
         } catch (Exception exception) {

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings.components;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -47,12 +47,12 @@ import java.util.Map;
 public class DataComponentReaders {
     private static final Map<Key, DataComponentReader<?>> READERS = new HashMap<>();
 
-    public static void readDataComponent(CustomItemDefinition.Builder builder, Key key, @NonNull JsonNode node, String baseContext) throws InvalidCustomMappingsFileException {
+    public static void readDataComponent(CustomItemDefinition.Builder builder, Key key, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
         DataComponentReader<?> reader = READERS.get(key);
         if (reader == null) {
             throw new InvalidCustomMappingsFileException("reading data components", "unknown data component " + key, baseContext);
         }
-        reader.read(builder, node, "component " + key, baseContext);
+        reader.read(builder, element, "component " + key, baseContext);
     }
 
     static {
