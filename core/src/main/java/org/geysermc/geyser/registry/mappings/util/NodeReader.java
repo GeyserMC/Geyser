@@ -46,8 +46,9 @@ import java.util.function.Predicate;
 public interface NodeReader<T> {
 
     NodeReader<Integer> INT = node -> {
-        if (node.getAsNumber() instanceof Integer i) {
-            return i;
+        double i = node.getAsDouble();
+        if (i == (int) i) { // Make sure the number is round
+            return (int) i;
         }
         throw new InvalidCustomMappingsFileException("expected node to be an integer");
     };
