@@ -36,8 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
-                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup,
-                                             int textureSize, @Nullable CustomRenderOffsets renderOffsets, @NonNull Set<String> tags) implements CustomItemBedrockOptions {
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<String> tags) implements CustomItemBedrockOptions {
 
     public static class Builder implements CustomItemBedrockOptions.Builder {
         private String icon = null;
@@ -46,8 +45,6 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         private int protectionValue = 0;
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
-        private int textureSize = 16;
-        private CustomRenderOffsets renderOffsets = null;
         private Set<String> tags = new HashSet<>();
 
         @Override
@@ -87,20 +84,6 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        @Deprecated
-        public Builder textureSize(int textureSize) {
-            this.textureSize = textureSize;
-            return this;
-        }
-
-        @Override
-        @Deprecated
-        public Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
-            this.renderOffsets = renderOffsets;
-            return this;
-        }
-
-        @Override
         public Builder tags(@Nullable Set<String> tags) {
             this.tags = Objects.requireNonNullElseGet(tags, Set::of);
             return this;
@@ -109,7 +92,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         @Override
         public CustomItemBedrockOptions build() {
             return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, textureSize, renderOffsets, tags);
+                creativeCategory, creativeGroup, tags);
         }
     }
 }

@@ -88,25 +88,6 @@ public interface CustomItemBedrockOptions {
     String creativeGroup();
 
     /**
-     * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
-     *
-     * @deprecated resizing is done with render offsets, which are deprecated in favour of attachables.
-     * @return the item's texture size
-     */
-    @Deprecated
-    int textureSize();
-
-    /**
-     * Gets the item's render offsets. If it is null, the item will be rendered normally, with no offsets.
-     *
-     * @deprecated attachables are now preferred instead of using render offsets.
-     * @return the item's render offsets
-     */
-    @Nullable
-    @Deprecated
-    CustomRenderOffsets renderOffsets();
-
-    /**
      * Gets the item's set of tags that can be used in Molang.
      * Equivalent to "tag:some_tag"
      *
@@ -132,12 +113,6 @@ public interface CustomItemBedrockOptions {
         Builder creativeCategory(CreativeCategory creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
-
-        @Deprecated
-        Builder textureSize(int textureSize);
-
-        @Deprecated
-        Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);
 

@@ -286,8 +286,6 @@ public class CustomItemRegistryPopulator {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
 
-        computeRenderOffsets(customItemDefinition.bedrockOptions(), componentBuilder);
-
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
 
@@ -558,27 +556,6 @@ public class CustomItemRegistryPopulator {
             .putFloat("duration", cooldown.seconds())
             .build()
         );
-    }
-
-    private static void computeRenderOffsets(CustomItemBedrockOptions bedrockOptions, NbtMapBuilder componentBuilder) {
-        // TODO remove this one day when, probably when removing the old format, as render offsets are deprecated
-        CustomRenderOffsets renderOffsets = bedrockOptions.renderOffsets();
-        if (renderOffsets != null) {
-            componentBuilder.remove("minecraft:render_offsets");
-            componentBuilder.putCompound("minecraft:render_offsets", toNbtMap(renderOffsets));
-        } else if (bedrockOptions.textureSize() != 16 && !componentBuilder.containsKey("minecraft:render_offsets")) {
-            float scale1 = (float) (0.075 / (bedrockOptions.textureSize() / 16f));
-            float scale2 = (float) (0.125 / (bedrockOptions.textureSize() / 16f));
-            float scale3 = (float) (0.075 / (bedrockOptions.textureSize() / 16f * 2.4f));
-
-            componentBuilder.putCompound("minecraft:render_offsets",
-                NbtMap.builder().putCompound("main_hand", NbtMap.builder()
-                        .putCompound("first_person", xyzToScaleList(scale3, scale3, scale3))
-                        .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build())
-                    .putCompound("off_hand", NbtMap.builder()
-                        .putCompound("first_person", xyzToScaleList(scale1, scale2, scale1))
-                        .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build()).build());
-        }
     }
 
     private static NbtMap toNbtMap(CustomRenderOffsets renderOffsets) {

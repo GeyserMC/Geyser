@@ -140,8 +140,6 @@ public interface CustomItemData {
                 .displayHandheld(displayHandheld())
                 .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
                 .creativeGroup(creativeGroup())
-                .textureSize(textureSize())
-                .renderOffsets(renderOffsets())
                 .tags(tags())
             );
 
