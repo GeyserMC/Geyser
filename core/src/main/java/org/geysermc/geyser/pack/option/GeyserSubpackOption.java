@@ -28,6 +28,7 @@ package org.geysermc.geyser.pack.option;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 
 import java.util.Objects;
@@ -58,7 +59,8 @@ public record GeyserSubpackOption(String subpackName) implements SubpackOption {
         }
 
         if (pack.manifest().subpacks().stream().noneMatch(subpack -> subpack.name().equals(subpackName))) {
-            throw new IllegalArgumentException("No subpack with the name %s found!".formatted(subpackName));
+            throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
+                "No subpack with the name %s found!".formatted(subpackName));
         }
     }
 }

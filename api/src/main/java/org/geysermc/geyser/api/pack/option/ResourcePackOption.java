@@ -52,6 +52,9 @@ public interface ResourcePackOption<T> {
      */
     void validate(@NonNull ResourcePack pack);
 
+    /**
+     * The different types of resource pack options.
+     */
     enum Type {
         SUBPACK,
         PRIORITY,

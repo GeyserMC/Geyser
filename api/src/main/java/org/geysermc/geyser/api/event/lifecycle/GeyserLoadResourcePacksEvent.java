@@ -34,6 +34,6 @@ import java.util.List;
 /**
  * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
 }

@@ -28,7 +28,7 @@ package org.geysermc.geyser.api.pack.option;
 import org.geysermc.geyser.api.GeyserApi;
 
 /**
- * Can be used for resource packs using the {@link org.geysermc.geyser.api.pack.UrlPackCodec}.
+ * Can be used for resource packs created with the {@link org.geysermc.geyser.api.pack.UrlPackCodec}.
  * When a Bedrock client is unable to download a resource pack from a URL, Geyser will, by default,
  * serve the resource pack over raknet (as packs are served with the {@link org.geysermc.geyser.api.pack.PathPackCodec}).
  * This option can be used to disable that behavior, and disconnect the player instead.

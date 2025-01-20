@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
 import java.util.Collection;
@@ -53,10 +54,9 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      *
      * @param pack a resource pack that will be sent to the client.
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
-     * @return true if the resource pack was added successfully,
-     *         or false if already present
+     * @throws ResourcePackException when an issue occurred during pack registration.
      */
-    public abstract boolean register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
+    public abstract void register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
 
     /**
      * Sets {@link ResourcePackOption}'s for a resource pack
@@ -64,6 +64,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      * @param uuid the resource pack uuid to register the options for
      * @param options the options to register for the pack
      * @throws IllegalArgumentException if the pack is not registered.
+     * @throws ResourcePackException when an issue occurred during resource pack option registration.
      */
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
@@ -73,6 +74,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      *
      * @param uuid the resource pack uuid for which the options are set
      * @return a list of {@link ResourcePackOption}
+     * @throws ResourcePackException if the pack does not exist.
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
@@ -81,7 +83,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      *
      * @param uuid the resource pack for which the option type is set
      * @param type the {@link ResourcePackOption.Type} of the option to query
-     * @throws IllegalArgumentException if the pack is not registered.
+     * @throws ResourcePackException if the pack does not exist.
      */
     public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
@@ -89,7 +91,6 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      * Unregisters a {@link ResourcePack} from being sent to clients.
      *
      * @param uuid the uuid of the resource pack to remove.
-     * @return true whether the resource pack was removed successfully.
      */
-    public abstract boolean unregister(@NonNull UUID uuid);
+    public abstract void unregister(@NonNull UUID uuid);
 }

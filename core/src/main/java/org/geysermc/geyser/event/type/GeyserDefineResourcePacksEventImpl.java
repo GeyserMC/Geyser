@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -54,22 +55,20 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
     }
 
     @Override
-    public boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
+    public void register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
         Objects.requireNonNull(resourcePack, "resource pack must not be null!");
         if (!(resourcePack instanceof GeyserResourcePack pack)) {
-            throw new IllegalArgumentException("unknown resource pack implementation: %s".
-                formatted(resourcePack.getClass().getSuperclass().getName()));
+            throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
-            return false;
+            throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
         }
 
         ResourcePackHolder holder = ResourcePackHolder.of(pack);
         attemptRegisterOptions(holder, options);
         packs.put(uuid, holder);
-        return true;
     }
 
     @Override
@@ -79,7 +78,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
 
         ResourcePackHolder holder = packs.get(uuid);
         if (holder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to register options");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         attemptRegisterOptions(holder, options);
@@ -90,7 +89,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         Objects.requireNonNull(uuid);
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide options");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         return packHolder.optionHolder().immutableValues();
@@ -103,15 +102,15 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
 
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide option");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         return packHolder.optionHolder().get(type);
     }
 
     @Override
-    public boolean unregister(@NonNull UUID uuid) {
-        return packs.remove(uuid) != null;
+    public void unregister(@NonNull UUID uuid) {
+        packs.remove(uuid);
     }
 
     private void attemptRegisterOptions(@NonNull ResourcePackHolder holder, @Nullable ResourcePackOption<?>... options) {

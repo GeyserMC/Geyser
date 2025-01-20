@@ -120,11 +120,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             resourcePacks.add(skullResourcePack);
         }
 
-        //noinspection removal
+        //noinspection deprecation - we know
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
-        //noinspection removal
         for (Path path : event.resourcePacks()) {
             try {
                 GeyserResourcePack pack = readPack(path).build();
@@ -273,8 +272,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             String url = codec.url();
             CACHED_FAILED_PACKS.put(url, codec);
             GeyserImpl.getInstance().getLogger().warning(
-                "A Bedrock client (%s, playing on %s / %s) was not able to download the resource pack at %s. Checking for changes now:"
-                    .formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), session.getClientData().getDeviceId(), codec.url())
+                "Bedrock client (%s, playing on %s) was not able to download the resource pack at %s. Checking for changes now:"
+                    .formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), codec.url())
             );
 
             downloadPack(codec.url(), true).whenComplete((pathPackCodec, e) -> {

@@ -32,9 +32,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
@@ -81,25 +83,29 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
-        return register(resourcePack, PriorityOption.NORMAL);
+        try {
+            register(resourcePack, PriorityOption.NORMAL);
+        } catch (ResourcePackException e) {
+            GeyserImpl.getInstance().getLogger().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public boolean register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
+    public void register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options) {
         Objects.requireNonNull(resourcePack);
         if (!(resourcePack instanceof GeyserResourcePack pack)) {
-            throw new IllegalArgumentException("Unknown resource pack implementation: %s".
-                formatted(resourcePack.getClass().getSuperclass().getName()));
+            throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
-            return false;
+            throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
         }
 
         attemptRegisterOptions(pack, options);
         packs.put(uuid, ResourcePackHolder.of(pack));
-        return true;
     }
 
     @Override
@@ -108,7 +114,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         Objects.requireNonNull(options, "options cannot be null");
         ResourcePackHolder holder = packs.get(uuid);
         if (holder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to register options");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         attemptRegisterOptions(holder.pack(), options);
@@ -119,7 +125,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         Objects.requireNonNull(uuid);
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide options");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         OptionHolder optionHolder = sessionPackOptionOverrides.get(uuid);
@@ -138,7 +144,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         ResourcePackHolder packHolder = packs.get(uuid);
         if (packHolder == null) {
-            throw new IllegalArgumentException("resource pack with uuid " + uuid + " not found, unable to provide option");
+            throw new ResourcePackException(ResourcePackException.Cause.PACK_NOT_FOUND);
         }
 
         @Nullable OptionHolder additionalOptions = sessionPackOptionOverrides.get(uuid);
@@ -149,9 +155,9 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     @Override
-    public boolean unregister(@NonNull UUID uuid) {
+    public void unregister(@NonNull UUID uuid) {
         sessionPackOptionOverrides.remove(uuid);
-        return packs.remove(uuid) != null;
+        packs.remove(uuid);
     }
 
     private void attemptRegisterOptions(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {

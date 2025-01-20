@@ -28,6 +28,7 @@ package org.geysermc.geyser.pack.option;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 
 public record GeyserUrlFallbackOption(Boolean enabled) implements UrlFallbackOption {
@@ -45,8 +46,8 @@ public record GeyserUrlFallbackOption(Boolean enabled) implements UrlFallbackOpt
     @Override
     public void validate(@NonNull ResourcePack pack) {
         if (!(pack.codec() instanceof UrlPackCodec)) {
-            throw new IllegalArgumentException("UrlFallbackOption cannot be set on resource packs that " +
-                "are not created using the url pack codec!");
+            throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
+                "The UrlFallbackOption cannot be set on resource packs not created using the url pack codec!");
         }
     }
 }
