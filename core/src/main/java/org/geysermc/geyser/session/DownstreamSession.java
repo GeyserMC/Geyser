@@ -31,7 +31,6 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 
 @Getter
 @RequiredArgsConstructor
@@ -52,14 +51,5 @@ public class DownstreamSession {
 
     public boolean isClosed() {
         return !this.session.isConnected();
-    }
-
-    /**
-     * Gets the codec helper for this session.
-     *
-     * @return the codec helper for this session
-     */
-    public MinecraftCodecHelper getCodecHelper() {
-        return (MinecraftCodecHelper) this.session.getCodecHelper();
     }
 }
