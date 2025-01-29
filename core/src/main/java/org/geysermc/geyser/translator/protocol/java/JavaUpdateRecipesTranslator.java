@@ -45,6 +45,8 @@ import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -120,16 +122,16 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         List<SelectableRecipe> stonecutterRecipes = packet.getStonecutterRecipes();
         for (SelectableRecipe recipe : stonecutterRecipes) {
             // Hardcoding the heck out of this until we see different examples of how this works.
-            HolderSet ingredient = recipe.input().getValues();
-            if (ingredient.getHolders() == null || ingredient.getHolders().length != 1) {
-                session.getGeyser().getLogger().debug("Ignoring stonecutter recipe for weird input: " + recipe);
-                continue;
-            }
             if (!(recipe.recipe() instanceof ItemStackSlotDisplay)) {
-                session.getGeyser().getLogger().debug("Ignoring stonecutter recipe for weird output: " + recipe);
+                session.getGeyser().getLogger().warning("Ignoring stonecutter recipe for weird output: " + recipe);
                 continue;
             }
-            rawStonecutterData.computeIfAbsent(ingredient.getHolders()[0], $ -> new ArrayList<>()).add(recipe);
+
+            int[] ingredients = GeyserHolderSet.fromHolderSet(JavaRegistries.ITEM, recipe.input().getValues())
+                .resolveRaw(session.getTagCache());
+            for (int ingredient : ingredients) {
+                rawStonecutterData.computeIfAbsent(ingredient, $ -> new ArrayList<>()).add(recipe);
+            }
         }
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
@@ -142,7 +144,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             for (SelectableRecipe recipe : data.getValue()) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
                 HolderSet ingredient = recipe.input().getValues();
-                int javaInput = ingredient.getHolders()[0];
+                int javaInput = data.getIntKey();
                 ItemMapping mapping = session.getItemMappings().getMapping(javaInput);
                 if (mapping.getJavaItem() == Items.AIR) {
                     // Modded ?

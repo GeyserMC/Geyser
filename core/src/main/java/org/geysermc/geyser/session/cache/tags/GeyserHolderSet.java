@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.List;
 import java.util.Objects;
@@ -54,15 +55,24 @@ public final class GeyserHolderSet<T> {
     private final int @Nullable [] holders;
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
-        this.registry = registry;
-        this.tag = null;
-        this.holders = holders;
+        this(registry, null, holders);
     }
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
+        this(registry, tagId, null);
+    }
+
+    private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, int @Nullable [] holders) {
         this.registry = registry;
-        this.tag = tagId;
-        this.holders = null;
+        this.tag = tag;
+        this.holders = holders;
+    }
+
+    /**
+     * Constructs a {@link GeyserHolderSet} from a MCPL HolderSet.
+     */
+    public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
+        return new GeyserHolderSet<>(registry, new Tag<>(registry, holderSet.getLocation()), holderSet.getHolders());
     }
 
     /**
