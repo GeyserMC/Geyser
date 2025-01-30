@@ -173,6 +173,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -1025,7 +1026,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
             }
 
             // Disconnect upstream if necessary
@@ -1646,7 +1647,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (protocol.getOutboundState() != intendedState) {
-            geyser.getLogger().warning("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state. Current state: " + protocol.getOutboundState().name());
+            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state. Current state: " + protocol.getOutboundState().name());
             return;
         }
 
