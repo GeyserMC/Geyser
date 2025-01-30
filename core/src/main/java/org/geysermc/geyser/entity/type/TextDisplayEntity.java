@@ -67,7 +67,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue()));
+        this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
         calculateLineCount(entityMetadata.getValue());
     }
 

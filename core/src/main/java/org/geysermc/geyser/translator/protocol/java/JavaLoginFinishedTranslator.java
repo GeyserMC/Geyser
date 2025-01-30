@@ -34,6 +34,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.PluginMessageUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundLoginFinishedPacket;
 
@@ -73,7 +74,7 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         session.getClientData().setOriginalString(null);
 
         // configuration phase stuff that the vanilla client replies with after receiving the GameProfilePacket
-        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(Key.key("brand"), PluginMessageUtils.getGeyserBrandData()));
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(Key.key("brand"), PluginMessageUtils.getGeyserBrandData()), ProtocolState.CONFIGURATION);
         session.sendJavaClientSettings();
     }
 }

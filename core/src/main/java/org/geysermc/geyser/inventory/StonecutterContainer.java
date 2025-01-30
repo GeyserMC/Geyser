@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.inventory;
 
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 public class StonecutterContainer extends Container {
     /**

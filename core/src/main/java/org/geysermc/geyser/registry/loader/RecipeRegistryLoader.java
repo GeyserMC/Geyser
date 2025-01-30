@@ -31,7 +31,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
@@ -81,10 +81,10 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
 //        }
 //    }
 
-    private static List<GeyserRecipe> getShapelessRecipes(List<NbtMap> recipes, MinecraftCodecHelper helper) {
+    private static List<GeyserRecipe> getShapelessRecipes(List<NbtMap> recipes) {
         List<GeyserRecipe> deserializedRecipes = new ObjectArrayList<>(recipes.size());
         for (NbtMap recipe : recipes) {
-            ItemStack output = toItemStack(recipe.getCompound("output"), helper);
+            ItemStack output = toItemStack(recipe.getCompound("output"));
             List<NbtMap> rawInputs = recipe.getList("inputs", NbtType.COMPOUND);
             Ingredient[] javaInputs = new Ingredient[rawInputs.size()];
             for (int i = 0; i < rawInputs.size(); i++) {
@@ -95,16 +95,16 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
         return deserializedRecipes;
     }
 
-    private static List<GeyserRecipe> getShapedRecipes(List<NbtMap> recipes, MinecraftCodecHelper helper) {
+    private static List<GeyserRecipe> getShapedRecipes(List<NbtMap> recipes) {
         List<GeyserRecipe> deserializedRecipes = new ObjectArrayList<>(recipes.size());
         for (NbtMap recipe : recipes) {
-            ItemStack output = toItemStack(recipe.getCompound("output"), helper);
+            ItemStack output = toItemStack(recipe.getCompound("output"));
             List<int[]> shape = recipe.getList("shape", NbtType.INT_ARRAY);
 
             // In the recipes mapping, each recipe is mapped by a number
             List<ItemStack> letterToRecipe = new ArrayList<>();
             for (NbtMap rawInput : recipe.getList("inputs", NbtType.COMPOUND)) {
-                letterToRecipe.add(toItemStack(rawInput, helper));
+                letterToRecipe.add(toItemStack(rawInput));
             }
 
             Ingredient[] inputs = new Ingredient[shape.size() * shape.get(0).length];
@@ -126,14 +126,14 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
      * id is the Java item ID as an integer, components is an optional String of the data components serialized
      * as bytes in Base64 (so MCProtocolLib can parse the data).
      */
-    private static ItemStack toItemStack(NbtMap nbt, MinecraftCodecHelper helper) {
+    private static ItemStack toItemStack(NbtMap nbt) {
         int id = nbt.getInt("id");
         int count = nbt.getInt("count", 1);
         String componentsRaw = nbt.getString("components", null);
         if (componentsRaw != null) {
             byte[] bytes = Base64.getDecoder().decode(componentsRaw);
             ByteBuf buf = Unpooled.wrappedBuffer(bytes);
-            DataComponents components = helper.readDataComponentPatch(buf);
+            DataComponents components = MinecraftTypes.readDataComponentPatch(buf);
             return new ItemStack(id, count, components);
         }
         return new ItemStack(id, count);
