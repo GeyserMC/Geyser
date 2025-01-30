@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Represents the creative menu categories or tabs.
@@ -37,21 +38,21 @@ public enum CreativeCategory {
     ITEMS("items", 4),
     NONE("none", 6);
 
-    private final String internalName;
+    private final String bedrockName;
     private final int id;
 
-    CreativeCategory(String internalName, int id) {
-        this.internalName = internalName;
+    CreativeCategory(String bedrockName, int id) {
+        this.bedrockName = bedrockName;
         this.id = id;
     }
 
     /**
-     * Gets the internal name of the category.
+     * Gets the bedrock name (used in behaviour packs) of the category.
      * 
      * @return the name of the category
      */
-    public @NonNull String internalName() {
-        return internalName;
+    public @NonNull String bedrockName() {
+        return bedrockName;
     }
 
     /**
@@ -61,5 +62,19 @@ public enum CreativeCategory {
      */
     public int id() {
         return id;
+    }
+
+    /**
+     * Gets the creative category from its bedrock name.
+     *
+     * @return the creative category, or null if not found.
+     */
+    public static @Nullable CreativeCategory fromName(String name) {
+        for (CreativeCategory category : values()) {
+            if (category.bedrockName.equals(name)) {
+                return category;
+            }
+        }
+        return null;
     }
 }
