@@ -193,20 +193,21 @@ public class MessageTranslator {
             }
 
             // This needs a better name
-            String finalFinalLegacy = finalLegacy.toString();
-            StringBuilder output = new StringBuilder();
+            String finalLegacyString = finalLegacy.toString();
 
             // If the message contains \n then go through and re-set the color after each by caching the last color
             // Bedrock is dumb and resets the color after a newline
-            if (finalFinalLegacy.contains("\n")) {
+            if (finalLegacyString.contains("\n")) {
+                StringBuilder output = new StringBuilder();
+
                 StringBuilder lastColors = new StringBuilder();
-                for (int i = 0; i < finalFinalLegacy.length(); i++) {
-                    char c = finalFinalLegacy.charAt(i);
+                for (int i = 0; i < finalLegacyString.length(); i++) {
+                    char c = finalLegacyString.charAt(i);
 
                     output.append(c);
 
                     if (c == ChatColor.ESCAPE) {
-                        char newColor = finalFinalLegacy.charAt(i + 1);
+                        char newColor = finalLegacyString.charAt(i + 1);
                         if (newColor == 'r') {
                             lastColors = new StringBuilder();
                         } else {
@@ -216,15 +217,11 @@ public class MessageTranslator {
                         output.append(lastColors);
                     }
                 }
+
+                return output.toString();
             } else {
-                output.append(finalFinalLegacy);
+                return finalLegacyString;
             }
-
-            if (output.isEmpty()) {
-                GeyserImpl.getInstance().getLogger().debug("A");
-            }
-
-            return output.toString();
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
