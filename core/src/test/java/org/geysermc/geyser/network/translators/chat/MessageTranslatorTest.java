@@ -86,7 +86,7 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("", MessageTranslator.convertMessageLenient(""), "Empty message is not handled properly");
         Assertions.assertEquals("§r§eGame Selector", MessageTranslator.convertMessageLenient("§r§eGame Selector"), "Reset before message is not handled properly");
         Assertions.assertEquals("Bold Underline", MessageTranslator.convertMessageLenient("§m§nBold Underline"), "Unimplemented formatting chars not stripped");
-        Assertions.assertEquals("Duplicate and redundant reset removal", "§r§r§d[Test]§r", "§r§d[Test]");
+        Assertions.assertEquals("§r§d[Test]", MessageTranslator.convertMessageLenient("§r§r§d[Test]§r"), "Duplicate and redundant reset removal");
     }
 
     @Test
