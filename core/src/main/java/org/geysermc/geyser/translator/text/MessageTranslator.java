@@ -195,6 +195,12 @@ public class MessageTranslator {
             // This needs a better name
             String finalLegacyString = finalLegacy.toString();
 
+            // Remove duplicate resets and trailing resets
+            finalLegacyString = finalLegacyString.replaceAll("(" + RESET + "){2,}", RESET);
+            if (finalLegacyString.endsWith(RESET)) {
+                finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
+            }
+
             // If the message contains \n then go through and re-set the color after each by caching the last color
             // Bedrock is dumb and resets the color after a newline
             if (finalLegacyString.contains("\n")) {
