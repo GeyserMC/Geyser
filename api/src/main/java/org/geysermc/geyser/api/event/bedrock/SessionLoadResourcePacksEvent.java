@@ -80,7 +80,6 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      *
      * @param uuid the resource pack uuid to register the options for
      * @param options the options to register for the pack
-     * @throws IllegalArgumentException if the pack is not registered
      * @throws ResourcePackException if an issue occurred during resource pack option registration
      */
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
