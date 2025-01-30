@@ -41,6 +41,7 @@ public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
 
     /**
      * Whether to fall back to serving packs over the raknet connection
+     *
      * @param fallback whether to fall back
      * @return a UrlFallbackOption with the specified behavior
      */

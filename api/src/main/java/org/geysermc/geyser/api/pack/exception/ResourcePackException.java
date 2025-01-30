@@ -25,11 +25,16 @@
 
 package org.geysermc.geyser.api.pack.exception;
 
+import java.io.Serial;
+
 /**
  * Used to indicate an exception that occurred while handling resource pack registration,
  * or during resource pack option validation.
  */
 public class ResourcePackException extends IllegalArgumentException {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * The {@link Cause} of this exception.

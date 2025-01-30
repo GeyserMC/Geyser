@@ -49,7 +49,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Gets an unmodifiable list of {@link ResourcePack}'s that will be sent to the client.
      *
-     * @return an unmodifiable list of resource packs that will be sent to the client.
+     * @return an unmodifiable list of resource packs that will be sent to the client
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
@@ -69,9 +69,9 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * Registers a {@link ResourcePack} to be sent to the client, alongside
      * specific options.
      *
-     * @param resourcePack The resource pack that will be sent to the client.
+     * @param resourcePack The resource pack that will be sent to the client
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
-     * @throws ResourcePackException when an issue occurred during pack registration.
+     * @throws ResourcePackException if an issue occurred during pack registration
      */
     public abstract void register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
 
@@ -80,8 +80,8 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      *
      * @param uuid the resource pack uuid to register the options for
      * @param options the options to register for the pack
-     * @throws IllegalArgumentException if the pack is not registered.
-     * @throws ResourcePackException when an issue occurred during resource pack option registration.
+     * @throws IllegalArgumentException if the pack is not registered
+     * @throws ResourcePackException if an issue occurred during resource pack option registration
      */
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
@@ -90,7 +90,8 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * These are not modifiable.
      *
      * @param uuid the resource pack for which the options are set
-     * @return a list of {@link ResourcePackOption
+     * @return a list of {@link ResourcePackOption}
+     * @throws ResourcePackException if the pack does not exist
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 

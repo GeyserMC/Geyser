@@ -36,7 +36,7 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 public interface SubpackOption extends ResourcePackOption<String> {
 
     /**
-     * Creates a subpack option based on a {@link ResourcePackManifest.Subpack}
+     * Creates a subpack option based on a {@link ResourcePackManifest.Subpack}.
      *
      * @param subpack the chosen subpack
      * @return a subpack option specifying that subpack
@@ -56,7 +56,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
     }
 
     /**
-     * Creates a subpack option with no subpack specified
+     * Creates a subpack option with no subpack specified.
      *
      * @return a subpack option specifying no subpack
      */
