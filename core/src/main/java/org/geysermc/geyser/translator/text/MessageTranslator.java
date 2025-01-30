@@ -192,7 +192,6 @@ public class MessageTranslator {
                 lastFormatReset = next == 'r';
             }
 
-            // This needs a better name
             String finalLegacyString = finalLegacy.toString();
 
             // Remove duplicate resets and trailing resets
