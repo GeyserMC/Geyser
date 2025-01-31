@@ -23,12 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
@@ -38,44 +37,34 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending {@link ResourcePack}'s.
- * @since 2.1.1
+ * Called when {@link ResourcePack}'s are loaded within Geyser.
+ * @since 2.6.1
  */
-public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
-        super(connection);
-    }
+public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets the {@link ResourcePack}'s that will be sent to the client.
+     * Gets the {@link ResourcePack}'s that will be sent to the clients.
      * To remove packs, use {@link #unregister(UUID)}, as the list returned
      * by this method is unmodifiable.
      *
      * @return an unmodifiable list of {@link ResourcePack}'s
-     * @since 2.1.1
+     * @since 2.6.1
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * @deprecated Use {{@link #register(ResourcePack, ResourcePackOption[])}} instead
-     */
-    @Deprecated
-    public abstract boolean register(@NonNull ResourcePack pack);
-
-    /**
      * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
-     * specific {@link ResourcePackOption}'s specifying how it will be applied by the client.
+     * {@link ResourcePackOption} options specifying how it will be applied on clients.
      *
-     * @param resourcePack the {@link ResourcePack} that will be sent to the client
+     * @param pack a resource pack that will be sent to the client
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
      * @throws ResourcePackException if an issue occurred during pack registration
      * @since 2.6.1
      */
-    public abstract void register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
+    public abstract void register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
 
     /**
-     * Sets {@link ResourcePackOption}'s for a {@link ResourcePack}
+     * Sets {@link ResourcePackOption}'s for a {@link ResourcePack}.
      *
      * @param uuid the uuid of the resource pack to register the options for
      * @param options the {@link ResourcePackOption}'s to register for the resource pack
@@ -85,31 +74,31 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
     /**
-     * Returns the {@link ResourcePackOption}'s set for a specific {@link ResourcePack} uuid.
+     * Returns the subpack options set for a specific {@link ResourcePack}.
      * These are not modifiable.
      *
-     * @param uuid the {@link ResourcePack} for which the options are set
-     * @return a list of {@link ResourcePackOption}
+     * @param uuid the uuid of the resource pack for which the options are set
+     * @return a list of {@link ResourcePackOption}'s
      * @throws ResourcePackException if the pack does not exist
      * @since 2.6.1
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
     /**
-     * Returns the current {@link ResourcePackOption}, or null, for a given {@link ResourcePackOption.Type}.
+     * Returns the current option, or null, for a given ResourcePackOption type.
      *
-     * @param uuid the {@link ResourcePack} for which the option type is set
+     * @param uuid the resource pack for which the option type is set
      * @param type the {@link ResourcePackOption.Type} of the option to query
-     * @throws ResourcePackException if any exception occurs during adding {@link ResourcePackOption}'s
+     * @throws ResourcePackException if the pack does not exist
      * @since 2.6.1
      */
     public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
     /**
-     * Unregisters a {@link ResourcePack} from the list of packs sent to the client.
+     * Unregisters a {@link ResourcePack} from being sent to clients.
      *
-     * @param uuid the UUID of the {@link ResourcePack}
-     * @since 2.1.1
+     * @param uuid the uuid of the resource pack to remove
+     * @since 2.6.1
      */
     public abstract void unregister(@NonNull UUID uuid);
 }
