@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.UUID;
@@ -35,6 +36,7 @@ import java.util.UUID;
  * <p>
  * This representation of a resource pack only contains what
  * Geyser requires to send it to the client.
+ * @since 2.1.1
  */
 public interface ResourcePack {
 
@@ -42,6 +44,7 @@ public interface ResourcePack {
      * The {@link PackCodec codec} for this pack.
      *
      * @return the codec for this pack
+     * @since 2.1.1
      */
     @NonNull
     PackCodec codec();
@@ -50,6 +53,7 @@ public interface ResourcePack {
      * Gets the resource pack manifest.
      *
      * @return the resource pack manifest
+     * @since 2.1.1
      */
     @NonNull
     ResourcePackManifest manifest();
@@ -58,12 +62,14 @@ public interface ResourcePack {
      * Gets the content key of the resource pack. Lack of a content key is represented by an empty String.
      *
      * @return the content key of the resource pack
+     * @since 2.1.1
      */
     @NonNull
     String contentKey();
 
     /**
      * @return the resource pack uuid. Shortcut for getting the UUID from the header
+     * @since 2.6.1
      */
     @NonNull
     default UUID uuid() {
@@ -75,6 +81,7 @@ public interface ResourcePack {
      *
      * @param codec the pack codec
      * @return the resource pack
+     * @since 2.1.1
      */
     @NonNull
     static ResourcePack create(@NonNull PackCodec codec) {
@@ -87,6 +94,7 @@ public interface ResourcePack {
      *
      * @param codec the {@link PackCodec} to base the builder on
      * @return a {@link Builder} to build a resource pack
+     * @since 2.6.1
      */
     static Builder builder(@NonNull PackCodec codec) {
         return GeyserApi.api().provider(Builder.class, codec);
@@ -94,21 +102,25 @@ public interface ResourcePack {
 
     /**
      * A builder for a resource pack. It allows providing a content key manually.
+     * @since 2.6.1
      */
     interface Builder {
 
         /**
          * @return the {@link ResourcePackManifest} of this resource pack
+         * @since 2.6.1
          */
         ResourcePackManifest manifest();
 
         /**
          * @return the {@link PackCodec} of this resource pack
+         * @since 2.6.1
          */
         PackCodec codec();
 
         /**
          * @return the current content key, or an empty string if not set
+         * @since 2.6.1
          */
         String contentKey();
 
@@ -117,11 +129,13 @@ public interface ResourcePack {
          *
          * @param contentKey the content key
          * @return this builder
+         * @since 2.6.1
          */
-        Builder contentKey(@NonNull String contentKey);
+        @This Builder contentKey(@NonNull String contentKey);
 
         /**
          * @return the resource pack
+         * @since 2.6.1
          */
         ResourcePack build();
     }

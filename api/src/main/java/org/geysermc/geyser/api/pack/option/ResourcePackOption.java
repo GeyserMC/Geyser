@@ -27,20 +27,29 @@ package org.geysermc.geyser.api.pack.option;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 
 /**
  * Represents a resource pack option that can be used to specify how a resource
  * pack is sent to Bedrock clients.
+ * <p>
+ * Not all options can be applied to all resource packs. For example, you cannot specify
+ * a specific subpack to be loaded on resource packs that do not have subpacks.
+ * To see which limitations apply to specific resource pack options, check the javadocs
+ * or see the {@link #validate(ResourcePack)} method.
+ * @since 2.6.1
  */
 public interface ResourcePackOption<T> {
 
     /**
      * @return the option type
+     * @since 2.6.1
      */
     @NonNull Type type();
 
     /**
      * @return the value of the option
+     * @since 2.6.1
      */
     @NonNull T value();
 
@@ -49,11 +58,14 @@ public interface ResourcePackOption<T> {
      * Some options are not applicable to some packs.
      *
      * @param pack the resource pack to validate the option for
+     * @throws ResourcePackException with the {@link ResourcePackException.Cause#INVALID_PACK_OPTION} cause
+     * @since 2.6.1
      */
     void validate(@NonNull ResourcePack pack);
 
     /**
-     * The different types of resource pack options.
+     * Represents the different types of resource pack options.
+     * @since 2.6.1
      */
     enum Type {
         SUBPACK,

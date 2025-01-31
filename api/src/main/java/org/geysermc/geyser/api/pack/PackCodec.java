@@ -35,6 +35,7 @@ import java.nio.file.Path;
 /**
  * Represents a pack codec that can be used
  * to provide resource packs to clients.
+ * @since 2.1.1
  */
 public abstract class PackCodec {
 
@@ -42,6 +43,7 @@ public abstract class PackCodec {
      * Gets the sha256 hash of the resource pack.
      *
      * @return the hash of the resource pack
+     * @since 2.1.1
      */
     public abstract byte @NonNull [] sha256();
 
@@ -49,11 +51,12 @@ public abstract class PackCodec {
      * Gets the resource pack size.
      *
      * @return the resource pack file size
+     * @since 2.1.1
      */
     public abstract long size();
 
     /**
-     * Use {@link #serialize()} instead.
+     * @deprecated use {@link #serialize()} instead.
      */
     @Deprecated
     @NonNull
@@ -65,6 +68,7 @@ public abstract class PackCodec {
      * Serializes the given codec into a byte buffer.
      *
      * @return the serialized resource pack
+     * @since 2.6.1
      */
     @NonNull
     public abstract SeekableByteChannel serialize() throws IOException;
@@ -73,6 +77,7 @@ public abstract class PackCodec {
      * Creates a new resource pack from this codec.
      *
      * @return the new resource pack
+     * @since 2.1.1
      */
     @NonNull
     protected abstract ResourcePack create();
@@ -81,6 +86,7 @@ public abstract class PackCodec {
      * Creates a new resource pack builder from this codec.
      *
      * @return the new resource pack builder
+     * @since 2.6.1
      */
     protected abstract ResourcePack.@NonNull Builder createBuilder();
 
@@ -89,6 +95,7 @@ public abstract class PackCodec {
      *
      * @param path the path to create the pack provider from
      * @return the new pack provider
+     * @since 2.1.1
      */
     @NonNull
     public static PathPackCodec path(@NonNull Path path) {
@@ -100,6 +107,7 @@ public abstract class PackCodec {
      *
      * @param url the url to create the pack provider from
      * @return the new pack provider
+     * @since 2.6.1
      */
     @NonNull
     public static UrlPackCodec url(@NonNull String url) {

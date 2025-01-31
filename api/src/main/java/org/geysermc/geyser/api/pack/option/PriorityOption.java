@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.GeyserApi;
  * Allows specifying a pack priority that decides the order on how packs are sent to the client.
  * Multiple resource packs can override each other. The higher the priority, the "higher" in the stack
  * a pack is, and the more a pack can override other packs.
+ * @since 2.6.1
  */
 public interface PriorityOption extends ResourcePackOption<Double> {
 
@@ -41,10 +42,12 @@ public interface PriorityOption extends ResourcePackOption<Double> {
     PriorityOption LOWEST = PriorityOption.priority(0);
 
     /**
-     * Constructs a priority option based on a value between 0 and 10
+     * Constructs a priority option based on a value between 0 and 10.
+     * The higher the number, the higher will this pack appear in the resource pack stack.
      *
      * @param priority an integer that is above 0, but smaller than 10
      * @return the priority option
+     * @since 2.6.1
      */
     static PriorityOption priority(double priority) {
         if (priority < 0 || priority > 10) {
