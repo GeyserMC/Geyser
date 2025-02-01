@@ -277,6 +277,7 @@ public class CustomBlockRegistryPopulator {
             String pistonBehavior = javaBlockState.pistonBehavior();
 
             Block.Builder builder = Block.builder()
+                .javaId(stateRuntimeId)
                 .destroyTime(javaBlockState.blockHardness())
                 .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
             if (!javaBlockState.canBreakWithHand()) {
@@ -302,7 +303,6 @@ public class CustomBlockRegistryPopulator {
 
             BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
-            BlockRegistries.BLOCK_STATES.registerWithAnyIndex(stateRuntimeId, new BlockState(block, stateRuntimeId), Blocks.AIR.defaultBlockState());
 
             // TODO register different collision types?
             BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())

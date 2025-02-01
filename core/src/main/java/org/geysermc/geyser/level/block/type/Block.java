@@ -240,7 +240,8 @@ public class Block {
         private Supplier<Item> pickItem;
 
         // We'll use this field after building
-        private Property<?>[] propertyKeys;
+        private Property<?>[] propertyKeys = null;
+        private @Nullable Integer javaId = null;
 
         /**
          * For states that we're just tracking for mirroring Java states.
@@ -298,11 +299,18 @@ public class Block {
             return this;
         }
 
+        public Builder javaId(int javaId) {
+            this.javaId = javaId;
+            return this;
+        }
+
         private List<BlockState> build(Block block) {
             if (states.isEmpty()) {
-                BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
+                if (javaId == null) {
+                    javaId = BlockRegistries.BLOCK_STATES.get().size();
+                }
+                BlockState state = new BlockState(block, javaId);
                 BlockRegistries.BLOCK_STATES.get().add(state);
-                propertyKeys = null;
                 return List.of(state);
             } else if (states.size() == 1) {
                 // We can optimize because we don't need to worry about combinations
