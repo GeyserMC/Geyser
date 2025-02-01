@@ -59,23 +59,26 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.JAVA_BLOCKS_SIZE;
 import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_CUSTOM_RUNTIME_ID;
@@ -247,8 +250,8 @@ public class CustomBlockRegistryPopulator {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
 
         if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+            // Nothing left to register, freeze block state registry
             BlockRegistries.BLOCK_STATES.freeze();
-            JAVA_BLOCKS_SIZE = BlockRegistries.BLOCK_STATES.get().size();
             return;
         }
 
@@ -300,9 +303,14 @@ public class CustomBlockRegistryPopulator {
             BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
             BlockRegistries.BLOCK_STATES.registerWithAnyIndex(stateRuntimeId, new BlockState(block, stateRuntimeId), Blocks.AIR.defaultBlockState());
-            // register collision
-            // TODO
-            //  BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), );
+
+            // TODO register different collision types?
+            BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
+                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
+                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .toArray(BoundingBox[]::new);
+            OtherCollision collision = new OtherCollision(geyserCollisions);
+            BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
         }
 
         BlockRegistries.BLOCK_STATES.freeze();

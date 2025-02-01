@@ -412,6 +412,7 @@ public final class BlockRegistryPopulator {
         }
 
         BLOCKS_NBT = blocksNbt;
+        JAVA_BLOCKS_SIZE = blocksNbt.size();
 
         JsonNode blockInteractionsJson;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/interactions.json")) {
