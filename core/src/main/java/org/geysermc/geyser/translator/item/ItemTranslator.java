@@ -236,6 +236,8 @@ public final class ItemTranslator {
             builder.canPlace(canPlace);
         }
 
+        GeyserImpl.getInstance().getLogger().info(builder.build().toString());
+
         return builder;
     }
 
