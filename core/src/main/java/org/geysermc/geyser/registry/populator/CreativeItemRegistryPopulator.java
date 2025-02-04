@@ -31,6 +31,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemCategory;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -42,11 +44,12 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
@@ -54,7 +57,30 @@ public class CreativeItemRegistryPopulator {
             (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
-    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, Consumer<ItemData.Builder> itemConsumer) {
+    static List<CreativeItemGroup> readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette) throws IOException {
+        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+
+        JsonNode creativeItemEntries;
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+            creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("groups");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative items", e);
+        }
+
+        List<CreativeItemGroup> creativeItemGroups = new ArrayList<>();
+        for (JsonNode creativeItemEntry : creativeItemEntries) {
+            CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntry.get("categoty").asText());
+            String name = creativeItemEntry.get("name").asText();
+            ItemData icon = ItemData.builder()
+                // TODO
+                .build();
+            creativeItemGroups.add(new CreativeItemGroup(category, name, icon));
+        }
+
+        return creativeItemGroups;
+    }
+
+    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, BiConsumer<ItemData.Builder, Integer> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
@@ -72,7 +98,9 @@ public class CreativeItemRegistryPopulator {
                 continue;
             }
 
-            itemConsumer.accept(itemBuilder);
+            int groupId = itemNode.get("groupId") != null ? itemNode.get("groupId").asInt() : 0;
+
+            itemConsumer.accept(itemBuilder, groupId);
         }
     }
 
