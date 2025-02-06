@@ -50,6 +50,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSta
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 @Data
 public class GeyserItemStack {
@@ -169,9 +170,9 @@ public class GeyserItemStack {
         return value;
     }
 
-    public <T> T getComponentOrFallback(@NonNull DataComponentType<T> type, T def) {
+    public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
         T value = getComponent(type);
-        return value == null ? def : value;
+        return value == null ? supplier.get() : value;
     }
 
     public int getNetId() {

@@ -47,7 +47,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unbreakable;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
 import java.util.List;
@@ -420,7 +419,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private int getRepairCost(GeyserItemStack itemStack) {
-        return itemStack.getComponentOrFallback(DataComponentType.REPAIR_COST, 0);
+        return itemStack.getComponentElseGet(DataComponentType.REPAIR_COST, () -> 0);
     }
 
     private boolean hasDurability(GeyserItemStack itemStack) {
@@ -431,6 +430,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private int getDamage(GeyserItemStack itemStack) {
-        return itemStack.getComponentOrFallback(DataComponentType.DAMAGE, 0);
+        return itemStack.getComponentElseGet(DataComponentType.DAMAGE, () -> 0);
     }
 }

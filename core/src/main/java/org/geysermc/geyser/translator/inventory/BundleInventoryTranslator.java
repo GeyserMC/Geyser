@@ -314,7 +314,7 @@ public final class BundleInventoryTranslator {
                 return Fraction.ONE;
             }
         }
-        return Fraction.getFraction(1, itemStack.getComponentOrFallback(DataComponentType.MAX_STACK_SIZE, itemStack.asItem().defaultMaxStackSize()));
+        return Fraction.getFraction(1, itemStack.getComponentElseGet(DataComponentType.MAX_STACK_SIZE, () -> itemStack.asItem().defaultMaxStackSize()));
     }
 
     public static int capacityForItemStack(Fraction bundleWeight, GeyserItemStack itemStack) {

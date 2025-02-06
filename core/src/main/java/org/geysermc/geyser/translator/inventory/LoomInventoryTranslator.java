@@ -93,10 +93,8 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         PATTERN_TO_INDEX.put("vhr", index++);
         PATTERN_TO_INDEX.put("hhb", index++);
         PATTERN_TO_INDEX.put("bo", index++);
-        index++; // Bordure indented, does not appear to exist in Bedrock?
         PATTERN_TO_INDEX.put("gra", index++);
         PATTERN_TO_INDEX.put("gru", index);
-        // Bricks do not appear to be a pattern on Bedrock, either
     }
 
     public LoomInventoryTranslator() {
@@ -120,7 +118,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
-        // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
+        // If the LOOM_MATERIAL slot is empty, we are crafting a pattern that does not come from an item
         return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
     }
 
@@ -135,10 +133,6 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             return rejectRequest(request);
         }
 
-        // Get the patterns compound tag
-        List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
-        // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
-        NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
         String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
         // Get the Java index of this pattern
@@ -146,6 +140,12 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         if (index == -1) {
             return rejectRequest(request);
         }
+
+        // Get the patterns compound tag
+        List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
+        // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
+        NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
+
         // Java's formula: 4 * row + col
         // And the Java loom window has a fixed row/width of four
         // So... Number / 4 = row (so we don't have to bother there), and number % 4 is our column, which leads us back to our index. :)
@@ -156,10 +156,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         inputCopy.setNetId(session.getNextItemNetId());
         BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
         if (bannerPatternLayer != null) {
-            List<BannerPatternLayer> patternsList = inputCopy.getComponent(DataComponentType.BANNER_PATTERNS);
-            if (patternsList == null) {
-                patternsList = new ArrayList<>();
-            }
+            List<BannerPatternLayer> patternsList = new ArrayList<>(inputCopy.getComponentElseGet(DataComponentType.BANNER_PATTERNS, ArrayList::new));
             patternsList.add(bannerPatternLayer);
             inputCopy.getOrCreateComponents().put(DataComponentType.BANNER_PATTERNS, patternsList);
         }

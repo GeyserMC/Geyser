@@ -135,9 +135,9 @@ public class BlockRegistries {
         CustomSkullRegistryPopulator.populate();
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.PRE_INIT);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.DEFINITION);
-        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
         COLLISIONS.load();
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
