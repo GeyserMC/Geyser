@@ -45,6 +45,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
@@ -173,13 +174,20 @@ public class InventoryUtils {
         if (position.getY() < minY) {
             return null;
         }
-        if (position.getY() >= maxY) {
+        if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
             position = flatPlayerPosition.sub(0, 4, 0);
-            if (position.getY() >= maxY) {
+            if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
                 return null;
             }
         }
         return position;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean canUseWorldSpace(GeyserSession session, Vector3i position) {
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+        // Block entities require more data to be restored; so let's avoid using these positions
+        return state.block().blockEntityType() == null;
     }
 
     public static void updateCursor(GeyserSession session) {
