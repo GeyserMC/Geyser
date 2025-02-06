@@ -765,7 +765,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
         upstream.sendPacket(cameraPresetsPacket);
 
-//        CreativeContentPacket creativePacket = new CreativeContentPacket(); // TODO: Cloudburst has a typo in CreativeContentPacket where we can't actually set anything. Fix me later.
+//        CreativeContentPacket creativePacket = new CreativeContentPacket();
 //        List<CreativeItemData> creativeItems = new ArrayList<>(); // TODO: Verify me!
 //        for (ItemData item : itemMappings.getCreativeItems()) {
 //            creativeItems.add(new CreativeItemData(item, item.getNetId(), 0));
