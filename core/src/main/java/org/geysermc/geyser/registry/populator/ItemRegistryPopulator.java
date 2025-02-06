@@ -47,10 +47,10 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
+import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -147,6 +147,7 @@ public class ItemRegistryPopulator {
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
         paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -195,7 +196,7 @@ public class ItemRegistryPopulator {
 
             // Used for custom items
             int nextFreeBedrockId = 0;
-            List<ComponentItemData> componentItemData = new ObjectArrayList<>();
+            List<SimpleItemDefinition> componentItemData = new ObjectArrayList<>();
 
             Int2ObjectMap<ItemDefinition> registry = new Int2ObjectOpenHashMap<>();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
@@ -206,7 +207,7 @@ public class ItemRegistryPopulator {
                     nextFreeBedrockId = id + 1;
                 }
 
-                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, false);
+                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), entry.getId(), entry.getVersion(), entry.isComponentBased(), null);
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
             }
@@ -634,7 +635,7 @@ public class ItemRegistryPopulator {
                         .putInt("id", definition.getRuntimeId())
                         .putCompound("components", (NbtMap) entry.getValue());
 
-                componentItemData.add(new ComponentItemData(id, root.build()));
+                componentItemData.add(new SimpleItemDefinition(id, definition.getRuntimeId(), definition.getVersion(), definition.isComponentBased(), root.build()));
             }
 
             // Register the item forms of custom blocks
@@ -692,7 +693,7 @@ public class ItemRegistryPopulator {
         }
     }
 
-    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<ComponentItemData> componentItemData, int protocolVersion) {
+    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<SimpleItemDefinition> componentItemData, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", "geysermc:furnace_minecart")
                 .putInt("id", nextFreeBedrockId);
@@ -727,6 +728,6 @@ public class ItemRegistryPopulator {
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
-        componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
+        componentItemData.add(new SimpleItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, 0, true, builder.build()));
     }
 }

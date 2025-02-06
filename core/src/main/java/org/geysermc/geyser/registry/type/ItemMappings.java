@@ -32,7 +32,7 @@ import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
@@ -70,7 +70,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
 
-    List<ComponentItemData> componentItemData;
+    List<SimpleItemDefinition> componentItemData;
     Int2ObjectMap<String> customIdMappings;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
