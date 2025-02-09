@@ -137,18 +137,6 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 geyserSession.bedrockUsername(), geyserSession.getProtocol().getProfile().getName(), geyserSession.remoteServer().address()));
         }
 
-        UUID uuid = geyserSession.getProtocol().getProfile().getId();
-        if (uuid == null) {
-            // Set what our UUID *probably* is going to be
-            if (geyserSession.remoteServer().authType() == AuthType.FLOODGATE) {
-                uuid = new UUID(0, Long.parseLong(geyserSession.xuid()));
-            } else {
-                uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + geyserSession.getProtocol().getProfile().getName()).getBytes(StandardCharsets.UTF_8));
-            }
-        }
-        geyserSession.getPlayerEntity().setUuid(uuid);
-        geyserSession.getPlayerEntity().setUsername(geyserSession.getProtocol().getProfile().getName());
-
         String locale = geyserSession.getClientData().getLanguageCode();
 
         // Let the user know there locale may take some time to download

@@ -119,6 +119,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -211,6 +212,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -797,7 +799,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         loggingIn = true;
         // Always replace spaces with underscores to avoid illegal nicknames, e.g. with GeyserConnect
-        protocol = new MinecraftProtocol(username.replace(' ', '_'));
+        protocol = new MinecraftProtocol(new GameProfile(javaUuid(), username.replace(' ', '_')), null);
 
         try {
             connectDownstream();
@@ -1200,6 +1202,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void setAuthenticationData(AuthData authData) {
         this.authData = authData;
+
+        playerEntity.setUsername(authData.name().replace(' ', '_'));
+
+        // Set what our UUID *probably* is going to be
+        if (remoteServer.authType() == AuthType.FLOODGATE) {
+            playerEntity.setUuid(new UUID(0, Long.parseLong(authData.xuid())));
+        } else {
+            playerEntity.setUuid(UUID.nameUUIDFromBytes(("OfflinePlayer:" + playerEntity.getUsername()).getBytes(StandardCharsets.UTF_8)));
+        }
     }
 
     public void startSneaking() {
