@@ -147,6 +147,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -739,9 +740,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
-        if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (GameProtocol.isPreCreativeInventoryRewrite(this.protocolVersion())) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
             componentPacket.getItems().addAll(itemMappings.getComponentItemData());
+            upstream.sendPacket(componentPacket);
+        } else {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
             upstream.sendPacket(componentPacket);
         }
 
@@ -760,7 +765,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(cameraPresetsPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.setContents(this.itemMappings.getCreativeItems());
+        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
+        creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -1820,6 +1826,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
+        abilityLayer.setVerticalFlySpeed(1.0f);
         Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
