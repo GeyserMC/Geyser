@@ -452,7 +452,7 @@ public class ItemRegistryPopulator {
                                             int customProtocolId = nextFreeBedrockId++;
                                             mappingItem = mappingItem.withBedrockData(customProtocolId);
                                             bedrockIdentifier = customBlockData.identifier();
-                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, 2, false, null);
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, 1, false, null);
                                             registry.put(customProtocolId, definition);
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
@@ -591,7 +591,8 @@ public class ItemRegistryPopulator {
 
             if (customItemsAllowed) {
                 // Add furnace minecart
-                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, 2, true, registerFurnaceMinecart(nextFreeBedrockId));
+                int furnaceMinecartId = nextFreeBedrockId++;
+                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, 1, true, registerFurnaceMinecart(furnaceMinecartId));
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.put(definition.getRuntimeId(), definition);
                 componentItemData.add(definition);
@@ -610,7 +611,7 @@ public class ItemRegistryPopulator {
                     .netId(creativeNetId.incrementAndGet())
                     .definition(definition)
                     .count(1)
-                    .build(), creativeNetId.get(), 2)); // TODO
+                    .build(), creativeNetId.get(), 99)); // todo do not hardcode!
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -664,7 +665,8 @@ public class ItemRegistryPopulator {
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
-                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, 2, false, null);
+                    // TODO verify
+                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, 1, false, null);
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);
                     customIdMappings.put(customProtocolId, identifier);
