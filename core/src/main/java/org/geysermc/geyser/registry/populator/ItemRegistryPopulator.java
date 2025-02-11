@@ -164,7 +164,8 @@ public class ItemRegistryPopulator {
         }
 
         NbtMap vanillaComponents;
-        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/item_components.nbt")) {
+        // TODO e.g. breeze rod icon does not load with our modified item components
+        try (InputStream stream = bootstrap.getResourceOrThrow("bedrock/item_components.nbt")) {
             vanillaComponents = (NbtMap) NbtUtils.createGZIPReader(stream, true, true).readTag();
         } catch (Exception e) {
             throw new AssertionError("Unable to load Bedrock item components", e);
@@ -198,7 +199,7 @@ public class ItemRegistryPopulator {
 
             // Used for custom items
             int nextFreeBedrockId = 0;
-            // TODO rename or yeet
+            // TODO yeet
             List<ItemDefinition> componentItemData = new ObjectArrayList<>();
 
             Int2ObjectMap<ItemDefinition> registry = new Int2ObjectOpenHashMap<>();
@@ -212,8 +213,10 @@ public class ItemRegistryPopulator {
 
                 NbtMap components = null;
                 if (entry.isComponentBased()) {
-                    // TODO test
                     components = vanillaComponents.getCompound(entry.getName());
+                    if (components == null) {
+                        throw new RuntimeException("Could not find vanilla components for vanilla component based item! " + entry.getName());
+                    }
                 }
 
                 ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, entry.getVersion(), entry.isComponentBased(), components);
@@ -449,8 +452,7 @@ public class ItemRegistryPopulator {
                                             int customProtocolId = nextFreeBedrockId++;
                                             mappingItem = mappingItem.withBedrockData(customProtocolId);
                                             bedrockIdentifier = customBlockData.identifier();
-                                            // TODO add component nbt here
-                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, true);
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, 2, false, null);
                                             registry.put(customProtocolId, definition);
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
@@ -528,7 +530,7 @@ public class ItemRegistryPopulator {
                         }
 
                         // ComponentItemData - used to register some custom properties
-                        componentItemData.add(customMapping.itemDefinition()); // TODO
+                        componentItemData.add(customMapping.itemDefinition());
                         customItemOptions.add(Pair.of(customItem.customItemOptions(), customMapping.itemDefinition()));
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
@@ -623,7 +625,6 @@ public class ItemRegistryPopulator {
                     int customItemId = nextFreeBedrockId++;
                     NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                    // TODO yeet?
                     componentItemData.add(registration.mapping().getBedrockDefinition());
                     ItemMapping mapping = registration.mapping();
                     Item javaItem = registration.javaItem();
@@ -663,7 +664,6 @@ public class ItemRegistryPopulator {
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
-                    // TODO
                     final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, 2, false, null);
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);

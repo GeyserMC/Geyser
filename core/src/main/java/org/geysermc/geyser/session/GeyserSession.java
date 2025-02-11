@@ -77,7 +77,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
-import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
@@ -740,10 +739,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
-        // TODO test
         if (this.protocolVersion() >= 776) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values().stream().map((item) -> new SimpleItemDefinition(item.getIdentifier(), item.getRuntimeId(), item.getVersion(), item.getComponentData() != null, item.getComponentData())).toList());
+            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
             upstream.sendPacket(componentPacket);
         } else if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
