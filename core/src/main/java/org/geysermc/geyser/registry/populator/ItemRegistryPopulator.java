@@ -521,7 +521,7 @@ public class ItemRegistryPopulator {
                         }
 
                         try {
-                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId);
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion);
 
                             if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                                 CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
@@ -529,7 +529,7 @@ public class ItemRegistryPopulator {
                                     .definition(customMapping.itemDefinition())
                                     .blockDefinition(null)
                                     .count(1)
-                                    .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
+                                    .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
                                 creativeItems.add(creativeItemData);
                             }
 
