@@ -1827,6 +1827,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
+        abilityLayer.setVerticalFlySpeed(1.0f);
         Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
