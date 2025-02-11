@@ -79,7 +79,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -741,6 +740,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
+        // TODO test
         if (this.protocolVersion() >= 776) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
             componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values().stream().map((item) -> new SimpleItemDefinition(item.getIdentifier(), item.getRuntimeId(), item.getVersion(), item.getComponentData() != null, item.getComponentData())).toList());
@@ -765,13 +765,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
         upstream.sendPacket(cameraPresetsPacket);
 
-//        CreativeContentPacket creativePacket = new CreativeContentPacket();
-//        List<CreativeItemData> creativeItems = new ArrayList<>(); // TODO: Verify me!
-//        for (ItemData item : itemMappings.getCreativeItems()) {
-//            creativeItems.add(new CreativeItemData(item, item.getNetId(), 0));
-//        }
-//        creativePacket.setContents(creativeItems);
-//        upstream.sendPacket(creativePacket);
+        CreativeContentPacket creativePacket = new CreativeContentPacket();
+        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
+        creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
+        upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);

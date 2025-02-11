@@ -31,6 +31,6 @@ import lombok.Data;
 public class PaletteItem {
     String name;
     int id;
-    int version = 0;
-    boolean componentBased = false;
+    int version;
+    boolean componentBased;
 }

@@ -105,12 +105,10 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping, CustomItemData customItemData, int bedrockId, int protocolVersion) {
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
-
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, mapping, customItemName, bedrockId, protocolVersion);
-        SimpleItemDefinition componentItemData = new SimpleItemDefinition(customItemName, bedrockId, 0, true, builder.build());
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, 2, true, builder.build());
 
-        return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
+        return new GeyserCustomMappingData(itemDefinition, customItemName, bedrockId);
     }
 
     static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
@@ -141,9 +139,11 @@ public class CustomItemRegistryPopulator {
         Item item = new Item(customIdentifier, Item.builder().components(components));
         Items.register(item, customItemData.javaId());
 
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
+            customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
         ItemMapping customItemMapping = ItemMapping.builder()
                 .bedrockIdentifier(customIdentifier)
-                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, true))
+                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, 2, true, builder.build()))
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
                 .toolType(customItemData.toolType())
@@ -152,11 +152,7 @@ public class CustomItemRegistryPopulator {
                 .javaItem(item)
                 .build();
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
-        SimpleItemDefinition componentItemData = new SimpleItemDefinition(customIdentifier, customItemId, customItemId, true, builder.build());
-
-        return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
+        return new NonVanillaItemRegistration(item, customItemMapping);
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, Item javaItem, GeyserMappingItem mapping,

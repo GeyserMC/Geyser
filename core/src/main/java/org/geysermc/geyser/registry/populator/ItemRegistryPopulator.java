@@ -51,6 +51,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -196,7 +198,8 @@ public class ItemRegistryPopulator {
 
             // Used for custom items
             int nextFreeBedrockId = 0;
-            List<SimpleItemDefinition> componentItemData = new ObjectArrayList<>();
+            // TODO rename or yeet
+            List<ItemDefinition> componentItemData = new ObjectArrayList<>();
 
             Int2ObjectMap<ItemDefinition> registry = new Int2ObjectOpenHashMap<>();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
@@ -207,7 +210,13 @@ public class ItemRegistryPopulator {
                     nextFreeBedrockId = id + 1;
                 }
 
-                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), entry.getId(), entry.getVersion(), entry.isComponentBased(), null);
+                NbtMap components = null;
+                if (entry.isComponentBased()) {
+                    // TODO test
+                    components = vanillaComponents.getCompound(entry.getName());
+                }
+
+                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, entry.getVersion(), entry.isComponentBased(), components);
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
             }
@@ -223,7 +232,7 @@ public class ItemRegistryPopulator {
             // Temporary mapping to create stored items
             Map<Item, ItemMapping> javaItemToMapping = new Object2ObjectOpenHashMap<>();
 
-            List<ItemData> creativeItems = new ArrayList<>();
+            List<CreativeItemData> creativeItems = new ArrayList<>();
             Set<String> noBlockDefinitions = new ObjectOpenHashSet<>();
 
             // Fix: Usage of structure blocks/voids in recipes
@@ -232,9 +241,9 @@ public class ItemRegistryPopulator {
             noBlockDefinitions.add("minecraft:structure_void");
 
             AtomicInteger creativeNetId = new AtomicInteger();
-            CreativeItemRegistryPopulator.populate(palette, definitions, items, itemBuilder -> {
+            CreativeItemRegistryPopulator.populate(palette, definitions, items, (itemBuilder, groupId) -> {
                 ItemData item = itemBuilder.netId(creativeNetId.incrementAndGet()).build();
-                creativeItems.add(item);
+                creativeItems.add(new CreativeItemData(item, item.getNetId(), groupId));
 
                 if (item.getBlockDefinition() != null) {
                     String identifier = item.getDefinition().getIdentifier();
@@ -255,6 +264,13 @@ public class ItemRegistryPopulator {
                     noBlockDefinitions.add(item.getDefinition().getIdentifier());
                 }
             });
+
+            List<CreativeItemGroup> creativeItemGroups;
+            if (palette.protocolVersion >= 776) {
+                creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
+            } else {
+                creativeItemGroups = new ArrayList<>();
+            }
 
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
@@ -411,13 +427,13 @@ public class ItemRegistryPopulator {
                             }
 
                             for (int j = 0; j < creativeItems.size(); j++) {
-                                ItemData itemData = creativeItems.get(j);
-                                if (itemData.getDefinition().equals(definition)) {
-                                    if (itemData.getDamage() != 0) {
+                                CreativeItemData itemData = creativeItems.get(j);
+                                if (itemData.getItem().getDefinition().equals(definition)) {
+                                    if (itemData.getItem().getDamage() != 0) {
                                         break;
                                     }
 
-                                    NbtMap states = ((GeyserBedrockBlock) itemData.getBlockDefinition()).getState().getCompound("states");
+                                    NbtMap states = ((GeyserBedrockBlock) itemData.getItem().getBlockDefinition()).getState().getCompound("states");
 
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
@@ -433,19 +449,26 @@ public class ItemRegistryPopulator {
                                             int customProtocolId = nextFreeBedrockId++;
                                             mappingItem = mappingItem.withBedrockData(customProtocolId);
                                             bedrockIdentifier = customBlockData.identifier();
+                                            // TODO add component nbt here
                                             definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, true);
                                             registry.put(customProtocolId, definition);
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
-                                            
-                                            creativeItems.set(j, itemData.toBuilder()
+
+                                            CreativeItemData newData = new CreativeItemData(itemData.getItem().toBuilder()
                                                 .definition(definition)
                                                 .blockDefinition(bedrockBlock)
                                                 .netId(itemData.getNetId())
                                                 .count(1)
-                                                .build());
+                                                .build(), itemData.getNetId(), 0);
+
+                                            creativeItems.set(j, newData);
                                         } else {
-                                            creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
+                                            CreativeItemData creativeItemData = new CreativeItemData(itemData.getItem().toBuilder()
+                                                .blockDefinition(bedrockBlock)
+                                                .build(), itemData.getNetId(), 0);
+
+                                            creativeItems.set(j, creativeItemData);
                                         }
                                         break;
                                     }
@@ -495,16 +518,17 @@ public class ItemRegistryPopulator {
                         );
 
                         if (customItem.creativeCategory().isPresent()) {
-                            creativeItems.add(ItemData.builder()
+                            CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())
                                     .blockDefinition(null)
                                     .count(1)
-                                    .build());
+                                    .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
+                            creativeItems.add(creativeItemData);
                         }
 
                         // ComponentItemData - used to register some custom properties
-                        componentItemData.add(customMapping.componentItemData());
+                        componentItemData.add(customMapping.itemDefinition()); // TODO
                         customItemOptions.add(Pair.of(customItem.customItemOptions(), customMapping.itemDefinition()));
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
@@ -565,9 +589,10 @@ public class ItemRegistryPopulator {
 
             if (customItemsAllowed) {
                 // Add furnace minecart
-                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, true);
+                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, 2, true, registerFurnaceMinecart(nextFreeBedrockId));
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.put(definition.getRuntimeId(), definition);
+                componentItemData.add(definition);
 
                 mappings.set(Items.FURNACE_MINECART.javaId(), ItemMapping.builder()
                         .javaItem(Items.FURNACE_MINECART)
@@ -578,13 +603,12 @@ public class ItemRegistryPopulator {
                         .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
                         .build());
 
-                creativeItems.add(ItemData.builder()
-                        .netId(creativeNetId.incrementAndGet())
-                        .definition(definition)
-                        .count(1)
-                        .build());
-
-                registerFurnaceMinecart(nextFreeBedrockId++, componentItemData, palette.protocolVersion);
+                creativeItems.add(new CreativeItemData(ItemData.builder()
+                    .usingNetId(true)
+                    .netId(creativeNetId.incrementAndGet())
+                    .definition(definition)
+                    .count(1)
+                    .build(), creativeNetId.get(), 2)); // TODO
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -599,7 +623,8 @@ public class ItemRegistryPopulator {
                     int customItemId = nextFreeBedrockId++;
                     NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                    componentItemData.add(registration.componentItemData());
+                    // TODO yeet?
+                    componentItemData.add(registration.mapping().getBedrockDefinition());
                     ItemMapping mapping = registration.mapping();
                     Item javaItem = registration.javaItem();
                     while (javaItem.javaId() >= mappings.size()) {
@@ -610,32 +635,15 @@ public class ItemRegistryPopulator {
                     registry.put(customItemId, mapping.getBedrockDefinition());
 
                     if (customItem.creativeCategory().isPresent()) {
-                        creativeItems.add(ItemData.builder()
-                                .definition(registration.mapping().getBedrockDefinition())
-                                .netId(creativeNetId.incrementAndGet())
-                                .count(1)
-                                .build());
+                        CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
+                            .definition(registration.mapping().getBedrockDefinition())
+                            .netId(creativeNetId.incrementAndGet())
+                            .count(1)
+                            .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
+
+                        creativeItems.add(creativeItemData);
                     }
                 }
-            }
-
-            for (Map.Entry<String, Object> entry : vanillaComponents.entrySet()) {
-                String id = entry.getKey();
-                ItemDefinition definition = definitions.get(id);
-                if (definition == null) {
-                    // Newer item most likely
-                    GeyserImpl.getInstance().getLogger().debug(
-                            "Skipping vanilla component " + id + " for protocol " + palette.protocolVersion()
-                    );
-                    continue;
-                }
-
-                NbtMapBuilder root = NbtMap.builder()
-                        .putString("name", id)
-                        .putInt("id", definition.getRuntimeId())
-                        .putCompound("components", (NbtMap) entry.getValue());
-
-                componentItemData.add(new SimpleItemDefinition(id, definition.getRuntimeId(), definition.getVersion(), definition.isComponentBased(), root.build()));
             }
 
             // Register the item forms of custom blocks
@@ -655,7 +663,8 @@ public class ItemRegistryPopulator {
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
-                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, true);
+                    // TODO
+                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, 2, false, null);
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);
                     customIdMappings.put(customProtocolId, identifier);
@@ -663,24 +672,26 @@ public class ItemRegistryPopulator {
                     GeyserBedrockBlock bedrockBlock = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlock.defaultBlockState(), null);
 
                     if (bedrockBlock != null && customBlock.includedInCreativeInventory()) {
-                        creativeItems.add(ItemData.builder()
-                                .definition(definition)
-                                .blockDefinition(bedrockBlock)
-                                .netId(creativeNetId.incrementAndGet())
-                                .count(1)
-                                .build());
+                        CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
+                            .definition(definition)
+                            .blockDefinition(bedrockBlock)
+                            .netId(creativeNetId.incrementAndGet())
+                            .count(1)
+                            .build(), creativeNetId.get(), customBlock.creativeCategory().id());
+                        creativeItems.add(creativeItemData);
                     }
                 }
             }
 
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
-                    .creativeItems(creativeItems.toArray(new ItemData[0]))
+                    .creativeItems(creativeItems)
+                    .creativeItemGroups(creativeItemGroups)
                     .itemDefinitions(registry)
+                    .componentItemData(componentItemData)
                     .storedItems(new StoredItemMappings(javaItemToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)
-                    .componentItemData(componentItemData)
                     .lightBlocks(lightBlocks)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
@@ -693,7 +704,7 @@ public class ItemRegistryPopulator {
         }
     }
 
-    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<SimpleItemDefinition> componentItemData, int protocolVersion) {
+    private static NbtMap registerFurnaceMinecart(int nextFreeBedrockId) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", "geysermc:furnace_minecart")
                 .putInt("id", nextFreeBedrockId);
@@ -728,6 +739,6 @@ public class ItemRegistryPopulator {
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
-        componentItemData.add(new SimpleItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, 0, true, builder.build()));
+        return builder.build();
     }
 }

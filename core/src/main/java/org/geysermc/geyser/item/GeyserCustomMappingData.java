@@ -26,7 +26,6 @@
 package org.geysermc.geyser.item;
 
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 
-public record GeyserCustomMappingData(SimpleItemDefinition componentItemData, ItemDefinition itemDefinition, String stringId, int integerId) {
+public record GeyserCustomMappingData(ItemDefinition itemDefinition, String stringId, int integerId) {
 }
