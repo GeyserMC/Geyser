@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
@@ -63,6 +64,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.IntFunction;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
@@ -437,13 +439,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     craftState = CraftState.RECIPE_ID;
 
                     int creativeId = creativeAction.getCreativeItemNetworkId() - 1;
-                    ItemData[] creativeItems = session.getItemMappings().getCreativeItems();
-                    if (creativeId < 0 || creativeId >= creativeItems.length) {
+                    List<CreativeItemData> creativeItems = session.getItemMappings().getCreativeItems();
+                    if (creativeId < 0 || creativeId >= creativeItems.size()) {
                         return rejectRequest(request);
                     }
                     // Reference the creative items list we send to the client to know what it's asking of us
-                    ItemData creativeItem = creativeItems[creativeId];
-                    javaCreativeItem = ItemTranslator.translateToJava(session, creativeItem);
+                    CreativeItemData creativeItem = creativeItems.get(creativeId);
+                    javaCreativeItem = ItemTranslator.translateToJava(session, creativeItem.getItem());
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {

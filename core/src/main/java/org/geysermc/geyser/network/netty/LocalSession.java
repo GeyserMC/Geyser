@@ -31,8 +31,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.helper.NettyHelper;
 import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
@@ -42,11 +45,13 @@ import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
 public final class LocalSession extends ClientNetworkSession {
+    private static DefaultEventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 
     private final SocketAddress spoofedRemoteAddress;
@@ -66,6 +71,17 @@ public final class LocalSession extends ClientNetworkSession {
         if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR != null) {
             bootstrap.option(ChannelOption.ALLOCATOR, PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR);
         }
+    }
+
+    @Override
+    protected EventLoopGroup getEventLoopGroup() {
+        if (DEFAULT_EVENT_LOOP_GROUP == null) {
+            DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup(new DefaultThreadFactory(this.getClass(), true));
+            Runtime.getRuntime().addShutdownHook(new Thread(
+                () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));
+        }
+
+        return DEFAULT_EVENT_LOOP_GROUP;
     }
 
     @Override
