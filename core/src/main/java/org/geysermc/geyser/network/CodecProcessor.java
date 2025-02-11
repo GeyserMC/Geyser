@@ -29,7 +29,6 @@ import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -42,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSe
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.MobArmorEquipmentSerializer_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventoryContentSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSerializer_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v776.serializer.BossEventSerializer_v776;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -87,6 +87,8 @@ import org.cloudburstmc.protocol.common.util.VarInts;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
+ *
+ * TODO: Keep serializers up-to-date!
  */
 @SuppressWarnings("deprecation")
 class CodecProcessor {
@@ -157,7 +159,16 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER = new BossEventSerializer_v486() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_486 = new BossEventSerializer_v486() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
+        }
+    };
+
+    /**
+     * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
+     */
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_776 = new BossEventSerializer_v776() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
@@ -166,16 +177,7 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize MobArmorEquipmentPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER_V291 = new MobArmorEquipmentSerializer_v291() {
-        @Override
-        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
-        }
-    };
-
-    /**
-     * Serializer that does nothing when trying to deserialize MobArmorEquipmentPacket since it is not used from the client.
-     */
-    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER_V712 = new MobArmorEquipmentSerializer_v712() {
+    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER = new MobArmorEquipmentSerializer_v712() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
         }
@@ -242,6 +244,13 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
+        BedrockPacketSerializer<BossEventPacket> bossEventSerializer;
+        if (codec.getProtocolVersion() >= 776) {
+            bossEventSerializer = BOSS_EVENT_SERIALIZER_776;
+        } else {
+            bossEventSerializer = BOSS_EVENT_SERIALIZER_486;
+        }
+
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
@@ -276,8 +285,8 @@ class CodecProcessor {
             .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER)
             // Ignored only when serverbound
-            .updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER)
-            .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V712)
+            .updateSerializer(BossEventPacket.class, bossEventSerializer)
+            .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
