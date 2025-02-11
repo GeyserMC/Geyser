@@ -93,6 +93,10 @@ public final class GameProtocol {
         return session.getUpstream().getProtocolVersion() == Bedrock_v748.CODEC.getProtocolVersion();
     }
 
+    public static boolean isPreCreativeInventoryRewrite(int protocolVersion) {
+        return protocolVersion < 776;
+    }
+
     /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.
      *

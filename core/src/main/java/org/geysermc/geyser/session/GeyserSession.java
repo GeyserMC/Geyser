@@ -147,6 +147,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -739,13 +740,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
-        if (this.protocolVersion() >= 776) {
-            ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
-            upstream.sendPacket(componentPacket);
-        } else if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (GameProtocol.isPreCreativeInventoryRewrite(this.protocolVersion())) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
             componentPacket.getItems().addAll(itemMappings.getComponentItemData());
+            upstream.sendPacket(componentPacket);
+        } else {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
             upstream.sendPacket(componentPacket);
         }
 

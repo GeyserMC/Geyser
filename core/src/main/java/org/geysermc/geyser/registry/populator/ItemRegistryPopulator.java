@@ -70,6 +70,7 @@ import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -269,10 +270,10 @@ public class ItemRegistryPopulator {
             });
 
             List<CreativeItemGroup> creativeItemGroups;
-            if (palette.protocolVersion >= 776) {
-                creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
-            } else {
+            if (GameProtocol.isPreCreativeInventoryRewrite(palette.protocolVersion)) {
                 creativeItemGroups = new ArrayList<>();
+            } else {
+                creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
             }
 
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
