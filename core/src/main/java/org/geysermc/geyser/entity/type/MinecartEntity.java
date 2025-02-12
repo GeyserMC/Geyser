@@ -52,8 +52,6 @@ public class MinecartEntity extends Entity implements Tickable {
     private final List<MinecartStep> lerpSteps = new LinkedList<>();
     private final List<MinecartStep> currentLerpSteps = new LinkedList<>();
 
-    public static boolean EXPERIMENTAL_MINECARTS = false;
-
     private MinecartStep lastCompletedStep = new MinecartStep(Vector3d.ZERO, Vector3d. ZERO, 0.0F, 0.0F, 0.0F);
     private float currentStepsTotalWeight = 0.0F;
     private int lerpDelay = 0;
@@ -82,7 +80,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public void tick() {
-        if (!EXPERIMENTAL_MINECARTS) {
+        if (!session.isUsingExperimentalMinecartLogic()) {
             return;
         }
 

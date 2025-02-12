@@ -487,6 +487,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean oldSmithingTable = false;
 
     /**
+     * Whether to use the minecart_improvements experiment
+     */
+    @Setter
+    private boolean isUsingExperimentalMinecartLogic = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */

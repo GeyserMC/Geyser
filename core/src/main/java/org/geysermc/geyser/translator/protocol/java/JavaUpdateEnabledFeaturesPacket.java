@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.entity.type.MinecartEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,6 +40,6 @@ public class JavaUpdateEnabledFeaturesPacket extends PacketTranslator<Clientboun
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateEnabledFeaturesPacket packet) {
-        MinecartEntity.EXPERIMENTAL_MINECARTS = Arrays.asList(packet.getFeatures()).contains(MINECART_EXPERIMENT);
+        session.setUsingExperimentalMinecartLogic(Arrays.asList(packet.getFeatures()).contains(MINECART_EXPERIMENT));
     }
 }
