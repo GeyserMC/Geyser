@@ -76,7 +76,6 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -86,6 +85,8 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
 
 @AllArgsConstructor
 public abstract class InventoryTranslator {
@@ -242,18 +243,25 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
 
+                    // Might be a bundle action... let's check.
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, false);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
+                    }
+
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
 
-                    if ((this) instanceof PlayerInventoryTranslator) {
+                    if (this instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.getComponents() != null) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
+                                    && javaItem.hasNonBaseComponents()) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
                             //we are probably removing the head, so restore the original skin
@@ -261,9 +269,9 @@ public abstract class InventoryTranslator {
                         }
                     }
 
-                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            transferAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
+                            transferAction.getDestination().getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -394,6 +402,7 @@ public abstract class InventoryTranslator {
                     break;
                 }
                 case SWAP: {
+                    // TODO breaks with bundles
                     SwapAction swapAction = (SwapAction) action;
                     ItemStackRequestSlotData source = swapAction.getSource();
                     ItemStackRequestSlotData destination = swapAction.getDestination();
@@ -411,14 +420,14 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(source);
                     boolean isDestCursor = isCursor(destination);
 
-                    if (shouldRejectItemPlace(session, inventory, source.getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, source.getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            destination.getContainer(), isDestCursor ? -1 : destSlot)) {
+                            destination.getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
 
-                    if (!isSourceCursor && destination.getContainer() == ContainerSlotType.HOTBAR || destination.getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
+                    if (!isSourceCursor && destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR || destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
                         // Tell the server we're pressing one of the hotbar keys to save clicks
                         Click click = InventoryUtils.getClickForHotbarSwap(destination.getSlot());
                         if (click != null) {
@@ -427,18 +436,24 @@ public abstract class InventoryTranslator {
                         }
                     }
 
+                    // A note on all the bundle checks for clicks...
+                    // Left clicking in these contexts can count as using the bundle
+                    // and adding the stack to the contents of the bundle.
+                    // In these cases, we can safely use right-clicking while holding the bundle
+                    // as its stack size is 1.
+
                     if (isSourceCursor && isDestCursor) { //???
                         return rejectRequest(request);
                     } else if (isSourceCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(destSlot))) { //TODO: cannot simply swap if cursor stacks with slot (temp slot)
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, destSlot);
+                        plan.add(isBundle(plan, destSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, destSlot);
                     } else if (isDestCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(sourceSlot))) { //TODO
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, sourceSlot);
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, sourceSlot);
                     } else {
                         if (!cursor.isEmpty()) { //TODO: (temp slot)
                             return rejectRequest(request);
@@ -450,7 +465,7 @@ public abstract class InventoryTranslator {
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, sourceSlot); //pickup source into cursor
-                        plan.add(Click.LEFT, destSlot); //swap cursor with dest slot
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(plan, destSlot) ? Click.RIGHT : Click.LEFT, destSlot); //swap cursor with dest slot
                         plan.add(Click.LEFT, sourceSlot); //release cursor onto source
                     }
                     break;
@@ -587,7 +602,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -780,7 +795,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -916,6 +931,11 @@ public abstract class InventoryTranslator {
     }
 
     public boolean checkNetId(GeyserSession session, Inventory inventory, ItemStackRequestSlotData slotInfoData) {
+        if (BundleInventoryTranslator.isBundle(slotInfoData)) {
+            // Will thoroughly be investigated, if needed, in bundle checks.
+            return true;
+        }
+
         int netId = slotInfoData.getStackNetworkId();
         // "In my testing, sometimes the client thinks the netId of an item in the crafting grid is 1, even though we never said it was.
         // I think it only happens when we manually set the grid but that was my quick fix"
@@ -1020,23 +1040,20 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            DataComponents components = itemStack.getComponents();
-            if (components != null) {
-                Integer damage = components.get(DataComponentType.DAMAGE);
-                if (damage != null) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
-                }
+            Integer damage = itemStack.getComponent(DataComponentType.DAMAGE);
+            if (damage != null) {
+                durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
             }
 
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability, "");
         } else {
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0, "");
         }
         return itemEntry;
     }
 
     protected static boolean isCursor(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CURSOR;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CURSOR;
     }
 
     /**

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
@@ -100,17 +99,6 @@ public final class ItemUtils {
             return FishingRodItem.getBedrockDamage(original);
         }
         return original;
-    }
-
-    /**
-     * @param components the data components of the item
-     * @return the custom name of the item
-     */
-    public static @Nullable Component getCustomName(DataComponents components) {
-        if (components == null) {
-            return null;
-        }
-        return components.get(DataComponentType.CUSTOM_NAME);
     }
 
     private ItemUtils() {

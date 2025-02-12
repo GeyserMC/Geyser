@@ -33,7 +33,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -48,8 +48,16 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
@@ -98,12 +106,10 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping, CustomItemData customItemData, int bedrockId, int protocolVersion) {
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
-
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, mapping, customItemName, bedrockId, protocolVersion);
-        ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, ItemVersion.DATA_DRIVEN, true, builder.build());
 
-        return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
+        return new GeyserCustomMappingData(itemDefinition, customItemName, bedrockId);
     }
 
     static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
@@ -127,35 +133,27 @@ public class CustomItemRegistryPopulator {
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
         String customIdentifier = customItemData.identifier();
 
-        Set<String> repairMaterials = customItemData.repairMaterials();
+        DataComponents components = new DataComponents(new HashMap<>());
+        components.put(DataComponentType.MAX_STACK_SIZE, customItemData.stackSize());
+        components.put(DataComponentType.MAX_DAMAGE, customItemData.maxDamage());
 
-        Item.Builder itemBuilder = Item.builder()
-                .stackSize(customItemData.stackSize())
-                .maxDamage(customItemData.maxDamage());
-        Item item = new Item(customIdentifier, itemBuilder) {
-            @Override
-            public boolean isValidRepairItem(Item other) {
-                return repairMaterials != null && repairMaterials.contains(other.javaIdentifier());
-            }
-        };
+        Item item = new Item(customIdentifier, Item.builder().components(components));
         Items.register(item, customItemData.javaId());
 
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
+            customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
         ItemMapping customItemMapping = ItemMapping.builder()
-                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, true))
+                .bedrockIdentifier(customIdentifier)
+                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, ItemVersion.DATA_DRIVEN, true, builder.build()))
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
                 .toolType(customItemData.toolType())
-                .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
                 .build();
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
-        ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
-
-        return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
+        return new NonVanillaItemRegistration(item, customItemMapping);
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, Item javaItem, GeyserMappingItem mapping,
@@ -167,11 +165,11 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(javaItem.defaultMaxDamage(), javaItem.defaultMaxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.defaultAttackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 

@@ -29,8 +29,12 @@ import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 
 public final class Properties {
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final BooleanProperty ATTACHED = BooleanProperty.create("attached");
+    public static final BooleanProperty BERRIES = BooleanProperty.create("berries");
+    public static final BooleanProperty BLOOM = BooleanProperty.create("bloom");
     public static final BooleanProperty BOTTOM = BooleanProperty.create("bottom");
+    public static final BooleanProperty CAN_SUMMON = BooleanProperty.create("can_summon");
     public static final BooleanProperty CONDITIONAL = BooleanProperty.create("conditional");
     public static final BooleanProperty DISARMED = BooleanProperty.create("disarmed");
     public static final BooleanProperty DRAG = BooleanProperty.create("drag");
@@ -47,22 +51,20 @@ public final class Properties {
     public static final BooleanProperty INVERTED = BooleanProperty.create("inverted");
     public static final BooleanProperty IN_WALL = BooleanProperty.create("in_wall");
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
-    public static final BooleanProperty TIP = BooleanProperty.create("tip");
     public static final BooleanProperty LOCKED = BooleanProperty.create("locked");
+    public static final BooleanProperty NATURAL = BooleanProperty.create("natural");
     public static final BooleanProperty OCCUPIED = BooleanProperty.create("occupied");
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
     public static final BooleanProperty PERSISTENT = BooleanProperty.create("persistent");
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
     public static final BooleanProperty SHORT = BooleanProperty.create("short");
+    public static final BooleanProperty SHRIEKING = BooleanProperty.create("shrieking");
     public static final BooleanProperty SIGNAL_FIRE = BooleanProperty.create("signal_fire");
     public static final BooleanProperty SNOWY = BooleanProperty.create("snowy");
+    public static final BooleanProperty TIP = BooleanProperty.create("tip");
     public static final BooleanProperty TRIGGERED = BooleanProperty.create("triggered");
     public static final BooleanProperty UNSTABLE = BooleanProperty.create("unstable");
     public static final BooleanProperty WATERLOGGED = BooleanProperty.create("waterlogged");
-    public static final BooleanProperty BERRIES = BooleanProperty.create("berries");
-    public static final BooleanProperty BLOOM = BooleanProperty.create("bloom");
-    public static final BooleanProperty SHRIEKING = BooleanProperty.create("shrieking");
-    public static final BooleanProperty CAN_SUMMON = BooleanProperty.create("can_summon");
     public static final EnumProperty<Axis> HORIZONTAL_AXIS = EnumProperty.create("axis", Axis.X, Axis.Z);
     public static final EnumProperty<Axis> AXIS = EnumProperty.create("axis", Axis.VALUES);
     public static final BooleanProperty UP = BooleanProperty.create("up");
@@ -143,6 +145,5 @@ public final class Properties {
     public static final BooleanProperty CRAFTING = BooleanProperty.create("crafting");
     public static final BasicEnumProperty TRIAL_SPAWNER_STATE = BasicEnumProperty.create("trial_spawner_state", "inactive", "waiting_for_players", "active", "waiting_for_reward_ejection", "ejecting_reward", "cooldown");
     public static final BasicEnumProperty VAULT_STATE = BasicEnumProperty.create("vault_state", "inactive", "active", "unlocking", "ejecting");
-    public static final BasicEnumProperty CREAKING = BasicEnumProperty.create("creaking", "disabled", "dormant", "active");
     public static final BooleanProperty OMINOUS = BooleanProperty.create("ominous");
 }

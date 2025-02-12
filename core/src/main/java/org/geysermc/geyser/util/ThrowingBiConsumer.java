@@ -23,26 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.util;
 
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import java.util.function.BiConsumer;
 
-import java.util.Map;
-
-public class Conversion748_729 {
-
-    private static final Map<String, Integer> NEW_PLAYER_HEADS = Map.of("minecraft:skeleton_skull", 0, "minecraft:wither_skeleton_skull", 1, "minecraft:zombie_head", 2, "minecraft:player_head", 3, "minecraft:creeper_head", 4, "minecraft:dragon_head", 5, "minecraft:piglin_head", 6);
-
-    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        String identifier = mapping.getBedrockIdentifier();
-
-        if (NEW_PLAYER_HEADS.containsKey(identifier)) {
-            return mapping.withBedrockIdentifier("minecraft:skull")
-                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
+@FunctionalInterface
+public interface ThrowingBiConsumer<T, U> extends BiConsumer<T, U> {
+    @Override
+    default void accept(T t, U u) {
+        try {
+            acceptThrows(t, u);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
-
-        return mapping;
     }
 
+    void acceptThrows(T t, U u) throws Throwable;
 }

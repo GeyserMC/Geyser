@@ -39,7 +39,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemCodecHelper;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.HashMap;
@@ -193,16 +192,6 @@ public abstract class WorldManager {
     }
 
     /**
-     * Used for pick block, so we don't need to cache more data than necessary.
-     *
-     * @return expected NBT for this item.
-     */
-    @NonNull
-    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addExtraData) {
-        return CompletableFuture.completedFuture(null);
-    }
-
-    /**
      * Retrieves decorated pot sherds from the server. Used to ensure the data is not erased on animation sent
      * through the BlockEntityDataPacket.
      */
@@ -213,9 +202,9 @@ public abstract class WorldManager {
         try {
             Map<DataComponentType<?>, DataComponent<?, ?>> components = new HashMap<>();
             Int2ObjectMaps.fastForEach(map, entry -> {
-                DataComponentType type = DataComponentType.from(entry.getIntKey());
+                DataComponentType<?> type = DataComponentType.from(entry.getIntKey());
                 ByteBuf buf = Unpooled.wrappedBuffer(entry.getValue());
-                DataComponent value = type.readDataComponent(ItemCodecHelper.INSTANCE, buf);
+                DataComponent<?, ?> value = type.readDataComponent(buf);
                 components.put(type, value);
             });
             return new DataComponents(components);

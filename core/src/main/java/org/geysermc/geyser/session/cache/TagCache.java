@@ -28,15 +28,19 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -119,9 +123,40 @@ public final class TagCache {
     /**
      * @return true if the specified network ID is in the given holder set.
      */
-    public <T> boolean is(GeyserHolderSet<T> holderSet, T object) {
+    public <T> boolean is(@Nullable GeyserHolderSet<T> holderSet, @Nullable T object) {
+        if (holderSet == null || object == null) {
+            return false;
+        }
         return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
     }
+
+    /**
+     * Accessible via the {@link #isItem(HolderSet, Item)} method.
+     * @return true if the specified network ID is in the given {@link HolderSet} set.
+     */
+    private  <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
+        if (holderSet == null) {
+            return false;
+        }
+
+        int[] entries = holderSet.resolve(key -> {
+            if (key.value().startsWith("#")) {
+                key = Key.key(key.namespace(), key.value().substring(1));
+            }
+            return getRaw(new Tag<>(registry, key));
+        });
+
+        return contains(entries, id);
+    }
+
+    public boolean isItem(@Nullable HolderSet holderSet, @NonNull Item item) {
+        return is(holderSet, JavaRegistries.ITEM, item.javaId());
+    }
+
+    public boolean isBlock(@Nullable HolderSet holderSet, @NonNull Block block) {
+        return is(holderSet, JavaRegistries.BLOCK, block.javaId());
+    }
+
 
     public <T> List<T> get(Tag<T> tag) {
         return mapRawArray(session, getRaw(tag), tag.registry());

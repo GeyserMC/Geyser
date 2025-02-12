@@ -157,7 +157,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         if (inventory instanceof Container container) {
-            if (container.isUsingRealBlock() && !(inventory instanceof LecternContainer)) {
+            if (container.isUsingRealBlock() && !(container instanceof LecternContainer)) {
                 // No need to reset a block since we didn't change any blocks
                 // But send a container close packet because we aren't destroying the original.
                 ContainerClosePacket packet = new ContainerClosePacket();

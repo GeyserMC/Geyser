@@ -31,6 +31,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
+import org.geysermc.geyser.translator.inventory.SmithingInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -63,6 +64,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
             }
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
+            session.getBundleCache().initialize(newItem);
             inventory.setItem(i, newItem, session);
         }
 
@@ -72,8 +74,21 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
         inventory.setStateId(stateId);
 
-        session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
+        GeyserItemStack cursor = GeyserItemStack.from(packet.getCarriedItem());
+        session.getBundleCache().initialize(cursor);
+        session.getPlayerInventory().setCursor(cursor, session);
         InventoryUtils.updateCursor(session);
+
+        if (session.getInventoryTranslator() instanceof SmithingInventoryTranslator) {
+            // On 1.21.1, the recipe output is sometimes only updated here.
+            // This can be replicated with shift-clicking the last item into the smithing table.
+            // It seems that something in Via 5.1.1 causes 1.21.3 clients - even Java ones -
+            // to make the server send a slot update.
+            // That plus shift-clicking means that the state ID becomes outdated and forces
+            // a complete inventory update.
+            JavaContainerSetSlotTranslator.updateSmithingTableOutput(session, SmithingInventoryTranslator.OUTPUT,
+                packet.getItems()[SmithingInventoryTranslator.OUTPUT], inventory);
+        }
     }
 
     private void updateInventory(GeyserSession session, Inventory inventory, int containerId) {

@@ -61,6 +61,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.ChunkSection;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
@@ -115,7 +116,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
             boolean extendedCollisionNextSection = false;
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
-                ChunkSection javaSection = session.getDownstream().getCodecHelper().readChunkSection(in);
+                ChunkSection javaSection = MinecraftTypes.readChunkSection(in);
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
                 boolean extendedCollision = extendedCollisionNextSection;
