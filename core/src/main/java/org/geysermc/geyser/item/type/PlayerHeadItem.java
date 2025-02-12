@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
-import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -44,24 +45,21 @@ public class PlayerHeadItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        // TODO verify
-        // Also - ChatColor.YELLOW + ChatColor.ITALIC + MessageTranslator.convertMessageLenient(nameTag.getValue(), session.locale())) this code existed if a custom name was already present.
-        // But I think we would always overwrite that because translateDisplayProperties runs after this method.
-        String customName = builder.getCustomName();
-        if (customName == null) {
-            GameProfile profile = components.get(DataComponentType.PROFILE);
-            if (profile != null) {
-                String name = profile.getName();
-                if (name != null) {
-                    // Add correct name of player skull
-                    String displayName = ChatColor.RESET + ChatColor.YELLOW +
-                            MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
-                    builder.setCustomName(displayName);
-                } else {
-                    // No name found so default to "Player Head"
-                    builder.setCustomName(ChatColor.RESET + ChatColor.YELLOW +
-                            MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
-                }
+        // Use the correct color, determined by the rarity of the item
+        char rarity = Rarity.fromId(components.get(DataComponentType.RARITY)).getColor();
+
+        GameProfile profile = components.get(DataComponentType.PROFILE);
+        if (profile != null) {
+            String name = profile.getName();
+            if (name != null) {
+                // Add correct name of player skull
+                String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
+                        MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
+                builder.setCustomName(displayName);
+            } else {
+                // No name found so default to "Player Head"
+                builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
+                        MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
             }
         }
     }
