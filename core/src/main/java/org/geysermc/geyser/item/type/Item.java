@@ -37,7 +37,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
@@ -93,10 +92,6 @@ public class Item {
 
     public int defaultMaxStackSize() {
         return baseComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
-    }
-
-    public Rarity defaultRarity() {
-        return Rarity.fromId(baseComponents.getOrDefault(DataComponentType.RARITY, 0));
     }
 
     /**
