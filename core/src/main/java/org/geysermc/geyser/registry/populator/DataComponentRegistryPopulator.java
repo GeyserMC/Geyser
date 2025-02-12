@@ -48,6 +48,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Loads default item components for all Java items.
+ */
 public final class DataComponentRegistryPopulator {
 
     public static void populate() {
