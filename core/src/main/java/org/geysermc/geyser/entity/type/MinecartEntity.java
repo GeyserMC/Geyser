@@ -52,7 +52,7 @@ public class MinecartEntity extends Entity implements Tickable {
     private final List<MinecartStep> lerpSteps = new LinkedList<>();
     private final List<MinecartStep> currentLerpSteps = new LinkedList<>();
 
-    private boolean usesNewLogic = false;
+    public static boolean EXPERIMENTAL_MINECARTS = false;
 
     private MinecartStep lastCompletedStep = new MinecartStep(Vector3d.ZERO, Vector3d. ZERO, 0.0F, 0.0F, 0.0F);
     private float currentStepsTotalWeight = 0.0F;
@@ -82,7 +82,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public void tick() {
-        if (!usesNewLogic) {
+        if (!EXPERIMENTAL_MINECARTS) {
             return;
         }
 
@@ -141,7 +141,6 @@ public class MinecartEntity extends Entity implements Tickable {
 
     public void handleMinecartMovePacket(ClientboundMoveMinecartPacket packet) {
         lerpSteps.addAll(packet.getLerpSteps());
-        usesNewLogic = true;
     }
 
     private boolean isLerping() {
