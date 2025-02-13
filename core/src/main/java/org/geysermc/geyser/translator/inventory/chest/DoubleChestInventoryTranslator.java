@@ -152,7 +152,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
             ContainerClosePacket packet = new ContainerClosePacket();
             packet.setId((byte) inventory.getBedrockId());
             packet.setServerInitiated(true);
-            packet.setType(ContainerType.MINECART_CHEST);
+            packet.setType(ContainerType.CONTAINER);
             session.sendUpstreamPacket(packet);
             return;
         }

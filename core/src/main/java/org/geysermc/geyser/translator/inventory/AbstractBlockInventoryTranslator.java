@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.Inventory;
@@ -43,8 +41,6 @@ import org.geysermc.geyser.session.GeyserSession;
 public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTranslator {
     private final InventoryHolder holder;
     private final InventoryUpdater updater;
-    @Getter
-    private final @NonNull ContainerType type;
 
     /**
      * @param javaBlock a Java block that is used as a temporary block
@@ -66,7 +62,6 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
         super(size);
         this.holder = new BlockInventoryHolder(javaBlockState, containerType, additionalValidBlocks);
         this.updater = updater;
-        this.type = containerType;
     }
 
     /**
@@ -74,11 +69,10 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
      * @param holder the custom block holder
      * @param updater updater
      */
-    public AbstractBlockInventoryTranslator(int size, InventoryHolder holder, InventoryUpdater updater, ContainerType containerType) {
+    public AbstractBlockInventoryTranslator(int size, InventoryHolder holder, InventoryUpdater updater) {
         super(size);
         this.holder = holder;
         this.updater = updater;
-        this.type = containerType;
     }
 
     @Override
@@ -110,8 +104,7 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     So. Sometime in 1.21, Bedrock just broke the ContainerClosePacket. As in: Geyser sends it, the player ignores it.
     But only for some blocks! And some blocks only respond to specific container types (dispensers/droppers now require the specific type...)
     And closing the player inventory type is seemingly impossible :( hurray.
+    When this returns null, we just... break the block, and replace it. Primitive. But if that works... fine.
      */
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
-        return this.type;
-    }
+    public abstract @Nullable ContainerType closeContainerType(Inventory inventory);
 }

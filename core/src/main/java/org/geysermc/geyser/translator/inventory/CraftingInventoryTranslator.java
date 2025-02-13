@@ -90,6 +90,6 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public ContainerType closeContainerType(Inventory inventory) {
-        return null; // nothing else works :(
+        return null;
     }
 }
