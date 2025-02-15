@@ -32,10 +32,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Represents the creative menu categories or tabs.
  */
 public enum CreativeCategory {
+    ALL("all", 0),
     CONSTRUCTION("construction", 1),
     NATURE("nature", 2),
     EQUIPMENT("equipment", 3),
     ITEMS("items", 4),
+    ITEM_COMMAND_ONLY("item_command_only", 5),
     NONE("none", 6);
 
     private final String bedrockName;
