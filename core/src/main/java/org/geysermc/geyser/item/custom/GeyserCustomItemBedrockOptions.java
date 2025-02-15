@@ -85,15 +85,21 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
+        public CustomItemBedrockOptions.Builder tag(Identifier tag) {
+            this.tags.add(tag);
+            return this;
+        }
+
+        @Override
         public Builder tags(@Nullable Set<Identifier> tags) {
-            this.tags = Objects.requireNonNullElseGet(tags, Set::of);
+            this.tags = Objects.requireNonNullElseGet(tags, HashSet::new);
             return this;
         }
 
         @Override
         public CustomItemBedrockOptions build() {
             return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, tags);
+                creativeCategory, creativeGroup, Set.copyOf(tags));
         }
     }
 }

@@ -115,6 +115,8 @@ public interface CustomItemBedrockOptions {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
+        Builder tag(Identifier tag);
+
         Builder tags(@Nullable Set<Identifier> tags);
 
         CustomItemBedrockOptions build();
