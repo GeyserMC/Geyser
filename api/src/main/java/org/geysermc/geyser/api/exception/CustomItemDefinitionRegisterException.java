@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.exception;
 
+/**
+ * Thrown when there was an error registering the custom item definition. The exception message will have details as to what went wrong.
+ */
 public class CustomItemDefinitionRegisterException extends Exception {
 
     public CustomItemDefinitionRegisterException(String message) {
