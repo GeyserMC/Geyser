@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Set;
 
@@ -94,7 +95,7 @@ public interface CustomItemBedrockOptions {
      * @return the item's tags, if they exist
      */
     @NonNull
-    Set<String> tags();
+    Set<Identifier> tags();
 
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -114,7 +115,7 @@ public interface CustomItemBedrockOptions {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
-        Builder tags(@Nullable Set<String> tags);
+        Builder tags(@Nullable Set<Identifier> tags);
 
         CustomItemBedrockOptions build();
     }

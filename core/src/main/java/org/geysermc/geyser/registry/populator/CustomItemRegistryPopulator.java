@@ -316,14 +316,12 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        addItemTag(componentBuilder, "geyser:is_custom");
+        addItemTag(componentBuilder, new Identifier("geyser:is_custom"));
 
         // Add other defined tags to the item
-        Set<String> tags = options.tags();
-        for (String tag : tags) {
-            if (tag != null && !tag.isBlank()) {
-                addItemTag(componentBuilder, tag);
-            }
+        Set<Identifier> tags = options.tags();
+        for (Identifier tag : tags) {
+            addItemTag(componentBuilder, tag);
         }
 
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
@@ -657,15 +655,15 @@ public class CustomItemRegistryPopulator {
     }
 
     @SuppressWarnings("unchecked")
-    private static void addItemTag(NbtMapBuilder builder, String tag) {
+    private static void addItemTag(NbtMapBuilder builder, Identifier tag) {
         List<String> tagList = (List<String>) builder.get("item_tags");
         if (tagList == null) {
-            builder.putList("item_tags", NbtType.STRING, tag);
+            builder.putList("item_tags", NbtType.STRING, tag.toString());
         } else {
             // NbtList is immutable
-            if (!tagList.contains(tag)) {
+            if (!tagList.contains(tag.toString())) {
                 tagList = new ArrayList<>(tagList);
-                tagList.add(tag);
+                tagList.add(tag.toString());
                 builder.putList("item_tags", NbtType.STRING, tagList);
             }
         }

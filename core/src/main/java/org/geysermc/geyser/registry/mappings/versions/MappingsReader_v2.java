@@ -28,8 +28,6 @@ package org.geysermc.geyser.registry.mappings.versions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
@@ -50,8 +48,8 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 public class MappingsReader_v2 extends MappingsReader {
@@ -172,17 +170,7 @@ public class MappingsReader_v2 extends MappingsReader {
         MappingsUtil.readIfPresent(element, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
         MappingsUtil.readIfPresent(element, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
         MappingsUtil.readIfPresent(element, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
-
-        if (element.getAsJsonObject().get("tags") instanceof JsonArray tags) {
-            Set<String> tagsSet = new ObjectOpenHashSet<>();
-            for (JsonElement tag : tags) {
-                if (!tag.isJsonPrimitive()) {
-                    throw new InvalidCustomMappingsFileException("reading tag", "tag must be a string", context);
-                }
-                tagsSet.add(NodeReader.NON_EMPTY_STRING.read((JsonPrimitive) tag, "reading tag", context));
-            }
-            builder.tags(tagsSet);
-        }
+        MappingsUtil.readArrayIfPresent(element, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
 
         return builder;
     }

@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.util.TriState;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is used to store data for a custom item.
@@ -140,7 +141,7 @@ public interface CustomItemData {
                 .displayHandheld(displayHandheld())
                 .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
                 .creativeGroup(creativeGroup())
-                .tags(tags())
+                .tags(tags().stream().map(Identifier::new).collect(Collectors.toSet()))
             );
 
         CustomItemOptions options = customItemOptions();

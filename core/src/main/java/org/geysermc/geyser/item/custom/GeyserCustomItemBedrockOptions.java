@@ -30,13 +30,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
-                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<String> tags) implements CustomItemBedrockOptions {
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags) implements CustomItemBedrockOptions {
 
     public static class Builder implements CustomItemBedrockOptions.Builder {
         private String icon = null;
@@ -45,7 +46,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         private int protectionValue = 0;
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
-        private Set<String> tags = new HashSet<>();
+        private Set<Identifier> tags = new HashSet<>();
 
         @Override
         public Builder icon(@Nullable String icon) {
@@ -84,7 +85,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        public Builder tags(@Nullable Set<String> tags) {
+        public Builder tags(@Nullable Set<Identifier> tags) {
             this.tags = Objects.requireNonNullElseGet(tags, Set::of);
             return this;
         }
