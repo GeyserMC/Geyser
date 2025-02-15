@@ -67,7 +67,7 @@ public class MappingsReader_v2 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(definition -> {
                         try {
-                            readItemDefinitionEntry(definition, new Identifier(entry.getKey()), null, consumer);
+                            readItemDefinitionEntry(definition, Identifier.of(entry.getKey()), null, consumer);
                         } catch (InvalidCustomMappingsFileException exception) {
                             GeyserImpl.getInstance().getLogger().error(
                                 "Error reading definition for item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
@@ -130,7 +130,7 @@ public class MappingsReader_v2 extends MappingsReader {
         }
 
         if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            bedrockIdentifier = new Identifier(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.path()); // Use geyser_custom namespace when no namespace or the minecraft namespace was given
+            bedrockIdentifier = Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.path()); // Use geyser_custom namespace when no namespace or the minecraft namespace was given
         }
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, model);
 

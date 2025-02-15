@@ -141,7 +141,7 @@ public interface CustomItemData {
                 .displayHandheld(displayHandheld())
                 .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
                 .creativeGroup(creativeGroup())
-                .tags(tags().stream().map(Identifier::new).collect(Collectors.toSet()))
+                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
             );
 
         CustomItemOptions options = customItemOptions();
@@ -153,7 +153,7 @@ public interface CustomItemData {
         }
         if (options.unbreakable() != TriState.NOT_SET) {
             definition.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.HAS_COMPONENT,
-                Objects.requireNonNull(options.unbreakable().toBoolean()), new Identifier("minecraft", "unbreakable")));
+                Objects.requireNonNull(options.unbreakable().toBoolean()), Identifier.of("minecraft", "unbreakable")));
         }
         return definition;
     }

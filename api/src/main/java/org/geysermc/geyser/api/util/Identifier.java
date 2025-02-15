@@ -33,14 +33,20 @@ public final class Identifier {
     private final String namespace;
     private final String path;
 
-    public Identifier(String namespace, String path) {
+    private Identifier(String namespace, String path) {
         this.namespace = namespace;
         this.path = path;
         validate();
     }
 
-    public Identifier(String identifier) {
+    public static Identifier of(String namespace, String path) {
+        return new Identifier(namespace, path);
+    }
+
+    public static Identifier of(String identifier) {
         String[] split = identifier.split(":");
+        String namespace;
+        String path;
         if (split.length == 1) {
             namespace = DEFAULT_NAMESPACE;
             path = split[0];
@@ -50,7 +56,7 @@ public final class Identifier {
         } else {
             throw new IllegalArgumentException("':' in identifier path: " + identifier);
         }
-        validate();
+        return new Identifier(namespace, path);
     }
 
     private void validate() {

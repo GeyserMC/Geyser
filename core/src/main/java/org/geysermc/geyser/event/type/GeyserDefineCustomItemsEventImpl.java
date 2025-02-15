@@ -70,7 +70,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     @Deprecated
     public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
         try {
-            Identifier vanillaItemIdentifier = new Identifier(identifier);
+            Identifier vanillaItemIdentifier = Identifier.of(identifier);
             register(vanillaItemIdentifier, customItemData.toDefinition(vanillaItemIdentifier).build());
             deprecatedCustomItems.put(identifier, customItemData);
             return true;

@@ -108,7 +108,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(data -> {
                         try {
-                            Identifier vanillaItemIdentifier = new Identifier(entry.getKey());
+                            Identifier vanillaItemIdentifier = Identifier.of(entry.getKey());
                             CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, (JsonObject) data);
                             consumer.accept(vanillaItemIdentifier, customItemData);
                         } catch (InvalidCustomMappingsFileException e) {

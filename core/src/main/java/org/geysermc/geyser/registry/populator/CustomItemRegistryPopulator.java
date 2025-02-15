@@ -74,7 +74,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
-    private static final Identifier UNBREAKABLE_COMPONENT = new Identifier("minecraft", "unbreakable");
+    private static final Identifier UNBREAKABLE_COMPONENT = Identifier.of("minecraft", "unbreakable");
 
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
     // These don't all work correctly on Bedrock - see the Consumable.Animation Javadoc in the API
@@ -317,7 +317,7 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        addItemTag(componentBuilder, new Identifier("geyser:is_custom"));
+        addItemTag(componentBuilder, Identifier.of("geyser:is_custom"));
 
         // Add other defined tags to the item
         Set<Identifier> tags = options.tags();

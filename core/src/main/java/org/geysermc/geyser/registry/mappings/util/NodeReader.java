@@ -88,7 +88,7 @@ public interface NodeReader<T> {
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
-    NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::new);
+    NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::of);
 
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
 
