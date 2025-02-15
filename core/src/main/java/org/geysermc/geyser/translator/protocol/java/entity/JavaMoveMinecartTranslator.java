@@ -23,29 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.components;
+package org.geysermc.geyser.translator.protocol.java.entity;
 
-import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.MinecartEntity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveMinecartPacket;
 
-@Getter
-public enum Rarity {
-    COMMON("common", 'f'),
-    UNCOMMON("uncommon", 'e'),
-    RARE("rare", 'b'),
-    EPIC("epic", 'd');
+@Translator(packet = ClientboundMoveMinecartPacket.class)
+public class JavaMoveMinecartTranslator extends PacketTranslator<ClientboundMoveMinecartPacket> {
 
-    private final String name;
-    private final char color;
-
-    Rarity(final String name, char chatColor) {
-        this.name = name;
-        this.color = chatColor;
-    }
-
-    private static final Rarity[] VALUES = values();
-
-    public static @NonNull Rarity fromId(Integer id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    @Override
+    public void translate(GeyserSession session, ClientboundMoveMinecartPacket packet) {
+        if (!packet.getLerpSteps().isEmpty()) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+            if (entity instanceof MinecartEntity minecart) {
+                minecart.handleMinecartMovePacket(packet);
+            }
+        }
     }
 }

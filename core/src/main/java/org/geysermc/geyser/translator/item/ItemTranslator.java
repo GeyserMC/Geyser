@@ -174,7 +174,7 @@ public final class ItemTranslator {
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
-        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
+        Rarity rarity = Rarity.fromId(components.get(DataComponentType.RARITY));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
@@ -611,6 +611,7 @@ public final class ItemTranslator {
         }
 
         if (textures == null || textures.isEmpty()) {
+            // TODO the java client looks up the texture properties here and updates the item
             return null;
         }
 

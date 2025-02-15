@@ -34,6 +34,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -131,7 +132,7 @@ public class CustomItemRegistryPopulator {
         checkComponents(customItem, javaItem);
 
         NbtMapBuilder builder = createComponentNbt(customItem, javaItem, mapping, bedrockId, protocolVersion);
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, 1, true, builder.build());
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, builder.build());
 
         return new GeyserCustomMappingData(customItem, itemDefinition, bedrockId);
     }

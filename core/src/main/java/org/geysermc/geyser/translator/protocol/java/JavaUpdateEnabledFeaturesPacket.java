@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.components;
+package org.geysermc.geyser.translator.protocol.java;
 
-import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundUpdateEnabledFeaturesPacket;
 
-@Getter
-public enum Rarity {
-    COMMON("common", 'f'),
-    UNCOMMON("uncommon", 'e'),
-    RARE("rare", 'b'),
-    EPIC("epic", 'd');
+import java.util.Arrays;
 
-    private final String name;
-    private final char color;
+@Translator(packet = ClientboundUpdateEnabledFeaturesPacket.class)
+public class JavaUpdateEnabledFeaturesPacket extends PacketTranslator<ClientboundUpdateEnabledFeaturesPacket> {
 
-    Rarity(final String name, char chatColor) {
-        this.name = name;
-        this.color = chatColor;
-    }
+    private final static Key MINECART_EXPERIMENT = Key.key("minecart_improvements");
 
-    private static final Rarity[] VALUES = values();
-
-    public static @NonNull Rarity fromId(Integer id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    @Override
+    public void translate(GeyserSession session, ClientboundUpdateEnabledFeaturesPacket packet) {
+        session.setUsingExperimentalMinecartLogic(Arrays.asList(packet.getFeatures()).contains(MINECART_EXPERIMENT));
     }
 }

@@ -55,6 +55,8 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -216,15 +218,13 @@ public class ItemRegistryPopulator {
                     nextFreeBedrockId = id + 1;
                 }
 
-                NbtMap components = null;
-                if (entry.isComponentBased()) {
-                    components = vanillaComponents.getCompound(entry.getName());
-                    if (components == null) {
-                        throw new RuntimeException("Could not find vanilla components for vanilla component based item! " + entry.getName());
-                    }
+                // Some items, e.g. food, are not component based but still have components
+                NbtMap components = vanillaComponents.getCompound(entry.getName());
+                if (components == null && entry.isComponentBased()) {
+                    throw new RuntimeException("Could not find vanilla components for vanilla component based item! " + entry.getName());
                 }
 
-                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, entry.getVersion(), entry.isComponentBased(), components);
+                ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), entry.isComponentBased(), components);
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
             }
@@ -457,7 +457,7 @@ public class ItemRegistryPopulator {
                                             int customProtocolId = nextFreeBedrockId++;
                                             mappingItem = mappingItem.withBedrockData(customProtocolId);
                                             bedrockIdentifier = customBlockData.identifier();
-                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, 1, false, null);
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, ItemVersion.DATA_DRIVEN, true, NbtMap.EMPTY);
                                             registry.put(customProtocolId, definition);
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
@@ -496,9 +496,8 @@ public class ItemRegistryPopulator {
                     mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern());
                 }
 
-                if (javaOnlyItems.contains(javaItem) || javaItem.defaultRarity() != Rarity.COMMON) {
+                if (javaOnlyItems.contains(javaItem)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
-                    // Or, ensure that we are translating these at all times to account for rarity colouring
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
                     GeyserImpl.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
@@ -598,7 +597,7 @@ public class ItemRegistryPopulator {
             if (customItemsAllowed) {
                 // Add furnace minecart
                 int furnaceMinecartId = nextFreeBedrockId++;
-                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, 1, true, registerFurnaceMinecart(furnaceMinecartId));
+                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, ItemVersion.DATA_DRIVEN, true, registerFurnaceMinecart(furnaceMinecartId));
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.put(definition.getRuntimeId(), definition);
                 componentItemData.add(definition);
@@ -672,8 +671,7 @@ public class ItemRegistryPopulator {
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
-                    // TODO verify
-                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, 1, false, null);
+                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.NONE, false, null);
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);
                     customIdMappings.put(customProtocolId, identifier);
