@@ -38,7 +38,7 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
 public abstract class MappingsReader {
-    public abstract void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer);
+    public abstract void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer);
     public abstract void readBlockMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer);
 
     public abstract CustomItemDefinition readItemMappingEntry(Identifier identifier, JsonElement node) throws InvalidCustomMappingsFileException;

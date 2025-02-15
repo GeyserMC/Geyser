@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,7 +60,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @return a multimap of all the already registered custom item definitions
      */
     @NonNull
-    Map<String, Collection<CustomItemDefinition>> customItemDefinitions();
+    Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
 
     /**
      * Gets the list of the already registered non-vanilla custom items.
@@ -73,7 +74,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
      * based on NBT data. This method should not be used anymore, {@link CustomItemDefinition}s are preferred now and this method will convert {@code CustomItemData} to {@code CustomItemDefinition} internally.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(String, CustomItemDefinition)}
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      * @param identifier the base (java) item
      * @param customItemData the custom item data to register
      * @return if the item was registered
@@ -89,7 +90,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item.
      */
-    void register(@NonNull String identifier, @NonNull CustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
+    void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
 
     /**
      * Registers a custom item with no base item. This is used for mods.

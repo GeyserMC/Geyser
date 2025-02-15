@@ -57,11 +57,11 @@ import java.util.function.BiConsumer;
 public class MappingsReader_v2 extends MappingsReader {
 
     @Override
-    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         readItemMappingsV2(file, mappingsRoot, consumer);
     }
 
-    public void readItemMappingsV2(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappingsV2(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         JsonObject items = mappingsRoot.getAsJsonObject("items");
 
         if (items != null) {
@@ -69,7 +69,7 @@ public class MappingsReader_v2 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(definition -> {
                         try {
-                            readItemDefinitionEntry(definition, entry.getKey(), null, consumer);
+                            readItemDefinitionEntry(definition, new Identifier(entry.getKey()), null, consumer);
                         } catch (InvalidCustomMappingsFileException exception) {
                             GeyserImpl.getInstance().getLogger().error(
                                 "Error reading definition for item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
@@ -90,8 +90,8 @@ public class MappingsReader_v2 extends MappingsReader {
         }
     }
 
-    private void readItemDefinitionEntry(JsonElement data, String itemIdentifier, Identifier model,
-                                         BiConsumer<String, CustomItemDefinition> definitionConsumer) throws InvalidCustomMappingsFileException {
+    private void readItemDefinitionEntry(JsonElement data, Identifier itemIdentifier, Identifier model,
+                                         BiConsumer<Identifier, CustomItemDefinition> definitionConsumer) throws InvalidCustomMappingsFileException {
         String context = "item definition(s) for Java item " + itemIdentifier;
 
         String type = MappingsUtil.readOrDefault(data, "type", NodeReader.NON_EMPTY_STRING, "definition", context);

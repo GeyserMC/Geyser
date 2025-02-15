@@ -42,10 +42,10 @@ import java.util.Map;
 
 public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCustomItemsEvent {
     private final Multimap<String, CustomItemData> deprecatedCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
-    private final Multimap<String, CustomItemDefinition> customItems;
+    private final Multimap<Identifier, CustomItemDefinition> customItems;
     private final List<NonVanillaCustomItemData> nonVanillaCustomItems;
 
-    public GeyserDefineCustomItemsEventImpl(Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+    public GeyserDefineCustomItemsEventImpl(Multimap<Identifier, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         this.customItems = customItems;
         this.nonVanillaCustomItems = nonVanillaCustomItems;
     }
@@ -57,7 +57,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     }
 
     @Override
-    public @NonNull Map<String, Collection<CustomItemDefinition>> customItemDefinitions() {
+    public @NonNull Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions() {
         return Collections.unmodifiableMap(customItems.asMap());
     }
 
@@ -70,7 +70,8 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     @Deprecated
     public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
         try {
-            register(identifier, customItemData.toDefinition(new Identifier(identifier)).build());
+            Identifier vanillaItemIdentifier = new Identifier(identifier);
+            register(vanillaItemIdentifier, customItemData.toDefinition(vanillaItemIdentifier).build());
             deprecatedCustomItems.put(identifier, customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {

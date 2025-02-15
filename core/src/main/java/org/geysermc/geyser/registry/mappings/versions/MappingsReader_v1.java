@@ -83,7 +83,7 @@ import java.util.stream.Collectors;
  */
 public class MappingsReader_v1 extends MappingsReader {
     @Override
-    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         this.readItemMappingsV1(file, mappingsRoot, consumer);
     }
 
@@ -100,7 +100,7 @@ public class MappingsReader_v1 extends MappingsReader {
         this.readBlockMappingsV1(file, mappingsRoot, consumer);
     }
 
-    public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         JsonObject itemsNode = mappingsRoot.getAsJsonObject("items");
 
         if (itemsNode != null) {
@@ -108,8 +108,9 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(data -> {
                         try {
-                            CustomItemDefinition customItemData = this.readItemMappingEntry(new Identifier(entry.getKey()), (JsonObject) data);
-                            consumer.accept(entry.getKey(), customItemData);
+                            Identifier vanillaItemIdentifier = new Identifier(entry.getKey());
+                            CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, (JsonObject) data);
+                            consumer.accept(vanillaItemIdentifier, customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
                             GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
                         }

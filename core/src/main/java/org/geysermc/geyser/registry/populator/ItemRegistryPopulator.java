@@ -181,7 +181,7 @@ public class ItemRegistryPopulator {
 
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
-        Multimap<String, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
+        Multimap<Identifier, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
 
         if (customItemsAllowed) {
@@ -505,7 +505,7 @@ public class ItemRegistryPopulator {
 
                 // Add the custom item properties, if applicable
                 SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
-                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(javaItem.javaIdentifier());
+                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(new Identifier(javaItem.javaIdentifier()));
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
                     customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
 

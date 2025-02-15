@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v1;
@@ -77,7 +78,7 @@ public class MappingsConfigReader {
         return true;
     }
 
-    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemDefinition> consumer) {
+    public void loadItemMappingsFromJson(BiConsumer<Identifier, CustomItemDefinition> consumer) {
         if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
             return;
         }
@@ -125,7 +126,7 @@ public class MappingsConfigReader {
         return formatVersion;
     }
 
-    public void readItemMappingsFromJson(Path file, BiConsumer<String, CustomItemDefinition> consumer) {
+    public void readItemMappingsFromJson(Path file, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         JsonObject mappingsRoot = getMappingsRoot(file);
 
         if (mappingsRoot == null) {

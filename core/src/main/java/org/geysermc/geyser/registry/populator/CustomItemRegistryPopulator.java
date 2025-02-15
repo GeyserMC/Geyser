@@ -89,7 +89,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.BRUSH, 12
     );
 
-    public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+    public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
@@ -104,7 +104,7 @@ public class CustomItemRegistryPopulator {
         GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
 
             @Override
-            public void register(@NonNull String identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
+            public void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
                 String error = validate(identifier, definition, customItems, items);
                 if (error == null) {
                     customItems.get(identifier).add(definition);
@@ -139,8 +139,8 @@ public class CustomItemRegistryPopulator {
     /**
      * @return null if there are no errors with the registration, and an error message if there are
      */
-    private static String validate(String vanillaIdentifier, CustomItemDefinition item, Multimap<String, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
-        if (!mappings.containsKey(vanillaIdentifier)) {
+    private static String validate(Identifier vanillaIdentifier, CustomItemDefinition item, Multimap<Identifier, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
+        if (!mappings.containsKey(vanillaIdentifier.toString())) {
             return "unknown Java item " + vanillaIdentifier;
         }
         Identifier bedrockIdentifier = item.bedrockIdentifier();
@@ -150,7 +150,7 @@ public class CustomItemRegistryPopulator {
             return "custom item definition model can't be in the minecraft namespace without a predicate";
         }
 
-        for (Map.Entry<String, CustomItemDefinition> entry : registered.entries()) {
+        for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
             if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
                 return "conflicts with another custom item definition with the same bedrock identifier";
             }
@@ -166,7 +166,7 @@ public class CustomItemRegistryPopulator {
     /**
      * @return an error message if there was a conflict, or null otherwise
      */
-    private static String checkPredicate(Map.Entry<String, CustomItemDefinition> existing, String vanillaIdentifier, CustomItemDefinition newItem) {
+    private static String checkPredicate(Map.Entry<Identifier, CustomItemDefinition> existing, Identifier vanillaIdentifier, CustomItemDefinition newItem) {
         // If the definitions are for different Java items or models then it doesn't matter
         if (!vanillaIdentifier.equals(existing.getKey()) || !newItem.model().equals(existing.getValue().model())) {
             return null;
