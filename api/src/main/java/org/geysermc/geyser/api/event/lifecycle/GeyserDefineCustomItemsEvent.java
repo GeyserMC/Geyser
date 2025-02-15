@@ -46,7 +46,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
     /**
      * Gets a multimap of all the already registered (using the deprecated method) custom items indexed by the item's extended java item's identifier.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#getExistingCustomItemDefinitions()}
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      * @return a multimap of all the already custom items registered using {@link GeyserDefineCustomItemsEvent#register(String, CustomItemData)}
      */
     @Deprecated
@@ -59,7 +59,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @return a multimap of all the already registered custom item definitions
      */
     @NonNull
-    Map<String, Collection<CustomItemDefinition>> getExistingCustomItemDefinitions();
+    Map<String, Collection<CustomItemDefinition>> customItemDefinitions();
 
     /**
      * Gets the list of the already registered non-vanilla custom items.

@@ -57,7 +57,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     }
 
     @Override
-    public @NonNull Map<String, Collection<CustomItemDefinition>> getExistingCustomItemDefinitions() {
+    public @NonNull Map<String, Collection<CustomItemDefinition>> customItemDefinitions() {
         return Collections.unmodifiableMap(customItems.asMap());
     }
 
