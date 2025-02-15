@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -49,6 +50,7 @@ import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredi
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
@@ -81,6 +83,8 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
         // misc
+        providers.put(Identifier.class, args -> new IdentifierImpl(Key.key((String) args[0], (String) args[1])));
+
         providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
 
         providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.Builder());

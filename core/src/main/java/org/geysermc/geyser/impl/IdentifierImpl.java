@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.util;
+package org.geysermc.geyser.impl;
 
-import org.geysermc.geyser.api.GeyserApi;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.util.Identifier;
 
-public interface Identifier {
-    String DEFAULT_NAMESPACE = "minecraft";
+public record IdentifierImpl(Key identifier) implements Identifier {
 
-    static Identifier of(String namespace, String path) {
-        return GeyserApi.api().provider(Identifier.class, namespace, path);
+    @Override
+    public String namespace() {
+        return identifier.namespace();
     }
 
-    static Identifier of(String identifier) {
-        String[] split = identifier.split(":");
-        String namespace;
-        String path;
-        if (split.length == 1) {
-            namespace = DEFAULT_NAMESPACE;
-            path = split[0];
-        } else if (split.length == 2) {
-            namespace = split[0];
-            path = split[1];
-        } else {
-            throw new IllegalArgumentException("':' in identifier path: " + identifier);
-        }
-        return of(namespace, path);
+    @Override
+    public String path() {
+        return identifier.value();
     }
 
-    String namespace();
-
-    String path();
+    @Override
+    public String toString() {
+        return identifier.toString();
+    }
 }

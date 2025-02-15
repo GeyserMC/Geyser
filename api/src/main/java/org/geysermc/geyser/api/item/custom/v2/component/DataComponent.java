@@ -105,11 +105,11 @@ public final class DataComponent<T> {
     }
 
     private static <T> DataComponent<T> create(String name) {
-        return new DataComponent<>(Identifier.of(Identifier.DEFAULT_NAMESPACE, name), t -> true);
+        return new DataComponent<>(Identifier.of(name), t -> true);
     }
 
     private static <T> DataComponent<T> create(String name, Predicate<T> validator) {
-        return new DataComponent<>(Identifier.of(Identifier.DEFAULT_NAMESPACE, name), validator);
+        return new DataComponent<>(Identifier.of(name), validator);
     }
 
     public boolean validate(T value) {

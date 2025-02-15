@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.intellij.lang.annotations.Subst;
 
 public final class MinecraftKey {
@@ -39,6 +40,6 @@ public final class MinecraftKey {
     }
 
     public static Key identifierToKey(Identifier identifier) {
-        return Key.key(identifier.namespace(), identifier.path());
+        return identifier instanceof IdentifierImpl impl ? impl.identifier() : Key.key(identifier.namespace(), identifier.path());
     }
 }
