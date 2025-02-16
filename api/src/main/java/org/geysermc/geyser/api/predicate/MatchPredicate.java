@@ -28,6 +28,9 @@ package org.geysermc.geyser.api.predicate;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Contains creators for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
+ */
 public interface MatchPredicate {
 
     PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = data -> MinecraftPredicate.isEqual(MinecraftPredicateContext::dimension, data);

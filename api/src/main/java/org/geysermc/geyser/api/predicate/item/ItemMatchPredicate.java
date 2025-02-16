@@ -32,6 +32,9 @@ import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Contains creators for often-used "match" predicates, that match for a value in {@link ItemPredicateContext}.
+ */
 public interface ItemMatchPredicate {
 
     PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = data ->

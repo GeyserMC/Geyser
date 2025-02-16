@@ -27,7 +27,13 @@ package org.geysermc.geyser.api.predicate.context;
 
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Generic Minecraft context. Used in {@link org.geysermc.geyser.api.predicate.MinecraftPredicate}s.
+ */
 public interface MinecraftPredicateContext {
 
+    /**
+     * @return the context dimension. This is usually the dimension the player is in.
+     */
     Identifier dimension();
 }

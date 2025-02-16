@@ -30,6 +30,9 @@ import org.geysermc.geyser.api.predicate.PredicateCreator;
 import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Contains often-used predicates and predicate creators for simple conditions in {@link ItemPredicateContext}.
+ */
 public interface ItemConditionPredicate {
 
     MinecraftPredicate<ItemPredicateContext> DAMAGEABLE = context -> !context.unbreakable() && context.maxDamage() > 0;

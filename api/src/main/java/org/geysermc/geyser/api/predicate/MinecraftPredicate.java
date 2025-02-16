@@ -33,24 +33,31 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * A predicate for a {@link MinecraftPredicateContext}.
+ *
+ * <p>Right now this is used to determine if a {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition} should be used.</p>
+ *
+ * @param <C> the predicate context.
+ */
 @FunctionalInterface
 public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {
 
     @Override
     default @NonNull MinecraftPredicate<C> and(@NonNull Predicate<? super C> other) {
         Objects.requireNonNull(other);
-        return (t) -> this.test(t) && other.test(t);
+        return (context) -> this.test(context) && other.test(context);
     }
 
     @Override
     default @NonNull MinecraftPredicate<C> negate() {
-        return (t) -> !this.test(t);
+        return (context) -> !this.test(context);
     }
 
     @Override
     default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
         Objects.requireNonNull(other);
-        return (t) -> this.test(t) || other.test(t);
+        return (context) -> this.test(context) || other.test(context);
     }
 
     static <C extends MinecraftPredicateContext, T> MinecraftPredicate<C> isEqual(Function<C, T> getter, @Nullable T data) {

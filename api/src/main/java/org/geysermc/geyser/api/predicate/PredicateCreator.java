@@ -28,6 +28,12 @@ package org.geysermc.geyser.api.predicate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
+/**
+ * Used to create often-used predicates.
+ *
+ * @param <C> predicate context.
+ * @param <D> predicate data.
+ */
 @FunctionalInterface
 public interface PredicateCreator<C extends MinecraftPredicateContext, D> {
 

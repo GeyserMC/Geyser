@@ -28,7 +28,13 @@ package org.geysermc.geyser.api.predicate.context.item;
 public record ChargedProjectile(ChargeType type, int count) {
 
     public enum ChargeType {
+        /**
+         * Any item that is not {@code minecraft:firework_rocket}.
+         */
         ARROW,
+        /**
+         * {@code minecraft:firework_rocket}
+         */
         ROCKET
     }
 }

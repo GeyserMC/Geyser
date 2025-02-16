@@ -31,31 +31,73 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 
+/**
+ * Item context. Used for predicates in {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}s.
+ */
 public interface ItemPredicateContext extends MinecraftPredicateContext {
 
+    /**
+     * @return the stack size.
+     */
     int count();
 
+    /**
+     * @return the max stack size.
+     */
     int maxStackSize();
 
+    /**
+     * @return the value of the {@code minecraft:damage} component.
+     */
     int damage();
 
+    /**
+     * @return the value of the {@code minecraft:max_damage} component.
+     */
     int maxDamage();
 
+    /**
+     * @return true if the {@code minecraft:unbreakable} component is present.
+     */
     boolean unbreakable();
 
+    /**
+     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component.
+     */
     int bundleFullness();
 
+    /**
+     * @return the identifier of the item's trim material.
+     */
     @Nullable
     Identifier trimMaterial();
 
+    /**
+     * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component.
+     */
     List<ChargedProjectile> chargedProjectiles();
 
+    /**
+     * @return a list of all the components present on the item. Includes default components.
+     */
     List<Identifier> components();
 
+    /**
+     * @param index the flag index.
+     * @return a flag of the item's custom model data. Defaults to false.
+     */
     boolean customModelDataFlag(int index);
 
+    /**
+     * @param index the string index.
+     * @return a string of the item's custom model data. Returns null if index is out of range.
+     */
     @Nullable
     String customModelDataString(int index);
 
+    /**
+     * @param index the float index.
+     * @return a float of the item's custom model data. Defaults to 0.0.
+     */
     float customModelDataFloat(int index);
 }
