@@ -157,11 +157,9 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory, ContainerType type) {
         if (!(inventory instanceof Container container)) {
-            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
-            if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
-                GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
-            }
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! Please report this error on discord.");
+            GeyserImpl.getInstance().getLogger().warning("Current inventory translator: " + translator.getClass().getSimpleName());
+            GeyserImpl.getInstance().getLogger().warning("Current inventory: " + inventory.getClass().getSimpleName());
             // Try to save ourselves? maybe?
             // https://github.com/GeyserMC/Geyser/issues/4141
             // TODO: improve once this issue is pinned down
