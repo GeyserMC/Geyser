@@ -56,7 +56,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -64,14 +63,13 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
@@ -779,7 +777,7 @@ public class ItemRegistryPopulator {
                 return second.predicates().size() - first.predicates().size(); // No need checking for range predicates if either one has no predicates
             }
 
-            for (CustomItemPredicate predicate : first.predicates()) {
+            for (MinecraftPredicate predicate : first.predicates()) {
                 if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
                     Optional<RangeDispatchPredicate> other = second.predicates().stream()
                         .filter(otherPredicate -> otherPredicate instanceof RangeDispatchPredicate otherDispatch && otherDispatch.property() == rangeDispatch.property())

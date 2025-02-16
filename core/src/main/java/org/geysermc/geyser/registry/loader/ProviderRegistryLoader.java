@@ -42,9 +42,9 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
+import org.geysermc.geyser.api.predicate.RangeDispatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
@@ -60,7 +60,6 @@ import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.custom.predicate.MatchPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
@@ -105,8 +104,8 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // items v2
         providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
-        providers.put(ConditionItemPredicate.class, args -> new ConditionPredicate<>((ConditionPredicateProperty<? super Object>) args[0], (boolean) args[1], args[2]));
-        providers.put(MatchItemPredicate.class, args -> new MatchPredicate<>((MatchPredicateProperty<? super Object>) args[0], args[1]));
+        providers.put(ItemConditionPredicate.class, args -> new org.geysermc.geyser.item.custom.predicate.ConditionPredicate<>((ConditionPredicateProperty<? super Object>) args[0], (boolean) args[1], args[2]));
+        providers.put(ItemMatchPredicate.class, args -> new MatchPredicate<>((MatchPredicateProperty<? super Object>) args[0], args[1]));
         providers.put(RangeDispatchItemPredicate.class, args -> new RangeDispatchPredicate((RangeDispatchPredicateProperty) args[0], (double) args[1], (double) args[2], (boolean) args[3], (int) args[4]));
 
         // cameras

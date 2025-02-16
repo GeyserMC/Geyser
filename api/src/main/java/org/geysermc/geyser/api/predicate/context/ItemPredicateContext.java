@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.match;
+package org.geysermc.geyser.api.predicate.context;
 
-/**
- * Values returned by the {@link MatchPredicateProperty#CHARGE_TYPE} predicate property.
- */
-public enum ChargeType {
-    /**
-     * Returned if there are no projectiles loaded in the crossbow.
-     */
-    NONE,
-    /**
-     * Returned if there are any projectiles (except fireworks) loaded in the crossbow.
-     */
-    ARROW,
-    /**
-     * Returned if there are firework rocket projectiles loaded in the crossbow.
-     */
-    ROCKET
+import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.util.Identifier;
+
+import java.util.List;
+
+public interface ItemPredicateContext extends MinecraftPredicateContext {
+
+    int count();
+
+    int maxStackSize();
+
+    int damage();
+
+    int maxDamage();
+
+    boolean unbreakable();
+
+    int bundleFullness();
+
+    Identifier trimMaterial();
+
+    List<ChargedProjectile> chargedProjectiles();
+
+    List<Identifier> components();
+
+    boolean customModelDataFlag(int index);
+
+    String customModelDataString(int index);
+
+    float customModelDataFloat(int index);
 }

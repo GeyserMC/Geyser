@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.custom.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
+import org.geysermc.geyser.api.predicate.RangeDispatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 
 public record RangeDispatchPredicate(RangeDispatchPredicateProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements RangeDispatchItemPredicate {

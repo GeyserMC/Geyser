@@ -44,7 +44,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
@@ -179,7 +179,7 @@ public class CustomItemRegistryPopulator {
         // If their predicates are equal then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
-            for (CustomItemPredicate predicate : existing.getValue().predicates()) {
+            for (MinecraftPredicate predicate : existing.getValue().predicates()) {
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
                 }
@@ -631,7 +631,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
-        for (CustomItemPredicate predicate : definition.predicates()) {
+        for (MinecraftPredicate predicate : definition.predicates()) {
             if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
                 Identifier component = (Identifier) condition.data();
                 if (UNBREAKABLE_COMPONENT.equals(component)) {

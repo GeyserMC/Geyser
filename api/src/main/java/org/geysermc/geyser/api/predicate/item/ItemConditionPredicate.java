@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateCreator;
+import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
+import org.geysermc.geyser.api.util.Identifier;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements ItemMatchPredicate<T> {
+public interface ItemConditionPredicate {
+
+    MinecraftPredicate<ItemPredicateContext> DAMAGEABLE = context -> !context.unbreakable() && context.maxDamage() > 0;
+
+    MinecraftPredicate<ItemPredicateContext> BROKEN = DAMAGEABLE.and(context -> context.damage() >= context.maxDamage() - 1);
+
+    PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFlag(data);
+
+    PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = data -> context -> context.components().contains(data);
 }

@@ -23,20 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate;
 
-/**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#rangeDispatch(RangeDispatchPredicateProperty, double, double, boolean, int)
- */
-public interface RangeDispatchItemPredicate extends CustomItemPredicate {
-
-    RangeDispatchPredicateProperty property();
-
-    double threshold();
-
-    double scale();
-
-    boolean normalizeIfPossible();
-
-    int index();
+public enum PredicateStrategy {
+    /**
+     * Require all predicates to pass
+     */
+    AND,
+    /**
+     * Require only one of the predicates to pass
+     */
+    OR
 }

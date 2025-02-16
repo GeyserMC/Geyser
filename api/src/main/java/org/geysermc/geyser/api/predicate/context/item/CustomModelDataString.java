@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate.context.item;
 
-public enum PredicateStrategy {
-    /**
-     * Require all predicates to pass for the item to be used.
-     */
-    AND,
-    /**
-     * Require only one of the predicates to pass for the item to be used.
-     */
-    OR
+public record CustomModelDataString(String value, int index) {
 }

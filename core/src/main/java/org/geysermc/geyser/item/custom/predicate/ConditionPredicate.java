@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.item.custom.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
 
-public record ConditionPredicate<T>(ConditionPredicateProperty<T> property, boolean expected, T data) implements ConditionItemPredicate<T> {
+public record ConditionPredicate<T>(Property<T> property, boolean expected, T data) implements ItemConditionPredicate<T> {
 }

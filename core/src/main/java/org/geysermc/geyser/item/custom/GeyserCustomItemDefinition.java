@@ -32,22 +32,22 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
+public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<MinecraftPredicate> predicates,
                                          PredicateStrategy predicateStrategy,
                                          int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponentMap components) implements CustomItemDefinition {
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
-        private final List<CustomItemPredicate> predicates = new ArrayList<>();
+        private final List<MinecraftPredicate> predicates = new ArrayList<>();
         private final Reference2ObjectMap<DataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
 
         private String displayName;
@@ -80,7 +80,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
 
         @Override
-        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
+        public CustomItemDefinition.Builder predicate(@NonNull MinecraftPredicate predicate) {
             predicates.add(predicate);
             return this;
         }

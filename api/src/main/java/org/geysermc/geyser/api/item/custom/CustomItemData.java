@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -146,14 +146,13 @@ public interface CustomItemData {
 
         CustomItemOptions options = customItemOptions();
         if (options.customModelData().isPresent()) {
-            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchPredicateProperty.CUSTOM_MODEL_DATA, options.customModelData().getAsInt()));
+            definition.predicate(MinecraftPredicate.rangeDispatch(RangeDispatchPredicateProperty.CUSTOM_MODEL_DATA, options.customModelData().getAsInt()));
         }
         if (options.damagePredicate().isPresent()) {
-            definition.predicate(CustomItemPredicate.rangeDispatch(RangeDispatchPredicateProperty.DAMAGE, options.damagePredicate().getAsInt()));
+            definition.predicate(MinecraftPredicate.rangeDispatch(RangeDispatchPredicateProperty.DAMAGE, options.damagePredicate().getAsInt()));
         }
         if (options.unbreakable() != TriState.NOT_SET) {
-            definition.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.HAS_COMPONENT,
-                Objects.requireNonNull(options.unbreakable().toBoolean()), Identifier.of("minecraft", "unbreakable")));
+            definition.predicate(context -> context.unbreakable() == Boolean.TRUE.equals(options.unbreakable().toBoolean()));
         }
         return definition;
     }

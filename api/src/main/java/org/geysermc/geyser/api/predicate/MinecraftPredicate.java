@@ -23,10 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements ItemMatchPredicate<T> {
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+@FunctionalInterface
+public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {
+
+    @Override
+    default @NonNull MinecraftPredicate<C> and(@NonNull Predicate<? super C> other) {
+        Objects.requireNonNull(other);
+        return (t) -> this.test(t) && other.test(t);
+    }
+
+    @Override
+    default @NonNull MinecraftPredicate<C> negate() {
+        return (t) -> !this.test(t);
+    }
+
+    @Override
+    default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
+        Objects.requireNonNull(other);
+        return (t) -> this.test(t) || other.test(t);
+    }
+
+    static <C extends MinecraftPredicateContext, T> MinecraftPredicate<C> isEqual(Function<C, T> getter, @Nullable T data) {
+        return context -> Objects.equals(getter.apply(context), data);
+    }
 }

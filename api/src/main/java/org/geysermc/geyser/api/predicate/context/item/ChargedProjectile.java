@@ -23,25 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate.context.item;
 
-public enum RangeDispatchPredicateProperty {
-    /**
-     * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
-     *
-     * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
-     */
-    BUNDLE_FULLNESS,
-    /**
-     * Checks the item's damage value. Can be normalised.
-     */
-    DAMAGE,
-    /**
-     * Checks the item's stack count. Can be normalised.
-     */
-    COUNT,
-    /**
-     * Checks one of the item's custom model data floats, defaults to 0.0.
-     */
-    CUSTOM_MODEL_DATA
+public record ChargedProjectile(ChargeType type, int count) {
+
+    public enum ChargeType {
+        ARROW,
+        ROCKET
+    }
 }

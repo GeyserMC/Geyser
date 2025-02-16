@@ -29,8 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
@@ -81,13 +82,14 @@ public interface CustomItemDefinition {
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      */
     default @NonNull String icon() {
-        return bedrockOptions().icon() == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
+        String setIcon = bedrockOptions().icon();
+        return setIcon == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : setIcon;
     }
 
     /**
      * The predicates that have to match for this item definition to be used. These predicates are similar to the Java item model predicates.
      */
-    @NonNull List<CustomItemPredicate> predicates();
+    @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
      * The predicate strategy to be used. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
@@ -140,7 +142,7 @@ public interface CustomItemDefinition {
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
-        Builder predicate(@NonNull CustomItemPredicate predicate);
+        Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate);
 
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 

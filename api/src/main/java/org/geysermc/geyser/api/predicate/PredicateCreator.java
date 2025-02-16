@@ -23,16 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
-/**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#match(MatchPredicateProperty, Object)
- */
-public interface MatchItemPredicate<T> extends CustomItemPredicate {
+@FunctionalInterface
+public interface PredicateCreator<C extends MinecraftPredicateContext, D> {
 
-    MatchPredicateProperty<T> property();
-
-    T data();
+    MinecraftPredicate<C> create(@NonNull D data);
 }

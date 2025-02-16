@@ -23,18 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.geysermc.geyser.api.util.Identifier;
 
-/**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#condition(ConditionPredicateProperty, boolean, Object)
- */
-public interface ConditionItemPredicate<T> extends CustomItemPredicate {
+public interface MatchPredicate {
 
-    ConditionPredicateProperty<T> property();
-
-    boolean expected();
-
-    T data();
+    PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = data -> MinecraftPredicate.isEqual(MinecraftPredicateContext::dimension, data);
 }

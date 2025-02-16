@@ -30,14 +30,14 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
 import org.geysermc.geyser.item.custom.predicate.MatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
+import org.geysermc.geyser.api.predicate.context.item.CustomModelDataString;
 import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -83,12 +83,12 @@ public final class CustomItemTranslator {
         }
 
         // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
-        Object2BooleanMap<CustomItemPredicate> calculatedPredicates = new Object2BooleanOpenHashMap<>();
+        Object2BooleanMap<MinecraftPredicate> calculatedPredicates = new Object2BooleanOpenHashMap<>();
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
             boolean allMatch = true;
 
-            for (CustomItemPredicate predicate : customMapping.definition().predicates()) {
+            for (MinecraftPredicate predicate : customMapping.definition().predicates()) {
                 boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicateMatches(session, predicate, stackSize, components));
                 if (!value) {
                     allMatch = false;
@@ -104,7 +104,7 @@ public final class CustomItemTranslator {
         return null;
     }
 
-    private static boolean predicateMatches(GeyserSession session, CustomItemPredicate predicate, int stackSize, DataComponents components) {
+    private static boolean predicateMatches(GeyserSession session, MinecraftPredicate predicate, int stackSize, DataComponents components) {
         if (predicate instanceof ConditionPredicate<?> condition) {
             ConditionPredicateProperty<?> property = condition.property();
             boolean expected = condition.expected();

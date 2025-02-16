@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.predicate.context.item.CustomModelDataString;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateCreator;
+import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.util.Identifier;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements ItemMatchPredicate<T> {
+public interface ItemMatchPredicate {
+
+    PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = data ->
+        context -> context.chargedProjectiles().stream().anyMatch(projectile -> projectile.type() == data);
+
+    PredicateCreator<ItemPredicateContext, Identifier> TRIM_MATERIAL = data -> MinecraftPredicate.isEqual(ItemPredicateContext::trimMaterial, data);
+
+    PredicateCreator<ItemPredicateContext, CustomModelDataString> CUSTOM_MODEL_DATA = data ->
+        MinecraftPredicate.isEqual(context -> context.customModelDataString(data.index()), data.value());
 }
