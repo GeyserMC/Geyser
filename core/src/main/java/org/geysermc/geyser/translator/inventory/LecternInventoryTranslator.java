@@ -90,26 +90,17 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // Heck, the latter crashes the client xd
         // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
         LecternContainer lecternContainer = (LecternContainer) inventory;
+        Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+        var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
+        BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
+        super.closeInventory(session, inventory); // Removes the fake blocks if need be
+
+        // Now: Restore the lectern, if it actually exists
         if (lecternContainer.isUsingRealBlock()) {
-            // send no pages, but correct hasBook
-            Vector3i pos = session.getLastInteractionBlockPosition();
-            boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, pos).getValue(Properties.HAS_BOOK, false);
-            NbtMapBuilder builder = NbtMap.builder()
-                .putInt("x", pos.getX())
-                .putInt("y", pos.getY())
-                .putInt("z", pos.getZ())
-                .putString("id", "Lectern")
-                .putByte("hasBook", (byte) (hasBook ? 1 : 0))
-                .putInt("totalPages", 0);
-            BlockEntityUtils.updateBlockEntity(session, builder.build(), pos);
-        } else {
-            // Reset to no book, and remove the lectern
-            Vector3i position = lecternContainer.getHolderPosition();
-            var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
-            BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
-
-            super.closeInventory(session, inventory);
+            boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
+            NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
+            BlockEntityUtils.updateBlockEntity(session, map, position);
         }
     }
 

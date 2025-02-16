@@ -103,7 +103,6 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     /*
     So. Sometime in 1.21, Bedrock just broke the ContainerClosePacket. As in: Geyser sends it, the player ignores it.
     But only for some blocks! And some blocks only respond to specific container types (dispensers/droppers now require the specific type...)
-    And closing the player inventory type is seemingly impossible :( hurray.
     When this returns null, we just... break the block, and replace it. Primitive. But if that works... fine.
      */
     public abstract @Nullable ContainerType closeContainerType(Inventory inventory);
