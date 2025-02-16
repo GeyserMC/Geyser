@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.predicate.context;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -44,6 +45,7 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
 
     int bundleFullness();
 
+    @Nullable
     Identifier trimMaterial();
 
     List<ChargedProjectile> chargedProjectiles();
@@ -52,6 +54,7 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
 
     boolean customModelDataFlag(int index);
 
+    @Nullable
     String customModelDataString(int index);
 
     float customModelDataFloat(int index);

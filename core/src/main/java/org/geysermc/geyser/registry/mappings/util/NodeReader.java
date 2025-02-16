@@ -29,13 +29,12 @@ import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
+import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -94,27 +93,11 @@ public interface NodeReader<T> {
 
     NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
 
-    NodeReader<ConditionPredicateProperty<?>> CONDITION_PREDICATE_PROPERTY = ofMap(
-        Map.of(
-            "broken", ConditionPredicateProperty.BROKEN,
-            "damaged", ConditionPredicateProperty.DAMAGED,
-            "custom_model_data", ConditionPredicateProperty.CUSTOM_MODEL_DATA,
-            "has_component", ConditionPredicateProperty.HAS_COMPONENT
-        )
-    );
+    NodeReader<ItemConditionProperty> ITEM_CONDITION_PROPERTY = ofEnum(ItemConditionProperty.class);
 
-    NodeReader<MatchPredicateProperty<?>> MATCH_PREDICATE_PROPERTY = ofMap(
-        Map.of(
-            "charge_type", MatchPredicateProperty.CHARGE_TYPE,
-            "trim_material", MatchPredicateProperty.TRIM_MATERIAL,
-            "context_dimension", MatchPredicateProperty.CONTEXT_DIMENSION,
-            "custom_model_data", MatchPredicateProperty.CUSTOM_MODEL_DATA
-        )
-    );
+    NodeReader<ItemMatchProperty> ITEM_MATCH_PROPERTY = ofEnum(ItemMatchProperty.class);
 
-    NodeReader<ChargeType> CHARGE_TYPE = ofEnum(ChargeType.class);
-
-    NodeReader<RangeDispatchPredicateProperty> RANGE_DISPATCH_PREDICATE_PROPERTY = ofEnum(RangeDispatchPredicateProperty.class);
+    NodeReader<ChargedProjectile.ChargeType> CHARGE_TYPE = ofEnum(ChargedProjectile.ChargeType.class);
 
     NodeReader<Consumable.Animation> CONSUMABLE_ANIMATION = ofEnum(Consumable.Animation.class);
 

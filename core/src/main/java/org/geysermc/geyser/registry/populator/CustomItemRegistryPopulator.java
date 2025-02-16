@@ -45,13 +45,11 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.ComponentConverters;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -334,7 +332,7 @@ public class CustomItemRegistryPopulator {
         int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
 
         itemProperties.putInt("max_stack_size", stackSize);
-        if (maxDamage > 0 && !isUnbreakableItem(definition)) {
+        if (maxDamage > 0) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                 .putCompound("damage_chance", NbtMap.builder()
                     .putInt("max", 1)
@@ -628,18 +626,6 @@ public class CustomItemRegistryPopulator {
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {
         return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
-    }
-
-    private static boolean isUnbreakableItem(CustomItemDefinition definition) {
-        for (MinecraftPredicate predicate : definition.predicates()) {
-            if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
-                Identifier component = (Identifier) condition.data();
-                if (UNBREAKABLE_COMPONENT.equals(component)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**

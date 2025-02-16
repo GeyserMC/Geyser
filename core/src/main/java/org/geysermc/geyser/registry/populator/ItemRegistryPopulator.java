@@ -64,7 +64,6 @@ import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
@@ -777,6 +776,7 @@ public class ItemRegistryPopulator {
                 return second.predicates().size() - first.predicates().size(); // No need checking for range predicates if either one has no predicates
             }
 
+            /*
             for (MinecraftPredicate predicate : first.predicates()) {
                 if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
                     Optional<RangeDispatchPredicate> other = second.predicates().stream()
@@ -789,7 +789,7 @@ public class ItemRegistryPopulator {
                         return (int) (otherScaledThreshold - thisThreshold);
                     }
                 } // TODO not a fan of how this looks
-            }
+            }*/ // TODO
 
             if (first.predicates().size() == second.predicates().size()) {
                 return -1; // If there's no preferred range predicate order and they both have the same amount of predicates, prefer the first

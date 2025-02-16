@@ -29,26 +29,13 @@ import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
-import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
-import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.ChargeType;
-import org.geysermc.geyser.item.custom.predicate.MatchPredicate;
-import org.geysermc.geyser.api.predicate.context.item.CustomModelDataString;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -56,8 +43,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
@@ -82,14 +67,16 @@ public final class CustomItemTranslator {
             return null;
         }
 
+        ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
+
         // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
-        Object2BooleanMap<MinecraftPredicate> calculatedPredicates = new Object2BooleanOpenHashMap<>();
+        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>();
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
             boolean allMatch = true;
 
-            for (MinecraftPredicate predicate : customMapping.definition().predicates()) {
-                boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicateMatches(session, predicate, stackSize, components));
+            for (MinecraftPredicate<? super ItemPredicateContext> predicate : customMapping.definition().predicates()) {
+                boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicate.test(context));
                 if (!value) {
                     allMatch = false;
                     break;
@@ -102,133 +89,6 @@ public final class CustomItemTranslator {
             }
         }
         return null;
-    }
-
-    private static boolean predicateMatches(GeyserSession session, MinecraftPredicate predicate, int stackSize, DataComponents components) {
-        if (predicate instanceof ConditionPredicate<?> condition) {
-            ConditionPredicateProperty<?> property = condition.property();
-            boolean expected = condition.expected();
-            if (property == ConditionPredicateProperty.BROKEN) {
-                return nextDamageWillBreak(components) == expected;
-            } else if (property == ConditionPredicateProperty.DAMAGED) {
-                return isDamaged(components) == expected;
-            } else if (property == ConditionPredicateProperty.CUSTOM_MODEL_DATA) {
-                Integer index = (Integer) condition.data();
-                return getCustomBoolean(components, index) == expected;
-            } else if (property == ConditionPredicateProperty.HAS_COMPONENT) {
-                Identifier identifier = (Identifier) condition.data();
-                if (identifier == null) {
-                    return false;
-                }
-                Key component = MinecraftKey.identifierToKey(identifier);
-                for (DataComponentType<?> componentType : components.getDataComponents().keySet()) {
-                    if (componentType.getKey().equals(component)) {
-                        return expected;
-                    }
-                }
-                return !expected;
-            }
-        } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fan of the casts here, find a solution for the types?
-            if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
-                ChargeType expected = (ChargeType) match.data();
-                List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
-                if (charged == null || charged.isEmpty()) {
-                    return expected == ChargeType.NONE;
-                } else if (expected == ChargeType.ROCKET) {
-                    for (ItemStack projectile : charged) {
-                        if (projectile.getId() == Items.FIREWORK_ROCKET.javaId()) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                return true;
-            } else if (match.property() == MatchPredicateProperty.TRIM_MATERIAL) {
-                Identifier material = (Identifier) match.data();
-                ArmorTrim trim = components.get(DataComponentType.TRIM);
-                if (trim == null || trim.material().isCustom()) {
-                    return false;
-                }
-                RegistryEntryData<TrimMaterial> registered = session.getRegistryCache().trimMaterials().entryById(trim.material().id());
-                return MinecraftKey.identifierToKey(material).equals(registered.key());
-            } else if (match.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
-                Identifier dimension = (Identifier) match.data();
-                RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
-                return MinecraftKey.identifierToKey(dimension).equals(registered.key());
-            } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
-                CustomModelDataString expected = (CustomModelDataString) match.data();
-                return expected.value().equals(getSafeCustomModelData(components, CustomModelData::strings, expected.index()));
-            }
-        } else if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
-            double propertyValue = switch (rangeDispatch.property()) {
-                case BUNDLE_FULLNESS -> {
-                    List<ItemStack> stacks = components.get(DataComponentType.BUNDLE_CONTENTS);
-                    if (stacks == null) {
-                        yield 0;
-                    }
-                    int bundleWeight = 0;
-                    for (ItemStack stack : stacks) {
-                        bundleWeight += stack.getAmount();
-                    }
-                    yield bundleWeight;
-                }
-                case DAMAGE -> tryNormalize(rangeDispatch, components.get(DataComponentType.DAMAGE), components.get(DataComponentType.MAX_DAMAGE));
-                case COUNT -> tryNormalize(rangeDispatch, stackSize, components.get(DataComponentType.MAX_STACK_SIZE));
-                case CUSTOM_MODEL_DATA -> getCustomFloat(components, rangeDispatch.index());
-            } * rangeDispatch.scale();
-            return propertyValue >= rangeDispatch.threshold();
-        }
-
-        throw new IllegalStateException("Unimplemented predicate type: " + predicate);
-    }
-
-    private static boolean getCustomBoolean(DataComponents components, Integer index) {
-        if (index == null) {
-            return false;
-        }
-        Boolean b = getSafeCustomModelData(components, CustomModelData::flags, index);
-        return b != null && b;
-    }
-
-    private static float getCustomFloat(DataComponents components, int index) {
-        Float f = getSafeCustomModelData(components, CustomModelData::floats, index);
-        return f == null ? 0.0F : f;
-    }
-
-    private static <T> T getSafeCustomModelData(DataComponents components, Function<CustomModelData, List<T>> listGetter, int index) {
-        CustomModelData modelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
-        if (modelData == null || index < 0) {
-            return null;
-        }
-        List<T> list = listGetter.apply(modelData);
-        if (index < list.size()) {
-            return list.get(index);
-        }
-        return null;
-    }
-
-    private static double tryNormalize(RangeDispatchPredicate predicate, @Nullable Integer value, @Nullable Integer max) {
-        if (value == null) {
-            return 0.0;
-        } else if (max == null) {
-            return value;
-        } else if (!predicate.normalizeIfPossible()) {
-            return Math.min(value, max);
-        }
-        return Math.max(0.0, Math.min(1.0, (double) value / max));
-    }
-
-    /* These three functions are based off their Mojmap equivalents from 1.21.3 */
-    private static boolean nextDamageWillBreak(DataComponents components) {
-        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) >= components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) - 1;
-    }
-
-    private static boolean isDamaged(DataComponents components) {
-        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) > 0;
-    }
-
-    private static boolean isDamageableItem(DataComponents components) {
-        return components.get(DataComponentType.UNBREAKABLE) == null && components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) > 0;
     }
 
     private CustomItemTranslator() {

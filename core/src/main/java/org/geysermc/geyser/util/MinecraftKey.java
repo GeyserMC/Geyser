@@ -40,6 +40,16 @@ public final class MinecraftKey {
     }
 
     public static Key identifierToKey(Identifier identifier) {
+        if (identifier == null) {
+            return null;
+        }
         return identifier instanceof IdentifierImpl impl ? impl.identifier() : Key.key(identifier.namespace(), identifier.path());
+    }
+
+    public static Identifier keyToIdentifier(Key key) {
+        if (key == null) {
+            return null;
+        }
+        return new IdentifierImpl(key);
     }
 }

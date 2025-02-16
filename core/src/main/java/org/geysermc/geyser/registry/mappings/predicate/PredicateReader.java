@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.registry.mappings.predicate;
 
-import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import com.google.gson.JsonElement;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements ItemMatchPredicate<T> {
+@FunctionalInterface
+public interface PredicateReader<C extends MinecraftPredicateContext> {
+
+    MinecraftPredicate<? super C> read(JsonElement element, String... context) throws InvalidCustomMappingsFileException;
 }

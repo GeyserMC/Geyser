@@ -36,6 +36,8 @@ public interface ItemConditionPredicate {
 
     MinecraftPredicate<ItemPredicateContext> BROKEN = DAMAGEABLE.and(context -> context.damage() >= context.maxDamage() - 1);
 
+    MinecraftPredicate<ItemPredicateContext> DAMAGED = DAMAGEABLE.and(context -> context.damage() >= 0);
+
     PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFlag(data);
 
     PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = data -> context -> context.components().contains(data);
