@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
@@ -34,6 +33,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 
 @Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
@@ -54,8 +54,10 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         Inventory openInventory = session.getOpenInventory();
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
-                session.sendDownstreamGamePacket(closeWindowPacket);
+                if (openInventory.shouldConfirmContainerClose()) {
+                    ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
+                    session.sendDownstreamGamePacket(closeWindowPacket);
+                }
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
                 InventoryUtils.displayInventory(session, openInventory);

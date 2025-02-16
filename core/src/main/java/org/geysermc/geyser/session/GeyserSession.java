@@ -527,6 +527,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean placedBucket;
 
     /**
+     * Stores whether the Java server requested the player inventory to be closed.
+     * Used to prevent our hacky player inventory closing workaround in {@link org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator#closeInventory(GeyserSession, Inventory)}
+     * to run when the closing is initated by the Bedrock client.
+     */
+    @Setter
+    private boolean serverRequestedClosePlayerInventory;
+
+    /**
      * Counts how many ticks have occurred since an arm animation started.
      * -1 means there is no active arm swing; -2 means an arm swing will start in a tick.
      */

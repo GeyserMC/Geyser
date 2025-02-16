@@ -70,4 +70,9 @@ public class LecternContainer extends Container {
         this.isBookInPlayerInventory = true;
         super.setItem(0, book, session);
     }
+
+    @Override
+    public boolean shouldConfirmContainerClose() {
+        return !isBookInPlayerInventory;
+    }
 }

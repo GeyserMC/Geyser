@@ -47,7 +47,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -581,26 +580,26 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        // TODO only run if close is server-initiated
-        GeyserImpl.getInstance().getLogger().info("Closing player inventory!");
-        Vector3i pos = session.getPlayerEntity().getPosition().toInt();
+        if (session.isServerRequestedClosePlayerInventory()) {
+            Vector3i pos = session.getPlayerEntity().getPosition().toInt();
 
-        UpdateBlockPacket packet = new UpdateBlockPacket();
-        packet.setBlockPosition(pos);
-        packet.setDefinition(session.getBlockMappings().getNetherPortalBlock());
-        packet.setDataLayer(0);
-        packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        session.sendUpstreamPacket(packet);
-
-        session.scheduleInEventLoop(() -> {
-            BlockDefinition definition = session.getBlockMappings().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
-
+            UpdateBlockPacket packet = new UpdateBlockPacket();
             packet.setBlockPosition(pos);
-            packet.setDefinition(definition);
-            packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+            packet.setDefinition(session.getBlockMappings().getNetherPortalBlock());
             packet.setDataLayer(0);
+            packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
             session.sendUpstreamPacket(packet);
-        }, 50, TimeUnit.MILLISECONDS);
+
+            session.scheduleInEventLoop(() -> {
+                BlockDefinition definition = session.getBlockMappings().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
+
+                packet.setBlockPosition(pos);
+                packet.setDefinition(definition);
+                packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+                packet.setDataLayer(0);
+                session.sendUpstreamPacket(packet);
+            }, 50, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
