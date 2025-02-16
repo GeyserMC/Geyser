@@ -181,8 +181,6 @@ public class BlockInventoryHolder extends InventoryHolder {
                 packet.setServerInitiated(true);
                 packet.setType(type);
                 session.sendUpstreamPacket(packet);
-
-                GeyserImpl.getInstance().getLogger().warning(packet.toString());
                 return;
             }
 
