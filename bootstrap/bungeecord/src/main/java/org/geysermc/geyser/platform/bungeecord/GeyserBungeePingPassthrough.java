@@ -187,6 +187,21 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         }
 
         @Override
+        public boolean isTransferred() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<byte[]> retrieveCookie(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public CompletableFuture<byte[]> sendData(String s, byte[] bytes) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Unsafe unsafe() {
             throw new UnsupportedOperationException();
         }
