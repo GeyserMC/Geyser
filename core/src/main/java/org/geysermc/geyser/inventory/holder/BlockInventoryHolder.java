@@ -155,32 +155,46 @@ public class BlockInventoryHolder extends InventoryHolder {
     }
 
     @Override
-    public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        if (inventory instanceof Container container) {
-            if (container.isUsingRealBlock() && !(container instanceof LecternContainer)) {
-                // No need to reset a block since we didn't change any blocks
-                // But send a container close packet because we aren't destroying the original.
-                ContainerClosePacket packet = new ContainerClosePacket();
-                packet.setId((byte) inventory.getBedrockId());
-                packet.setServerInitiated(true);
-                packet.setType(ContainerType.CONTAINER);
-                session.sendUpstreamPacket(packet);
-                return;
-            }
-        } else {
-            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
-            if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
-                GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
-            }
+    public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory, ContainerType type) {
+        if (!(inventory instanceof Container container)) {
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! Please report this error on discord.");
+            GeyserImpl.getInstance().getLogger().warning("Current inventory translator: " + translator.getClass().getSimpleName());
+            GeyserImpl.getInstance().getLogger().warning("Current inventory: " + inventory.getClass().getSimpleName());
             // Try to save ourselves? maybe?
             // https://github.com/GeyserMC/Geyser/issues/4141
-            // TODO: improve once this issue is pinned down properly
+            // TODO: improve once this issue is pinned down
             session.setOpenInventory(null);
             session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
             return;
         }
 
+        // Bedrock broke inventory closing. I wish i was kidding.
+        // "type" is explicitly passed to keep track of which inventory types can be closed without
+        // ""workarounds"". yippie.
+        // Further, Lecterns cannot be closed with any of the two methods below.
+        if (container.isUsingRealBlock() && !(container instanceof LecternContainer)) {
+            if (type != null) {
+                // No need to reset a block since we didn't change any blocks
+                // But send a container close packet because we aren't destroying the original.
+                ContainerClosePacket packet = new ContainerClosePacket();
+                packet.setId((byte) inventory.getBedrockId());
+                packet.setServerInitiated(true);
+                packet.setType(type);
+                session.sendUpstreamPacket(packet);
+                return;
+            }
+
+            // Destroy the block. There's no inventory to view => it gets closed!
+            Vector3i holderPos = inventory.getHolderPosition();
+            UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+            blockPacket.setDataLayer(0);
+            blockPacket.setBlockPosition(holderPos);
+            blockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+            blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+            session.sendUpstreamPacket(blockPacket);
+        }
+
+        // Reset to correct block
         Vector3i holderPos = inventory.getHolderPosition();
         int realBlock = session.getGeyser().getWorldManager().getBlockAt(session, holderPos.getX(), holderPos.getY(), holderPos.getZ());
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();

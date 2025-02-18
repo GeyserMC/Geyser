@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.inventory;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
@@ -41,10 +43,10 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -65,6 +67,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
@@ -577,11 +580,26 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        ContainerClosePacket packet = new ContainerClosePacket();
-        packet.setServerInitiated(true);
-        packet.setId((byte) ContainerId.INVENTORY);
-        packet.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
-        session.sendUpstreamPacket(packet);
+        if (session.isServerRequestedClosePlayerInventory()) {
+            Vector3i pos = session.getPlayerEntity().getPosition().toInt();
+
+            UpdateBlockPacket packet = new UpdateBlockPacket();
+            packet.setBlockPosition(pos);
+            packet.setDefinition(session.getBlockMappings().getNetherPortalBlock());
+            packet.setDataLayer(0);
+            packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+            session.sendUpstreamPacket(packet);
+
+            session.scheduleInEventLoop(() -> {
+                BlockDefinition definition = session.getBlockMappings().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
+
+                packet.setBlockPosition(pos);
+                packet.setDefinition(definition);
+                packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+                packet.setDataLayer(0);
+                session.sendUpstreamPacket(packet);
+            }, 50, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override

@@ -171,4 +171,12 @@ public abstract class Inventory {
     public void resetNextStateId() {
         nextStateId = -1;
     }
+
+    /**
+     * Whether we should be sending a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket}
+     * when closing the inventory.
+     */
+    public boolean shouldConfirmContainerClose() {
+        return true;
+    }
 }

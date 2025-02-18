@@ -38,6 +38,7 @@ public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundCo
     public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
         // Sometimes the server can request a window close of ID 0... when the window isn't even open
         // Don't confirm in this instance
+        session.setServerRequestedClosePlayerInventory(packet.getContainerId() == 0);
         InventoryUtils.closeInventory(session, packet.getContainerId(), (session.getOpenInventory() != null && session.getOpenInventory().getJavaId() == packet.getContainerId()));
     }
 }

@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.inventory;
 
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.jetbrains.annotations.Range;
 
 /**
