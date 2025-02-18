@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
@@ -105,5 +106,10 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
             case 4 -> new BedrockContainerSlot(ContainerSlotType.BREWING_FUEL, 4);
             default -> super.javaSlotToBedrockContainer(slot);
         };
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return ContainerType.BREWING_STAND;
     }
 }

@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.inventory;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -206,5 +207,10 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             return SlotType.OUTPUT;
         }
         return super.getSlotType(javaSlot);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

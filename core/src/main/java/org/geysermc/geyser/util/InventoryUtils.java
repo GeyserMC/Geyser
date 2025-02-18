@@ -119,8 +119,7 @@ public class InventoryUtils {
             }
         } else {
             // Can occur if we e.g. did not find a spot to put a fake container in
-            ServerboundContainerClosePacket closePacket = new ServerboundContainerClosePacket(inventory.getJavaId());
-            session.sendDownstreamGamePacket(closePacket);
+            sendJavaContainerClose(session, inventory);
             session.setOpenInventory(null);
             session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         }
@@ -158,6 +157,13 @@ public class InventoryUtils {
                 return openInventory;
             }
             return null;
+        }
+    }
+
+    public static void sendJavaContainerClose(GeyserSession session, Inventory inventory) {
+        if (inventory.shouldConfirmContainerClose()) {
+            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(inventory.getJavaId());
+            session.sendDownstreamGamePacket(closeWindowPacket);
         }
     }
 

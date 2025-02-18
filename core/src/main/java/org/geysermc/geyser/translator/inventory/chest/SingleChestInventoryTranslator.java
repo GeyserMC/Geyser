@@ -67,6 +67,6 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        holder.closeInventory(this, session, inventory, ContainerType.CONTAINER);
     }
 }
