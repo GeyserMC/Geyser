@@ -44,6 +44,6 @@ public class RakGeyserRateLimiter extends RakServerRateLimiter {
 
     @Override
     protected int getAddressMaxPacketCount(InetAddress address) {
-        return super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address);
+        return super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address) * 0.8;
     }
 }
