@@ -34,7 +34,6 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 
 /**
  * Used to translate moving pages, or closing the inventory
@@ -52,8 +51,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
 
         if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
             // The same page means Bedrock is closing the window
-            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
-            session.sendDownstreamGamePacket(closeWindowPacket);
+            InventoryUtils.sendJavaContainerClose(session, lecternContainer);
             InventoryUtils.closeInventory(session, lecternContainer.getJavaId(), false);
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
