@@ -120,7 +120,7 @@ public class ItemFrameEntity extends Entity {
             NbtMap itemDataTag = itemData.getTag();
             if (itemDataTag != null) {
                 // Remove custom name that Geyser sets for items due to translating non-"custom_name" components
-                String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponents(),
+                String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponentsPatch(),
                     session.getItemMappings().getMapping(heldItem), 'f', true, false);
                 if (customName == null) {
                     // No custom name found, must modify tag if custom name exists

@@ -319,7 +319,7 @@ public class InventoryUtils {
             ItemStack other = itemStackSlotDisplay.itemStack();
             // Amount check might be flimsy?
             return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
-                && Objects.equals(itemStack.getComponents(), other.getDataComponents());
+                && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
         if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
             return session.getTagCache().is(new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()), itemStack.asItem());

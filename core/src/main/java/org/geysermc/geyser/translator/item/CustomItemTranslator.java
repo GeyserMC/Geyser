@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.item;
 
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -55,7 +55,7 @@ public final class CustomItemTranslator {
 
         // TODO 1.21.4
         float customModelDataInt = 0;
-        CustomModelData customModelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
+        CustomModelData customModelData = components.get(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (customModelData != null) {
             if (!customModelData.floats().isEmpty()) {
                 customModelDataInt = customModelData.floats().get(0);
@@ -63,7 +63,7 @@ public final class CustomItemTranslator {
         }
 
         boolean checkDamage = mapping.getJavaItem().defaultMaxDamage() > 0;
-        int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentType.DAMAGE, 0);
+        int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentTypes.DAMAGE, 0);
         boolean unbreakable = checkDamage && !isDamaged(components, damage);
 
         for (Pair<CustomItemOptions, ItemDefinition> mappingTypes : customMappings) {
@@ -119,7 +119,7 @@ public final class CustomItemTranslator {
 
     private static boolean isDamagableItem(DataComponents components) {
         // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
-        return components.get(DataComponentType.UNBREAKABLE) == null;
+        return components.get(DataComponentTypes.UNBREAKABLE) == null;
     }
 
     private CustomItemTranslator() {
