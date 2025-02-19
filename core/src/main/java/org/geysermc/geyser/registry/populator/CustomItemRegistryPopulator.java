@@ -48,7 +48,8 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
@@ -134,8 +135,8 @@ public class CustomItemRegistryPopulator {
         String customIdentifier = customItemData.identifier();
 
         DataComponents components = new DataComponents(new HashMap<>());
-        components.put(DataComponentType.MAX_STACK_SIZE, customItemData.stackSize());
-        components.put(DataComponentType.MAX_DAMAGE, customItemData.maxDamage());
+        components.put(DataComponentTypes.MAX_STACK_SIZE, customItemData.stackSize());
+        components.put(DataComponentTypes.MAX_DAMAGE, customItemData.maxDamage());
 
         Item item = new Item(customIdentifier, Item.builder().components(components));
         Items.register(item, customItemData.javaId());

@@ -291,7 +291,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final PlayerInventory playerInventory;
     @Setter
-    private Inventory openInventory;
+    private @Nullable Inventory openInventory;
     @Setter
     private boolean closingInventory;
 

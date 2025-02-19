@@ -43,7 +43,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -164,11 +164,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             NbtMap blockEntityTag;
             if (book.hasNonBaseComponents()) {
                 int pages = 0;
-                WrittenBookContent writtenBookComponents = book.getComponent(DataComponentType.WRITTEN_BOOK_CONTENT);
+                WrittenBookContent writtenBookComponents = book.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                 if (writtenBookComponents != null) {
                     pages = writtenBookComponents.getPages().size();
                 } else {
-                    WritableBookContent writableBookComponents = book.getComponent(DataComponentType.WRITABLE_BOOK_CONTENT);
+                    WritableBookContent writableBookComponents = book.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT);
                     if (writableBookComponents != null) {
                         pages = writableBookComponents.getPages().size();
                     }

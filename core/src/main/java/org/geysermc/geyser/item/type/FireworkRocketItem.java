@@ -35,7 +35,7 @@ import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
@@ -51,7 +51,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
+        Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
         if (fireworks == null) {
             return;
         }
@@ -87,7 +87,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
                         javaExplosions.add(javaExplosion);
                     }
                 }
-                components.put(DataComponentType.FIREWORKS, new Fireworks(1, javaExplosions));
+                components.put(DataComponentTypes.FIREWORKS, new Fireworks(1, javaExplosions));
             }
         }
     }

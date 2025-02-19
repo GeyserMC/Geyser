@@ -33,7 +33,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
 public final class BlockUtils {
@@ -57,7 +57,7 @@ public final class BlockUtils {
     }
 
     private static boolean isCorrectItemForDrops(GeyserSession session, Block block, GeyserItemStack stack) {
-        ToolData tool = stack.getComponent(DataComponentType.TOOL);
+        ToolData tool = stack.getComponent(DataComponentTypes.TOOL);
         if (tool == null) {
             return false;
         }
@@ -74,7 +74,7 @@ public final class BlockUtils {
     }
 
     private static float getItemDestroySpeed(GeyserSession session, Block block, GeyserItemStack stack) {
-        ToolData tool = stack.getComponent(DataComponentType.TOOL);
+        ToolData tool = stack.getComponent(DataComponentTypes.TOOL);
         if (tool == null) {
             return 1f;
         }

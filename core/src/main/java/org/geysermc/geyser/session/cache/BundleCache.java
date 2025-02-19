@@ -41,7 +41,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,7 +75,7 @@ public final class BundleCache {
             }
 
             BundleData bundleData;
-            List<ItemStack> rawContents = itemStack.getComponent(DataComponentType.BUNDLE_CONTENTS);
+            List<ItemStack> rawContents = itemStack.getComponent(DataComponentTypes.BUNDLE_CONTENTS);
             if (rawContents != null) {
                 // Use existing list and transform it to support net IDs
                 bundleData = new BundleData(session, rawContents);

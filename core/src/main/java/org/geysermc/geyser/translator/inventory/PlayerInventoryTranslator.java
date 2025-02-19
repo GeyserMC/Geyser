@@ -61,7 +61,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 
 import java.util.Arrays;
@@ -110,7 +110,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             if (i == 5 &&
                     item.asItem() == Items.PLAYER_HEAD &&
                     item.hasNonBaseComponents()) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentType.PROFILE));
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentTypes.PROFILE));
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
@@ -154,7 +154,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
                     && javaItem.hasNonBaseComponents()) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
@@ -523,7 +523,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         dropStack = javaCreativeItem;
                     } else {
                         // Specify custom count
-                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getDataComponents());
+                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getDataComponentsPatch());
                     }
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, dropStack);
                     session.sendDownstreamGamePacket(creativeDropPacket);
@@ -581,22 +581,20 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
         if (session.isServerRequestedClosePlayerInventory()) {
+            session.setServerRequestedClosePlayerInventory(false);
             Vector3i pos = session.getPlayerEntity().getPosition().toInt();
 
             UpdateBlockPacket packet = new UpdateBlockPacket();
             packet.setBlockPosition(pos);
             packet.setDefinition(session.getBlockMappings().getNetherPortalBlock());
             packet.setDataLayer(0);
-            packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+            packet.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(packet);
 
             session.scheduleInEventLoop(() -> {
                 BlockDefinition definition = session.getBlockMappings().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
-
-                packet.setBlockPosition(pos);
                 packet.setDefinition(definition);
                 packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-                packet.setDataLayer(0);
                 session.sendUpstreamPacket(packet);
             }, 50, TimeUnit.MILLISECONDS);
         }

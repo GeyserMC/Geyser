@@ -51,7 +51,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.Collections;
@@ -129,7 +129,7 @@ public class WolfEntity extends TameableEntity {
         super.setBody(stack);
         isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
         // Not using ItemStack#getDataComponents as that wouldn't include default item components
-        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
+        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentTypes.REPAIRABLE);
     }
 
     @Override

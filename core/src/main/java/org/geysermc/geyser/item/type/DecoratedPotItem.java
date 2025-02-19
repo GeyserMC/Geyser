@@ -31,7 +31,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class DecoratedPotItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        List<Integer> decorations = components.get(DataComponentType.POT_DECORATIONS); // TODO maybe unbox in MCProtocolLib
+        List<Integer> decorations = components.get(DataComponentTypes.POT_DECORATIONS); // TODO maybe unbox in MCProtocolLib
         if (decorations != null) {
             List<String> sherds = new ArrayList<>(decorations.size());
             for (Integer decoration : decorations) {

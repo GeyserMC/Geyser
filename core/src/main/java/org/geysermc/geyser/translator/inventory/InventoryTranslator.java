@@ -75,7 +75,8 @@ import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslato
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -261,7 +262,7 @@ public abstract class InventoryTranslator {
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.hasNonBaseComponents()) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
                             //we are probably removing the head, so restore the original skin
@@ -1040,7 +1041,7 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            Integer damage = itemStack.getComponent(DataComponentType.DAMAGE);
+            Integer damage = itemStack.getComponent(DataComponentTypes.DAMAGE);
             if (damage != null) {
                 durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
             }
