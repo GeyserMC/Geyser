@@ -95,8 +95,6 @@ final class BedrockBlockActions {
 
                 // The Bedrock client won't send a new start_break packet, but just continue breaking blocks
                 if (!vector.equals(session.getBlockBreakPosition())) {
-                    GeyserImpl.getInstance().getLogger().error("Invalid block break position! Expected " + session.getBlockBreakPosition() + ", got " + vector);
-
                     // Start breaking new block
                     startBlockBreak(session, vector, blockFace);
                     break;
@@ -233,7 +231,8 @@ final class BedrockBlockActions {
             vector, direction, session.getWorldCache().nextPredictionSequence());
         session.sendDownstreamGamePacket(startBreakingPacket);
 
-        spawnBlockBreakParticles(session, direction, vector, BlockState.of(blockState));
+        // TODO test
+        //spawnBlockBreakParticles(session, direction, vector, BlockState.of(blockState));
     }
 
     private static void breakBlock(GeyserSession session, Vector3i vector, int blockFace) {
@@ -264,6 +263,12 @@ final class BedrockBlockActions {
         if (blockState == -1) {
             blockState = Block.JAVA_AIR_ID;
         }
+
+        LevelEventPacket breakingPacket = new LevelEventPacket();
+        breakingPacket.setType(LevelEvent.BLOCK_STOP_BREAK);
+        breakingPacket.setPosition(vector.toFloat());
+        breakingPacket.setData(0);
+        session.sendUpstreamPacket(breakingPacket);
 
         LevelEventPacket blockBreakPacket = new LevelEventPacket();
         blockBreakPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
