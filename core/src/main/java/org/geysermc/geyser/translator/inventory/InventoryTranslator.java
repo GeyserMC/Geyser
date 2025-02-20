@@ -76,7 +76,6 @@ import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -258,14 +257,14 @@ public abstract class InventoryTranslator {
 
                     if (this instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
-                            //only set the head if the destination is the head slot
+                            // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.hasNonBaseComponents()) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
-                            //we are probably removing the head, so restore the original skin
+                            // we are probably removing the head, so restore the original skin
                             FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                         }
                     }

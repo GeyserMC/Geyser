@@ -279,9 +279,22 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return bundleResponse;
                     }
 
+                    int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                    int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                    if (destSlot == 5) {
+                        // only set the head if the destination is the head slot
+                        GeyserItemStack javaItem = inventory.getItem(sourceSlot);
+                        if (javaItem.asItem() == Items.PLAYER_HEAD
+                            && javaItem.hasNonBaseComponents()) {
+                            FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
+                        }
+                    } else if (sourceSlot == 5) {
+                        // we are probably removing the head, so restore the original skin
+                        FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                    }
+
                     int transferAmount = transferAction.getCount();
                     if (isCursor(transferAction.getDestination())) {
-                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (playerInv.getCursor().isEmpty()) {
                             playerInv.setCursor(sourceItem.copy(0), session);
@@ -294,7 +307,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
                         affectedSlots.add(sourceSlot);
                     } else if (isCursor(transferAction.getSource())) {
-                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         GeyserItemStack sourceItem = playerInv.getCursor();
                         if (inventory.getItem(destSlot).isEmpty()) {
                             inventory.setItem(destSlot, sourceItem.copy(0), session);
@@ -307,8 +319,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
                         affectedSlots.add(destSlot);
                     } else {
-                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
-                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (inventory.getItem(destSlot).isEmpty()) {
                             inventory.setItem(destSlot, sourceItem.copy(0), session);
