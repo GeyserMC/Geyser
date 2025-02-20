@@ -59,6 +59,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -81,11 +82,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             leftOverInputData.remove(input);
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
-                case PERFORM_ITEM_STACK_REQUEST -> {
-                    ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
-                    responsePacket.getEntries().add(session.getInventoryTranslator().translateRequest(session, session.getPlayerInventory(), packet.getItemStackRequest()));
-                    session.sendUpstreamPacket(responsePacket);
-                }
+                case PERFORM_ITEM_STACK_REQUEST -> session.getInventoryTranslator().translateRequests(session, session.getPlayerInventory(), List.of(packet.getItemStackRequest()));
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
