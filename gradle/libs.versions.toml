@@ -43,7 +43,6 @@ minecraft = "1.21.4"
 mockito = "5.+"
 runtask = "2.3.1"
 runpaperversion = "1.21.4"
-runwaterfallversion = "1.19"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
@@ -156,7 +155,6 @@ indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
 runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
-runwaterfall = { id = "xyz.jpenilla.run-waterfall", version.ref = "runtask" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
