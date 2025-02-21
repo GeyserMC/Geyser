@@ -5,9 +5,6 @@ plugins {
     id("geyser.platform-conventions")
 }
 
-val terminalConsoleVersion = "1.2.0"
-val jlineVersion = "3.21.0"
-
 dependencies {
     api(projects.core)
 

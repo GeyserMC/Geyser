@@ -1,6 +1,7 @@
 plugins {
     id("geyser.platform-conventions")
     id("geyser.modrinth-uploading-conventions")
+    alias(libs.plugins.runwaterfall)
 }
 
 dependencies {
@@ -47,4 +48,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 modrinth {
     uploadFile.set(tasks.getByPath("shadowJar"))
     loaders.add("bungeecord")
+}
+
+tasks {
+    runWaterfall {
+        version(libs.versions.runwaterfallversion.get())
+    }
 }
