@@ -28,8 +28,8 @@ package org.geysermc.geyser.translator.protocol.bedrock.world;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
@@ -38,7 +38,6 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 @Translator(packet = LevelSoundEventPacket.class)
@@ -48,6 +47,7 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
     public void translate(GeyserSession session, LevelSoundEventPacket packet) {
         // lol what even :thinking:
         session.sendUpstreamPacket(packet);
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
 
         // Yes, what even, but thankfully we can hijack this packet to send the cooldown
         if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
@@ -57,20 +57,21 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
         }
 
         if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE && session.getArmAnimationTicks() == -1) {
+            throw new IllegalStateException("o.o.");
             // https://github.com/GeyserMC/Geyser/issues/2113
             // Seems like consoles and Android with keyboard send the animation packet on 1.19.51, hence the animation
             // tick check - the animate packet is sent first.
             // ATTACK_NODAMAGE = player clicked air
             // This should only be revisited if Bedrock packets get full Java parity, or Bedrock starts sending arm
             // animation packets after ATTACK_NODAMAGE, OR ATTACK_NODAMAGE gets removed/isn't sent in the same spot
-            session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
-            session.activateArmAnimationTicking();
-
-            // Send packet to Bedrock so it knows
-            AnimatePacket animatePacket = new AnimatePacket();
-            animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-            animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-            session.sendUpstreamPacket(animatePacket);
+//            session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+//            session.activateArmAnimationTicking();
+//
+//            // Send packet to Bedrock so it knows
+//            AnimatePacket animatePacket = new AnimatePacket();
+//            animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+//            animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+//            session.sendUpstreamPacket(animatePacket);
         }
 
         // Used by client to get book from lecterns in survial mode since 1.20.70
