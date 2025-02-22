@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.level.block.Blocks;
@@ -43,6 +44,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -146,13 +148,25 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        if (((Container) inventory).isUsingRealBlock()) {
+        if (!(inventory instanceof Container container)) {
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! Please report this error on discord.");
+            GeyserImpl.getInstance().getLogger().warning("Current inventory translator: " + session.getInventoryTranslator().getClass().getSimpleName());
+            GeyserImpl.getInstance().getLogger().warning("Current inventory: " + inventory.getClass().getSimpleName());
+            // Try to save ourselves? maybe?
+            // https://github.com/GeyserMC/Geyser/issues/4141
+            // TODO: improve once this issue is pinned down
+            session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+            return;
+        }
+
+        if (container.isUsingRealBlock()) {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
             packet.setId((byte) inventory.getBedrockId());
             packet.setServerInitiated(true);
-            packet.setType(ContainerType.MINECART_CHEST);
+            packet.setType(ContainerType.CONTAINER);
             session.sendUpstreamPacket(packet);
             return;
         }

@@ -225,7 +225,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 } else if (!(subDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay)) {
                     id = -1;
                 } else if (itemStackSlotDisplay.itemStack().getAmount() == 1
-                    && itemStackSlotDisplay.itemStack().getDataComponents() == null) {
+                    && itemStackSlotDisplay.itemStack().getDataComponentsPatch() == null) {
                     id = itemStackSlotDisplay.itemStack().getId();
                 } else {
                     id = -1;

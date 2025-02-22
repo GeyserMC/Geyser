@@ -162,4 +162,9 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
 
         BlockEntityUtils.updateBlockEntity(session, tag.build(), container.getHolderPosition());
     }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return null;
+    }
 }

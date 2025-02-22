@@ -36,7 +36,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.jetbrains.annotations.Range;
 
 import java.util.Arrays;
@@ -135,7 +135,7 @@ public abstract class Inventory {
 
         // Lodestone caching
         if (newItem.asItem() == Items.COMPASS) {
-            var tracker = newItem.getComponent(DataComponentType.LODESTONE_TRACKER);
+            var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
             if (tracker != null) {
                 session.getLodestoneCache().cacheInventoryItem(newItem, tracker);
             }
@@ -170,5 +170,13 @@ public abstract class Inventory {
 
     public void resetNextStateId() {
         nextStateId = -1;
+    }
+
+    /**
+     * Whether we should be sending a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket}
+     * when closing the inventory.
+     */
+    public boolean shouldConfirmContainerClose() {
+        return true;
     }
 }

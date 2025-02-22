@@ -33,7 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class CrossbowItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        List<ItemStack> chargedProjectiles = components.get(DataComponentType.CHARGED_PROJECTILES);
+        List<ItemStack> chargedProjectiles = components.get(DataComponentTypes.CHARGED_PROJECTILES);
         if (chargedProjectiles != null && !chargedProjectiles.isEmpty()) {
             ItemStack javaProjectile = chargedProjectiles.get(0);
 

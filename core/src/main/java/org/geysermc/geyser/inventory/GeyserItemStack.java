@@ -43,6 +43,7 @@ import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
@@ -89,7 +90,7 @@ public class GeyserItemStack {
     }
 
     public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
+        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentsPatch());
     }
 
     public static @NonNull GeyserItemStack from(@NonNull SlotDisplay slotDisplay) {
@@ -217,11 +218,11 @@ public class GeyserItemStack {
         // Not fresh from server? Then we have changes to apply!~
         if (bundleData != null && !bundleData.freshFromServer()) {
             if (!bundleData.contents().isEmpty()) {
-                getOrCreateComponents().put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
+                getOrCreateComponents().put(DataComponentTypes.BUNDLE_CONTENTS, bundleData.toComponent());
             } else {
                 if (components != null) {
                     // Empty list = no component = should delete
-                    components.getDataComponents().remove(DataComponentType.BUNDLE_CONTENTS);
+                    components.getDataComponents().remove(DataComponentTypes.BUNDLE_CONTENTS);
                 }
             }
         }

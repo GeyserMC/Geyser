@@ -147,4 +147,9 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         return new BeaconContainer(name, windowId, this.size, containerType, playerInventory);
     }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return null;
+    }
 }

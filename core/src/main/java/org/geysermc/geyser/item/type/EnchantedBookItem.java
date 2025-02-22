@@ -36,7 +36,7 @@ import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 
@@ -54,7 +54,7 @@ public class EnchantedBookItem extends Item {
         super.translateComponentsToBedrock(session, components, builder);
 
         List<NbtMap> bedrockEnchants = new ArrayList<>();
-        ItemEnchantments enchantments = components.get(DataComponentType.STORED_ENCHANTMENTS);
+        ItemEnchantments enchantments = components.get(DataComponentTypes.STORED_ENCHANTMENTS);
         if (enchantments != null) { // TODO don't duplicate code?
             for (Map.Entry<Integer, Integer> enchantment : enchantments.getEnchantments().entrySet()) {
                 NbtMap bedrockTag = remapEnchantment(session, enchantment.getKey(), enchantment.getValue(), builder);
@@ -94,7 +94,7 @@ public class EnchantedBookItem extends Item {
                 }
             }
             if (!javaEnchantments.isEmpty()) {
-                components.put(DataComponentType.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments, true));
+                components.put(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments, true));
             }
         }
     }

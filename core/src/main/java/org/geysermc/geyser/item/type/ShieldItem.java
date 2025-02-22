@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
@@ -43,12 +43,12 @@ public class ShieldItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
+        List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
         if (patterns != null) {
             BannerItem.convertBannerPattern(session, patterns, builder);
         }
         // Shield pattern backing color
-        Integer baseColor = components.get(DataComponentType.BASE_COLOR);
+        Integer baseColor = components.get(DataComponentTypes.BASE_COLOR);
         if (baseColor != null) {
             builder.putInt("Base", 15 - baseColor);
         }
