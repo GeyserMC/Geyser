@@ -31,7 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
 import org.geysermc.geyser.session.GeyserSession;

@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.mappings.predicate;
 import com.google.gson.JsonElement;
 import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.CustomModelDataString;
 import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;

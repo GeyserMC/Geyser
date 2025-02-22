@@ -27,7 +27,7 @@ package org.geysermc.geyser.api.predicate.item;
 
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateCreator;
-import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**

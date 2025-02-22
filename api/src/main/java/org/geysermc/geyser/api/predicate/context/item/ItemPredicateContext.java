@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate.context;
+package org.geysermc.geyser.api.predicate.context.item;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
