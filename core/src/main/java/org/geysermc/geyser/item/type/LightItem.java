@@ -33,7 +33,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class LightItem extends BlockItem {
@@ -63,7 +63,7 @@ public class LightItem extends BlockItem {
     private static ItemMapping getLightLevelMapping(DataComponents components, ItemMappings mappings) {
         String lightLevel = "15";
         if (components != null) {
-            BlockStateProperties blockStateProperties = components.get(DataComponentType.BLOCK_STATE);
+            BlockStateProperties blockStateProperties = components.get(DataComponentTypes.BLOCK_STATE);
 
             if (blockStateProperties != null) {
                 lightLevel = blockStateProperties.getProperties().get(Properties.LEVEL.name());

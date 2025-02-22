@@ -15,7 +15,7 @@ protocol-common = "3.0.0.Beta6-20250212.131009-3"
 protocol-codec = "3.0.0.Beta6-20250212.131009-3"
 raknet = "1.0.0.CR3-20250128.101054-17"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.4-20250121.131208-18"
+mcprotocollib = "1.21.4-20250218.175633-22"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -30,7 +30,7 @@ cloud = "2.0.0-rc.2"
 cloud-minecraft = "2.0.0-beta.9"
 cloud-minecraft-modded = "2.0.0-beta.10"
 commodore = "2.2"
-bungeecord = "a7c6ede"
+bungeecord = "1.21-R0.1-20250215.224541-54"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
 fabric-loader = "0.16.9"
@@ -118,7 +118,7 @@ neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref =
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
-bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
+bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }

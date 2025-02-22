@@ -232,7 +232,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
     @Override
     public void packetError(PacketErrorEvent event) {
         geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.downstream_error",
-            (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ")" : "") +
+            (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ") " : "") +
                 event.getCause().getMessage())
         );
         if (geyser.getConfig().isDebugMode())

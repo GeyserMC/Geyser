@@ -33,7 +33,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class PlayerHeadItem extends BlockItem {
@@ -46,9 +46,9 @@ public class PlayerHeadItem extends BlockItem {
         super.translateComponentsToBedrock(session, components, builder);
 
         // Use the correct color, determined by the rarity of the item
-        char rarity = Rarity.fromId(components.get(DataComponentType.RARITY)).getColor();
+        char rarity = Rarity.fromId(components.get(DataComponentTypes.RARITY)).getColor();
 
-        GameProfile profile = components.get(DataComponentType.PROFILE);
+        GameProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
             String name = profile.getName();
             if (name != null) {
