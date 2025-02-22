@@ -34,7 +34,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
@@ -82,13 +82,13 @@ public record GeyserItemPredicateContext(Identifier dimension, int count, int ma
     public static ItemPredicateContext create(GeyserSession session, int stackSize, DataComponents components) {
         Identifier dimension = MinecraftKey.keyToIdentifier(session.getRegistryCache().dimensions().entryByValue(session.getDimensionType()).key());
 
-        int maxStackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 64);
-        int damage = components.getOrDefault(DataComponentType.DAMAGE, 0);
-        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+        int maxStackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 64);
+        int damage = components.getOrDefault(DataComponentTypes.DAMAGE, 0);
+        int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
-        boolean unbreakable = components.get(DataComponentType.UNBREAKABLE) != null;
+        boolean unbreakable = components.get(DataComponentTypes.UNBREAKABLE) != null;
 
-        List<ItemStack> bundleStacks = components.get(DataComponentType.BUNDLE_CONTENTS);
+        List<ItemStack> bundleStacks = components.get(DataComponentTypes.BUNDLE_CONTENTS);
         int bundleFullness = 0;
         if (bundleStacks != null) {
             for (ItemStack stack : bundleStacks) {
@@ -97,18 +97,18 @@ public record GeyserItemPredicateContext(Identifier dimension, int count, int ma
         }
 
         Identifier trimMaterial = null;
-        ArmorTrim trim = components.get(DataComponentType.TRIM);
+        ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null && !trim.material().isCustom()) {
             trimMaterial = MinecraftKey.keyToIdentifier(session.getRegistryCache().trimMaterials().entryById(trim.material().id()).key());
         }
 
-        List<ChargedProjectile> chargedProjectiles = components.getOrDefault(DataComponentType.CHARGED_PROJECTILES, List.of()).stream()
+        List<ChargedProjectile> chargedProjectiles = components.getOrDefault(DataComponentTypes.CHARGED_PROJECTILES, List.of()).stream()
             .map(GeyserItemPredicateContext::stackToProjectile).toList();
 
         List<Identifier> componentList = components.getDataComponents().keySet().stream()
             .map(type -> MinecraftKey.keyToIdentifier(type.getKey())).toList();
 
-        CustomModelData customModelData = components.getOrDefault(DataComponentType.CUSTOM_MODEL_DATA, EMPTY_CUSTOM_MODEL_DATA);
+        CustomModelData customModelData = components.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, EMPTY_CUSTOM_MODEL_DATA);
 
         return new GeyserItemPredicateContext(dimension, stackSize, maxStackSize, damage, maxDamage, unbreakable, bundleFullness,
             trimMaterial, chargedProjectiles, componentList, customModelData.flags(), customModelData.strings(), customModelData.floats());

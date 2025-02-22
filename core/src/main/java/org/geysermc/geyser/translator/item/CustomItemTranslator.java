@@ -36,8 +36,8 @@ import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -61,7 +61,7 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, FALLBACK_MODEL);
+        Key itemModel = components.getOrDefault(DataComponentTypes.ITEM_MODEL, FALLBACK_MODEL);
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
