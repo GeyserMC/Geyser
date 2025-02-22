@@ -59,7 +59,7 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
@@ -200,10 +200,10 @@ public class CustomItemRegistryPopulator {
      */
     private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition);
-        int stackSize = components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0);
-        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+        int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0);
+        int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
-        if (components.get(DataComponentType.EQUIPPABLE) != null && stackSize > 1) {
+        if (components.get(DataComponentTypes.EQUIPPABLE) != null && stackSize > 1) {
             throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
@@ -256,12 +256,12 @@ public class CustomItemRegistryPopulator {
             computeRepairableProperties(repairable, componentBuilder);
         }
 
-        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
+        Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
         if (equippable != null) {
             computeArmorProperties(equippable, customItemDefinition.bedrockOptions().protectionValue(), componentBuilder);
         }
 
-        Integer enchantmentValue = components.get(DataComponentType.ENCHANTABLE);
+        Integer enchantmentValue = components.get(DataComponentTypes.ENCHANTABLE);
         if (enchantmentValue != null) {
             computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
@@ -270,9 +270,9 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(vanillaMapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        Consumable consumable = components.get(DataComponentType.CONSUMABLE);
+        Consumable consumable = components.get(DataComponentTypes.CONSUMABLE);
         if (consumable != null) {
-            FoodProperties foodProperties = components.get(DataComponentType.FOOD);
+            FoodProperties foodProperties = components.get(DataComponentTypes.FOOD);
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
@@ -280,7 +280,7 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
-        UseCooldown useCooldown = components.get(DataComponentType.USE_COOLDOWN);
+        UseCooldown useCooldown = components.get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
@@ -328,10 +328,10 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
-        int maxDamage = components.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
-        Equippable equippable = components.get(DataComponentType.EQUIPPABLE);
+        int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
+        Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
         // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentType.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
+        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
 
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {

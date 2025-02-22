@@ -49,6 +49,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -76,7 +77,7 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Key itemModel = components.getOrDefault(DataComponentType.ITEM_MODEL, FALLBACK_MODEL);
+        Key itemModel = components.getOrDefault(DataComponentTypes.ITEM_MODEL, FALLBACK_MODEL);
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
@@ -131,7 +132,7 @@ public final class CustomItemTranslator {
         } else if (predicate instanceof MatchPredicate<?> match) { // TODO not much of a fan of the casts here, find a solution for the types?
             if (match.property() == MatchPredicateProperty.CHARGE_TYPE) {
                 ChargeType expected = (ChargeType) match.data();
-                List<ItemStack> charged = components.get(DataComponentType.CHARGED_PROJECTILES);
+                List<ItemStack> charged = components.get(DataComponentTypes.CHARGED_PROJECTILES);
                 if (charged == null || charged.isEmpty()) {
                     return expected == ChargeType.NONE;
                 } else if (expected == ChargeType.ROCKET) {
@@ -145,7 +146,7 @@ public final class CustomItemTranslator {
                 return true;
             } else if (match.property() == MatchPredicateProperty.TRIM_MATERIAL) {
                 Identifier material = (Identifier) match.data();
-                ArmorTrim trim = components.get(DataComponentType.TRIM);
+                ArmorTrim trim = components.get(DataComponentTypes.TRIM);
                 if (trim == null || trim.material().isCustom()) {
                     return false;
                 }
@@ -162,7 +163,7 @@ public final class CustomItemTranslator {
         } else if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
             double propertyValue = switch (rangeDispatch.property()) {
                 case BUNDLE_FULLNESS -> {
-                    List<ItemStack> stacks = components.get(DataComponentType.BUNDLE_CONTENTS);
+                    List<ItemStack> stacks = components.get(DataComponentTypes.BUNDLE_CONTENTS);
                     if (stacks == null) {
                         yield 0;
                     }
@@ -172,8 +173,8 @@ public final class CustomItemTranslator {
                     }
                     yield bundleWeight;
                 }
-                case DAMAGE -> tryNormalize(rangeDispatch, components.get(DataComponentType.DAMAGE), components.get(DataComponentType.MAX_DAMAGE));
-                case COUNT -> tryNormalize(rangeDispatch, stackSize, components.get(DataComponentType.MAX_STACK_SIZE));
+                case DAMAGE -> tryNormalize(rangeDispatch, components.get(DataComponentTypes.DAMAGE), components.get(DataComponentTypes.MAX_DAMAGE));
+                case COUNT -> tryNormalize(rangeDispatch, stackSize, components.get(DataComponentTypes.MAX_STACK_SIZE));
                 case CUSTOM_MODEL_DATA -> getCustomFloat(components, rangeDispatch.index());
             } * rangeDispatch.scale();
             return propertyValue >= rangeDispatch.threshold();
@@ -196,7 +197,7 @@ public final class CustomItemTranslator {
     }
 
     private static <T> T getSafeCustomModelData(DataComponents components, Function<CustomModelData, List<T>> listGetter, int index) {
-        CustomModelData modelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
+        CustomModelData modelData = components.get(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (modelData == null || index < 0) {
             return null;
         }
@@ -220,15 +221,15 @@ public final class CustomItemTranslator {
 
     /* These three functions are based off their Mojmap equivalents from 1.21.3 */
     private static boolean nextDamageWillBreak(DataComponents components) {
-        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) >= components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) - 1;
+        return isDamageableItem(components) && components.getOrDefault(DataComponentTypes.DAMAGE, 0) >= components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0) - 1;
     }
 
     private static boolean isDamaged(DataComponents components) {
-        return isDamageableItem(components) && components.getOrDefault(DataComponentType.DAMAGE, 0) > 0;
+        return isDamageableItem(components) && components.getOrDefault(DataComponentTypes.DAMAGE, 0) > 0;
     }
 
     private static boolean isDamageableItem(DataComponents components) {
-        return components.get(DataComponentType.UNBREAKABLE) == null && components.getOrDefault(DataComponentType.MAX_DAMAGE, 0) > 0;
+        return components.get(DataComponentTypes.UNBREAKABLE) == null && components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0) > 0;
     }
 
     private CustomItemTranslator() {

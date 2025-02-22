@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
@@ -80,7 +80,7 @@ public class ComponentConverters {
                 case SPYGLASS -> Consumable.ItemUseAnimation.SPYGLASS;
                 case BRUSH -> Consumable.ItemUseAnimation.BRUSH;
             };
-            itemMap.put(DataComponentType.CONSUMABLE, new Consumable(value.consumeSeconds(), convertedAnimation, BuiltinSound.ENTITY_GENERIC_EAT,
+            itemMap.put(DataComponentTypes.CONSUMABLE, new Consumable(value.consumeSeconds(), convertedAnimation, BuiltinSound.ENTITY_GENERIC_EAT,
                 true, List.of()));
         });
 
@@ -91,20 +91,20 @@ public class ComponentConverters {
                 case LEGS -> EquipmentSlot.LEGGINGS;
                 case FEET -> EquipmentSlot.BOOTS;
             };
-            itemMap.put(DataComponentType.EQUIPPABLE, new Equippable(convertedSlot, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
+            itemMap.put(DataComponentTypes.EQUIPPABLE, new Equippable(convertedSlot, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
                 null, null, null, false, false, false));
         });
 
-        registerConverter(DataComponent.FOOD, (itemMap, value) -> itemMap.put(DataComponentType.FOOD,
+        registerConverter(DataComponent.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
             new FoodProperties(value.nutrition(), value.saturation(), value.canAlwaysEat())));
 
-        registerConverter(DataComponent.MAX_DAMAGE, (itemMap, value) -> itemMap.put(DataComponentType.MAX_DAMAGE, value));
-        registerConverter(DataComponent.MAX_STACK_SIZE, (itemMap, value) -> itemMap.put(DataComponentType.MAX_STACK_SIZE, value));
+        registerConverter(DataComponent.MAX_DAMAGE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_DAMAGE, value));
+        registerConverter(DataComponent.MAX_STACK_SIZE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_STACK_SIZE, value));
 
-        registerConverter(DataComponent.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentType.USE_COOLDOWN,
+        registerConverter(DataComponent.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
 
-        registerConverter(DataComponent.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentType.ENCHANTABLE, value));
+        registerConverter(DataComponent.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
