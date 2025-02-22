@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.item.custom;
 
+import com.google.common.base.Suppliers;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.predicate.context.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.Identifier;
@@ -38,11 +40,59 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-public record GeyserItemPredicateContext(Identifier dimension, int count, int maxStackSize, int damage, int maxDamage,
-                                         boolean unbreakable, int bundleFullness, Identifier trimMaterial, List<ChargedProjectile> chargedProjectiles,
-                                         List<Identifier> components, List<Boolean> customModelDataFlags, List<String> customModelDataStrings, List<Float> customModelDataFloats) implements ItemPredicateContext {
+public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier, int count, Supplier<Integer> maxStackSizeSupplier,
+                                         Supplier<Integer> damageSupplier, Supplier<Integer> maxDamageSupplier, Supplier<Boolean> unbreakableSupplier,
+                                         Supplier<Integer> bundleFullnessSupplier, Supplier<Identifier> trimMaterialSupplier, Supplier<List<ChargedProjectile>> chargedProjectilesSupplier,
+                                         Supplier<List<Identifier>> componentsSupplier, Supplier<List<Boolean>> customModelDataFlagsSupplier, Supplier<List<String>> customModelDataStringsSupplier,
+                                         Supplier<List<Float>> customModelDataFloatsSupplier) implements ItemPredicateContext {
     private static final CustomModelData EMPTY_CUSTOM_MODEL_DATA = new CustomModelData(List.of(), List.of(), List.of(), List.of());
+
+    @Override
+    public Identifier dimension() {
+        return dimensionSupplier.get();
+    }
+
+    @Override
+    public int maxStackSize() {
+        return maxStackSizeSupplier.get();
+    }
+
+    @Override
+    public int damage() {
+        return damageSupplier.get();
+    }
+
+    @Override
+    public int maxDamage() {
+        return maxDamageSupplier.get();
+    }
+
+    @Override
+    public boolean unbreakable() {
+        return unbreakableSupplier.get();
+    }
+
+    @Override
+    public int bundleFullness() {
+        return bundleFullnessSupplier.get();
+    }
+
+    @Override
+    public @Nullable Identifier trimMaterial() {
+        return trimMaterialSupplier.get();
+    }
+
+    @Override
+    public List<ChargedProjectile> chargedProjectiles() {
+        return chargedProjectilesSupplier.get();
+    }
+
+    @Override
+    public List<Identifier> components() {
+        return componentsSupplier.get();
+    }
 
     @Override
     public boolean customModelDataFlag(int index) {
@@ -51,7 +101,7 @@ public record GeyserItemPredicateContext(Identifier dimension, int count, int ma
 
     @Override
     public String customModelDataString(int index) {
-        return getSafeCustomModelData(customModelDataStrings, index);
+        return getSafeCustomModelData(customModelDataStringsSupplier.get(), index);
     }
 
     @Override
@@ -60,12 +110,12 @@ public record GeyserItemPredicateContext(Identifier dimension, int count, int ma
     }
 
     private boolean getCustomBoolean(int index) {
-        Boolean b = getSafeCustomModelData(customModelDataFlags, index);
+        Boolean b = getSafeCustomModelData(customModelDataFlagsSupplier.get(), index);
         return b != null && b;
     }
 
     private float getCustomFloat(int index) {
-        Float f = getSafeCustomModelData(customModelDataFloats, index);
+        Float f = getSafeCustomModelData(customModelDataFloatsSupplier.get(), index);
         return f == null ? 0.0F : f;
     }
 
@@ -80,38 +130,47 @@ public record GeyserItemPredicateContext(Identifier dimension, int count, int ma
     }
 
     public static ItemPredicateContext create(GeyserSession session, int stackSize, DataComponents components) {
-        Identifier dimension = MinecraftKey.keyToIdentifier(session.getRegistryCache().dimensions().entryByValue(session.getDimensionType()).key());
+        Supplier<Identifier> dimension = Suppliers.memoize(() -> MinecraftKey.keyToIdentifier(session.getRegistryCache().dimensions().entryByValue(session.getDimensionType()).key()));
 
-        int maxStackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 64);
-        int damage = components.getOrDefault(DataComponentTypes.DAMAGE, 0);
-        int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
+        Supplier<Integer> maxStackSize = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 64));
+        Supplier<Integer> damage = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.DAMAGE, 0));
+        Supplier<Integer> maxDamage = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0));
 
-        boolean unbreakable = components.get(DataComponentTypes.UNBREAKABLE) != null;
+        Supplier<Boolean> unbreakable = Suppliers.memoize((() -> components.get(DataComponentTypes.UNBREAKABLE) != null));
 
-        List<ItemStack> bundleStacks = components.get(DataComponentTypes.BUNDLE_CONTENTS);
-        int bundleFullness = 0;
-        if (bundleStacks != null) {
-            for (ItemStack stack : bundleStacks) {
-                bundleFullness += stack.getAmount();
+        Supplier<Integer> bundleFullness = Suppliers.memoize(() -> {
+            List<ItemStack> bundleStacks = components.get(DataComponentTypes.BUNDLE_CONTENTS);
+            int fullness = 0;
+            if (bundleStacks != null) {
+                for (ItemStack stack : bundleStacks) {
+                    fullness += stack.getAmount();
+                }
             }
-        }
+            return fullness;
+        });
 
-        Identifier trimMaterial = null;
-        ArmorTrim trim = components.get(DataComponentTypes.TRIM);
-        if (trim != null && !trim.material().isCustom()) {
-            trimMaterial = MinecraftKey.keyToIdentifier(session.getRegistryCache().trimMaterials().entryById(trim.material().id()).key());
-        }
+        Supplier<Identifier> trimMaterial = Suppliers.memoize(() -> {
+            ArmorTrim trim = components.get(DataComponentTypes.TRIM);
+            if (trim != null && !trim.material().isCustom()) {
+                return MinecraftKey.keyToIdentifier(session.getRegistryCache().trimMaterials().entryById(trim.material().id()).key());
+            }
+            return null;
+        });
 
-        List<ChargedProjectile> chargedProjectiles = components.getOrDefault(DataComponentTypes.CHARGED_PROJECTILES, List.of()).stream()
-            .map(GeyserItemPredicateContext::stackToProjectile).toList();
+        Supplier<List<ChargedProjectile>> chargedProjectiles = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.CHARGED_PROJECTILES, List.of()).stream()
+            .map(GeyserItemPredicateContext::stackToProjectile).toList());
 
-        List<Identifier> componentList = components.getDataComponents().keySet().stream()
-            .map(type -> MinecraftKey.keyToIdentifier(type.getKey())).toList();
+        Supplier<List<Identifier>> componentList = Suppliers.memoize(() -> components.getDataComponents().keySet().stream()
+            .map(type -> MinecraftKey.keyToIdentifier(type.getKey())).toList());
 
-        CustomModelData customModelData = components.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, EMPTY_CUSTOM_MODEL_DATA);
+        Supplier<CustomModelData> customModelData = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, EMPTY_CUSTOM_MODEL_DATA));
+
+        Supplier<List<Boolean>> flags = Suppliers.memoize(() -> customModelData.get().flags());
+        Supplier<List<String>> strings = Suppliers.memoize(() -> customModelData.get().strings());
+        Supplier<List<Float>> floats = Suppliers.memoize(() -> customModelData.get().floats());
 
         return new GeyserItemPredicateContext(dimension, stackSize, maxStackSize, damage, maxDamage, unbreakable, bundleFullness,
-            trimMaterial, chargedProjectiles, componentList, customModelData.flags(), customModelData.strings(), customModelData.floats());
+            trimMaterial, chargedProjectiles, componentList, flags, strings, floats);
     }
 
     private static ChargedProjectile stackToProjectile(ItemStack stack) {
