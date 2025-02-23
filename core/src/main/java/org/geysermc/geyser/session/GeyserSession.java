@@ -484,6 +484,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean isUsingExperimentalMinecartLogic = false;
 
     /**
+     * Whether a fishing bobber in the world is connected to the player. Used for custom items, updates the item the player is holding when changed.
+     */
+    private boolean hasFishingRodCast = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */
@@ -1317,6 +1322,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.clientData = data;
         this.inputCache.setInputMode(
             org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
+    public boolean hasFishingRodCast() {
+        return hasFishingRodCast;
+    }
+
+    /**
+     * Also updates the item the player is holding.
+     */
+    public void setFishingRodCast(boolean cast) {
+        this.hasFishingRodCast = cast;
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(this, playerInventory, playerInventory.getOffsetForHotbar(playerInventory.getHeldItemSlot()));
     }
 
     /**

@@ -98,6 +98,7 @@ public interface NodeReader<T> {
         Map.of(
             "broken", ConditionPredicateProperty.BROKEN,
             "damaged", ConditionPredicateProperty.DAMAGED,
+            "fishing_rod/cast", ConditionPredicateProperty.FISHING_ROD_CAST,
             "custom_model_data", ConditionPredicateProperty.CUSTOM_MODEL_DATA,
             "has_component", ConditionPredicateProperty.HAS_COMPONENT
         )

@@ -113,6 +113,8 @@ public final class CustomItemTranslator {
                 return nextDamageWillBreak(components) == expected;
             } else if (property == ConditionPredicateProperty.DAMAGED) {
                 return isDamaged(components) == expected;
+            } else if (property == ConditionPredicateProperty.FISHING_ROD_CAST) {
+                return session.hasFishingRodCast() == expected;
             } else if (property == ConditionPredicateProperty.CUSTOM_MODEL_DATA) {
                 Integer index = (Integer) condition.data();
                 return getCustomBoolean(components, index) == expected;
