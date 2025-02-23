@@ -1,6 +1,7 @@
 plugins {
     id("geyser.platform-conventions")
     id("geyser.modrinth-uploading-conventions")
+    alias(libs.plugins.runvelocity)
 }
 
 dependencies {
@@ -82,4 +83,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 modrinth {
     uploadFile.set(tasks.getByPath("shadowJar"))
     loaders.addAll("velocity")
+}
+
+tasks {
+    runVelocity {
+        version(libs.versions.runvelocityversion.get())
+    }
 }
