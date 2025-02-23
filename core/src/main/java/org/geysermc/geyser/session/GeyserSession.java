@@ -1184,7 +1184,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             if (armAnimationTicks >= 0) {
-                GeyserImpl.getInstance().getLogger().info("arm animation ticks: " + armAnimationTicks);
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
                 // player's effect status, but the animation can cut short if the duration suddenly decreases
                 // (from suddenly no longer having mining fatigue, for example)
@@ -1363,7 +1362,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking.
      */
     public void activateArmAnimationTicking() {
-        GeyserImpl.getInstance().getLogger().info("activate arm animation ticking!");
         armAnimationTicks = 0;
         if (disableBlocking()) {
             playerEntity.updateBedrockMetadata();

@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -48,7 +47,6 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
 
     @Override
     public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
-        GeyserImpl.getInstance().getLogger().warning(packet.toString());
         Animation animation = packet.getAnimation();
         if (animation == null) {
             return;
