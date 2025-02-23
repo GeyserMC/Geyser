@@ -284,7 +284,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
-                            session.setIgnoreNextArmSwing(true);
                             return;
                         }
 

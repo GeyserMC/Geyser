@@ -45,10 +45,6 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
         }
 
         if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
-            if (session.isIgnoreNextArmSwing()) {
-                session.setIgnoreNextArmSwing(false);
-                return;
-            }
             session.armSwingPending();
             // Delay so entity damage can be processed first
             session.scheduleInEventLoop(() -> {
