@@ -40,7 +40,6 @@ import java.util.Map;
  * Loads sounds from the given input.
  */
 public class SoundRegistryLoader implements RegistryLoader<String, Map<String, SoundMapping>> {
-    private ObjectMapper mapper = new ObjectMapper();
     @Override
     public Map<String, SoundMapping> load(String input) {
         JsonNode soundsTree;
