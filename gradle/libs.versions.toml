@@ -41,6 +41,9 @@ mixin = "0.8.5"
 mixinextras = "0.3.5"
 minecraft = "1.21.4"
 mockito = "5.+"
+runtask = "2.3.1"
+runpaperversion = "1.21.4"
+runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "3.1.3"
@@ -150,6 +153,8 @@ minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
+runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
+runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
