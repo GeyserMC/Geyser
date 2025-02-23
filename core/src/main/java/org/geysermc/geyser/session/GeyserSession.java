@@ -540,6 +540,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private int armAnimationTicks = -1;
 
+
+    /**
+     * If true, does not send the next bedrock arm swing animation request to the server.
+     * When the request is received, this is set back to false.
+     */
+    @Setter
+    private boolean ignoreNextArmSwing = false;
+
+
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
