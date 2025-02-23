@@ -215,9 +215,9 @@ final class BedrockBlockActions {
             stopBreak.setData(0);
             session.setBreakingBlock(-1);
             session.sendUpstreamPacket(stopBreak);
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     private static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
