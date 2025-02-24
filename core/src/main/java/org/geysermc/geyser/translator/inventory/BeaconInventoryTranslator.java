@@ -121,7 +121,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.BEACON_PAYMENT) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.BEACON_PAYMENT) {
             return 0;
         }
         return super.bedrockSlotToJava(slotInfoData);
@@ -146,5 +146,10 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         return new BeaconContainer(name, windowId, this.size, containerType, playerInventory);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

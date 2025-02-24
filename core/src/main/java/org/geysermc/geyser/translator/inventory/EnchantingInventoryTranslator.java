@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.inventory;
 
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -135,10 +136,10 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
             return 0;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_MATERIAL) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.ENCHANTING_MATERIAL) {
             return 1;
         }
         return super.bedrockSlotToJava(slotInfoData);
@@ -169,5 +170,10 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         return new EnchantingContainer(name, windowId, this.size, containerType, playerInventory);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

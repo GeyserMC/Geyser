@@ -77,7 +77,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slot = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY, HOTBAR, INVENTORY -> {
                 //hotbar
                 if (slot >= 9) {
@@ -161,5 +161,10 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
         tag.putShort("disabled_slots", container.getDisabledSlotsMask());
 
         BlockEntityUtils.updateBlockEntity(session, tag.build(), container.getHolderPosition());
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

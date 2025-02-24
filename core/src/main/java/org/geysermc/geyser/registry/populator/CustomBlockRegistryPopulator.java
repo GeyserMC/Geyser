@@ -27,6 +27,8 @@ package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
@@ -48,23 +50,38 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.OtherCollision;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.JAVA_BLOCKS_SIZE;
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_CUSTOM_RUNTIME_ID;
 
 public class CustomBlockRegistryPopulator {
 
@@ -231,6 +248,73 @@ public class CustomBlockRegistryPopulator {
      */
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
+
+        if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+            // Nothing left to register, freeze block state registry
+            BlockRegistries.BLOCK_STATES.freeze();
+            return;
+        }
+
+        MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+        int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+
+        if (MIN_CUSTOM_RUNTIME_ID < BlockRegistries.BLOCK_STATES.get().size()) {
+            throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
+        }
+
+        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
+
+        // Now: Vanilla blocks are already loaded and registered; let's load non-vanilla properly too
+        IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
+
+        for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+            if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
+                throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+            }
+
+            String javaId = javaBlockState.identifier();
+            int stateRuntimeId = javaBlockState.javaId();
+            String pistonBehavior = javaBlockState.pistonBehavior();
+
+            Block.Builder builder = Block.builder()
+                .javaId(stateRuntimeId)
+                .destroyTime(javaBlockState.blockHardness())
+                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+            if (!javaBlockState.canBreakWithHand()) {
+                builder.requiresCorrectToolForDrops();
+            }
+            String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+            String pickItem = javaBlockState.pickItem();
+            Block block = new Block(cleanJavaIdentifier, builder) {
+                @Override
+                public ItemStack pickItem(BlockState state) {
+                    if (this.item == null) {
+                        this.item = Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
+                        if (this.item == null) {
+                            GeyserImpl.getInstance().getLogger().warning("We could not find item " + pickItem
+                                + " for getting the item for block " + javaBlockState.identifier());
+                            this.item = Items.AIR;
+                        }
+                    }
+                    return new ItemStack(this.item.javaId());
+                }
+            };
+            block.setJavaId(javaBlockState.stateGroupId());
+
+            BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
+            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+
+            // TODO register different collision types?
+            BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
+                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
+                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .toArray(BoundingBox[]::new);
+            OtherCollision collision = new OtherCollision(geyserCollisions);
+            BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
+        }
+
+        BlockRegistries.BLOCK_STATES.freeze();
+
         if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
         }

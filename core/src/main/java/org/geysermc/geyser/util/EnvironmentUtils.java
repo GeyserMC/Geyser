@@ -26,7 +26,7 @@
 package org.geysermc.geyser.util;
 
 public final class EnvironmentUtils {
-    public static final boolean isUnitTesting = isUnitTesting();
+    public static final boolean IS_UNIT_TESTING = isUnitTesting();
 
     private EnvironmentUtils() {}
 

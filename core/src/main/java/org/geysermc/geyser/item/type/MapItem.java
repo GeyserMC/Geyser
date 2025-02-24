@@ -28,7 +28,7 @@ package org.geysermc.geyser.item.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class MapItem extends Item {
@@ -40,7 +40,7 @@ public class MapItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Integer mapValue = components.get(DataComponentType.MAP_ID);
+        Integer mapValue = components.get(DataComponentTypes.MAP_ID);
         if (mapValue == null) {
             return;
         }

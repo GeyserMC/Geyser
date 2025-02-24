@@ -35,16 +35,15 @@ import java.util.function.Consumer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class GeyserMockContext {
     private final List<Object> mocksAndSpies = new ArrayList<>();
     private final List<Object> storedObjects = new ArrayList<>();
     private final List<BedrockPacket> packets = Collections.synchronizedList(new ArrayList<>());
-    private MockedStatic<GeyserImpl> geyserImplMock;
 
     public static void mockContext(Consumer<GeyserMockContext> geyserContext) {
         var context = new GeyserMockContext();
@@ -59,9 +58,9 @@ public class GeyserMockContext {
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
 
-        try (var mocked = mockStatic(GeyserImpl.class)) {
-            mocked.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
-            context.geyserImplMock = mocked;
+        try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
+            geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
+
             geyserContext.accept(context);
         }
     }
@@ -135,9 +134,5 @@ public class GeyserMockContext {
 
     public <T> void translate(PacketTranslator<T> translator, T packet) {
         translator.translate(session(), packet);
-    }
-
-    public MockedStatic<GeyserImpl> geyserImplMock() {
-        return geyserImplMock;
     }
 }

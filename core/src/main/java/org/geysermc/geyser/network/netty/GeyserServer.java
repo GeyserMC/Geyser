@@ -176,6 +176,10 @@ public final class GeyserServer {
             // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
             channel.pipeline().remove(RakServerRateLimiter.NAME);
         }
+//        else {
+//            // Use our own rate limiter to allow multiple players from the same IP
+//            channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
+//        }
     }
 
     public void shutdown() {

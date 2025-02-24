@@ -30,8 +30,6 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -39,12 +37,14 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
+import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -169,7 +169,6 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     InventoryContentPacket offhandPacket = new InventoryContentPacket();
                     offhandPacket.setContainerId(ContainerId.OFFHAND);
                     offhandPacket.setContents(Collections.singletonList(InventoryUtils.getTotemOfUndying().apply(session.getUpstream().getProtocolVersion())));
-                    offhandPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                     session.sendUpstreamPacket(offhandPacket);
                 }
 
@@ -291,6 +290,16 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     armadilloEntity.onPeeking();
                 }
                 break;
+            case SHAKE:
+                if (entity instanceof CreakingEntity creakingEntity) {
+                    creakingEntity.createParticleBeam();
+                }
+                break;
+            case SQUID_RESET_ROTATION:
+                // unused, but spams a bit
+                break;
+            default:
+                GeyserImpl.getInstance().getLogger().debug("unhandled entity event: " + packet);
         }
 
         if (entityEventPacket.getType() != null) {

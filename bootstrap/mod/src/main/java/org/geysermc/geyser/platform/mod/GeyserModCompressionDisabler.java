@@ -28,8 +28,8 @@ package org.geysermc.geyser.platform.mod;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import net.minecraft.network.protocol.login.ClientboundGameProfilePacket;
 import net.minecraft.network.protocol.login.ClientboundLoginCompressionPacket;
+import net.minecraft.network.protocol.login.ClientboundLoginFinishedPacket;
 
 /**
  * Disables the compression packet (and the compression handlers from being added to the pipeline) for Geyser clients
@@ -45,7 +45,7 @@ public class GeyserModCompressionDisabler extends ChannelOutboundHandlerAdapter 
         Class<?> msgClass = msg.getClass();
         // Don't let any compression packet get through
         if (!ClientboundLoginCompressionPacket.class.isAssignableFrom(msgClass)) {
-            if (ClientboundGameProfilePacket.class.isAssignableFrom(msgClass)) {
+            if (ClientboundLoginFinishedPacket.class.isAssignableFrom(msgClass)) {
 
                 // We're past the point that a compression packet can be sent, so we can safely yeet ourselves away
                 ctx.channel().pipeline().remove(this);

@@ -30,7 +30,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
@@ -40,9 +41,9 @@ public class TippedArrowItem extends ArrowItem {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         if (components != null) {
-            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             if (potionContents != null) {
                 Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                 if (potion != null) {
@@ -54,6 +55,6 @@ public class TippedArrowItem extends ArrowItem {
                 GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
             }
         }
-        return super.translateToBedrock(count, components, mapping, mappings);
+        return super.translateToBedrock(session, count, components, mapping, mappings);
     }
 }

@@ -51,7 +51,7 @@ public class FireworkEntity extends Entity {
         if (item == null) {
             return;
         }
-        DataComponents components = item.getDataComponents();
+        DataComponents components = item.getDataComponentsPatch();
         if (components == null) {
             return;
         }

@@ -99,7 +99,7 @@ public enum Potion {
     }
 
     public PotionContents toComponent() {
-        return new PotionContents(this.ordinal(), -1, Collections.emptyList());
+        return new PotionContents(this.ordinal(), -1, Collections.emptyList(), null);
     }
 
     public static Potion getByJavaIdentifier(String javaIdentifier) {

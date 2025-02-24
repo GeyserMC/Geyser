@@ -27,7 +27,6 @@ package org.geysermc.geyser.item.type;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -36,7 +35,7 @@ import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
@@ -52,7 +51,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
+        Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
         if (fireworks == null) {
             return;
         }
@@ -88,7 +87,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
                         javaExplosions.add(javaExplosion);
                     }
                 }
-                components.put(DataComponentType.FIREWORKS, new Fireworks(1, javaExplosions));
+                components.put(DataComponentTypes.FIREWORKS, new Fireworks(1, javaExplosions));
             }
         }
     }
@@ -141,21 +140,5 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public void addRequiredNbt(GeyserSession session, @Nullable DataComponents components, BedrockItemBuilder builder) {
-        if (components != null) {
-            Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
-            if (fireworks != null) {
-                // Already translated
-                return;
-            }
-        }
-
-        NbtMapBuilder fireworksNbt = NbtMap.builder();
-        fireworksNbt.putByte("Flight", (byte) 1);
-        fireworksNbt.put("Explosions", NbtList.EMPTY);
-        builder.putCompound("Fireworks", fireworksNbt.build());
     }
 }

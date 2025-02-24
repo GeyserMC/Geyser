@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry;
 
+import org.cloudburstmc.protocol.bedrock.packet.ServerboundDiagnosticsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
@@ -49,6 +50,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
+        IGNORED_PACKETS.add(ServerboundDiagnosticsPacket.class); // spammy
     }
 
     protected PacketTranslatorRegistry() {
@@ -56,15 +58,15 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
+    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session, boolean canRunImmediately) {
         if (session.getUpstream().isClosed() || session.isClosed()) {
             return false;
         }
 
         PacketTranslator<P> translator = (PacketTranslator<P>) this.mappings.get(clazz);
         if (translator != null) {
-            EventLoop eventLoop = session.getEventLoop();
-            if (!translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
+            EventLoop eventLoop = session.getTickEventLoop();
+            if (canRunImmediately || !translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
                 translate0(session, translator, packet);
             } else {
                 eventLoop.execute(() -> translate0(session, translator, packet));

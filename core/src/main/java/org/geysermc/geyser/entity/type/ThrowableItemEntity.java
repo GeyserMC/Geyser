@@ -25,12 +25,14 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.UUID;
 
@@ -39,7 +41,7 @@ import java.util.UUID;
  */
 public class ThrowableItemEntity extends ThrowableEntity {
     /**
-     * Number of ticks since the entity was spawned by the Java server
+     * Number of draw ticks since the entity was spawned by the Java server
      */
     private int age;
     private boolean invisible;
@@ -48,29 +50,38 @@ public class ThrowableItemEntity extends ThrowableEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
-    }
-
-    private void checkVisibility() {
-        if (invisible != getFlag(EntityFlag.INVISIBLE)) {
-            if (!invisible) {
-                Vector3f playerPos = session.getPlayerEntity().getPosition();
-                // Prevent projectiles from blocking the player's screen
-                if (age >= 4 || position.distanceSquared(playerPos) > 16) {
-                    setFlag(EntityFlag.INVISIBLE, false);
-                    updateBedrockMetadata();
-                }
-            } else {
-                setFlag(EntityFlag.INVISIBLE, true);
-                updateBedrockMetadata();
-            }
-        }
-        age++;
+        age = 0;
     }
 
     @Override
-    public void tick() {
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Correct sizing
+        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
+    }
+
+    private void checkVisibility() {
+        age++;
+
+        // Prevent projectiles from blocking the player's screen
+        if (session.isTickingFrozen()) {
+            // This may seem odd, but it matches java edition
+            Vector3f playerPos = session.getPlayerEntity().getPosition().down(EntityDefinitions.PLAYER.offset());
+            setInvisible(playerPos.distanceSquared(position.add(0, definition.offset(), 0)) < 12.25);
+        } else {
+            setInvisible(age < 2);
+        }
+
+        if (invisible != getFlag(EntityFlag.INVISIBLE)) {
+            setFlag(EntityFlag.INVISIBLE, invisible);
+            updateBedrockMetadata();
+        }
+    }
+
+    @Override
+    public void drawTick() {
         checkVisibility();
-        super.tick();
+        super.drawTick();
     }
 
     @Override

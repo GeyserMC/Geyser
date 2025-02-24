@@ -27,13 +27,10 @@ package org.geysermc.geyser.inventory.updater;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -41,20 +38,18 @@ import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -68,7 +63,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
-        int targetSlot = getTargetSlot(anvilContainer);
+        int targetSlot = getTargetSlot(anvilContainer, session);
         for (int i = 0; i < translator.size; i++) {
             final int bedrockSlot = translator.javaSlotToBedrock(i);
             if (bedrockSlot == 50)
@@ -80,7 +75,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 slotPacket.setContainerId(ContainerId.UI);
                 slotPacket.setSlot(bedrockSlot);
                 slotPacket.setItem(inventory.getItem(i).getItemData(session));
-                slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
                 session.sendUpstreamPacket(slotPacket);
             }
         }
@@ -94,14 +88,13 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         updateInventoryState(session, anvilContainer);
 
         int lastTargetSlot = anvilContainer.getLastTargetSlot();
-        int targetSlot = getTargetSlot(anvilContainer);
+        int targetSlot = getTargetSlot(anvilContainer, session);
         if (targetSlot != javaSlot) {
             // Update the requested slot
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         } else if (lastTargetSlot != javaSlot) {
             // Update the previous target slot to remove repair cost changes
@@ -109,7 +102,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(lastTargetSlot));
             slotPacket.setItem(inventory.getItem(lastTargetSlot).getItemData(session));
-            slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
             session.sendUpstreamPacket(slotPacket);
         }
 
@@ -125,7 +117,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getComponents()), session.locale());
+            String originalName = MessageTranslator.convertToPlainText(input.getComponent(DataComponentTypes.CUSTOM_NAME), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamGamePacket(renameItemPacket);
 
@@ -143,12 +135,12 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param anvilContainer the anvil inventory
      * @return the slot to change the repair cost
      */
-    private int getTargetSlot(AnvilContainer anvilContainer) {
+    private int getTargetSlot(AnvilContainer anvilContainer, GeyserSession session) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
 
         if (!material.isEmpty()) {
-            if (!input.isEmpty() && isRepairing(input, material)) {
+            if (!input.isEmpty() && isRepairing(input, material, session)) {
                 // Changing the repair cost on the material item makes it non-stackable
                 return 0;
             }
@@ -173,7 +165,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(translator.javaSlotToBedrock(slot));
         slotPacket.setItem(itemData);
-        slotPacket.setContainerNameData(new FullContainerName(ContainerSlotType.ANVIL_INPUT, null));
         session.sendUpstreamPacket(slotPacket);
     }
 
@@ -242,7 +233,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     // Can't repair or merge enchantments
                     return -1;
                 }
-            } else if (hasDurability(input) && isRepairing(input, material)) {
+            } else if (hasDurability(input) && isRepairing(input, material, session)) {
                 cost = calcRepairLevelCost(input, material);
                 if (cost == -1) {
                     // No damage to repair
@@ -274,14 +265,14 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcRepairLevelCost(GeyserItemStack input, GeyserItemStack material) {
         int newDamage = getDamage(input);
-        int unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
+        int unitRepair = Math.min(newDamage, input.asItem().defaultMaxDamage() / 4);
         if (unitRepair <= 0) {
             // No damage to repair
             return -1;
         }
         for (int i = 0; i < material.getAmount(); i++) {
             newDamage -= unitRepair;
-            unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
+            unitRepair = Math.min(newDamage, input.asItem().defaultMaxDamage() / 4);
             if (unitRepair <= 0) {
                 return i + 1;
             }
@@ -298,7 +289,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeRepairCost(GeyserItemStack input, GeyserItemStack material) {
         // If the material item is damaged 112% or more, then the input item will not be repaired
-        if (getDamage(input) > 0 && getDamage(material) < (material.asItem().maxDamage() * 112 / 100)) {
+        if (getDamage(input) > 0 && getDamage(material) < (material.asItem().defaultMaxDamage() * 112 / 100)) {
             return 2;
         }
         return 0;
@@ -320,14 +311,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            HolderSet supportedItems = enchantment.supportedItems();
-            int[] supportedItemIds = supportedItems.resolve(tagId -> session.getTagCache().get(ItemTag.ALL_ITEM_TAGS.get(tagId)));
-            boolean canApply = isEnchantedBook(input) || IntStream.of(supportedItemIds).anyMatch(id -> id == input.getJavaId());
+            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.asItem());
 
-            HolderSet exclusiveSet = enchantment.exclusiveSet();
-            int[] incompatibleEnchantments = exclusiveSet.resolve(tagId -> session.getTagCache().get(EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(tagId)));
-            for (int i : incompatibleEnchantments) {
-                Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
+            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
+            for (Enchantment incompatible : incompatibleEnchantments) {
                 if (combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
                     if (!bedrock) {
@@ -380,9 +367,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private Object2IntMap<Enchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
         ItemEnchantments enchantmentComponent;
         if (isEnchantedBook(itemStack)) {
-            enchantmentComponent = itemStack.getComponent(DataComponentType.STORED_ENCHANTMENTS);
+            enchantmentComponent = itemStack.getComponent(DataComponentTypes.STORED_ENCHANTMENTS);
         } else {
-            enchantmentComponent = itemStack.getComponent(DataComponentType.ENCHANTMENTS);
+            enchantmentComponent = itemStack.getComponent(DataComponentTypes.ENCHANTMENTS);
         }
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
@@ -407,8 +394,13 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return isEnchantedBook(material) || (input.getJavaId() == material.getJavaId() && hasDurability(input));
     }
 
-    private boolean isRepairing(GeyserItemStack input, GeyserItemStack material) {
-        return input.asItem().isValidRepairItem(material.asItem());
+    private boolean isRepairing(GeyserItemStack input, GeyserItemStack material, GeyserSession session) {
+        HolderSet repairable = input.getComponent(DataComponentTypes.REPAIRABLE);
+        if (repairable == null) {
+            return false;
+        }
+
+        return session.getTagCache().isItem(repairable, material.asItem());
     }
 
     private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
@@ -417,27 +409,27 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
         // This should really check the name field in all cases, but that requires the localized name
         // of the item which can change depending on NBT and Minecraft Edition
-        Component originalName = ItemUtils.getCustomName(anvilContainer.getInput().getComponents());
+        Component originalName = anvilContainer.getInput().getComponent(DataComponentTypes.CUSTOM_NAME);
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
             // Check text and formatting
             String legacyOriginalName = MessageTranslator.convertMessage(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }
-        return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getComponents()));
+        return !Objects.equals(originalName, anvilContainer.getResult().getComponent(DataComponentTypes.CUSTOM_NAME));
     }
 
     private int getRepairCost(GeyserItemStack itemStack) {
-        return itemStack.getComponent(DataComponentType.REPAIR_COST, 0);
+        return itemStack.getComponentElseGet(DataComponentTypes.REPAIR_COST, () -> 0);
     }
 
     private boolean hasDurability(GeyserItemStack itemStack) {
-        if (itemStack.asItem().maxDamage() > 0) {
-            return itemStack.getComponent(DataComponentType.UNBREAKABLE, false);
+        if (itemStack.asItem().defaultMaxDamage() > 0) {
+            return itemStack.getComponent(DataComponentTypes.UNBREAKABLE) != null;
         }
         return false;
     }
 
     private int getDamage(GeyserItemStack itemStack) {
-        return itemStack.getComponent(DataComponentType.DAMAGE, 0);
+        return itemStack.getComponentElseGet(DataComponentTypes.DAMAGE, () -> 0);
     }
 }

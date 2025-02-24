@@ -53,13 +53,8 @@ public final class LodestoneCache {
     private int id = 1;
 
     public void cacheInventoryItem(GeyserItemStack itemStack, LodestoneTracker tracker) {
-        if (!tracker.isTracked()) {
-            return;
-        }
-
         GlobalPos position = tracker.getPos();
         if (position == null) {
-            // As of 1.20.6, position can still be null even if tracking is enabled.
             return;
         }
         int x = position.getX();
@@ -86,13 +81,9 @@ public final class LodestoneCache {
     }
 
     public int store(LodestoneTracker tracker) {
-        if (!tracker.isTracked()) {
-            // No coordinates; nothing to convert
-            return 0;
-        }
-
         GlobalPos position = tracker.getPos();
         if (position == null) {
+            // No coordinates; nothing to convert
             return 0;
         }
 
