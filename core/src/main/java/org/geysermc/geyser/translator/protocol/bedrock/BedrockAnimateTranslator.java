@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -45,7 +44,6 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             return;
         }
 
-        GeyserImpl.getInstance().getLogger().info("(%s) animate packet: %s ".formatted(session.getTicks(), packet));
         if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
 
             // If this is the case, we just hit the air. Poor air.
