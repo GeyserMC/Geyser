@@ -285,6 +285,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
+            // Can't rely on y-delta being 0, as the value is -0.078 even when standing still
+            vehicle.setOnGround(Math.abs(packet.getDelta().getY()) < 0.1);
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
