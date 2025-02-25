@@ -50,15 +50,9 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
             clientVehicle.getVehicleComponent().setEffect(packet.getEffect(), packet.getAmplifier());
         }
 
-        int duration = packet.getDuration();
-        if (duration < 0) {
-            // java edition uses -1 for infinite, but bedrock doesn't have infinite
-            duration = Integer.MAX_VALUE;
-        }
-
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
         mobEffectPacket.setAmplifier(packet.getAmplifier());
-        mobEffectPacket.setDuration(duration);
+        mobEffectPacket.setDuration(packet.getDuration());
         mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
