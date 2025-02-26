@@ -87,7 +87,7 @@ public class DumpInfo {
         this.cpuCount = Runtime.getRuntime().availableProcessors();
         this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
-        this.systemEncoding = System. getProperty("file.encoding");
+        this.systemEncoding = System.getProperty("file.encoding");
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
