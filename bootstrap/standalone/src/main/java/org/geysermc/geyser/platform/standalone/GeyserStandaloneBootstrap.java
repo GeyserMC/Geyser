@@ -89,6 +89,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
         }
 
+        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        GeyserStandaloneLogger.setupStreams();
+
         GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
         // Set defaults
         boolean useGuiOpts = bootstrap.useGui;
