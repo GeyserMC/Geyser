@@ -40,4 +40,6 @@ tasks.named<JavaExec>("run") {
     dir.mkdirs()
     jvmArgs("-Dio.netty.leakDetection.level=PARANOID")
     workingDir = dir
+
+    standardInput = System.`in`
 }
