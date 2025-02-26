@@ -148,9 +148,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
                 case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
                 case MISSED_SWING -> {
-                    // mobile: animate after swing
-                    // win: swing after animate
-                    GeyserImpl.getInstance().getLogger().info("auth packet, tick: " + session.getTicks() + " " + packet.toString());
                     session.setLastAirHitTick(session.getTicks());
 
                     if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
