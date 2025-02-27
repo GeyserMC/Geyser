@@ -26,6 +26,8 @@
 package org.geysermc.geyser.platform.bungeecord;
 
 import lombok.AllArgsConstructor;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -74,7 +76,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
         ServerPing response = event.getResponse();
         return new GeyserPingInfo(
-                response.getDescriptionComponent().toLegacyText(),
+                GsonComponentSerializer.gson().serialize(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{ response.getDescriptionComponent() })),
                 response.getPlayers().getMax(),
                 response.getPlayers().getOnline()
         );
@@ -184,6 +186,21 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         @Override
         public boolean isConnected() {
             return false;
+        }
+
+        @Override
+        public boolean isTransferred() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<byte[]> retrieveCookie(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public CompletableFuture<byte[]> sendData(String s, byte[] bytes) {
+            throw new UnsupportedOperationException();
         }
 
         @Override

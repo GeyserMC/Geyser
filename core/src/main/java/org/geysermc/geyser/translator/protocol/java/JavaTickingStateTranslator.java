@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTickingStatePacket;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
-
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
-        super(javaIdentifier, builder);
-        this.tier = tier;
-    }
-
-    public ToolTier tier() {
-        return tier;
-    }
+@Translator(packet = ClientboundTickingStatePacket.class)
+public class JavaTickingStateTranslator extends PacketTranslator<ClientboundTickingStatePacket> {
 
     @Override
-    public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+    public void translate(GeyserSession session, ClientboundTickingStatePacket packet) {
+        session.updateTickingState(packet.getTickRate(), packet.isFrozen());
     }
 }

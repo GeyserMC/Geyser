@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
@@ -84,7 +85,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case STONECUTTER_INPUT -> 0;
             case STONECUTTER_RESULT, CREATED_OUTPUT -> 1;
             default -> super.bedrockSlotToJava(slotInfoData);
@@ -124,5 +125,10 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         return new StonecutterContainer(name, windowId, this.size, containerType, playerInventory);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+        return org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.STONECUTTER;
     }
 }

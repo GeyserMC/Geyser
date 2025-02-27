@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -44,7 +43,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -55,7 +54,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
      * Hack: Java opens a lectern first, and then follows it up with a ClientboundContainerSetContentPacket
      * to actually send the book's contents. We delay opening the inventory until the book was sent.
      */
-    private boolean initialized = false;
+    private boolean receivedBook = false;
 
     public LecternInventoryTranslator() {
         super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
@@ -64,11 +63,12 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         super.prepareInventory(session, inventory);
-        if (((Container) inventory).isUsingRealBlock()) {
-            initialized = false; // We have to wait until we get the book to show to the client
+        if (((LecternContainer) inventory).isBookInPlayerInventory()) {
+            // See JavaOpenBookTranslator; this isn't a lectern but a book in the player inventory
+            updateBook(session, inventory, inventory.getItem(0));
+            receivedBook = true;
         } else {
-            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; placed here manually
-            initialized = true;
+            receivedBook = false; // We have to wait until we get the book
         }
         return true;
     }
@@ -79,7 +79,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // "initialized" indicates whether we've received the book from the Java server yet.
         // dropping lectern book is the fun workaround when we have to enter the gui to drop the book.
         // Since we leave it immediately... don't open it!
-        if (initialized && !session.isDroppingLecternBook()) {
+        if (receivedBook && !session.isDroppingLecternBook()) {
             super.openInventory(session, inventory);
         }
     }
@@ -99,7 +99,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // Now: Restore the lectern, if it actually exists
         if (lecternContainer.isUsingRealBlock()) {
             boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
-
             NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
             BlockEntityUtils.updateBlockEntity(session, map, position);
         }
@@ -122,8 +121,8 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             boolean isDropping = session.isDroppingLecternBook();
             updateBook(session, inventory, itemStack);
 
-            if (!initialized && !isDropping) {
-                initialized = true;
+            if (!receivedBook && !isDropping) {
+                receivedBook = true;
                 openInventory(session, inventory);
             }
         }
@@ -132,7 +131,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         // If we're not in a real lectern, the Java server thinks we are still in the player inventory.
-        if (((LecternContainer) inventory).isFakeLectern()) {
+        if (((LecternContainer) inventory).isBookInPlayerInventory()) {
             InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
             return;
         }
@@ -140,6 +139,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         if (slot == 0) {
             updateBook(session, inventory, inventory.getItem(0));
         }
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 
     /**
@@ -158,13 +162,13 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                     session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
             NbtMap blockEntityTag;
-            if (book.getComponents() != null) {
+            if (book.hasNonBaseComponents()) {
                 int pages = 0;
-                WrittenBookContent writtenBookComponents = book.getComponents().get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                WrittenBookContent writtenBookComponents = book.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                 if (writtenBookComponents != null) {
                     pages = writtenBookComponents.getPages().size();
                 } else {
-                    WritableBookContent writableBookComponents = book.getComponents().get(DataComponentType.WRITABLE_BOOK_CONTENT);
+                    WritableBookContent writableBookComponents = book.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT);
                     if (writableBookComponents != null) {
                         pages = writableBookComponents.getPages().size();
                     }

@@ -36,8 +36,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
-import net.raphimc.minecraftauth.step.msa.StepMsaToken;
 import org.bstats.MetricsBase;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.DrilldownPie;
@@ -77,6 +75,7 @@ import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
+import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -89,6 +88,7 @@ import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
+import org.geysermc.geyser.session.SessionDisconnectListener;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -99,12 +99,10 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.JsonUtils;
-import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
-import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
 import java.io.FileReader;
@@ -264,6 +262,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         // Register our general permissions when possible
         eventBus.subscribe(this, GeyserRegisterPermissionsEvent.class, Permissions::register);
+        // Replace disconnect messages whenever necessary
+        eventBus.subscribe(this, SessionDisconnectEventImpl.class, SessionDisconnectListener::onSessionDisconnect);
 
         startInstance();
 
@@ -413,9 +413,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         } else if (!config.advanced().useDirectConnection()) {
             logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
-
-        // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
-        TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.pendingAuthenticationTimeout());
 
@@ -592,52 +589,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
             savedAuthChains = new ConcurrentHashMap<>();
             Type type = new TypeToken<Map<String, String>>() { }.getType();
-
-            // TODO Remove after a while - just a migration help
-            //noinspection deprecation
-            File refreshTokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
-            if (refreshTokensFile.exists()) {
-                logger.info("Migrating refresh tokens to auth chains...");
-                Map<String, String> refreshTokens = null;
-                try (FileReader reader = new FileReader(refreshTokensFile)) {
-                    refreshTokens = GSON.fromJson(reader, type);
-                } catch (IOException e) {
-                    // ignored - we'll just delete this file :))
-                }
-
-                if (refreshTokens != null) {
-                    List<String> validUsers = config.savedUserLogins();
-                    final Gson gson = new Gson();
-                    for (Map.Entry<String, String> entry : refreshTokens.entrySet()) {
-                        String user = entry.getKey();
-                        if (!validUsers.contains(user)) {
-                            continue;
-                        }
-
-                        // Migrate refresh tokens to auth chains
-                        try {
-                            StepFullJavaSession javaSession = PendingMicrosoftAuthentication.AUTH_FLOW.apply(false, 10);
-                            StepFullJavaSession.FullJavaSession fullJavaSession = javaSession.getFromInput(
-                                MinecraftAuthLogger.INSTANCE,
-                                PendingMicrosoftAuthentication.AUTH_CLIENT,
-                                new StepMsaToken.RefreshToken(entry.getValue())
-                            );
-
-                            String authChain = gson.toJson(javaSession.toJson(fullJavaSession));
-                            savedAuthChains.put(user, authChain);
-                        } catch (Exception e) {
-                            GeyserImpl.getInstance().getLogger().warning("Could not migrate " + entry.getKey() + " to an auth chain! " +
-                                "They will need to sign in the next time they join Geyser.");
-                        }
-
-                        // Ensure the new additions are written to the file
-                        scheduleAuthChainsWrite();
-                    }
-                }
-
-                // Finally: Delete it. Goodbye!
-                refreshTokensFile.delete();
-            }
 
             File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
             if (authChainsFile.exists()) {

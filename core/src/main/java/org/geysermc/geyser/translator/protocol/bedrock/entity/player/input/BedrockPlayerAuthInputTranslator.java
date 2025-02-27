@@ -29,14 +29,17 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -53,6 +56,7 @@ import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransacti
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
@@ -61,6 +65,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.Set;
 
@@ -72,7 +77,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         boolean wasJumping = session.getInputCache().wasJumping();
-        session.getInputCache().processInputs(packet);
+        session.getInputCache().processInputs(entity, packet);
 
         BedrockMovePlayer.translate(session, packet);
 
@@ -83,18 +88,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
-                case START_SNEAKING -> {
-                    ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                    session.sendDownstreamGamePacket(startSneakPacket);
-
-                    session.startSneaking();
-                }
-                case STOP_SNEAKING -> {
-                    ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
-                    session.sendDownstreamGamePacket(stopSneakPacket);
-
-                    session.stopSneaking();
-                }
                 case START_SPRINTING -> {
                     if (!entity.getFlag(EntityFlag.SWIMMING)) {
                         ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
@@ -154,7 +147,25 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     sendPlayerGlideToggle(session, entity);
                 }
                 case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
-                case MISSED_SWING -> CooldownUtils.sendCooldown(session); // Java edition sends a cooldown when hitting air.
+                case MISSED_SWING -> {
+                    session.setLastAirHitTick(session.getTicks());
+
+                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
+                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.activateArmAnimationTicking();
+                    }
+
+                    // Touch devices expect an animation packet sent back to them
+                    if (packet.getInputMode().equals(InputMode.TOUCH)) {
+                        AnimatePacket animatePacket = new AnimatePacket();
+                        animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        session.sendUpstreamPacket(animatePacket);
+                    }
+
+                    // Java edition sends a cooldown when hitting air.
+                    CooldownUtils.sendCooldown(session);
+                }
             }
         }
         if (entity.getVehicle() instanceof BoatEntity) {
@@ -250,7 +261,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             }
         }
 
-        if (vehicle instanceof AbstractHorseEntity) {
+        if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
@@ -285,6 +296,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
+            // Can't rely on y-delta being 0, as the value is -0.078 even when standing still
+            vehicle.setOnGround(Math.abs(packet.getDelta().getY()) < 0.1);
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
@@ -312,8 +325,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
-                vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
-                vehicleRotation.getY() - 90, vehiclePosition.getX() // TODO I wonder if this is related to the horse spinning bugs...
+                vehiclePosition.toDouble(),
+                vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...
+                vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);
         }

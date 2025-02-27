@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.network.netty.handler;
 
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import io.netty.channel.Channel;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.SessionManager;
 
-import java.util.Map;
+import java.net.InetAddress;
 
-public class Conversion748_729 {
+public class RakGeyserRateLimiter extends RakServerRateLimiter {
+    public static final String NAME = "rak-geyser-rate-limiter";
+    private final SessionManager sessionManager;
 
-    private static final Map<String, Integer> NEW_PLAYER_HEADS = Map.of("minecraft:skeleton_skull", 0, "minecraft:wither_skeleton_skull", 1, "minecraft:zombie_head", 2, "minecraft:player_head", 3, "minecraft:creeper_head", 4, "minecraft:dragon_head", 5, "minecraft:piglin_head", 6);
-
-    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        String identifier = mapping.getBedrockIdentifier();
-
-        if (NEW_PLAYER_HEADS.containsKey(identifier)) {
-            return mapping.withBedrockIdentifier("minecraft:skull")
-                .withBedrockData(NEW_PLAYER_HEADS.get(identifier));
-        }
-
-        return mapping;
+    public RakGeyserRateLimiter(Channel channel) {
+        super((RakServerChannel) channel);
+        this.sessionManager = GeyserImpl.getInstance().getSessionManager();
     }
 
+    @Override
+    protected int getAddressMaxPacketCount(InetAddress address) {
+        // The default packet limit is already padded, so we reduce it by 20%
+        return (int) (super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address) * 0.8);
+    }
 }

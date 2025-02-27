@@ -33,6 +33,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemCategory;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -40,25 +43,61 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
             // Bedrock-only as its own item
-            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2,
-            // Bedrock-only banner patterns
-            (identifier, data) -> identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")
+            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
-    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
+    static List<CreativeItemGroup> readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette, List<CreativeItemData> creativeItemData) {
+        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+
+        JsonNode creativeItemEntries;
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+            creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("groups");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative item groups", e);
+        }
+
+        List<CreativeItemGroup> creativeItemGroups = new ArrayList<>();
+        for (JsonNode creativeItemEntry : creativeItemEntries) {
+            CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntry.get("category").asText().toUpperCase(Locale.ROOT));
+            String name = creativeItemEntry.get("name").asText();
+
+            JsonNode icon = creativeItemEntry.get("icon");
+            String identifier = icon.get("id").asText();
+
+            ItemData itemData;
+            if (identifier.equals("minecraft:air")) {
+                itemData = ItemData.AIR;
+            } else {
+                itemData = creativeItemData.stream()
+                    .map(CreativeItemData::getItem)
+                    .filter(item -> item.getDefinition().getIdentifier().equals(identifier))
+                    .findFirst()
+                    .orElseThrow();
+            }
+
+            creativeItemGroups.add(new CreativeItemGroup(category, name, itemData));
+        }
+
+        return creativeItemGroups;
+    }
+
+    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, BiConsumer<ItemData.Builder, Integer> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
@@ -71,16 +110,18 @@ public class CreativeItemRegistryPopulator {
 
         BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
         for (JsonElement itemNode : creativeItemEntries) {
-            ItemData.Builder itemBuilder = createItemData((JsonObject) itemNode, blockMappings, definitions);
+            ItemData.Builder itemBuilder = createItemData((JsonObject) itemNode, items, blockMappings, definitions);
             if (itemBuilder == null) {
                 continue;
             }
 
-            itemConsumer.accept(itemBuilder);
+            int groupId = ((JsonObject) itemNode).get("groupId") != null ? itemNode.getAsInt("groupId") : 0;
+
+            itemConsumer.accept(itemBuilder, groupId);
         }
     }
 
-    private static ItemData.@Nullable Builder createItemData(JsonObject itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
+    private static ItemData.@Nullable Builder createItemData(JsonObject itemNode, Map<String, GeyserMappingItem> items, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
         NbtMap tag = null;
@@ -88,6 +129,23 @@ public class CreativeItemRegistryPopulator {
         String identifier = itemNode.get("id").getAsString();
         for (BiPredicate<String, Integer> predicate : JAVA_ONLY_ITEM_FILTER) {
             if (predicate.test(identifier, damage)) {
+                return null;
+            }
+        }
+
+        // Attempt to remove items that do not exist in Java (1.21.50 has 1.21.4 items, that don't exist on 1.21.2)
+        // we still add the lodestone compass - we're going to translate it.
+        if (!items.containsKey(identifier) && !identifier.equals("minecraft:lodestone_compass")) {
+            // bedrock identifier not found, let's make sure it's not just different
+            boolean found = false;
+            for (var mapping : items.values()) {
+                if (mapping.getBedrockIdentifier().equals(identifier)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
                 return null;
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.item.type.Item;
 
-/**
- * Implements ItemDefinition while also providing a reference to our item mappings.
- */
-public record GeyserItemDefinition(Item javaItem, String identifier, boolean componentBased, int runtimeId) implements ItemDefinition {
-    @Override
-    public String getIdentifier() {
-        return identifier;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.UUID;
+
+public class EnderEyeEntity extends Entity {
+    public EnderEyeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public boolean isComponentBased() {
-        return componentBased;
-    }
-
-    @Override
-    public int getRuntimeId() {
-        return runtimeId;
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Correct sizing
+        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
     }
 }

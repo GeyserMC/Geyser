@@ -48,7 +48,6 @@ public class GeyserMappingItem {
     Integer firstBlockRuntimeId;
     Integer lastBlockRuntimeId;
     @SerializedName("tool_type") String toolType;
-    @SerializedName("tool_tier") String toolTier;
     @SerializedName("armor_type") String armorType;
     @SerializedName("protection_value") int protectionValue;
     @SerializedName("is_edible") boolean edible = false;

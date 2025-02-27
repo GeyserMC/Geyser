@@ -176,6 +176,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
         setFlag(EntityFlag.CAN_CLIMB, true);
+        setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
         // Let the Java server (or us) supply all sounds for an entity
         setClientSideSilent();
     }

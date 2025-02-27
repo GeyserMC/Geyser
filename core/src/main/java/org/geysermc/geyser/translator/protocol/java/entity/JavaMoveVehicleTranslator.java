@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveVehiclePacket;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveVehiclePacket;
 
 @Translator(packet = ClientboundMoveVehiclePacket.class)
 public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveVehiclePacket> {
@@ -42,9 +41,9 @@ public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveV
         if (entity == null) return;
 
         if (entity instanceof ClientVehicle clientVehicle) {
-            clientVehicle.getVehicleComponent().moveAbsolute(packet.getX(), packet.getY(), packet.getZ());
+            clientVehicle.getVehicleComponent().moveAbsolute(packet.getPosition());
         }
 
-        entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);
+        entity.moveAbsolute(packet.getPosition().toFloat(), packet.getYRot(), packet.getXRot(), false, true);
     }
 }

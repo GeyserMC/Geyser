@@ -41,7 +41,7 @@ import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater.ScoreboardSession;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
@@ -123,9 +123,13 @@ public final class WorldCache {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");
-        titlePacket.setFadeInTime(trueTitleFadeInTime);
-        titlePacket.setStayTime(trueTitleStayTime);
-        titlePacket.setFadeOutTime(trueTitleFadeOutTime);
+
+        // We need a tick rate multiplier as otherwise the timings are incorrect on different tick rates because
+        // bedrock can only run at 20 TPS (50ms = 1 tick)
+        int tickrateMultiplier = Math.round(session.getMillisecondsPerTick()) / 50;
+        titlePacket.setFadeInTime(trueTitleFadeInTime * tickrateMultiplier);
+        titlePacket.setStayTime(trueTitleStayTime * tickrateMultiplier);
+        titlePacket.setFadeOutTime(trueTitleFadeOutTime * tickrateMultiplier);
         titlePacket.setPlatformOnlineId("");
         titlePacket.setXuid("");
 
@@ -217,7 +221,7 @@ public final class WorldCache {
     }
 
     public boolean hasCooldown(GeyserItemStack item) {
-        UseCooldown cooldown = item.getComponent(DataComponentType.USE_COOLDOWN);
+        UseCooldown cooldown = item.getComponent(DataComponentTypes.USE_COOLDOWN);
         String cooldownGroup;
         if (cooldown != null && cooldown.cooldownGroup() != null) {
             cooldownGroup = cooldown.cooldownGroup().asString();

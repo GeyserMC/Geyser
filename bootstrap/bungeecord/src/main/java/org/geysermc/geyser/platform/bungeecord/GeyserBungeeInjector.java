@@ -73,6 +73,14 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
             throw new UnsupportedOperationException("Geyser does not currently support multiple listeners with injection! " +
                     "Please reach out to us on our Discord at https://discord.gg/GeyserMC so we can hear feedback on your setup.");
         }
+
+        // TODO remove
+        try {
+            ProxyServer.class.getMethod("unsafe");
+        } catch (NoSuchMethodException e) {
+            throw new UnsupportedOperationException("You're using an outdated version of BungeeCord - please update. Thank you!");
+        }
+
         ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
 
         Class<? extends ProxyServer> proxyClass = proxy.getClass();
@@ -138,7 +146,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                         if (channelInitializer == null) {
                             // Proxy has finished initializing; we can safely grab this variable without fear of plugins modifying it
                             // (Older versions of ViaVersion replace this to inject)
-                            channelInitializer = PipelineUtils.SERVER_CHILD;
+                            channelInitializer = proxy.unsafe().getFrontendChannelInitializer().getChannelInitializer();
                         }
                         initChannel.invoke(channelInitializer, ch);
 

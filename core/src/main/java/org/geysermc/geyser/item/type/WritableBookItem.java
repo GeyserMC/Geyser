@@ -32,7 +32,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
@@ -49,7 +49,7 @@ public class WritableBookItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        WritableBookContent bookContent = components.get(DataComponentType.WRITABLE_BOOK_CONTENT);
+        WritableBookContent bookContent = components.get(DataComponentTypes.WRITABLE_BOOK_CONTENT);
         if (bookContent == null) {
             return;
         }

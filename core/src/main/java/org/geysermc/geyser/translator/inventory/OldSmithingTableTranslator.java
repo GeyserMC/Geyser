@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -63,7 +64,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
             case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
@@ -130,7 +131,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     private boolean isInvalidAction(ItemStackRequestSlotData slotData) {
-        return slotData.getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
+        return slotData.getContainerName().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE);
     }
 
     @Override
@@ -144,5 +145,10 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
         slotPacket.setSlot(53);
         slotPacket.setItem(UPGRADE_TEMPLATE.apply(session.getUpstream().getProtocolVersion()));
         session.sendUpstreamPacket(slotPacket);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

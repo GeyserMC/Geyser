@@ -35,7 +35,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
@@ -47,7 +47,7 @@ public class PotionItem extends Item {
     @Override
     public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         if (components == null) return super.translateToBedrock(session, count, components, mapping, mappings);
-        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+        PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
         if (potionContents != null) {
             ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(components, mapping);
             if (customItemDefinition == null) {
@@ -73,7 +73,7 @@ public class PotionItem extends Item {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
         if (potion != null) {
-            itemStack.getOrCreateComponents().put(DataComponentType.POTION_CONTENTS, potion.toComponent());
+            itemStack.getOrCreateComponents().put(DataComponentTypes.POTION_CONTENTS, potion.toComponent());
         }
         return itemStack;
     }

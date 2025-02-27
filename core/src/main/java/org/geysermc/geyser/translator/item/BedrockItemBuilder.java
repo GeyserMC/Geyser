@@ -122,12 +122,13 @@ public final class BedrockItemBuilder {
      */
     @Nullable
     public NbtMap build() {
-        if (customName != null || lore != null) {
+        boolean validLore = lore != null && !lore.isEmpty();
+        if (customName != null || validLore) {
             NbtMapBuilder display = NbtMap.builder();
             if (customName != null) {
                 display.putString("Name", customName);
             }
-            if (lore != null) {
+            if (validLore) {
                 display.putList("Lore", NbtType.STRING, lore);
             }
             getOrCreateNbt().put("display", display.build());

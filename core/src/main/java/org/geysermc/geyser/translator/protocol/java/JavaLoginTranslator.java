@@ -45,6 +45,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -81,7 +82,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setDimensionType(newDimension);
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(Arrays.stream(packet.getWorldNames()).map(Key::asString).toArray(String[]::new));
-        session.setGameMode(spawnInfo.getGameMode());
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
@@ -97,6 +97,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
+        session.setGameMode(spawnInfo.getGameMode());
         entity.setLastDeathPosition(spawnInfo.getLastDeathPos());
 
         entity.updateBedrockMetadata();
@@ -128,5 +129,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
 
         ChunkUtils.loadDimension(session);
+
+        if (!needsSpawnPacket) {
+            session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);
+        }
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -40,7 +41,6 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.LocalSession;
-import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -180,11 +180,10 @@ public class GeyserSpigotInjector extends GeyserInjector {
      */
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
         MinecraftProtocol protocol = new MinecraftProtocol();
-        LocalSession session = new LocalSession(bootstrap.config().java().address(),
-                bootstrap.config().java().port(), this.serverSocketAddress,
-                InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
+        LocalSession session = new LocalSession(this.serverSocketAddress, InetAddress.getLoopbackAddress().getHostAddress(), protocol, Runnable::run);
+        session.setFlag(MinecraftConstants.CLIENT_HOST, bootstrap.config().java().address());
+        session.setFlag(MinecraftConstants.CLIENT_PORT, bootstrap.config().java().port());
         session.connect();
-        session.disconnect("");
     }
 
     @Override

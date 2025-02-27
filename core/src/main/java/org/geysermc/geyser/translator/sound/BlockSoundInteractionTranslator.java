@@ -31,7 +31,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 import java.util.Map;
 
@@ -100,7 +100,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
             return true;
         }
 
-        var canPlaceOn = itemInHand.getComponent(DataComponentType.CAN_PLACE_ON);
+        var canPlaceOn = itemInHand.getComponent(DataComponentTypes.CAN_PLACE_ON);
         if (canPlaceOn == null || canPlaceOn.getPredicates().isEmpty()) {
             // Component doesn't exist - no restrictions apply.
             return true;

@@ -83,12 +83,16 @@ final class BedrockBlockActions {
                     break;
                 }
 
+                if (!canMine(session, vector)) {
+                    return;
+                }
+
                 // Start the block breaking animation
                 int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockState.of(blockState).block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, BlockState.of(blockState).block());
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -125,6 +129,11 @@ final class BedrockBlockActions {
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
+
+                if (!canMine(session, vector)) {
+                    return;
+                }
+
                 int breakingBlock = session.getBreakingBlock();
                 if (breakingBlock == -1) {
                     breakingBlock = Block.JAVA_AIR_ID;
@@ -136,7 +145,7 @@ final class BedrockBlockActions {
                 Direction direction = Direction.VALUES[blockFace];
                 spawnBlockBreakParticles(session, direction, vector, breakingBlockState);
 
-                double breakTime = BlockUtils.getSessionBreakTime(session, breakingBlockState.block()) * 20;
+                double breakTime = BlockUtils.getSessionBreakTimeTicks(session, breakingBlockState.block());
                 // If the block is custom, we must keep track of when it should break ourselves
                 long blockBreakStartTime = session.getBlockBreakStartTime();
                 if (blockBreakStartTime != 0) {
@@ -180,17 +189,35 @@ final class BedrockBlockActions {
 
                 ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, 0);
                 session.sendDownstreamGamePacket(abortBreakingPacket);
+
                 LevelEventPacket stopBreak = new LevelEventPacket();
                 stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
                 stopBreak.setPosition(vector.toFloat());
                 stopBreak.setData(0);
                 session.setBreakingBlock(-1);
+                session.setBlockBreakStartTime(0);
                 session.sendUpstreamPacket(stopBreak);
             }
             // Handled in BedrockInventoryTransactionTranslator
             case STOP_BREAK -> {
             }
         }
+    }
+
+    private static boolean canMine(GeyserSession session, Vector3i vector) {
+        if (session.isHandsBusy()) {
+            session.setBreakingBlock(-1);
+            session.setBlockBreakStartTime(0);
+
+            LevelEventPacket stopBreak = new LevelEventPacket();
+            stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
+            stopBreak.setPosition(vector.toFloat());
+            stopBreak.setData(0);
+            session.setBreakingBlock(-1);
+            session.sendUpstreamPacket(stopBreak);
+            return false;
+        }
+        return true;
     }
 
     private static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {

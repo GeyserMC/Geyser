@@ -32,8 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -76,6 +75,11 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
         this.variant = variant;
+
+        // TODO remove once 1.21.40 is dropped
+        if (variant == BoatVariant.PALE_OAK && GameProtocol.isPreWinterDrop(session)) {
+            variant = BoatVariant.BIRCH;
+        }
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
@@ -189,7 +193,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             session.sendDownstreamGamePacket(steerPacket);
             return;
         }
-        doTick = !doTick; // Run every 100 ms
+        doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
         }
@@ -214,10 +218,6 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         return leashHolderBedrockId;
     }
 
-    public Item getPickItem() {
-        return variant.pickItem;
-    }
-
     private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
         AnimatePacket packet = new AnimatePacket();
         packet.setRuntimeEntityId(rower.getGeyserId());
@@ -230,22 +230,17 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
      * Ordered by Bedrock ordinal
      */
     public enum BoatVariant {
-        OAK(Items.OAK_BOAT, Items.OAK_CHEST_BOAT),
-        SPRUCE(Items.SPRUCE_BOAT, Items.SPRUCE_CHEST_BOAT),
-        BIRCH(Items.BIRCH_BOAT, Items.BIRCH_CHEST_BOAT),
-        JUNGLE(Items.JUNGLE_BOAT, Items.JUNGLE_CHEST_BOAT),
-        ACACIA(Items.ACACIA_BOAT, Items.ACACIA_CHEST_BOAT),
-        DARK_OAK(Items.DARK_OAK_BOAT, Items.DARK_OAK_CHEST_BOAT),
-        MANGROVE(Items.MANGROVE_BOAT, Items.MANGROVE_CHEST_BOAT),
-        BAMBOO(Items.BAMBOO_RAFT, Items.BAMBOO_CHEST_RAFT),
-        CHERRY(Items.CHERRY_BOAT, Items.CHERRY_CHEST_BOAT);
+        OAK,
+        SPRUCE,
+        BIRCH,
+        JUNGLE,
+        ACACIA,
+        DARK_OAK,
+        MANGROVE,
+        BAMBOO,
+        CHERRY,
+        PALE_OAK;
 
-        private final Item pickItem;
-        final Item chestPickItem;
-
-        BoatVariant(Item pickItem, Item chestPickItem) {
-            this.pickItem = pickItem;
-            this.chestPickItem = chestPickItem;
-        }
+        BoatVariant() {}
     }
 }

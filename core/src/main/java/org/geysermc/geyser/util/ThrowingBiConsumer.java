@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.util;
 
-import org.geysermc.geyser.item.Items;
+import java.util.function.BiConsumer;
 
-public class ElytraItem extends Item {
-    public ElytraItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
-
+@FunctionalInterface
+public interface ThrowingBiConsumer<T, U> extends BiConsumer<T, U> {
     @Override
-    public boolean isValidRepairItem(Item other) {
-        return other == Items.PHANTOM_MEMBRANE;
+    default void accept(T t, U u) {
+        try {
+            acceptThrows(t, u);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    void acceptThrows(T t, U u) throws Throwable;
 }

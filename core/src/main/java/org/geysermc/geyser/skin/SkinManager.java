@@ -49,7 +49,6 @@ import org.geysermc.geyser.util.JsonUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -104,7 +103,7 @@ public class SkinManager {
                                                             Skin skin,
                                                             Cape cape,
                                                             SkinGeometry geometry) {
-        SerializedSkin serializedSkin = getSkin(skin.textureUrl(), skin, cape, geometry);
+        SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry);
 
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
         String xuid = "";
@@ -140,7 +139,6 @@ public class SkinManager {
         SkinGeometry geometry = skinData.geometry();
 
         if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
-            // TODO is this special behavior needed?
             PlayerListPacket.Entry updatedEntry = buildEntryManually(
                     session,
                     entity.getUuid(),
@@ -160,17 +158,24 @@ public class SkinManager {
             packet.setUuid(entity.getUuid());
             packet.setOldSkinName("");
             packet.setNewSkinName(skin.textureUrl());
-            packet.setSkin(getSkin(skin.textureUrl(), skin, cape, geometry));
+            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
             packet.setTrustedSkin(true);
             session.sendUpstreamPacket(packet);
         }
     }
 
-    private static SerializedSkin getSkin(String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
-        return SerializedSkin.of(skinId, "", geometry.geometryName(),
-                ImageData.of(skin.skinData()), Collections.emptyList(),
-                ImageData.of(cape.capeData()), geometry.geometryData(),
-                "", true, false, false, cape.capeId(), skinId);
+    private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
+        return SerializedSkin.builder()
+            .skinId(skinId)
+            .skinResourcePatch(geometry.geometryName())
+            .skinData(ImageData.of(skin.skinData()))
+            .capeData(ImageData.of(cape.capeData()))
+            .geometryData(geometry.geometryData())
+            .premium(true)
+            .capeId(cape.capeId())
+            .fullSkinId(skinId)
+            .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .build();
     }
 
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,

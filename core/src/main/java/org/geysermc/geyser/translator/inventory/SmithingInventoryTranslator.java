@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
@@ -44,7 +45,7 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case SMITHING_TABLE_TEMPLATE -> TEMPLATE;
             case SMITHING_TABLE_INPUT -> INPUT;
             case SMITHING_TABLE_MATERIAL -> MATERIAL;
@@ -73,5 +74,10 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
             case OUTPUT -> 50;
             default -> super.javaSlotToBedrock(slot);
         };
+    }
+
+    @Override
+    public ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

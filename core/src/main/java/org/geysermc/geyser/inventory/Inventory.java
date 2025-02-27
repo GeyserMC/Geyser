@@ -36,7 +36,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.jetbrains.annotations.Range;
 
 import java.util.Arrays;
@@ -135,22 +135,28 @@ public abstract class Inventory {
 
         // Lodestone caching
         if (newItem.asItem() == Items.COMPASS) {
-            var tracker = newItem.getComponent(DataComponentType.LODESTONE_TRACKER);
+            var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
             if (tracker != null) {
                 session.getLodestoneCache().cacheInventoryItem(newItem, tracker);
             }
         }
     }
 
-    protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
+    public static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             ItemDefinition oldMapping = ItemTranslator.getBedrockItemDefinition(session, oldItem);
             ItemDefinition newMapping = ItemTranslator.getBedrockItemDefinition(session, newItem);
             if (oldMapping.equals(newMapping)) {
                 newItem.setNetId(oldItem.getNetId());
+                newItem.mergeBundleData(session, oldItem.getBundleData());
             } else {
                 newItem.setNetId(session.getNextItemNetId());
+                session.getBundleCache().markNewBundle(newItem.getBundleData());
+                session.getBundleCache().onOldItemDelete(oldItem);
             }
+        } else {
+            // Empty item means no more bundle if one existed.
+            session.getBundleCache().onOldItemDelete(oldItem);
         }
     }
 
@@ -164,5 +170,13 @@ public abstract class Inventory {
 
     public void resetNextStateId() {
         nextStateId = -1;
+    }
+
+    /**
+     * Whether we should be sending a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket}
+     * when closing the inventory.
+     */
+    public boolean shouldConfirmContainerClose() {
+        return true;
     }
 }
