@@ -68,7 +68,7 @@ public abstract class PackCodec {
      * Serializes the given codec into a byte buffer.
      *
      * @return the serialized resource pack
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull
     public abstract SeekableByteChannel serialize() throws IOException;
@@ -86,7 +86,7 @@ public abstract class PackCodec {
      * Creates a new resource pack builder from this codec.
      *
      * @return the new resource pack builder
-     * @since 2.6.1
+     * @since 2.6.2
      */
     protected abstract ResourcePack.@NonNull Builder createBuilder();
 
@@ -107,7 +107,7 @@ public abstract class PackCodec {
      *
      * @param url the url to create the pack provider from
      * @return the new pack provider
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull
     public static UrlPackCodec url(@NonNull String url) {

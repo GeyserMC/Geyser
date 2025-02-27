@@ -155,9 +155,9 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     @Override
-    public void unregister(@NonNull UUID uuid) {
+    public boolean unregister(@NonNull UUID uuid) {
         sessionPackOptionOverrides.remove(uuid);
-        packs.remove(uuid);
+        return packs.remove(uuid) != null;
     }
 
     private void attemptRegisterOptions(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {

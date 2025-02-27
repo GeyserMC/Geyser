@@ -38,28 +38,28 @@ import java.util.UUID;
 
 /**
  * Called when {@link ResourcePack}'s are loaded within Geyser.
- * @since 2.6.1
+ * @since 2.6.2
  */
 public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets the {@link ResourcePack}'s that will be sent to the clients.
+     * Gets the {@link ResourcePack}'s that will be sent to connecting Bedrock clients.
      * To remove packs, use {@link #unregister(UUID)}, as the list returned
      * by this method is unmodifiable.
      *
      * @return an unmodifiable list of {@link ResourcePack}'s
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
      * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
-     * {@link ResourcePackOption} options specifying how it will be applied on clients.
+     * {@link ResourcePackOption}'s specifying how it will be applied on clients.
      *
      * @param pack a resource pack that will be sent to the client
      * @param options {@link ResourcePackOption}'s that specify how clients load the pack
      * @throws ResourcePackException if an issue occurred during pack registration
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public abstract void register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
 
@@ -69,36 +69,36 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
      * @param uuid the uuid of the resource pack to register the options for
      * @param options the {@link ResourcePackOption}'s to register for the resource pack
      * @throws ResourcePackException if an issue occurred during {@link ResourcePackOption} registration
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
     /**
-     * Returns the subpack options set for a specific {@link ResourcePack}.
-     * These are not modifiable.
+     * Returns a collection of {@link ResourcePackOption}'s for a registered {@link ResourcePack}.
+     * The collection returned here is not modifiable.
      *
-     * @param uuid the uuid of the resource pack for which the options are set
-     * @return a list of {@link ResourcePackOption}'s
-     * @throws ResourcePackException if the pack does not exist
-     * @since 2.6.1
+     * @param uuid the uuid of the {@link ResourcePack} for which the options are set
+     * @return a collection of {@link ResourcePackOption}'s
+     * @throws ResourcePackException if the pack was not registered
+     * @since 2.6.2
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
     /**
-     * Returns the current option, or null, for a given ResourcePackOption type.
+     * Returns the current option, or null, for a given {@link ResourcePackOption.Type}.
      *
-     * @param uuid the resource pack for which the option type is set
+     * @param uuid the {@link ResourcePack} for which to query this option type
      * @param type the {@link ResourcePackOption.Type} of the option to query
-     * @throws ResourcePackException if the pack does not exist
-     * @since 2.6.1
+     * @throws ResourcePackException if the queried option is invalid or not present on the resource pack
+     * @since 2.6.2
      */
     public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
     /**
-     * Unregisters a {@link ResourcePack} from being sent to clients.
+     * Unregisters a {@link ResourcePack} from the list of packs sent to connecting Bedrock clients.
      *
-     * @param uuid the uuid of the resource pack to remove
-     * @since 2.6.1
+     * @param uuid the UUID of the {@link ResourcePack} to be removed
+     * @since 2.6.2
      */
     public abstract void unregister(@NonNull UUID uuid);
 }

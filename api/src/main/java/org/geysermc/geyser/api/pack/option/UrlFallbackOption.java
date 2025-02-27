@@ -35,7 +35,7 @@ import org.geysermc.geyser.api.pack.UrlPackCodec;
  * serve the resource pack over raknet (as packs are served with the {@link PathPackCodec}).
  * This option can be used to disable that behavior, and disconnect the player instead.
  * By default, the {@link UrlFallbackOption#TRUE} option is set.
- * @since 2.6.1
+ * @since 2.6.2
  */
 public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
 
@@ -47,7 +47,7 @@ public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
      *
      * @param fallback whether to fall back
      * @return a UrlFallbackOption with the specified behavior
-     * @since 2.6.1
+     * @since 2.6.2
      */
     static UrlFallbackOption fallback(boolean fallback) {
         return GeyserApi.api().provider(UrlFallbackOption.class, fallback);

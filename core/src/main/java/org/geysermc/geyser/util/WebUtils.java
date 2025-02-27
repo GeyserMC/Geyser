@@ -157,7 +157,7 @@ public class WebUtils {
                         packMetadata.toFile().setLastModified(System.currentTimeMillis());
                         return downloadLocation;
                     } else {
-                        logger.debug("Deleting cached pack/metadata as it appears to have changed!");
+                        logger.debug("Deleting cached pack/metadata (%s) as it appears to have changed!".formatted(url));
                         Files.deleteIfExists(packMetadata);
                         Files.deleteIfExists(downloadLocation);
                     }

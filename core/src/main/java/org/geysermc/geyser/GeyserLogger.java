@@ -104,8 +104,8 @@ public interface GeyserLogger extends GeyserCommandSource {
     }
 
     /**
-     * Logs an object to console if debug mode is enabled,
-     * and formats it with the provided arguments
+     * Logs and formats a message to console if debug mode is enabled,
+     * with the provided arguments.
      *
      * @param message the message to log
      * @param arguments the arguments to replace in the message

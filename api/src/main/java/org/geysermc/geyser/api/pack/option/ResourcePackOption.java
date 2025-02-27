@@ -37,19 +37,19 @@ import org.geysermc.geyser.api.pack.exception.ResourcePackException;
  * a specific subpack to be loaded on resource packs that do not have subpacks.
  * To see which limitations apply to specific resource pack options, check the javadocs
  * or see the {@link #validate(ResourcePack)} method.
- * @since 2.6.1
+ * @since 2.6.2
  */
 public interface ResourcePackOption<T> {
 
     /**
      * @return the option type
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull Type type();
 
     /**
      * @return the value of the option
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull T value();
 
@@ -59,13 +59,13 @@ public interface ResourcePackOption<T> {
      *
      * @param pack the resource pack to validate the option for
      * @throws ResourcePackException with the {@link ResourcePackException.Cause#INVALID_PACK_OPTION} cause
-     * @since 2.6.1
+     * @since 2.6.2
      */
     void validate(@NonNull ResourcePack pack);
 
     /**
      * Represents the different types of resource pack options.
-     * @since 2.6.1
+     * @since 2.6.2
      */
     enum Type {
         SUBPACK,

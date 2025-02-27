@@ -68,8 +68,10 @@ public interface ResourcePack {
     String contentKey();
 
     /**
-     * @return the resource pack uuid. Shortcut for getting the UUID from the header
-     * @since 2.6.1
+     * Shortcut for getting the UUID from the {@link ResourcePackManifest}.
+     *
+     * @return the resource pack uuid
+     * @since 2.6.2
      */
     @NonNull
     default UUID uuid() {
@@ -94,7 +96,7 @@ public interface ResourcePack {
      *
      * @param codec the {@link PackCodec} to base the builder on
      * @return a {@link Builder} to build a resource pack
-     * @since 2.6.1
+     * @since 2.6.2
      */
     static Builder builder(@NonNull PackCodec codec) {
         return GeyserApi.api().provider(Builder.class, codec);
@@ -102,25 +104,25 @@ public interface ResourcePack {
 
     /**
      * A builder for a resource pack. It allows providing a content key manually.
-     * @since 2.6.1
+     * @since 2.6.2
      */
     interface Builder {
 
         /**
          * @return the {@link ResourcePackManifest} of this resource pack
-         * @since 2.6.1
+         * @since 2.6.2
          */
         ResourcePackManifest manifest();
 
         /**
          * @return the {@link PackCodec} of this resource pack
-         * @since 2.6.1
+         * @since 2.6.2
          */
         PackCodec codec();
 
         /**
          * @return the current content key, or an empty string if not set
-         * @since 2.6.1
+         * @since 2.6.2
          */
         String contentKey();
 
@@ -129,13 +131,13 @@ public interface ResourcePack {
          *
          * @param contentKey the content key
          * @return this builder
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @This Builder contentKey(@NonNull String contentKey);
 
         /**
          * @return the resource pack
-         * @since 2.6.1
+         * @since 2.6.2
          */
         ResourcePack build();
     }

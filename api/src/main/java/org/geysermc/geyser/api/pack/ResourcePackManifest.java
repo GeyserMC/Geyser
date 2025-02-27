@@ -39,7 +39,6 @@ import java.util.UUID;
  * All resource packs are required to have such a file as it identifies the resource pack.
  * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/examples/addonmanifest?view=minecraft-bedrock-stable">
  *     Microsoft's docs for more info</a>.
- *
  * @since 2.1.1
  */
 public interface ResourcePackManifest {
@@ -77,7 +76,7 @@ public interface ResourcePackManifest {
      * Gets the {@link Dependency}'s of the resource pack.
      *
      * @return a collection of dependencies
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull
     Collection<? extends Dependency> dependencies();
@@ -88,7 +87,7 @@ public interface ResourcePackManifest {
      * </a> for more information.
      *
      * @return a collection of subpacks
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull
     Collection<? extends Subpack> subpacks();
@@ -99,7 +98,7 @@ public interface ResourcePackManifest {
      * to inform users about what the resource pack and sub-packs include.
      *
      * @return a collection of settings
-     * @since 2.6.1
+     * @since 2.6.2
      */
     @NonNull
     Collection<? extends Setting> settings();
@@ -212,7 +211,7 @@ public interface ResourcePackManifest {
     /**
      * Represents a dependency of a resource pack.
      * These are references to other resource packs that must be
-     * present for this resource pack to apply.
+     * present in order for this resource pack to apply.
      * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/addonsreference/examples/addonmanifest?view=minecraft-bedrock-stable#dependencies">
      *     Microsoft's docs for further details on dependencies.</a>
      * @since 2.1.1
@@ -249,7 +248,7 @@ public interface ResourcePackManifest {
          * Gets the folder name where this sub-pack is placed in.
          *
          * @return the folder name
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @NonNull
         String folderName();
@@ -261,7 +260,7 @@ public interface ResourcePackManifest {
          * {@link SubpackOption} with the name of the subpack to load.
          *
          * @return the subpack name
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @NonNull
         String name();
@@ -272,7 +271,7 @@ public interface ResourcePackManifest {
          * and a memory tier of 4 requires 1GB of RAM.
          *
          * @return the memory tier
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @Nullable
         Float memoryTier();
@@ -281,7 +280,7 @@ public interface ResourcePackManifest {
     /**
      * Represents a setting that is shown client-side that describe what a pack does.
      * Multiple setting entries are shown in separate paragraphs.
-     * @since 2.6.1
+     * @since 2.6.2
      */
     interface Setting {
 
@@ -289,7 +288,7 @@ public interface ResourcePackManifest {
          * The type of the setting. Usually just "label".
          *
          * @return the type
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @NonNull
         String type();
@@ -298,7 +297,7 @@ public interface ResourcePackManifest {
          * The text shown for the setting.
          *
          * @return the text content
-         * @since 2.6.1
+         * @since 2.6.2
          */
         @NonNull
         String text();

@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 /**
  * Can be used to specify which subpack from a resource pack a player should load.
  * Available subpacks can be seen in a resource pack manifest {@link ResourcePackManifest#subpacks()}.
- * @since 2.6.1
+ * @since 2.6.2
  */
 public interface SubpackOption extends ResourcePackOption<String> {
 
@@ -41,7 +41,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
      *
      * @param subpack the chosen subpack
      * @return a subpack option specifying that subpack
-     * @since 2.6.1
+     * @since 2.6.2
      */
     static SubpackOption subpack(ResourcePackManifest.@NonNull Subpack subpack) {
         return named(subpack.name());
@@ -52,7 +52,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
      *
      * @param subpackName the name of the subpack
      * @return a subpack option specifying a subpack with that name
-     * @since 2.6.1
+     * @since 2.6.2
      */
     static SubpackOption named(@NonNull String subpackName) {
         return GeyserApi.api().provider(SubpackOption.class, subpackName);
@@ -62,7 +62,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
      * Creates a subpack option with no subpack specified.
      *
      * @return a subpack option specifying no subpack
-     * @since 2.6.1
+     * @since 2.6.2
      */
     static SubpackOption empty() {
         return GeyserApi.api().provider(SubpackOption.class, "");

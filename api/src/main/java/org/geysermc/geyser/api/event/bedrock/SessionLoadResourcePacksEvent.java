@@ -48,7 +48,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     }
 
     /**
-     * Gets the {@link ResourcePack}'s that will be sent to the client.
+     * Gets the {@link ResourcePack}'s that will be sent to this {@link GeyserConnection}.
      * To remove packs, use {@link #unregister(UUID)}, as the list returned
      * by this method is unmodifiable.
      *
@@ -67,49 +67,51 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
      * specific {@link ResourcePackOption}'s specifying how it will be applied by the client.
      *
-     * @param resourcePack the {@link ResourcePack} that will be sent to the client
-     * @param options {@link ResourcePackOption}'s that specify how clients load the pack
+     * @param pack the {@link ResourcePack} that will be sent to the client
+     * @param options {@link ResourcePackOption}'s that specify how the client loads the pack
      * @throws ResourcePackException if an issue occurred during pack registration
-     * @since 2.6.1
+     * @since 2.6.2
      */
-    public abstract void register(@NonNull ResourcePack resourcePack, @Nullable ResourcePackOption<?>... options);
+    public abstract void register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
 
     /**
-     * Sets {@link ResourcePackOption}'s for a {@link ResourcePack}
+     * Sets {@link ResourcePackOption}'s for a {@link ResourcePack}.
+     * This method can also be used to override options for resource packs already registered in the
+     * {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
      *
      * @param uuid the uuid of the resource pack to register the options for
      * @param options the {@link ResourcePackOption}'s to register for the resource pack
      * @throws ResourcePackException if an issue occurred during {@link ResourcePackOption} registration
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
 
     /**
-     * Returns the {@link ResourcePackOption}'s set for a specific {@link ResourcePack} uuid.
-     * These are not modifiable.
+     * Returns a collection of {@link ResourcePackOption}'s for a registered {@link ResourcePack}.
+     * The collection returned here is not modifiable.
      *
      * @param uuid the {@link ResourcePack} for which the options are set
-     * @return a list of {@link ResourcePackOption}
-     * @throws ResourcePackException if the pack does not exist
-     * @since 2.6.1
+     * @return a collection of {@link ResourcePackOption}'s
+     * @throws ResourcePackException if the pack was not registered
+     * @since 2.6.2
      */
     public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
 
     /**
      * Returns the current {@link ResourcePackOption}, or null, for a given {@link ResourcePackOption.Type}.
      *
-     * @param uuid the {@link ResourcePack} for which the option type is set
+     * @param uuid the {@link ResourcePack} for which to query this option type
      * @param type the {@link ResourcePackOption.Type} of the option to query
-     * @throws ResourcePackException if any exception occurs during adding {@link ResourcePackOption}'s
-     * @since 2.6.1
+     * @throws ResourcePackException if the queried option is invalid or not present on the resource pack
+     * @since 2.6.2
      */
     public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
 
     /**
-     * Unregisters a {@link ResourcePack} from the list of packs sent to the client.
+     * Unregisters a {@link ResourcePack} from the list of packs sent to this {@link GeyserConnection}.
      *
-     * @param uuid the UUID of the {@link ResourcePack}
+     * @param uuid the UUID of the {@link ResourcePack} to be removed
      * @since 2.1.1
      */
-    public abstract void unregister(@NonNull UUID uuid);
+    public abstract boolean unregister(@NonNull UUID uuid);
 }

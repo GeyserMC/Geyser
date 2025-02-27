@@ -102,7 +102,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         }
 
         List<Path> resourcePacks;
-        try (Stream<Path> stream = Files.walk(directory)) {
+        try (Stream<Path> stream = Files.list(directory)) {
             resourcePacks = stream.filter(PACK_MATCHER::matches)
                     .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
         } catch (Exception e) {

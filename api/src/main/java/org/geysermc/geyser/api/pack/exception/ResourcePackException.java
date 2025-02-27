@@ -30,7 +30,7 @@ import java.io.Serial;
 /**
  * Used to indicate an exception that occurred while handling resource pack registration,
  * or during resource pack option validation.
- * @since 2.6.1
+ * @since 2.6.2
  */
 public class ResourcePackException extends IllegalArgumentException {
 
@@ -44,7 +44,7 @@ public class ResourcePackException extends IllegalArgumentException {
 
     /**
      * @param cause The cause of this exception
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public ResourcePackException(Cause cause) {
         super(cause.message());
@@ -52,9 +52,9 @@ public class ResourcePackException extends IllegalArgumentException {
     }
 
     /**
-     * @param cause The cause of this exception
-     * @param message An additional, more in-depth message about the issue.
-     * @since 2.6.1
+     * @param cause the cause of this exception
+     * @param message an additional, more in-depth message about the issue.
+     * @since 2.6.2
      */
     public ResourcePackException(Cause cause, String message) {
         super(message);
@@ -63,7 +63,7 @@ public class ResourcePackException extends IllegalArgumentException {
 
     /**
      * @return the cause of this exception
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public Cause cause() {
         return cause;
@@ -71,7 +71,7 @@ public class ResourcePackException extends IllegalArgumentException {
 
     /**
      * Represents different causes with explanatory messages stating which issue occurred.
-     * @since 2.6.1
+     * @since 2.6.2
      */
     public enum Cause {
         DUPLICATE("A resource pack with this UUID was already registered!"),
@@ -84,7 +84,7 @@ public class ResourcePackException extends IllegalArgumentException {
 
         /**
          * @return the message of this cause
-         * @since 2.6.1
+         * @since 2.6.2
          */
         public String message() {
             return message;

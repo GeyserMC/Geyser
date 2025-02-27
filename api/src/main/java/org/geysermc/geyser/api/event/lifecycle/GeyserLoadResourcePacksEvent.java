@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
+ * @deprecated Use the {@link GeyserDefineResourcePacksEvent} instead.
  */
 @Deprecated
 public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
