@@ -30,7 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
@@ -43,7 +43,7 @@ public class FireworkStarItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Fireworks.FireworkExplosion explosion = components.get(DataComponentType.FIREWORK_EXPLOSION);
+        Fireworks.FireworkExplosion explosion = components.get(DataComponentTypes.FIREWORK_EXPLOSION);
         if (explosion != null) {
             NbtMap newExplosion = FireworkRocketItem.translateExplosionToBedrock(explosion);
             builder.putCompound("FireworksItem", newExplosion);
@@ -87,7 +87,7 @@ public class FireworkStarItem extends Item {
             if (newExplosion == null) {
                 return;
             }
-            components.put(DataComponentType.FIREWORK_EXPLOSION, newExplosion);
+            components.put(DataComponentTypes.FIREWORK_EXPLOSION, newExplosion);
         }
     }
 

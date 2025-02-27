@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.entity;
 
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.geyser.entity.type.Entity;
 
 import java.util.function.BiConsumer;
 

@@ -896,4 +896,14 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(TrimDataPacket packet) {
         return defaultHandler(packet);
     }
+
+    @Override
+    public PacketSignal handle(MovementPredictionSyncPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(ServerboundDiagnosticsPacket packet) {
+        return defaultHandler(packet);
+    }
 }

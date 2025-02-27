@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,21 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundDisconnectPacket;
+import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundUpdateEnabledFeaturesPacket;
 
-@Translator(packet = ClientboundDisconnectPacket.class)
-public class JavaDisconnectTranslator extends PacketTranslator<ClientboundDisconnectPacket> {
+import java.util.Arrays;
+
+@Translator(packet = ClientboundUpdateEnabledFeaturesPacket.class)
+public class JavaUpdateEnabledFeaturesPacket extends PacketTranslator<ClientboundUpdateEnabledFeaturesPacket> {
+
+    private final static Key MINECART_EXPERIMENT = Key.key("minecart_improvements");
 
     @Override
-    public void translate(GeyserSession session, ClientboundDisconnectPacket packet) {
-        session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.locale()));
+    public void translate(GeyserSession session, ClientboundUpdateEnabledFeaturesPacket packet) {
+        session.setUsingExperimentalMinecartLogic(Arrays.asList(packet.getFeatures()).contains(MINECART_EXPERIMENT));
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -144,5 +145,10 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
         slotPacket.setSlot(53);
         slotPacket.setItem(UPGRADE_TEMPLATE.apply(session.getUpstream().getProtocolVersion()));
         session.sendUpstreamPacket(slotPacket);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

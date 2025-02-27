@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class ArmorItem extends Item {
@@ -46,7 +46,7 @@ public class ArmorItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        ArmorTrim trim = components.get(DataComponentType.TRIM);
+        ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
             TrimMaterial material = session.getRegistryCache().trimMaterials().byId(trim.material().id());
             TrimPattern pattern = session.getRegistryCache().trimPatterns().byId(trim.pattern().id());

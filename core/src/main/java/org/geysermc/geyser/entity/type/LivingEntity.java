@@ -61,7 +61,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
@@ -158,10 +158,6 @@ public class LivingEntity extends Entity {
     public void updateNametag(@Nullable Team team) {
         // if name not visible, don't mark it as visible
         updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
-    }
-
-    public void hideNametag() {
-        setNametag("", false);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -344,7 +340,7 @@ public class LivingEntity extends Entity {
      */
     // Implementation note for 1.20.5: this code was moved to the NameTag item.
     protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
-        if (itemStack.getComponent(DataComponentType.CUSTOM_NAME) != null) {
+        if (itemStack.getComponent(DataComponentTypes.CUSTOM_NAME) != null) {
             // The mob shall be named
             return InteractionResult.SUCCESS;
         }

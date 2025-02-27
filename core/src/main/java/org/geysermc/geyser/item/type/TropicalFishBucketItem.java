@@ -36,7 +36,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
@@ -57,7 +57,7 @@ public class TropicalFishBucketItem extends Item {
         builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
         // Add Java's client side lore tag
         // Do you know how frequently Java NBT used to be before 1.20.5? It was a lot. And now it's just this lowly check.
-        NbtMap entityTag = components.get(DataComponentType.BUCKET_ENTITY_DATA);
+        NbtMap entityTag = components.get(DataComponentTypes.BUCKET_ENTITY_DATA);
         if (entityTag != null && !entityTag.isEmpty()) {
             //TODO test
             int bucketVariant = entityTag.getInt("BucketVariantTag");

@@ -32,8 +32,15 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.util.*;
+import java.net.InetAddress;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SessionManager {
     /**
@@ -48,10 +55,25 @@ public final class SessionManager {
     private final Map<UUID, GeyserSession> sessions = new ConcurrentHashMap<>();
 
     /**
+     * Stores the number of connected sessions per address they're connected from.
+     * Used to raise per-IP connection limits.
+     */
+    @Getter(AccessLevel.PACKAGE)
+    private final Map<InetAddress, AtomicInteger> connectedClients = new ConcurrentHashMap<>();
+
+    /**
      * Called once the player has successfully authenticated to the Geyser server.
      */
     public void addPendingSession(GeyserSession session) {
         pendingSessions.add(session);
+        connectedClients.compute(session.getSocketAddress().getAddress(), (key, count) -> {
+            if (count == null) {
+                return new AtomicInteger(1);
+            }
+
+            count.incrementAndGet();
+            return count;
+        });
     }
 
     /**
@@ -68,6 +90,17 @@ public final class SessionManager {
             // Connection was likely pending
             pendingSessions.remove(session);
         }
+        connectedClients.computeIfPresent(session.getSocketAddress().getAddress(), (key, count) -> {
+            if (count.decrementAndGet() <= 0) {
+                return null;
+            }
+            return count;
+        });
+    }
+
+    public int getAddressMultiplier(InetAddress ip) {
+        AtomicInteger atomicInteger = connectedClients.get(ip);
+        return atomicInteger == null ? 1 : atomicInteger.get();
     }
 
     public @Nullable GeyserSession sessionByXuid(@NonNull String xuid) {

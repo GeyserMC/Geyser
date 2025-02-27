@@ -93,6 +93,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             }
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+            session.getBundleCache().initialize(newItem);
             if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
                 // In rare cases, the window ID can still be 0 but Java treats it as valid
                 // This behavior still exists as of Java Edition 1.21.2, despite the new packet

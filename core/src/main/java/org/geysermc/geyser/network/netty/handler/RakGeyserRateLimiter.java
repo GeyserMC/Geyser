@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.network.netty.handler;
 
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.item.type.Item;
+import io.netty.channel.Channel;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.SessionManager;
 
-/**
- * Implements ItemDefinition while also providing a reference to our item mappings.
- */
-public record GeyserItemDefinition(Item javaItem, String identifier, boolean componentBased, int runtimeId) implements ItemDefinition {
-    @Override
-    public String getIdentifier() {
-        return identifier;
+import java.net.InetAddress;
+
+public class RakGeyserRateLimiter extends RakServerRateLimiter {
+    public static final String NAME = "rak-geyser-rate-limiter";
+    private final SessionManager sessionManager;
+
+    public RakGeyserRateLimiter(Channel channel) {
+        super((RakServerChannel) channel);
+        this.sessionManager = GeyserImpl.getInstance().getSessionManager();
     }
 
     @Override
-    public boolean isComponentBased() {
-        return componentBased;
-    }
-
-    @Override
-    public int getRuntimeId() {
-        return runtimeId;
+    protected int getAddressMaxPacketCount(InetAddress address) {
+        // The default packet limit is already padded, so we reduce it by 20%
+        return (int) (super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address) * 0.8);
     }
 }

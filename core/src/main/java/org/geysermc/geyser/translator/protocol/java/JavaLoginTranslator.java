@@ -82,7 +82,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setDimensionType(newDimension);
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(Arrays.stream(packet.getWorldNames()).map(Key::asString).toArray(String[]::new));
-        session.setGameMode(spawnInfo.getGameMode());
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
@@ -98,6 +97,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
+        session.setGameMode(spawnInfo.getGameMode());
         entity.setLastDeathPosition(spawnInfo.getLastDeathPos());
 
         entity.updateBedrockMetadata();

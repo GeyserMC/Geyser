@@ -85,7 +85,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
@@ -385,7 +385,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
                                     Holder<Instrument> holder = session.getPlayerInventory()
                                         .getItemInHand()
-                                        .getComponent(DataComponentType.INSTRUMENT);
+                                        .getComponent(DataComponentTypes.INSTRUMENT);
                                     if (holder != null) {
                                         GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
                                         if (instrument.bedrockInstrument() != null) {
@@ -410,6 +410,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         session.useItem(Hand.MAIN_HAND);
+
+                        session.getBundleCache().awaitRelease();
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
@@ -439,10 +441,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, 0);
-                    session.sendDownstreamGamePacket(releaseItemPacket);
+                    session.releaseItem();
+                    session.getBundleCache().markRelease();
                 }
                 break;
             case ITEM_USE_ON_ENTITY:
@@ -454,6 +454,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 switch (packet.getActionType()) {
                     case 0 -> processEntityInteraction(session, packet, entity); // Interact
                     case 1 -> { // Attack
+                        if (session.isHandsBusy()) {
+                            // See Minecraft#startAttack and LocalPlayer#isHandsBusy
+                            return;
+                        }
+
                         int entityId;
                         if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
