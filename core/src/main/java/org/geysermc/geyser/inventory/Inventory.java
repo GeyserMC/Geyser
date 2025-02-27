@@ -126,7 +126,7 @@ public abstract class Inventory {
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
-            session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
+            GeyserLogger.get().debug("Tried to set an item out of bounds! " + this);
             return;
         }
         GeyserItemStack oldItem = items[slot];
