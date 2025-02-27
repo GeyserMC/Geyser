@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -39,15 +38,19 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -56,47 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
-    /**
-     * A map of Bedrock patterns to Java index. Used to request for a specific banner pattern.
-     */
-    private static final Object2IntMap<String> PATTERN_TO_INDEX = new Object2IntOpenHashMap<>();
 
-    static {
-        // Added from left-to-right then up-to-down in the order Java presents it
-        int index = 0;
-        PATTERN_TO_INDEX.put("bl", index++);
-        PATTERN_TO_INDEX.put("br", index++);
-        PATTERN_TO_INDEX.put("tl", index++);
-        PATTERN_TO_INDEX.put("tr", index++);
-        PATTERN_TO_INDEX.put("bs", index++);
-        PATTERN_TO_INDEX.put("ts", index++);
-        PATTERN_TO_INDEX.put("ls", index++);
-        PATTERN_TO_INDEX.put("rs", index++);
-        PATTERN_TO_INDEX.put("cs", index++);
-        PATTERN_TO_INDEX.put("ms", index++);
-        PATTERN_TO_INDEX.put("drs", index++);
-        PATTERN_TO_INDEX.put("dls", index++);
-        PATTERN_TO_INDEX.put("ss", index++);
-        PATTERN_TO_INDEX.put("cr", index++);
-        PATTERN_TO_INDEX.put("sc", index++);
-        PATTERN_TO_INDEX.put("bt", index++);
-        PATTERN_TO_INDEX.put("tt", index++);
-        PATTERN_TO_INDEX.put("bts", index++);
-        PATTERN_TO_INDEX.put("tts", index++);
-        PATTERN_TO_INDEX.put("ld", index++);
-        PATTERN_TO_INDEX.put("rd", index++);
-        PATTERN_TO_INDEX.put("lud", index++);
-        PATTERN_TO_INDEX.put("rud", index++);
-        PATTERN_TO_INDEX.put("mc", index++);
-        PATTERN_TO_INDEX.put("mr", index++);
-        PATTERN_TO_INDEX.put("vh", index++);
-        PATTERN_TO_INDEX.put("hh", index++);
-        PATTERN_TO_INDEX.put("vhr", index++);
-        PATTERN_TO_INDEX.put("hhb", index++);
-        PATTERN_TO_INDEX.put("bo", index++);
-        PATTERN_TO_INDEX.put("gra", index++);
-        PATTERN_TO_INDEX.put("gru", index);
-    }
+    private static final Tag<BannerPattern> NO_ITEMS_REQUIRED = new Tag<>(JavaRegistries.BANNER_PATTERNS, Key.key("no_item_required"));
 
     public LoomInventoryTranslator() {
         super(4, Blocks.LOOM, ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
@@ -136,8 +100,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
         String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
-        // Get the Java index of this pattern
-        int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);
+        BannerPattern requestedPattern = BannerPattern.getByBedrockIdentifier(bedrockPattern);
+        if (requestedPattern == null) {
+            GeyserImpl.getInstance().getLogger().warning("Unknown Bedrock pattern id: " + bedrockPattern);
+            return rejectRequest(request);
+        }
+
+        int index = session.getTagCache().get(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
         if (index == -1) {
             return rejectRequest(request);
         }
