@@ -25,20 +25,18 @@
 
 package org.geysermc.geyser.registry;
 
+import org.cloudburstmc.protocol.bedrock.packet.ServerboundDiagnosticsPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
-import org.cloudburstmc.protocol.bedrock.packet.ClientCacheStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
-import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundLoginCompressionPacket;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -52,11 +50,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
-        IGNORED_PACKETS.add(ClientboundLoginCompressionPacket.class); // Handled by MCPL
-
-        // Bedrock packets that we don't care about
-        IGNORED_PACKETS.add(ClientToServerHandshakePacket.class);
-        IGNORED_PACKETS.add(ClientCacheStatusPacket.class);
+        IGNORED_PACKETS.add(ServerboundDiagnosticsPacket.class); // spammy
     }
 
     protected PacketTranslatorRegistry() {

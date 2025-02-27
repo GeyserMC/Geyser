@@ -38,15 +38,14 @@ import org.geysermc.geyser.session.GeyserSession;
 public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     private final InventoryHolder holder;
 
-    // TODO add barrel???
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
         this.holder = new BlockInventoryHolder(Blocks.CHEST.defaultBlockState().withValue(Properties.CHEST_TYPE, ChestType.SINGLE), ContainerType.CONTAINER,
-                Blocks.ENDER_CHEST, Blocks.TRAPPED_CHEST) {
+                Blocks.ENDER_CHEST, Blocks.TRAPPED_CHEST, Blocks.BARREL) {
             @Override
             protected boolean isValidBlock(BlockState blockState) {
-                if (blockState.is(Blocks.ENDER_CHEST)) {
-                    // Can't have double ender chests
+                if (blockState.is(Blocks.ENDER_CHEST) || blockState.is(Blocks.BARREL)) {
+                    // Can't have double ender chests or barrels
                     return true;
                 }
 
@@ -68,6 +67,6 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        holder.closeInventory(this, session, inventory, ContainerType.CONTAINER);
     }
 }

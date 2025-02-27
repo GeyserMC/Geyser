@@ -43,6 +43,7 @@ import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
@@ -50,6 +51,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSta
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 @Data
 public class GeyserItemStack {
@@ -88,7 +90,7 @@ public class GeyserItemStack {
     }
 
     public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
+        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentsPatch());
     }
 
     public static @NonNull GeyserItemStack from(@NonNull SlotDisplay slotDisplay) {
@@ -169,9 +171,9 @@ public class GeyserItemStack {
         return value;
     }
 
-    public <T> T getComponentOrFallback(@NonNull DataComponentType<T> type, T def) {
+    public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
         T value = getComponent(type);
-        return value == null ? def : value;
+        return value == null ? supplier.get() : value;
     }
 
     public int getNetId() {
@@ -216,11 +218,11 @@ public class GeyserItemStack {
         // Not fresh from server? Then we have changes to apply!~
         if (bundleData != null && !bundleData.freshFromServer()) {
             if (!bundleData.contents().isEmpty()) {
-                getOrCreateComponents().put(DataComponentType.BUNDLE_CONTENTS, bundleData.toComponent());
+                getOrCreateComponents().put(DataComponentTypes.BUNDLE_CONTENTS, bundleData.toComponent());
             } else {
                 if (components != null) {
                     // Empty list = no component = should delete
-                    components.getDataComponents().remove(DataComponentType.BUNDLE_CONTENTS);
+                    components.getDataComponents().remove(DataComponentTypes.BUNDLE_CONTENTS);
                 }
             }
         }

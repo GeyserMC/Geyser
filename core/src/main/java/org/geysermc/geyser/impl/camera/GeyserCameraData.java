@@ -66,12 +66,14 @@ public class GeyserCameraData implements CameraData {
      * Helps with tidying up the GUI; Java-style.
      */
     private static final GuiElement[] SPECTATOR_HIDDEN_ELEMENTS = {
-            GuiElement.AIR_BUBBLES_BAR,
-            GuiElement.ARMOR,
-            GuiElement.HEALTH,
-            GuiElement.FOOD_BAR,
-            GuiElement.PROGRESS_BAR,
-            GuiElement.TOOL_TIPS
+        GuiElement.AIR_BUBBLES_BAR,
+        GuiElement.ARMOR,
+        GuiElement.HEALTH,
+        GuiElement.FOOD_BAR,
+        GuiElement.PROGRESS_BAR,
+        GuiElement.TOOL_TIPS,
+        GuiElement.PAPER_DOLL,
+        GuiElement.VEHICLE_HEALTH
     };
 
     private final GeyserSession session;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.item.type.Item;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundUpdateEnabledFeaturesPacket;
 
-/**
- * Implements ItemDefinition while also providing a reference to our item mappings.
- */
-public record GeyserItemDefinition(Item javaItem, String identifier, boolean componentBased, int runtimeId) implements ItemDefinition {
-    @Override
-    public String getIdentifier() {
-        return identifier;
-    }
+import java.util.Arrays;
 
-    @Override
-    public boolean isComponentBased() {
-        return componentBased;
-    }
+@Translator(packet = ClientboundUpdateEnabledFeaturesPacket.class)
+public class JavaUpdateEnabledFeaturesPacket extends PacketTranslator<ClientboundUpdateEnabledFeaturesPacket> {
+
+    private final static Key MINECART_EXPERIMENT = Key.key("minecart_improvements");
 
     @Override
-    public int getRuntimeId() {
-        return runtimeId;
+    public void translate(GeyserSession session, ClientboundUpdateEnabledFeaturesPacket packet) {
+        session.setUsingExperimentalMinecartLogic(Arrays.asList(packet.getFeatures()).contains(MINECART_EXPERIMENT));
     }
 }

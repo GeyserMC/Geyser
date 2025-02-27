@@ -64,8 +64,6 @@ public class SkullCache {
 
     private Vector3f lastPlayerPosition;
 
-    private long lastCleanup = System.currentTimeMillis();
-
     public SkullCache(GeyserSession session) {
         this.session = session;
         this.maxVisibleSkulls = session.getGeyser().getConfig().getMaxVisibleCustomSkulls();

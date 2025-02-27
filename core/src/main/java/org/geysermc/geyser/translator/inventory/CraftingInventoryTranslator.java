@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -85,5 +86,10 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     public static boolean isCraftingGrid(int slot) {
         return slot >= 1 && slot <= 9;
+    }
+
+    @Override
+    public ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

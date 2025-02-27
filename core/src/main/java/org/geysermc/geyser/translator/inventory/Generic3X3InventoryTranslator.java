@@ -68,4 +68,10 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
         }
         return super.javaSlotToBedrockContainer(javaSlot);
     }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return ((Generic3X3Container) inventory).isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER :
+            org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER;
+    }
 }

@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
@@ -48,6 +49,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<Block> BLOCK = create("block", BlockRegistries.JAVA_BLOCKS, Block::javaId);
     public static final JavaRegistryKey<Item> ITEM = create("item", Registries.JAVA_ITEMS, Item::javaId);
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment", RegistryCache::enchantments);
+    public static final JavaRegistryKey<BannerPattern> BANNER_PATTERNS = create("banner_pattern", RegistryCache::bannerPatterns);
 
     private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer) {
         JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer);

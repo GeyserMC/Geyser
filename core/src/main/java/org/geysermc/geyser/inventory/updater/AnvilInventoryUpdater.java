@@ -44,10 +44,9 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unbreakable;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
 import java.util.List;
@@ -118,7 +117,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            String originalName = MessageTranslator.convertToPlainText(input.getComponent(DataComponentType.CUSTOM_NAME), session.locale());
+            String originalName = MessageTranslator.convertToPlainText(input.getComponent(DataComponentTypes.CUSTOM_NAME), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamGamePacket(renameItemPacket);
 
@@ -368,9 +367,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private Object2IntMap<Enchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
         ItemEnchantments enchantmentComponent;
         if (isEnchantedBook(itemStack)) {
-            enchantmentComponent = itemStack.getComponent(DataComponentType.STORED_ENCHANTMENTS);
+            enchantmentComponent = itemStack.getComponent(DataComponentTypes.STORED_ENCHANTMENTS);
         } else {
-            enchantmentComponent = itemStack.getComponent(DataComponentType.ENCHANTMENTS);
+            enchantmentComponent = itemStack.getComponent(DataComponentTypes.ENCHANTMENTS);
         }
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
@@ -396,7 +395,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isRepairing(GeyserItemStack input, GeyserItemStack material, GeyserSession session) {
-        HolderSet repairable = input.getComponent(DataComponentType.REPAIRABLE);
+        HolderSet repairable = input.getComponent(DataComponentTypes.REPAIRABLE);
         if (repairable == null) {
             return false;
         }
@@ -410,27 +409,27 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
         // This should really check the name field in all cases, but that requires the localized name
         // of the item which can change depending on NBT and Minecraft Edition
-        Component originalName = anvilContainer.getInput().getComponent(DataComponentType.CUSTOM_NAME);
+        Component originalName = anvilContainer.getInput().getComponent(DataComponentTypes.CUSTOM_NAME);
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
             // Check text and formatting
             String legacyOriginalName = MessageTranslator.convertMessage(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }
-        return !Objects.equals(originalName, anvilContainer.getResult().getComponent(DataComponentType.CUSTOM_NAME));
+        return !Objects.equals(originalName, anvilContainer.getResult().getComponent(DataComponentTypes.CUSTOM_NAME));
     }
 
     private int getRepairCost(GeyserItemStack itemStack) {
-        return itemStack.getComponentOrFallback(DataComponentType.REPAIR_COST, 0);
+        return itemStack.getComponentElseGet(DataComponentTypes.REPAIR_COST, () -> 0);
     }
 
     private boolean hasDurability(GeyserItemStack itemStack) {
         if (itemStack.asItem().defaultMaxDamage() > 0) {
-            return itemStack.getComponent(DataComponentType.UNBREAKABLE) != null;
+            return itemStack.getComponent(DataComponentTypes.UNBREAKABLE) != null;
         }
         return false;
     }
 
     private int getDamage(GeyserItemStack itemStack) {
-        return itemStack.getComponentOrFallback(DataComponentType.DAMAGE, 0);
+        return itemStack.getComponentElseGet(DataComponentTypes.DAMAGE, () -> 0);
     }
 }

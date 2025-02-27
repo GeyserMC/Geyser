@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
@@ -45,5 +47,10 @@ public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator 
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return ContainerType.HOPPER;
     }
 }

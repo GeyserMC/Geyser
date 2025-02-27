@@ -64,7 +64,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeT
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
@@ -161,7 +161,7 @@ public final class ItemTranslator {
             return ItemData.AIR;
         }
         // Java item needs to be loaded separately. The mapping for tipped arrow would
-        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponents())
+        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponentsPatch())
                 .build();
     }
 
@@ -174,22 +174,22 @@ public final class ItemTranslator {
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
-        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentType.RARITY, 0));
+        Rarity rarity = Rarity.fromId(components.get(DataComponentTypes.RARITY));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
-            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible
             // Ignore when item have "hide_additional_tooltip" component
-            if (potionContents != null && components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) == null) {
+            if (potionContents != null && components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) == null) {
                 customName += getPotionEffectInfo(potionContents, session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
         }
 
-        boolean hideTooltips = components.get(DataComponentType.HIDE_TOOLTIP) != null;
+        boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
 
-        ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
+        ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
             // only add if attribute modifiers do not indicate to hide them
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
@@ -200,7 +200,7 @@ public final class ItemTranslator {
         }
 
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
-        if (components.getOrDefault(DataComponentType.ENCHANTMENT_GLINT_OVERRIDE, false) && !GLINT_PRESENT.contains(javaItem)) {
+        if (components.getOrDefault(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false) && !GLINT_PRESENT.contains(javaItem)) {
             NbtMapBuilder nbtMapBuilder = nbtBuilder.getOrCreateNbt();
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
@@ -219,14 +219,14 @@ public final class ItemTranslator {
         }
 
         if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            translatePlayerHead(session, components.get(DataComponentType.PROFILE), builder);
+            translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
         }
 
         translateCustomItem(components, builder, bedrockItem);
 
         // Translate the canDestroy and canPlaceOn Java components
-        AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
-        AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
+        AdventureModePredicate canDestroy = components.get(DataComponentTypes.CAN_BREAK);
+        AdventureModePredicate canPlaceOn = components.get(DataComponentTypes.CAN_PLACE_ON);
         String[] canBreak = getCanModify(session, canDestroy);
         String[] canPlace = getCanModify(session, canPlaceOn);
         if (canBreak != null) {
@@ -422,7 +422,7 @@ public final class ItemTranslator {
         int maxDurability = item.defaultMaxDamage();
 
         if (maxDurability != 0 && components != null) {
-            Integer durabilityComponent = components.get(DataComponentType.DAMAGE);
+            Integer durabilityComponent = components.get(DataComponentTypes.DAMAGE);
             if (durabilityComponent != null) {
                 int durability = maxDurability - durabilityComponent;
                 if (durability != maxDurability) {
@@ -516,7 +516,7 @@ public final class ItemTranslator {
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentType.PROFILE));
+            CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentTypes.PROFILE));
             if (customSkull != null) {
                 itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
             }
@@ -538,26 +538,26 @@ public final class ItemTranslator {
     public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
             // ItemStack#getHoverName as of 1.20.5
-            Component customName = components.get(DataComponentType.CUSTOM_NAME);
+            Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
             if (!customNameOnly) {
-                PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
-                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentType.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
+                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
                     if (potionName != null) {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                     }
                 }
                 if (includeAll) {
                     // Fix book title display in tooltips of shulker box
-                    WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                    WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();
                     }
                 }
-                customName = components.get(DataComponentType.ITEM_NAME);
+                customName = components.get(DataComponentTypes.ITEM_NAME);
                 if (customName != null) {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
@@ -611,6 +611,7 @@ public final class ItemTranslator {
         }
 
         if (textures == null || textures.isEmpty()) {
+            // TODO the java client looks up the texture properties here and updates the item
             return null;
         }
 
