@@ -25,14 +25,19 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
+
+import java.util.Collections;
 
 @Translator(packet = ClientboundUpdateMobEffectPacket.class)
 public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundUpdateMobEffectPacket> {
@@ -58,5 +63,20 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
         session.sendUpstreamPacket(mobEffectPacket);
+
+        // Fixes https://github.com/GeyserMC/Geyser/issues/5347 by re-sending the correct absorption hearts
+        if (entity == session.getPlayerEntity() && packet.getEffect() == Effect.ABSORPTION) {
+            var absorptionAttribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
+            if (absorptionAttribute == null) {
+                return;
+            }
+
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+            // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
+            attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.ABSORPTION.getAttribute(absorptionAttribute.getValue())));
+            session.sendUpstreamPacket(attributesPacket);
+        }
     }
 }
