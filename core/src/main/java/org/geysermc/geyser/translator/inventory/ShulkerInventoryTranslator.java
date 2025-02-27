@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -79,5 +80,10 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
             return new BedrockContainerSlot(ContainerSlotType.SHULKER_BOX, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return ContainerType.CONTAINER;
     }
 }

@@ -35,20 +35,24 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.util.Collections;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SkullSkinManager extends SkinManager {
 
-    public static SerializedSkin buildSkullEntryManually(String skinId, byte[] skinData) {
-        // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
+    public static SerializedSkin buildSkullEntryManually(GeyserSession session, String skinId, byte[] skinData) {
         skinId = skinId + "_skull";
-        return SerializedSkin.of(
-                skinId, "", SkinProvider.SKULL_GEOMETRY.geometryName(), ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(SkinProvider.EMPTY_CAPE.capeData()), SkinProvider.SKULL_GEOMETRY.geometryData(),
-                "", true, false, false, SkinProvider.EMPTY_CAPE.capeId(), skinId
-        );
+        return SerializedSkin.builder()
+            .skinId(skinId)
+            .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName())
+            .skinData(ImageData.of(skinData))
+            .capeData(ImageData.of(SkinProvider.EMPTY_CAPE.capeData()))
+            .geometryData(SkinProvider.SKULL_GEOMETRY.geometryData())
+            .premium(true)
+            .capeId(SkinProvider.EMPTY_CAPE.capeId())
+            .fullSkinId(skinId)
+            .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .build();
     }
 
     public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
@@ -59,7 +63,7 @@ public class SkullSkinManager extends SkinManager {
                 packet.setUuid(entity.getUuid());
                 packet.setOldSkinName("");
                 packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(buildSkullEntryManually(skin.textureUrl(), skin.skinData()));
+                packet.setSkin(buildSkullEntryManually(session, skin.textureUrl(), skin.skinData()));
                 packet.setTrustedSkin(true);
                 session.sendUpstreamPacket(packet);
             } catch (Exception e) {

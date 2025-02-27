@@ -28,18 +28,19 @@ package org.geysermc.geyser.network.netty;
 import io.netty.channel.local.LocalChannel;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * Client -> server storing the spoofed remote address.
  */
 public class LocalChannelWithRemoteAddress extends LocalChannel {
-    private InetSocketAddress spoofedAddress;
+    private SocketAddress spoofedAddress;
 
-    public InetSocketAddress spoofedRemoteAddress() {
+    public SocketAddress spoofedRemoteAddress() {
         return spoofedAddress;
     }
 
-    public void spoofedRemoteAddress(InetSocketAddress socketAddress) {
+    public void spoofedRemoteAddress(SocketAddress socketAddress) {
         this.spoofedAddress = socketAddress;
     }
 }

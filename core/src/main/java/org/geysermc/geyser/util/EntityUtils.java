@@ -25,12 +25,16 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -38,6 +42,8 @@ import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -89,6 +95,10 @@ public final class EntityUtils {
     }
 
     private static float getMountedHeightOffset(Entity mount) {
+        if (mount instanceof BoatEntity boat && boat.getVariant() != BoatEntity.BoatVariant.BAMBOO) {
+            return -0.1f;
+        }
+
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getDefinition().entityType()) {
@@ -101,10 +111,7 @@ public final class EntityUtils {
             case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
-            case BOAT, CHEST_BOAT -> {
-                boolean isBamboo = ((BoatEntity) mount).getVariant() == 8;
-                mountedHeightOffset = isBamboo ? 0.25f : -0.1f;
-            }
+            case BAMBOO_RAFT, BAMBOO_CHEST_RAFT -> mountedHeightOffset = 0.25f;
             case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
@@ -170,15 +177,6 @@ public final class EntityUtils {
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
             switch (mount.getDefinition().entityType()) {
-                case BOAT -> {
-                    // Without the X offset, more than one entity on a boat is stacked on top of each other
-                    if (moreThanOneEntity) {
-                        xOffset = rider ? 0.2f : -0.6f;
-                        if (passenger instanceof AnimalEntity) {
-                            xOffset += 0.2f;
-                        }
-                    }
-                }
                 case CAMEL -> {
                     zOffset = 0.5f;
                     if (moreThanOneEntity) {
@@ -197,7 +195,6 @@ public final class EntityUtils {
                         }
                     }
                 }
-                case CHEST_BOAT -> xOffset = 0.15F;
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
                 case TEXT_DISPLAY -> {
@@ -210,6 +207,29 @@ public final class EntityUtils {
                         xOffset = displayTranslation.getX();
                         yOffset = displayTranslation.getY() + 0.2f;
                         zOffset = displayTranslation.getZ();
+                    }
+                }
+                case PLAYER -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        int lines = textDisplay.getLineCount();
+                        if (displayTranslation != null && lines != 0) {
+                            float multiplier = .1414f;
+                            xOffset = displayTranslation.getX();
+                            yOffset += displayTranslation.getY() + multiplier * lines;
+                            zOffset = displayTranslation.getZ();
+                        }
+                    }
+                }
+            }
+            if (mount instanceof ChestBoatEntity) {
+                xOffset = 0.15F;
+            } else if (mount instanceof BoatEntity) {
+                // Without the X offset, more than one entity on a boat is stacked on top of each other
+                if (moreThanOneEntity) {
+                    xOffset = rider ? 0.2f : -0.6f;
+                    if (passenger instanceof AnimalEntity) {
+                        xOffset += 0.2f;
                     }
                 }
             }
@@ -227,12 +247,18 @@ public final class EntityUtils {
             }
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
             switch (passenger.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
+                        COMMAND_BLOCK_MINECART -> yOffset += passenger.getDefinition().height() * 0.5f;
                 case FALLING_BLOCK -> yOffset += 0.5f;
+            }
+            if (mount instanceof BoatEntity) {
+                yOffset -= mount.getDefinition().height() * 0.5f;
+            }
+            if (passenger instanceof BoatEntity) {
+                yOffset += passenger.getDefinition().height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
@@ -288,6 +314,32 @@ public final class EntityUtils {
             case SPECTATOR -> GameType.SURVIVAL_VIEWER;
             default -> GameType.SURVIVAL;
         };
+    }
+
+    private static String translatedEntityName(@NonNull String namespace, @NonNull String name, @NonNull GeyserSession session) {
+        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders,
+        // so use the default fallback value as used in Minecraft Java
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            return "entity." + namespace + "." + name;
+        }
+        return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
+    }
+
+    public static String translatedEntityName(@NonNull Key type, @NonNull GeyserSession session) {
+        return translatedEntityName(type.namespace(), type.value(), session);
+    }
+
+    public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
+        if (type == EntityType.PLAYER) {
+            return "Player"; // the player's name is always shown instead
+        }
+        // default fallback value as used in Minecraft Java
+        if (type == null) {
+            return "entity.unregistered_sadface";
+        }
+        // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
+        String typeName = type.name().toLowerCase(Locale.ROOT);
+        return translatedEntityName("minecraft", typeName, session);
     }
 
     private EntityUtils() {

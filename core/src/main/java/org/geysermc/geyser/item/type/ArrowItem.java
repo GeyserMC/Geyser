@@ -32,7 +32,8 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 public class ArrowItem extends Item {
@@ -41,13 +42,13 @@ public class ArrowItem extends Item {
     }
 
     @Override
-    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         Potion potion = Potion.getByTippedArrowDamage(itemData.getDamage());
-        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
         if (potion != null) {
             itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getComponents());
             PotionContents contents = potion.toComponent();
-            itemStack.getOrCreateComponents().put(DataComponentType.POTION_CONTENTS, contents);
+            itemStack.getOrCreateComponents().put(DataComponentTypes.POTION_CONTENTS, contents);
         }
         return itemStack;
     }

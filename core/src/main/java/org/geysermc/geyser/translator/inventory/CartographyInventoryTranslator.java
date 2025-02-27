@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.*;
@@ -56,7 +57,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case CARTOGRAPHY_INPUT -> 0;
             case CARTOGRAPHY_ADDITIONAL -> 1;
             case CARTOGRAPHY_RESULT, CREATED_OUTPUT -> 2;
@@ -87,5 +88,10 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         return new CartographyContainer(name, windowId, this.size, containerType, playerInventory);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

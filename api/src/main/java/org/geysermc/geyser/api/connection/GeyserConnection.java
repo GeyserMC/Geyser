@@ -71,6 +71,11 @@ public interface GeyserConnection extends Connection, CommandSource {
     void closeForm();
 
     /**
+     * Gets the Bedrock protocol version of the player.
+     */
+    int protocolVersion();
+
+    /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
      * @deprecated Use {@link EntityData#entityByJavaId(int)} instead

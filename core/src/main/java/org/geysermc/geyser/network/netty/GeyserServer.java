@@ -60,6 +60,7 @@ import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
+import org.geysermc.geyser.network.netty.handler.RakGeyserRateLimiter;
 import org.geysermc.geyser.network.netty.handler.RakPingHandler;
 import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
@@ -145,11 +146,6 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        // It's set to 0 only if no system property or manual config value was set
-        if (geyser.getConfig().getBedrock().broadcastPort() == 0) {
-            geyser.getConfig().getBedrock().setBroadcastPort(geyser.getConfig().getBedrock().port());
-        }
-
         this.broadcastPort = geyser.getConfig().getBedrock().broadcastPort();
     }
 
@@ -181,6 +177,9 @@ public final class GeyserServer {
         if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
             // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
             channel.pipeline().remove(RakServerRateLimiter.NAME);
+        } else {
+            // Use our own rate limiter to allow multiple players from the same IP
+            channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
         }
     }
 

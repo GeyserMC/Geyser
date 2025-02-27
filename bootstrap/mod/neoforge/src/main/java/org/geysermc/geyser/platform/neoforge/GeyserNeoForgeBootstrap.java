@@ -26,7 +26,7 @@
 package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -72,7 +72,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
-                Player::createCommandSourceStack,
+                ServerPlayer::createCommandSourceStack,
                 () -> getServer().createCommandSourceStack(),
                 ModCommandSource::new
         );
@@ -82,6 +82,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
         );
         GeyserNeoForgeCommandRegistry registry = new GeyserNeoForgeCommandRegistry(getGeyser(), cloud);
         this.setCommandRegistry(registry);
+        // An auxiliary listener for registering undefined permissions belonging to commands. See javadocs for more info.
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, registry::onPermissionGatherForUndefined);
     }
 
@@ -103,7 +104,9 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     }
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        GeyserModUpdateListener.onPlayReady(event.getEntity());
+        if (event.getEntity() instanceof ServerPlayer player) {
+            GeyserModUpdateListener.onPlayReady(player);
+        }
     }
 
     @Override

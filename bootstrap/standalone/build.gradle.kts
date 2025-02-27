@@ -2,10 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCach
 
 plugins {
     application
+    id("geyser.platform-conventions")
 }
-
-val terminalConsoleVersion = "1.2.0"
-val jlineVersion = "3.21.0"
 
 dependencies {
     api(projects.core)
@@ -42,4 +40,6 @@ tasks.named<JavaExec>("run") {
     dir.mkdirs()
     jvmArgs("-Dio.netty.leakDetection.level=PARANOID")
     workingDir = dir
+
+    standardInput = System.`in`
 }

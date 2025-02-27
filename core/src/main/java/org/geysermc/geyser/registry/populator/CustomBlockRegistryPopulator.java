@@ -27,6 +27,8 @@ package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
@@ -35,7 +37,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -49,23 +50,38 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.OtherCollision;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.JAVA_BLOCKS_SIZE;
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_CUSTOM_RUNTIME_ID;
 
 public class CustomBlockRegistryPopulator {
 
@@ -174,14 +190,14 @@ public class CustomBlockRegistryPopulator {
         for(Map.Entry<String, CustomBlockState> entry : BLOCK_STATE_OVERRIDES_QUEUE.entrySet()) {
             int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
             if (id == -1) {
-                GeyserLogger.get().warning("Custom block state override for Java Identifier: " +
+                GeyserImpl.getInstance().getLogger().warning("Custom block state override for Java Identifier: " +
                         entry.getKey() + " could not be registered as it is not a valid block state.");
                 continue;
             }
 
             CustomBlockState oldBlockState = blockStateOverrides.put(id, entry.getValue());
             if (oldBlockState != null) {
-                GeyserLogger.get().warning("Duplicate block state override for Java Identifier: " +
+                GeyserImpl.getInstance().getLogger().warning("Duplicate block state override for Java Identifier: " +
                         entry.getKey() + " Old override: " + oldBlockState.name() + " New override: " + entry.getValue().name());
             }
         }
@@ -213,17 +229,17 @@ public class CustomBlockRegistryPopulator {
     
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
         if (!blockStateOverrides.isEmpty()) {
-            GeyserLogger.get().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
+            GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
         }
 
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
         if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
-            GeyserLogger.get().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
+            GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
         }
 
         BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
         if (!extendedCollisionBoxes.isEmpty()) {
-            GeyserLogger.get().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
+            GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
         }
     }
 
@@ -232,8 +248,75 @@ public class CustomBlockRegistryPopulator {
      */
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
+
+        if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+            // Nothing left to register, freeze block state registry
+            BlockRegistries.BLOCK_STATES.freeze();
+            return;
+        }
+
+        MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+        int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+
+        if (MIN_CUSTOM_RUNTIME_ID < BlockRegistries.BLOCK_STATES.get().size()) {
+            throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
+        }
+
+        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
+
+        // Now: Vanilla blocks are already loaded and registered; let's load non-vanilla properly too
+        IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
+
+        for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+            if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
+                throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+            }
+
+            String javaId = javaBlockState.identifier();
+            int stateRuntimeId = javaBlockState.javaId();
+            String pistonBehavior = javaBlockState.pistonBehavior();
+
+            Block.Builder builder = Block.builder()
+                .javaId(stateRuntimeId)
+                .destroyTime(javaBlockState.blockHardness())
+                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+            if (!javaBlockState.canBreakWithHand()) {
+                builder.requiresCorrectToolForDrops();
+            }
+            String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+            String pickItem = javaBlockState.pickItem();
+            Block block = new Block(cleanJavaIdentifier, builder) {
+                @Override
+                public ItemStack pickItem(BlockState state) {
+                    if (this.item == null) {
+                        this.item = Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
+                        if (this.item == null) {
+                            GeyserImpl.getInstance().getLogger().warning("We could not find item " + pickItem
+                                + " for getting the item for block " + javaBlockState.identifier());
+                            this.item = Items.AIR;
+                        }
+                    }
+                    return new ItemStack(this.item.javaId());
+                }
+            };
+            block.setJavaId(javaBlockState.stateGroupId());
+
+            BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
+            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+
+            // TODO register different collision types?
+            BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
+                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
+                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .toArray(BoundingBox[]::new);
+            OtherCollision collision = new OtherCollision(geyserCollisions);
+            BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
+        }
+
+        BlockRegistries.BLOCK_STATES.freeze();
+
         if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
-            GeyserLogger.get().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
+            GeyserImpl.getInstance().getLogger().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
         }
     }
 
@@ -243,7 +326,7 @@ public class CustomBlockRegistryPopulator {
     private static void registration() {
         BlockRegistries.CUSTOM_BLOCKS.set(CUSTOM_BLOCKS.toArray(new CustomBlockData[0]));
         if (!CUSTOM_BLOCKS.isEmpty()) {
-            GeyserLogger.get().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
+            GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
         }
     }
 

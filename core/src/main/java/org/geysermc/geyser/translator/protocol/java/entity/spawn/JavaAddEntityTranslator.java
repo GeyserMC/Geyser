@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
@@ -40,6 +40,7 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
@@ -76,7 +77,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
-                    GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
                     return;
                 }
 
@@ -87,10 +88,13 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 entity.setHeadYaw(headYaw);
                 entity.setMotion(motion);
             }
-            session.getEntityCache().cacheEntity(entity);
 
             entity.sendPlayer();
-            SkinManager.requestAndHandleSkinAndCape(entity, session, null);
+            // only load skin if we're not in a test environment.
+            // Otherwise, it tries to load various resources
+            if (!EnvironmentUtils.IS_UNIT_TESTING) {
+                SkinManager.requestAndHandleSkinAndCape(entity, session, null);
+            }
             return;
         }
 

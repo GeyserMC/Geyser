@@ -32,7 +32,8 @@ import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserLogger;
@@ -59,8 +60,10 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * A unique exception as this is an item in Bedrock, but not in Java.
      */
     ItemMapping lodestoneCompass;
+    Int2ObjectMap<ItemMapping> lightBlocks;
 
-    ItemData[] creativeItems;
+    List<CreativeItemGroup> creativeItemGroups;
+    List<CreativeItemData> creativeItems;
     Int2ObjectMap<ItemDefinition> itemDefinitions;
 
     StoredItemMappings storedItems;
@@ -69,7 +72,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
 
-    List<ComponentItemData> componentItemData;
+    List<ItemDefinition> componentItemData; // TODO get rid of?
     Int2ObjectMap<String> customIdMappings;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
@@ -134,6 +137,11 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             return ItemMapping.AIR;
         } else if (definition.getRuntimeId() == lodestoneCompass.getBedrockDefinition().getRuntimeId()) {
             return lodestoneCompass;
+        }
+
+        ItemMapping lightBlock = lightBlocks.get(definition.getRuntimeId());
+        if (lightBlock != null) {
+            return lightBlock;
         }
 
         boolean isBlock = data.getBlockDefinition() != null;

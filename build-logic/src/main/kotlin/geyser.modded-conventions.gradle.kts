@@ -2,11 +2,9 @@
 
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.maven
 
 plugins {
-    id("geyser.build-logic")
-    id("geyser.publish-conventions")
+    id("geyser.platform-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
 }

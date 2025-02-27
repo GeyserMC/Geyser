@@ -43,30 +43,34 @@ import java.util.function.Supplier;
  *
  * @param <M> the value being held by the registry
  */
-public final class DeferredRegistry<M> implements IRegistry<M> {
-    private final Registry<M> backingRegistry;
+class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
+    private final R backingRegistry;
     private final Supplier<M> loader;
 
     private boolean loaded;
 
-    private <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, RegistryLoader<I, M> deferredLoader) {
+    protected <I> DeferredRegistry(Function<RegistryLoader<I, M>, R> registryLoader, RegistryLoader<I, M> deferredLoader) {
         this.backingRegistry = registryLoader.apply(RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.load(null);
     }
 
-    private <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    protected <I> DeferredRegistry(Function<RegistryLoader<I, M>, R> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
         this.backingRegistry = registryLoader.apply(RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.get().load(null);
     }
 
-    private <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, RegistryLoader<I, M> deferredLoader) {
+    protected <I> DeferredRegistry(I input, RegistryInitializer<M, R> registryInitializer, RegistryLoader<I, M> deferredLoader) {
         this.backingRegistry = registryInitializer.initialize(input, RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.load(input);
     }
 
-    private <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    protected <I> DeferredRegistry(I input, RegistryInitializer<M, R> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
         this.backingRegistry = registryInitializer.initialize(input, RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.get().load(input);
+    }
+
+    protected R backingRegistry() {
+        return this.backingRegistry;
     }
 
     /**
@@ -113,55 +117,10 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
     }
 
     /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @param <M> the registry type
-     * @return the new deferred registry
+     * Whether this registry was loaded.
      */
-    public static <I, M> DeferredRegistry<M> create(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, RegistryLoader<I, M> deferredLoader) {
-        return new DeferredRegistry<>(registryLoader, deferredLoader);
-    }
-
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @param <M> the registry type
-     * @return the new deferred registry
-     */
-    public static <I, M> DeferredRegistry<M> create(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
-        return new DeferredRegistry<>(registryLoader, deferredLoader);
-    }
-
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @param <M> the registry type
-     * @return the new deferred registry
-     */
-    public static <I, M> DeferredRegistry<M> create(I input, RegistryInitializer<M> registryInitializer, RegistryLoader<I, M> deferredLoader) {
-        return new DeferredRegistry<>(input, registryInitializer, deferredLoader);
-    }
-
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @param <M> the registry type
-     * @return the new deferred registry
-     */
-    public static <I, M> DeferredRegistry<M> create(I input, RegistryInitializer<M> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
-        return new DeferredRegistry<>(input, registryInitializer, deferredLoader);
+    public boolean loaded() {
+        return this.loaded;
     }
 
     /**
@@ -169,7 +128,7 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
      *
      * @param <M> the registry type
      */
-    interface RegistryInitializer<M> {
+    public interface RegistryInitializer<M, R extends IRegistry<M>> {
 
         /**
          * Initializes the registry.
@@ -179,6 +138,6 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
          * @param <I> the input type
          * @return the initialized registry
          */
-        <I> Registry<M> initialize(I input, RegistryLoader<I, M> registryLoader);
+        <I> R initialize(I input, RegistryLoader<I, M> registryLoader);
     }
 }

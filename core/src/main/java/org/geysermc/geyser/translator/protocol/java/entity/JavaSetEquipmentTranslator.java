@@ -28,14 +28,15 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Equipment;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
 
 @Translator(packet = ClientboundSetEquipmentPacket.class)
@@ -64,8 +65,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
                             && javaItem.getId() == Items.PLAYER_HEAD.javaId()
-                            && javaItem.getDataComponents() != null) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getDataComponents());
+                            && javaItem.getDataComponentsPatch() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, GeyserItemStack.from(javaItem).getComponent(DataComponentTypes.PROFILE));
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }
@@ -79,11 +80,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                 }
                 case BODY -> {
                     // BODY is sent for llamas with a carpet equipped, as of 1.20.5
-                    if (GameProtocol.isPre1_21_2(session)) {
-                        livingEntity.setChestplate(stack);
-                    } else {
-                        livingEntity.setBody(stack);
-                    }
+                    // and for wolves
+                    livingEntity.setBody(stack);
                     armorUpdated = true;
                 }
                 case LEGGINGS -> {

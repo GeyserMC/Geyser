@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
@@ -86,7 +87,7 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        holder.closeInventory(this, session, inventory, closeContainerType(inventory));
     }
 
     @Override
@@ -98,4 +99,11 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
     }
+
+    /*
+    So. Sometime in 1.21, Bedrock just broke the ContainerClosePacket. As in: Geyser sends it, the player ignores it.
+    But only for some blocks! And some blocks only respond to specific container types (dispensers/droppers now require the specific type...)
+    When this returns null, we just... break the block, and replace it. Primitive. But if that works... fine.
+     */
+    public abstract @Nullable ContainerType closeContainerType(Inventory inventory);
 }

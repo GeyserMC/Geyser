@@ -43,13 +43,14 @@ public class CameraDefinitions {
 
     static {
         CAMERA_PRESETS = List.of(
-                new CameraPreset(CameraPerspective.FIRST_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty()),
-                new CameraPreset(CameraPerspective.FREE.id(), "", null, null, null, null, null, null, OptionalBoolean.empty()),
-                new CameraPreset(CameraPerspective.THIRD_PERSON.id(), "", null, null, null, null, null, null, OptionalBoolean.empty()),
-                new CameraPreset(CameraPerspective.THIRD_PERSON_FRONT.id(), "", null, null, null, null, null, null, OptionalBoolean.empty()),
-                new CameraPreset("geyser:free_audio", "minecraft:free", null, null, null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.of(false)),
-                new CameraPreset("geyser:free_effects", "minecraft:free", null, null, null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.of(true)),
-                new CameraPreset("geyser:free_audio_effects", "minecraft:free", null, null, null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.of(true)));
+            CameraPreset.builder().identifier(CameraPerspective.FIRST_PERSON.id()).build(),
+            CameraPreset.builder().identifier(CameraPerspective.FREE.id()).build(),
+            CameraPreset.builder().identifier(CameraPerspective.THIRD_PERSON.id()).build(),
+            CameraPreset.builder().identifier(CameraPerspective.THIRD_PERSON_FRONT.id()).build(),
+            CameraPreset.builder().identifier("geyser:free_audio").parentPreset(CameraPerspective.FREE.id()).listener(CameraAudioListener.PLAYER).playEffect(OptionalBoolean.of(false)).build(),
+            CameraPreset.builder().identifier("geyser:free_effects").parentPreset(CameraPerspective.FREE.id()).listener(CameraAudioListener.CAMERA).playEffect(OptionalBoolean.of(true)).build(),
+            CameraPreset.builder().identifier("geyser:free_audio_effects").parentPreset(CameraPerspective.FREE.id()).listener(CameraAudioListener.PLAYER).playEffect(OptionalBoolean.of(true)).build()
+        );
 
         SimpleDefinitionRegistry.Builder<NamedDefinition> builder = SimpleDefinitionRegistry.builder();
         for (int i = 0; i < CAMERA_PRESETS.size(); i++) {

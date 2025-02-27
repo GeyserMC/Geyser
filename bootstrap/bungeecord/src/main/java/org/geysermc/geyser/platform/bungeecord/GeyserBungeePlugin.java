@@ -41,6 +41,7 @@ import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
@@ -58,6 +59,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -80,18 +82,19 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        // Copied from ViaVersion.
-        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_21");
-        } catch (NoSuchFieldException e) {
-            geyserLogger.error("      / \\");
-            geyserLogger.error("     /   \\");
-            geyserLogger.error("    /  |  \\");
-            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            geyserLogger.error(" /     o     \\");
-            geyserLogger.error("/_____________\\");
+            List<Integer> supportedProtocols = ProtocolConstants.SUPPORTED_VERSION_IDS;
+            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion())) {
+                geyserLogger.error("      / \\");
+                geyserLogger.error("     /   \\");
+                geyserLogger.error("    /  |  \\");
+                geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+                geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+                geyserLogger.error(" /     o     \\");
+                geyserLogger.error("/_____________\\");
+            }
+        } catch (Throwable e) {
+            geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
         }
 
         if (!this.loadConfig()) {
@@ -111,6 +114,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyser == null) {
             return; // Config did not load properly!
         }
+
+        // After Geyser initialize for parity with other platforms.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSender.class,
+            id -> getProxy().getPlayer(id),
+            () -> getProxy().getConsole(),
+            BungeeCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+            this,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
+
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
@@ -150,19 +168,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            var sourceConverter = new CommandSourceConverter<>(
-                    CommandSender.class,
-                    id -> getProxy().getPlayer(id),
-                    () -> getProxy().getConsole(),
-                    BungeeCommandSource::new
-            );
-            CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
-                    this,
-                    ExecutionCoordinator.simpleCoordinator(),
-                    sourceConverter
-            );
-            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         // Force-disable query if enabled, or else Geyser won't enable

@@ -3,6 +3,7 @@ plugins {
     idea
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
 }
 
 dependencies {
@@ -60,6 +61,7 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.mockito)
 
     // Annotation Processors
     compileOnly(projects.ap)

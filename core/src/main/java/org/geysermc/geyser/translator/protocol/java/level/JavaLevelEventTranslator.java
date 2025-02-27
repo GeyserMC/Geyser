@@ -291,10 +291,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     session.sendUpstreamPacket(soundEventPacket);
                 }
             }
-            case PARTICLES_DRAGON_BLOCK_BREAK -> {
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_GENERIC_SPAWN);
-                effectPacket.setData(61);
-            }
+            case PARTICLES_DRAGON_BLOCK_BREAK -> effectPacket.setType(ParticleType.DRAGON_DESTROY_BLOCK);
             case PARTICLES_WATER_EVAPORATING -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE_WATER);
                 effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));

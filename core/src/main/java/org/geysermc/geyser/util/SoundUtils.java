@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -160,6 +161,20 @@ public final class SoundUtils {
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.sendUpstreamPacket(soundPacket);
+    }
+
+    public static String readSoundEvent(NbtMap data, String context) {
+        Object soundEventObject = data.get("sound_event");
+        String soundEvent;
+        if (soundEventObject instanceof NbtMap map) {
+            soundEvent = map.getString("sound_id");
+        } else if (soundEventObject instanceof String string) {
+            soundEvent = string;
+        } else {
+            soundEvent = "";
+            GeyserImpl.getInstance().getLogger().debug("Sound event for " + context + " was of an unexpected type! Expected string or NBT map, got " + soundEventObject);
+        }
+        return soundEvent;
     }
 
     private SoundUtils() {

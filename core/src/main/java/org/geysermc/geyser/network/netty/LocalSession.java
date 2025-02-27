@@ -27,123 +27,80 @@ package org.geysermc.geyser.network.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
-import io.netty.handler.codec.haproxy.*;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.mcprotocollib.network.BuiltinFlags;
-import org.geysermc.mcprotocollib.network.codec.PacketCodecHelper;
+import org.geysermc.mcprotocollib.network.helper.NettyHelper;
+import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
-import org.geysermc.mcprotocollib.network.tcp.TcpPacketCodec;
-import org.geysermc.mcprotocollib.network.tcp.TcpPacketSizer;
-import org.geysermc.mcprotocollib.network.tcp.TcpSession;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
+import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
-public final class LocalSession extends TcpSession {
+public final class LocalSession extends ClientNetworkSession {
     private static DefaultEventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 
-    private final SocketAddress targetAddress;
-    private final String clientIp;
-    private final PacketCodecHelper codecHelper;
+    private final SocketAddress spoofedRemoteAddress;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
-        super(host, port, protocol);
-        this.targetAddress = targetAddress;
-        this.clientIp = clientIp;
-        this.codecHelper = codecHelper;
+    public LocalSession(SocketAddress targetAddress, String clientIp, PacketProtocol protocol, Executor packetHandlerExecutor) {
+        super(targetAddress, protocol, packetHandlerExecutor, null, null);
+        this.spoofedRemoteAddress = new InetSocketAddress(clientIp, 0);
     }
 
     @Override
-    public void connect(boolean wait, boolean transferring) {
-        if (this.disconnected) {
-            throw new IllegalStateException("Connection has already been disconnected.");
-        }
+    protected ChannelFactory<? extends Channel> getChannelFactory() {
+        return new ReflectiveChannelFactory<>(LocalChannelWithRemoteAddress.class);
+    }
 
+    @Override
+    protected void setOptions(Bootstrap bootstrap) {
+        if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR != null) {
+            bootstrap.option(ChannelOption.ALLOCATOR, PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR);
+        }
+    }
+
+    @Override
+    protected EventLoopGroup getEventLoopGroup() {
         if (DEFAULT_EVENT_LOOP_GROUP == null) {
             DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup(new DefaultThreadFactory(this.getClass(), true));
             Runtime.getRuntime().addShutdownHook(new Thread(
-                    () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));
+                () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));
         }
 
-        try {
-            final Bootstrap bootstrap = new Bootstrap();
-            bootstrap.channel(LocalChannelWithRemoteAddress.class);
-            bootstrap.handler(new ChannelInitializer<LocalChannelWithRemoteAddress>() {
-                @Override
-                public void initChannel(@NonNull LocalChannelWithRemoteAddress channel) {
-                    channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
-                    PacketProtocol protocol = getPacketProtocol();
-                    protocol.newClientSession(LocalSession.this, transferring);
-
-                    refreshReadTimeoutHandler(channel);
-                    refreshWriteTimeoutHandler(channel);
-
-                    ChannelPipeline pipeline = channel.pipeline();
-                    pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this, protocol.getPacketHeader().getLengthSize()));
-                    pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
-                    pipeline.addLast("manager", LocalSession.this);
-
-                    addHAProxySupport(pipeline);
-                }
-            }).group(DEFAULT_EVENT_LOOP_GROUP).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, getConnectTimeout() * 1000);
-
-            if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR != null) {
-                bootstrap.option(ChannelOption.ALLOCATOR, PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR);
-            }
-
-            bootstrap.remoteAddress(targetAddress);
-
-            bootstrap.connect().addListener((future) -> {
-                if (!future.isSuccess()) {
-                    exceptionCaught(null, future.cause());
-                }
-            });
-        } catch (Throwable t) {
-            exceptionCaught(null, t);
-        }
+        return DEFAULT_EVENT_LOOP_GROUP;
     }
 
     @Override
-    public MinecraftCodecHelper getCodecHelper() {
-        return (MinecraftCodecHelper) this.codecHelper;
-    }
+    protected ChannelHandler getChannelHandler() {
+        return new MinecraftChannelInitializer<>(channel -> {
+            PacketProtocol protocol = getPacketProtocol();
+            protocol.newClientSession(LocalSession.this);
 
-    // TODO duplicate code
-    private void addHAProxySupport(ChannelPipeline pipeline) {
-        InetSocketAddress clientAddress = getFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS);
-        if (getFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, false) && clientAddress != null) {
-            pipeline.addFirst("proxy-protocol-packet-sender", new ChannelInboundHandlerAdapter() {
-                @Override
-                public void channelActive(@NonNull ChannelHandlerContext ctx) throws Exception {
-                    HAProxyProxiedProtocol proxiedProtocol = clientAddress.getAddress() instanceof Inet4Address ? HAProxyProxiedProtocol.TCP4 : HAProxyProxiedProtocol.TCP6;
-                    InetSocketAddress remoteAddress;
-                    if (ctx.channel().remoteAddress() instanceof InetSocketAddress) {
-                        remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-                    } else {
-                        remoteAddress = new InetSocketAddress(host, port);
-                    }
-                    ctx.channel().writeAndFlush(new HAProxyMessage(
-                            HAProxyProtocolVersion.V2, HAProxyCommand.PROXY, proxiedProtocol,
-                            clientAddress.getAddress().getHostAddress(), remoteAddress.getAddress().getHostAddress(),
-                            clientAddress.getPort(), remoteAddress.getPort()
-                    ));
-                    ctx.pipeline().remove(this);
-                    ctx.pipeline().remove("proxy-protocol-encoder");
-                    super.channelActive(ctx);
-                }
-            });
-            pipeline.addFirst("proxy-protocol-encoder", HAProxyMessageEncoder.INSTANCE);
-        }
+            return LocalSession.this;
+        }, true) {
+            @Override
+            public void initChannel(@NonNull Channel channel) throws Exception {
+                ((LocalChannelWithRemoteAddress) channel).spoofedRemoteAddress(spoofedRemoteAddress);
+
+                NettyHelper.initializeHAProxySupport(LocalSession.this, channel);
+
+                super.initChannel(channel);
+            }
+        };
     }
 
     /**

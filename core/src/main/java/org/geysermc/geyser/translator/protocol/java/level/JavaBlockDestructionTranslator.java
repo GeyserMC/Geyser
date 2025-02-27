@@ -41,7 +41,12 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
     @Override
     public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
         int state = session.getGeyser().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-        int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockState.of(state).block(), ItemMapping.AIR, null, false) * 20));
+        int breakTime = 12; //(int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockState.of(state).block(), ItemMapping.AIR, null, false)));
+        // TODO we need to send a "total" time to Bedrock.
+        // Current plan:
+        // - start with block destroy time (if applicable)
+        // - track the time in ticks between stages
+        // - attempt to "extrapolate" to a value for Bedrock
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(packet.getPosition().toFloat());
         levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
