@@ -32,7 +32,6 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -83,6 +82,10 @@ final class BedrockBlockActions {
                     break;
                 }
 
+                if (!canMine(session, vector)) {
+                    return;
+                }
+
                 // Start the block breaking animation
                 int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
                 LevelEventPacket startBreak = new LevelEventPacket();
@@ -125,6 +128,11 @@ final class BedrockBlockActions {
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
+
+                if (!canMine(session, vector)) {
+                    return;
+                }
+
                 int breakingBlock = session.getBreakingBlock();
                 if (breakingBlock == -1) {
                     breakingBlock = Block.JAVA_AIR_ID;
@@ -186,12 +194,29 @@ final class BedrockBlockActions {
                 stopBreak.setPosition(vector.toFloat());
                 stopBreak.setData(0);
                 session.setBreakingBlock(-1);
+                session.setBlockBreakStartTime(0);
                 session.sendUpstreamPacket(stopBreak);
             }
             // Handled in BedrockInventoryTransactionTranslator
             case STOP_BREAK -> {
             }
         }
+    }
+
+    private static boolean canMine(GeyserSession session, Vector3i vector) {
+        if (session.isHandsBusy()) {
+            session.setBreakingBlock(-1);
+            session.setBlockBreakStartTime(0);
+
+            LevelEventPacket stopBreak = new LevelEventPacket();
+            stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
+            stopBreak.setPosition(vector.toFloat());
+            stopBreak.setData(0);
+            session.setBreakingBlock(-1);
+            session.sendUpstreamPacket(stopBreak);
+            return false;
+        }
+        return true;
     }
 
     private static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {

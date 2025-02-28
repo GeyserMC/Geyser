@@ -66,6 +66,14 @@ public final class SessionManager {
      */
     public void addPendingSession(GeyserSession session) {
         pendingSessions.add(session);
+        connectedClients.compute(session.getSocketAddress().getAddress(), (key, count) -> {
+            if (count == null) {
+                return new AtomicInteger(1);
+            }
+
+            count.incrementAndGet();
+            return count;
+        });
     }
 
     /**
@@ -74,14 +82,6 @@ public final class SessionManager {
     public void addSession(UUID uuid, GeyserSession session) {
         pendingSessions.remove(session);
         sessions.put(uuid, session);
-        connectedClients.compute(session.getSocketAddress().getAddress(), (key, count) -> {
-            if (count == null) {
-                return new AtomicInteger(0);
-            }
-
-            count.getAndIncrement();
-            return count;
-        });
     }
 
     public void removeSession(GeyserSession session) {
