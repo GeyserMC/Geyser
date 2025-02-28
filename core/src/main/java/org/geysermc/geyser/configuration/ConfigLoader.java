@@ -61,9 +61,9 @@ public final class ConfigLoader {
 
             GitHub: https://github.com/GeyserMC/Geyser
             Discord: https://discord.gg/geysermc
-            Wiki: https://wiki.geysermc.org/
+            Wiki: https://geysermc.org/wiki
 
-            NOTICE: See https://wiki.geysermc.org/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+            NOTICE: See https://geysermc.org/wiki/geyser/setup/ for the setup guide. Many video tutorials are outdated.
             In most cases, especially with server hosting providers, further hosting-specific configuration is required.
             --------------------------------""";
 

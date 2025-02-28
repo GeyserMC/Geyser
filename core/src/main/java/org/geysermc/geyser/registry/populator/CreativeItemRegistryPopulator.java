@@ -65,20 +65,21 @@ public class CreativeItemRegistryPopulator {
     static List<CreativeItemGroup> readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette, List<CreativeItemData> creativeItemData) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
-        JsonNode creativeItemEntries;
+        JsonArray creativeItemEntries;
         try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
-            creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("groups");
+            creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("groups");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative item groups", e);
         }
 
         List<CreativeItemGroup> creativeItemGroups = new ArrayList<>();
-        for (JsonNode creativeItemEntry : creativeItemEntries) {
-            CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntry.get("category").asText().toUpperCase(Locale.ROOT));
-            String name = creativeItemEntry.get("name").asText();
+        for (JsonElement creativeItemEntry : creativeItemEntries) {
+            JsonObject creativeItemEntryObject = creativeItemEntry.getAsJsonObject();
+            CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntryObject.get("category").getAsString().toUpperCase(Locale.ROOT));
+            String name = creativeItemEntryObject.get("name").getAsString();
 
-            JsonNode icon = creativeItemEntry.get("icon");
-            String identifier = icon.get("id").asText();
+            JsonElement icon = creativeItemEntryObject.get("icon");
+            String identifier = icon.getAsJsonObject().get("id").getAsString();
 
             ItemData itemData;
             if (identifier.equals("minecraft:air")) {
@@ -115,7 +116,8 @@ public class CreativeItemRegistryPopulator {
                 continue;
             }
 
-            int groupId = ((JsonObject) itemNode).get("groupId") != null ? itemNode.getAsInt("groupId") : 0;
+            var groupIdElement = itemNode.getAsJsonObject().get("groupId");
+            int groupId = groupIdElement != null ? groupIdElement.getAsInt() : 0;
 
             itemConsumer.accept(itemBuilder, groupId);
         }
