@@ -77,31 +77,63 @@ public interface AdvancedConfig {
     int scoreboardPacketThreshold();
 
     @Comment("""
+        Whether Geyser should send team names in command suggestions.
+        Disable this if you have a lot of teams used that you don't need as suggestions.
+        """)
+    @DefaultBoolean(true)
+    boolean addTeamSuggestions();
+
+    @Comment("""
             The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
             1400 is the default.""")
     @DefaultNumeric(1400)
     int mtu();
 
     @Comment("""
+        This option can only be changed if SO_REUSEPORT is available on the system (Linux / macOS only).
+        When this option is available, it is possible to modify how many times Geyser re-binds to the same port,
+        thereby improving performance on multi-core systems with a lot of incoming connections.
+        """)
+    @DefaultNumeric(1)
+    int listenCount();
+
+    @Comment("""
+        This option specifies the amount of network threads in the Bedrock network event loop group.
+        When set to -1, this count will be automatically determined based on the amount of available processors.""")
+    @DefaultNumeric(-1)
+    int bedrockNetworkThreadCount();
+
+    @Comment("""
         Whether to connect directly into the Java server without creating a TCP connection.
         This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
-        If enabled, the remote address and port sections are ignored
-        If disabled, expect performance decrease and latency increase
+        If enabled, the remote address and port sections are ignored.
+        If disabled, expect performance decrease and latency increase.
         """)
     @DefaultBoolean(true)
     @PluginSpecific
     boolean useDirectConnection();
 
     @Comment("""
-        Whether Geyser should attempt to disable compression for Bedrock players. This should be a benefit as there is no need to compress data
-        when Java packets aren't being handled over the network.
+        Whether Geyser should attempt to disable packet compression (from the Java Server to Geyser) for Bedrock players.
+        This should be a benefit as there is no need to compress data when Java packets aren't being handled over the network.
         This requires use-direct-connection to be true.
         """)
     @DefaultBoolean(true)
     @PluginSpecific
     boolean disableCompression();
 
-    @Comment("Do not touch!")
+    @Comment("""
+        This option disables the auth step Geyser performs for connecting Bedrock players.
+        It can be used to allow connections from ProxyPass and WaterdogPE. In these cases, make sure that users
+        cannot directly connect to this Geyser instance. See https://www.spigotmc.org/wiki/firewall-guide/ for
+        assistance - and use UDP instead of TCP.
+        Disabling xbox authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames,
+        and is therefore a security risk. Skin uploading and Floodgate linking will also not work auth disabled.
+        """)
+        // if u have offline mode enabled pls be safe
+    boolean disableXboxAuth();
+
+    @Comment("The bstats metrics uuid. Do not touch!")
     @ExcludePlatform(platforms = {"BungeeCord", "Spigot", "Velocity"}) // bStats platform versions used
     default UUID metricsUuid() {
         return UUID.randomUUID();

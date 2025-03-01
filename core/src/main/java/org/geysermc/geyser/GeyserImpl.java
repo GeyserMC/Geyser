@@ -302,6 +302,27 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         Registries.RESOURCE_PACKS.load();
 
+        // Warnings to users who enable options that they might not need.
+        if (config.bedrock().useProxyProtocol()) {
+            logger.warning("Geyser is configured to expect proxy protocol for Bedrock connections.");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-proxy-protocol\" under the  \"bedrock\" section to \"false\".");
+        }
+
+        if (config.java().useProxyProtocol()) {
+            logger.warning("Geyser is configured to use proxy protocol when connecting to the Java server.");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-proxy-protocol\" under the  \"java\" section to \"false\".");
+        }
+
+        if (config.advanced().disableXboxAuth()) {
+            logger.error("      / \\");
+            logger.error("     /   \\");
+            logger.error("    /  |  \\     " + "XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
+            logger.error("   /   |   \\    " + "While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
+            logger.error("  /         \\   " + "To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config-advanced.yml file.");
+            logger.error(" /     o     \\");
+            logger.error("/_____________\\");
+        }
+
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
         if ("-1".equals(pluginUdpPort)) {
@@ -426,10 +447,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
         }
 
-        BedrockDimension.changeBedrockNetherId(config.aboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        BedrockDimension.changeBedrockNetherId(config.netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
 
-        Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
-        if (bedrockThreadCount == null) {
+        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", config.advanced().bedrockNetworkThreadCount());
+        if (bedrockThreadCount == -1) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }

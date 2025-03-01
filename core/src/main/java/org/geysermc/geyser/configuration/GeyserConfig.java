@@ -48,8 +48,10 @@ import java.util.List;
 
 @ConfigSerializable
 public interface GeyserConfig {
+    @Comment("This section contains config options related to Geyser's Bedrock listener.")
     BedrockConfig bedrock();
 
+    @Comment("This section contains config options related to Geyser's Java server connection.")
     JavaConfig java();
 
     @Comment("""
@@ -65,6 +67,7 @@ public interface GeyserConfig {
     }
 
     @Comment("""
+            For online mode authentication type only.
             Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
             User is allowed to disconnect from the server during this period.""")
     @DefaultNumeric(128)
@@ -143,13 +146,13 @@ public interface GeyserConfig {
             Geyser's block, item, and skull mappings systems will also be disabled.
             This option requires a restart of Geyser in order to change its setting.""")
     @DefaultBoolean(true)
-    boolean addNonBedrockItems();
+    boolean enableCustomContent();
 
     @Comment("""
             Bedrock prevents building and displaying blocks above Y127 in the Nether.
             This config option works around that by changing the Nether dimension ID to the End ID.
             The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.""")
-    boolean aboveBedrockNetherBuilding();
+    boolean netherRoofWorkaround();
 
     @Comment("""
             Force clients to load all resource packs if there are any.
@@ -199,7 +202,7 @@ public interface GeyserConfig {
     interface BedrockConfig extends BedrockListener {
         @Override
         @Comment("""
-                The IP address that will listen for connections.
+                The IP address that Geyser will bind on to listen for connections.
                 Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.""")
         @NonNull
         @DefaultString("0.0.0.0")
@@ -207,7 +210,9 @@ public interface GeyserConfig {
         String address();
 
         @Override
-        @Comment("The port that will listen for connections")
+        @Comment("""
+            The port that will listen for connections.
+            Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.""")
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
         int port();
@@ -215,7 +220,7 @@ public interface GeyserConfig {
         @Override
         @Comment("""
                 The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
-                DO NOT change this unless Geyser runs on a different internal port than the one that is used to connect.""")
+                DO NOT change this unless Geyser runs on a different port than the one that is used to connect.""")
         @DefaultNumeric(0)
         @NumericRange(from = 0, to = 65535)
         int broadcastPort();
@@ -257,10 +262,11 @@ public interface GeyserConfig {
         int compressionLevel();
 
         @Comment("""
-                Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
-                in front of your Geyser instance.""")
+                Whether to expect PROXY protocol for connecting Bedrock clients.
+                This is useful only when you are running a UDP reverse proxy in front of your Geyser instance.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
-        boolean enableProxyProtocol();
+        boolean useProxyProtocol();
 
         @Comment("""
                 A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
@@ -291,9 +297,9 @@ public interface GeyserConfig {
         void authType(AuthType authType);
 
         @Comment("""
-                Whether to enable PROXY protocol or not while connecting to the server.
+                Whether to enable PROXY protocol when connecting to the Java server.
                 This is useful only when:
-                1) Your server supports PROXY protocol (it probably doesn't)
+                1) Your Java server supports PROXY protocol (it probably doesn't)
                 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         boolean useProxyProtocol();
@@ -318,12 +324,6 @@ public interface GeyserConfig {
             return false;
         }
     }
-
-    @Comment("""
-            Allow connections from ProxyPass and Waterdog.
-            See https://www.spigotmc.org/wiki/firewall-guide/ for assistance - use UDP instead of TCP.""")
-    // if u have offline mode enabled pls be safe
-    boolean enableProxyConnections();
 
     @Comment("Do not change!")
     @SuppressWarnings("unused")
