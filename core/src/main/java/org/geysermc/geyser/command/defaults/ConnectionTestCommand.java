@@ -141,7 +141,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
         if (config.bedrock().useProxyProtocol()) {
-            source.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
+            source.sendMessage("You have the `use-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }
 
