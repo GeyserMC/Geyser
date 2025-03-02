@@ -224,7 +224,6 @@ public class GeyserSessionAdapter extends SessionAdapter {
 
     @Override
     public void packetReceived(Session session, Packet packet) {
-        System.out.println("Received packet: " + packet.getClass().getSimpleName());
         Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, geyserSession, true);
     }
 
