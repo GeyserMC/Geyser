@@ -78,6 +78,10 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamGamePacket(sneakPacket);
 
+                // Reset steering to avoid these accidentally triggering session#isHandsBusy
+                session.setSteeringLeft(false);
+                session.setSteeringRight(false);
+
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
                     session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
