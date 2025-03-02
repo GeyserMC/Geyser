@@ -269,7 +269,7 @@ public interface GeyserConfig {
         boolean useProxyProtocol();
 
         @Comment("""
-                A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
+                A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
