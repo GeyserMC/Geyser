@@ -131,7 +131,6 @@ public class AdvancementsCache {
      * Build and send the list of advancements
      */
     public void buildAndShowListForm() {
-        System.out.println("showing list form called");
         GeyserAdvancement categoryAdvancement = storedAdvancements.get(currentAdvancementCategoryId);
         String language = session.locale();
 
