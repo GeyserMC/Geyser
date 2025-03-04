@@ -76,7 +76,7 @@ public class AdvancementsCache {
             // Only open and show list form if we're going to a different category
             currentAdvancementCategoryId = categoryId;
             if (formOpen) {
-                buildAndShowListForm();
+                buildAndShowForm();
             }
         }
     }
