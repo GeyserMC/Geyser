@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundSelectAdvancementsTabPacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
