@@ -39,8 +39,6 @@ public class JavaSelectAdvancementsTabTranslator extends PacketTranslator<Client
 
     @Override
     public void translate(GeyserSession session, ClientboundSelectAdvancementsTabPacket packet) {
-        AdvancementsCache advancementsCache = session.getAdvancementsCache();
-        advancementsCache.setCurrentAdvancementCategoryId(packet.getTabId());
-        advancementsCache.buildAndShowListForm();
+        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
     }
 }
