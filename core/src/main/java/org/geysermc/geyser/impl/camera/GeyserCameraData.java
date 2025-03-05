@@ -272,7 +272,12 @@ public class GeyserCameraData implements CameraData {
             elementSet.add(HUD_ELEMENT_VALUES[element.id()]);
         }
 
-        session.sendUpstreamPacket(packet);
+        if (session.isSentSpawnPacket()) {
+            session.sendUpstreamPacket(packet);
+        } else {
+            // Ensures hidden GUI elements properly hide when we spawn in the spectator gamemode
+            session.getUpstream().queuePostStartGamePacket(packet);
+        }
     }
 
     @Override
