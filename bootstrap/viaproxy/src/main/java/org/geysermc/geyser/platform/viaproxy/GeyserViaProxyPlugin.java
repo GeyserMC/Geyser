@@ -120,6 +120,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         if (event.getType() != ITyped.Type.POST || event.isLegacyPassthrough()) {
             return;
         }
+        // TODO remove
         if (System.getProperty("geyser.viaproxy.disableIpPassthrough") != null) { // Temporary until Configurate branch is merged
             return;
         }
