@@ -194,7 +194,7 @@ public final class ConfigLoader {
                     .addAction(path("bedrock", "motd1"), rename("primary-motd"))
                     .addAction(path("bedrock", "motd2"), rename("secondary-motd"))
                     .addAction(path("bedrock", "enableProxyProtocol"), rename("useProxyProtocol"))
-                    .addAction(path("enableProxyConnections"), rename("performXboxAuthentication"))
+                    .addAction(path("enableProxyConnections"), rename("disableXboxAuth"))
                     .build())
                 .build();
 
@@ -252,7 +252,7 @@ public final class ConfigLoader {
 
     private AdvancedConfig migrateToAdvancedConfig(File file, ConfigurationNode configRoot) throws IOException {
         Stream<NodePath> copyFromOldConfig = Stream.of("max-visible-custom-skulls", "custom-skull-render-distance", "scoreboard-packet-threshold", "mtu",
-                "floodgate-key-file", "use-direct-connection", "disable-compression", "performXboxAuthentication")
+                "floodgate-key-file", "use-direct-connection", "disable-compression", "disableXboxAuth")
             .map(NodePath::path);
 
         var loader = createLoader(file, ADVANCED_HEADER);
