@@ -127,10 +127,10 @@ public interface AdvancedConfig {
         It can be used to allow connections from ProxyPass and WaterdogPE. In these cases, make sure that users
         cannot directly connect to this Geyser instance. See https://www.spigotmc.org/wiki/firewall-guide/ for
         assistance - and use UDP instead of TCP.
-        Disabling xbox authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames,
-        and is therefore a security risk. All Floodgate functionality (including skin uploading and account linking) will also not work when xbox auth is disabled.
+        Disabling Xbox authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames,
+        and is therefore a security risk. All Floodgate functionality (including skin uploading and account linking) will also not work when Xbox auth is disabled.
         """)
-        // if u have offline mode enabled pls be safe
+    // if u have offline mode enabled pls be safe
     boolean disableXboxAuth();
 
     @Comment("The bstats metrics uuid. Do not touch!")
