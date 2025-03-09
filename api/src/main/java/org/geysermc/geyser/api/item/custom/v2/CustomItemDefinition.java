@@ -88,6 +88,9 @@ public interface CustomItemDefinition {
 
     /**
      * The predicates that have to match for this item definition to be used. These predicates are similar to the Java item model predicates.
+     *
+     * <p>When adding predicates, prevent chaining many predicates that use an OR expression - instead, set the {@link PredicateStrategy} of the definition to
+     * {@link PredicateStrategy#OR}.</p>
      */
     @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
