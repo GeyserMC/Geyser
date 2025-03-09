@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.mappings.predicate;
 import com.google.gson.JsonElement;
 import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateCreator;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.CustomModelDataString;
 import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
@@ -36,16 +37,22 @@ import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 public enum ItemMatchProperty implements PredicateReader<ItemPredicateContext> {
-    CHARGE_TYPE((element, context) -> ItemMatchPredicate.CHARGE_TYPE.create(readValue(element, NodeReader.CHARGE_TYPE, context))),
-    TRIM_MATERIAL((element, context) -> ItemMatchPredicate.TRIM_MATERIAL.create(readValue(element, NodeReader.IDENTIFIER, context))),
-    CONTEXT_DIMENSION((element, context) -> MatchPredicate.CONTEXT_DIMENSION.create(readValue(element, NodeReader.IDENTIFIER, context))),
-    CUSTOM_MODEL_DATA((element, context) -> ItemMatchPredicate.CUSTOM_MODEL_DATA.create(
-        new CustomModelDataString(readValue(element, NodeReader.STRING, context), MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context))));
+    CHARGE_TYPE(ItemMatchPredicate.CHARGE_TYPE, NodeReader.CHARGE_TYPE),
+    TRIM_MATERIAL(ItemMatchPredicate.TRIM_MATERIAL, NodeReader.IDENTIFIER),
+    CONTEXT_DIMENSION(MatchPredicate.CONTEXT_DIMENSION, NodeReader.IDENTIFIER),
+    CUSTOM_MODEL_DATA((element, context) -> {
+        int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
+        return ItemMatchPredicate.CUSTOM_MODEL_DATA.create(new CustomModelDataString(readValue(element, NodeReader.STRING, context), index));
+    });
 
     private final PredicateReader<? super ItemPredicateContext> reader;
 
     ItemMatchProperty(PredicateReader<? super ItemPredicateContext> reader) {
         this.reader = reader;
+    }
+
+    <T> ItemMatchProperty(PredicateCreator<? super ItemPredicateContext, T> creator, NodeReader<T> reader) {
+        this((element, context) -> creator.create(readValue(element, reader, context)));
     }
 
     private static <T> T readValue(JsonElement element, NodeReader<T> reader, String... context) throws InvalidCustomMappingsFileException {
