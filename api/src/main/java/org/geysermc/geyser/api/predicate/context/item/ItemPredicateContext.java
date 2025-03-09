@@ -47,12 +47,12 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
     int maxStackSize();
 
     /**
-     * @return the value of the {@code minecraft:damage} component.
+     * @return the value of the {@code minecraft:damage} component. 0 if not present.
      */
     int damage();
 
     /**
-     * @return the value of the {@code minecraft:max_damage} component.
+     * @return the value of the {@code minecraft:max_damage} component. 0 if not present.
      */
     int maxDamage();
 
@@ -62,7 +62,7 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
     boolean unbreakable();
 
     /**
-     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component.
+     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component. 0 if not present.
      */
     int bundleFullness();
 
