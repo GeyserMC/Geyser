@@ -177,7 +177,7 @@ public class CustomItemRegistryPopulator {
         // If their predicates are equal then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
-            for (MinecraftPredicate predicate : existing.getValue().predicates()) {
+            for (MinecraftPredicate predicate : existing.getValue().predicates()) { // TODO fix this
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
                 }

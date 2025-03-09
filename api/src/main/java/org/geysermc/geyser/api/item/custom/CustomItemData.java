@@ -140,6 +140,7 @@ public interface CustomItemData {
                 .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
             );
 
+        // TODO maybe specify priority here for correct sorting
         CustomItemOptions options = customItemOptions();
         if (options.customModelData().isPresent()) {
             definition.predicate(context -> context.customModelDataFloat(0) >= options.customModelData().getAsInt());

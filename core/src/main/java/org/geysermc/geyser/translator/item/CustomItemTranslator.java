@@ -70,7 +70,7 @@ public final class CustomItemTranslator {
         ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
 
         // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
-        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>();
+        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>(); // TODO also fix this
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
             boolean allMatch = true;

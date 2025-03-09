@@ -63,7 +63,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
@@ -94,7 +93,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -789,7 +787,7 @@ public class ItemRegistryPopulator {
                         return (int) (otherScaledThreshold - thisThreshold);
                     }
                 } // TODO not a fan of how this looks
-            }*/ // TODO
+            }*/ // TODO fix this
 
             if (first.predicates().size() == second.predicates().size()) {
                 return -1; // If there's no preferred range predicate order and they both have the same amount of predicates, prefer the first
