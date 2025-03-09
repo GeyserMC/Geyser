@@ -34,15 +34,49 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
  */
 public interface ItemRangeDispatchPredicate {
 
+    /**
+     * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
+     *
+     * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
+     *
+     * @see ItemPredicateContext#bundleFullness()
+     */
     PredicateCreator<ItemPredicateContext, Double> BUNDLE_FULLNESS = data -> context -> context.bundleFullness() >= data;
 
+    /**
+     * Checks the item's damage value.
+     *
+     * @see ItemPredicateContext#damage()
+     */
     PredicateCreator<ItemPredicateContext, Double> DAMAGE = data -> context -> context.damage() >= data;
 
-    PredicateCreator<ItemPredicateContext, Double> DAMAGE_NORMALISED = data -> context -> context.maxDamage() != 0.0 && (double) context.damage() / context.maxDamage() >= data;
+    /**
+     * Checks the item's damage value, normalised ({@code damage / max_damage}). Always returns false is {@code max_damage} is 0.
+     *
+     * @see ItemPredicateContext#damage()
+     * @see ItemPredicateContext#maxDamage()
+     */
+    PredicateCreator<ItemPredicateContext, Double> DAMAGE_NORMALISED = data -> context -> context.maxDamage() != 0 && (double) context.damage() / context.maxDamage() >= data;
 
+    /**
+     * Checks the item's stack count.
+     *
+     * @see ItemPredicateContext#count()
+     */
     PredicateCreator<ItemPredicateContext, Double> COUNT = data -> context -> context.count() >= data;
 
+    /**
+     * Checks the item's stack count, normalised ({@code count / max_stack_size}).
+     *
+     * @see ItemPredicateContext#count()
+     * @see ItemPredicateContext#maxStackSize() ()
+     */
     PredicateCreator<ItemPredicateContext, Double> COUNT_NORMALISED = data -> context -> (double) context.count() / context.maxStackSize() >= data;
 
+    /**
+     * Checks one of the item's custom model data floats.
+     *
+     * @see ItemPredicateContext#customModelDataFloat(int)
+     */
     PredicateCreator<ItemPredicateContext, CustomModelDataFloat> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFloat(data.index()) >= data.value();
 }

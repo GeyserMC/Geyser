@@ -35,13 +35,42 @@ import org.geysermc.geyser.api.util.Identifier;
  */
 public interface ItemConditionPredicate {
 
+    /**
+     * Checks if the item is damageable (not unbreakable and has a max damage value above 0).
+     *
+     * @see ItemPredicateContext#unbreakable()
+     * @see ItemPredicateContext#maxDamage()
+     */
     MinecraftPredicate<ItemPredicateContext> DAMAGEABLE = context -> !context.unbreakable() && context.maxDamage() > 0;
 
+    /**
+     * Checks if the item is broken (damageable and has 1 durability point left).
+     *
+     * @see ItemConditionPredicate#DAMAGEABLE
+     * @see ItemPredicateContext#damage()
+     * @see ItemPredicateContext#maxDamage()
+     */
     MinecraftPredicate<ItemPredicateContext> BROKEN = DAMAGEABLE.and(context -> context.damage() >= context.maxDamage() - 1);
 
+    /**
+     * Checks if the item is damaged (damageable and has a damage value above 0).
+     *
+     * @see ItemConditionPredicate#DAMAGEABLE
+     * @see ItemPredicateContext#damage()
+     */
     MinecraftPredicate<ItemPredicateContext> DAMAGED = DAMAGEABLE.and(context -> context.damage() >= 0);
 
+    /**
+     * Checks for one of the item's custom model data flags.
+     *
+     * @see ItemPredicateContext#customModelDataFlag(int)
+     */
     PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFlag(data);
 
+    /**
+     * Returns true if the item stack has a component with the specified identifier.
+     *
+     * @see ItemPredicateContext#components()
+     */
     PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = data -> context -> context.components().contains(data);
 }

@@ -37,11 +37,26 @@ import org.geysermc.geyser.api.util.Identifier;
  */
 public interface ItemMatchPredicate {
 
+    /**
+     * Matches for the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
+     *
+     * @see ItemPredicateContext#chargedProjectiles()
+     */
     PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = data ->
         context -> context.chargedProjectiles().stream().anyMatch(projectile -> projectile.type() == data);
 
+    /**
+     * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
+     *
+     * @see ItemPredicateContext#trimMaterial()
+     */
     PredicateCreator<ItemPredicateContext, Identifier> TRIM_MATERIAL = data -> MinecraftPredicate.isEqual(ItemPredicateContext::trimMaterial, data);
 
+    /**
+     * Matches a string of the item's custom model data strings.
+     *
+     * @see ItemPredicateContext#customModelDataString(int)
+     */
     PredicateCreator<ItemPredicateContext, CustomModelDataString> CUSTOM_MODEL_DATA = data ->
         MinecraftPredicate.isEqual(context -> context.customModelDataString(data.index()), data.value());
 }

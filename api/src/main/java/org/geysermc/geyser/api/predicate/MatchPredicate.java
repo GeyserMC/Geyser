@@ -33,5 +33,10 @@ import org.geysermc.geyser.api.util.Identifier;
  */
 public interface MatchPredicate {
 
+    /**
+     * Matches the dimension identifier the Bedrock session player is currently in.
+     *
+     * @see MinecraftPredicateContext#dimension()
+     */
     PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = data -> MinecraftPredicate.isEqual(MinecraftPredicateContext::dimension, data);
 }
