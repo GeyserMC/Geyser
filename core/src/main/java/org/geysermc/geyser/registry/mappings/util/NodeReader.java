@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
+import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -96,6 +97,8 @@ public interface NodeReader<T> {
     NodeReader<ItemConditionProperty> ITEM_CONDITION_PROPERTY = ofEnum(ItemConditionProperty.class);
 
     NodeReader<ItemMatchProperty> ITEM_MATCH_PROPERTY = ofEnum(ItemMatchProperty.class);
+
+    NodeReader<ItemRangeDispatchProperty> ITEM_RANGE_DISPATCH_PROPERTY = ofEnum(ItemRangeDispatchProperty.class);
 
     NodeReader<ChargedProjectile.ChargeType> CHARGE_TYPE = ofEnum(ChargedProjectile.ChargeType.class);
 

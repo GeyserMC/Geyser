@@ -41,6 +41,7 @@ import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
+import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
@@ -209,17 +210,10 @@ public class MappingsReader_v2 extends MappingsReader {
                 ItemMatchProperty matchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_MATCH_PROPERTY, context);
                 builder.predicate(matchProperty.read(element, context));
             }
-            /*
             case "range_dispatch" -> {
-                RangeDispatchPredicateProperty property = MappingsUtil.readOrThrow(element, "property", NodeReader.RANGE_DISPATCH_PREDICATE_PROPERTY, context);
-
-                double threshold = MappingsUtil.readOrThrow(element, "threshold", NodeReader.DOUBLE, context);
-                double scale = MappingsUtil.readOrDefault(element, "scale", NodeReader.DOUBLE, 1.0, context);
-                boolean normalizeIfPossible = MappingsUtil.readOrDefault(element, "normalize", NodeReader.BOOLEAN, false, context);
-                int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
-
-                builder.predicate(MinecraftPredicate.rangeDispatch(property, threshold, scale, normalizeIfPossible, index));
-            }*/ // TODO
+                ItemRangeDispatchProperty rangeDispatchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_RANGE_DISPATCH_PROPERTY, context);
+                builder.predicate(rangeDispatchProperty.read(element, context));
+            }
             default -> throw new InvalidCustomMappingsFileException("reading predicate", "unknown predicate type " + type, context);
         }
     }
