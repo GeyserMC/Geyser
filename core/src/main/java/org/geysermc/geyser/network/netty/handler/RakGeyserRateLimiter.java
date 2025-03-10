@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.network.netty.handler;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundSelectAdvancementsTabPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import io.netty.channel.Channel;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.SessionManager;
 
-/**
- * Indicates that the client should open a particular advancement tab
- */
-@Translator(packet = ClientboundSelectAdvancementsTabPacket.class)
-public class JavaSelectAdvancementsTabTranslator extends PacketTranslator<ClientboundSelectAdvancementsTabPacket> {
+import java.net.InetAddress;
+
+public class RakGeyserRateLimiter extends RakServerRateLimiter {
+    public static final String NAME = "rak-geyser-rate-limiter";
+    private final SessionManager sessionManager;
+
+    public RakGeyserRateLimiter(Channel channel) {
+        super((RakServerChannel) channel);
+        this.sessionManager = GeyserImpl.getInstance().getSessionManager();
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundSelectAdvancementsTabPacket packet) {
-        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
+    protected int getAddressMaxPacketCount(InetAddress address) {
+        return super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address);
     }
 }

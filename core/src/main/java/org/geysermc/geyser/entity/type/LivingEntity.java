@@ -160,10 +160,6 @@ public class LivingEntity extends Entity {
         updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
     }
 
-    public void hideNametag() {
-        setNametag("", false);
-    }
-
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
 

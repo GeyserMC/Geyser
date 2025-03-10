@@ -76,7 +76,7 @@ final class BedrockMovePlayer {
         boolean hasVehicle = entity.getVehicle() != null;
 
         // shouldSendPositionReminder also increments a tick counter, so make sure it's always called unless the player is on a vehicle.
-        boolean positionChanged = !hasVehicle && session.getInputCache().shouldSendPositionReminder() || actualPositionChanged;
+        boolean positionChanged = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
         if (session.getLookBackScheduledFuture() != null) {

@@ -13,7 +13,7 @@ websocket = "1.5.1"
 protocol-connection = "3.0.0.Beta6-20250212.131009-3"
 protocol-common = "3.0.0.Beta6-20250212.131009-3"
 protocol-codec = "3.0.0.Beta6-20250212.131009-3"
-raknet = "1.0.0.CR3-20250128.101054-17"
+raknet = "1.0.0.CR3-20250218.160705-18"
 minecraftauth = "4.1.1"
 mcprotocollib = "1.21.4-20250218.175633-22"
 adventure = "4.14.0"
@@ -41,6 +41,9 @@ mixin = "0.8.5"
 mixinextras = "0.3.5"
 minecraft = "1.21.4"
 mockito = "5.+"
+runtask = "2.3.1"
+runpaperversion = "1.21.4"
+runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "3.1.3"
@@ -90,6 +93,8 @@ netty-transport-native-io_uring = { group = "io.netty.incubator", name = "netty-
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
+log4j-iostreams = { group = "org.apache.logging.log4j", name = "log4j-iostreams", version.ref = "log4j" }
+log4j-jul = { group = "org.apache.logging.log4j", name = "log4j-jul", version.ref = "log4j" }
 
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
@@ -152,11 +157,13 @@ minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
+runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
+runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
 fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-object-boolean-maps", "fastutil-reference-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
-log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl" ]
+log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
 protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]
