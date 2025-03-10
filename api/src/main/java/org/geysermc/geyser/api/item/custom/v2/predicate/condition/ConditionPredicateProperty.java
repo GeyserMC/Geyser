@@ -37,6 +37,9 @@ public final class ConditionPredicateProperty<T> {
      * Checks if the item is damaged (has non-full durability).
      */
     public static final ConditionPredicateProperty<Void> DAMAGED = createNoData();
+    /**
+     * Returns true if a fishing bobber is attached to the player.
+     */
     public static final ConditionPredicateProperty<Void> FISHING_ROD_CAST = createNoData();
     /**
      * Returns one of the item's custom model data flags, defaults to false. Data in the predicate is an integer that sets the index of the flags to check.

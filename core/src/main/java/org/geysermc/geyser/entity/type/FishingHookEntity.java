@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FishingHookEntity extends ThrowableEntity {
 
     private boolean hooked = false;
-    private boolean hookedByPlayer = false;
+    private boolean castByPlayer = false;
     private boolean inWater = false;
 
     @Getter
@@ -71,13 +71,13 @@ public class FishingHookEntity extends ThrowableEntity {
 
         if (owner == session.getPlayerEntity()) {
             session.setFishingRodCast(true);
-            hookedByPlayer = true;
+            castByPlayer = true;
         }
     }
 
     @Override
     public void despawnEntity() {
-        if (hookedByPlayer) {
+        if (castByPlayer) {
             session.setFishingRodCast(false);
         }
         super.despawnEntity();
