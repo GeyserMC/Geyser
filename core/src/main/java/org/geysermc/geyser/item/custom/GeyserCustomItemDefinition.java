@@ -27,6 +27,8 @@ package org.geysermc.geyser.item.custom;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -40,9 +42,68 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, String displayName, @NonNull Identifier model, @NonNull List<CustomItemPredicate> predicates,
-                                         PredicateStrategy predicateStrategy,
-                                         int priority, @NonNull CustomItemBedrockOptions bedrockOptions, @NonNull DataComponentMap components) implements CustomItemDefinition {
+@EqualsAndHashCode
+@ToString
+public class GeyserCustomItemDefinition implements CustomItemDefinition {
+    private final @NonNull Identifier bedrockIdentifier;
+    private final @NonNull String displayName;
+    private final @NonNull Identifier model;
+    private final @NonNull List<CustomItemPredicate> predicates;
+    private final PredicateStrategy predicateStrategy;
+    private final int priority;
+    private final @NonNull CustomItemBedrockOptions bedrockOptions;
+    private final @NonNull DataComponentMap components;
+
+    public GeyserCustomItemDefinition(Builder builder) {
+        this.bedrockIdentifier = builder.bedrockIdentifier;
+        this.displayName = builder.displayName;
+        this.model = builder.model;
+        this.predicates = List.copyOf(builder.predicates);
+        this.predicateStrategy = builder.predicateStrategy;
+        this.priority = builder.priority;
+        this.bedrockOptions = builder.bedrockOptions;
+        this.components = new ComponentMap(builder.components);
+    }
+
+    @Override
+    public @NonNull Identifier bedrockIdentifier() {
+        return bedrockIdentifier;
+    }
+
+    @Override
+    public @NonNull String displayName() {
+        return displayName;
+    }
+
+    @Override
+    public @NonNull Identifier model() {
+        return model;
+    }
+
+    @Override
+    public @NonNull List<CustomItemPredicate> predicates() {
+        return predicates;
+    }
+
+    @Override
+    public PredicateStrategy predicateStrategy() {
+        return predicateStrategy;
+    }
+
+    @Override
+    public int priority() {
+        return priority;
+    }
+
+    @Override
+    public @NonNull CustomItemBedrockOptions bedrockOptions() {
+        return bedrockOptions;
+    }
+
+    @Override
+    public @NonNull DataComponentMap components() {
+        return components;
+    }
 
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
@@ -62,7 +123,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
         }
 
         @Override
-        public CustomItemDefinition.Builder displayName(String displayName) {
+        public CustomItemDefinition.Builder displayName(@NonNull String displayName) {
             this.displayName = displayName;
             return this;
         }
@@ -102,8 +163,7 @@ public record GeyserCustomItemDefinition(@NonNull Identifier bedrockIdentifier, 
 
         @Override
         public CustomItemDefinition build() {
-            return new GeyserCustomItemDefinition(bedrockIdentifier, displayName, model, List.copyOf(predicates), predicateStrategy, priority, bedrockOptions,
-                new GeyserCustomItemDefinition.ComponentMap(components));
+            return new GeyserCustomItemDefinition(this);
         }
     }
 

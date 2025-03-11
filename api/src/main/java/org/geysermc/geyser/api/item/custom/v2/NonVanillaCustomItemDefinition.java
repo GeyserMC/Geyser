@@ -28,50 +28,55 @@ package org.geysermc.geyser.api.item.custom.v2;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.util.Identifier;
 
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     // TODO: attack damage?
 
     /**
+     * The java identifier for this item.
+     */
+    @NonNull Identifier identifier();
+
+    /**
      * The java item network ID of the item.
      *
      * <p>In mods, you can get this by using the {@code getId} method on the item {@code Registry} (Mojmap): {@code BuiltInRegistries.ITEM.getId(<item>)}</p>
-     *
-     * @return the java item network ID of the item
      */
-    @NonNegative
-    int javaId();
+    @NonNegative int javaId();
 
     /**
      * The item's translation string. TODO document
-     *
-     * @return the item's translation string
      */
-    @Nullable
-    String translationString();
+    @Nullable String translationString();
 
     /**
      * If the item is chargeable, like a bow.
-     *
-     * @return if the item should act like a chargeable item
      */
-    boolean isChargeable();
+    boolean chargeable();
 
     /**
      * The block the item places.
-     *
-     * @return the block the item places
      */
-    String block();
+    @Nullable String block();
+
+    static Builder builder(Identifier javaIdentifier, int javaId) {
+        return builder(javaIdentifier, javaIdentifier, javaId);
+    }
+
+    static Builder builder(Identifier javaIdentifier, Identifier bedrockIdentifier, int javaId) {
+        return GeyserApi.api().provider(Builder.class, javaIdentifier, bedrockIdentifier, javaId);
+    }
 
     interface Builder extends CustomItemDefinition.Builder {
 
         @Override
-        Builder displayName(String displayName);
+        Builder displayName(@NonNull String displayName);
 
         @Override
         Builder priority(int priority);
@@ -90,7 +95,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
         Builder translationString(@Nullable String translationString);
 
-        Builder chargeable(boolean isChargeable);
+        Builder chargeable(boolean chargeable);
 
         Builder block(String block);
 

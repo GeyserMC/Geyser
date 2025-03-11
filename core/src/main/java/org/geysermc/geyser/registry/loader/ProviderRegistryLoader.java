@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
@@ -60,6 +61,7 @@ import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
+import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.custom.predicate.MatchPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
@@ -104,6 +106,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         // items v2
         providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1]));
+        providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
         providers.put(ConditionItemPredicate.class, args -> new ConditionPredicate<>((ConditionPredicateProperty<? super Object>) args[0], (boolean) args[1], args[2]));
         providers.put(MatchItemPredicate.class, args -> new MatchPredicate<>((MatchPredicateProperty<? super Object>) args[0], args[1]));
