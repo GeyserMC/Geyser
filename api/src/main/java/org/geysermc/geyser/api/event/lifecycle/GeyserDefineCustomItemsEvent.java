@@ -27,8 +27,12 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,37 +44,76 @@ import java.util.Map;
  * This event will not be called if the "add non-Bedrock items" setting is disabled in the Geyser config.
  */
 public interface GeyserDefineCustomItemsEvent extends Event {
+
     /**
-     * Gets a multimap of all the already registered custom items indexed by the item's extended java item's identifier.
+     * A multimap of all the already registered (using the deprecated method) custom items indexed by the item's extended java item's identifier.
      *
-     * @return a multimap of all the already registered custom items
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      */
+    @Deprecated
     @NonNull
     Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
-     * Gets the list of the already registered non-vanilla custom items.
+     * A multimap of all the already registered custom item definitions indexed by the item's extended java item's identifier.
+     */
+    @NonNull
+    Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
+
+    /**
+     * A list of the already registered (using the deprecated method) non-vanilla custom items.
      *
-     * @return the list of the already registered non-vanilla custom items
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
     @NonNull
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**
-     * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
-     * based on NBT data.
+     * A multimap of all the already registered non-vanilla custom items indexed by the item's extended java item's identifier.
      *
+     * <p>This multimap will, at the moment, always have one entry per key.</p>
+     */
+    @NonNull
+    Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions();
+
+    /**
+     * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
+     * based on NBT data. This method should not be used anymore, {@link CustomItemDefinition}s are preferred now and this method will convert {@link CustomItemData} to {@link CustomItemDefinition} internally.
+     *
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      * @param identifier the base (java) item
      * @param customItemData the custom item data to register
      * @return if the item was registered
      */
+    @Deprecated
     boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
+
+    /**
+     * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
+     * based on NBT data.
+     *
+     * @param identifier of the Java edition base item
+     * @param customItemDefinition the custom item definition to register
+     * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
+     */
+    void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
+
+    /**
+     * Registers a custom item with no base item. This is used for mods.
+     * This method should not be used anymore, {@link NonVanillaCustomItemDefinition}s are preferred now and this method will convert {@link NonVanillaCustomItemData} to {@link NonVanillaCustomItemDefinition} internally.
+     *
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
+     * @param customItemData the custom item data to register
+     * @return if the item was registered
+     */
+    @Deprecated
+    boolean register(@NonNull NonVanillaCustomItemData customItemData);
 
     /**
      * Registers a custom item with no base item. This is used for mods.
      *
-     * @param customItemData the custom item data to register
-     * @return if the item was registered
+     * @param customItemDefinition  the custom item definition to register
+     * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      */
-    boolean register(@NonNull NonVanillaCustomItemData customItemData);
+    void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
 }
