@@ -64,6 +64,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.item.custom.predicate.RangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -184,7 +185,7 @@ public class ItemRegistryPopulator {
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
         Multimap<Identifier, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
-        List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
+        Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
 
         if (customItemsAllowed) {
             CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);

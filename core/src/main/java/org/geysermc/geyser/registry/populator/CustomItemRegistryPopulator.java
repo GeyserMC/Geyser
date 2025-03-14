@@ -38,9 +38,9 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
-import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
@@ -90,7 +90,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.BRUSH, 12
     );
 
-    public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+    public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems, Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
@@ -115,9 +115,8 @@ public class CustomItemRegistryPopulator {
             }
 
             @Override
-            public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
-                // TODO
-                return false;
+            public void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException {
+
             }
         });
 
