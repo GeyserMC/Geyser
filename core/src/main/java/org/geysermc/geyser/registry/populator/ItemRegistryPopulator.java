@@ -541,7 +541,7 @@ public class ItemRegistryPopulator {
                             customIdMappings.put(customMapping.integerId(), customItemIdentifier.toString());
                         } catch (InvalidItemComponentsException exception) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Not registering custom item " + customItem.bedrockIdentifier() + "!", exception);
+                                GeyserImpl.getInstance().getLogger().error("Not registering custom item (bedrock identifier=" + customItem.bedrockIdentifier() + ")!", exception);
                             }
                         }
                     }
@@ -622,35 +622,38 @@ public class ItemRegistryPopulator {
                 // Register any completely custom items given to us
                 // TODO broken as of right now
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
-                for (NonVanillaCustomItemData customItem : nonVanillaCustomItems) {
+                for (NonVanillaCustomItemDefinition customItem : nonVanillaCustomItems.values()) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
                         if (firstMappingsPass) {
-                            GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping...");
+                            GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping..."); // TODO validate this in API event and throw
                         }
-                        continue;
                     }
 
                     int customItemId = nextFreeBedrockId++;
-                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                    try {
+                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                    componentItemData.add(registration.mapping().getBedrockDefinition());
-                    ItemMapping mapping = registration.mapping();
-                    Item javaItem = registration.javaItem();
-                    while (javaItem.javaId() >= mappings.size()) {
-                        // Fill with empty to get to the correct size
-                        mappings.add(ItemMapping.AIR);
-                    }
-                    mappings.set(javaItem.javaId(), mapping);
-                    registry.put(customItemId, mapping.getBedrockDefinition());
+                        componentItemData.add(registration.mapping().getBedrockDefinition());
+                        ItemMapping mapping = registration.mapping();
+                        Item javaItem = registration.javaItem();
+                        while (javaItem.javaId() >= mappings.size()) {
+                            // Fill with empty to get to the correct size
+                            mappings.add(ItemMapping.AIR);
+                        }
+                        mappings.set(javaItem.javaId(), mapping);
+                        registry.put(customItemId, mapping.getBedrockDefinition());
 
-                    if (customItem.creativeCategory().isPresent()) {
-                        CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
-                            .definition(registration.mapping().getBedrockDefinition())
-                            .netId(creativeNetId.incrementAndGet())
-                            .count(1)
-                            .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
+                        if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
+                            CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
+                                .definition(registration.mapping().getBedrockDefinition())
+                                .netId(creativeNetId.incrementAndGet())
+                                .count(1)
+                                .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
 
-                        creativeItems.add(creativeItemData);
+                            creativeItems.add(creativeItemData);
+                        }
+                    } catch (InvalidItemComponentsException exception) {
+                        GeyserImpl.getInstance().getLogger().error("Not registering non-vanilla custom item (identifier=" + customItem.identifier() + ")!", exception);
                     }
                 }
             }

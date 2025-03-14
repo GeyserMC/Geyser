@@ -50,6 +50,7 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
@@ -57,6 +58,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -71,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
@@ -90,7 +93,8 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.BRUSH, 12
     );
 
-    public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems, Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
+    public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
+                                Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
@@ -115,8 +119,18 @@ public class CustomItemRegistryPopulator {
             }
 
             @Override
-            public void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException {
-
+            public void register(@NonNull NonVanillaCustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
+                if (definition.identifier().vanilla()) {
+                    throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ") is attempting to masquerade as a vanilla Minecraft item!");
+                } else if (definition.bedrockIdentifier().vanilla()) {
+                    throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ")' bedrock identifier's namespace is minecraft!");
+                } else if (definition.javaId() < items.size()) {
+                    throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ") is attempting to overwrite a vanilla Minecraft item! (item network ID taken)");
+                } else if (nonVanillaCustomItems.containsKey(definition.identifier())) {
+                    // Until predicates are a thing, then predicate conflict detection should be used like with vanilla items
+                    throw new CustomItemDefinitionRegisterException("A non-vanilla custom item definition (identifier=" + definition.identifier() + ") is already registered!");
+                }
+                nonVanillaCustomItems.put(definition.identifier(), definition);
             }
         });
 
@@ -126,14 +140,35 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem mapping, CustomItemDefinition customItem,
+    public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
                                                              int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        checkComponents(customItem, javaItem);
+        DataComponents components = checkComponents(customItem, javaItem);
 
-        NbtMapBuilder builder = createComponentNbt(customItem, javaItem, mapping, bedrockId, protocolVersion);
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, builder.build());
+        NbtMapBuilder bedrockComponents = createComponentNbt(customItem, components, Optional.of(vanillaMapping), bedrockId, protocolVersion);
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, bedrockComponents.build());
 
         return new GeyserCustomMappingData(customItem, itemDefinition, bedrockId);
+    }
+
+    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemDefinition customItem, int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
+        DataComponents components = checkComponents(customItem, null);
+
+        String bedrockIdentifier = customItem.bedrockIdentifier().toString();
+        NbtMapBuilder bedrockComponents = createComponentNbt(customItem, components, Optional.empty(), bedrockId, protocolVersion);
+
+        Item javaItem = new Item(customItem.identifier().toString(), Item.builder().components(components));
+        Items.register(javaItem, customItem.javaId());
+
+        ItemMapping customMapping = ItemMapping.builder()
+            .bedrockIdentifier(bedrockIdentifier)
+            .bedrockDefinition(new SimpleItemDefinition(bedrockIdentifier, bedrockId, ItemVersion.DATA_DRIVEN, true, bedrockComponents.build()))
+            .bedrockData(0)
+            .bedrockBlockDefinition(null)
+            .translationString(customItem.translationString())
+            .javaItem(javaItem)
+            .build();
+
+        return new NonVanillaItemRegistration(javaItem, customMapping);
     }
 
     /**
@@ -144,9 +179,9 @@ public class CustomItemRegistryPopulator {
             return "unknown Java item " + vanillaIdentifier;
         }
         Identifier bedrockIdentifier = item.bedrockIdentifier();
-        if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+        if (bedrockIdentifier.vanilla()) {
             return "custom item bedrock identifier namespace can't be minecraft";
-        } else if (item.model().namespace().equals(Key.MINECRAFT_NAMESPACE) && item.predicates().isEmpty()) {
+        } else if (item.model().vanilla() && item.predicates().isEmpty()) {
             return "custom item definition model can't be in the minecraft namespace without a predicate";
         }
 
@@ -196,8 +231,11 @@ public class CustomItemRegistryPopulator {
      *
      * <p>Note that, component validation is preferred to occur early in the API module. This method should primarily check for illegal <em>combinations</em> of item components.
      * It is expected that the values of the components separately have already been validated when possible (for example, it is expected that stack size is in the range [1, 99]).</p>
+     *
+     * @param javaItem the vanilla item to patch components on to, can be null for non-vanilla custom items
+     * @return the custom data components patched on the vanilla item's components (if present), validated
      */
-    private static void checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
+    private static DataComponents checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition);
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0);
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
@@ -216,14 +254,11 @@ public class CustomItemRegistryPopulator {
                 }
             }
         }
+
+        return components;
     }
 
-    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
-        // TODO
-        return null;
-    }
-
-    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, Item vanillaJavaItem, GeyserMappingItem vanillaMapping,
+    private static NbtMapBuilder createComponentNbt(CustomItemDefinition customItemDefinition, DataComponents components, Optional<GeyserMappingItem> vanillaMapping,
                                                     int customItemId, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder()
             .putString("name", customItemDefinition.bedrockIdentifier().toString())
@@ -232,7 +267,6 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        DataComponents components = patchDataComponents(vanillaJavaItem, customItemDefinition);
         setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
@@ -240,14 +274,16 @@ public class CustomItemRegistryPopulator {
         // Temporary workaround: when 1.21.5 releases, this value will be mapped to an MCPL tool component, and this code will look nicer
         // since we can get the value from the vanilla item component instead of using the vanilla mapping.
         ToolProperties toolProperties = customItemDefinition.components().get(DataComponent.TOOL);
-        boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.getToolType()) : toolProperties.canDestroyBlocksInCreative();
+        boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.map(GeyserMappingItem::getToolType).orElse("")) : toolProperties.canDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        switch (vanillaMapping.getBedrockIdentifier()) {
-            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
-            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaMapping.getBedrockIdentifier());
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
-        }
+        vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).ifPresent(vanillaItem -> {
+            switch (vanillaItem) {
+                case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
+                case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaItem);
+                case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
+            }
+        });
 
         // Using API component here because MCPL one is just an ID holder set
         Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
@@ -265,19 +301,21 @@ public class CustomItemRegistryPopulator {
             computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
 
-        if (vanillaMapping.getFirstBlockRuntimeId() != null) {
-            computeBlockItemProperties(vanillaMapping.getBedrockIdentifier(), componentBuilder);
-        }
-
         Consumable consumable = components.get(DataComponentTypes.CONSUMABLE);
         if (consumable != null) {
             FoodProperties foodProperties = components.get(DataComponentTypes.FOOD);
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
-        if (vanillaMapping.isEntityPlacer()) {
-            computeEntityPlacerProperties(componentBuilder);
-        }
+        vanillaMapping.ifPresent(mapping -> {
+            if (mapping.getFirstBlockRuntimeId() != null) {
+                computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
+            }
+
+            if (mapping.isEntityPlacer()) {
+                computeEntityPlacerProperties(componentBuilder);
+            }
+        });
 
         UseCooldown useCooldown = components.get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
@@ -288,12 +326,6 @@ public class CustomItemRegistryPopulator {
         builder.putCompound("components", componentBuilder.build());
 
         return builder;
-    }
-
-    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
-                                                    int customItemId, boolean isHat, boolean displayHandheld, int protocolVersion) {
-        // TODO;
-        return null;
     }
 
     private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
@@ -395,6 +427,7 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
+    @SuppressWarnings("RedundantLabeledSwitchRuleCodeBlock") // Looks a lot nicer this way
     private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
         switch (equippable.slot()) {
             case HELMET -> {
@@ -554,81 +587,6 @@ public class CustomItemRegistryPopulator {
         );
     }
 
-    private static NbtMap toNbtMap(CustomRenderOffsets renderOffsets) {
-        NbtMapBuilder builder = NbtMap.builder();
-
-        CustomRenderOffsets.Hand mainHand = renderOffsets.mainHand();
-        if (mainHand != null) {
-            NbtMap nbt = toNbtMap(mainHand);
-            if (nbt != null) {
-                builder.putCompound("main_hand", nbt);
-            }
-        }
-        CustomRenderOffsets.Hand offhand = renderOffsets.offhand();
-        if (offhand != null) {
-            NbtMap nbt = toNbtMap(offhand);
-            if (nbt != null) {
-                builder.putCompound("off_hand", nbt);
-            }
-        }
-
-        return builder.build();
-    }
-
-    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
-        NbtMap firstPerson = toNbtMap(hand.firstPerson());
-        NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
-
-        if (firstPerson == null && thirdPerson == null) {
-            return null;
-        }
-
-        NbtMapBuilder builder = NbtMap.builder();
-        if (firstPerson != null) {
-            builder.putCompound("first_person", firstPerson);
-        }
-        if (thirdPerson != null) {
-            builder.putCompound("third_person", thirdPerson);
-        }
-
-        return builder.build();
-    }
-
-    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.@Nullable Offset offset) {
-        if (offset == null) {
-            return null;
-        }
-
-        CustomRenderOffsets.OffsetXYZ position = offset.position();
-        CustomRenderOffsets.OffsetXYZ rotation = offset.rotation();
-        CustomRenderOffsets.OffsetXYZ scale = offset.scale();
-
-        if (position == null && rotation == null && scale == null) {
-            return null;
-        }
-
-        NbtMapBuilder builder = NbtMap.builder();
-        if (position != null) {
-            builder.putList("position", NbtType.FLOAT, toList(position));
-        }
-        if (rotation != null) {
-            builder.putList("rotation", NbtType.FLOAT, toList(rotation));
-        }
-        if (scale != null) {
-            builder.putList("scale", NbtType.FLOAT, toList(scale));
-        }
-
-        return builder.build();
-    }
-
-    private static List<Float> toList(CustomRenderOffsets.OffsetXYZ xyz) {
-        return List.of(xyz.x(), xyz.y(), xyz.z());
-    }
-
-    private static NbtMap xyzToScaleList(float x, float y, float z) {
-        return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
-    }
-
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
         for (CustomItemPredicate predicate : definition.predicates()) {
             if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
@@ -646,12 +604,16 @@ public class CustomItemRegistryPopulator {
      *
      * <p>Note that not every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
      *
+     * @param javaItem can be null for non-vanilla custom items
      * @see ComponentConverters
      */
-    private static DataComponents patchDataComponents(Item javaItem, CustomItemDefinition definition) {
+    private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
         DataComponents convertedComponents = new DataComponents(new HashMap<>());
         ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
-        return javaItem.gatherComponents(convertedComponents);
+        if (javaItem != null) {
+            return javaItem.gatherComponents(convertedComponents);
+        }
+        return convertedComponents;
     }
 
     @SuppressWarnings("unchecked")
