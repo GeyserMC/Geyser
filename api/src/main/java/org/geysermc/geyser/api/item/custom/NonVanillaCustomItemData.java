@@ -29,8 +29,18 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
+import org.geysermc.geyser.api.item.custom.v2.component.FoodProperties;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
@@ -171,6 +181,50 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
+    }
+
+    @Override
+    default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
+        throw new IllegalArgumentException("Use toDefinition()");
+    }
+
+    default NonVanillaCustomItemDefinition.Builder toDefinition() {
+        NonVanillaCustomItemDefinition.Builder definition = NonVanillaCustomItemDefinition.builder(Identifier.of(identifier()), javaId())
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
+                .protectionValue(protectionValue())
+            )
+            .component(DataComponent.MAX_STACK_SIZE, stackSize())
+            .component(DataComponent.MAX_DAMAGE, maxDamage())
+            .translationString(translationString())
+            .chargeable(isChargeable())
+            .block(block());
+
+        if (isHat()) {
+            definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.HEAD));
+        } else if (armorType() != null) {
+            switch (armorType()) {
+                case "helmet" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.HEAD));
+                case "chestplate" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.CHEST));
+                case "leggings" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.LEGS));
+                case "boots" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.FEET));
+            }
+        }
+
+        if (isEdible()) {
+            definition.component(DataComponent.CONSUMABLE, new Consumable(1.6F, Consumable.Animation.EAT)); // Default values
+            if (canAlwaysEat()) {
+                definition.component(DataComponent.FOOD, new FoodProperties(0, 0, true));
+            }
+        }
+
+        return definition;
     }
 
     interface Builder extends CustomItemData.Builder {

@@ -92,7 +92,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     @Override
     public boolean register(NonVanillaCustomItemData customItemData) {
         try {
-            register(customItemData.toDefinition()); // TODO
+            register(customItemData.toDefinition().build());
             deprecatedNonVanillaCustomItems.add(customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {

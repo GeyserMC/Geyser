@@ -132,7 +132,6 @@ public interface CustomItemData {
     }
 
     default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
-        // TODO non vanilla
         CustomItemDefinition.Builder definition = CustomItemDefinition.builder(javaItem, javaItem)
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
