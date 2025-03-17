@@ -132,7 +132,7 @@ public interface CustomItemData {
     }
 
     default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
-        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(javaItem, javaItem)
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(Identifier.of("geyser_custom", name()), javaItem)
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
                 .icon(icon())
