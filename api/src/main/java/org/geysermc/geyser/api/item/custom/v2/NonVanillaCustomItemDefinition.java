@@ -30,11 +30,22 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.util.Identifier;
 
-// TODO document predicates
+import java.util.List;
+
+/**
+ * Defines an entirely custom item, introduced by mods and therefore not based on a vanilla item, and its properties.
+ *
+ * <p>A definition will be used when an item is received with the ID of the definition. Predicate matching, as is possible
+ * right now with vanilla custom item definitions, is currently not implemented, so only one definition can be created for each
+ * Java non-vanilla item.</p>
+ *
+ * <p>Non-vanilla item definitions can be configured with additional components defined in {@link org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent}.</p>
+ */
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     /**
@@ -53,6 +64,40 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * The item's translation string. TODO document
      */
     @Nullable String translationString();
+
+    /**
+     * Predicates are currently not supported for non-vanilla custom item definitions.
+     *
+     * <p>Trying to use predicates will result in an error.</p>
+     */
+    @Override
+    @NonNull List<CustomItemPredicate> predicates();
+
+    /**
+     * Predicates are currently not supported for non-vanilla custom item definitions.
+     *
+     * <p>Trying to use predicates will result in an error.</p>
+     */
+    @Override
+    PredicateStrategy predicateStrategy();
+
+    /**
+     * Predicates are currently not supported for non-vanilla custom item definitions.
+     *
+     * <p>Trying to use predicates will result in an error.</p>
+     */
+    @Override
+    int priority();
+
+    /**
+     * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent} can
+     * also be used. Like with vanilla data components, it is still expected that the item <em>always</em> has the behaviour defined by its components.
+     *
+     * @see CustomItemDefinition#components()
+     * @see org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent
+     */
+    @Override
+    @NonNull DataComponentMap components();
 
     static Builder builder(Identifier javaIdentifier, int javaId) {
         return builder(javaIdentifier, javaIdentifier, javaId);

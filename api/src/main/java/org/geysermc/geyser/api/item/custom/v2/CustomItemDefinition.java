@@ -125,7 +125,6 @@ public interface CustomItemDefinition {
      * and do not have to be specified here.</p>
      *
      * @see DataComponent
-     * @see org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent
      */
     @NonNull DataComponentMap components();
 
