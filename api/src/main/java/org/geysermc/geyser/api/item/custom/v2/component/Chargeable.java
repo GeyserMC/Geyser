@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.item.custom.v2.component;
 import org.checkerframework.checker.index.qual.Positive;
 import org.geysermc.geyser.api.util.Identifier;
 
+// TODO projectile component
 public record Chargeable(@Positive float maxDrawDuration, boolean chargeOnDraw, Identifier... ammunition) {
 
     public Chargeable {

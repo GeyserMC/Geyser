@@ -273,7 +273,10 @@ public class CustomItemRegistryPopulator {
         computeToolProperties(itemProperties, componentBuilder);
         Integer attackDamage = customItemDefinition.components().get(GeyserDataComponent.ATTACK_DAMAGE);
         if (attackDamage != null) {
-            itemProperties.putInt("damage", attackDamage); // TODO verify this is still the way to do this
+            itemProperties.putInt("damage", attackDamage);
+            componentBuilder.putCompound("minecraft:damage", NbtMap.builder()
+                .putByte("value", attackDamage.byteValue())
+                .build());
         }
 
         // Temporary workaround: when 1.21.5 releases, this value will be mapped to an MCPL tool component, and this code will look nicer
@@ -497,8 +500,8 @@ public class CustomItemRegistryPopulator {
             .putString("block", blockPlacer.block().toString())
             .putBoolean("canUseBlockAsIcon", false)
             .putList("use_on", NbtType.STRING)
-            .putBoolean("replace_block_item", blockPlacer.replaceBlockItem())
-            .build()); // TODO check these fields
+            .putBoolean("replace_block_item", blockPlacer.replaceBlockItem()) // TODO this is wrong
+            .build());
     }
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {
