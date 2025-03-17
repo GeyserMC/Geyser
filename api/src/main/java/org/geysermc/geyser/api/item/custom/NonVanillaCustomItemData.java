@@ -204,8 +204,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
             )
             .component(DataComponent.MAX_STACK_SIZE, stackSize())
             .component(DataComponent.MAX_DAMAGE, maxDamage())
+            .component(GeyserDataComponent.ATTACK_DAMAGE, attackDamage())
             .translationString(translationString())
-            .chargeable(isChargeable())
             .block(block());
 
         if (isHat()) {

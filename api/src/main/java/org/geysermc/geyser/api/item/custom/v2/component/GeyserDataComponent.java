@@ -44,6 +44,12 @@ public final class GeyserDataComponent {
      * @see Chargeable
      */
     public static final DataComponent<Chargeable> CHARGEABLE = DataComponent.createGeyser("chargeable");
+    /**
+     * Places a visual indicator (=tooltip) of the item's attack damage. Must be at or above 0.
+     *
+     * <p>Attribute modifiers are automatically translated for custom vanilla items, but not for non-vanilla ones, which is why this component is here.</p>
+     */
+    public static final DataComponent<Integer> ATTACK_DAMAGE = DataComponent.createGeyser("attack_damage", i -> i >= 0);
 
     private GeyserDataComponent() {}
 }

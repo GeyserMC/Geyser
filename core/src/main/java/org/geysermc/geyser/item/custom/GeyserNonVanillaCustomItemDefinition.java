@@ -44,7 +44,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
     private final @NonNull Identifier identifier;
     private final int javaId;
     private final String translationString;
-    private final boolean chargeable;
     private final String block;
 
     public GeyserNonVanillaCustomItemDefinition(Builder builder) {
@@ -52,7 +51,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
         this.translationString = builder.translationString;
-        this.chargeable = builder.chargeable;
         this.block = builder.block;
     }
 
@@ -72,11 +70,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
     }
 
     @Override
-    public boolean chargeable() {
-        return chargeable;
-    }
-
-    @Override
     public @Nullable String block() {
         return block;
     }
@@ -86,7 +79,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         private final int javaId;
 
         private String translationString;
-        private boolean chargeable = false;
         private String block;
 
         public Builder(Identifier identifier, Identifier bedrockIdentifier, int javaId) {
@@ -128,12 +120,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         @Override
         public NonVanillaCustomItemDefinition.Builder translationString(@Nullable String translationString) {
             this.translationString = translationString;
-            return this;
-        }
-
-        @Override
-        public NonVanillaCustomItemDefinition.Builder chargeable(boolean chargeable) {
-            this.chargeable = chargeable;
             return this;
         }
 

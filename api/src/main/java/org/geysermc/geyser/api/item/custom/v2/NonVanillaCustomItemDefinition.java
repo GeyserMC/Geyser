@@ -57,11 +57,6 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     @Nullable String translationString();
 
     /**
-     * If the item is chargeable, like a bow.
-     */
-    boolean chargeable();
-
-    /**
      * The block the item places.
      */
     @Nullable String block();
@@ -95,8 +90,6 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
         Builder translationString(@Nullable String translationString);
-
-        Builder chargeable(boolean chargeable);
 
         Builder block(String block);
 
