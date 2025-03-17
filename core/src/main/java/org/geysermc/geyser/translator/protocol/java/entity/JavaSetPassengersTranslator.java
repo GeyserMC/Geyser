@@ -106,6 +106,10 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                         session.getMountVehicleScheduledFuture().cancel(false);
                     }
 
+                    // Reset steering to avoid session#isHandsBusy from triggering
+                    session.setSteeringLeft(false);
+                    session.setSteeringRight(false);
+
                     if (entity instanceof ClientVehicle clientVehicle) {
                         clientVehicle.getVehicleComponent().onDismount();
                     }

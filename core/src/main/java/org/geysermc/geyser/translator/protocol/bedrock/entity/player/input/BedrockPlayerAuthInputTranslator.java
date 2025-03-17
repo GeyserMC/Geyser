@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -168,7 +167,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
             }
         }
-        if (entity.getVehicle() instanceof BoatEntity) {
+
+        // Only set steering values when the vehicle is a boat and when the client is actually in it
+        if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
             boolean up = inputData.contains(PlayerAuthInputData.UP);
             // Yes. These are flipped. It's always been an issue with Geyser. That's what it's like working with this codebase.
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
