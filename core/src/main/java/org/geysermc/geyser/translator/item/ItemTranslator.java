@@ -174,7 +174,7 @@ public final class ItemTranslator {
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
 
-        Rarity rarity = Rarity.fromId(components.get(DataComponentTypes.RARITY));
+        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
