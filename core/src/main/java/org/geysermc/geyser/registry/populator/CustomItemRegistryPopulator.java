@@ -39,7 +39,9 @@ import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
@@ -278,10 +280,19 @@ public class CustomItemRegistryPopulator {
         vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).ifPresent(vanillaItem -> {
             switch (vanillaItem) {
                 case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
-                case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, vanillaItem);
                 case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
             }
         });
+
+        Chargeable chargeable = vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+            case "minecraft:bow" -> new Chargeable(1.0F, false, Identifier.of("arrow"));
+            case "minecraft:crossbow" -> new Chargeable(0.0F, true, Identifier.of("arrow"));
+            default -> null;
+        }).orElse(customItemDefinition.components().get(GeyserDataComponent.CHARGEABLE));
+
+        if (chargeable != null) {
+            computeChargeableProperties(itemProperties, componentBuilder, chargeable);
+        }
 
         // Using API component here because MCPL one is just an ID holder set
         Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
@@ -477,7 +488,10 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, String mapping) {
+    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {
+        // TODO check the magic values, especially for movement modifier and use duration
+        //      also maybe fix the animations
+
         // setting high use_duration prevents the consume animation from playing
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
 
@@ -486,47 +500,29 @@ public class CustomItemRegistryPopulator {
             .putFloat("use_duration", 100.0F)
             .build());
 
-        switch (mapping) {
-            case "minecraft:bow" -> {
-                itemProperties.putInt("frame_count", 3);
-
-                componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
-                    .putList("ammunition", NbtType.COMPOUND, List.of(
-                        NbtMap.builder()
-                            .putCompound("item", NbtMap.builder()
-                                .putString("name", "minecraft:arrow")
-                                .build())
-                            .putBoolean("search_inventory", true)
-                            .putBoolean("use_in_creative", false)
-                            .putBoolean("use_offhand", true)
-                            .build()
-                    ))
-                    .putBoolean("charge_on_draw", true)
-                    .putFloat("max_draw_duration", 0.0F)
-                    .putBoolean("scale_power_by_draw_duration", true)
-                    .build());
-            }
-            case "minecraft:trident" -> itemProperties.putInt("use_animation", BEDROCK_ANIMATIONS.get(Consumable.ItemUseAnimation.SPEAR));
-            case "minecraft:crossbow" -> {
-                itemProperties.putInt("frame_count", 10);
-
-                componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
-                    .putList("ammunition", NbtType.COMPOUND, List.of(
-                        NbtMap.builder()
-                            .putCompound("item", NbtMap.builder()
-                                .putString("name", "minecraft:arrow")
-                                .build())
-                            .putBoolean("use_offhand", true)
-                            .putBoolean("use_in_creative", false)
-                            .putBoolean("search_inventory", true)
-                            .build()
-                    ))
-                    .putBoolean("charge_on_draw", true)
-                    .putFloat("max_draw_duration", 1.0F)
-                    .putBoolean("scale_power_by_draw_duration", true)
-                    .build());
-            }
+        if (chargeable.chargeOnDraw()) {
+            itemProperties.putInt("frame_count", 10);
+        } else {
+            itemProperties.putInt("frame_count", 3);
         }
+
+        componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
+            .putList("ammunition", NbtType.COMPOUND, Arrays.stream(chargeable.ammunition())
+                .map(ammunition ->
+                    NbtMap.builder()
+                        .putCompound("item", NbtMap.builder()
+                            .putString("name", ammunition.toString())
+                            .build())
+                        .putBoolean("use_offhand", true)
+                        .putBoolean("use_in_creative", false)
+                        .putBoolean("search_inventory", true)
+                        .build()
+                )
+                .toList())
+            .putBoolean("charge_on_draw", chargeable.chargeOnDraw())
+            .putFloat("max_draw_duration", chargeable.maxDrawDuration())
+            .putBoolean("scale_power_by_draw_duration", true)
+            .build());
     }
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {

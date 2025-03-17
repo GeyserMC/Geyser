@@ -30,4 +30,9 @@ import org.geysermc.geyser.api.util.Identifier;
 
 public record Chargeable(@Positive float maxDrawDuration, boolean chargeOnDraw, Identifier... ammunition) {
 
+    public Chargeable {
+        if (maxDrawDuration <= 0.0F) {
+            throw new IllegalArgumentException("Max draw duration must be above 0");
+        }
+    }
 }
