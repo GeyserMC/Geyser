@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
@@ -281,23 +282,6 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.map(GeyserMappingItem::getToolType).orElse("")) : toolProperties.canDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).ifPresent(vanillaItem -> {
-            switch (vanillaItem) {
-                case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
-                case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
-            }
-        });
-
-        Chargeable chargeable = vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
-            case "minecraft:bow" -> new Chargeable(1.0F, false, Identifier.of("arrow"));
-            case "minecraft:crossbow" -> new Chargeable(0.0F, true, Identifier.of("arrow"));
-            default -> null;
-        }).orElse(customItemDefinition.components().get(GeyserDataComponent.CHARGEABLE));
-
-        if (chargeable != null) {
-            computeChargeableProperties(itemProperties, componentBuilder, chargeable);
-        }
-
         // Using API component here because MCPL one is just an ID holder set
         Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
         if (repairable != null) {
@@ -320,20 +304,44 @@ public class CustomItemRegistryPopulator {
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
-        vanillaMapping.ifPresent(mapping -> {
-            if (mapping.getFirstBlockRuntimeId() != null) {
-                computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
-            }
-
-            if (mapping.isEntityPlacer()) {
-                computeEntityPlacerProperties(componentBuilder);
-            }
-        });
-
         UseCooldown useCooldown = components.get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, componentBuilder);
         }
+
+        BlockPlacer blockPlacer = vanillaMapping.map(mapping -> {
+            String bedrockIdentifier = mapping.getBedrockIdentifier();
+            if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
+                return new BlockPlacer(Identifier.of("fire"), false);
+            } else if (mapping.getFirstBlockRuntimeId() != null) {
+                return new BlockPlacer(Identifier.of(mapping.getBedrockIdentifier()), false);
+            }
+            return null;
+        }).orElse(customItemDefinition.components().get(GeyserDataComponent.BLOCK_PLACER));
+
+        if (blockPlacer != null) {
+            computeBlockItemProperties(blockPlacer, componentBuilder);
+        }
+
+        Chargeable chargeable = vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+            case "minecraft:bow" -> new Chargeable(1.0F, false, Identifier.of("arrow"));
+            case "minecraft:crossbow" -> new Chargeable(0.0F, true, Identifier.of("arrow"));
+            default -> null;
+        }).orElse(customItemDefinition.components().get(GeyserDataComponent.CHARGEABLE));
+
+        if (chargeable != null) {
+            computeChargeableProperties(itemProperties, componentBuilder, chargeable);
+        }
+
+        vanillaMapping.ifPresent(mapping -> {
+            if (mapping.isEntityPlacer()) {
+                computeEntityPlacerProperties(componentBuilder);
+            }
+
+            switch (mapping.getBedrockIdentifier()) {
+                case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
+            }
+        });
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -479,17 +487,18 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeBlockItemProperties(String blockItem, NbtMapBuilder componentBuilder) {
+    private static void computeBlockItemProperties(BlockPlacer blockPlacer, NbtMapBuilder componentBuilder) {
         // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
         // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
         // it also causes the item to glitch when right-clicked to "equip" so this should only be added here later if these issues can be overcome
 
         // all block items registered should be given this component to prevent double placement
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder()
-            .putString("block", blockItem)
+            .putString("block", blockPlacer.block().toString())
             .putBoolean("canUseBlockAsIcon", false)
             .putList("use_on", NbtType.STRING)
-            .build());
+            .putBoolean("replace_block_item", blockPlacer.replaceBlockItem())
+            .build()); // TODO check these fields
     }
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {

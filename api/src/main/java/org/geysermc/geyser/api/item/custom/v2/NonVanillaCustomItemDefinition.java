@@ -54,11 +54,6 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      */
     @Nullable String translationString();
 
-    /**
-     * The block the item places.
-     */
-    @Nullable String block();
-
     static Builder builder(Identifier javaIdentifier, int javaId) {
         return builder(javaIdentifier, javaIdentifier, javaId);
     }
@@ -88,8 +83,6 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
         Builder translationString(@Nullable String translationString);
-
-        Builder block(String block);
 
         @Override
         NonVanillaCustomItemDefinition build();

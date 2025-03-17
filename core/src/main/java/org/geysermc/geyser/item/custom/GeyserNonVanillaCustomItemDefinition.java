@@ -44,14 +44,12 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
     private final @NonNull Identifier identifier;
     private final int javaId;
     private final String translationString;
-    private final String block;
 
     public GeyserNonVanillaCustomItemDefinition(Builder builder) {
         super(builder);
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
         this.translationString = builder.translationString;
-        this.block = builder.block;
     }
 
     @Override
@@ -69,17 +67,11 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         return translationString;
     }
 
-    @Override
-    public @Nullable String block() {
-        return block;
-    }
-
     public static class Builder extends GeyserCustomItemDefinition.Builder implements NonVanillaCustomItemDefinition.Builder {
         private final Identifier identifier;
         private final int javaId;
 
         private String translationString;
-        private String block;
 
         public Builder(Identifier identifier, Identifier bedrockIdentifier, int javaId) {
             super(bedrockIdentifier, identifier); // TODO different models?
@@ -120,12 +112,6 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         @Override
         public NonVanillaCustomItemDefinition.Builder translationString(@Nullable String translationString) {
             this.translationString = translationString;
-            return this;
-        }
-
-        @Override
-        public NonVanillaCustomItemDefinition.Builder block(String block) {
-            this.block = block;
             return this;
         }
 

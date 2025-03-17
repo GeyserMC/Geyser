@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
@@ -205,8 +206,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
             .component(DataComponent.MAX_STACK_SIZE, stackSize())
             .component(DataComponent.MAX_DAMAGE, maxDamage())
             .component(GeyserDataComponent.ATTACK_DAMAGE, attackDamage())
-            .translationString(translationString())
-            .block(block());
+            .translationString(translationString());
 
         if (isHat()) {
             definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.HEAD));
@@ -232,6 +232,10 @@ public interface NonVanillaCustomItemData extends CustomItemData {
             } else {
                 definition.component(GeyserDataComponent.CHARGEABLE, new Chargeable(0.0F, false, Identifier.of("arrow")));
             }
+        }
+
+        if (block() != null) {
+            definition.component(GeyserDataComponent.BLOCK_PLACER, new BlockPlacer(Identifier.of(block()), false));
         }
 
         return definition;

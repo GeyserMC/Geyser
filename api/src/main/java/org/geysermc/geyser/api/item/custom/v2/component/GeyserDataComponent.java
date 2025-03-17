@@ -50,6 +50,10 @@ public final class GeyserDataComponent {
      * <p>Attribute modifiers are automatically translated for custom vanilla items, but not for non-vanilla ones, which is why this component is here.</p>
      */
     public static final DataComponent<Integer> ATTACK_DAMAGE = DataComponent.createGeyser("attack_damage", i -> i >= 0);
+    /**
+     * Indicates which block the item should place and whether it should replace the original item for that block.
+     */
+    public static final DataComponent<BlockPlacer> BLOCK_PLACER = DataComponent.createGeyser("block_placer");
 
     private GeyserDataComponent() {}
 }
