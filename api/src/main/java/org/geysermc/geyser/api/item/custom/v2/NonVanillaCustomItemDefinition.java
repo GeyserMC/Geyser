@@ -37,8 +37,6 @@ import org.geysermc.geyser.api.util.Identifier;
 // TODO document predicates
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
-    // TODO: attack damage?
-
     /**
      * The java identifier for this item.
      */

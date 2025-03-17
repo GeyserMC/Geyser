@@ -270,6 +270,10 @@ public class CustomItemRegistryPopulator {
         setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
+        Integer attackDamage = customItemDefinition.components().get(GeyserDataComponent.ATTACK_DAMAGE);
+        if (attackDamage != null) {
+            itemProperties.putInt("damage", attackDamage); // TODO verify this is still the way to do this
+        }
 
         // Temporary workaround: when 1.21.5 releases, this value will be mapped to an MCPL tool component, and this code will look nicer
         // since we can get the value from the vanilla item component instead of using the vanilla mapping.
