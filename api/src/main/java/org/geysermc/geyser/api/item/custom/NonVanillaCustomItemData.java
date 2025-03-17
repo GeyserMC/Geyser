@@ -32,10 +32,12 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.component.FoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -221,6 +223,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
             definition.component(DataComponent.CONSUMABLE, new Consumable(1.6F, Consumable.Animation.EAT)); // Default values
             if (canAlwaysEat()) {
                 definition.component(DataComponent.FOOD, new FoodProperties(0, 0, true));
+            }
+        }
+
+        if (isChargeable() && toolType() != null) {
+            if (toolType().equals("bow")) {
+                definition.component(GeyserDataComponent.CHARGEABLE, new Chargeable(1.0F, true, Identifier.of("arrow")));
+            } else {
+                definition.component(GeyserDataComponent.CHARGEABLE, new Chargeable(0.0F, false, Identifier.of("arrow")));
             }
         }
 

@@ -154,7 +154,9 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
 
         @Override
         public <T> CustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
-            if (!component.validate(value)) {
+            if (!component.vanilla() && !(this instanceof GeyserNonVanillaCustomItemDefinition.Builder)) {
+                throw new IllegalArgumentException("That component cannot be used for vanilla items");
+            } else if (!component.validate(value)) {
                 throw new IllegalArgumentException("Value " + value + " is invalid for " + component);
             }
             components.put(component, value);
