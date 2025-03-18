@@ -68,9 +68,6 @@ repositories {
     // Jitpack for e.g. MCPL
     maven("https://jitpack.io") {
         content { includeGroupByRegex("com\\.github\\..*") }
-        metadataSources {
-            artifact() //Look directly for artifact
-        }
     }
 
 }

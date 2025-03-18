@@ -137,9 +137,9 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-protocol-common = { group = "com.github.Kaooot.Protocol", name = "common", version = "r~21_u7-d507f10210-1" }
-protocol-codec = { group = "com.github.Kaooot.Protocol", name = "bedrock-codec", version = "r~21_u7-d507f10210-1" }
-protocol-connection = { group = "com.github.Kaooot.Protocol", name = "bedrock-connection", version = "r~21_u7-d507f10210-1" }
+protocol-common = { group = "com.github.Kaooot.Protocol", name = "common", version = "r~21_u7-SNAPSHOT" }
+protocol-codec = { group = "com.github.Kaooot.Protocol", name = "bedrock-codec", version = "r~21_u7-SNAPSHOT" }
+protocol-connection = { group = "com.github.Kaooot.Protocol", name = "bedrock-connection", version = "r~21_u7-SNAPSHOT" }
 #protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-common" }
 #protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol-codec" }
 #protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
@@ -147,12 +147,6 @@ protocol-connection = { group = "com.github.Kaooot.Protocol", name = "bedrock-co
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-
-# temp fix as i cant get jitpack and the 1.21.70 PR to work properly, so these arent pulled in transitively
-netty-buffer = { group = "io.netty", name = "netty-buffer", version.ref = "netty" }
-jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version = "0.9.6" }
-natives = { group = "com.nukkitx", name = "natives", version = "1.0.3" }
-lmbda = { group = "org.lanternpowered", name = "lmbda", version = "2.0.0" }
 
 # plugins
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
