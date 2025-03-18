@@ -33,6 +33,7 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -151,7 +152,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private final SessionManager sessionManager = new SessionManager();
 
-    private final FloodgateProvider floodgateProvider;
+    private final @NotNull FloodgateProvider floodgateProvider;
     private BedrockSkinUploader skinUploader;
 
     private UnixSocketClientListener erosionUnixListener;
