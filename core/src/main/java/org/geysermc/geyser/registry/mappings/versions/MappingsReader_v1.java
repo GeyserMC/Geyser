@@ -218,7 +218,11 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     /**
-     * Read a block mapping entry from a JSON node and Java identifier
+     * Read a block mapping entry from a JSON node and Java identifier.
+     *
+     * This code also handles the geyser_custom namespace. Registering it
+     * with the geyser_custom namespace lets you treat the item as both
+     * an item and a block.
      * 
      * @param identifier The Java identifier of the block
      * @param node The {@link JsonNode} containing the block mapping entry
