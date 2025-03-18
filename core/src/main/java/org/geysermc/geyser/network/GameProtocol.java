@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
+import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
@@ -48,8 +49,8 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v776.CODEC.toBuilder()
-        .minecraftVersion("1.21.60")
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v786.CODEC.toBuilder()
+        .minecraftVersion("1.21.70")
         .build());
 
     /**
@@ -69,6 +70,9 @@ public final class GameProtocol {
             .build()));
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v766.CODEC.toBuilder()
             .minecraftVersion("1.21.50 - 1.21.51")
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v776.CODEC.toBuilder()
+            .minecraftVersion("1.21.60 - 1.21.62")
             .build()));
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
