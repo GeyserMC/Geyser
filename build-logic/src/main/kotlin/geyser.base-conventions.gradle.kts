@@ -70,4 +70,5 @@ repositories {
         content { includeGroupByRegex("com\\.github\\..*") }
     }
 
+    mavenLocal()
 }

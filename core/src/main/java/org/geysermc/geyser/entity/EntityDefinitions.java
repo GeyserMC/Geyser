@@ -473,8 +473,9 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
                     .build();
+            // TODO 1.21.5 lingering potion
             POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
-                    .type(EntityType.POTION)
+                    .type(EntityType.SPLASH_POTION)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:splash_potion")
                     .build();
@@ -960,6 +961,7 @@ public final class EntityDefinitions {
                     .type(EntityType.CHICKEN)
                     .height(0.7f).width(0.4f)
                     .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .addTranslator(MetadataTypes.CHICKEN_VARIANT, ChickenEntity::setVariant)
                     .build();
             COW = EntityDefinition.inherited(CowEntity::new, ageableEntityBase)
                     .type(EntityType.COW)
@@ -1016,8 +1018,8 @@ public final class EntityDefinitions {
                     .type(EntityType.PIG)
                     .heightAndWidth(0.9f)
                     .properties(VanillaEntityProperties.CLIMATE_VARIANT)
-                    .addTranslator(MetadataTypes.BOOLEAN, (pigEntity, entityMetadata) -> pigEntity.setFlag(EntityFlag.SADDLED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataTypes.INT, PigEntity::setBoost)
+                    .addTranslator(MetadataTypes.PIG_VARIANT, PigEntity::setVariant)
                     .build();
             POLAR_BEAR = EntityDefinition.inherited(PolarBearEntity::new, ageableEntityBase)
                     .type(EntityType.POLAR_BEAR)
@@ -1045,7 +1047,6 @@ public final class EntityDefinitions {
                     .height(1.7f).width(0.9f)
                     .addTranslator(MetadataTypes.INT, StriderEntity::setBoost)
                     .addTranslator(MetadataTypes.BOOLEAN, StriderEntity::setCold)
-                    .addTranslator(MetadataTypes.BOOLEAN, StriderEntity::setSaddled)
                     .build();
             TURTLE = EntityDefinition.inherited(TurtleEntity::new, ageableEntityBase)
                     .type(EntityType.TURTLE)
@@ -1144,7 +1145,7 @@ public final class EntityDefinitions {
 
         EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.<TameableEntity>inherited(null, ageableEntityBase) // No factory, is abstract
                 .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
-                .addTranslator(MetadataTypes.OPTIONAL_UUID, TameableEntity::setOwner)
+                .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
                 .build();
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)

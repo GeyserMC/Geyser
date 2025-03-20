@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -31,6 +31,10 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 public class Conversion776_766 {
 
     public static NbtMap remapBlock(NbtMap tag) {
+
+        // First: Downgrade from 1.21.70
+        tag = Conversion786_776.remapBlock(tag);
+
         final String name = tag.getString("name");
 
         if (name.equals("minecraft:creaking_heart")) {

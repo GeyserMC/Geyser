@@ -48,6 +48,10 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PigVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
@@ -154,5 +158,9 @@ public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
     @Override
     public boolean isClientControlled() {
         return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
+    }
+
+    public void setVariant(EntityMetadata<Holder<PigVariant>,? extends MetadataType<Holder<PigVariant>>> holderEntityMetadata) {
+        // TODO
     }
 }
