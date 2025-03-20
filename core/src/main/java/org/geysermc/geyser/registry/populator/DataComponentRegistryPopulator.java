@@ -75,6 +75,7 @@ public final class DataComponentRegistryPopulator {
                     byte[] bytes = Base64.getDecoder().decode(encodedValue);
                     ByteBuf buf = Unpooled.wrappedBuffer(bytes);
                     int varInt = MinecraftTypes.readVarInt(buf);
+                    System.out.println("int: " + varInt + " " + componentEntry.getKey());
                     DataComponentType<?> dataComponentType = DataComponentTypes.from(varInt);
                     DataComponent<?, ?> dataComponent = dataComponentType.readDataComponent(buf);
 
@@ -84,6 +85,7 @@ public final class DataComponentRegistryPopulator {
                 defaultComponents.add(new DataComponents(ImmutableMap.copyOf(map)));
             }
         } catch (Exception e) {
+            // TODO 1.21.5 enchantment reading is broken
             throw new AssertionError("Unable to load or parse components", e);
         }
 

@@ -46,12 +46,10 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -159,12 +157,13 @@ public class Item {
      */
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         List<Component> loreComponents = components.get(DataComponentTypes.LORE);
-        if (loreComponents != null && components.get(DataComponentTypes.HIDE_TOOLTIP) == null) {
-            List<String> lore = builder.getOrCreateLore();
-            for (Component loreComponent : loreComponents) {
-                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
-            }
-        }
+        // TODO 1.21.5
+//        if (loreComponents != null && components.get(DataComponentTypes.HIDE_TOOLTIP) == null) {
+//            List<String> lore = builder.getOrCreateLore();
+//            for (Component loreComponent : loreComponents) {
+//                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
+//            }
+//        }
 
         Integer damage = components.get(DataComponentTypes.DAMAGE);
         if (damage != null) {
@@ -266,10 +265,11 @@ public class Item {
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
-        DyedItemColor dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
-        if (dyedItemColor != null) {
-            builder.putInt("customColor", dyedItemColor.getRgb());
-        }
+        // TODO 1.21.5
+//        DyedItemColor dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
+//        if (dyedItemColor != null) {
+//            builder.putInt("customColor", dyedItemColor.getRgb());
+//        }
     }
 
     /**

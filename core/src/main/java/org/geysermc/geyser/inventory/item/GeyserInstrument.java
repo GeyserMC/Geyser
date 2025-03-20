@@ -34,8 +34,7 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.Locale;
@@ -90,34 +89,35 @@ public interface GeyserInstrument {
         return -1;
     }
 
-    static GeyserInstrument fromHolder(GeyserSession session, Holder<Instrument> holder) {
-        if (holder.isId()) {
-            return session.getRegistryCache().instruments().byId(holder.id());
+    // TODO 1.21.5
+    static GeyserInstrument fromComponent(GeyserSession session, InstrumentComponent component) {
+        if (component.instrumentHolder().isId()) {
+            return session.getRegistryCache().instruments().byId(component.instrumentHolder().id());
         }
-        Instrument custom = holder.custom();
+        InstrumentComponent.Instrument custom = component.instrumentHolder().custom();
         return new Wrapper(custom, session.locale());
     }
 
-    record Wrapper(Instrument instrument, String locale) implements GeyserInstrument {
+    record Wrapper(InstrumentComponent.Instrument instrument, String locale) implements GeyserInstrument {
         @Override
         public String soundEvent() {
-            return instrument.getSoundEvent().getName();
+            return instrument.soundEvent().getName();
         }
 
         @Override
         public float range() {
-            return instrument.getRange();
+            return instrument.range();
         }
 
         @Override
         public String description() {
-            return MessageTranslator.convertMessageForTooltip(instrument.getDescription(), locale);
+            return MessageTranslator.convertMessageForTooltip(instrument.description(), locale);
         }
 
         @Override
         public BedrockInstrument bedrockInstrument() {
-            if (instrument.getSoundEvent() instanceof BuiltinSound) {
-                return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.getSoundEvent().getName()));
+            if (instrument.soundEvent() instanceof BuiltinSound) {
+                return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.soundEvent().getName()));
             }
             // Probably custom
             return null;

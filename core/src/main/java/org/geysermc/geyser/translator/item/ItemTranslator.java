@@ -168,6 +168,9 @@ public final class ItemTranslator {
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
+        // TODO 1.21.5:
+        // - Hiding components
+
         // Populates default components that aren't sent over the network
         DataComponents components = javaItem.gatherComponents(customComponents);
 
@@ -180,22 +183,22 @@ public final class ItemTranslator {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible
             // Ignore when item have "hide_additional_tooltip" component
-            if (potionContents != null && components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) == null) {
+            if (potionContents != null) { // && components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) == null) {
                 customName += getPotionEffectInfo(potionContents, session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
         }
 
-        boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
+        //boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
 
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
+        if (attributeModifiers != null) { //&& attributeModifiers.isShowInTooltip() && !hideTooltips) {
             // only add if attribute modifiers do not indicate to hide them
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
-        if (session.isAdvancedTooltips() && !hideTooltips) {
+        if (session.isAdvancedTooltips()) { //&& !hideTooltips) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
@@ -545,7 +548,8 @@ public final class ItemTranslator {
             if (!customNameOnly) {
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
-                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
+                    // TODO 1.21.5
+                    String potionName = getPotionName(potionContents, mapping, false /*components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) != null */, session.locale());
                     if (potionName != null) {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                     }

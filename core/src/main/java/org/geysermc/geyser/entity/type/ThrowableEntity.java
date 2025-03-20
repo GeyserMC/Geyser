@@ -120,7 +120,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (definition.entityType()) {
-                case POTION:
+                case LINGERING_POTION, SPLASH_POTION:
                     return 0.05f;
                 case EXPERIENCE_BOTTLE:
                     return 0.07f;
@@ -146,7 +146,7 @@ public class ThrowableEntity extends Entity implements Tickable {
             return 0.8f;
         } else {
             switch (definition.entityType()) {
-                case POTION:
+                case LINGERING_POTION, SPLASH_POTION:
                 case EXPERIENCE_BOTTLE:
                 case SNOWBALL:
                 case EGG:

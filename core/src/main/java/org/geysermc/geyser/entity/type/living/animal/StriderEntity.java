@@ -69,10 +69,6 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
         isCold = entityMetadata.getPrimitiveValue();
     }
 
-    public void setSaddled(BooleanEntityMetadata entityMetadata) {
-        setFlag(EntityFlag.SADDLED, entityMetadata.getPrimitiveValue());
-    }
-
     @Override
     public void updateBedrockMetadata() {
         // Make sure they are not shaking when riding another entity

@@ -46,7 +46,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -226,7 +225,7 @@ public class BannerItem extends BlockItem {
             }
 
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);
-            components.put(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
+            // TODO 1.21.5 hide components???
             components.put(DataComponentTypes.ITEM_NAME, Component
                     .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))
