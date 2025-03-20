@@ -908,7 +908,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(UpdateClientOptions packet) {
+    public PacketSignal handle(UpdateClientOptionsPacket packet) {
         return defaultHandler(packet);
     }
 
