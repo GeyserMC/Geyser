@@ -157,6 +157,11 @@
     "minecraft:weathered_copper_door",
     "minecraft:wooden_door"
   ],
+  "minecraft:egg": [
+    "minecraft:blue_egg",
+    "minecraft:brown_egg",
+    "minecraft:egg"
+  ],
   "minecraft:golden_tier": [
     "minecraft:golden_axe",
     "minecraft:golden_boots",
