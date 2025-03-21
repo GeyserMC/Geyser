@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item;
 
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 
@@ -49,5 +50,10 @@ public interface TooltipOptions {
         }
 
         return component -> !display.hiddenComponents().contains(component);
+    }
+
+    static boolean hideTooltip(DataComponents components) {
+        TooltipDisplay display = components.get(DataComponentTypes.TOOLTIP_DISPLAY);
+        return display != null && display.hideTooltip();
     }
 }

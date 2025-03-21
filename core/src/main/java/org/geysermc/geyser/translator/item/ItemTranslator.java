@@ -194,7 +194,7 @@ public final class ItemTranslator {
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
-        if (session.isAdvancedTooltips()) { // TODO check how this is hidden
+        if (session.isAdvancedTooltips() && !TooltipOptions.hideTooltip(components)) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
