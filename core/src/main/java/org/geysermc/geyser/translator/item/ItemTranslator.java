@@ -180,16 +180,13 @@ public final class ItemTranslator {
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-            // Make custom effect information visible
-            // Ignore when item have "hide_additional_tooltip" component
-            if (potionContents != null) { // && components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) == null) {
+            // Make custom effect information visible when shown in tooltip
+            if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
                 customName += getPotionEffectInfo(potionContents, session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
         }
-
-        //boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
 
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {

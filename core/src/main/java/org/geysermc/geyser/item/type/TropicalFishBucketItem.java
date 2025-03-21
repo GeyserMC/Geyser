@@ -60,7 +60,8 @@ public class TropicalFishBucketItem extends Item {
         // Add Java's client side lore tag
         // Do you know how frequently Java NBT used to be before 1.20.5? It was a lot. And now it's just this lowly check.
         NbtMap entityTag = components.get(DataComponentTypes.BUCKET_ENTITY_DATA);
-        if (entityTag != null && !entityTag.isEmpty()) {
+        if (entityTag != null && !entityTag.isEmpty()) { // TODO test how components are hidden
+            // TODO in 1.21.5 this is switched to a tropical fish pattern, tropical fish base colour and tropical fish pattern colour component
             //TODO test
             int bucketVariant = entityTag.getInt("BucketVariantTag");
             List<String> lore = builder.getOrCreateLore();

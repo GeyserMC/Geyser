@@ -56,6 +56,7 @@ public class ArmorItem extends Item {
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
             if (!getNamespace(material.getMaterialId()).equals("minecraft")
                     || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
+                // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
                 return;
             }
 
