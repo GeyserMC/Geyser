@@ -142,7 +142,7 @@ public class LivingEntity extends Entity {
         boolean saddled = false;
         Item item = Registries.JAVA_ITEMS.get(stack.getId());
         if (item != null) {
-            DataComponents components = item.gatherComponents(stack.getDataComponents());
+            DataComponents components = item.gatherComponents(stack.getDataComponentsPatch());
             Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
             saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
         }

@@ -47,6 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -227,7 +228,8 @@ public class BannerItem extends BlockItem {
             }
 
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);
-            // TODO 1.21.5 hide components???
+            // The ominous banner item in the Java creative menu just has banner patterns hidden as of 1.21.5
+            components.put(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(false, List.of(DataComponentTypes.BANNER_PATTERNS)));
             components.put(DataComponentTypes.ITEM_NAME, Component
                     .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))
