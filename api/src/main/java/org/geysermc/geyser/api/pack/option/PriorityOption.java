@@ -29,8 +29,9 @@ import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * Allows specifying a pack priority that decides the order on how packs are sent to the client.
- * Multiple resource packs can override each other. The higher the priority, the "higher" in the stack
- * a pack is, and the more a pack can override other packs.
+ * If two resource packs modify the same texture - for example if one removes the pumpkin overlay and
+ * the other is just making it translucent, one of the packs will override the other.
+ * Specifically, the pack with the higher priority will override the pack changes of the lower priority.
  * @since 2.6.2
  */
 public interface PriorityOption extends ResourcePackOption<Double> {

@@ -34,12 +34,6 @@ import java.util.Objects;
 
 public record GeyserPriorityOption(double priority) implements PriorityOption {
 
-    public GeyserPriorityOption {
-        if (priority < 0 || priority > 10) {
-            throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
-        }
-    }
-
     @Override
     public @NonNull Type type() {
         return Type.PRIORITY;
@@ -53,7 +47,7 @@ public record GeyserPriorityOption(double priority) implements PriorityOption {
     @Override
     public void validate(@NonNull ResourcePack pack) {
         Objects.requireNonNull(pack);
-        if (priority <= 10 && priority > 0) {
+        if (priority < 0 || priority > 10) {
             throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
                 "Priority must be between 0 and 10 inclusive!");
         }
