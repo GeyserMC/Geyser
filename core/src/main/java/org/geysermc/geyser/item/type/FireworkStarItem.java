@@ -34,7 +34,6 @@ import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
-import org.jetbrains.annotations.NotNull;
 
 public class FireworkStarItem extends Item {
     public FireworkStarItem(String javaIdentifier, Builder builder) {
@@ -42,7 +41,7 @@ public class FireworkStarItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         Fireworks.FireworkExplosion explosion = components.get(DataComponentTypes.FIREWORK_EXPLOSION);
