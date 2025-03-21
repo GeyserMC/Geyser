@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -37,6 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +53,8 @@ public class WrittenBookItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
         if (bookContent == null) {

@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
@@ -46,6 +47,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -155,15 +157,14 @@ public class Item {
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         List<Component> loreComponents = components.get(DataComponentTypes.LORE);
-        // TODO 1.21.5
-//        if (loreComponents != null && components.get(DataComponentTypes.HIDE_TOOLTIP) == null) {
-//            List<String> lore = builder.getOrCreateLore();
-//            for (Component loreComponent : loreComponents) {
-//                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
-//            }
-//        }
+        if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
+            List<String> lore = builder.getOrCreateLore();
+            for (Component loreComponent : loreComponents) {
+                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
+            }
+        }
 
         Integer damage = components.get(DataComponentTypes.DAMAGE);
         if (damage != null) {

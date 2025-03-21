@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
@@ -168,14 +169,12 @@ public final class ItemTranslator {
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
-        // TODO 1.21.5:
-        // - Hiding components
-
         // Populates default components that aren't sent over the network
         DataComponents components = javaItem.gatherComponents(customComponents);
+        TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
-        javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
+        javaItem.translateComponentsToBedrock(session, components, tooltip, nbtBuilder);
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
@@ -193,12 +192,12 @@ public final class ItemTranslator {
         //boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
 
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null) { //&& attributeModifiers.isShowInTooltip() && !hideTooltips) {
+        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {
             // only add if attribute modifiers do not indicate to hide them
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
-        if (session.isAdvancedTooltips()) { //&& !hideTooltips) {
+        if (session.isAdvancedTooltips()) { // TODO check how this is hidden
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 

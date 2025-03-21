@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,6 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
+import org.jetbrains.annotations.NotNull;
 
 public class GoatHornItem extends Item {
     public GoatHornItem(String javaIdentifier, Builder builder) {
@@ -63,12 +65,11 @@ public class GoatHornItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         InstrumentComponent component = components.get(DataComponentTypes.INSTRUMENT);
-        // TODO 1.21.5 hiding????
-        if (component != null) {
+        if (component != null && tooltip.showInTooltip(DataComponentTypes.INSTRUMENT)) {
             GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
             if (instrument.bedrockInstrument() == null) {
                 builder.getOrCreateLore().add(instrument.description());

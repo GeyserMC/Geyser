@@ -32,12 +32,14 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -49,8 +51,8 @@ public class TropicalFishBucketItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         // Prevent name from appearing as "Bucket of"
         builder.putByte("AppendCustomName", (byte) 1);

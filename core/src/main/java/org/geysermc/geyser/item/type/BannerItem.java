@@ -36,6 +36,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,6 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -202,8 +204,8 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
         if (patterns != null) {

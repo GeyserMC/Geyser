@@ -59,7 +59,7 @@ public class FireworkEntity extends Entity {
         // TODO this looked the same, so I'm going to assume it is and (keep below comment if true)
         // Translate using item methods to get firework NBT for Bedrock
         BedrockItemBuilder builder = new BedrockItemBuilder();
-        Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, builder);
+        Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, , builder);
         
         dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }

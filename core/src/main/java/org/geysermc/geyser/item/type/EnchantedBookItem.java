@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -39,6 +40,7 @@ import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +52,8 @@ public class EnchantedBookItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         List<NbtMap> bedrockEnchants = new ArrayList<>();
         ItemEnchantments enchantments = components.get(DataComponentTypes.STORED_ENCHANTMENTS);

@@ -30,11 +30,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.jetbrains.annotations.NotNull;
 
 public class ArmorItem extends Item {
 
@@ -43,8 +45,8 @@ public class ArmorItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {

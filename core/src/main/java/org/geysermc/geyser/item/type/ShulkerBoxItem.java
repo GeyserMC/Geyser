@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,6 +44,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +55,8 @@ public class ShulkerBoxItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NotNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         List<ItemStack> contents = components.get(DataComponentTypes.CONTAINER);
         if (contents == null || contents.isEmpty()) {
