@@ -126,6 +126,7 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
@@ -341,7 +342,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private Vector2i lastChunkPosition = null;
-    @Setter
     private int clientRenderDistance = -1;
     private int serverRenderDistance = -1;
 
@@ -1371,7 +1371,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * You can't break blocks, attack entities, or use items while driving in a boat
      */
     public boolean isHandsBusy() {
-        return steeringRight || steeringLeft;
+        return playerEntity.getVehicle() instanceof BoatEntity && (steeringRight || steeringLeft);
     }
 
     /**
@@ -1453,11 +1453,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
+    public void setClientRenderDistance(int clientRenderDistance) {
+        boolean oldSquareToCircle = this.clientRenderDistance < this.serverRenderDistance;
+        this.clientRenderDistance = clientRenderDistance;
+        boolean newSquareToCircle = this.clientRenderDistance < this.serverRenderDistance;
+
+        if (this.serverRenderDistance != -1 && oldSquareToCircle != newSquareToCircle) {
+            recalculateBedrockRenderDistance();
+        }
+    }
+
     public void setServerRenderDistance(int renderDistance) {
         // Ensure render distance is not above 96 as sending a larger value at any point crashes mobile clients and 96 is the max of any bedrock platform
         renderDistance = Math.min(renderDistance, 96);
         this.serverRenderDistance = renderDistance;
 
+        recalculateBedrockRenderDistance();
+    }
+
+    /**
+     * Ensures that the ChunkRadiusUpdatedPacket uses the correct render distance for whatever the client distance is set as.
+     * If the server render distance is larger than the client's, then account for this and add some extra padding.
+     * We don't want to apply this for every render distance, if at all possible, because
+     */
+    private void recalculateBedrockRenderDistance() {
+        int renderDistance = ChunkUtils.squareToCircle(this.serverRenderDistance);
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
         chunkRadiusUpdatedPacket.setRadius(renderDistance);
         upstream.sendPacket(chunkRadiusUpdatedPacket);

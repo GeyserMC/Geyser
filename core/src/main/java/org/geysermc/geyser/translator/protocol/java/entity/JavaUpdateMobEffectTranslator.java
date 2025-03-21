@@ -25,16 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
 
 import java.util.Collections;
@@ -49,8 +50,15 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
             return;
         }
 
+        var event = MobEffectPacket.Event.ADD;
+
         if (entity == session.getPlayerEntity()) {
-            session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
+            EntityEffectCache cache = session.getEffectCache();
+            cache.setEffect(packet.getEffect(), packet.getAmplifier());
+            // Matches BDS
+            if (cache.getEntityEffects().contains(packet.getEffect())) {
+                event = MobEffectPacket.Event.MODIFY;
+            }
         } else if (entity instanceof ClientVehicle clientVehicle) {
             clientVehicle.getVehicleComponent().setEffect(packet.getEffect(), packet.getAmplifier());
         }
@@ -58,24 +66,29 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
         mobEffectPacket.setAmplifier(packet.getAmplifier());
         mobEffectPacket.setDuration(packet.getDuration());
-        mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
+        mobEffectPacket.setEvent(event);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
         session.sendUpstreamPacket(mobEffectPacket);
 
-        // Fixes https://github.com/GeyserMC/Geyser/issues/5347 by re-sending the correct absorption hearts
-        if (entity == session.getPlayerEntity() && packet.getEffect() == Effect.ABSORPTION) {
-            var absorptionAttribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
-            if (absorptionAttribute == null) {
+        // Bedrock expects some attributes to be updated in the same tick as the effect causing them
+        if (entity == session.getPlayerEntity()) {
+            AttributeData attribute = switch (packet.getEffect()) {
+                // Fixes https://github.com/GeyserMC/Geyser/issues/5347
+                case ABSORPTION -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
+                // Fixes https://github.com/GeyserMC/Geyser/issues/5388
+                case SPEED -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
+                default -> null;
+            };
+
+            if (attribute == null) {
                 return;
             }
 
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-            // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
-            attributesPacket.setAttributes(Collections.singletonList(
-                GeyserAttributeType.ABSORPTION.getAttribute(absorptionAttribute.getValue())));
+            attributesPacket.setAttributes(Collections.singletonList(attribute));
             session.sendUpstreamPacket(attributesPacket);
         }
     }

@@ -99,11 +99,18 @@ public class ChunkUtils {
             chunkPublisherUpdatePacket.setPosition(position);
             // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
             // https://github.com/GeyserMC/Geyser/issues/3490
-            chunkPublisherUpdatePacket.setRadius(GenericMath.ceil((session.getServerRenderDistance() + 1) * MathUtils.SQRT_OF_TWO) << 4);
+            chunkPublisherUpdatePacket.setRadius(squareToCircle(session.getServerRenderDistance()) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
         }
+    }
+
+    /**
+     * Converts a Java render distance number to the equivalent in Bedrock.
+     */
+    public static int squareToCircle(int renderDistance) {
+        return GenericMath.ceil((renderDistance + 1) * MathUtils.SQRT_OF_TWO);
     }
 
     /**

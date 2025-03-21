@@ -76,7 +76,7 @@ final class BedrockMovePlayer {
         boolean hasVehicle = entity.getVehicle() != null;
 
         // shouldSendPositionReminder also increments a tick counter, so make sure it's always called unless the player is on a vehicle.
-        boolean positionChanged = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
+        boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
         if (session.getLookBackScheduledFuture() != null) {
@@ -87,15 +87,23 @@ final class BedrockMovePlayer {
         }
 
         // Client is telling us it wants to move down, but something is blocking it from doing so.
-        boolean isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && packet.getDelta().getY() < 0;
+        boolean isOnGround;
+        if (hasVehicle) {
+            // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
+            isOnGround = Math.abs(packet.getDelta().getY()) < 0.1;
+        } else {
+            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && packet.getDelta().getY() < 0;
+        }
+
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
+        // This isn't sent when a player is riding a vehicle (as of 1.21.62)
         boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
 
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
-        if (!positionChanged && rotationChanged) {
+        if (!positionChangedAndShouldUpdate && rotationChanged) {
             ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(isOnGround, horizontalCollision, yaw, pitch);
 
             entity.setYaw(yaw);
@@ -103,71 +111,79 @@ final class BedrockMovePlayer {
             entity.setHeadYaw(headYaw);
 
             session.sendDownstreamGamePacket(playerRotationPacket);
-        } else if (positionChanged) {
+
+            // Player position MUST be updated on our end, otherwise e.g. chunk loading breaks
+            if (hasVehicle) {
+                entity.setPositionManual(packet.getPosition());
+                session.getSkullCache().updateVisibleSkulls();
+            }
+        } else if (positionChangedAndShouldUpdate) {
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
-                CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
-                if (result != null) { // A null return value cancels the packet
-                    Vector3d position = result.correctedMovement();
-                    boolean isBelowVoid = entity.isVoidPositionDesynched();
+                if (!session.getWorldBorder().isPassingIntoBorderBoundaries(entity.getPosition(), true)) {
+                    CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
+                    if (result != null) { // A null return value cancels the packet
+                        Vector3d position = result.correctedMovement();
+                        boolean isBelowVoid = entity.isVoidPositionDesynched();
 
-                    boolean teleportThroughVoidFloor, mustResyncPosition;
-                    // Compare positions here for void floor fix below before the player's position variable is set to the packet position
-                    if (entity.getPosition().getY() >= packet.getPosition().getY() && !isBelowVoid) {
-                        int floorY = position.getFloorY();
-                        int voidFloorLocation = entity.voidFloorPosition();
-                        teleportThroughVoidFloor = floorY <= (voidFloorLocation + 1) && floorY >= voidFloorLocation;
-                    } else {
-                        teleportThroughVoidFloor = false;
-                    }
+                        boolean teleportThroughVoidFloor, mustResyncPosition;
+                        // Compare positions here for void floor fix below before the player's position variable is set to the packet position
+                        if (entity.getPosition().getY() >= packet.getPosition().getY() && !isBelowVoid) {
+                            int floorY = position.getFloorY();
+                            int voidFloorLocation = entity.voidFloorPosition();
+                            teleportThroughVoidFloor = floorY <= (voidFloorLocation + 1) && floorY >= voidFloorLocation;
+                        } else {
+                            teleportThroughVoidFloor = false;
+                        }
 
-                    if (teleportThroughVoidFloor || isBelowVoid) {
-                        // https://github.com/GeyserMC/Geyser/issues/3521 - no void floor in Java so we cannot be on the ground.
-                        isOnGround = false;
-                    }
+                        if (teleportThroughVoidFloor || isBelowVoid) {
+                            // https://github.com/GeyserMC/Geyser/issues/3521 - no void floor in Java so we cannot be on the ground.
+                            isOnGround = false;
+                        }
 
-                    if (isBelowVoid) {
-                        int floorY = position.getFloorY();
-                        int voidFloorLocation = entity.voidFloorPosition();
-                        mustResyncPosition = floorY < voidFloorLocation && floorY >= voidFloorLocation - 1;
-                    } else {
-                        mustResyncPosition = false;
-                    }
+                        if (isBelowVoid) {
+                            int floorY = position.getFloorY();
+                            int voidFloorLocation = entity.voidFloorPosition();
+                            mustResyncPosition = floorY < voidFloorLocation && floorY >= voidFloorLocation - 1;
+                        } else {
+                            mustResyncPosition = false;
+                        }
 
-                    double yPosition = position.getY();
-                    if (entity.isVoidPositionDesynched()) { // not using the cached variable on purpose
-                        yPosition += 4; // We are de-synched since we had to teleport below the void floor.
-                    }
+                        double yPosition = position.getY();
+                        if (entity.isVoidPositionDesynched()) { // not using the cached variable on purpose
+                            yPosition += 4; // We are de-synched since we had to teleport below the void floor.
+                        }
 
-                    Packet movePacket;
-                    if (rotationChanged) {
-                        // Send rotation updates as well
-                        movePacket = new ServerboundMovePlayerPosRotPacket(
+                        Packet movePacket;
+                        if (rotationChanged) {
+                            // Send rotation updates as well
+                            movePacket = new ServerboundMovePlayerPosRotPacket(
                                 isOnGround,
                                 horizontalCollision,
                                 position.getX(), yPosition, position.getZ(),
                                 yaw, pitch
-                        );
-                        entity.setYaw(yaw);
-                        entity.setPitch(pitch);
-                        entity.setHeadYaw(headYaw);
-                    } else {
-                        // Rotation did not change; don't send an update with rotation
-                        movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), yPosition, position.getZ());
+                            );
+                            entity.setYaw(yaw);
+                            entity.setPitch(pitch);
+                            entity.setHeadYaw(headYaw);
+                        } else {
+                            // Rotation did not change; don't send an update with rotation
+                            movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), yPosition, position.getZ());
+                        }
+
+                        entity.setPositionManual(packet.getPosition());
+
+                        // Send final movement changes
+                        session.sendDownstreamGamePacket(movePacket);
+
+                        if (teleportThroughVoidFloor) {
+                            entity.teleportVoidFloorFix(false);
+                        } else if (mustResyncPosition) {
+                            entity.teleportVoidFloorFix(true);
+                        }
+
+                        session.getInputCache().markPositionPacketSent();
+                        session.getSkullCache().updateVisibleSkulls();
                     }
-
-                    entity.setPositionManual(packet.getPosition());
-
-                    // Send final movement changes
-                    session.sendDownstreamGamePacket(movePacket);
-
-                    if (teleportThroughVoidFloor) {
-                        entity.teleportVoidFloorFix(false);
-                    } else if (mustResyncPosition) {
-                        entity.teleportVoidFloorFix(true);
-                    }
-
-                    session.getInputCache().markPositionPacketSent();
-                    session.getSkullCache().updateVisibleSkulls();
                 }
             } else {
                 // Not a valid move
