@@ -31,6 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -43,7 +44,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
 
-public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity {
+public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity implements VariantHolder<Variant> {
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
                                     Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -68,7 +69,7 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity {
 
     // Ordered by bedrock id
     // TODO: are these ordered correctly? Does the order differ for mobs?
-    public enum BuiltInVariant {
+    public enum BuiltInVariant implements BuiltIn<?> {
         COLD,
         TEMPERATE,
         WARM;

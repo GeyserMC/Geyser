@@ -25,33 +25,31 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.Locale;
 import java.util.UUID;
-import java.util.function.Function;
 
-public class CatEntity extends TameableEntity {
+// TODO this is implementing VariantHolder<Object> until MCPL updates
+public class CatEntity extends TameableEntity implements VariantHolder<Object> {
 
     private byte collarColor = 14; // Red - default
 
@@ -87,17 +85,19 @@ public class CatEntity extends TameableEntity {
         updateCollarColor();
     }
 
-    // TODO this is a holder when MCPL updates
-    // TODO also checks if this works
-    public void setCatVariant(IntEntityMetadata entityMetadata) {
-        // Different colors in Java and Bedrock for some reason
-        int metadataValue = entityMetadata.getPrimitiveValue();
+    @Override
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.CAT_VARIANT;
+    }
 
-        BuiltInVariant variant = JavaRegistries.CAT_VARIANT.fromNetworkId(session, metadataValue);
-        if (variant == null) {
-            variant = BuiltInVariant.BLACK; // Default variant on Java
-        }
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
+    @Override
+    public void setBedrockVariant(int bedrockId) {
+        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+    }
+
+    @Override
+    public BuiltIn<Object> defaultVariant() {
+        return BuiltInVariant.BLACK; // Default variant on Java
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -147,8 +147,7 @@ public class CatEntity extends TameableEntity {
 
     // Ordered by bedrock id
     // TODO: are these ordered correctly?
-    // TODO lessen code duplication with other variant mobs
-    public enum BuiltInVariant {
+    public enum BuiltInVariant implements BuiltIn<Object> {
         WHITE,
         BLACK,
         RED,
@@ -159,23 +158,6 @@ public class CatEntity extends TameableEntity {
         RAGDOLL,
         TABBY,
         ALL_BLACK,
-        JELLIE;
-
-        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
-
-        private final Key javaIdentifier;
-
-        BuiltInVariant() {
-            javaIdentifier = MinecraftKey.key(name().toLowerCase(Locale.ROOT));
-        }
-
-        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
-            for (BuiltInVariant variant : values()) {
-                if (variant.javaIdentifier.equals(identifier)) {
-                    return variant;
-                }
-            }
-            return null;
-        }
+        JELLIE
     }
 }
