@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
+import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
@@ -49,7 +49,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import java.util.UUID;
 
 // TODO this is implementing VariantHolder<Object> until MCPL updates
-public class CatEntity extends TameableEntity implements VariantHolder<Object> {
+public class CatEntity extends TameableEntity implements VariantIntHolder<Object> {
 
     private byte collarColor = 14; // Red - default
 
@@ -91,7 +91,7 @@ public class CatEntity extends TameableEntity implements VariantHolder<Object> {
     }
 
     @Override
-    public void setBedrockVariant(int bedrockId) {
+    public void setBedrockVariantId(int bedrockId) {
         dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 

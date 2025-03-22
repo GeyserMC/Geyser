@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
+import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
@@ -59,7 +59,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import java.util.Collections;
 import java.util.UUID;
 
-public class WolfEntity extends TameableEntity implements VariantHolder<WolfVariant> {
+public class WolfEntity extends TameableEntity implements VariantIntHolder<WolfVariant> {
     private byte collarColor = 14; // Red - default
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
@@ -120,7 +120,7 @@ public class WolfEntity extends TameableEntity implements VariantHolder<WolfVari
     }
 
     @Override
-    public void setBedrockVariant(int bedrockId) {
+    public void setBedrockVariantId(int bedrockId) {
         dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
