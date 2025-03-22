@@ -38,6 +38,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
@@ -94,6 +95,10 @@ public final class RegistryCache {
         register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
         register("wolf_variant", cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
 
+        register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
+        register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
+        register(JavaRegistries.CHICKEN_VARIANT, cache -> cache.chickenVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
+
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
         Map<Key, Map<Key, NbtMap>> defaults = new HashMap<>();
@@ -133,6 +138,10 @@ public final class RegistryCache {
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
     private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
     private final JavaRegistry<GeyserInstrument> instruments = new SimpleJavaRegistry<>();
+
+    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> pigVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> cowVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> chickenVariants = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;

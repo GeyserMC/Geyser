@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.entity.type.living.animal.farm;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
+import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class ChickenEntity extends AnimalEntity {
+public class CowEntity extends TemperatureVariantAnimal<CowVariant> {
 
-    public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public CowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -49,9 +60,35 @@ public class ChickenEntity extends AnimalEntity {
         propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
+    @NonNull
+    @Override
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
+        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
+            return super.testMobInteraction(hand, itemInHand);
+        }
+
+        return InteractiveTag.MILK;
+    }
+
+    @NonNull
+    @Override
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
+        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
+            return super.mobInteract(hand, itemInHand);
+        }
+
+        session.playSoundEvent(SoundEvent.MILK, position);
+        return InteractionResult.SUCCESS;
+    }
+
     @Override
     @Nullable
     protected Tag<Item> getFoodTag() {
-        return ItemTag.CHICKEN_FOOD;
+        return ItemTag.COW_FOOD;
+    }
+
+    @Override
+    protected JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.COW_VARIANT;
     }
 }
