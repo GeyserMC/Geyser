@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -34,16 +35,21 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
+import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class CatEntity extends TameableEntity {
 
@@ -81,17 +87,17 @@ public class CatEntity extends TameableEntity {
         updateCollarColor();
     }
 
+    // TODO this is a holder when MCPL updates
+    // TODO also checks if this works
     public void setCatVariant(IntEntityMetadata entityMetadata) {
         // Different colors in Java and Bedrock for some reason
         int metadataValue = entityMetadata.getPrimitiveValue();
-        int variantColor = switch (metadataValue) {
-            case 0 -> 8;
-            case 8 -> 0;
-            case 9 -> 10;
-            case 10 -> 9;
-            default -> metadataValue;
-        };
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variantColor);
+
+        BuiltInVariant variant = JavaRegistries.CAT_VARIANT.fromNetworkId(session, metadataValue);
+        if (variant == null) {
+            variant = BuiltInVariant.BLACK; // Default variant on Java
+        }
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -136,6 +142,40 @@ public class CatEntity extends TameableEntity {
         } else {
             // Attempt to feed
             return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractionResult.PASS : InteractionResult.SUCCESS;
+        }
+    }
+
+    // Ordered by bedrock id
+    // TODO: are these ordered correctly?
+    // TODO lessen code duplication with other variant mobs
+    public enum BuiltInVariant {
+        WHITE,
+        BLACK,
+        RED,
+        SIAMESE,
+        BRITISH_SHORTHAIR,
+        CALICO,
+        PERSIAN,
+        RAGDOLL,
+        TABBY,
+        ALL_BLACK,
+        JELLIE;
+
+        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
+
+        private final Key javaIdentifier;
+
+        BuiltInVariant() {
+            javaIdentifier = MinecraftKey.key(name().toLowerCase(Locale.ROOT));
+        }
+
+        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
+            for (BuiltInVariant variant : values()) {
+                if (variant.javaIdentifier.equals(identifier)) {
+                    return variant;
+                }
+            }
+            return null;
         }
     }
 }
