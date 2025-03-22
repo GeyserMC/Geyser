@@ -38,6 +38,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
@@ -94,9 +95,10 @@ public final class RegistryCache {
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
-        register("wolf_variant", cache -> cache.wolfVariants, context -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(context.id().asString()));
 
         register(JavaRegistries.CAT_VARIANT, cache -> cache.catVariants, CatEntity.BuiltInVariant.READER);
+        register(JavaRegistries.FROG_VARIANT, cache -> cache.frogVariants, FrogEntity.BuiltInVariant.READER);
+        register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, WolfEntity.BuiltInVariant.READER);
 
         register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
         register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
@@ -141,8 +143,9 @@ public final class RegistryCache {
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
     private final JavaRegistry<GeyserInstrument> instruments = new SimpleJavaRegistry<>();
 
-    private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
     private final JavaRegistry<CatEntity.BuiltInVariant> catVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<FrogEntity.BuiltInVariant> frogVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<WolfEntity.BuiltInVariant> wolfVariants = new SimpleJavaRegistry<>();
 
     private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> pigVariants = new SimpleJavaRegistry<>();
     private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> cowVariants = new SimpleJavaRegistry<>();

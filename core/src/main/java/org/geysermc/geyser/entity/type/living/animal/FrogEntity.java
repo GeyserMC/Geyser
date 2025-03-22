@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -33,14 +34,19 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
+import java.util.Locale;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class FrogEntity extends AnimalEntity {
     public FrogEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -56,13 +62,15 @@ public class FrogEntity extends AnimalEntity {
         super.setPose(pose);
     }
 
+    // TODO this is a holder when MCPL updates
+    // TODO also check if this works
     public void setFrogVariant(IntEntityMetadata entityMetadata) {
-        int variant = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
-            case 1 -> 2; // White
-            case 2 -> 1; // Green
-            default -> variant;
-        });
+        BuiltInVariant variant = JavaRegistries.FROG_VARIANT.fromNetworkId(session, entityMetadata.getPrimitiveValue());
+        if (variant == null) {
+            variant = BuiltInVariant.TEMPERATE;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
     }
 
     public void setTongueTarget(ObjectEntityMetadata<OptionalInt> entityMetadata) {
@@ -81,5 +89,30 @@ public class FrogEntity extends AnimalEntity {
     @Nullable
     protected Tag<Item> getFoodTag() {
         return ItemTag.FROG_FOOD;
+    }
+
+    // Ordered by bedrock id
+    // TODO: are these ordered correctly?
+    public enum BuiltInVariant {
+        TEMPERATE,
+        COLD,
+        WARM;
+
+        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
+
+        private final Key javaIdentifier;
+
+        BuiltInVariant() {
+            javaIdentifier = MinecraftKey.key(name().toLowerCase(Locale.ROOT));
+        }
+
+        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
+            for (BuiltInVariant variant : values()) {
+                if (variant.javaIdentifier.equals(identifier)) {
+                    return variant;
+                }
+            }
+            return null;
+        }
     }
 }

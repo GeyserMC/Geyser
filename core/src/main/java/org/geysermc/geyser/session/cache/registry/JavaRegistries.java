@@ -27,8 +27,10 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
+import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
@@ -52,7 +54,11 @@ public class JavaRegistries {
     public static final JavaRegistryKey<Item> ITEM = create("item", Registries.JAVA_ITEMS, Item::javaId);
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment", RegistryCache::enchantments);
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern", RegistryCache::bannerPatterns);
+
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant", RegistryCache::catVariants);
+    public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant", RegistryCache::frogVariants);
+    public static final JavaRegistryKey<WolfEntity.BuiltInVariant> WOLF_VARIANT = create("wolf_variant", RegistryCache::wolfVariants);
+
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> PIG_VARIANT = create("pig_variant", RegistryCache::pigVariants);
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant", RegistryCache::cowVariants);
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant", RegistryCache::chickenVariants);
