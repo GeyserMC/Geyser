@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
@@ -96,9 +97,9 @@ public final class RegistryCache {
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
 
-        register(JavaRegistries.CAT_VARIANT, cache -> cache.catVariants, CatEntity.BuiltInVariant.READER);
-        register(JavaRegistries.FROG_VARIANT, cache -> cache.frogVariants, FrogEntity.BuiltInVariant.READER);
-        register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, WolfEntity.BuiltInVariant.READER);
+        register(JavaRegistries.CAT_VARIANT, cache -> cache.catVariants, VariantHolder.reader(CatEntity.BuiltInVariant.class));
+        register(JavaRegistries.FROG_VARIANT, cache -> cache.frogVariants, VariantHolder.reader(FrogEntity.BuiltInVariant.class));
+        register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, VariantHolder.reader(WolfEntity.BuiltInVariant.class));
 
         register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
         register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, TemperatureVariantAnimal.BuiltInVariant.READER);

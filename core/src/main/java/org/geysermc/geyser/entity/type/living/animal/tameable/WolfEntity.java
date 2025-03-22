@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -34,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
@@ -41,18 +41,15 @@ import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
-import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -60,11 +57,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.Collections;
-import java.util.Locale;
 import java.util.UUID;
-import java.util.function.Function;
 
-public class WolfEntity extends TameableEntity {
+public class WolfEntity extends TameableEntity implements VariantHolder<WolfVariant> {
     private byte collarColor = 14; // Red - default
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
@@ -119,16 +114,19 @@ public class WolfEntity extends TameableEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
-    // 1.20.5+
-    public void setWolfVariant(ObjectEntityMetadata<Holder<WolfVariant>> entityMetadata) {
-        // TODO set to pale if custom holder?
-        entityMetadata.getValue().ifId(id -> {
-            BuiltInVariant wolfVariant = JavaRegistries.WOLF_VARIANT.fromNetworkId(session, id);
-            if (wolfVariant == null) {
-                wolfVariant = BuiltInVariant.PALE;
-            }
-            dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
-        });
+    @Override
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.WOLF_VARIANT;
+    }
+
+    @Override
+    public void setBedrockVariant(int bedrockId) {
+        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+    }
+
+    @Override
+    public BuiltIn<WolfVariant> defaultVariant() {
+        return BuiltInVariant.PALE;
     }
 
     @Override
@@ -201,7 +199,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     // Ordered by bedrock id
-    public enum BuiltInVariant {
+    public enum BuiltInVariant implements BuiltIn<WolfVariant> {
         PALE,
         ASHEN,
         BLACK,
@@ -210,23 +208,6 @@ public class WolfEntity extends TameableEntity {
         SNOWY,
         SPOTTED,
         STRIPED,
-        WOODS;
-
-        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
-
-        private final Key javaIdentifier;
-
-        BuiltInVariant() {
-            this.javaIdentifier = MinecraftKey.key(this.name().toLowerCase(Locale.ROOT));
-        }
-
-        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
-            for (BuiltInVariant wolfVariant : values()) {
-                if (wolfVariant.javaIdentifier.equals(identifier)) {
-                    return wolfVariant;
-                }
-            }
-            return null;
-        }
+        WOODS
     }
 }
