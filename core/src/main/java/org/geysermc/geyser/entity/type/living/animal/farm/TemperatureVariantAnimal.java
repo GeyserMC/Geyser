@@ -62,9 +62,12 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity {
         } else {
             animalVariant = BuiltInVariant.TEMPERATE;
         }
+        // TODO does this work?
         dirtyMetadata.put(EntityDataTypes.VARIANT, animalVariant.ordinal());
     }
 
+    // Ordered by bedrock id
+    // TODO: are these ordered correctly? Does the order differ for mobs?
     public enum BuiltInVariant {
         COLD,
         TEMPERATE,

@@ -967,6 +967,7 @@ public final class EntityDefinitions {
                     .type(EntityType.COW)
                     .height(1.4f).width(0.9f)
                     .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .addTranslator(MetadataTypes.COW_VARIANT, CowEntity::setVariant)
                     .build();
             FOX = EntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
                     .type(EntityType.FOX)
