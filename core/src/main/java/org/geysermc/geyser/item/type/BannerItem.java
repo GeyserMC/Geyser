@@ -36,6 +36,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,6 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -202,8 +204,8 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
         if (patterns != null) {
@@ -225,7 +227,8 @@ public class BannerItem extends BlockItem {
             }
 
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);
-            // TODO 1.21.5 hide components???
+            // The ominous banner item in the Java creative menu just has banner patterns hidden as of 1.21.5
+            components.put(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(false, List.of(DataComponentTypes.BANNER_PATTERNS)));
             components.put(DataComponentTypes.ITEM_NAME, Component
                     .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))

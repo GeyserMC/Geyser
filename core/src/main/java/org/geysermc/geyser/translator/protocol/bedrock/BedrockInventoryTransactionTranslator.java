@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -40,6 +41,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryTra
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
@@ -49,6 +52,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
@@ -74,12 +78,15 @@ import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -380,30 +387,29 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 session.setCurrentBook(packet.getItemInHand());
                             } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.GOAT_HORN) {
                                 // Temporary workaround while we don't have full item/block use tracking.
-                                // TODO 1.21.5
                                 if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
-//                                    Holder<Instrument> holder = session.getPlayerInventory()
-//                                        .getItemInHand()
-//                                        .getComponent(DataComponentTypes.INSTRUMENT);
-//                                    if (holder != null) {
-//                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, holder);
-//                                        if (instrument.bedrockInstrument() != null) {
-//                                            // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
-//                                            LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
-//                                            soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
-//                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
-//                                            soundPacket.setIdentifier("minecraft:player");
-//                                            soundPacket.setExtraData(-1);
-//                                            session.sendUpstreamPacket(soundPacket);
-//                                        } else {
-//                                            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-//                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
-//                                            playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
-//                                            playSoundPacket.setPitch(1.0F);
-//                                            playSoundPacket.setVolume(instrument.range() / 16.0F);
-//                                            session.sendUpstreamPacket(playSoundPacket);
-//                                        }
-//                                    }
+                                    InstrumentComponent component = session.getPlayerInventory()
+                                        .getItemInHand()
+                                        .getComponent(DataComponentTypes.INSTRUMENT);
+                                    if (component != null) {
+                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
+                                        if (instrument.bedrockInstrument() != null) {
+                                            // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
+                                            LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
+                                            soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
+                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                            soundPacket.setIdentifier("minecraft:player");
+                                            soundPacket.setExtraData(-1);
+                                            session.sendUpstreamPacket(soundPacket);
+                                        } else {
+                                            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
+                                            playSoundPacket.setPitch(1.0F);
+                                            playSoundPacket.setVolume(instrument.range() / 16.0F);
+                                            session.sendUpstreamPacket(playSoundPacket);
+                                        }
+                                    }
                                 }
                             }
                         }

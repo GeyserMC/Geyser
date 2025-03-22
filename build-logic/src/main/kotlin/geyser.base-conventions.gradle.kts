@@ -26,7 +26,7 @@ dependencies {
 }
 
 repositories {
-    // mavenLocal()
+    mavenLocal()
 
     mavenCentral()
 
@@ -69,6 +69,4 @@ repositories {
     maven("https://jitpack.io") {
         content { includeGroupByRegex("com\\.github\\..*") }
     }
-
-    mavenLocal()
 }
