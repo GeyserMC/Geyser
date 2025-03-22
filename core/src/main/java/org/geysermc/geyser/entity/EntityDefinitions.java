@@ -980,7 +980,7 @@ public final class EntityDefinitions {
             FROG = EntityDefinition.inherited(FrogEntity::new, ageableEntityBase)
                     .type(EntityType.FROG)
                     .heightAndWidth(0.5f)
-                    .addTranslator(MetadataTypes.FROG_VARIANT, FrogEntity::setFrogVariant)
+                    .addTranslator(MetadataTypes.FROG_VARIANT, FrogEntity::setVariant)
                     .addTranslator(MetadataTypes.OPTIONAL_VARINT, FrogEntity::setTongueTarget)
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
@@ -1151,7 +1151,7 @@ public final class EntityDefinitions {
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
-                .addTranslator(MetadataTypes.CAT_VARIANT, CatEntity::setCatVariant)
+                .addTranslator(MetadataTypes.CAT_VARIANT, CatEntity::setVariant)
                 .addTranslator(MetadataTypes.BOOLEAN, CatEntity::setResting)
                 .addTranslator(null) // "resting state one" //TODO
                 .addTranslator(MetadataTypes.INT, CatEntity::setCollarColor)
@@ -1169,7 +1169,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)
                 .addTranslator(MetadataTypes.INT, WolfEntity::setWolfAngerTime)
-                .addTranslator(MetadataTypes.WOLF_VARIANT, WolfEntity::setWolfVariant)
+                .addTranslator(MetadataTypes.WOLF_VARIANT, WolfEntity::setVariant)
                 .build();
 
         // As of 1.18 these don't track entity data at all

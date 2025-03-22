@@ -101,9 +101,9 @@ public final class RegistryCache {
         register(JavaRegistries.FROG_VARIANT, cache -> cache.frogVariants, VariantHolder.reader(FrogEntity.BuiltInVariant.class));
         register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, VariantHolder.reader(WolfEntity.BuiltInVariant.class));
 
-        register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
-        register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
-        register(JavaRegistries.CHICKEN_VARIANT, cache -> cache.chickenVariants, TemperatureVariantAnimal.BuiltInVariant.READER);
+        register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
+        register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
+        register(JavaRegistries.CHICKEN_VARIANT, cache -> cache.chickenVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();

@@ -49,6 +49,7 @@ public class MooshroomEntity extends CowEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
+    // TODO fix this with super
     public void setVariant(ObjectEntityMetadata<String> entityMetadata) {
         isBrown = entityMetadata.getValue().equals("brown");
         dirtyMetadata.put(EntityDataTypes.VARIANT, isBrown ? 1 : 0);

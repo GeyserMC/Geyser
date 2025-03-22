@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -51,9 +50,6 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PigVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -164,7 +160,7 @@ public class PigEntity extends TemperatureVariantAnimal<PigVariant> implements T
     }
 
     @Override
-    protected JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.PIG_VARIANT;
     }
 }

@@ -25,25 +25,16 @@
 
 package org.geysermc.geyser.entity.type.living.animal.farm;
 
-import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 
-import java.util.Locale;
 import java.util.UUID;
-import java.util.function.Function;
 
+// TODO figure out how to do the generics here
 public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity implements VariantHolder<Variant> {
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
@@ -51,20 +42,15 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity imp
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    protected abstract JavaRegistryKey<BuiltInVariant> variantRegistry();
-
-    public void setVariant(EntityMetadata<Holder<Variant>, ? extends MetadataType<Holder<Variant>>> variant) {
-        BuiltInVariant animalVariant;
-        if (variant.getValue().isId()) {
-            animalVariant = variantRegistry().fromNetworkId(session, variant.getValue().id());
-            if (animalVariant == null) {
-                animalVariant = BuiltInVariant.TEMPERATE;
-            }
-        } else {
-            animalVariant = BuiltInVariant.TEMPERATE;
-        }
+    @Override
+    public void setBedrockVariant(int bedrockId) {
         // TODO does this work?
-        dirtyMetadata.put(EntityDataTypes.VARIANT, animalVariant.ordinal());
+        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+    }
+
+    @Override
+    public BuiltIn<Variant> defaultVariant() {
+        return BuiltInVariant.TEMPERATE;
     }
 
     // Ordered by bedrock id
@@ -72,23 +58,6 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity imp
     public enum BuiltInVariant implements BuiltIn<?> {
         COLD,
         TEMPERATE,
-        WARM;
-
-        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
-
-        private final Key javaIdentifier;
-
-        BuiltInVariant() {
-            javaIdentifier = MinecraftKey.key(name().toLowerCase(Locale.ROOT));
-        }
-
-        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
-            for (BuiltInVariant variant : values()) {
-                if (variant.javaIdentifier.equals(identifier)) {
-                    return variant;
-                }
-            }
-            return null;
-        }
+        WARM
     }
 }
