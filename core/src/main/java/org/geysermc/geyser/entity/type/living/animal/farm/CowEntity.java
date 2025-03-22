@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -88,7 +87,7 @@ public class CowEntity extends TemperatureVariantAnimal<CowVariant> {
     }
 
     @Override
-    protected JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.COW_VARIANT;
     }
 }

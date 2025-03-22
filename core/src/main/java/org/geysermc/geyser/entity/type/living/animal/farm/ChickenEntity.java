@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -59,7 +58,7 @@ public class ChickenEntity extends TemperatureVariantAnimal<ChickenVariant> {
     }
 
     @Override
-    protected JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.CHICKEN_VARIANT;
     }
 }
