@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.item;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 
-public class WolfArmorItem extends Item {
-    public WolfArmorItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+@FunctionalInterface
+public interface TooltipOptions {
+
+    TooltipOptions ALL_SHOWN = component -> true;
+
+    TooltipOptions ALL_HIDDEN = component -> false;
+
+    boolean showInTooltip(DataComponentType<?> component);
+
+    static TooltipOptions fromComponents(DataComponents components) {
+        TooltipDisplay display = components.get(DataComponentTypes.TOOLTIP_DISPLAY);
+        if (display == null) {
+            return ALL_SHOWN;
+        } else if (display.hideTooltip()) {
+            return ALL_HIDDEN;
+        } else if (display.hiddenComponents().isEmpty()) {
+            return ALL_SHOWN;
+        }
+
+        return component -> !display.hiddenComponents().contains(component);
     }
 
-    @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, tooltip, builder);
-
-        // Note that this is handled as of 1.21 in the ItemColors class.
-        translateDyedColor(components, builder);
+    static boolean hideTooltip(DataComponents components) {
+        TooltipDisplay display = components.get(DataComponentTypes.TOOLTIP_DISPLAY);
+        return display != null && display.hideTooltip();
     }
 }

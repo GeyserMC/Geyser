@@ -89,13 +89,18 @@ public interface GeyserInstrument {
         return -1;
     }
 
-    // TODO 1.21.5
+    // TODO test in 1.21.5
     static GeyserInstrument fromComponent(GeyserSession session, InstrumentComponent component) {
-        if (component.instrumentHolder().isId()) {
-            return session.getRegistryCache().instruments().byId(component.instrumentHolder().id());
+        if (component.instrumentLocation() != null) {
+            return session.getRegistryCache().instruments().byKey(component.instrumentLocation());
+        } else if (component.instrumentHolder() != null) {
+            if (component.instrumentHolder().isId()) {
+                return session.getRegistryCache().instruments().byId(component.instrumentHolder().id());
+            }
+            InstrumentComponent.Instrument custom = component.instrumentHolder().custom();
+            return new Wrapper(custom, session.locale());
         }
-        InstrumentComponent.Instrument custom = component.instrumentHolder().custom();
-        return new Wrapper(custom, session.locale());
+        throw new IllegalStateException("InstrumentComponent must have either a location or a holder");
     }
 
     record Wrapper(InstrumentComponent.Instrument instrument, String locale) implements GeyserInstrument {
