@@ -44,7 +44,7 @@ import java.util.OptionalInt;
 import java.util.UUID;
 
 // TODO this is implementing VariantHolder<Object> until MCPL updates
-public class FrogEntity extends AnimalEntity implements VariantHolder<Object> {
+public class FrogEntity extends AnimalEntity implements VariantIntHolder<Object> {
     public FrogEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -64,7 +64,7 @@ public class FrogEntity extends AnimalEntity implements VariantHolder<Object> {
     }
 
     @Override
-    public void setBedrockVariant(int bedrockId) {
+    public void setBedrockVariantId(int bedrockId) {
         dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 

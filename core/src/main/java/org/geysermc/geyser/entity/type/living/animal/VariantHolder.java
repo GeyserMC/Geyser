@@ -41,12 +41,13 @@ import java.util.function.Function;
  * Utility interface to help set up data-driven entity variants for mobs.
  *
  * <p>This interface is designed for mobs that have their variant wrapped in a {@link Holder}. Implementations usually have to
- * implement {@link VariantHolder#variantRegistry()}, {@link VariantHolder#setBedrockVariant(int)}, and {@link VariantHolder#defaultVariant()}, and should also
+ * implement {@link VariantHolder#variantRegistry()}, {@link VariantHolder#setBedrockVariant(BuiltIn)}, and {@link VariantHolder#defaultVariant()}, and should also
  * have an enum with built-in variants on bedrock (implementing {@link BuiltIn}).</p>
  *
  * @param <Variant> the MCPL variant class that a {@link Holder} wraps.
+ * @param <BedrockVariant> the enum of Bedrock variants.
  */
-public interface VariantHolder<Variant> {
+public interface VariantHolder<Variant, BedrockVariant extends VariantHolder.BuiltIn<Variant>> {
 
     default void setVariant(EntityMetadata<Holder<Variant>, ? extends MetadataType<Holder<Variant>>> variant) {
         setVariant(variant.getValue());
@@ -56,7 +57,7 @@ public interface VariantHolder<Variant> {
      * Sets the variant of the entity. Defaults to {@link VariantHolder#defaultVariant()} for custom holders and non-vanilla IDs.
      */
     default void setVariant(Holder<Variant> variant) {
-        BuiltIn<Variant> builtInVariant;
+        BedrockVariant builtInVariant;
         if (variant.isId()) {
             builtInVariant = variantRegistry().fromNetworkId(getSession(), variant.id());
             if (builtInVariant == null) {
@@ -65,7 +66,7 @@ public interface VariantHolder<Variant> {
         } else {
             builtInVariant = defaultVariant();
         }
-        setBedrockVariant(builtInVariant.ordinal());
+        setBedrockVariant(builtInVariant);
     }
 
     GeyserSession getSession();
@@ -74,17 +75,17 @@ public interface VariantHolder<Variant> {
      * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class)} method
      * to create a reader to be used in {@link org.geysermc.geyser.session.cache.RegistryCache}.
      */
-    JavaRegistryKey<? extends BuiltIn<Variant>> variantRegistry();
+    JavaRegistryKey<? extends BedrockVariant> variantRegistry();
 
     /**
-     * Should set the variant on bedrock's metadata (or however the variant is set for the mob). The bedrock ID has already been checked and is always valid.
+     * Should set the variant for bedrock.
      */
-    void setBedrockVariant(int bedrockId);
+    void setBedrockVariant(BedrockVariant bedrockVariant);
 
     /**
      * Should return the default variant, that is to be used when this mob's variant is a custom or non-vanilla one.
      */
-    BuiltIn<Variant> defaultVariant();
+    BedrockVariant defaultVariant();
 
     /**
      * Creates a registry reader for this mob's variants.
@@ -107,7 +108,7 @@ public interface VariantHolder<Variant> {
     }
 
     /**
-     * Should be implemented on an enum within the entity class. The enum lists vanilla variants that can appear on bedrock, in the order of their bedrock network ID.
+     * Should be implemented on an enum within the entity class. The enum lists vanilla variants that can appear on bedrock.
      *
      * <p>The enum constants should be named the same as their Java identifiers.</p>
      *
@@ -116,8 +117,6 @@ public interface VariantHolder<Variant> {
     interface BuiltIn<Variant> {
 
         String name();
-
-        int ordinal();
 
         default Key javaIdentifier() {
             return MinecraftKey.key(name().toLowerCase(Locale.ROOT));

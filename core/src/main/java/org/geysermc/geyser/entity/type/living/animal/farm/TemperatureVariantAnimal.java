@@ -26,16 +26,18 @@
 package org.geysermc.geyser.entity.type.living.animal.farm;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Locale;
 import java.util.UUID;
 
 // TODO figure out how to do the generics here
-public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity implements VariantHolder<Variant> {
+public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity implements VariantHolder<Variant, TemperatureVariantAnimal.BuiltInVariant> {
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
                                     Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -43,19 +45,23 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity imp
     }
 
     @Override
-    public void setBedrockVariant(int bedrockId) {
-        // TODO does this work?
-        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, "temperate");
+        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
     @Override
-    public BuiltIn<Variant> defaultVariant() {
+    public void setBedrockVariant(BuiltInVariant variant) {
+        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.name().toLowerCase(Locale.ROOT));
+        updateBedrockEntityProperties();
+    }
+
+    @Override
+    public BuiltInVariant defaultVariant() {
         return BuiltInVariant.TEMPERATE;
     }
 
-    // Ordered by bedrock id
-    // TODO: are these ordered correctly? Does the order differ for mobs?
-    public enum BuiltInVariant implements BuiltIn<?> {
+    public enum BuiltInVariant implements BuiltIn<Variant> {
         COLD,
         TEMPERATE,
         WARM
