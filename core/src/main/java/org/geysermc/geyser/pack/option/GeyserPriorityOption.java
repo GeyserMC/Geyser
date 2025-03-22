@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 
 import java.util.Objects;
 
-public record GeyserPriorityOption(double priority) implements PriorityOption {
+public record GeyserPriorityOption(int priority) implements PriorityOption {
 
     @Override
     public @NonNull Type type() {
@@ -40,16 +40,16 @@ public record GeyserPriorityOption(double priority) implements PriorityOption {
     }
 
     @Override
-    public @NonNull Double value() {
+    public @NonNull Integer value() {
         return priority;
     }
 
     @Override
     public void validate(@NonNull ResourcePack pack) {
         Objects.requireNonNull(pack);
-        if (priority < 0 || priority > 10) {
+        if (priority < -100 || priority > 100) {
             throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
-                "Priority must be between 0 and 10 inclusive!");
+                "Priority must be between -100 and 100 inclusive!");
         }
     }
 }

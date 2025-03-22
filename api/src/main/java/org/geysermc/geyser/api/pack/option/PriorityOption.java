@@ -34,13 +34,13 @@ import org.geysermc.geyser.api.GeyserApi;
  * Specifically, the pack with the higher priority will override the pack changes of the lower priority.
  * @since 2.6.2
  */
-public interface PriorityOption extends ResourcePackOption<Double> {
+public interface PriorityOption extends ResourcePackOption<Integer> {
 
-    PriorityOption HIGHEST = PriorityOption.priority(10);
-    PriorityOption HIGH = PriorityOption.priority(8);
-    PriorityOption NORMAL = PriorityOption.priority(5);
-    PriorityOption LOW = PriorityOption.priority(3);
-    PriorityOption LOWEST = PriorityOption.priority(0);
+    PriorityOption HIGHEST = PriorityOption.priority(100);
+    PriorityOption HIGH = PriorityOption.priority(50);
+    PriorityOption NORMAL = PriorityOption.priority(0);
+    PriorityOption LOW = PriorityOption.priority(-50);
+    PriorityOption LOWEST = PriorityOption.priority(-100);
 
     /**
      * Constructs a priority option based on a value between 0 and 10.
@@ -50,8 +50,8 @@ public interface PriorityOption extends ResourcePackOption<Double> {
      * @return the priority option
      * @since 2.6.2
      */
-    static PriorityOption priority(double priority) {
-        if (priority < 0 || priority > 10) {
+    static PriorityOption priority(int priority) {
+        if (priority < -100 || priority > 100) {
             throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
         }
         return GeyserApi.api().provider(PriorityOption.class, priority);

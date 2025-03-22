@@ -175,8 +175,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return packs.values().stream()
             // Map each ResourcePack to a pair of (GeyserResourcePack, Priority)
             .map(holder -> new AbstractMap.SimpleEntry<>(holder.pack(), priority(holder.pack())))
-            // Sort by priority in ascending order
-            .sorted(Map.Entry.comparingByValue(Comparator.naturalOrder()))
+            // Sort by priority in descending order
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             // Map the sorted entries to ResourcePackStackPacket.Entry
             .map(entry -> {
                 ResourcePackManifest.Header header = entry.getKey().manifest().header();

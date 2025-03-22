@@ -91,7 +91,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // packs
         providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
         providers.put(UrlPackCodec.class, args -> new GeyserUrlPackCodec((String) args[0]));
-        providers.put(PriorityOption.class, args -> new GeyserPriorityOption((double) args[0]));
+        providers.put(PriorityOption.class, args -> new GeyserPriorityOption((int) args[0]));
         providers.put(SubpackOption.class, args -> new GeyserSubpackOption((String) args[0]));
         providers.put(UrlFallbackOption.class, args -> new GeyserUrlFallbackOption((Boolean) args[0]));
 
