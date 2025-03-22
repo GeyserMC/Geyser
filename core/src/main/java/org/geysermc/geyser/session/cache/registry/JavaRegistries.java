@@ -28,7 +28,9 @@ package org.geysermc.geyser.session.cache.registry;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
@@ -59,9 +61,9 @@ public class JavaRegistries {
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant", RegistryCache::frogVariants);
     public static final JavaRegistryKey<WolfEntity.BuiltInVariant> WOLF_VARIANT = create("wolf_variant", RegistryCache::wolfVariants);
 
-    public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> PIG_VARIANT = create("pig_variant", RegistryCache::pigVariants);
-    public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant", RegistryCache::cowVariants);
-    public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant", RegistryCache::chickenVariants);
+    public static final JavaRegistryKey<PigEntity.BuiltInVariant> PIG_VARIANT = create("pig_variant", RegistryCache::pigVariants);
+    public static final JavaRegistryKey<CowEntity.BuiltInVariant> COW_VARIANT = create("cow_variant", RegistryCache::cowVariants);
+    public static final JavaRegistryKey<ChickenEntity.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant", RegistryCache::chickenVariants);
 
     private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer) {
         JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer);

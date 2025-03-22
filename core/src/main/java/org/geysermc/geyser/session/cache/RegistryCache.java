@@ -40,7 +40,9 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
@@ -101,9 +103,9 @@ public final class RegistryCache {
         register(JavaRegistries.FROG_VARIANT, cache -> cache.frogVariants, VariantHolder.reader(FrogEntity.BuiltInVariant.class));
         register(JavaRegistries.WOLF_VARIANT, cache -> cache.wolfVariants, VariantHolder.reader(WolfEntity.BuiltInVariant.class));
 
-        register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
-        register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
-        register(JavaRegistries.CHICKEN_VARIANT, cache -> cache.chickenVariants, VariantHolder.reader(TemperatureVariantAnimal.BuiltInVariant.class));
+        register(JavaRegistries.PIG_VARIANT, cache -> cache.pigVariants, VariantHolder.reader(PigEntity.BuiltInVariant.class));
+        register(JavaRegistries.COW_VARIANT, cache -> cache.cowVariants, VariantHolder.reader(CowEntity.BuiltInVariant.class));
+        register(JavaRegistries.CHICKEN_VARIANT, cache -> cache.chickenVariants, VariantHolder.reader(ChickenEntity.BuiltInVariant.class));
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
@@ -148,9 +150,9 @@ public final class RegistryCache {
     private final JavaRegistry<FrogEntity.BuiltInVariant> frogVariants = new SimpleJavaRegistry<>();
     private final JavaRegistry<WolfEntity.BuiltInVariant> wolfVariants = new SimpleJavaRegistry<>();
 
-    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> pigVariants = new SimpleJavaRegistry<>();
-    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> cowVariants = new SimpleJavaRegistry<>();
-    private final JavaRegistry<TemperatureVariantAnimal.BuiltInVariant> chickenVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<PigEntity.BuiltInVariant> pigVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<CowEntity.BuiltInVariant> cowVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<ChickenEntity.BuiltInVariant> chickenVariants = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;

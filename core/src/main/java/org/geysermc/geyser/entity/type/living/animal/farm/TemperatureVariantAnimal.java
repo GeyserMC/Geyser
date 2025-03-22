@@ -37,7 +37,8 @@ import java.util.Locale;
 import java.util.UUID;
 
 // TODO figure out how to do the generics here
-public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity implements VariantHolder<Variant, TemperatureVariantAnimal.BuiltInVariant> {
+public abstract class TemperatureVariantAnimal<Variant, BedrockVariant extends VariantHolder.BuiltIn<Variant>> extends AnimalEntity
+    implements VariantHolder<Variant, BedrockVariant> {
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
                                     Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -51,19 +52,8 @@ public abstract class TemperatureVariantAnimal<Variant> extends AnimalEntity imp
     }
 
     @Override
-    public void setBedrockVariant(BuiltInVariant variant) {
+    public void setBedrockVariant(BedrockVariant variant) {
         propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.name().toLowerCase(Locale.ROOT));
         updateBedrockEntityProperties();
-    }
-
-    @Override
-    public BuiltInVariant defaultVariant() {
-        return BuiltInVariant.TEMPERATE;
-    }
-
-    public enum BuiltInVariant implements BuiltIn<Variant> {
-        COLD,
-        TEMPERATE,
-        WARM
     }
 }
