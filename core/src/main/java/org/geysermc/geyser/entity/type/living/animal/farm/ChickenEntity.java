@@ -37,7 +37,7 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 
 import java.util.UUID;
 
-public class ChickenEntity extends TemperatureVariantAnimal<ChickenVariant> {
+public class ChickenEntity extends TemperatureVariantAnimal<ChickenVariant, ChickenEntity.BuiltInVariant> {
 
     public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -52,5 +52,16 @@ public class ChickenEntity extends TemperatureVariantAnimal<ChickenVariant> {
     @Override
     public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.CHICKEN_VARIANT;
+    }
+
+    @Override
+    public BuiltInVariant defaultVariant() {
+        return BuiltInVariant.TEMPERATE;
+    }
+
+    public enum BuiltInVariant implements BuiltIn<ChickenVariant> {
+        COLD,
+        TEMPERATE,
+        WARM
     }
 }
