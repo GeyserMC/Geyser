@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -39,11 +40,14 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
@@ -58,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class WolfEntity extends TameableEntity {
     private byte collarColor = 14; // Red - default
@@ -116,10 +121,11 @@ public class WolfEntity extends TameableEntity {
 
     // 1.20.5+
     public void setWolfVariant(ObjectEntityMetadata<Holder<WolfVariant>> entityMetadata) {
+        // TODO set to pale if custom holder?
         entityMetadata.getValue().ifId(id -> {
-            BuiltInWolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(id);
+            BuiltInVariant wolfVariant = JavaRegistries.WOLF_VARIANT.fromNetworkId(session, id);
             if (wolfVariant == null) {
-                wolfVariant = BuiltInWolfVariant.PALE;
+                wolfVariant = BuiltInVariant.PALE;
             }
             dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
         });
@@ -195,7 +201,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     // Ordered by bedrock id
-    public enum BuiltInWolfVariant {
+    public enum BuiltInVariant {
         PALE,
         ASHEN,
         BLACK,
@@ -206,17 +212,17 @@ public class WolfEntity extends TameableEntity {
         STRIPED,
         WOODS;
 
-        private static final BuiltInWolfVariant[] VALUES = values();
+        public static final Function<RegistryEntryContext, BuiltInVariant> READER = context -> getByJavaIdentifier(context.id());
 
-        private final String javaIdentifier;
+        private final Key javaIdentifier;
 
-        BuiltInWolfVariant() {
-            this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
+        BuiltInVariant() {
+            this.javaIdentifier = MinecraftKey.key(this.name().toLowerCase(Locale.ROOT));
         }
 
-        public static @Nullable BuiltInWolfVariant getByJavaIdentifier(String javaIdentifier) {
-            for (BuiltInWolfVariant wolfVariant : VALUES) {
-                if (wolfVariant.javaIdentifier.equals(javaIdentifier)) {
+        public static @Nullable BuiltInVariant getByJavaIdentifier(Key identifier) {
+            for (BuiltInVariant wolfVariant : values()) {
+                if (wolfVariant.javaIdentifier.equals(identifier)) {
                     return wolfVariant;
                 }
             }
