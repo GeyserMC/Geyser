@@ -48,13 +48,12 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PigVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class PigEntity extends TemperatureVariantAnimal<PigVariant, PigEntity.BuiltInVariant> implements Tickable, ClientVehicle {
+public class PigEntity extends TemperatureVariantAnimal implements Tickable, ClientVehicle {
     private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
 
     public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -154,16 +153,5 @@ public class PigEntity extends TemperatureVariantAnimal<PigVariant, PigEntity.Bu
     @Override
     public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.PIG_VARIANT;
-    }
-
-    @Override
-    public BuiltInVariant defaultVariant() {
-        return BuiltInVariant.TEMPERATE;
-    }
-
-    public enum BuiltInVariant implements BuiltIn<PigVariant> {
-        COLD,
-        TEMPERATE,
-        WARM
     }
 }

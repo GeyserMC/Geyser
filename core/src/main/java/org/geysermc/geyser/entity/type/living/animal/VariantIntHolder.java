@@ -30,10 +30,10 @@ package org.geysermc.geyser.entity.type.living.animal;
  *
  * @see VariantHolder
  */
-public interface VariantIntHolder<Variant> extends VariantHolder<Variant, VariantIntHolder.BuiltIn<Variant>> {
+public interface VariantIntHolder extends VariantHolder<VariantIntHolder.BuiltIn> {
 
     @Override
-    default void setBedrockVariant(BuiltIn<Variant> variant) {
+    default void setBedrockVariant(BuiltIn variant) {
         setBedrockVariantId(variant.ordinal());
     }
 
@@ -47,7 +47,7 @@ public interface VariantIntHolder<Variant> extends VariantHolder<Variant, Varian
      *
      * @see org.geysermc.geyser.entity.type.living.animal.VariantHolder.BuiltIn
      */
-    interface BuiltIn<Variant> extends VariantHolder.BuiltIn<Variant> {
+    interface BuiltIn extends VariantHolder.BuiltIn {
 
         int ordinal();
     }
