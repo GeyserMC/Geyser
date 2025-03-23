@@ -43,8 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 import java.util.OptionalInt;
 import java.util.UUID;
 
-// TODO this is implementing VariantHolder<Object> until MCPL updates
-public class FrogEntity extends AnimalEntity implements VariantIntHolder<Object> {
+public class FrogEntity extends AnimalEntity implements VariantIntHolder {
     public FrogEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -69,7 +68,7 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder<Object>
     }
 
     @Override
-    public BuiltIn<Object> defaultVariant() {
+    public BuiltIn defaultVariant() {
         return BuiltInVariant.TEMPERATE;
     }
 
@@ -93,7 +92,7 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder<Object>
 
     // Ordered by bedrock id
     // TODO: are these ordered correctly?
-    public enum BuiltInVariant implements BuiltIn<Object> {
+    public enum BuiltInVariant implements BuiltIn {
         TEMPERATE,
         COLD,
         WARM

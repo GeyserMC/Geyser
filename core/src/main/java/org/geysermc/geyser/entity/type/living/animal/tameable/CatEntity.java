@@ -48,8 +48,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-// TODO this is implementing VariantHolder<Object> until MCPL updates
-public class CatEntity extends TameableEntity implements VariantIntHolder<Object> {
+public class CatEntity extends TameableEntity implements VariantIntHolder {
 
     private byte collarColor = 14; // Red - default
 
@@ -96,7 +95,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder<Object
     }
 
     @Override
-    public BuiltIn<Object> defaultVariant() {
+    public BuiltIn defaultVariant() {
         return BuiltInVariant.BLACK; // Default variant on Java
     }
 
@@ -147,7 +146,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder<Object
 
     // Ordered by bedrock id
     // TODO: are these ordered correctly?
-    public enum BuiltInVariant implements BuiltIn<Object> {
+    public enum BuiltInVariant implements BuiltIn {
         WHITE,
         BLACK,
         RED,

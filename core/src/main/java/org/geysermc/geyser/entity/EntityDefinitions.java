@@ -998,7 +998,7 @@ public final class EntityDefinitions {
             MOOSHROOM = EntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase)
                     .type(EntityType.MOOSHROOM)
                     .height(1.4f).width(0.9f)
-                    .addTranslator(MetadataTypes.STRING, MooshroomEntity::setVariant)
+                    .addTranslator(MetadataTypes.INT, MooshroomEntity::setMooshroomVariant)
                     .build();
             OCELOT = EntityDefinition.inherited(OcelotEntity::new, ageableEntityBase)
                     .type(EntityType.OCELOT)

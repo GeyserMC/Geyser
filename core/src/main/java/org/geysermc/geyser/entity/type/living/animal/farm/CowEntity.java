@@ -45,7 +45,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class CowEntity extends TemperatureVariantAnimal<CowVariant, CowEntity.BuiltInVariant> {
+public class CowEntity extends TemperatureVariantAnimal {
 
     public CowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -81,16 +81,5 @@ public class CowEntity extends TemperatureVariantAnimal<CowVariant, CowEntity.Bu
     @Override
     public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.COW_VARIANT;
-    }
-
-    @Override
-    public BuiltInVariant defaultVariant() {
-        return BuiltInVariant.TEMPERATE;
-    }
-
-    public enum BuiltInVariant implements BuiltIn<CowVariant> {
-        COLD,
-        TEMPERATE,
-        WARM
     }
 }

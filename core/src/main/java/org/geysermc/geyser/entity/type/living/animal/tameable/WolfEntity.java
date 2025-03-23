@@ -47,7 +47,6 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -59,7 +58,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import java.util.Collections;
 import java.util.UUID;
 
-public class WolfEntity extends TameableEntity implements VariantIntHolder<WolfVariant> {
+public class WolfEntity extends TameableEntity implements VariantIntHolder {
     private byte collarColor = 14; // Red - default
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
@@ -125,7 +124,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder<WolfV
     }
 
     @Override
-    public BuiltIn<WolfVariant> defaultVariant() {
+    public BuiltIn defaultVariant() {
         return BuiltInVariant.PALE;
     }
 
@@ -199,7 +198,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder<WolfV
     }
 
     // Ordered by bedrock id
-    public enum BuiltInVariant implements BuiltIn<WolfVariant> {
+    public enum BuiltInVariant implements BuiltIn {
         PALE,
         ASHEN,
         BLACK,

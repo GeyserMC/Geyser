@@ -30,40 +30,35 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.Locale;
 import java.util.function.Function;
 
 /**
- * Utility interface to help set up data-driven entity variants for mobs.
+ * Interface to help set up data-driven entity variants for mobs.
  *
- * <p>This interface is designed for mobs that have their variant wrapped in a {@link Holder}. Implementations usually have to
- * implement {@link VariantHolder#variantRegistry()}, {@link VariantHolder#setBedrockVariant(BuiltIn)}, and {@link VariantHolder#defaultVariant()}, and should also
+ * <p>Data-driven variants are sent as an int ID of their variant registry by Java, but can be a metadata ID or entity property on bedrock.
+ * This interface helps translate data-driven variants to built-in bedrock ones.</p>
+ *
+ * <p>Implementations usually have to implement {@link VariantHolder#variantRegistry()},
+ * {@link VariantHolder#setBedrockVariant(BuiltIn)}, and {@link VariantHolder#defaultVariant()}, and should also
  * have an enum with built-in variants on bedrock (implementing {@link BuiltIn}).</p>
  *
- * @param <Variant> the MCPL variant class that a {@link Holder} wraps.
  * @param <BedrockVariant> the enum of Bedrock variants.
  */
-public interface VariantHolder<Variant, BedrockVariant extends VariantHolder.BuiltIn<Variant>> {
+public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
 
-    default void setVariant(EntityMetadata<Holder<Variant>, ? extends MetadataType<Holder<Variant>>> variant) {
-        setVariant(variant.getValue());
+    default void setVariant(IntEntityMetadata variant) {
+        setVariantFromJavaId(variant.getPrimitiveValue());
     }
 
     /**
-     * Sets the variant of the entity. Defaults to {@link VariantHolder#defaultVariant()} for custom holders and non-vanilla IDs.
+     * Sets the variant of the entity. Defaults to {@link VariantHolder#defaultVariant()} for non-vanilla IDs.
      */
-    default void setVariant(Holder<Variant> variant) {
-        BedrockVariant builtInVariant;
-        if (variant.isId()) {
-            builtInVariant = variantRegistry().fromNetworkId(getSession(), variant.id());
-            if (builtInVariant == null) {
-                builtInVariant = defaultVariant();
-            }
-        } else {
+    default void setVariantFromJavaId(int variant) {
+        BedrockVariant builtInVariant = variantRegistry().fromNetworkId(getSession(), variant);
+        if (builtInVariant == null) {
             builtInVariant = defaultVariant();
         }
         setBedrockVariant(builtInVariant);
@@ -92,14 +87,14 @@ public interface VariantHolder<Variant, BedrockVariant extends VariantHolder.Bui
      *
      * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, null is returned.</p>
      */
-    static <BuiltInVariant extends Enum<? extends BuiltIn<?>>> Function<RegistryEntryContext, BuiltInVariant> reader(Class<BuiltInVariant> clazz) {
+    static <BuiltInVariant extends Enum<? extends BuiltIn>> Function<RegistryEntryContext, BuiltInVariant> reader(Class<BuiltInVariant> clazz) {
         BuiltInVariant[] variants = clazz.getEnumConstants();
         if (variants == null) {
             throw new IllegalArgumentException("Class is not an enum");
         }
         return context -> {
             for (BuiltInVariant variant : variants) {
-                if (((BuiltIn<?>) variant).javaIdentifier().equals(context.id())) {
+                if (((BuiltIn) variant).javaIdentifier().equals(context.id())) {
                     return variant;
                 }
             }
@@ -111,10 +106,8 @@ public interface VariantHolder<Variant, BedrockVariant extends VariantHolder.Bui
      * Should be implemented on an enum within the entity class. The enum lists vanilla variants that can appear on bedrock.
      *
      * <p>The enum constants should be named the same as their Java identifiers.</p>
-     *
-     * @param <Variant> the same as the parent entity class. Used for type checking.
      */
-    interface BuiltIn<Variant> {
+    interface BuiltIn {
 
         String name();
 
