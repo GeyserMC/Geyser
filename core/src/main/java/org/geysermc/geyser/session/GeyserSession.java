@@ -435,6 +435,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Vector3i blockBreakPosition;
 
+    /**
+     * Stores the block breaking progress of the currently broken block.
+     */
+    @Setter
+    private double blockBreakProgress;
+
     @Setter
     private Vector3i lastBlockPlacePosition;
 

@@ -39,7 +39,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 public final class BlockUtils {
 
     /**
-     * Returns the total mining progress added by mining the block in a single tick
+     * Returns the total mining progress added (in %) by mining the block in a single tick
      * @return the mining progress added by this tick.
      */
     public static float getBlockMiningProgressPerTick(GeyserSession session, Block block, GeyserItemStack itemInHand) {
