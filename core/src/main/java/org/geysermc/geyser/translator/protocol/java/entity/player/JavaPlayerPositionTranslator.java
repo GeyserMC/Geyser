@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.item.hashing.ComponentHashers;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -83,6 +84,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.updateOwnRotation(entity.getYaw(), entity.getPitch(), entity.getHeadYaw());
 
             session.setSpawned(true);
+            ComponentHashers.testHashing(session);
+
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
             session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getXRot(), packet.getYRot(), packet.getId())); // TODO
 

@@ -68,6 +68,7 @@ public class MinecraftHashEncoder {
         .thenComparing(Map.Entry.comparingByValue(HASH_COMPARATOR));
 
     private static final byte[] EMPTY = new byte[]{TAG_EMPTY};
+    public static final byte[] EMPTY_MAP = new byte[]{TAG_MAP_START, TAG_MAP_END};
     private static final byte[] FALSE = new byte[]{TAG_BOOLEAN, 0};
     private static final byte[] TRUE = new byte[]{TAG_BOOLEAN, 1};
 
@@ -75,14 +76,16 @@ public class MinecraftHashEncoder {
     private final GeyserSession session;
 
     private final HashCode empty;
+    private final HashCode emptyMap;
     private final HashCode falseHash;
     private final HashCode trueHash;
 
     public MinecraftHashEncoder(GeyserSession session) {
-        hasher = Hashing.crc32();
+        hasher = Hashing.crc32c();
         this.session = session;
 
         empty = hasher.hashBytes(EMPTY);
+        emptyMap = hasher.hashBytes(EMPTY_MAP);
         falseHash = hasher.hashBytes(FALSE);
         trueHash = hasher.hashBytes(TRUE);
     }
@@ -93,6 +96,10 @@ public class MinecraftHashEncoder {
 
     public HashCode empty() {
         return empty;
+    }
+
+    public HashCode emptyMap() {
+        return emptyMap;
     }
 
     public HashCode number(Number number) {
@@ -139,7 +146,6 @@ public class MinecraftHashEncoder {
             } else {
                 map.listenForNumber(key, n -> hashed.put(hashedKey, number(n)));
                 map.listenForString(key, s -> hashed.put(hashedKey, string(s)));
-                map.listenForBoolean(key, b -> hashed.put(hashedKey, bool(b)));
                 map.listenForCompound(key, compound -> hashed.put(hashedKey, nbtMap(compound)));
 
                 map.listenForByteArray(key, bytes -> hashed.put(hashedKey, byteArray(bytes)));

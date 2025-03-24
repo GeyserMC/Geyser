@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @FunctionalInterface
 public interface MinecraftHasher<T> {
 
-    MinecraftHasher<Unit> UNIT = (unit, encoder) -> encoder.empty();
+    MinecraftHasher<Unit> UNIT = (unit, encoder) -> encoder.emptyMap();
 
     MinecraftHasher<Byte> BYTE = (b, encoder) -> encoder.number(b);
 
