@@ -63,8 +63,9 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant", RegistryCache::cowVariants);
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant", RegistryCache::chickenVariants);
 
-    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer) {
-        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer);
+    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer,
+                                                 JavaRegistryKey.NetworkIdentifier networkIdentifier) {
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer, networkIdentifier);
         VALUES.add(registry);
         return registry;
     }
@@ -74,7 +75,9 @@ public class JavaRegistries {
     }
 
     private static <T> JavaRegistryKey<T> create(String key, RegistryGetter<T> getter) {
-        return create(key, (session, object) -> getter.get(session.getRegistryCache()).byValue(object), (session, id) -> getter.get(session.getRegistryCache()).byId(id));
+        return create(key, (session, object) -> getter.get(session.getRegistryCache()).byValue(object),
+            (session, id) -> getter.get(session.getRegistryCache()).byId(id),
+            (session, id) -> getter.get(session.getRegistryCache()).entryById(id).key());
     }
 
     @Nullable

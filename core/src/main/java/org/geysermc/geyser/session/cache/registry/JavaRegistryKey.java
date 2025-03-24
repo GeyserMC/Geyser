@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 
+// TODO describe usage in component hashers in documentation
 /**
  * Defines a Java registry, which can be hardcoded or data-driven. This class doesn't store registry contents itself, that is handled by {@link org.geysermc.geyser.session.cache.RegistryCache} in the case of
  * data-driven registries and other classes in the case of hardcoded registries.
@@ -40,9 +41,11 @@ import org.geysermc.geyser.session.GeyserSession;
  * @param registryKey the registry key, as it appears on Java.
  * @param networkSerializer a method that converts an object in this registry to its network ID.
  * @param networkDeserializer a method that converts a network ID to an object in this registry.
+ * @param networkIdentifier a method that converts a network ID to its respective key in this registry.
  * @param <T> the object type this registry holds.
  */
-public record JavaRegistryKey<T>(Key registryKey, @Nullable NetworkSerializer<T> networkSerializer, @Nullable NetworkDeserializer<T> networkDeserializer) {
+public record JavaRegistryKey<T>(Key registryKey, @Nullable NetworkSerializer<T> networkSerializer, @Nullable NetworkDeserializer<T> networkDeserializer,
+                                 NetworkIdentifier networkIdentifier) {
 
     /**
      * Converts an object in this registry to its network ID. This will fail if this registry doesn't have a network serializer.
@@ -64,6 +67,11 @@ public record JavaRegistryKey<T>(Key registryKey, @Nullable NetworkSerializer<T>
         return networkDeserializer.fromNetworkId(session, networkId);
     }
 
+    // TODO document
+    public Key keyFromNetworkId(GeyserSession session, int networkId) {
+        return networkIdentifier.keyFromNetworkId(session, networkId);
+    }
+
     /**
      * @return true if this registry has a network serializer and deserializer.
      */
@@ -81,5 +89,11 @@ public record JavaRegistryKey<T>(Key registryKey, @Nullable NetworkSerializer<T>
     public interface NetworkDeserializer<T> {
 
         T fromNetworkId(GeyserSession session, int networkId);
+    }
+
+    @FunctionalInterface
+    public interface NetworkIdentifier {
+
+        Key keyFromNetworkId(GeyserSession session, int networkId);
     }
 }
