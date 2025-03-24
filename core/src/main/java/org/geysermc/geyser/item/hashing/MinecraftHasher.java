@@ -30,7 +30,9 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
@@ -78,6 +80,16 @@ public interface MinecraftHasher<T> {
         .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
         .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
 
+    MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum();
+
+    MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = mapBuilder(builder -> builder
+        .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
+        .optional("amplifier", BYTE, instance -> (byte) instance.getDetails().getAmplifier(), (byte) 0)
+        .optional("duration", INT, instance -> instance.getDetails().getDuration(), 0)
+        .optional("ambient", BOOL, instance -> instance.getDetails().isAmbient(), false)
+        .optional("show_particles", BOOL, instance -> instance.getDetails().isShowParticles(), true)
+        .accept("show_icon", BOOL, instance -> instance.getDetails().isShowIcon())); // TODO check this, also hidden effect but is recursive
+
     HashCode hash(T value, MinecraftHashEncoder encoder);
 
     default MinecraftHasher<List<T>> list() {
@@ -98,7 +110,7 @@ public interface MinecraftHasher<T> {
 
     // TODO: note that this only works correctly if enum constants are named appropriately
     static <T extends Enum<T>> MinecraftHasher<T> fromEnum() {
-        return STRING.convert(Enum::name);
+        return STRING.convert(t -> t.name().toLowerCase());
     }
 
     static <T> MinecraftHasher<T> mapBuilder(UnaryOperator<MapHasher<T>> builder) {

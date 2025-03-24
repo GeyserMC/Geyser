@@ -25,9 +25,12 @@
 
 package org.geysermc.geyser.item.hashing;
 
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
@@ -40,7 +43,15 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     RegistryHasher BLOCK = registry(JavaRegistries.BLOCK);
 
+    RegistryHasher ITEM = registry(JavaRegistries.ITEM);
+
+    RegistryHasher ENTITY_TYPE = enumIdRegistry(EntityType.values());
+
     RegistryHasher ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
+
+    MinecraftHasher<Effect> EFFECT = enumRegistry();
+
+    RegistryHasher POTION = enumIdRegistry(Potion.values());
 
     MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
 
@@ -59,6 +70,15 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);
+        return hasher::hash;
+    }
+
+    static <T extends Enum<T>> MinecraftHasher<T> enumRegistry() {
+        return KEY.convert(t -> MinecraftKey.key(t.name().toLowerCase()));
+    }
+
+    static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values) {
+        MinecraftHasher<Integer> hasher = KEY.convert(i -> MinecraftKey.key(values[i].name().toLowerCase()));
         return hasher::hash;
     }
 

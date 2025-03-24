@@ -26,26 +26,35 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.inventory.item.Potion;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.IntComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Weapon;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.HashMap;
@@ -111,10 +120,50 @@ public class ComponentHashers {
         registerMap(DataComponentTypes.DAMAGE_RESISTANT, builder -> builder
             .accept("types", MinecraftHasher.TAG, Function.identity()));
         registerMap(DataComponentTypes.TOOL, builder -> builder
-            .accept("rules", MinecraftHasher.TOOL_RULE.list(), ToolData::getRules)
+            .acceptList("rules", MinecraftHasher.TOOL_RULE, ToolData::getRules)
             .optional("default_mining_speed", MinecraftHasher.FLOAT, ToolData::getDefaultMiningSpeed, 1.0F)
             .optional("damage_per_block", MinecraftHasher.INT, ToolData::getDamagePerBlock, 1)
             .optional("can_destroy_blocks_in_creative", MinecraftHasher.BOOL, ToolData::isCanDestroyBlocksInCreative, true));
+        registerMap(DataComponentTypes.WEAPON, builder -> builder
+            .optional("item_damage_per_attack", MinecraftHasher.INT, Weapon::itemDamagePerAttack, 1)
+            .optional("disable_blocking_for_seconds", MinecraftHasher.FLOAT, Weapon::disableBlockingForSeconds, 0.0F));
+        registerMap(DataComponentTypes.ENCHANTABLE, builder -> builder
+            .accept("value", MinecraftHasher.INT, Function.identity()));
+        registerMap(DataComponentTypes.EQUIPPABLE, builder -> builder
+            .accept("slot", MinecraftHasher.EQUIPMENT_SLOT, Equippable::slot)
+            .optional("equip_sound", RegistryHasher.SOUND_EVENT, Equippable::equipSound, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC)
+            .optionalNullable("asset_id", MinecraftHasher.KEY, Equippable::model)
+            .optionalNullable("camera_overlay", MinecraftHasher.KEY, Equippable::cameraOverlay)
+            .optionalNullable("allowed_entities", RegistryHasher.ENTITY_TYPE.holderSet(), Equippable::allowedEntities)
+            .optional("dispensable", MinecraftHasher.BOOL, Equippable::dispensable, true)
+            .optional("swappable", MinecraftHasher.BOOL, Equippable::swappable, true)
+            .optional("damage_on_hurt", MinecraftHasher.BOOL, Equippable::damageOnHurt, true)
+            .optional("equip_on_interact", MinecraftHasher.BOOL, Equippable::equipOnInteract, false));
+        registerMap(DataComponentTypes.REPAIRABLE, builder -> builder
+            .accept("items", RegistryHasher.ITEM.holderSet(), Function.identity()));
+
+        register(DataComponentTypes.GLIDER);
+        register(DataComponentTypes.TOOLTIP_STYLE, MinecraftHasher.KEY);
+
+        registerMap(DataComponentTypes.DEATH_PROTECTION, builder -> builder); // TODO consume effect needs identifier in MCPL
+        registerMap(DataComponentTypes.BLOCKS_ATTACKS, builder -> builder); // TODO needs damage types, add a way to cache identifiers without reading objects in registrycache
+        register(DataComponentTypes.STORED_ENCHANTMENTS, MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments)); // TODO duplicate code?
+
+        register(DataComponentTypes.DYED_COLOR);
+        register(DataComponentTypes.MAP_COLOR);
+        register(DataComponentTypes.MAP_ID);
+        register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
+
+        // TODO charged projectiles also need the recursion™
+        // TODO same for bundle contents
+
+        registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
+            .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
+            .optional("custom_color", MinecraftHasher.INT, PotionContents::getCustomColor, -1)
+            .optionalList("custom_effects", MinecraftHasher.MOB_EFFECT_INSTANCE, PotionContents::getCustomEffects)
+            .optionalNullable("custom_name", MinecraftHasher.STRING, PotionContents::getCustomName));
+
+        register(DataComponentTypes.POTION_DURATION_SCALE, MinecraftHasher.FLOAT);
     }
 
     private static void register(DataComponentType<Unit> component) {
@@ -191,15 +240,56 @@ public class ComponentHashers {
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(3, 5.7F, true), 1917653498);
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(7, 0.15F, false), -184166204);
 
-        testHash(session, DataComponentTypes.DAMAGE_RESISTANT, Key.key("testing"), -1230493835);
+        testHash(session, DataComponentTypes.DAMAGE_RESISTANT, MinecraftKey.key("testing"), -1230493835);
 
         testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 5.0F, 3, false), -1789071928);
         testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 3.0F, 1, true), -7422944);
         testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(
-            new ToolData.Rule(new HolderSet(Key.key("acacia_logs")), null, null),
+            new ToolData.Rule(new HolderSet(MinecraftKey.key("acacia_logs")), null, null),
             new ToolData.Rule(new HolderSet(new int[]{Blocks.JACK_O_LANTERN.javaId(), Blocks.WALL_TORCH.javaId()}), 4.2F, true),
             new ToolData.Rule(new HolderSet(new int[]{Blocks.PUMPKIN.javaId()}), 7.0F, false)),
             1.0F, 1, true), 2103678261);
+
+        testHash(session, DataComponentTypes.WEAPON, new Weapon(5, 2.0F), -154556976);
+        testHash(session, DataComponentTypes.WEAPON, new Weapon(1, 7.3F), 885347995);
+
+        testHash(session, DataComponentTypes.ENCHANTABLE, 3, -1834983819);
+
+        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
+            true, true, true, false), 1294431019);
+        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_CHAIN, MinecraftKey.key("testing"), null, null,
+            true, true, true, false), 1226203061);
+        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.AMBIENT_CAVE, null, null, null,
+            false, true, false, false), 1416408052);
+        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ENTITY_BREEZE_WIND_BURST, null, MinecraftKey.key("testing"),
+            new HolderSet(new int[]{EntityType.ACACIA_BOAT.ordinal()}), false, true, false, false), 1711275245);
+
+        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.HELMET, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
+            true, true, true, false), 497790992); // TODO broken because equipment slot names don't match
+
+        testHash(session, DataComponentTypes.REPAIRABLE, new HolderSet(new int[]{Items.AMETHYST_BLOCK.javaId(), Items.PUMPKIN.javaId()}), -36715567);
+
+        NbtMap mapDecorations = NbtMap.builder()
+            .putCompound("test_decoration", NbtMap.builder()
+                .putString("type", "minecraft:player")
+                .putDouble("x", 45.0)
+                .putDouble("z", 67.4)
+                .putFloat("rotation", 39.5F)
+                .build())
+            .build();
+
+        testHash(session, DataComponentTypes.MAP_DECORATIONS, mapDecorations, -625782954);
+
+        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(Potion.FIRE_RESISTANCE.ordinal(), -1, List.of(), null), -772576502);
+        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 20,
+            List.of(new MobEffectInstance(Effect.CONDUIT_POWER, new MobEffectDetails(0, 0, false, true, true, null))),
+            null), -902075187);
+        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 96,
+            List.of(new MobEffectInstance(Effect.JUMP_BOOST, new MobEffectDetails(57, 17, true, false, false, null))),
+            null), -17231244);
+        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 87,
+            List.of(new MobEffectInstance(Effect.SPEED, new MobEffectDetails(29, 1004, false, true, true, null))),
+            "testing"), 2007296036);
 
         // Chunk errors are spamming logs and I don't need to log in anyway
         session.disconnect("AAAAAA");
