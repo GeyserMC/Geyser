@@ -75,8 +75,13 @@ public final class DataComponentRegistryPopulator {
                     byte[] bytes = Base64.getDecoder().decode(encodedValue);
                     ByteBuf buf = Unpooled.wrappedBuffer(bytes);
                     int varInt = MinecraftTypes.readVarInt(buf);
-                    System.out.println("int: " + varInt + " " + componentEntry.getKey());
+                    //System.out.println("int: " + varInt + " " + componentEntry.getKey());
                     DataComponentType<?> dataComponentType = DataComponentTypes.from(varInt);
+                    if (dataComponentType == DataComponentTypes.ENCHANTMENTS
+                        || dataComponentType == DataComponentTypes.STORED_ENCHANTMENTS
+                        || dataComponentType == DataComponentTypes.JUKEBOX_PLAYABLE) {
+                        continue; // TODO Broken reading in MCPL
+                    }
                     DataComponent<?, ?> dataComponent = dataComponentType.readDataComponent(buf);
 
                     map.put(dataComponentType, dataComponent);

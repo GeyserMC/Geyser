@@ -41,6 +41,7 @@ import org.geysermc.geyser.util.thirdparty.Fraction;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSelectBundleItemPacket;
@@ -50,6 +51,8 @@ import org.jetbrains.annotations.Contract;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 
 public final class ClickPlan {
     private final List<ClickAction> plan = new ArrayList<>();
@@ -157,8 +160,8 @@ public final class ClickPlan {
                     action.slot,
                     action.click.actionType,
                     action.click.action,
-                    clickedItemStack,
-                    changedItems
+                    hashStack(clickedItemStack),
+                    new Int2ObjectOpenHashMap<>() // TODO fixme
             );
 
             session.sendDownstreamGamePacket(clickPacket);
@@ -513,5 +516,10 @@ public final class ClickPlan {
     }
 
     private record ClickAction(Click click, int slot, boolean force) {
+    }
+
+    // TODO probably move this
+    public static HashedStack hashStack(ItemStack stack) {
+        return stack == null ? null : new HashedStack(stack.getId(), stack.getAmount(), Map.of(), Set.of()); // TODO this is WRONG. figure out stack hashing
     }
 }

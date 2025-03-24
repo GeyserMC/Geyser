@@ -52,6 +52,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
@@ -84,7 +85,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
@@ -132,7 +133,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             PlayerInventory inventory = session.getPlayerInventory();
                             int hotbarSlot = inventory.getOffsetForHotbar(containerAction.getSlot());
                             Click clickType = dropAll ? Click.DROP_ALL : Click.DROP_ONE;
-                            Int2ObjectMap<ItemStack> changedItem;
+                            Int2ObjectMap<HashedStack> changedItem;
                             if (dropAll) {
                                 inventory.setItem(hotbarSlot, GeyserItemStack.EMPTY, session);
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, null);
@@ -142,11 +143,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 itemStack.sub(1);
-                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, ClickPlan.hashStack(itemStack.getItemStack()));
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
-                                    inventory.getCursor().getItemStack(), changedItem);
+                                    ClickPlan.hashStack(inventory.getCursor().getItemStack()), changedItem);
                             session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }
