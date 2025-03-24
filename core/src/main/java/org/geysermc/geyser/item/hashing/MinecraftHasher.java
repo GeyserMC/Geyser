@@ -30,9 +30,8 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.List;
@@ -68,11 +67,16 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<Key> KEY = STRING.convert(Key::asString);
 
+    MinecraftHasher<Key> TAG = STRING.convert(key -> "#" + key.asString());
+
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 
-    MinecraftHasher<Integer> ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
+    MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = fromEnum();
 
-    MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
+    MinecraftHasher<ToolData.Rule> TOOL_RULE = mapBuilder(builder -> builder
+        .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
+        .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
+        .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
 
     HashCode hash(T value, MinecraftHashEncoder encoder);
 
@@ -92,8 +96,9 @@ public interface MinecraftHasher<T> {
         return STRING.convert(id -> toName.apply(values[id]));
     }
 
-    static MinecraftHasher<Integer> registry(JavaRegistryKey<?> registry) {
-        return KEY.sessionConvert(registry::keyFromNetworkId);
+    // TODO: note that this only works correctly if enum constants are named appropriately
+    static <T extends Enum<T>> MinecraftHasher<T> fromEnum() {
+        return STRING.convert(Enum::name);
     }
 
     static <T> MinecraftHasher<T> mapBuilder(UnaryOperator<MapHasher<T>> builder) {

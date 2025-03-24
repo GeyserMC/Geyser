@@ -75,8 +75,13 @@ public class Item {
         this.attackDamage = builder.attackDamage;
     }
 
+    // TODO maybe deprecate?
     public String javaIdentifier() {
         return javaIdentifier.asString();
+    }
+
+    public Key javaKey() {
+        return javaIdentifier;
     }
 
     public int javaId() {

@@ -30,9 +30,8 @@ import com.google.common.hash.HashCode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MapHasher<T> {
@@ -53,6 +52,20 @@ public class MapHasher<T> {
 
     public <V> MapHasher<T> accept(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
         return accept(key, hasher.hash(extractor.apply(object), encoder));
+    }
+
+    public <V> MapHasher<T> optionalNullable(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
+        V value = extractor.apply(object);
+        if (value != null) {
+            accept(key, hasher.hash(value, encoder));
+        }
+        return this;
+    }
+
+    public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, Optional<V>> extractor) {
+        Optional<V> value = extractor.apply(object);
+        value.ifPresent(v -> accept(key, hasher.hash(v, encoder)));
+        return this;
     }
 
     public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, V> extractor, V defaultValue) {

@@ -47,11 +47,12 @@ import java.util.List;
 /**
  * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
  */
+// TODO for component hashing, elements should never be null (looking at you, animal variants)
 public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
-    public static final JavaRegistryKey<Block> BLOCK = create("block", BlockRegistries.JAVA_BLOCKS, Block::javaId);
-    public static final JavaRegistryKey<Item> ITEM = create("item", Registries.JAVA_ITEMS, Item::javaId);
+    public static final JavaRegistryKey<Block> BLOCK = create("block", BlockRegistries.JAVA_BLOCKS, Block::javaId, Block::javaIdentifier);
+    public static final JavaRegistryKey<Item> ITEM = create("item", Registries.JAVA_ITEMS, Item::javaId, Item::javaKey);
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment", RegistryCache::enchantments);
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern", RegistryCache::bannerPatterns);
 
@@ -70,8 +71,9 @@ public class JavaRegistries {
         return registry;
     }
 
-    private static <T> JavaRegistryKey<T> create(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer) {
-        return create(key, (session, object) -> networkSerializer.get(object), (session, id) -> registry.get(id));
+    private static <T> JavaRegistryKey<T> create(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer, RegistryIdentifierMapper<T> identifierMapper) {
+        return create(key, (session, object) -> networkSerializer.get(object),
+            (session, id) -> registry.get(id), (session, id) -> identifierMapper.get(registry.get(id)));
     }
 
     private static <T> JavaRegistryKey<T> create(String key, RegistryGetter<T> getter) {
@@ -100,5 +102,11 @@ public class JavaRegistries {
     interface RegistryNetworkMapper<T> {
 
         int get(T object);
+    }
+
+    @FunctionalInterface
+    interface RegistryIdentifierMapper<T> {
+
+        Key get(T object);
     }
 }
