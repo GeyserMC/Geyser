@@ -209,7 +209,7 @@ public class ScoreboardIssueTests {
             // metadata set: invisible, custom name, custom name visible
             context.translate(setEntityDataTranslator, new ClientboundSetEntityDataPacket(1298, new EntityMetadata<?, ?>[]{
                 new ByteEntityMetadata(0, MetadataTypes.BYTE, (byte) 0x20),
-                new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_CHAT, Optional.of(Component.text("tesss"))),
+                new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_COMPONENT, Optional.of(Component.text("tesss"))),
                 new BooleanEntityMetadata(3, MetadataTypes.BOOLEAN, true)
             }));
 
