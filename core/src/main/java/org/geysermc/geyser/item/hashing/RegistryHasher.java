@@ -31,8 +31,13 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
@@ -49,11 +54,32 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     RegistryHasher ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
 
+    MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
+
+    @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
+    MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT = (component, encoder) -> {
+        MinecraftHasher hasher = ComponentHashers.hasherOrEmpty(component.getType());
+        return hasher.hash(component.getValue(), encoder);
+    };
+
+    MinecraftHasher<DataComponents> DATA_COMPONENTS = MinecraftHasher.map(RegistryHasher.DATA_COMPONENT_TYPE, DATA_COMPONENT).convert(DataComponents::getDataComponents); // TODO component removals (needs unit value and ! component prefix)
+
+    MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", ITEM, ItemStack::getId)
+        .accept("count", INT, ItemStack::getAmount)
+        .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
     MinecraftHasher<Effect> EFFECT = enumRegistry();
 
-    RegistryHasher POTION = enumIdRegistry(Potion.values());
+    MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
+        .optional("amplifier", BYTE, instance -> (byte) instance.getDetails().getAmplifier(), (byte) 0)
+        .optional("duration", INT, instance -> instance.getDetails().getDuration(), 0)
+        .optional("ambient", BOOL, instance -> instance.getDetails().isAmbient(), false)
+        .optional("show_particles", BOOL, instance -> instance.getDetails().isShowParticles(), true)
+        .accept("show_icon", BOOL, instance -> instance.getDetails().isShowIcon())); // TODO check this, also hidden effect but is recursive
 
-    MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
+    RegistryHasher POTION = enumIdRegistry(Potion.values());
 
     MinecraftHasher<BuiltinSound> BUILTIN_SOUND = KEY.convert(sound -> MinecraftKey.key(sound.getName()));
 
@@ -67,6 +93,11 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         }
         return CUSTOM_SOUND.hash((CustomSound) sound, encoder);
     };
+
+    MinecraftHasher<ToolData.Rule> TOOL_RULE = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
+        .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
+        .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
 
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);

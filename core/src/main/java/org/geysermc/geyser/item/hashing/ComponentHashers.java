@@ -38,10 +38,12 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -112,7 +114,7 @@ public class ComponentHashers {
             .optional("sound", RegistryHasher.SOUND_EVENT, Consumable::sound, BuiltinSound.ENTITY_GENERIC_EAT)
             .optional("has_consume_particles", MinecraftHasher.BOOL, Consumable::hasConsumeParticles, true)); // TODO consume effect needs identifier in MCPL
 
-        // TODO use remainder needs item stack codec, recursion go brr
+        register(DataComponentTypes.USE_REMAINDER, RegistryHasher.ITEM_STACK);
 
         registerMap(DataComponentTypes.USE_COOLDOWN, builder -> builder
             .accept("seconds", MinecraftHasher.FLOAT, UseCooldown::seconds)
@@ -120,7 +122,7 @@ public class ComponentHashers {
         registerMap(DataComponentTypes.DAMAGE_RESISTANT, builder -> builder
             .accept("types", MinecraftHasher.TAG, Function.identity()));
         registerMap(DataComponentTypes.TOOL, builder -> builder
-            .acceptList("rules", MinecraftHasher.TOOL_RULE, ToolData::getRules)
+            .acceptList("rules", RegistryHasher.TOOL_RULE, ToolData::getRules)
             .optional("default_mining_speed", MinecraftHasher.FLOAT, ToolData::getDefaultMiningSpeed, 1.0F)
             .optional("damage_per_block", MinecraftHasher.INT, ToolData::getDamagePerBlock, 1)
             .optional("can_destroy_blocks_in_creative", MinecraftHasher.BOOL, ToolData::isCanDestroyBlocksInCreative, true));
@@ -160,7 +162,7 @@ public class ComponentHashers {
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
             .optional("custom_color", MinecraftHasher.INT, PotionContents::getCustomColor, -1)
-            .optionalList("custom_effects", MinecraftHasher.MOB_EFFECT_INSTANCE, PotionContents::getCustomEffects)
+            .optionalList("custom_effects", RegistryHasher.MOB_EFFECT_INSTANCE, PotionContents::getCustomEffects)
             .optionalNullable("custom_name", MinecraftHasher.STRING, PotionContents::getCustomName));
 
         register(DataComponentTypes.POTION_DURATION_SCALE, MinecraftHasher.FLOAT);
@@ -185,10 +187,18 @@ public class ComponentHashers {
         hashers.put(component, hasher);
     }
 
+    public static <T> MinecraftHasher<T> hasherOrEmpty(DataComponentType<T> component) {
+        MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
+        if (hasher == null) {
+            return MinecraftHasher.UNIT.convert(value -> Unit.INSTANCE);
+        }
+        return hasher;
+    }
+
     public static <T> HashCode hash(GeyserSession session, DataComponentType<T> component, T value) {
         MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
         if (hasher == null) {
-            throw new IllegalStateException("Unregistered hasher for component " + component + "!");
+            throw new IllegalStateException("Unregistered hasher for component " + component + "!"); // TODO we might not have hashers for every component, in which case, fix this
         }
         return hasher.hash(value, new MinecraftHashEncoder(session));
     }
@@ -240,6 +250,13 @@ public class ComponentHashers {
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(5, 1.4F, false), 445786378);
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(3, 5.7F, true), 1917653498);
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(7, 0.15F, false), -184166204);
+
+        testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.MELON.javaId(), 52), -1279684916);
+
+        DataComponents specialComponents = new DataComponents(new HashMap<>());
+        specialComponents.put(DataComponentTypes.ITEM_MODEL, MinecraftKey.key("testing"));
+        specialComponents.put(DataComponentTypes.MAX_STACK_SIZE, 44);
+        testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.PUMPKIN.javaId(), 32, specialComponents), 1991032843);
 
         testHash(session, DataComponentTypes.DAMAGE_RESISTANT, MinecraftKey.key("testing"), -1230493835);
 

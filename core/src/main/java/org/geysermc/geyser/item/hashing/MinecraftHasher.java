@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.hashing;
 
+import com.google.common.base.Suppliers;
 import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
@@ -32,14 +33,13 @@ import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -75,20 +75,7 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = fromEnum();
 
-    MinecraftHasher<ToolData.Rule> TOOL_RULE = mapBuilder(builder -> builder
-        .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
-        .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
-        .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
-
     MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum(); // FIXME MCPL enum constants aren't right
-
-    MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = mapBuilder(builder -> builder
-        .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
-        .optional("amplifier", BYTE, instance -> (byte) instance.getDetails().getAmplifier(), (byte) 0)
-        .optional("duration", INT, instance -> instance.getDetails().getDuration(), 0)
-        .optional("ambient", BOOL, instance -> instance.getDetails().isAmbient(), false)
-        .optional("show_particles", BOOL, instance -> instance.getDetails().isShowParticles(), true)
-        .accept("show_icon", BOOL, instance -> instance.getDetails().isShowIcon())); // TODO check this, also hidden effect but is recursive
 
     HashCode hash(T value, MinecraftHashEncoder encoder);
 
@@ -97,11 +84,15 @@ public interface MinecraftHasher<T> {
     }
 
     default <F> MinecraftHasher<F> convert(Function<F, T> converter) {
-        return (object, encoder) -> hash(converter.apply(object), encoder);
+        return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
     default <F> MinecraftHasher<F> sessionConvert(BiFunction<GeyserSession, F, T> converter) {
-        return (object, encoder) -> hash(converter.apply(encoder.session(), object), encoder);
+        return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
+    }
+
+    static <T> MinecraftHasher<T> recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
+        return new Recursive<>(delegate);
     }
 
     static <T extends Enum<T>> MinecraftHasher<Integer> fromIdEnum(T[] values, Function<T, String> toName) {
@@ -114,12 +105,25 @@ public interface MinecraftHasher<T> {
     }
 
     static <T> MinecraftHasher<T> mapBuilder(UnaryOperator<MapHasher<T>> builder) {
-        return (object, encoder) -> builder.apply(new MapHasher<>(object, encoder)).build();
+        return (value, encoder) -> builder.apply(new MapHasher<>(value, encoder)).build();
     }
 
     static <K, V> MinecraftHasher<Map<K, V>> map(MinecraftHasher<K> keyHasher, MinecraftHasher<V> valueHasher) {
         return (map, encoder) -> encoder.map(map.entrySet().stream()
             .map(entry -> Map.entry(keyHasher.hash(entry.getKey(), encoder), valueHasher.hash(entry.getValue(), encoder)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
+
+    class Recursive<T> implements MinecraftHasher<T> {
+        private final Supplier<MinecraftHasher<T>> delegate;
+
+        public Recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
+            this.delegate = Suppliers.memoize(() -> delegate.apply(this));
+        }
+
+        @Override
+        public HashCode hash(T value, MinecraftHashEncoder encoder) {
+            return delegate.get().hash(value, encoder);
+        }
     }
 }
