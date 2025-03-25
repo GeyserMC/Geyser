@@ -312,7 +312,7 @@ public final class EntityDefinitions {
         EntityDefinition<Entity> entityBase = EntityDefinition.builder(Entity::new)
                 .addTranslator(MetadataTypes.BYTE, Entity::setFlags)
                 .addTranslator(MetadataTypes.INT, Entity::setAir) // Air/bubbles
-                .addTranslator(MetadataTypes.OPTIONAL_CHAT, Entity::setDisplayName)
+                .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, Entity::setDisplayName)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setDisplayNameVisible)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setSilent)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setGravity)
@@ -337,7 +337,7 @@ public final class EntityDefinitions {
                     .type(EntityType.END_CRYSTAL)
                     .heightAndWidth(2.0f)
                     .identifier("minecraft:ender_crystal")
-                    .addTranslator(MetadataTypes.OPTIONAL_POSITION, EnderCrystalEntity::setBlockTarget)
+                    .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, EnderCrystalEntity::setBlockTarget)
                     .addTranslator(MetadataTypes.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
                     .build();
@@ -365,8 +365,8 @@ public final class EntityDefinitions {
                     .type(EntityType.FIREWORK_ROCKET)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:fireworks_rocket")
-                    .addTranslator(MetadataTypes.ITEM, FireworkEntity::setFireworkItem)
-                    .addTranslator(MetadataTypes.OPTIONAL_VARINT, FireworkEntity::setPlayerGliding)
+                    .addTranslator(MetadataTypes.ITEM_STACK, FireworkEntity::setFireworkItem)
+                    .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FireworkEntity::setPlayerGliding)
                     .addTranslator(null) // Shot at angle
                     .build();
             FISHING_BOBBER = EntityDefinition.<FishingHookEntity>inherited(null, entityBase)
@@ -379,7 +379,7 @@ public final class EntityDefinitions {
                     .type(EntityType.ITEM)
                     .heightAndWidth(0.25f)
                     .offset(0.125f)
-                    .addTranslator(MetadataTypes.ITEM, ItemEntity::setItem)
+                    .addTranslator(MetadataTypes.ITEM_STACK, ItemEntity::setItem)
                     .build();
             LEASH_KNOT = EntityDefinition.inherited(LeashKnotEntity::new, entityBase)
                     .type(EntityType.LEASH_KNOT)
@@ -428,7 +428,7 @@ public final class EntityDefinitions {
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .offset(-0.5f)
-                    .addTranslator(MetadataTypes.CHAT, TextDisplayEntity::setText)
+                    .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color
                     .addTranslator(null) // Text opacity
@@ -457,7 +457,7 @@ public final class EntityDefinitions {
                     .build();
 
             EntityDefinition<ThrowableItemEntity> throwableItemBase = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
-                    .addTranslator(MetadataTypes.ITEM, ThrowableItemEntity::setItem)
+                    .addTranslator(MetadataTypes.ITEM_STACK, ThrowableItemEntity::setItem)
                     .build();
             EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
@@ -521,7 +521,7 @@ public final class EntityDefinitions {
             // Item frames are handled differently as they are blocks, not items, in Bedrock
             ITEM_FRAME = EntityDefinition.<ItemFrameEntity>inherited(null, entityBase)
                     .type(EntityType.ITEM_FRAME)
-                    .addTranslator(MetadataTypes.ITEM, ItemFrameEntity::setItemInFrame)
+                    .addTranslator(MetadataTypes.ITEM_STACK, ItemFrameEntity::setItemInFrame)
                     .addTranslator(MetadataTypes.INT, ItemFrameEntity::setItemRotation)
                     .build();
             GLOW_ITEM_FRAME = EntityDefinition.inherited(ITEM_FRAME.factory(), ITEM_FRAME)
@@ -547,7 +547,7 @@ public final class EntityDefinitions {
             COMMAND_BLOCK_MINECART = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
                     .type(EntityType.COMMAND_BLOCK_MINECART)
                     .addTranslator(MetadataTypes.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_NAME, entityMetadata.getValue()))
-                    .addTranslator(MetadataTypes.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
+                    .addTranslator(MetadataTypes.COMPONENT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
                     .build();
             FURNACE_MINECART = EntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
                     .type(EntityType.FURNACE_MINECART)
@@ -623,19 +623,19 @@ public final class EntityDefinitions {
                         (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENCE, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
                 .addTranslator(null) // Arrow count
                 .addTranslator(null) // Stinger count
-                .addTranslator(MetadataTypes.OPTIONAL_POSITION, LivingEntity::setBedPosition)
+                .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, LivingEntity::setBedPosition)
                 .build();
 
         ARMOR_STAND = EntityDefinition.inherited(ArmorStandEntity::new, livingEntityBase)
                 .type(EntityType.ARMOR_STAND)
                 .height(1.975f).width(0.5f)
                 .addTranslator(MetadataTypes.BYTE, ArmorStandEntity::setArmorStandFlags)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setHeadRotation)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setBodyRotation)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setLeftArmRotation)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setRightArmRotation)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setLeftLegRotation)
-                .addTranslator(MetadataTypes.ROTATION, ArmorStandEntity::setRightLegRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setHeadRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setBodyRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setLeftArmRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightArmRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setLeftLegRotation)
+                .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
         PLAYER = EntityDefinition.<PlayerEntity>inherited(null, livingEntityBase)
                 .type(EntityType.PLAYER)
@@ -645,8 +645,8 @@ public final class EntityDefinitions {
                 .addTranslator(null) // Player score
                 .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
                 .addTranslator(null) // Player main hand
-                .addTranslator(MetadataTypes.NBT_TAG, PlayerEntity::setLeftParrot)
-                .addTranslator(MetadataTypes.NBT_TAG, PlayerEntity::setRightParrot)
+                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setLeftParrot)
+                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setRightParrot)
                 .build();
 
         EntityDefinition<MobEntity> mobEntityBase = EntityDefinition.inherited(MobEntity::new, livingEntityBase)
@@ -686,7 +686,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setCanMove)
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setActive)
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setIsTearingDown)
-                    .addTranslator(MetadataTypes.OPTIONAL_POSITION, CreakingEntity::setHomePos)
+                    .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, CreakingEntity::setHomePos)
                     .properties(VanillaEntityProperties.CREAKING)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
@@ -981,7 +981,7 @@ public final class EntityDefinitions {
                     .type(EntityType.FROG)
                     .heightAndWidth(0.5f)
                     .addTranslator(MetadataTypes.FROG_VARIANT, FrogEntity::setVariant)
-                    .addTranslator(MetadataTypes.OPTIONAL_VARINT, FrogEntity::setTongueTarget)
+                    .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FrogEntity::setTongueTarget)
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)

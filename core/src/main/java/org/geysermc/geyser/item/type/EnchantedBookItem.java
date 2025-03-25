@@ -95,7 +95,7 @@ public class EnchantedBookItem extends Item {
                 }
             }
             if (!javaEnchantments.isEmpty()) {
-                components.put(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments, true));
+                components.put(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments));
             }
         }
     }

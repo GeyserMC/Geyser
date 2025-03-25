@@ -221,7 +221,7 @@ public class ComponentHashers {
 
         testHash(session, DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(Map.of(
             0, 1
-        ), false), 0); // TODO identifier lookup
+        )), 0); // TODO identifier lookup
 
         testHash(session, DataComponentTypes.CUSTOM_MODEL_DATA,
             new CustomModelData(List.of(5.0F, 3.0F, -1.0F), List.of(false, true, false), List.of("1", "3", "2"), List.of(3424, -123, 345)), 1947635619);
@@ -290,9 +290,6 @@ public class ComponentHashers {
         testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 87,
             List.of(new MobEffectInstance(Effect.SPEED, new MobEffectDetails(29, 1004, false, true, true, null))),
             "testing"), 2007296036);
-
-        // Chunk errors are spamming logs and I don't need to log in anyway
-        session.disconnect("AAAAAA");
     }
 
     private static <T> void testHash(GeyserSession session, DataComponentType<T> component, T value, int expected) {

@@ -145,6 +145,6 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                         }
                     }
                 }
-                components.put(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(enchantments, true));
+                components.put(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(enchantments));
             });
 }
