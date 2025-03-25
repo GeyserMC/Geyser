@@ -32,6 +32,7 @@ import java.nio.file.Path;
 /**
  * Represents a pack codec that creates a resource
  * pack from a path on the filesystem.
+ * @since 2.1.1
  */
 public abstract class PathPackCodec extends PackCodec {
 
@@ -39,6 +40,7 @@ public abstract class PathPackCodec extends PackCodec {
      * Gets the path of the resource pack.
      *
      * @return the path of the resource pack
+     * @since 2.1.1
      */
     @NonNull
     public abstract Path path();
