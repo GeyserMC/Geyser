@@ -80,7 +80,7 @@ public interface MinecraftHasher<T> {
         .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
         .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
 
-    MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum();
+    MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum(); // FIXME MCPL enum constants aren't right
 
     MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = mapBuilder(builder -> builder
         .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
