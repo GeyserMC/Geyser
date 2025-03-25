@@ -43,7 +43,7 @@ public class ResourcePackException extends IllegalArgumentException {
     private final Cause cause;
 
     /**
-     * @param cause The cause of this exception
+     * @param cause the cause of this exception
      * @since 2.6.2
      */
     public ResourcePackException(Cause cause) {

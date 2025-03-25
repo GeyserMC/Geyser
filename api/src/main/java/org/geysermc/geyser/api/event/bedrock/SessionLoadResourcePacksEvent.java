@@ -42,7 +42,6 @@ import java.util.UUID;
  * @since 2.1.1
  */
 public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-
     public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
         super(connection);
     }
