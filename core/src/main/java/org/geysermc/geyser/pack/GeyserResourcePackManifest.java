@@ -35,15 +35,45 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
-public record GeyserResourcePackManifest(@JsonProperty("format_version") int formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
+public record GeyserResourcePackManifest(
+    @JsonProperty("format_version") int formatVersion,
+    Header header,
+    Collection<Module> modules,
+    Collection<Dependency> dependencies,
+    Collection<Subpack> subpacks,
+    Collection<Setting> settings
+) implements ResourcePackManifest {
+    public GeyserResourcePackManifest(int formatVersion,
+                                      Header header,
+                                      Collection<Module> modules,
+                                      Collection<Dependency> dependencies,
+                                      Collection<Subpack> subpacks,
+                                      Collection<Setting> settings) {
+        this.formatVersion = formatVersion;
+        this.header = header;
+        this.modules = ensureNonNull(modules);
+        this.dependencies = ensureNonNull(dependencies);
+        this.subpacks = ensureNonNull(subpacks);
+        this.settings = ensureNonNull(settings);
+    }
 
     public record Header(UUID uuid, Version version, String name, String description, @JsonProperty("min_engine_version") Version minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header { }
 
     public record Module(UUID uuid, Version version, String type, String description) implements ResourcePackManifest.Module { }
 
     public record Dependency(UUID uuid, Version version) implements ResourcePackManifest.Dependency { }
+
+    public record Subpack(@JsonProperty("folder_name") String folderName, String name, @JsonProperty("memory_tier") Float memoryTier) implements ResourcePackManifest.Subpack { }
+
+    public record Setting(String type, String text) implements ResourcePackManifest.Setting { }
+
+    static <T> Collection<T> ensureNonNull(Collection<T> collection) {
+        if (collection == null) return Collections.emptyList();
+        return Collections.unmodifiableCollection(collection);
+    }
 
     @JsonDeserialize(using = Version.VersionDeserializer.class)
     public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {
