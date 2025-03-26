@@ -91,10 +91,10 @@ public final class RegistryCache {
         register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
         register(JavaRegistries.ENCHANTMENT, cache -> cache.enchantments, Enchantment::read);
         register(JavaRegistries.INSTRUMENT, cache -> cache.instruments, GeyserInstrument::read);
-        register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
+        register(JavaRegistries.JUKEBOX_SONG, cache -> cache.jukeboxSongs, JukeboxSong::read);
         register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
-        register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
-        register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
+        register(JavaRegistries.TRIM_MATERIAL, cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
+        register(JavaRegistries.TRIM_PATTERN, cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, context -> BannerPattern.getByJavaIdentifier(context.id()));
 

@@ -28,11 +28,15 @@ package org.geysermc.geyser.item.hashing;
 import com.google.common.base.Suppliers;
 import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.List;
@@ -71,6 +75,10 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<NbtMap> NBT_MAP = (map, encoder) -> encoder.nbtMap(map);
 
+    MinecraftHasher<NbtList<?>> NBT_LIST = (list, encoder) -> encoder.nbtList(list);
+
+    MinecraftHasher<Vector3i> POS = INT_ARRAY.convert(pos -> IntStream.of(pos.getX(), pos.getY(), pos.getZ()));
+
     MinecraftHasher<Key> KEY = STRING.convert(Key::asString);
 
     MinecraftHasher<Key> TAG = STRING.convert(key -> "#" + key.asString());
@@ -87,10 +95,20 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum(); // FIXME MCPL enum constants aren't right
 
+    MinecraftHasher<GlobalPos> GLOBAL_POS = mapBuilder(builder -> builder
+        .accept("dimension", KEY, GlobalPos::getDimension)
+        .accept("pos", POS, GlobalPos::getPosition));
+
     HashCode hash(T value, MinecraftHashEncoder encoder);
 
     default MinecraftHasher<List<T>> list() {
         return (list, encoder) -> encoder.list(list.stream().map(element -> hash(element, encoder)).toList());
+    }
+
+    default MinecraftHasher<Filterable<T>> filterable() {
+        return mapBuilder(builder -> builder
+            .accept("raw", this, Filterable::getRaw)
+            .optionalNullable("filtered", this, Filterable::getOptional));
     }
 
     default <D> MinecraftHasher<D> dispatch(String typeKey, Function<D, T> typeExtractor, Function<T, MapBuilder<D>> hashDispatch) {

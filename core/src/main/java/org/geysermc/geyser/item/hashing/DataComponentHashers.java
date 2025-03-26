@@ -49,6 +49,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperti
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.IntComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
@@ -57,6 +58,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDispl
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Weapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.HashMap;
@@ -164,15 +167,35 @@ public class DataComponentHashers {
         register(DataComponentTypes.POTION_DURATION_SCALE, MinecraftHasher.FLOAT);
         register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, RegistryHasher.SUSPICIOUS_STEW_EFFECT.list());
 
-        // TODO writable book content
-        // TODO written book content
-        // TODO trim
+        registerMap(DataComponentTypes.WRITABLE_BOOK_CONTENT, builder -> builder
+            .optionalList("pages", MinecraftHasher.STRING.filterable(), WritableBookContent::getPages));
+        registerMap(DataComponentTypes.WRITTEN_BOOK_CONTENT, builder -> builder
+            .accept("title", MinecraftHasher.STRING.filterable(), WrittenBookContent::getTitle)
+            .accept("author", MinecraftHasher.STRING, WrittenBookContent::getAuthor)
+            .accept("generation", MinecraftHasher.INT, WrittenBookContent::getGeneration)
+            .optionalList("pages", ComponentHasher.COMPONENT.filterable(), WrittenBookContent::getPages)
+            .optional("resolved", MinecraftHasher.BOOL, WrittenBookContent::isResolved, false));
+
+        register(DataComponentTypes.TRIM, RegistryHasher.ARMOR_TRIM);
         register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.ENTITY_DATA, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.BLOCK_ENTITY_DATA, MinecraftHasher.NBT_MAP);
 
         register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
+        register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);
+
+        registerInt(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER);
+
+        register(DataComponentTypes.JUKEBOX_PLAYABLE, RegistryHasher.JUKEBOX_PLAYABLE);
+        register(DataComponentTypes.PROVIDES_BANNER_PATTERNS, MinecraftHasher.TAG);
+        register(DataComponentTypes.RECIPES, MinecraftHasher.NBT_LIST);
+
+        registerMap(DataComponentTypes.LODESTONE_TRACKER, builder -> builder
+            .optionalNullable("target", MinecraftHasher.GLOBAL_POS, LodestoneTracker::getPos)
+            .optional("tracked", MinecraftHasher.BOOL, LodestoneTracker::isTracked, true));
+
+        // TODO firework explosion, fireworks
     }
 
     private static void registerUnit(DataComponentType<Unit> component) {
