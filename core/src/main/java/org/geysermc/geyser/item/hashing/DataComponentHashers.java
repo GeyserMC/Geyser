@@ -63,10 +63,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 @SuppressWarnings("UnstableApiUsage")
-public class ComponentHashers {
+public class DataComponentHashers {
     private static final Map<DataComponentType<?>, MinecraftHasher<?>> hashers = new HashMap<>();
 
     static {
@@ -102,7 +101,7 @@ public class ComponentHashers {
         registerInt(DataComponentTypes.REPAIR_COST);
 
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, MinecraftHasher.BOOL);
-        //register(DataComponentTypes.INTANGIBLE_PROJECTILE); // TODO MCPL is wrong
+        registerUnit(DataComponentTypes.INTANGIBLE_PROJECTILE);
 
         registerMap(DataComponentTypes.FOOD, builder -> builder
             .accept("nutrition", MinecraftHasher.INT, FoodProperties::getNutrition)
@@ -156,8 +155,8 @@ public class ComponentHashers {
         registerInt(DataComponentTypes.MAP_ID);
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
-        // TODO charged projectiles also need the recursion™
-        // TODO same for bundle contents
+        register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list()); // TODO test one of these, preferably bundle contents which is more complicated
+        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list());
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
@@ -166,6 +165,17 @@ public class ComponentHashers {
             .optionalNullable("custom_name", MinecraftHasher.STRING, PotionContents::getCustomName));
 
         register(DataComponentTypes.POTION_DURATION_SCALE, MinecraftHasher.FLOAT);
+        register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, RegistryHasher.SUSPICIOUS_STEW_EFFECT.list());
+
+        // TODO writable book content
+        // TODO written book content
+        // TODO trim
+        register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
+        register(DataComponentTypes.ENTITY_DATA, MinecraftHasher.NBT_MAP);
+        register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
+        register(DataComponentTypes.BLOCK_ENTITY_DATA, MinecraftHasher.NBT_MAP);
+
+        register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
     }
 
     private static void registerUnit(DataComponentType<Unit> component) {
@@ -176,7 +186,7 @@ public class ComponentHashers {
         register(component, MinecraftHasher.INT);
     }
 
-    private static <T> void registerMap(DataComponentType<T> component, UnaryOperator<MapHasher<T>> builder) {
+    private static <T> void registerMap(DataComponentType<T> component, MapBuilder<T> builder) {
         register(component, MinecraftHasher.mapBuilder(builder));
     }
 

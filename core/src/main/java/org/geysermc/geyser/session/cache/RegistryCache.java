@@ -86,10 +86,11 @@ public final class RegistryCache {
     private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
+        // TODO reorder these, and maybe have all in javaregistries (though that'd make geyser cache tags for all of them)
         register("chat_type", cache -> cache.chatTypes, ChatDecoration::readChatType);
         register("dimension_type", cache -> cache.dimensions, JavaDimension::read);
         register(JavaRegistries.ENCHANTMENT, cache -> cache.enchantments, Enchantment::read);
-        register("instrument", cache -> cache.instruments, GeyserInstrument::read);
+        register(JavaRegistries.INSTRUMENT, cache -> cache.instruments, GeyserInstrument::read);
         register("jukebox_song", cache -> cache.jukeboxSongs, JukeboxSong::read);
         register("painting_variant", cache -> cache.paintings, context -> PaintingType.getByName(context.id()));
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);

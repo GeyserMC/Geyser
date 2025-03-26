@@ -32,6 +32,7 @@ import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnim
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
@@ -55,6 +56,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<Item> ITEM = create("item", Registries.JAVA_ITEMS, Item::javaId, Item::javaKey);
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment", RegistryCache::enchantments);
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern", RegistryCache::bannerPatterns);
+    public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument", RegistryCache::instruments);
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant", RegistryCache::catVariants);
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant", RegistryCache::frogVariants);

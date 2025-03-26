@@ -40,9 +40,13 @@ public class MapHasher<T> {
     private final Map<HashCode, HashCode> map;
 
     MapHasher(T object, MinecraftHashEncoder encoder) {
+        this(object, encoder, new HashMap<>());
+    }
+
+    private MapHasher(T object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map) {
         this.encoder = encoder;
         this.object = object;
-        map = new HashMap<>();
+        this.map = map;
     }
 
     public MapHasher<T> accept(String key, HashCode hash) {
@@ -52,6 +56,12 @@ public class MapHasher<T> {
 
     public <V> MapHasher<T> accept(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
         return accept(key, hasher.hash(extractor.apply(object), encoder));
+    }
+
+    // Adds keys and values from the builder directly to this map (document me properly)
+    public <V> MapHasher<T> accept(Function<V, MapBuilder<T>> builderExtractor, Function<T, V> extractor) {
+        builderExtractor.apply(extractor.apply(object)).apply(this);
+        return this;
     }
 
     public <V> MapHasher<T> optionalNullable(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {

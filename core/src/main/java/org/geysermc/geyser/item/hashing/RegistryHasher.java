@@ -29,6 +29,7 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -36,7 +37,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
@@ -58,7 +61,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT = (component, encoder) -> {
-        MinecraftHasher hasher = ComponentHashers.hasherOrEmpty(component.getType());
+        MinecraftHasher hasher = DataComponentHashers.hasherOrEmpty(component.getType());
         return hasher.hash(component.getValue(), encoder);
     };
 
@@ -70,6 +73,12 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
 
     MinecraftHasher<Effect> EFFECT = enumRegistry();
+
+    RegistryHasher EFFECT_ID = enumIdRegistry(Effect.values());
+
+    MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)
+        .optional("duration", INT, SuspiciousStewEffect::getDuration, 160));
 
     MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
@@ -94,6 +103,16 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         return CUSTOM_SOUND.hash((CustomSound) sound, encoder);
     };
 
+    MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
+        .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
+        .accept("range", FLOAT, InstrumentComponent.Instrument::range)
+        /*.accept("description", COMPONENT, InstrumentComponent.Instrument::description)*/); // TODO component description
+
+    MinecraftHasher<Holder<InstrumentComponent.Instrument>> INSTRUMENT = holder(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
+
+    MinecraftHasher<InstrumentComponent> INSTRUMENT_COMPONENT = MinecraftHasher.either(INSTRUMENT, InstrumentComponent::instrumentHolder, KEY, InstrumentComponent::instrumentLocation);
+
     MinecraftHasher<ToolData.Rule> TOOL_RULE = MinecraftHasher.mapBuilder(builder -> builder
         .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
         .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
@@ -102,6 +121,17 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);
         return hasher::hash;
+    }
+
+    // We don't need the registry generic type, and this works easier for goat horn instruments
+    static <T> MinecraftHasher<Holder<T>> holder(JavaRegistryKey<?> registry, MinecraftHasher<T> direct) {
+        RegistryHasher registryHasher = registry(registry);
+        return (value, encoder) -> {
+            if (value.isId()) {
+                return registryHasher.hash(value.id(), encoder);
+            }
+            return direct.hash(value.custom(), encoder);
+        };
     }
 
     static <T extends Enum<T>> MinecraftHasher<T> enumRegistry() {

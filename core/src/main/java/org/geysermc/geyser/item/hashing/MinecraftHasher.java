@@ -83,12 +83,23 @@ public interface MinecraftHasher<T> {
         return (list, encoder) -> encoder.list(list.stream().map(element -> hash(element, encoder)).toList());
     }
 
+    default <D> MinecraftHasher<D> dispatch(String typeKey, Function<D, T> typeExtractor, Function<T, MapBuilder<D>> hashDispatch) {
+        return mapBuilder(builder -> builder
+            .accept(typeKey, this, typeExtractor)
+            .accept(hashDispatch, typeExtractor));
+    }
+
     default <F> MinecraftHasher<F> convert(Function<F, T> converter) {
         return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
     default <F> MinecraftHasher<F> sessionConvert(BiFunction<GeyserSession, F, T> converter) {
         return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
+    }
+
+    static <T> MinecraftHasher<T> lazyInitialize(Supplier<MinecraftHasher<T>> hasher) {
+        Supplier<MinecraftHasher<T>> memoized = Suppliers.memoize(hasher::get);
+        return (value, encoder) -> memoized.get().hash(value, encoder);
     }
 
     static <T> MinecraftHasher<T> recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
@@ -104,7 +115,7 @@ public interface MinecraftHasher<T> {
         return STRING.convert(t -> t.name().toLowerCase());
     }
 
-    static <T> MinecraftHasher<T> mapBuilder(UnaryOperator<MapHasher<T>> builder) {
+    static <T> MinecraftHasher<T> mapBuilder(MapBuilder<T> builder) {
         return (value, encoder) -> builder.apply(new MapHasher<>(value, encoder)).build();
     }
 
@@ -112,6 +123,16 @@ public interface MinecraftHasher<T> {
         return (map, encoder) -> encoder.map(map.entrySet().stream()
             .map(entry -> Map.entry(keyHasher.hash(entry.getKey(), encoder), valueHasher.hash(entry.getValue(), encoder)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
+
+    static <T, F, S> MinecraftHasher<T> either(MinecraftHasher<F> firstHasher, Function<T, F> firstExtractor, MinecraftHasher<S> secondHasher, Function<T, S> secondExtractor) {
+        return (value, encoder) -> {
+            F first = firstExtractor.apply(value);
+            if (first != null) {
+                return firstHasher.hash(first, encoder);
+            }
+            return secondHasher.hash(secondExtractor.apply(value), encoder);
+        };
     }
 
     class Recursive<T> implements MinecraftHasher<T> {
