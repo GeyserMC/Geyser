@@ -85,6 +85,10 @@ public class Conversion766_748 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+
+        // First: Downgrade from 1.21.60 -> 1.21.50
+        tag = Conversion776_766.remapBlock(tag);
+
         String name = tag.getString("name").replace("minecraft:", "");
         if (PALE_WOODEN_BLOCKS.contains(name)) {
             return withName(tag, name.replace("pale_oak", "birch"));
