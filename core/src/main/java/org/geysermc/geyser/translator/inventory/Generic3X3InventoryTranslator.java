@@ -47,7 +47,7 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Generic3X3Container(name, windowId, this.size, containerType, playerInventory);
+        return new Generic3X3Container(name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override

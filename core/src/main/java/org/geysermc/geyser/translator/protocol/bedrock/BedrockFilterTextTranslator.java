@@ -31,6 +31,7 @@ import org.geysermc.geyser.inventory.CartographyContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 /**
  * Used to send strings to the server and filter out unwanted words.
@@ -48,7 +49,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
         packet.setFromServer(true);
         if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
             packet.setText(anvilContainer.checkForRename(session, packet.getText()));
-            session.getInventoryTranslator().updateSlot(session, anvilContainer, 1);
+            InventoryUtils.getInventoryTranslator(session).updateSlot(session, anvilContainer, 1);
         }
         session.sendUpstreamPacket(packet);
     }

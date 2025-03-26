@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.jetbrains.annotations.Range;
 
@@ -48,7 +49,7 @@ public class PlayerInventory extends Inventory {
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
-        super(0, 46, null);
+        super(0, 46, null, InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         heldItemSlot = 0;
     }
 

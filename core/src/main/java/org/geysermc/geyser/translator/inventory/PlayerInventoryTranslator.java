@@ -574,6 +574,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
+    public boolean canReuseInventory(GeyserSession session, Inventory inventory, Inventory previous) {
+        return true;
+    }
+
+    @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         return true;
     }

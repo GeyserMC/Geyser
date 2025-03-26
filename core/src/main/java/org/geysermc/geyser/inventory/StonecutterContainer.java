@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 public class StonecutterContainer extends Container {
@@ -39,8 +40,8 @@ public class StonecutterContainer extends Container {
     @Setter
     private int stonecutterButton = -1;
 
-    public StonecutterContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public StonecutterContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, playerInventory, translator);
     }
 
     @Override

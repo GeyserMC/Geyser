@@ -42,9 +42,7 @@ public class JavaContainerSetDataTranslator extends PacketTranslator<Clientbound
         if (inventory == null)
             return;
 
-        InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null) {
-            translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-        }
+        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
+        translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
     }
 }

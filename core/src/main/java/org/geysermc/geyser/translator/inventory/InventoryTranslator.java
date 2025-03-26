@@ -85,6 +85,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
 
@@ -134,6 +135,32 @@ public abstract class InventoryTranslator {
 
     public final int size;
 
+    // Whether the inventory open should be delayed.
+    public boolean shouldDelayInventoryOpen(GeyserSession session, Inventory inventory) {
+        return false;
+    }
+
+    /**
+     * Whether a new inventory should be prepared - or if we can re-use the previous one.
+     */
+    public boolean canReuseInventory(GeyserSession session, Inventory inventory, Inventory previous) {
+        // Filter for obvious mismatches that require a new inventory
+        if (previous == null
+            || inventory.getContainerType() == null
+            || previous.getContainerType() == null
+            || !Objects.equals(inventory.getContainerType(), previous.getContainerType())) {
+            return false;
+        }
+
+        // Inventory size should also match.
+        if (inventory.getSize() != previous.getSize() || !Objects.equals(inventory.getTitle(), previous.getTitle())) {
+            return false;
+        }
+
+        // TODO can we easily set a new inventory name???
+
+        return true;
+    }
     public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
     public abstract void closeInventory(GeyserSession session, Inventory inventory);

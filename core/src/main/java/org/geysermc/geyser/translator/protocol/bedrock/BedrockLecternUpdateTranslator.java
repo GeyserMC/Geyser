@@ -29,7 +29,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LecternUpdatePacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -62,9 +61,8 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // So, fun fact: We need to separately handle fake lecterns!
             // Since those are not actually a real lectern... the Java server won't respond to our requests.
             if (!lecternContainer.isUsingRealBlock()) {
-                LecternInventoryTranslator translator = (LecternInventoryTranslator) session.getInventoryTranslator();
                 Inventory inventory = session.getOpenInventory();
-                translator.updateProperty(session, inventory, 0, newJavaPage);
+                inventory.getTranslator().updateProperty(session, inventory, 0, newJavaPage);
                 return;
             }
 
@@ -73,12 +71,12 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // is a byte when transmitted over the network and therefore this stops us at 128
             if (newJavaPage > currentJavaPage) {
                 for (int i = currentJavaPage; i < newJavaPage; i++) {
-                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 2);
+                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(lecternContainer.getJavaId(), 2);
                     session.sendDownstreamGamePacket(clickButtonPacket);
                 }
             } else {
                 for (int i = currentJavaPage; i > newJavaPage; i--) {
-                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 1);
+                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(lecternContainer.getJavaId(), 1);
                     session.sendDownstreamGamePacket(clickButtonPacket);
                 }
             }

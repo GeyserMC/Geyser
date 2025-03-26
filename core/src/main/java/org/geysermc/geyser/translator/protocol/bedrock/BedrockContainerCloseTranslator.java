@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -53,19 +51,19 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
             bedrockId = (byte) openInventory.getBedrockId();
 
-            // If virtual inventories are opened too quickly, they can be occasionally rejected
-            if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
-                if (session.getContainerOpenAttempts() < 3) {
-                    session.setContainerOpenAttempts(session.getContainerOpenAttempts() + 1);
-                    session.getInventoryTranslator().openInventory(session, session.getOpenInventory());
-                    session.getInventoryTranslator().updateInventory(session, session.getOpenInventory());
-                    session.getOpenInventory().setDisplayed(true);
-                    return;
-                } else {
-                    GeyserImpl.getInstance().getLogger().debug("Exceeded 3 attempts to open a virtual inventory!");
-                    GeyserImpl.getInstance().getLogger().debug(packet + " " + session.getOpenInventory().getClass().getSimpleName());
-                }
-            }
+//            // If virtual inventories are opened too quickly, they can be occasionally rejected
+//            if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
+//                if (session.getContainerOpenAttempts() < 3) {
+//                    session.setContainerOpenAttempts(session.getContainerOpenAttempts() + 1);
+//                    session.getInventoryTranslator().openInventory(session, session.getOpenInventory());
+//                    session.getInventoryTranslator().updateInventory(session, session.getOpenInventory());
+//                    session.getOpenInventory().setDisplayed(true);
+//                    return;
+//                } else {
+//                    GeyserImpl.getInstance().getLogger().debug("Exceeded 3 attempts to open a virtual inventory!");
+//                    GeyserImpl.getInstance().getLogger().debug(packet + " " + session.getOpenInventory().getClass().getSimpleName());
+//                }
+//            }
         }
 
         session.setContainerOpenAttempts(0);

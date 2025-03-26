@@ -31,6 +31,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.incendo.cloud.context.CommandContext;
 
 import java.util.Objects;
@@ -51,6 +52,6 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
             + MinecraftLocale.getLocaleString("debug.prefix", session.locale())
             + " " + ChatColor.RESET
             + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
-        session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+        InventoryUtils.getInventoryTranslator(session).updateInventory(session, session.getPlayerInventory());
     }
 }

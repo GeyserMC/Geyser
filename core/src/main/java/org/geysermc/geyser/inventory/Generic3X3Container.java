@@ -30,6 +30,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.Generic3X3InventoryTranslator;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 public class Generic3X3Container extends Container {
@@ -41,8 +42,8 @@ public class Generic3X3Container extends Container {
     @Getter
     private boolean isDropper = false;
 
-    public Generic3X3Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public Generic3X3Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, playerInventory, translator);
     }
 
     @Override

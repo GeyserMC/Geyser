@@ -200,6 +200,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory);
+        return new LecternContainer(name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory, this);
     }
 }

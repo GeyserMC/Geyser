@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.inventory.chest;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
@@ -57,16 +58,16 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        return holder.prepareInventory(this, session, inventory);
+        return holder.prepareInventory(session, (Container) inventory);
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
+        holder.openInventory(session, (Container) inventory);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory, ContainerType.CONTAINER);
+        holder.closeInventory(session, (Container) inventory, ContainerType.CONTAINER);
     }
 }

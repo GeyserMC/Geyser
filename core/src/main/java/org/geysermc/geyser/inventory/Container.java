@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,8 +47,14 @@ public class Container extends Inventory {
      */
     private boolean isUsingRealBlock = false;
 
-    public Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType);
+    /**
+     * Used to minimize delay when switching between "same" containers.
+     */
+    @Setter
+    private boolean isReusingBlock = false;
+
+    public Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, translator);
         this.playerInventory = playerInventory;
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
     }

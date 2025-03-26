@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -81,29 +82,37 @@ public abstract class Inventory {
     @Setter
     protected Vector3i holderPosition = Vector3i.ZERO;
 
+    /**
+     * The entity id of the entity holding the inventory.
+     * Either this, or the holder position must be set in order for Bedrock to open inventories.
+     */
     @Getter
     @Setter
     protected long holderId = -1;
 
     @Getter
     @Setter
-    private boolean pending = false;
+    private boolean displayed = false;
 
     @Getter
     @Setter
-    private boolean displayed = false;
+    private boolean pending = false;
 
-    protected Inventory(int id, int size, ContainerType containerType) {
-        this("Inventory", id, size, containerType);
+    @Getter
+    private final InventoryTranslator translator;
+
+    protected Inventory(int id, int size, ContainerType containerType, InventoryTranslator translator) {
+        this("Inventory", id, size, containerType, translator);
     }
 
-    protected Inventory(String title, int javaId, int size, ContainerType containerType) {
+    protected Inventory(String title, int javaId, int size, ContainerType containerType, InventoryTranslator translator) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
+        this.translator = translator;
     }
 
     // This is to prevent conflicts with special bedrock inventory IDs.

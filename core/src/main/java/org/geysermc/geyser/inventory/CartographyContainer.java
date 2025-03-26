@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.inventory;
 
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 public class CartographyContainer extends Container {
-    public CartographyContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public CartographyContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, playerInventory, translator);
     }
 }

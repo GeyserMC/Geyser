@@ -141,7 +141,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         // Java sends the triggered and slot bits incrementally through properties, which we store here
-        return new CrafterContainer(name, windowId, this.size, containerType, playerInventory);
+        return new CrafterContainer(name, windowId, this.size, containerType, playerInventory, this);
     }
 
     private static void updateBlockEntity(GeyserSession session, CrafterContainer container) {

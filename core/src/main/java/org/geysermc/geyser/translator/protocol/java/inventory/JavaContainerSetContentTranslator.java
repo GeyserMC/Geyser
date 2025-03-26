@@ -79,7 +79,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         session.getPlayerInventory().setCursor(cursor, session);
         InventoryUtils.updateCursor(session);
 
-        if (session.getInventoryTranslator() instanceof SmithingInventoryTranslator) {
+        if (InventoryUtils.getInventoryTranslator(session) instanceof SmithingInventoryTranslator) {
             // On 1.21.1, the recipe output is sometimes only updated here.
             // This can be replicated with shift-clicking the last item into the smithing table.
             // It seems that something in Via 5.1.1 causes 1.21.3 clients - even Java ones -
@@ -92,11 +92,11 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
     }
 
     private void updateInventory(GeyserSession session, Inventory inventory, int containerId) {
-        InventoryTranslator translator = session.getInventoryTranslator();
+        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
         if (containerId == 0 && !(translator instanceof PlayerInventoryTranslator)) {
             // In rare cases, the window ID can still be 0 but Java treats it as valid
             InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateInventory(session, inventory);
-        } else if (translator != null) {
+        } else {
             translator.updateInventory(session, inventory);
         }
     }

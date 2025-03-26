@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +36,7 @@ public class BeaconContainer extends Container {
     private int primaryId;
     private int secondaryId;
 
-    public BeaconContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public BeaconContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, playerInventory, translator);
     }
 }

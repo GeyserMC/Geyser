@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
@@ -41,8 +42,8 @@ public class EnchantingContainer extends Container {
     @Getter
     private final GeyserEnchantOption[] geyserEnchantOptions;
 
-    public EnchantingContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public EnchantingContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(title, id, size, containerType, playerInventory, translator);
 
         enchantOptions = new EnchantOptionData[3];
         geyserEnchantOptions = new GeyserEnchantOption[3];

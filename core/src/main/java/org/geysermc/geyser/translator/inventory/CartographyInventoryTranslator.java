@@ -87,7 +87,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new CartographyContainer(name, windowId, this.size, containerType, playerInventory);
+        return new CartographyContainer(name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override
