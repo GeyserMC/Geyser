@@ -26,7 +26,12 @@
 package org.geysermc.geyser.item.hashing;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.KeybindComponent;
+import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ScoreComponent;
+import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -34,9 +39,16 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
+import java.util.function.Supplier;
+
 public interface ComponentHasher {
 
-    MinecraftHasher<Component> COMPONENT = (value, encoder) -> encoder.empty(); // TODO
+    MinecraftHasher<Component> COMPONENT = MinecraftHasher.lazyInitialize(new Supplier<>() {
+        @Override
+        public MinecraftHasher<Component> get() {
+            return ACTUAL_COMPONENT;
+        }
+    });
 
     MinecraftHasher<NamedTextColor> NAMED_COLOR = MinecraftHasher.STRING.convert(NamedTextColor::toString);
 
@@ -69,15 +81,20 @@ public interface ComponentHasher {
 
     MinecraftHasher<HoverEvent<?>> HOVER_EVENT = HOVER_EVENT_ACTION.dispatch("action", HoverEvent::action, action -> {
         if (action == HoverEvent.Action.SHOW_TEXT) {
-
+            return builder -> builder.accept("value", COMPONENT, event -> (Component) event.value());
         } else if (action == HoverEvent.Action.SHOW_ITEM) {
-
+            return builder -> builder
+                .accept("id", MinecraftHasher.KEY, event -> ((HoverEvent.ShowItem) event.value()).item())
+                .accept("count", MinecraftHasher.INT, event -> ((HoverEvent.ShowItem) event.value()).count()); // Data components are probably not possible
         }
-        return builder -> builder;
+        return builder -> builder
+            .accept("id", MinecraftHasher.KEY, event -> ((HoverEvent.ShowEntity) event.value()).type())
+            .accept("uuid", MinecraftHasher.UUID, event -> ((HoverEvent.ShowEntity) event.value()).id())
+            .optionalNullable("name", COMPONENT, event -> ((HoverEvent.ShowEntity) event.value()).name());
     });
 
     // TODO shadow colours - needs kyori bump
-    MinecraftHasher<Style> STYLE = MinecraftHasher.mapBuilder(builder ->  builder
+    MapBuilder<Style> STYLE = builder ->  builder
         .optionalNullable("color", COLOR, Style::color)
         .optional("bold", DECORATION_STATE, style -> style.decoration(TextDecoration.BOLD), TextDecoration.State.NOT_SET)
         .optional("italic", DECORATION_STATE, style -> style.decoration(TextDecoration.ITALIC), TextDecoration.State.NOT_SET)
@@ -85,18 +102,64 @@ public interface ComponentHasher {
         .optional("strikethrough", DECORATION_STATE, style -> style.decoration(TextDecoration.STRIKETHROUGH), TextDecoration.State.NOT_SET)
         .optional("obfuscated", DECORATION_STATE, style -> style.decoration(TextDecoration.OBFUSCATED), TextDecoration.State.NOT_SET)
         .optionalNullable("click_event", CLICK_EVENT, Style::clickEvent)
-        /*.optional() // hover event*/
+        .optionalNullable("hover_event", HOVER_EVENT, Style::hoverEvent)
         .optionalNullable("insertion", MinecraftHasher.STRING, Style::insertion)
-        .optionalNullable("font", MinecraftHasher.KEY, Style::font));
+        .optionalNullable("font", MinecraftHasher.KEY, Style::font);
 
     MinecraftHasher<TextComponent> SIMPLE_TEXT_COMPONENT = MinecraftHasher.STRING.convert(TextComponent::content);
 
-    MinecraftHasher<TextComponent> TEXT_COMPONENT = (value, encoder) -> {
-        if (value.children().isEmpty() && value.style().isEmpty()) {
-            return SIMPLE_TEXT_COMPONENT.hash(value, encoder);
+    MinecraftHasher<TextComponent> FULL_TEXT_COMPONENT = component("text", builder -> builder
+        .accept("text", MinecraftHasher.STRING, TextComponent::content));
+
+    MinecraftHasher<TextComponent> TEXT_COMPONENT = MinecraftHasher.dispatch(component -> {
+        if (component.children().isEmpty() && component.style().isEmpty()) {
+            return SIMPLE_TEXT_COMPONENT;
         }
-        return encoder.empty(); // TODO
+        return FULL_TEXT_COMPONENT;
+    });
+
+    MinecraftHasher<TranslatableComponent> TRANSLATABLE_COMPONENT = component("translatable", builder -> builder
+        .accept("translate", MinecraftHasher.STRING, TranslatableComponent::key)
+        .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)); // Arguments are probably not possible
+
+    MinecraftHasher<KeybindComponent> KEYBIND_COMPONENT = component("keybind", builder -> builder
+        .accept("keybind", MinecraftHasher.STRING, component -> component.keybind()));
+
+    MinecraftHasher<ScoreComponent> SCORE_COMPONENT = component("score", builder -> builder
+        .accept("name", MinecraftHasher.STRING, ScoreComponent::name)
+        .accept("objective", MinecraftHasher.STRING, ScoreComponent::objective));
+
+    MinecraftHasher<SelectorComponent> SELECTOR_COMPONENT = component("selector", builder -> builder
+        .accept("selector", MinecraftHasher.STRING, SelectorComponent::pattern)
+        .optionalNullable("separator", COMPONENT, SelectorComponent::separator));
+
+    MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component("nbt", builder -> builder
+        .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
+        .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source, needs kyori update?
+
+    MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
+        if (component instanceof TextComponent text) {
+            return TEXT_COMPONENT.hash(text, encoder);
+        } else if (component instanceof TranslatableComponent translatable) {
+            return TRANSLATABLE_COMPONENT.hash(translatable, encoder);
+        } else if (component instanceof KeybindComponent keybind) {
+            return KEYBIND_COMPONENT.hash(keybind, encoder);
+        } else if (component instanceof ScoreComponent score) {
+            return SCORE_COMPONENT.hash(score, encoder);
+        } else if (component instanceof SelectorComponent selector) {
+            return SELECTOR_COMPONENT.hash(selector, encoder);
+        } else if (component instanceof NBTComponent<?,?> nbt) {
+            return NBT_COMPONENT.hash(nbt, encoder);
+        }
+        throw new IllegalStateException("Unimplemented component hasher: " + component);
     };
 
-    MinecraftHasher<Component> ACTUAL_COMPONENT = (value, encoder) -> encoder.empty(); // TODO
+    private static <T extends Component> MinecraftHasher<T> component(String type, MapBuilder<T> componentBuilder) {
+        return MinecraftHasher.mapBuilder(builder -> builder
+            .acceptConstant("type", MinecraftHasher.STRING, type)
+            .accept(componentBuilder)
+            .accept(STYLE, Component::style)
+            .optionalList("extra", COMPONENT, Component::children));
+    }
 }

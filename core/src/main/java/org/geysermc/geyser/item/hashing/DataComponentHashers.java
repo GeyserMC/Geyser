@@ -75,13 +75,10 @@ public class DataComponentHashers {
         registerInt(DataComponentTypes.DAMAGE);
         registerUnit(DataComponentTypes.UNBREAKABLE);
 
-        // TODO custom name, component
-        // TODO item name, component
-
+        register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT); // TODO test
+        register(DataComponentTypes.ITEM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.ITEM_MODEL, MinecraftHasher.KEY);
-
-        // TODO lore, component
-
+        register(DataComponentTypes.LORE, ComponentHasher.COMPONENT.list());
         register(DataComponentTypes.RARITY, MinecraftHasher.RARITY);
         register(DataComponentTypes.ENCHANTMENTS, MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments));
 

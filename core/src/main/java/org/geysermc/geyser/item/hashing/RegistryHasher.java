@@ -107,7 +107,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
         .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
         .accept("range", FLOAT, InstrumentComponent.Instrument::range)
-        /*.accept("description", COMPONENT, InstrumentComponent.Instrument::description)*/); // TODO component description
+        .accept("description", ComponentHasher.COMPONENT, InstrumentComponent.Instrument::description));
 
     MinecraftHasher<Holder<InstrumentComponent.Instrument>> INSTRUMENT = holder(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
 

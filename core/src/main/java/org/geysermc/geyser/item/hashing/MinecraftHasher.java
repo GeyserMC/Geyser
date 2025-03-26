@@ -37,11 +37,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("UnstableApiUsage")
 @FunctionalInterface
@@ -65,11 +67,19 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<Boolean> BOOL = (b, encoder) -> encoder.bool(b);
 
+    MinecraftHasher<IntStream> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints.toArray());
+
     MinecraftHasher<NbtMap> NBT_MAP = (map, encoder) -> encoder.nbtMap(map);
 
     MinecraftHasher<Key> KEY = STRING.convert(Key::asString);
 
     MinecraftHasher<Key> TAG = STRING.convert(key -> "#" + key.asString());
+
+    MinecraftHasher<UUID> UUID = INT_ARRAY.convert(uuid -> {
+        long mostSignificant = uuid.getMostSignificantBits();
+        long leastSignificant = uuid.getLeastSignificantBits();
+        return IntStream.of((int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant);
+    }); // TODO test
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 
@@ -89,11 +99,11 @@ public interface MinecraftHasher<T> {
             .accept(hashDispatch, typeExtractor));
     }
 
-    default <F> MinecraftHasher<F> convert(Function<F, T> converter) {
+    default <C> MinecraftHasher<C> convert(Function<C, T> converter) {
         return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
-    default <F> MinecraftHasher<F> sessionConvert(BiFunction<GeyserSession, F, T> converter) {
+    default <C> MinecraftHasher<C> sessionConvert(BiFunction<GeyserSession, C, T> converter) {
         return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
     }
 
@@ -133,6 +143,10 @@ public interface MinecraftHasher<T> {
             }
             return secondHasher.hash(secondExtractor.apply(value), encoder);
         };
+    }
+
+    static <T> MinecraftHasher<T> dispatch(Function<T, MinecraftHasher<T>> hashDispatch) {
+        return (value, encoder) -> hashDispatch.apply(value).hash(value, encoder);
     }
 
     class Recursive<T> implements MinecraftHasher<T> {
