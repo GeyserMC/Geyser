@@ -55,7 +55,6 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
-import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
@@ -100,7 +99,8 @@ public class InventoryUtils {
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator.prepareInventory(session, inventory)) {
-            if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
+            // 1.21.70 wants a delay on all virtual inventories: https://github.com/GeyserMC/Geyser/issues/5426
+            if (inventory instanceof Container container && !container.isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
                     if (openInv != null && openInv.getJavaId() == inventory.getJavaId()) {
@@ -111,7 +111,7 @@ public class InventoryUtils {
                         // Presumably, this inventory is no longer relevant, and the client doesn't care about it
                         displayInventory(session, openInv);
                     }
-                }, 200, TimeUnit.MILLISECONDS);
+                }, 300, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);

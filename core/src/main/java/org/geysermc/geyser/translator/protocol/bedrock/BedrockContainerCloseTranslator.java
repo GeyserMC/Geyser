@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,12 +47,29 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         session.sendUpstreamPacket(packet);
         session.setClosingInventory(false);
 
-        if (bedrockId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
-            // 1.16.200 - window ID is always -1 sent from Bedrock
-            bedrockId = (byte) session.getOpenInventory().getBedrockId();
+        // 1.21.70: Bedrock can reject opening inventories - in those cases it replies with -1
+        Inventory openInventory = session.getOpenInventory();
+        if (bedrockId == -1 && openInventory != null) {
+            // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
+            bedrockId = (byte) openInventory.getBedrockId();
+
+            // If virtual inventories are opened too quickly, they can be occasionally rejected
+            if (openInventory instanceof Container container && !container.isUsingRealBlock()) {
+                if (session.getContainerOpenAttempts() < 3) {
+                    session.setContainerOpenAttempts(session.getContainerOpenAttempts() + 1);
+                    session.getInventoryTranslator().openInventory(session, session.getOpenInventory());
+                    session.getInventoryTranslator().updateInventory(session, session.getOpenInventory());
+                    session.getOpenInventory().setDisplayed(true);
+                    return;
+                } else {
+                    GeyserImpl.getInstance().getLogger().debug("Exceeded 3 attempts to open a virtual inventory!");
+                    GeyserImpl.getInstance().getLogger().debug(packet + " " + session.getOpenInventory().getClass().getSimpleName());
+                }
+            }
         }
 
-        Inventory openInventory = session.getOpenInventory();
+        session.setContainerOpenAttempts(0);
+
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
                 InventoryUtils.sendJavaContainerClose(session, openInventory);
