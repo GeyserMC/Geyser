@@ -61,13 +61,15 @@ public final class SidebarDisplayScore extends DisplayScore {
         markUpdated();
 
         String finalName = reference.name();
-        String displayName = reference.displayName();
 
+        String displayName = reference.displayName();
         if (displayName != null) {
             finalName = displayName;
-        } else if (team != null) {
+        }
+
+        if (team != null) {
             this.lastTeamUpdate = team.lastUpdate();
-            finalName = team.displayName(reference.name());
+            finalName = team.displayName(finalName);
         }
 
         NumberFormat numberFormat = reference.numberFormat();

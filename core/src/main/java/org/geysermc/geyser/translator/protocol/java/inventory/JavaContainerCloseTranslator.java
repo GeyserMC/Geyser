@@ -26,11 +26,11 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 
 @Translator(packet = ClientboundContainerClosePacket.class)
 public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundContainerClosePacket> {

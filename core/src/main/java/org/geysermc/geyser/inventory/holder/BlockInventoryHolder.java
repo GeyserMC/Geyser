@@ -168,19 +168,20 @@ public class BlockInventoryHolder extends InventoryHolder {
             return;
         }
 
-        // Bedrock broke inventory closing. I wish i was kidding.
-        // "type" is explicitly passed to keep track of which inventory types can be closed without
-        // ""workarounds"". yippie.
-        // Further, Lecterns cannot be closed with any of the two methods below.
+
+        // Lecterns are special, and cannot be closed with any of the two methods below.
         if (container.isUsingRealBlock() && !(container instanceof LecternContainer)) {
+            // No need to reset a block since we didn't change any blocks
+            // But send a container close packet because we aren't destroying the original.
+            ContainerClosePacket packet = new ContainerClosePacket();
+            packet.setId((byte) inventory.getBedrockId());
+            packet.setServerInitiated(true);
+            packet.setType(type != null ? type : containerType);
+            session.sendUpstreamPacket(packet);
+
+            // Here comes the ugly part. This is a manual check to filter specific containers
+            // that won't close anymore with "just" a ContainerClosePacket.
             if (type != null) {
-                // No need to reset a block since we didn't change any blocks
-                // But send a container close packet because we aren't destroying the original.
-                ContainerClosePacket packet = new ContainerClosePacket();
-                packet.setId((byte) inventory.getBedrockId());
-                packet.setServerInitiated(true);
-                packet.setType(type);
-                session.sendUpstreamPacket(packet);
                 return;
             }
 

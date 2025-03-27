@@ -26,15 +26,20 @@
 package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
+import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending {@link ResourcePack}'s.
+ * @since 2.1.1
  */
 public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
@@ -42,26 +47,70 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     }
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     * Gets the {@link ResourcePack}'s that will be sent to this {@link GeyserConnection}.
+     * To remove packs, use {@link #unregister(UUID)}, as the list returned
+     * by this method is unmodifiable.
      *
-     * @return an unmodifiable list of resource packs that will be sent to the client.
+     * @return an unmodifiable list of {@link ResourcePack}'s
+     * @since 2.1.1
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Registers a {@link ResourcePack} to be sent to the client.
-     *
-     * @param resourcePack a resource pack that will be sent to the client.
-     * @return true if the resource pack was added successfully,
-     *         or false if already present
+     * @deprecated Use {{@link #register(ResourcePack, ResourcePackOption[])}} instead
      */
-    public abstract boolean register(@NonNull ResourcePack resourcePack);
+    @Deprecated
+    public abstract boolean register(@NonNull ResourcePack pack);
 
     /**
-     * Unregisters a resource pack from being sent to the client.
+     * Registers a {@link ResourcePack} to be sent to the client, optionally alongside
+     * specific {@link ResourcePackOption}'s specifying how it will be applied by the client.
      *
-     * @param uuid the UUID of the resource pack
-     * @return true whether the resource pack was removed from the list of resource packs.
+     * @param pack the {@link ResourcePack} that will be sent to the client
+     * @param options {@link ResourcePackOption}'s that specify how the client loads the pack
+     * @throws ResourcePackException if an issue occurred during pack registration
+     * @since 2.6.2
+     */
+    public abstract void register(@NonNull ResourcePack pack, @Nullable ResourcePackOption<?>... options);
+
+    /**
+     * Sets {@link ResourcePackOption}'s for a {@link ResourcePack}.
+     * This method can also be used to override options for resource packs already registered in the
+     * {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
+     *
+     * @param uuid the uuid of the resource pack to register the options for
+     * @param options the {@link ResourcePackOption}'s to register for the resource pack
+     * @throws ResourcePackException if an issue occurred during {@link ResourcePackOption} registration
+     * @since 2.6.2
+     */
+    public abstract void registerOptions(@NonNull UUID uuid, @NonNull ResourcePackOption<?>... options);
+
+    /**
+     * Returns a collection of {@link ResourcePackOption}'s for a registered {@link ResourcePack}.
+     * The collection returned here is not modifiable.
+     *
+     * @param uuid the {@link ResourcePack} for which the options are set
+     * @return a collection of {@link ResourcePackOption}'s
+     * @throws ResourcePackException if the pack was not registered
+     * @since 2.6.2
+     */
+    public abstract Collection<ResourcePackOption<?>> options(@NonNull UUID uuid);
+
+    /**
+     * Returns the current {@link ResourcePackOption}, or null, for a given {@link ResourcePackOption.Type}.
+     *
+     * @param uuid the {@link ResourcePack} for which to query this option type
+     * @param type the {@link ResourcePackOption.Type} of the option to query
+     * @throws ResourcePackException if the queried option is invalid or not present on the resource pack
+     * @since 2.6.2
+     */
+    public abstract @Nullable ResourcePackOption<?> option(@NonNull UUID uuid, ResourcePackOption.@NonNull Type type);
+
+    /**
+     * Unregisters a {@link ResourcePack} from the list of packs sent to this {@link GeyserConnection}.
+     *
+     * @param uuid the UUID of the {@link ResourcePack} to be removed
+     * @since 2.1.1
      */
     public abstract boolean unregister(@NonNull UUID uuid);
 }

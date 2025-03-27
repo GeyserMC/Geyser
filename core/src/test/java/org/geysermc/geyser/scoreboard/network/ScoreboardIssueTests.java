@@ -25,14 +25,29 @@
 
 package org.geysermc.geyser.scoreboard.network;
 
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaRemoveEntitiesTranslator;
@@ -40,7 +55,10 @@ import org.geysermc.geyser.translator.protocol.java.entity.JavaSetEntityDataTran
 import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerInfoUpdateTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.spawn.JavaAddEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.spawn.JavaAddExperienceOrbTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetDisplayObjectiveTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetPlayerTeamTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetScoreTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
@@ -53,6 +71,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
@@ -60,17 +81,11 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.Clie
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddExperienceOrbPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import org.junit.jupiter.api.Test;
-
-import java.util.EnumSet;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.*;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for issues reported on GitHub.
@@ -95,7 +110,7 @@ public class ScoreboardIssueTests {
                 String displayName = context.mockOrSpy(EntityCache.class).getEntityByJavaId(2).getDisplayName();
                 assertEquals("entity.minecraft.experience_orb", displayName);
 
-                context.translate(removeEntitiesTranslator, new ClientboundRemoveEntitiesPacket(new int[] { 2 }));
+                context.translate(removeEntitiesTranslator, new ClientboundRemoveEntitiesPacket(new int[]{2}));
             });
 
             // we know that spawning and removing the entity should be fine
@@ -153,7 +168,7 @@ public class ScoreboardIssueTests {
                 playerInfoUpdateTranslator,
                 new ClientboundPlayerInfoUpdatePacket(
                     EnumSet.of(PlayerListEntryAction.ADD_PLAYER, PlayerListEntryAction.UPDATE_LISTED),
-                    new PlayerListEntry[] {
+                    new PlayerListEntry[]{
                         new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, false, 0, null, 0, null, null)
                     }));
 
@@ -183,7 +198,7 @@ public class ScoreboardIssueTests {
             );
             context.translate(
                 setPlayerTeamTranslator,
-                new ClientboundSetPlayerTeamPacket("npc_team_1297", TeamAction.ADD_PLAYER, new String[]{ "1297" }));
+                new ClientboundSetPlayerTeamPacket("npc_team_1297", TeamAction.ADD_PLAYER, new String[]{"1297"}));
 
             context.translate(addEntityTranslator, new ClientboundAddEntityPacket(1297, npcUuid, EntityType.PLAYER, 1, 2, 3, 4, 5, 6));
             // then it updates the displayed skin parts, which isn't relevant for us
@@ -245,7 +260,7 @@ public class ScoreboardIssueTests {
             );
             context.translate(
                 setPlayerTeamTranslator,
-                new ClientboundSetPlayerTeamPacket("npc_team_1298", TeamAction.ADD_PLAYER, new String[]{ hologramUuid.toString() }));
+                new ClientboundSetPlayerTeamPacket("npc_team_1298", TeamAction.ADD_PLAYER, new String[]{hologramUuid.toString()}));
 
             assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
@@ -253,6 +268,78 @@ public class ScoreboardIssueTests {
                 packet.setRuntimeEntityId(4);
                 return packet;
             });
+        });
+    }
+
+    /**
+     * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5353">#5353</a>.
+     * It follows a code snippet provided in <a href="https://github.com/GeyserMC/Geyser/pull/5415">the PR description</a>.
+     */
+    @Test
+    void prefixNotShowing() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "sb-0",
+                    ObjectiveAction.ADD,
+                    Component.text("Test Scoreboard"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "sb-0")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("Test Scoreboard");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "sbt-1",
+                    Component.text("displaynametest"),
+                    Component.text("§aScore: 10"),
+                    Component.empty(),
+                    false,
+                    false,
+                    NameTagVisibility.NEVER,
+                    CollisionRule.NEVER,
+                    TeamColor.DARK_GREEN,
+                    new String[]{"§0"})
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setScoreTranslator,
+                new ClientboundSetScorePacket(
+                    "§0",
+                    "sb-0",
+                    10
+                ).withDisplay(Component.empty())
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 10, "§2§aScore: 10§r§2§r§2")));
+                return packet;
+            });
+            assertNoNextPacket(context);
         });
     }
 }

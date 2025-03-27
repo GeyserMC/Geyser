@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
 import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
@@ -462,6 +462,7 @@ public final class EntityDefinitions {
             EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
+                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
                     .build();
             ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.ENDER_PEARL)
@@ -685,15 +686,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setActive)
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setIsTearingDown)
                     .addTranslator(MetadataTypes.OPTIONAL_POSITION, CreakingEntity::setHomePos)
-                    .properties(new GeyserEntityProperties.Builder()
-                        .addEnum(CreakingEntity.CREAKING_STATE,
-                            "neutral",
-                            "hostile_observed",
-                            "hostile_unobserved",
-                            "twitching",
-                            "crumbling")
-                        .addInt(CreakingEntity.CREAKING_SWAYING_TICKS, 0, 6)
-                        .build())
+                    .properties(VanillaEntityProperties.CREAKING)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
@@ -946,15 +939,7 @@ public final class EntityDefinitions {
             ARMADILLO = EntityDefinition.inherited(ArmadilloEntity::new, ageableEntityBase)
                     .type(EntityType.ARMADILLO)
                     .height(0.65f).width(0.7f)
-                    .properties(new GeyserEntityProperties.Builder()
-                        .addEnum(
-                            "minecraft:armadillo_state",
-                            "unrolled",
-                            "rolled_up",
-                            "rolled_up_peeking",
-                            "rolled_up_relaxing",
-                            "rolled_up_unrolling")
-                        .build())
+                    .properties(VanillaEntityProperties.ARMADILLO)
                     .addTranslator(MetadataTypes.ARMADILLO_STATE, ArmadilloEntity::setArmadilloState)
                     .build();
             AXOLOTL = EntityDefinition.inherited(AxolotlEntity::new, ageableEntityBase)
@@ -967,19 +952,19 @@ public final class EntityDefinitions {
             BEE = EntityDefinition.inherited(BeeEntity::new, ageableEntityBase)
                     .type(EntityType.BEE)
                     .heightAndWidth(0.6f)
-                    .properties(new GeyserEntityProperties.Builder()
-                        .addBoolean("minecraft:has_nectar")
-                        .build())
+                    .properties(VanillaEntityProperties.BEE)
                     .addTranslator(MetadataTypes.BYTE, BeeEntity::setBeeFlags)
                     .addTranslator(MetadataTypes.INT, BeeEntity::setAngerTime)
                     .build();
             CHICKEN = EntityDefinition.inherited(ChickenEntity::new, ageableEntityBase)
                     .type(EntityType.CHICKEN)
                     .height(0.7f).width(0.4f)
+                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
                     .build();
             COW = EntityDefinition.inherited(CowEntity::new, ageableEntityBase)
                     .type(EntityType.COW)
                     .height(1.4f).width(0.9f)
+                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
                     .build();
             FOX = EntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
                     .type(EntityType.FOX)
@@ -1030,6 +1015,7 @@ public final class EntityDefinitions {
             PIG = EntityDefinition.inherited(PigEntity::new, ageableEntityBase)
                     .type(EntityType.PIG)
                     .heightAndWidth(0.9f)
+                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
                     .addTranslator(MetadataTypes.BOOLEAN, (pigEntity, entityMetadata) -> pigEntity.setFlag(EntityFlag.SADDLED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataTypes.INT, PigEntity::setBoost)
                     .build();
@@ -1176,6 +1162,7 @@ public final class EntityDefinitions {
         WOLF = EntityDefinition.inherited(WolfEntity::new, tameableEntityBase)
                 .type(EntityType.WOLF)
                 .height(0.85f).width(0.6f)
+                .properties(VanillaEntityProperties.WOLF_SOUND_VARIANT)
                 // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)

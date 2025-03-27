@@ -200,6 +200,7 @@ public class Entity implements GeyserEntity {
         addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
+
         session.sendUpstreamPacket(addEntityPacket);
 
         flagsDirty = false;
@@ -372,6 +373,10 @@ public class Entity implements GeyserEntity {
                 flagsDirty = false;
             }
             dirtyMetadata.apply(entityDataPacket.getMetadata());
+            if (propertyManager != null && propertyManager.hasProperties()) {
+                propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
+                propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
+            }
             session.sendUpstreamPacket(entityDataPacket);
         }
     }
