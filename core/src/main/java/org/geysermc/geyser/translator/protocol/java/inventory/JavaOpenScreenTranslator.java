@@ -77,10 +77,11 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             // If the window type is the same, don't close.
             // In rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
             // Or, inventory names can change (useful for JsonUI). In these cases, we need to close the old inventory.
-            if (openInventory.getContainerType() != packet.getType() || !openInventory.getTitle().equals(name)) {
+            // FIXME 1.21.70 re-using containers doesn't quite work as expected
+            //if (openInventory.getContainerType() != packet.getType() || !openInventory.getTitle().equals(name)) {
                 // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), openInventory.getJavaId() != packet.getContainerId());
-            }
+            //}
         }
 
         session.setInventoryTranslator(newTranslator);

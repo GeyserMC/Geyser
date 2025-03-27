@@ -54,7 +54,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             bedrockId = (byte) openInventory.getBedrockId();
 
             // If virtual inventories are opened too quickly, they can be occasionally rejected
-            if (openInventory instanceof Container container && !container.isUsingRealBlock()) {
+            if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
                 if (session.getContainerOpenAttempts() < 3) {
                     session.setContainerOpenAttempts(session.getContainerOpenAttempts() + 1);
                     session.getInventoryTranslator().openInventory(session, session.getOpenInventory());
