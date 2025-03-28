@@ -38,6 +38,7 @@ import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.JukeboxSong;
+import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
@@ -61,6 +62,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern", RegistryCache::bannerPatterns);
     public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument", RegistryCache::instruments);
     public static final JavaRegistryKey<JukeboxSong> JUKEBOX_SONG = create("jukebox_song", RegistryCache::jukeboxSongs);
+    public static final JavaRegistryKey<PaintingType> PAINTING_VARIANT = create("painting_variant", RegistryCache::paintings);
     public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material", RegistryCache::trimMaterials);
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern", RegistryCache::trimPatterns);
 

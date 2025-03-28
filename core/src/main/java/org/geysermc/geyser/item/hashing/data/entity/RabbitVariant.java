@@ -23,13 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.hashing.data;
+package org.geysermc.geyser.item.hashing.data.entity;
 
-// Ordered and named by Java ID
-public enum FireworkExplosionShape {
-    SMALL_BALL,
-    LARGE_BALL,
-    STAR,
-    CREEPER,
-    BURST
+// Named by Java ID
+public enum RabbitVariant {
+    BROWN(0),
+    WHITE(1),
+    BLACK(2),
+    WHITE_SPLOTCHED(3),
+    GOLD(4),
+    SALT(5),
+    EVIL(99);
+
+    private final int id;
+
+    RabbitVariant(int id) {
+        this.id = id;
+    }
+
+    public static RabbitVariant fromId(int id) {
+        for (RabbitVariant variant : values()) {
+            if (variant.id == id) {
+                return variant;
+            }
+        }
+        throw new IllegalArgumentException("Unknown rabbit variant ID");
+    }
 }

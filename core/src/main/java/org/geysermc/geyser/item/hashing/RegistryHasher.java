@@ -30,11 +30,22 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
 import org.geysermc.geyser.item.hashing.data.ItemContainerSlot;
+import org.geysermc.geyser.item.hashing.data.entity.AxolotlVariant;
+import org.geysermc.geyser.item.hashing.data.entity.FoxVariant;
+import org.geysermc.geyser.item.hashing.data.entity.HorseVariant;
+import org.geysermc.geyser.item.hashing.data.entity.LlamaVariant;
+import org.geysermc.geyser.item.hashing.data.entity.MooshroomVariant;
+import org.geysermc.geyser.item.hashing.data.entity.ParrotVariant;
+import org.geysermc.geyser.item.hashing.data.entity.RabbitVariant;
+import org.geysermc.geyser.item.hashing.data.entity.SalmonVariant;
+import org.geysermc.geyser.item.hashing.data.entity.TropicalFishPattern;
+import org.geysermc.geyser.item.hashing.data.entity.VillagerVariant;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
@@ -206,12 +217,51 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
+    RegistryHasher VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
+
+    RegistryHasher WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
+
+    MinecraftHasher<Integer> FOX_VARIANT = MinecraftHasher.fromIdEnum(FoxVariant.values());
+
+    MinecraftHasher<Integer> SALMON_VARIANT = MinecraftHasher.fromIdEnum(SalmonVariant.values());
+
+    MinecraftHasher<Integer> PARROT_VARIANT = MinecraftHasher.fromIdEnum(ParrotVariant.values());
+
+    MinecraftHasher<Integer> TROPICAL_FISH_PATTERN = MinecraftHasher.<TropicalFishPattern>fromEnum().convert(TropicalFishPattern::fromPackedId);
+
+    MinecraftHasher<Integer> MOOSHROOM_VARIANT = MinecraftHasher.fromIdEnum(MooshroomVariant.values());
+
+    MinecraftHasher<Integer> RABBIT_VARIANT = MinecraftHasher.<RabbitVariant>fromEnum().convert(RabbitVariant::fromId);
+
+    RegistryHasher PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
+
+    RegistryHasher COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
+
+    RegistryHasher FROG_VARIANT = registry(JavaRegistries.FROG_VARIANT);
+
+    MinecraftHasher<Integer> HORSE_VARIANT = MinecraftHasher.fromIdEnum(HorseVariant.values());
+
+    MinecraftHasher<PaintingVariant> DIRECT_PAINTING_VARIANT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("width", INT, PaintingVariant::width)
+        .accept("height", INT, PaintingVariant::height)
+        .accept("asset_id", KEY, PaintingVariant::assetId)
+        .optionalNullable("title", ComponentHasher.COMPONENT, PaintingVariant::title)
+        .optionalNullable("author", ComponentHasher.COMPONENT, PaintingVariant::author));
+
+    MinecraftHasher<Holder<PaintingVariant>> PAINTING_VARIANT = holder(JavaRegistries.PAINTING_VARIANT, DIRECT_PAINTING_VARIANT);
+
+    MinecraftHasher<Integer> LLAMA_VARIANT = MinecraftHasher.fromIdEnum(LlamaVariant.values());
+
+    MinecraftHasher<Integer> AXOLOTL_VARIANT = MinecraftHasher.fromIdEnum(AxolotlVariant.values());
+
+    RegistryHasher CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
+
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);
         return hasher::hash;
     }
 
-    // We don't need the registry generic type, and this works easier for goat horn instruments and other registries
+    // We don't need the registry generic type, and this works easier for various registries
     static <T> MinecraftHasher<Holder<T>> holder(JavaRegistryKey<?> registry, MinecraftHasher<T> direct) {
         RegistryHasher registryHasher = registry(registry);
         return (value, encoder) -> {

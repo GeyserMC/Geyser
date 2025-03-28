@@ -223,6 +223,31 @@ public class DataComponentHashers {
         register(DataComponentTypes.LOCK, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.CONTAINER_LOOT, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.BREAK_SOUND, RegistryHasher.SOUND_EVENT);
+
+        register(DataComponentTypes.VILLAGER_VARIANT, RegistryHasher.VILLAGER_TYPE);
+        register(DataComponentTypes.WOLF_VARIANT, RegistryHasher.WOLF_VARIANT);
+        //register(DataComponentTypes.WOLF_SOUND_VARIANT, ); // TODO same issue as damage type
+        register(DataComponentTypes.WOLF_COLLAR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.FOX_VARIANT, RegistryHasher.FOX_VARIANT);
+        register(DataComponentTypes.SALMON_SIZE, RegistryHasher.SALMON_VARIANT);
+        register(DataComponentTypes.PARROT_VARIANT, RegistryHasher.PARROT_VARIANT);
+        register(DataComponentTypes.TROPICAL_FISH_PATTERN, RegistryHasher.TROPICAL_FISH_PATTERN);
+        register(DataComponentTypes.TROPICAL_FISH_BASE_COLOR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.TROPICAL_FISH_PATTERN_COLOR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.MOOSHROOM_VARIANT, RegistryHasher.MOOSHROOM_VARIANT);
+        register(DataComponentTypes.RABBIT_VARIANT, RegistryHasher.RABBIT_VARIANT);
+        register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
+        register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
+        // register(DataComponentTypes.CHICKEN_VARIANT,); // TODO requires change in MCPL?
+        register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
+        register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
+        register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT);
+        register(DataComponentTypes.LLAMA_VARIANT, RegistryHasher.LLAMA_VARIANT);
+        register(DataComponentTypes.AXOLOTL_VARIANT, RegistryHasher.AXOLOTL_VARIANT);
+        register(DataComponentTypes.CAT_VARIANT, RegistryHasher.CAT_VARIANT);
+        register(DataComponentTypes.CAT_COLLAR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.SHEEP_COLOR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.SHULKER_COLOR, MinecraftHasher.DYE_COLOR);
     }
 
     private static void registerUnit(DataComponentType<Unit> component) {

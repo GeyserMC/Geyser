@@ -23,13 +23,41 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.hashing.data;
+package org.geysermc.geyser.item.hashing.data.entity;
 
-// Ordered and named by Java ID
-public enum FireworkExplosionShape {
-    SMALL_BALL,
-    LARGE_BALL,
-    STAR,
-    CREEPER,
-    BURST
+// Named by Java ID
+public enum TropicalFishPattern {
+    KOB(Base.SMALL, 0),
+    SUNSTREAK(Base.SMALL, 1),
+    SNOOPER(Base.SMALL, 2),
+    DASHER(Base.SMALL, 3),
+    BRINELY(Base.SMALL, 4),
+    SPOTTY(Base.SMALL, 5),
+    FLOPPER(Base.LARGE, 0),
+    STRIPEY(Base.LARGE, 1),
+    GLITTER(Base.LARGE, 2),
+    BLOCKFISH(Base.LARGE, 3),
+    BETTY(Base.LARGE, 4),
+    CLAYFISH(Base.LARGE, 5);
+
+    private final int packedId;
+
+    TropicalFishPattern(Base base, int id) {
+        this.packedId = base.ordinal() | id << 8;
+    }
+
+    // Ordered by Java ID
+    enum Base {
+        SMALL,
+        LARGE
+    }
+
+    public static TropicalFishPattern fromPackedId(int packedId) {
+        for (TropicalFishPattern pattern : values()) {
+            if (pattern.packedId == packedId) {
+                return pattern;
+            }
+        }
+        throw new IllegalArgumentException("Illegal packed tropical fish pattern ID");
+    }
 }

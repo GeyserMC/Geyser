@@ -23,13 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.hashing.data;
+package org.geysermc.geyser.item.hashing.data.entity;
 
 // Ordered and named by Java ID
-public enum FireworkExplosionShape {
-    SMALL_BALL,
-    LARGE_BALL,
-    STAR,
-    CREEPER,
-    BURST
+public enum HorseVariant {
+    WHITE,
+    CREAMY,
+    CHESTNUT,
+    BROWN,
+    BLACK,
+    GRAY,
+    DARK_BROWN
 }
