@@ -266,7 +266,7 @@ public class DataComponentHashers {
             .style(style -> style.color(NamedTextColor.RED).decorate(TextDecoration.ITALIC)), -886479206);
         testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("component with more stuff")
             .children(List.of(Component.translatable("a.translate.string", "fallback!")
-                .style(style -> style.color(TextColor.color(0x446688)).decorate(TextDecoration.BOLD)))), -1261457500);
+                .style(style -> style.color(TextColor.color(0x446688)).decorate(TextDecoration.BOLD)))), -1591253390);
 
         testHash(session, DataComponentTypes.ITEM_MODEL, MinecraftKey.key("testing"), -689946239);
 

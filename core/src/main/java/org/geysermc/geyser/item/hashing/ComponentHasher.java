@@ -108,7 +108,7 @@ public interface ComponentHasher {
 
     MinecraftHasher<TextComponent> SIMPLE_TEXT_COMPONENT = MinecraftHasher.STRING.convert(TextComponent::content);
 
-    MinecraftHasher<TextComponent> FULL_TEXT_COMPONENT = component("text", builder -> builder
+    MinecraftHasher<TextComponent> FULL_TEXT_COMPONENT = component(builder -> builder
         .accept("text", MinecraftHasher.STRING, TextComponent::content));
 
     MinecraftHasher<TextComponent> TEXT_COMPONENT = MinecraftHasher.dispatch(component -> {
@@ -118,22 +118,22 @@ public interface ComponentHasher {
         return FULL_TEXT_COMPONENT;
     });
 
-    MinecraftHasher<TranslatableComponent> TRANSLATABLE_COMPONENT = component("translatable", builder -> builder
+    MinecraftHasher<TranslatableComponent> TRANSLATABLE_COMPONENT = component(builder -> builder
         .accept("translate", MinecraftHasher.STRING, TranslatableComponent::key)
         .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)); // Arguments are probably not possible
 
-    MinecraftHasher<KeybindComponent> KEYBIND_COMPONENT = component("keybind", builder -> builder
+    MinecraftHasher<KeybindComponent> KEYBIND_COMPONENT = component(builder -> builder
         .accept("keybind", MinecraftHasher.STRING, component -> component.keybind()));
 
-    MinecraftHasher<ScoreComponent> SCORE_COMPONENT = component("score", builder -> builder
+    MinecraftHasher<ScoreComponent> SCORE_COMPONENT = component(builder -> builder
         .accept("name", MinecraftHasher.STRING, ScoreComponent::name)
         .accept("objective", MinecraftHasher.STRING, ScoreComponent::objective));
 
-    MinecraftHasher<SelectorComponent> SELECTOR_COMPONENT = component("selector", builder -> builder
+    MinecraftHasher<SelectorComponent> SELECTOR_COMPONENT = component(builder -> builder
         .accept("selector", MinecraftHasher.STRING, SelectorComponent::pattern)
         .optionalNullable("separator", COMPONENT, SelectorComponent::separator));
 
-    MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component("nbt", builder -> builder
+    MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component(builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
         .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
@@ -155,9 +155,8 @@ public interface ComponentHasher {
         throw new IllegalStateException("Unimplemented component hasher: " + component);
     };
 
-    private static <T extends Component> MinecraftHasher<T> component(String type, MapBuilder<T> componentBuilder) {
+    private static <T extends Component> MinecraftHasher<T> component(MapBuilder<T> componentBuilder) {
         return MinecraftHasher.mapBuilder(builder -> builder
-            .acceptConstant("type", MinecraftHasher.STRING, type)
             .accept(componentBuilder)
             .accept(STYLE, Component::style)
             .optionalList("extra", COMPONENT, Component::children));

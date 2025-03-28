@@ -35,13 +35,15 @@ import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MapHasher<T> {
+    private static final boolean DEBUG = false;
+
     private final MinecraftHashEncoder encoder;
     private final T object;
     private final Map<HashCode, HashCode> map;
     private final Map<String, Object> unhashed;
 
     MapHasher(T object, MinecraftHashEncoder encoder) {
-        this(object, encoder, new HashMap<>(), new HashMap<>());
+        this(object, encoder, new HashMap<>(), DEBUG ? new HashMap<>() : null);
     }
 
     private MapHasher(T object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map, Map<String, Object> unhashed) {
@@ -57,7 +59,9 @@ public class MapHasher<T> {
     }
 
     public <V> MapHasher<T> acceptConstant(String key, MinecraftHasher<V> hasher, V value) {
-        unhashed.put(key, value);
+        if (unhashed != null) {
+            unhashed.put(key, value);
+        }
         return accept(key, hasher.hash(value, encoder));
     }
 
@@ -118,7 +122,9 @@ public class MapHasher<T> {
     }
 
     public HashCode build() {
-        System.out.println(unhashed);
+        if (unhashed != null) {
+            System.out.println(unhashed);
+        }
         return encoder.map(map);
     }
 }
