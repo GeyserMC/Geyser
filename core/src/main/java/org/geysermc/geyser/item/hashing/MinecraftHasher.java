@@ -238,13 +238,13 @@ public interface MinecraftHasher<Type> {
     /**
      * Lazily-initialises the given hasher using {@link Suppliers#memoize(com.google.common.base.Supplier)}.
      */
-    static <T> MinecraftHasher<T> lazyInitialize(Supplier<MinecraftHasher<T>> hasher) {
-        Supplier<MinecraftHasher<T>> memoized = Suppliers.memoize(hasher::get);
+    static <Type> MinecraftHasher<Type> lazyInitialize(Supplier<MinecraftHasher<Type>> hasher) {
+        Supplier<MinecraftHasher<Type>> memoized = Suppliers.memoize(hasher::get);
         return (value, encoder) -> memoized.get().hash(value, encoder);
     }
 
     // TODO currently unused, has to be used for mob effects, check
-    static <T> MinecraftHasher<T> recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
+    static <Type> MinecraftHasher<Type> recursive(UnaryOperator<MinecraftHasher<Type>> delegate) {
         return new Recursive<>(delegate);
     }
 

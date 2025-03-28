@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.hashing;
 
+import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.item.hashing.data.entity.RabbitVariant;
 import org.geysermc.geyser.item.hashing.data.entity.SalmonVariant;
 import org.geysermc.geyser.item.hashing.data.entity.TropicalFishPattern;
 import org.geysermc.geyser.item.hashing.data.entity.VillagerVariant;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -78,68 +80,49 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public interface RegistryHasher extends MinecraftHasher<Integer> {
+/**
+ * {@link RegistryHasher}s are hashers that hash a network, integer ID to an identifier. {@link RegistryHasher}s can be created using static utility methods in this class, and all registry hashers should be kept in here.
+ *
+ * <p>The {@link Type} parameter is only used for registry hashers that are able to encode {@link Holder}s, and must be left as a {@code ?} if this functionality is not in use. This makes it clear the hasher is not
+ * supposed to be able to encode holders.</p>
+ *
+ * <p>To create a hasher that can encode a {@link Holder}, a direct hasher should be created that directly hashes a {@link Type} (in case of a custom holder), and {@link RegistryHasher#registry(JavaRegistryKey, MinecraftHasher)}
+ * should be used to create the registry hasher. {@link RegistryHasher#holder()} can then be used to obtain a hasher that encodes a holder of {@link Type}.</p>
+ *
+ * <p>Along with {@link RegistryHasher}s, this class also contains a bunch of hashers for various Minecraft objects. For organisational purposes, these are grouped in various sections with comments.</p>
+ *
+ * @param <Type> the type this hasher hashes. Only used for registry hashers that can hash holders.
+ */
+@SuppressWarnings("UnstableApiUsage")
+public interface RegistryHasher<Type> extends MinecraftHasher<Integer> {
 
-    RegistryHasher BLOCK = registry(JavaRegistries.BLOCK);
+    // Java registries
 
-    RegistryHasher ITEM = registry(JavaRegistries.ITEM);
+    RegistryHasher<?> BLOCK = registry(JavaRegistries.BLOCK);
 
-    RegistryHasher ENTITY_TYPE = enumIdRegistry(EntityType.values());
+    RegistryHasher<?> ITEM = registry(JavaRegistries.ITEM);
 
-    RegistryHasher ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
+    RegistryHasher<?> ENTITY_TYPE = enumIdRegistry(EntityType.values());
 
-    RegistryHasher ATTRIBUTE = enumIdRegistry(AttributeType.Builtin.values(), AttributeType.Builtin::getIdentifier);
+    RegistryHasher<?> ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
 
-    RegistryHasher DAMAGE_TYPE = registry(JavaRegistries.DAMAGE_TYPE);
+    RegistryHasher<?> ATTRIBUTE = enumIdRegistry(AttributeType.Builtin.values(), AttributeType::getIdentifier);
 
     MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.cast(DataComponentType::getKey);
 
-    @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
-    MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT = (component, encoder) -> {
-        MinecraftHasher hasher = DataComponentHashers.hasherOrEmpty(component.getType());
-        return hasher.hash(component.getValue(), encoder);
-    };
-
-    MinecraftHasher<DataComponents> DATA_COMPONENTS = MinecraftHasher.map(RegistryHasher.DATA_COMPONENT_TYPE, DATA_COMPONENT).cast(DataComponents::getDataComponents); // TODO component removals (needs unit value and ! component prefix)
-
-    MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", ITEM, ItemStack::getId)
-        .accept("count", INT, ItemStack::getAmount)
-        .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
-
-    MinecraftHasher<ItemContainerSlot> CONTAINER_SLOT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("slot", INT, ItemContainerSlot::index)
-        .accept("item", ITEM_STACK, ItemContainerSlot::item));
-
-    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
-        List<ItemContainerSlot> slots = new ArrayList<>();
-        for (int i = 0; i < stacks.size(); i++) {
-            slots.add(new ItemContainerSlot(i, stacks.get(i)));
-        }
-        return slots;
-    });
-
+    // Mob effects can both be an enum constant or ID in MCPL.
     MinecraftHasher<Effect> EFFECT = enumRegistry();
 
-    RegistryHasher EFFECT_ID = enumIdRegistry(Effect.values());
+    RegistryHasher<?> EFFECT_ID = enumIdRegistry(Effect.values());
 
-    MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)
-        .optional("duration", INT, SuspiciousStewEffect::getDuration, 160));
+    RegistryHasher<?> POTION = enumIdRegistry(Potion.values());
 
-    MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
-        .optional("amplifier", BYTE, instance -> (byte) instance.getDetails().getAmplifier(), (byte) 0)
-        .optional("duration", INT, instance -> instance.getDetails().getDuration(), 0)
-        .optional("ambient", BOOL, instance -> instance.getDetails().isAmbient(), false)
-        .optional("show_particles", BOOL, instance -> instance.getDetails().isShowParticles(), true)
-        .accept("show_icon", BOOL, instance -> instance.getDetails().isShowIcon())); // TODO check this, also hidden effect but is recursive
-
-    RegistryHasher POTION = enumIdRegistry(Potion.values());
+    // Java data-driven registries
 
     MinecraftHasher<BuiltinSound> BUILTIN_SOUND = KEY.cast(sound -> MinecraftKey.key(sound.getName()));
 
@@ -154,7 +137,132 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         return CUSTOM_SOUND.hash((CustomSound) sound, encoder);
     };
 
+    RegistryHasher<?> DAMAGE_TYPE = registry(JavaRegistries.DAMAGE_TYPE);
+
+    MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
+        .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
+        .accept("range", FLOAT, InstrumentComponent.Instrument::range)
+        .accept("description", ComponentHasher.COMPONENT, InstrumentComponent.Instrument::description));
+
+    RegistryHasher<InstrumentComponent.Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
+
+    MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
+        .optional("override_armor_assets", MinecraftHasher.map(KEY, STRING), ArmorTrim.TrimMaterial::assetOverrides, Map.of())
+        .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimMaterial::description));
+
+    RegistryHasher<ArmorTrim.TrimMaterial> TRIM_MATERIAL = registry(JavaRegistries.TRIM_MATERIAL, DIRECT_TRIM_MATERIAL);
+
+    MinecraftHasher<ArmorTrim.TrimPattern> DIRECT_TRIM_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("asset_id", KEY, ArmorTrim.TrimPattern::assetId)
+        .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimPattern::description)
+        .accept("decal", BOOL, ArmorTrim.TrimPattern::decal));
+
+    RegistryHasher<ArmorTrim.TrimPattern> TRIM_PATTERN = registry(JavaRegistries.TRIM_PATTERN, DIRECT_TRIM_PATTERN);
+
+    MinecraftHasher<JukeboxPlayable.JukeboxSong> DIRECT_JUKEBOX_SONG = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("sound_event", SOUND_EVENT, JukeboxPlayable.JukeboxSong::soundEvent)
+        .accept("description", ComponentHasher.COMPONENT, JukeboxPlayable.JukeboxSong::description)
+        .accept("length_in_seconds", FLOAT, JukeboxPlayable.JukeboxSong::lengthInSeconds)
+        .accept("comparator_output", INT, JukeboxPlayable.JukeboxSong::comparatorOutput));
+
+    RegistryHasher<JukeboxPlayable.JukeboxSong> JUKEBOX_SONG = registry(JavaRegistries.JUKEBOX_SONG, DIRECT_JUKEBOX_SONG);
+
+    MinecraftHasher<BannerPatternLayer.BannerPattern> DIRECT_BANNER_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("asset_id", KEY, BannerPatternLayer.BannerPattern::getAssetId)
+        .accept("translation_key", STRING, BannerPatternLayer.BannerPattern::getTranslationKey));
+
+    RegistryHasher<BannerPatternLayer.BannerPattern> BANNER_PATTERN = registry(JavaRegistries.BANNER_PATTERN, DIRECT_BANNER_PATTERN);
+
+    RegistryHasher<?> VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
+
+    RegistryHasher<?> WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
+
+    RegistryHasher<?> WOLF_SOUND_VARIANT = registry(JavaRegistries.WOLF_SOUND_VARIANT);
+
+    RegistryHasher<?> PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
+
+    RegistryHasher<?> COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
+
+    RegistryHasher<?> FROG_VARIANT = registry(JavaRegistries.FROG_VARIANT);
+
+    MinecraftHasher<PaintingVariant> DIRECT_PAINTING_VARIANT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("width", INT, PaintingVariant::width)
+        .accept("height", INT, PaintingVariant::height)
+        .accept("asset_id", KEY, PaintingVariant::assetId)
+        .optionalNullable("title", ComponentHasher.COMPONENT, PaintingVariant::title)
+        .optionalNullable("author", ComponentHasher.COMPONENT, PaintingVariant::author));
+
+    RegistryHasher<PaintingVariant> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT, DIRECT_PAINTING_VARIANT);
+
+    RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
+
+    // Entity variants
+    // These are all not registries on Java, meaning they serialise as just literal strings, not namespaced IDs
+
+    MinecraftHasher<Integer> FOX_VARIANT = MinecraftHasher.fromIdEnum(FoxVariant.values());
+
+    MinecraftHasher<Integer> SALMON_VARIANT = MinecraftHasher.fromIdEnum(SalmonVariant.values());
+
+    MinecraftHasher<Integer> PARROT_VARIANT = MinecraftHasher.fromIdEnum(ParrotVariant.values());
+
+    MinecraftHasher<Integer> TROPICAL_FISH_PATTERN = MinecraftHasher.<TropicalFishPattern>fromEnum().cast(TropicalFishPattern::fromPackedId);
+
+    MinecraftHasher<Integer> MOOSHROOM_VARIANT = MinecraftHasher.fromIdEnum(MooshroomVariant.values());
+
+    MinecraftHasher<Integer> RABBIT_VARIANT = MinecraftHasher.<RabbitVariant>fromEnum().cast(RabbitVariant::fromId);
+
+    MinecraftHasher<Integer> HORSE_VARIANT = MinecraftHasher.fromIdEnum(HorseVariant.values());
+
+    MinecraftHasher<Integer> LLAMA_VARIANT = MinecraftHasher.fromIdEnum(LlamaVariant.values());
+
+    MinecraftHasher<Integer> AXOLOTL_VARIANT = MinecraftHasher.fromIdEnum(AxolotlVariant.values());
+
+    // Widely used Minecraft types
+
+    @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
+    MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT = (component, encoder) -> {
+        MinecraftHasher hasher = DataComponentHashers.hasherOrEmpty(component.getType());
+        return hasher.hash(component.getValue(), encoder);
+    };
+
+    MinecraftHasher<DataComponents> DATA_COMPONENTS = MinecraftHasher.map(RegistryHasher.DATA_COMPONENT_TYPE, DATA_COMPONENT).cast(DataComponents::getDataComponents); // TODO component removals (needs unit value and ! component prefix)
+
+    MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", ITEM, ItemStack::getId)
+        .accept("count", INT, ItemStack::getAmount)
+        .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
+    MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
+        .optional("amplifier", BYTE, instance -> (byte) instance.getDetails().getAmplifier(), (byte) 0)
+        .optional("duration", INT, instance -> instance.getDetails().getDuration(), 0)
+        .optional("ambient", BOOL, instance -> instance.getDetails().isAmbient(), false)
+        .optional("show_particles", BOOL, instance -> instance.getDetails().isShowParticles(), true)
+        .accept("show_icon", BOOL, instance -> instance.getDetails().isShowIcon())); // TODO check this, also hidden effect but is recursive
+
+    MinecraftHasher<ModifierOperation> ATTRIBUTE_MODIFIER_OPERATION = MinecraftHasher.fromEnum(operation -> switch (operation) {
+        case ADD -> "add_value";
+        case ADD_MULTIPLIED_BASE -> "add_multiplied_base";
+        case ADD_MULTIPLIED_TOTAL -> "add_multiplied_total";
+    });
+
+    // Component-specific types
+
     MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).cast(ItemEnchantments::getEnchantments);
+
+    MinecraftHasher<ItemContainerSlot> CONTAINER_SLOT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("slot", INT, ItemContainerSlot::index)
+        .accept("item", ITEM_STACK, ItemContainerSlot::item));
+
+    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
+        List<ItemContainerSlot> slots = new ArrayList<>();
+        for (int i = 0; i < stacks.size(); i++) {
+            slots.add(new ItemContainerSlot(i, stacks.get(i)));
+        }
+        return slots;
+    });
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
@@ -163,12 +271,6 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     // Encode as a single element if the list only has one element
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
         predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
-
-    MinecraftHasher<ModifierOperation> ATTRIBUTE_MODIFIER_OPERATION = MinecraftHasher.fromEnum(operation -> switch (operation) {
-        case ADD -> "add_value";
-        case ADD_MULTIPLIED_BASE -> "add_multiplied_base";
-        case ADD_MULTIPLIED_TOTAL -> "add_multiplied_total";
-    });
 
     MinecraftHasher<ItemAttributeModifiers.Entry> ATTRIBUTE_MODIFIER_ENTRY = MinecraftHasher.mapBuilder(builder -> builder
         .accept("type", RegistryHasher.ATTRIBUTE, ItemAttributeModifiers.Entry::getAttribute)
@@ -183,15 +285,11 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.getBuilder().cast());
 
-    MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
-        .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
-        .accept("range", FLOAT, InstrumentComponent.Instrument::range)
-        .accept("description", ComponentHasher.COMPONENT, InstrumentComponent.Instrument::description));
+    MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)
+        .optional("duration", INT, SuspiciousStewEffect::getDuration, 160));
 
-    MinecraftHasher<Holder<InstrumentComponent.Instrument>> INSTRUMENT = holder(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
-
-    MinecraftHasher<InstrumentComponent> INSTRUMENT_COMPONENT = MinecraftHasher.either(INSTRUMENT, InstrumentComponent::instrumentHolder, KEY, InstrumentComponent::instrumentLocation);
+    MinecraftHasher<InstrumentComponent> INSTRUMENT_COMPONENT = MinecraftHasher.either(INSTRUMENT.holder(), InstrumentComponent::instrumentHolder, KEY, InstrumentComponent::instrumentLocation);
 
     MinecraftHasher<ToolData.Rule> TOOL_RULE = MinecraftHasher.mapBuilder(builder -> builder
         .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
@@ -209,46 +307,16 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("base", FLOAT, BlocksAttacks.ItemDamageFunction::base)
         .accept("factor", FLOAT, BlocksAttacks.ItemDamageFunction::factor));
 
-    MinecraftHasher<Map<Key, String>> TRIM_MATERIAL_ASSET_OVERRIDES = MinecraftHasher.map(KEY, STRING);
-
-    MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
-        .optional("override_armor_assets", TRIM_MATERIAL_ASSET_OVERRIDES, ArmorTrim.TrimMaterial::assetOverrides, Map.of())
-        .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimMaterial::description));
-
-    MinecraftHasher<Holder<ArmorTrim.TrimMaterial>> TRIM_MATERIAL = holder(JavaRegistries.TRIM_MATERIAL, DIRECT_TRIM_MATERIAL);
-
-    MinecraftHasher<ProvidesTrimMaterial> PROVIDES_TRIM_MATERIAL = MinecraftHasher.either(TRIM_MATERIAL, ProvidesTrimMaterial::materialHolder, KEY, ProvidesTrimMaterial::materialLocation);
-
-    MinecraftHasher<ArmorTrim.TrimPattern> DIRECT_TRIM_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_id", KEY, ArmorTrim.TrimPattern::assetId)
-        .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimPattern::description)
-        .accept("decal", BOOL, ArmorTrim.TrimPattern::decal));
-
-    MinecraftHasher<Holder<ArmorTrim.TrimPattern>> TRIM_PATTERN = holder(JavaRegistries.TRIM_PATTERN, DIRECT_TRIM_PATTERN);
+    MinecraftHasher<ProvidesTrimMaterial> PROVIDES_TRIM_MATERIAL = MinecraftHasher.either(TRIM_MATERIAL.holder(), ProvidesTrimMaterial::materialHolder, KEY, ProvidesTrimMaterial::materialLocation);
 
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("material", TRIM_MATERIAL, ArmorTrim::material)
-        .accept("pattern", TRIM_PATTERN, ArmorTrim::pattern));
+        .accept("material", TRIM_MATERIAL.holder(), ArmorTrim::material)
+        .accept("pattern", TRIM_PATTERN.holder(), ArmorTrim::pattern));
 
-    MinecraftHasher<JukeboxPlayable.JukeboxSong> DIRECT_JUKEBOX_SONG = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("sound_event", SOUND_EVENT, JukeboxPlayable.JukeboxSong::soundEvent)
-        .accept("description", ComponentHasher.COMPONENT, JukeboxPlayable.JukeboxSong::description)
-        .accept("length_in_seconds", FLOAT, JukeboxPlayable.JukeboxSong::lengthInSeconds)
-        .accept("comparator_output", INT, JukeboxPlayable.JukeboxSong::comparatorOutput));
-
-    MinecraftHasher<Holder<JukeboxPlayable.JukeboxSong>> JUKEBOX_SONG = holder(JavaRegistries.JUKEBOX_SONG, DIRECT_JUKEBOX_SONG);
-
-    MinecraftHasher<JukeboxPlayable> JUKEBOX_PLAYABLE = MinecraftHasher.either(JUKEBOX_SONG, JukeboxPlayable::songHolder, KEY, JukeboxPlayable::songLocation);
-
-    MinecraftHasher<BannerPatternLayer.BannerPattern> DIRECT_BANNER_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_id", KEY, BannerPatternLayer.BannerPattern::getAssetId)
-        .accept("translation_key", STRING, BannerPatternLayer.BannerPattern::getTranslationKey));
-
-    MinecraftHasher<Holder<BannerPatternLayer.BannerPattern>> BANNER_PATTERN = holder(JavaRegistries.BANNER_PATTERN, DIRECT_BANNER_PATTERN);
+    MinecraftHasher<JukeboxPlayable> JUKEBOX_PLAYABLE = MinecraftHasher.either(JUKEBOX_SONG.holder(), JukeboxPlayable::songHolder, KEY, JukeboxPlayable::songLocation);
 
     MinecraftHasher<BannerPatternLayer> BANNER_PATTERN_LAYER = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("pattern", BANNER_PATTERN, BannerPatternLayer::getPattern)
+        .accept("pattern", BANNER_PATTERN.holder(), BannerPatternLayer::getPattern)
         .accept("color", DYE_COLOR, BannerPatternLayer::getColorId));
 
     MinecraftHasher<Integer> FIREWORK_EXPLOSION_SHAPE = MinecraftHasher.fromIdEnum(FireworkExplosionShape.values());
@@ -265,75 +333,36 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
-    RegistryHasher VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
-
-    RegistryHasher WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
-
-    RegistryHasher WOLF_SOUND_VARIANT = registry(JavaRegistries.WOLF_SOUND_VARIANT);
-
-    MinecraftHasher<Integer> FOX_VARIANT = MinecraftHasher.fromIdEnum(FoxVariant.values());
-
-    MinecraftHasher<Integer> SALMON_VARIANT = MinecraftHasher.fromIdEnum(SalmonVariant.values());
-
-    MinecraftHasher<Integer> PARROT_VARIANT = MinecraftHasher.fromIdEnum(ParrotVariant.values());
-
-    MinecraftHasher<Integer> TROPICAL_FISH_PATTERN = MinecraftHasher.<TropicalFishPattern>fromEnum().cast(TropicalFishPattern::fromPackedId);
-
-    MinecraftHasher<Integer> MOOSHROOM_VARIANT = MinecraftHasher.fromIdEnum(MooshroomVariant.values());
-
-    MinecraftHasher<Integer> RABBIT_VARIANT = MinecraftHasher.<RabbitVariant>fromEnum().cast(RabbitVariant::fromId);
-
-    RegistryHasher PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
-
-    RegistryHasher COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
-
-    RegistryHasher FROG_VARIANT = registry(JavaRegistries.FROG_VARIANT);
-
-    MinecraftHasher<Integer> HORSE_VARIANT = MinecraftHasher.fromIdEnum(HorseVariant.values());
-
-    MinecraftHasher<PaintingVariant> DIRECT_PAINTING_VARIANT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("width", INT, PaintingVariant::width)
-        .accept("height", INT, PaintingVariant::height)
-        .accept("asset_id", KEY, PaintingVariant::assetId)
-        .optionalNullable("title", ComponentHasher.COMPONENT, PaintingVariant::title)
-        .optionalNullable("author", ComponentHasher.COMPONENT, PaintingVariant::author));
-
-    MinecraftHasher<Holder<PaintingVariant>> PAINTING_VARIANT = holder(JavaRegistries.PAINTING_VARIANT, DIRECT_PAINTING_VARIANT);
-
-    MinecraftHasher<Integer> LLAMA_VARIANT = MinecraftHasher.fromIdEnum(LlamaVariant.values());
-
-    MinecraftHasher<Integer> AXOLOTL_VARIANT = MinecraftHasher.fromIdEnum(AxolotlVariant.values());
-
-    RegistryHasher CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
-
-    static RegistryHasher registry(JavaRegistryKey<?> registry) {
+    /**
+     * Creates a hasher that uses the {@link JavaRegistryKey#keyFromNetworkId(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
+     *
+     * @param registry the registry to create a hasher for.
+     */
+    static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::keyFromNetworkId);
         return hasher::hash;
     }
 
-    // We don't need the registry generic type, and this works easier for various registries
-    static <T> MinecraftHasher<Holder<T>> holder(JavaRegistryKey<?> registry, MinecraftHasher<T> direct) {
-        RegistryHasher registryHasher = registry(registry);
-        return (value, encoder) -> {
-            if (value.isId()) {
-                return registryHasher.hash(value.id(), encoder);
-            }
-            return direct.hash(value.custom(), encoder);
-        };
+    /**
+     * Creates a hasher that using {@link RegistryHasher#registry(JavaRegistryKey)} that is also able to encode {@link Holder}s by using the {@code directHasher}.
+     *
+     * <p>A hasher that encodes {@link Holder}s can be obtained by using {@link RegistryHasher#holder()}</p>
+     *
+     * @param registry the registry to create a hasher for.
+     * @param directHasher the hasher that encodes a custom object.
+     * @param <DirectType> the type of custom objects.
+     * @see RegistryHasher#holder()
+     */
+    // We don't use the registry generic type, because various registries don't use the MCPL type as their type
+    static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?> registry, MinecraftHasher<DirectType> directHasher) {
+        return new RegistryHasherWithDirectHasher<>(registry(registry), directHasher);
     }
 
-    // TODO note that this only works if the enum constants match
-    static <T extends Enum<T>> MinecraftHasher<T> enumRegistry() {
-        return KEY.cast(t -> MinecraftKey.key(t.name().toLowerCase()));
-    }
-
-    static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values) {
-        return enumIdRegistry(values, t -> MinecraftKey.key(t.name().toLowerCase()));
-    }
-
-    static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values, Function<T, Key> toKey) {
-        MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
-        return hasher::hash;
+    default MinecraftHasher<Holder<Type>> holder() {
+        if (this instanceof RegistryHasher.RegistryHasherWithDirectHasher<Type> withDirect) {
+            return withDirect.holderHasher;
+        }
+        throw new IllegalStateException("Tried to create a holder hasher on a registry hasher that does not have a direct hasher specified");
     }
 
     default MinecraftHasher<HolderSet> holderSet() {
@@ -348,5 +377,39 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
             }
             throw new IllegalStateException("HolderSet must have either tag location or holders");
         };
+    }
+
+    // TODO note that this only works if the enum constants match
+    static <EnumConstant extends Enum<EnumConstant>> MinecraftHasher<EnumConstant> enumRegistry() {
+        return KEY.cast(constant -> MinecraftKey.key(constant.name().toLowerCase(Locale.ROOT)));
+    }
+
+    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values) {
+        return enumIdRegistry(values, constant -> MinecraftKey.key(constant.name().toLowerCase(Locale.ROOT)));
+    }
+
+    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
+        MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
+        return hasher::hash;
+    }
+
+    class RegistryHasherWithDirectHasher<DirectType> implements RegistryHasher<DirectType> {
+        private final MinecraftHasher<Integer> id;
+        private final MinecraftHasher<Holder<DirectType>> holderHasher;
+
+        public RegistryHasherWithDirectHasher(MinecraftHasher<Integer> id, MinecraftHasher<DirectType> direct) {
+            this.id = id;
+            this.holderHasher = (value, encoder) -> {
+                if (value.isId()) {
+                    return hash(value.id(), encoder);
+                }
+                return direct.hash(value.custom(), encoder);
+            };
+        }
+
+        @Override
+        public HashCode hash(Integer value, MinecraftHashEncoder encoder) {
+            return id.hash(value, encoder);
+        }
     }
 }
