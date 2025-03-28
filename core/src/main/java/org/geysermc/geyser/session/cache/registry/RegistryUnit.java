@@ -25,6 +25,11 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
+/**
+ * Used with {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader#UNIT} to load registries without loading any data.
+ *
+ * <p>This is usually done when registries need to be loaded to make ID->key or key->ID conversions, but actual data isn't needed.</p>
+ */
 public enum RegistryUnit {
     INSTANCE
 }

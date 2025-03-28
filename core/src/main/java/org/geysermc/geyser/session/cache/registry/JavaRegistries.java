@@ -69,10 +69,12 @@ public class JavaRegistries {
     public static final JavaRegistryKey<PaintingType> PAINTING_VARIANT = create("painting_variant");
     public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material");
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern");
+    public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant");
     public static final JavaRegistryKey<WolfEntity.BuiltInVariant> WOLF_VARIANT = create("wolf_variant");
+    public static final JavaRegistryKey<RegistryUnit> WOLF_SOUND_VARIANT = create("wolf_sound_variant");
 
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> PIG_VARIANT = create("pig_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant");

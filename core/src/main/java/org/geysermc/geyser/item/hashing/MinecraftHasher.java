@@ -40,6 +40,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
 import java.util.List;
@@ -108,7 +109,30 @@ public interface MinecraftHasher<T> {
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = fromEnum();
 
-    MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum(); // FIXME MCPL enum constants aren't right
+    MinecraftHasher<EquipmentSlot> EQUIPMENT_SLOT = fromEnum(slot -> switch (slot) {
+        case MAIN_HAND -> "mainhand";
+        case OFF_HAND -> "offhand";
+        case BOOTS -> "feet";
+        case LEGGINGS -> "legs";
+        case CHESTPLATE -> "chest";
+        case HELMET -> "head";
+        case BODY -> "body";
+        case SADDLE -> "saddle";
+    });
+
+    MinecraftHasher<ItemAttributeModifiers.EquipmentSlotGroup> EQUIPMENT_SLOT_GROUP = fromEnum(group -> switch (group) {
+        case ANY -> "any";
+        case MAIN_HAND -> "mainhand";
+        case OFF_HAND -> "offhand";
+        case HAND -> "hand";
+        case FEET -> "feet";
+        case LEGS -> "legs";
+        case CHEST -> "chest";
+        case HEAD -> "head";
+        case ARMOR -> "armor";
+        case BODY -> "body";
+        case SADDLE -> "saddle";
+    });
 
     MinecraftHasher<GlobalPos> GLOBAL_POS = mapBuilder(builder -> builder
         .accept("dimension", KEY, GlobalPos::getDimension)
@@ -165,7 +189,11 @@ public interface MinecraftHasher<T> {
 
     // TODO: note that this only works correctly if enum constants are named appropriately
     static <T extends Enum<T>> MinecraftHasher<T> fromEnum() {
-        return STRING.convert(t -> t.name().toLowerCase());
+        return fromEnum(t -> t.name().toLowerCase());
+    }
+
+    static <T extends Enum<T>> MinecraftHasher<T> fromEnum(Function<T, String> toName) {
+        return STRING.convert(toName);
     }
 
     static <T> MinecraftHasher<T> mapBuilder(MapBuilder<T> builder) {

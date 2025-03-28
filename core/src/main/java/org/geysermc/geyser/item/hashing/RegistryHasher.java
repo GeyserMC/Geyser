@@ -45,12 +45,15 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BeehiveOccupant;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -58,6 +61,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
@@ -72,6 +76,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 public interface RegistryHasher extends MinecraftHasher<Integer> {
@@ -83,6 +88,10 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     RegistryHasher ENTITY_TYPE = enumIdRegistry(EntityType.values());
 
     RegistryHasher ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
+
+    RegistryHasher ATTRIBUTE = enumIdRegistry(AttributeType.Builtin.values(), AttributeType.Builtin::getIdentifier);
+
+    RegistryHasher DAMAGE_TYPE = registry(JavaRegistries.DAMAGE_TYPE);
 
     MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
 
@@ -144,6 +153,19 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments);
 
+    MinecraftHasher<ModifierOperation> ATTRIBUTE_MODIFIER_OPERATION = MinecraftHasher.fromEnum(operation -> switch (operation) {
+        case ADD -> "add_value";
+        case ADD_MULTIPLIED_BASE -> "add_multiplied_base";
+        case ADD_MULTIPLIED_TOTAL -> "add_multiplied_total";
+    });
+
+    MinecraftHasher<ItemAttributeModifiers.Entry> ATTRIBUTE_MODIFIER_ENTRY = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("type", RegistryHasher.ATTRIBUTE, ItemAttributeModifiers.Entry::getAttribute)
+        .accept("id", KEY, entry -> entry.getModifier().getId())
+        .accept("amount", DOUBLE, entry -> entry.getModifier().getAmount())
+        .accept("operation", ATTRIBUTE_MODIFIER_OPERATION, entry -> entry.getModifier().getOperation())
+        .optional("slot", EQUIPMENT_SLOT_GROUP, ItemAttributeModifiers.Entry::getSlot, ItemAttributeModifiers.EquipmentSlotGroup.ANY));
+
     MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
 
     MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.getBuilder().cast());
@@ -162,6 +184,17 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
         .optionalNullable("speed", MinecraftHasher.FLOAT, ToolData.Rule::getSpeed)
         .optionalNullable("correct_for_drops", MinecraftHasher.BOOL, ToolData.Rule::getCorrectForDrops));
+
+    MinecraftHasher<BlocksAttacks.DamageReduction> BLOCKS_ATTACKS_DAMAGE_REDUCTION = MinecraftHasher.mapBuilder(builder -> builder
+        .optional("horizontal_blocking_angle", FLOAT, BlocksAttacks.DamageReduction::horizontalBlockingAngle, 90.0F)
+        .optionalNullable("type", DAMAGE_TYPE.holderSet(), BlocksAttacks.DamageReduction::type)
+        .accept("base", FLOAT, BlocksAttacks.DamageReduction::base)
+        .accept("factor", FLOAT, BlocksAttacks.DamageReduction::factor));
+
+    MinecraftHasher<BlocksAttacks.ItemDamageFunction> BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("threshold", FLOAT, BlocksAttacks.ItemDamageFunction::threshold)
+        .accept("base", FLOAT, BlocksAttacks.ItemDamageFunction::base)
+        .accept("factor", FLOAT, BlocksAttacks.ItemDamageFunction::factor));
 
     MinecraftHasher<Map<Key, String>> TRIM_MATERIAL_ASSET_OVERRIDES = MinecraftHasher.map(KEY, STRING);
 
@@ -221,6 +254,8 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     RegistryHasher WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
 
+    RegistryHasher WOLF_SOUND_VARIANT = registry(JavaRegistries.WOLF_SOUND_VARIANT);
+
     MinecraftHasher<Integer> FOX_VARIANT = MinecraftHasher.fromIdEnum(FoxVariant.values());
 
     MinecraftHasher<Integer> SALMON_VARIANT = MinecraftHasher.fromIdEnum(SalmonVariant.values());
@@ -278,7 +313,11 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     }
 
     static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values) {
-        MinecraftHasher<Integer> hasher = KEY.convert(i -> MinecraftKey.key(values[i].name().toLowerCase()));
+        return enumIdRegistry(values, t -> MinecraftKey.key(t.name().toLowerCase()));
+    }
+
+    static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values, Function<T, Key> toKey) {
+        MinecraftHasher<Integer> hasher = KEY.convert(i -> toKey.apply(values[i]));
         return hasher::hash;
     }
 

@@ -39,6 +39,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
@@ -46,6 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
@@ -57,6 +59,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.IntComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
@@ -95,7 +98,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         // TODO can place on/can break on, complicated
-        // TODO attribute modifiers, attribute registry and equipment slot group hashers
+        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().convert(ItemAttributeModifiers::getModifiers)); // TODO needs tests
 
         registerMap(DataComponentTypes.CUSTOM_MODEL_DATA, builder -> builder
             .optionalList("floats", MinecraftHasher.FLOAT, CustomModelData::floats)
@@ -158,7 +161,14 @@ public class DataComponentHashers {
 
         registerMap(DataComponentTypes.DEATH_PROTECTION, builder -> builder
             .optionalList("death_effects", RegistryHasher.CONSUME_EFFECT, Function.identity()));
-        registerMap(DataComponentTypes.BLOCKS_ATTACKS, builder -> builder); // TODO needs damage types, add a way to cache identifiers without reading objects in registrycache
+        registerMap(DataComponentTypes.BLOCKS_ATTACKS, builder -> builder
+            .optional("block_delay_seconds", MinecraftHasher.FLOAT, BlocksAttacks::blockDelaySeconds, 0.0F)
+            .optional("disable_cooldown_scale", MinecraftHasher.FLOAT, BlocksAttacks::disableCooldownScale, 1.0F)
+            .optional("damage_reductions", RegistryHasher.BLOCKS_ATTACKS_DAMAGE_REDUCTION.list(), BlocksAttacks::damageReductions, List.of(new BlocksAttacks.DamageReduction(90.0F, null, 0.0F, 1.0F)))
+            .optional("item_damage", RegistryHasher.BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION, BlocksAttacks::itemDamage, new BlocksAttacks.ItemDamageFunction(1.0F, 0.0F, 1.0F))
+            .optionalNullable("bypassed_by", MinecraftHasher.TAG, BlocksAttacks::bypassedBy)
+            .optionalNullable("block_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::blockSound)
+            .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
         register(DataComponentTypes.STORED_ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         registerInt(DataComponentTypes.DYED_COLOR);
@@ -226,7 +236,7 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.VILLAGER_VARIANT, RegistryHasher.VILLAGER_TYPE);
         register(DataComponentTypes.WOLF_VARIANT, RegistryHasher.WOLF_VARIANT);
-        //register(DataComponentTypes.WOLF_SOUND_VARIANT, ); // TODO same issue as damage type
+        register(DataComponentTypes.WOLF_SOUND_VARIANT, RegistryHasher.WOLF_SOUND_VARIANT);
         register(DataComponentTypes.WOLF_COLLAR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.FOX_VARIANT, RegistryHasher.FOX_VARIANT);
         register(DataComponentTypes.SALMON_SIZE, RegistryHasher.SALMON_VARIANT);
@@ -238,7 +248,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.RABBIT_VARIANT, RegistryHasher.RABBIT_VARIANT);
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
-        // register(DataComponentTypes.CHICKEN_VARIANT,); // TODO requires change in MCPL?
+        register(DataComponentTypes.CHICKEN_VARIANT, MinecraftHasher.KEY
+            .sessionConvert((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.keyFromNetworkId(session, id)))); // Why, Mojang?
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT);

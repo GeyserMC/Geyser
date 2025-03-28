@@ -27,13 +27,12 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.Locale;
-import java.util.function.Function;
 
 /**
  * Interface to help set up data-driven entity variants for mobs.
@@ -77,7 +76,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
      *
      * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, the fallback/default is returned.</p>
      */
-    static <BuiltInVariant extends Enum<? extends BuiltIn>> Function<RegistryEntryContext, BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
+    static <BuiltInVariant extends Enum<? extends BuiltIn>> RegistryCache.RegistryReader<BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
         BuiltInVariant[] variants = clazz.getEnumConstants();
         if (variants == null) {
             throw new IllegalArgumentException("Class is not an enum");
