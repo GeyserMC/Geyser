@@ -45,6 +45,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
@@ -344,7 +345,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().chatTypes()::byId);
+        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages

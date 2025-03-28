@@ -41,8 +41,7 @@ import java.util.function.Function;
  * <p>Data-driven variants are sent as an int ID of their variant registry by Java, but can be a metadata ID or entity property on bedrock.
  * This interface helps translate data-driven variants to built-in bedrock ones.</p>
  *
- * <p>Implementations usually have to implement {@link VariantHolder#variantRegistry()},
- * {@link VariantHolder#setBedrockVariant(BuiltIn)}, and {@link VariantHolder#defaultVariant()}, and should also
+ * <p>Implementations usually have to implement {@link VariantHolder#variantRegistry()} and {@link VariantHolder#setBedrockVariant(BuiltIn)}, and should also
  * have an enum with built-in variants on bedrock (implementing {@link BuiltIn}).</p>
  *
  * @param <BedrockVariant> the enum of Bedrock variants.
@@ -54,20 +53,16 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
     }
 
     /**
-     * Sets the variant of the entity. Defaults to {@link VariantHolder#defaultVariant()} for non-vanilla IDs.
+     * Sets the variant of the entity.
      */
     default void setVariantFromJavaId(int variant) {
-        BedrockVariant builtInVariant = variantRegistry().fromNetworkId(getSession(), variant);
-        if (builtInVariant == null) {
-            builtInVariant = defaultVariant();
-        }
-        setBedrockVariant(builtInVariant);
+        setBedrockVariant(variantRegistry().fromNetworkId(getSession(), variant));
     }
 
     GeyserSession getSession();
 
     /**
-     * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class)} method
+     * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class, Enum)} method
      * to create a reader to be used in {@link org.geysermc.geyser.session.cache.RegistryCache}.
      */
     JavaRegistryKey<? extends BedrockVariant> variantRegistry();
@@ -78,16 +73,11 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
     void setBedrockVariant(BedrockVariant bedrockVariant);
 
     /**
-     * Should return the default variant, that is to be used when this mob's variant is a custom or non-vanilla one.
-     */
-    BedrockVariant defaultVariant();
-
-    /**
      * Creates a registry reader for this mob's variants.
      *
-     * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, null is returned.</p>
+     * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, the fallback/default is returned.</p>
      */
-    static <BuiltInVariant extends Enum<? extends BuiltIn>> Function<RegistryEntryContext, BuiltInVariant> reader(Class<BuiltInVariant> clazz) {
+    static <BuiltInVariant extends Enum<? extends BuiltIn>> Function<RegistryEntryContext, BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
         BuiltInVariant[] variants = clazz.getEnumConstants();
         if (variants == null) {
             throw new IllegalArgumentException("Class is not an enum");
@@ -98,7 +88,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
                     return variant;
                 }
             }
-            return null;
+            return fallback;
         };
     }
 

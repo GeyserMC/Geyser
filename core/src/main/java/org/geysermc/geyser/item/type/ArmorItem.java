@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -49,8 +50,8 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
-            TrimMaterial material = session.getRegistryCache().trimMaterials().byId(trim.material().id());
-            TrimPattern pattern = session.getRegistryCache().trimPatterns().byId(trim.pattern().id());
+            TrimMaterial material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
+            TrimPattern pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
 
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
             if (!getNamespace(material.getMaterialId()).equals("minecraft")

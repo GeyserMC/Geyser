@@ -40,6 +40,7 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -87,7 +88,7 @@ public class BannerItem extends BlockItem {
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(patternLayer.getPattern().id());
+            BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(patternLayer.getPattern().id());
             if (bannerPattern != pair.left()) {
                 return false;
             }
@@ -146,14 +147,12 @@ public class BannerItem extends BlockItem {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
                 patternLayer.getPattern().ifId(id -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(id);
-                    if (bannerPattern != null) {
-                        NbtMap tag = NbtMap.builder()
-                                .putString("Pattern", bannerPattern.getBedrockIdentifier())
-                                .putInt("Color", 15 - patternLayer.getColorId())
-                                .build();
-                        patternList.add(tag);
-                    }
+                    BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(id);
+                    NbtMap tag = NbtMap.builder()
+                            .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                            .putInt("Color", 15 - patternLayer.getColorId())
+                            .build();
+                    patternList.add(tag);
                 });
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
@@ -187,10 +186,10 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern layer
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        JavaRegistry<BannerPattern> registry = session.getRegistryCache().bannerPatterns();
+        JavaRegistry<BannerPattern> registry = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
-        if (bannerPattern != null && dyeColor != null) {
+        if (dyeColor != null) {
             int id = registry.byValue(bannerPattern);
             if (id != -1) {
                 return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
@@ -222,7 +221,7 @@ public class BannerItem extends BlockItem {
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
             for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
                 var pair = OMINOUS_BANNER_PATTERN.get(i);
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().bannerPatterns().byValue(pair.left())),
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byValue(pair.left())),
                         pair.right().ordinal()));
             }
 

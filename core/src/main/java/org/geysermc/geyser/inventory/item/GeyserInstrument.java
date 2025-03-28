@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -76,7 +77,7 @@ public interface GeyserInstrument {
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
     static int bedrockIdToJava(GeyserSession session, int id) {
-        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().instruments();
+        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
@@ -92,10 +93,10 @@ public interface GeyserInstrument {
     // TODO test in 1.21.5
     static GeyserInstrument fromComponent(GeyserSession session, InstrumentComponent component) {
         if (component.instrumentLocation() != null) {
-            return session.getRegistryCache().instruments().byKey(component.instrumentLocation());
+            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byKey(component.instrumentLocation());
         } else if (component.instrumentHolder() != null) {
             if (component.instrumentHolder().isId()) {
-                return session.getRegistryCache().instruments().byId(component.instrumentHolder().id());
+                return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.instrumentHolder().id());
             }
             InstrumentComponent.Instrument custom = component.instrumentHolder().custom();
             return new Wrapper(custom, session.locale());

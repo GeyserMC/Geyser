@@ -36,6 +36,7 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -82,7 +83,7 @@ public class EnchantedBookItem extends Item {
 
                 BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
-                    List<Enchantment> enchantments = session.getRegistryCache().enchantments().values();
+                    List<Enchantment> enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values();
                     for (int i = 0; i < enchantments.size(); i++) {
                         if (enchantments.get(i).bedrockEnchantment() == enchantment) {
                             int level = bedrockEnchantment.getShort("lvl", (short) 1);

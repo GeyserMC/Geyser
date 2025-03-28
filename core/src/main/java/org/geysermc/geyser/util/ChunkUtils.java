@@ -45,6 +45,7 @@ import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 
 @UtilityClass
@@ -222,7 +223,7 @@ public class ChunkUtils {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.height()),
-                    session.getRegistryCache().dimensions().byValue(session.getDimensionType())));
+                    session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);

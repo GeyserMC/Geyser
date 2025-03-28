@@ -94,11 +94,6 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
         dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
-    @Override
-    public BuiltIn defaultVariant() {
-        return BuiltInVariant.BLACK; // Default variant on Java
-    }
-
     public void setResting(BooleanEntityMetadata entityMetadata) {
         setFlag(EntityFlag.RESTING, entityMetadata.getPrimitiveValue());
     }

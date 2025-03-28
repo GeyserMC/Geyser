@@ -124,11 +124,6 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     @Override
-    public BuiltIn defaultVariant() {
-        return BuiltInVariant.PALE;
-    }
-
-    @Override
     @Nullable
     protected Tag<Item> getFoodTag() {
         return ItemTag.WOLF_FOOD;

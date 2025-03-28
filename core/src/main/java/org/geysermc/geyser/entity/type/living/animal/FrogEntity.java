@@ -67,11 +67,6 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
         dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
-    @Override
-    public BuiltIn defaultVariant() {
-        return BuiltInVariant.TEMPERATE;
-    }
-
     public void setTongueTarget(ObjectEntityMetadata<OptionalInt> entityMetadata) {
         OptionalInt entityId = entityMetadata.getValue();
         if (entityId.isPresent()) {

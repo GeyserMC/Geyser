@@ -40,7 +40,7 @@ import java.util.function.Function;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
-    public static final Function<RegistryEntryContext, BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class);
+    public static final Function<RegistryEntryContext, BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
                                     Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -57,11 +57,6 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
     public void setBedrockVariant(BuiltInVariant variant) {
         propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.name().toLowerCase(Locale.ROOT));
         updateBedrockEntityProperties();
-    }
-
-    @Override
-    public BuiltInVariant defaultVariant() {
-        return BuiltInVariant.TEMPERATE;
     }
 
     public enum BuiltInVariant implements BuiltIn {
