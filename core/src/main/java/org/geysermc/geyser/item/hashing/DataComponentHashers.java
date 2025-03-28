@@ -26,6 +26,11 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -37,6 +42,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -78,7 +84,7 @@ public class DataComponentHashers {
         registerInt(DataComponentTypes.DAMAGE);
         registerUnit(DataComponentTypes.UNBREAKABLE);
 
-        register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT); // TODO test
+        register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.ITEM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.ITEM_MODEL, MinecraftHasher.KEY);
         register(DataComponentTypes.LORE, ComponentHasher.COMPONENT.list());
@@ -155,7 +161,7 @@ public class DataComponentHashers {
         registerInt(DataComponentTypes.MAP_ID);
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
-        register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list()); // TODO test one of these, preferably bundle contents which is more complicated
+        register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list());
         register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list());
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
@@ -254,6 +260,14 @@ public class DataComponentHashers {
         testHash(session, DataComponentTypes.DAMAGE, 459, 1211405277);
         testHash(session, DataComponentTypes.UNBREAKABLE, Unit.INSTANCE, -982207288);
 
+        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("simple component test!"), 950545066);
+        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.translatable("a.translatable"), 1983484873);
+        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("component with *style*")
+            .style(style -> style.color(NamedTextColor.RED).decorate(TextDecoration.ITALIC)), -886479206);
+        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("component with more stuff")
+            .children(List.of(Component.translatable("a.translate.string", "fallback!")
+                .style(style -> style.color(TextColor.color(0x446688)).decorate(TextDecoration.BOLD)))), -1261457500);
+
         testHash(session, DataComponentTypes.ITEM_MODEL, MinecraftKey.key("testing"), -689946239);
 
         testHash(session, DataComponentTypes.RARITY, Rarity.COMMON.ordinal(), 75150990);
@@ -328,6 +342,15 @@ public class DataComponentHashers {
 
         testHash(session, DataComponentTypes.MAP_DECORATIONS, mapDecorations, -625782954);
 
+        ItemStack bundleStack1 = new ItemStack(Items.PUMPKIN.javaId());
+        ItemStack bundleStack2 = new ItemStack(Items.MELON.javaId(), 24);
+
+        DataComponents bundleStackComponents = new DataComponents(new HashMap<>());
+        bundleStackComponents.put(DataComponentTypes.CUSTOM_NAME, Component.text("magic potato!"));
+
+        ItemStack bundleStack3 = new ItemStack(Items.POTATO.javaId(), 30, bundleStackComponents);
+        testHash(session, DataComponentTypes.BUNDLE_CONTENTS, List.of(bundleStack1, bundleStack2, bundleStack3), 1817891504);
+
         testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(Potion.FIRE_RESISTANCE.ordinal(), -1, List.of(), null), -772576502);
         testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 20,
             List.of(new MobEffectInstance(Effect.CONDUIT_POWER, new MobEffectDetails(0, 0, false, true, true, null))),
@@ -338,6 +361,13 @@ public class DataComponentHashers {
         testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 87,
             List.of(new MobEffectInstance(Effect.SPEED, new MobEffectDetails(29, 1004, false, true, true, null))),
             "testing"), 2007296036);
+
+        // TODO testing trim, instrument, trim material, jukebox playable requires registries
+
+        testHash(session, DataComponentTypes.LODESTONE_TRACKER,
+            new LodestoneTracker(new GlobalPos(MinecraftKey.key("overworld"), Vector3i.from(5, 6, 7)), true), 63561894);
+        testHash(session, DataComponentTypes.LODESTONE_TRACKER,
+            new LodestoneTracker(null, false), 1595667667);
     }
 
     private static <T> void testHash(GeyserSession session, DataComponentType<T> component, T value, int expected) {

@@ -38,15 +38,17 @@ public class MapHasher<T> {
     private final MinecraftHashEncoder encoder;
     private final T object;
     private final Map<HashCode, HashCode> map;
+    private final Map<String, Object> unhashed;
 
     MapHasher(T object, MinecraftHashEncoder encoder) {
-        this(object, encoder, new HashMap<>());
+        this(object, encoder, new HashMap<>(), new HashMap<>());
     }
 
-    private MapHasher(T object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map) {
+    private MapHasher(T object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map, Map<String, Object> unhashed) {
         this.encoder = encoder;
         this.object = object;
         this.map = map;
+        this.unhashed = unhashed;
     }
 
     public MapHasher<T> accept(String key, HashCode hash) {
@@ -55,11 +57,12 @@ public class MapHasher<T> {
     }
 
     public <V> MapHasher<T> acceptConstant(String key, MinecraftHasher<V> hasher, V value) {
+        unhashed.put(key, value);
         return accept(key, hasher.hash(value, encoder));
     }
 
     public <V> MapHasher<T> accept(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
-        return accept(key, hasher.hash(extractor.apply(object), encoder));
+        return acceptConstant(key, hasher, extractor.apply(object));
     }
 
     // Adds keys and values from the builder directly to this map (document me properly)
@@ -70,7 +73,7 @@ public class MapHasher<T> {
 
     // Adds keys and values from the builder directly to this map (document me properly)
     public <V> MapHasher<T> accept(MapBuilder<V> builder, Function<T, V> extractor) {
-        builder.apply(new MapHasher<>(extractor.apply(object), encoder, map));
+        builder.apply(new MapHasher<>(extractor.apply(object), encoder, map, unhashed));
         return this;
     }
 
@@ -83,38 +86,39 @@ public class MapHasher<T> {
     public <V> MapHasher<T> optionalNullable(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
         V value = extractor.apply(object);
         if (value != null) {
-            accept(key, hasher.hash(value, encoder));
+            acceptConstant(key, hasher, value);
         }
         return this;
     }
 
     public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, Optional<V>> extractor) {
         Optional<V> value = extractor.apply(object);
-        value.ifPresent(v -> accept(key, hasher.hash(v, encoder)));
+        value.ifPresent(v -> acceptConstant(key, hasher, v));
         return this;
     }
 
     public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, V> extractor, V defaultValue) {
         V value = extractor.apply(object);
         if (!value.equals(defaultValue)) {
-            accept(key, hasher.hash(value, encoder));
+            acceptConstant(key, hasher, value);
         }
         return this;
     }
 
     public <V> MapHasher<T> acceptList(String key, MinecraftHasher<V> valueHasher, Function<T, List<V>> extractor) {
-        return accept(key, valueHasher.list().hash(extractor.apply(object), encoder));
+        return acceptConstant(key, valueHasher.list(), extractor.apply(object));
     }
 
     public <V> MapHasher<T> optionalList(String key, MinecraftHasher<V> valueHasher, Function<T, List<V>> extractor) {
         List<V> list = extractor.apply(object);
         if (!list.isEmpty()) {
-            accept(key, valueHasher.list().hash(list, encoder));
+            acceptConstant(key, valueHasher.list(), list);
         }
         return this;
     }
 
     public HashCode build() {
+        System.out.println(unhashed);
         return encoder.map(map);
     }
 }

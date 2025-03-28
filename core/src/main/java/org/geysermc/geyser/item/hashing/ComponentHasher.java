@@ -136,7 +136,7 @@ public interface ComponentHasher {
     MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component("nbt", builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
-        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source, needs kyori update?
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
 
     MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
         if (component instanceof TextComponent text) {
