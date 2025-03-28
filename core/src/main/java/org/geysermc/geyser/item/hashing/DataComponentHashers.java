@@ -99,7 +99,7 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.CAN_PLACE_ON, RegistryHasher.ADVENTURE_MODE_PREDICATE);
         register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE); // TODO needs tests
-        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().convert(ItemAttributeModifiers::getModifiers)); // TODO needs tests
+        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().cast(ItemAttributeModifiers::getModifiers)); // TODO needs tests
 
         registerMap(DataComponentTypes.CUSTOM_MODEL_DATA, builder -> builder
             .optionalList("floats", MinecraftHasher.FLOAT, CustomModelData::floats)
@@ -122,7 +122,7 @@ public class DataComponentHashers {
             .optional("can_always_eat", MinecraftHasher.BOOL, FoodProperties::isCanAlwaysEat, false));
         registerMap(DataComponentTypes.CONSUMABLE, builder -> builder
             .optional("consume_seconds", MinecraftHasher.FLOAT, Consumable::consumeSeconds, 1.6F)
-            .optional("animation", MinecraftHasher.ITEM_USE_ANIMATION, Consumable::animation, Consumable.ItemUseAnimation.EAT)
+            .optional("animation", RegistryHasher.ITEM_USE_ANIMATION, Consumable::animation, Consumable.ItemUseAnimation.EAT)
             .optional("sound", RegistryHasher.SOUND_EVENT, Consumable::sound, BuiltinSound.ENTITY_GENERIC_EAT)
             .optional("has_consume_particles", MinecraftHasher.BOOL, Consumable::hasConsumeParticles, true)
             .optionalList("on_consume_effects", RegistryHasher.CONSUME_EFFECT, Consumable::onConsumeEffects));
@@ -228,7 +228,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.BASE_COLOR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.POT_DECORATIONS, RegistryHasher.ITEM.list());
         register(DataComponentTypes.CONTAINER, RegistryHasher.ITEM_CONTAINER_CONTENTS);
-        register(DataComponentTypes.BLOCK_STATE, MinecraftHasher.map(MinecraftHasher.STRING, MinecraftHasher.STRING).convert(BlockStateProperties::getProperties));
+        register(DataComponentTypes.BLOCK_STATE, MinecraftHasher.map(MinecraftHasher.STRING, MinecraftHasher.STRING).cast(BlockStateProperties::getProperties));
         register(DataComponentTypes.BEES, RegistryHasher.BEEHIVE_OCCUPANT.list());
 
         register(DataComponentTypes.LOCK, MinecraftHasher.NBT_MAP);
@@ -250,7 +250,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, MinecraftHasher.KEY
-            .sessionConvert((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.keyFromNetworkId(session, id)))); // Why, Mojang?
+            .sessionCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.keyFromNetworkId(session, id)))); // Why, Mojang?
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT);
@@ -284,7 +284,7 @@ public class DataComponentHashers {
     public static <T> MinecraftHasher<T> hasherOrEmpty(DataComponentType<T> component) {
         MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
         if (hasher == null) {
-            return MinecraftHasher.UNIT.convert(value -> Unit.INSTANCE);
+            return MinecraftHasher.UNIT.cast(value -> Unit.INSTANCE);
         }
         return hasher;
     }

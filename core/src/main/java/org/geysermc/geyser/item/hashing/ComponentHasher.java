@@ -50,9 +50,9 @@ public interface ComponentHasher {
         }
     });
 
-    MinecraftHasher<NamedTextColor> NAMED_COLOR = MinecraftHasher.STRING.convert(NamedTextColor::toString);
+    MinecraftHasher<NamedTextColor> NAMED_COLOR = MinecraftHasher.STRING.cast(NamedTextColor::toString);
 
-    MinecraftHasher<TextColor> DIRECT_COLOR = MinecraftHasher.STRING.convert(TextColor::asHexString);
+    MinecraftHasher<TextColor> DIRECT_COLOR = MinecraftHasher.STRING.cast(TextColor::asHexString);
 
     MinecraftHasher<TextColor> COLOR = (value, encoder) -> {
         if (value instanceof NamedTextColor named) {
@@ -61,13 +61,13 @@ public interface ComponentHasher {
         return DIRECT_COLOR.hash(value, encoder);
     };
 
-    MinecraftHasher<TextDecoration.State> DECORATION_STATE = MinecraftHasher.BOOL.convert(state -> switch (state) {
+    MinecraftHasher<TextDecoration.State> DECORATION_STATE = MinecraftHasher.BOOL.cast(state -> switch (state) {
         case NOT_SET -> null; // Should never happen since we're using .optional() with NOT_SET as default value below
         case FALSE -> false;
         case TRUE -> true;
     });
 
-    MinecraftHasher<ClickEvent.Action> CLICK_EVENT_ACTION = MinecraftHasher.STRING.convert(ClickEvent.Action::toString);
+    MinecraftHasher<ClickEvent.Action> CLICK_EVENT_ACTION = MinecraftHasher.STRING.cast(ClickEvent.Action::toString);
 
     MinecraftHasher<ClickEvent> CLICK_EVENT = CLICK_EVENT_ACTION.dispatch("action", ClickEvent::action, action -> switch (action) {
         case OPEN_URL -> builder -> builder.accept("url", MinecraftHasher.STRING, ClickEvent::value);
@@ -77,7 +77,7 @@ public interface ComponentHasher {
         case COPY_TO_CLIPBOARD -> builder -> builder.accept("value", MinecraftHasher.STRING, ClickEvent::value);
     });
 
-    MinecraftHasher<HoverEvent.Action<?>> HOVER_EVENT_ACTION = MinecraftHasher.STRING.convert(HoverEvent.Action::toString);
+    MinecraftHasher<HoverEvent.Action<?>> HOVER_EVENT_ACTION = MinecraftHasher.STRING.cast(HoverEvent.Action::toString);
 
     MinecraftHasher<HoverEvent<?>> HOVER_EVENT = HOVER_EVENT_ACTION.dispatch("action", HoverEvent::action, action -> {
         if (action == HoverEvent.Action.SHOW_TEXT) {
@@ -106,7 +106,7 @@ public interface ComponentHasher {
         .optionalNullable("insertion", MinecraftHasher.STRING, Style::insertion)
         .optionalNullable("font", MinecraftHasher.KEY, Style::font);
 
-    MinecraftHasher<TextComponent> SIMPLE_TEXT_COMPONENT = MinecraftHasher.STRING.convert(TextComponent::content);
+    MinecraftHasher<TextComponent> SIMPLE_TEXT_COMPONENT = MinecraftHasher.STRING.cast(TextComponent::content);
 
     MinecraftHasher<TextComponent> FULL_TEXT_COMPONENT = component(builder -> builder
         .accept("text", MinecraftHasher.STRING, TextComponent::content));

@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
+import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.item.hashing.data.ItemContainerSlot;
 import org.geysermc.geyser.item.hashing.data.entity.AxolotlVariant;
 import org.geysermc.geyser.item.hashing.data.entity.FoxVariant;
@@ -55,6 +56,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BeehiveOccupant;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -94,7 +96,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     RegistryHasher DAMAGE_TYPE = registry(JavaRegistries.DAMAGE_TYPE);
 
-    MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.convert(DataComponentType::getKey);
+    MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.cast(DataComponentType::getKey);
 
     @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT = (component, encoder) -> {
@@ -102,7 +104,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         return hasher.hash(component.getValue(), encoder);
     };
 
-    MinecraftHasher<DataComponents> DATA_COMPONENTS = MinecraftHasher.map(RegistryHasher.DATA_COMPONENT_TYPE, DATA_COMPONENT).convert(DataComponents::getDataComponents); // TODO component removals (needs unit value and ! component prefix)
+    MinecraftHasher<DataComponents> DATA_COMPONENTS = MinecraftHasher.map(RegistryHasher.DATA_COMPONENT_TYPE, DATA_COMPONENT).cast(DataComponents::getDataComponents); // TODO component removals (needs unit value and ! component prefix)
 
     MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", ITEM, ItemStack::getId)
@@ -113,7 +115,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("slot", INT, ItemContainerSlot::index)
         .accept("item", ITEM_STACK, ItemContainerSlot::item));
 
-    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().convert(stacks -> {
+    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
         List<ItemContainerSlot> slots = new ArrayList<>();
         for (int i = 0; i < stacks.size(); i++) {
             slots.add(new ItemContainerSlot(i, stacks.get(i)));
@@ -139,7 +141,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     RegistryHasher POTION = enumIdRegistry(Potion.values());
 
-    MinecraftHasher<BuiltinSound> BUILTIN_SOUND = KEY.convert(sound -> MinecraftKey.key(sound.getName()));
+    MinecraftHasher<BuiltinSound> BUILTIN_SOUND = KEY.cast(sound -> MinecraftKey.key(sound.getName()));
 
     MinecraftHasher<CustomSound> CUSTOM_SOUND = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_id", KEY, sound -> MinecraftKey.key(sound.getName()))
@@ -152,7 +154,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         return CUSTOM_SOUND.hash((CustomSound) sound, encoder);
     };
 
-    MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments);
+    MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).cast(ItemEnchantments::getEnchantments);
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
@@ -174,6 +176,8 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("amount", DOUBLE, entry -> entry.getModifier().getAmount())
         .accept("operation", ATTRIBUTE_MODIFIER_OPERATION, entry -> entry.getModifier().getOperation())
         .optional("slot", EQUIPMENT_SLOT_GROUP, ItemAttributeModifiers.Entry::getSlot, ItemAttributeModifiers.EquipmentSlotGroup.ANY));
+
+    MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = MinecraftHasher.fromEnum();
 
     MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
 
@@ -247,8 +251,10 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("pattern", BANNER_PATTERN, BannerPatternLayer::getPattern)
         .accept("color", DYE_COLOR, BannerPatternLayer::getColorId));
 
+    MinecraftHasher<Integer> FIREWORK_EXPLOSION_SHAPE = MinecraftHasher.fromIdEnum(FireworkExplosionShape.values());
+
     MinecraftHasher<Fireworks.FireworkExplosion> FIREWORK_EXPLOSION = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("shape", MinecraftHasher.FIREWORK_EXPLOSION_SHAPE, Fireworks.FireworkExplosion::getShapeId)
+        .accept("shape", FIREWORK_EXPLOSION_SHAPE, Fireworks.FireworkExplosion::getShapeId)
         .optionalList("colors", INT, explosion -> IntStream.of(explosion.getColors()).boxed().toList())
         .optionalList("fade_colors", INT, explosion -> IntStream.of(explosion.getFadeColors()).boxed().toList())
         .optional("has_trail", BOOL, Fireworks.FireworkExplosion::isHasTrail, false)
@@ -271,11 +277,11 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     MinecraftHasher<Integer> PARROT_VARIANT = MinecraftHasher.fromIdEnum(ParrotVariant.values());
 
-    MinecraftHasher<Integer> TROPICAL_FISH_PATTERN = MinecraftHasher.<TropicalFishPattern>fromEnum().convert(TropicalFishPattern::fromPackedId);
+    MinecraftHasher<Integer> TROPICAL_FISH_PATTERN = MinecraftHasher.<TropicalFishPattern>fromEnum().cast(TropicalFishPattern::fromPackedId);
 
     MinecraftHasher<Integer> MOOSHROOM_VARIANT = MinecraftHasher.fromIdEnum(MooshroomVariant.values());
 
-    MinecraftHasher<Integer> RABBIT_VARIANT = MinecraftHasher.<RabbitVariant>fromEnum().convert(RabbitVariant::fromId);
+    MinecraftHasher<Integer> RABBIT_VARIANT = MinecraftHasher.<RabbitVariant>fromEnum().cast(RabbitVariant::fromId);
 
     RegistryHasher PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
 
@@ -301,7 +307,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     RegistryHasher CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
 
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);
+        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::keyFromNetworkId);
         return hasher::hash;
     }
 
@@ -318,7 +324,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     // TODO note that this only works if the enum constants match
     static <T extends Enum<T>> MinecraftHasher<T> enumRegistry() {
-        return KEY.convert(t -> MinecraftKey.key(t.name().toLowerCase()));
+        return KEY.cast(t -> MinecraftKey.key(t.name().toLowerCase()));
     }
 
     static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values) {
@@ -326,7 +332,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
     }
 
     static <T extends Enum<T>> RegistryHasher enumIdRegistry(T[] values, Function<T, Key> toKey) {
-        MinecraftHasher<Integer> hasher = KEY.convert(i -> toKey.apply(values[i]));
+        MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
         return hasher::hash;
     }
 
