@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
+import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -189,7 +190,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ChestedHorseEntity> DONKEY;
     public static final EntityDefinition<FireballEntity> DRAGON_FIREBALL;
     public static final EntityDefinition<ZombieEntity> DROWNED;
-    public static final EntityDefinition<ThrowableItemEntity> EGG;
+    public static final EntityDefinition<ThrowableEggEntity> EGG;
     public static final EntityDefinition<ElderGuardianEntity> ELDER_GUARDIAN;
     public static final EntityDefinition<EndermanEntity> ENDERMAN;
     public static final EntityDefinition<MonsterEntity> ENDERMITE;
@@ -250,7 +251,8 @@ public final class EntityDefinitions {
     public static final EntityDefinition<PillagerEntity> PILLAGER;
     public static final EntityDefinition<PlayerEntity> PLAYER;
     public static final EntityDefinition<PolarBearEntity> POLAR_BEAR;
-    public static final EntityDefinition<ThrownPotionEntity> POTION;
+    public static final EntityDefinition<ThrownPotionEntity> SPLASH_POTION;
+    public static final EntityDefinition<ThrownPotionEntity> LINGERING_POTION;
     public static final EntityDefinition<PufferFishEntity> PUFFERFISH;
     public static final EntityDefinition<RabbitEntity> RABBIT;
     public static final EntityDefinition<RavagerEntity> RAVAGER;
@@ -459,7 +461,7 @@ public final class EntityDefinitions {
             EntityDefinition<ThrowableItemEntity> throwableItemBase = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
                     .addTranslator(MetadataTypes.ITEM_STACK, ThrowableItemEntity::setItem)
                     .build();
-            EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+            EGG = EntityDefinition.inherited(ThrowableEggEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
                     .properties(VanillaEntityProperties.CLIMATE_VARIANT)
@@ -473,12 +475,16 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
                     .build();
-            // TODO 1.21.5 lingering potion
-            POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
+            SPLASH_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(EntityType.SPLASH_POTION)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:splash_potion")
                     .build();
+            LINGERING_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
+                .type(EntityType.SPLASH_POTION)
+                .heightAndWidth(0.25f)
+                .identifier("minecraft:splash_potion")
+                .build();
             SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.SNOWBALL)
                     .heightAndWidth(0.25f)
