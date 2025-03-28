@@ -52,9 +52,9 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
-import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
 import org.geysermc.geyser.item.type.Item;
@@ -143,11 +143,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 itemStack.sub(1);
-                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, ClickPlan.hashStack(itemStack.getItemStack()));
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
-                                    ClickPlan.hashStack(inventory.getCursor().getItemStack()), changedItem);
+                                    DataComponentHashers.hashStack(session, inventory.getCursor().getItemStack()), changedItem);
                             session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }

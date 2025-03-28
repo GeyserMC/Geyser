@@ -45,12 +45,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -75,8 +77,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookC
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -292,9 +296,31 @@ public class DataComponentHashers {
     public static <T> HashCode hash(GeyserSession session, DataComponentType<T> component, T value) {
         MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
         if (hasher == null) {
-            throw new IllegalStateException("Unregistered hasher for component " + component + "!"); // TODO we might not have hashers for every component, in which case, fix this
+            throw new IllegalStateException("Unregistered hasher for component " + component + "!");
         }
         return hasher.hash(value, new MinecraftHashEncoder(session));
+    }
+
+    public static HashedStack hashStack(GeyserSession session, ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+
+        DataComponents patch = stack.getDataComponentsPatch();
+        if (patch == null) {
+            return new HashedStack(stack.getId(), stack.getAmount(), Map.of(), Set.of());
+        }
+        Map<DataComponentType<?>, DataComponent<?, ?>> components = patch.getDataComponents();
+        Map<DataComponentType<?>, Integer> hashedAdditions = new HashMap<>();
+        Set<DataComponentType<?>> removals = new HashSet<>();
+        for (Map.Entry<DataComponentType<?>, DataComponent<?, ?>> component : components.entrySet()) {
+            if (component.getValue().getValue() == null) {
+                removals.add(component.getKey());
+            } else {
+                hashedAdditions.put(component.getKey(), hash(session, (DataComponentType) component.getKey(), component.getValue().getValue()).asInt());
+            }
+        }
+        return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);
     }
 
     // TODO better testing, at the moment this is just called when the player is spawned
