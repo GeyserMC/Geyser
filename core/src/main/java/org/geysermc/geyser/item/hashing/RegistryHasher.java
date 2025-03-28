@@ -26,7 +26,10 @@
 package org.geysermc.geyser.item.hashing;
 
 import net.kyori.adventure.key.Key;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
+import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
+import org.geysermc.geyser.item.hashing.data.ItemContainerSlot;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -35,10 +38,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BeehiveOccupant;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
@@ -51,8 +57,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public interface RegistryHasher extends MinecraftHasher<Integer> {
 
@@ -78,6 +87,18 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         .accept("id", ITEM, ItemStack::getId)
         .accept("count", INT, ItemStack::getAmount)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
+    MinecraftHasher<ItemContainerSlot> CONTAINER_SLOT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("slot", INT, ItemContainerSlot::index)
+        .accept("item", ITEM_STACK, ItemContainerSlot::item));
+
+    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().convert(stacks -> {
+        List<ItemContainerSlot> slots = new ArrayList<>();
+        for (int i = 0; i < stacks.size(); i++) {
+            slots.add(new ItemContainerSlot(i, stacks.get(i)));
+        }
+        return slots;
+    });
 
     MinecraftHasher<Effect> EFFECT = enumRegistry();
 
@@ -114,7 +135,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
 
-    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.builder.cast());
+    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.getBuilder().cast());
 
     MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
@@ -163,6 +184,28 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
 
     MinecraftHasher<JukeboxPlayable> JUKEBOX_PLAYABLE = MinecraftHasher.either(JUKEBOX_SONG, JukeboxPlayable::songHolder, KEY, JukeboxPlayable::songLocation);
 
+    MinecraftHasher<BannerPatternLayer.BannerPattern> DIRECT_BANNER_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("asset_id", KEY, BannerPatternLayer.BannerPattern::getAssetId)
+        .accept("translation_key", STRING, BannerPatternLayer.BannerPattern::getTranslationKey));
+
+    MinecraftHasher<Holder<BannerPatternLayer.BannerPattern>> BANNER_PATTERN = holder(JavaRegistries.BANNER_PATTERN, DIRECT_BANNER_PATTERN);
+
+    MinecraftHasher<BannerPatternLayer> BANNER_PATTERN_LAYER = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("pattern", BANNER_PATTERN, BannerPatternLayer::getPattern)
+        .accept("color", DYE_COLOR, BannerPatternLayer::getColorId));
+
+    MinecraftHasher<Fireworks.FireworkExplosion> FIREWORK_EXPLOSION = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("shape", MinecraftHasher.FIREWORK_EXPLOSION_SHAPE, Fireworks.FireworkExplosion::getShapeId)
+        .optionalList("colors", INT, explosion -> IntStream.of(explosion.getColors()).boxed().toList())
+        .optionalList("fade_colors", INT, explosion -> IntStream.of(explosion.getFadeColors()).boxed().toList())
+        .optional("has_trail", BOOL, Fireworks.FireworkExplosion::isHasTrail, false)
+        .optional("has_twinkle", BOOL, Fireworks.FireworkExplosion::isHasTwinkle, false));
+
+    MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
+        .optional("entity_data", NBT_MAP, BeehiveOccupant::getEntityData, NbtMap.EMPTY)
+        .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
+        .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
+
     static RegistryHasher registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionConvert(registry::keyFromNetworkId);
         return hasher::hash;
@@ -201,41 +244,5 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
             }
             throw new IllegalStateException("HolderSet must have either tag location or holders");
         };
-    }
-
-    enum ConsumeEffectType {
-        APPLY_EFFECTS(ConsumeEffect.ApplyEffects.class, builder -> builder
-            .acceptList("effects", MOB_EFFECT_INSTANCE, ConsumeEffect.ApplyEffects::effects)
-            .optional("probability", FLOAT, ConsumeEffect.ApplyEffects::probability, 1.0F)),
-        REMOVE_EFFECTS(ConsumeEffect.RemoveEffects.class, builder -> builder
-            .accept("effects", EFFECT_ID.holderSet(), ConsumeEffect.RemoveEffects::effects)),
-        CLEAR_ALL_EFFECTS(ConsumeEffect.ClearAllEffects.class),
-        TELEPORT_RANDOMLY(ConsumeEffect.TeleportRandomly.class, builder -> builder
-            .optional("diameter", FLOAT, ConsumeEffect.TeleportRandomly::diameter, 16.0F)),
-        PLAY_SOUND(ConsumeEffect.PlaySound.class, builder -> builder
-            .accept("sound", SOUND_EVENT, ConsumeEffect.PlaySound::sound));
-
-        private final Class<? extends ConsumeEffect> clazz;
-        private final MapBuilder<? extends ConsumeEffect> builder;
-
-        <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz) {
-            this.clazz = clazz;
-            this.builder = MapBuilder.empty();
-        }
-
-        <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz, MapBuilder<T> builder) {
-            this.clazz = clazz;
-            this.builder = builder;
-        }
-
-        static ConsumeEffectType fromEffect(ConsumeEffect effect) {
-            Class<? extends ConsumeEffect> clazz = effect.getClass();
-            for (ConsumeEffectType type : values()) {
-                if (clazz == type.clazz) {
-                    return type;
-                }
-            }
-            throw new IllegalStateException("Unimplemented consume effect type for hashing");
-        }
     }
 }

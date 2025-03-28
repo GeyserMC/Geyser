@@ -31,8 +31,11 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -89,7 +92,19 @@ public interface MinecraftHasher<T> {
         return IntStream.of((int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant);
     }); // TODO test
 
+    MinecraftHasher<GameProfile.Property> GAME_PROFILE_PROPERTY = mapBuilder(builder -> builder
+        .accept("name", STRING, GameProfile.Property::getName)
+        .accept("value", STRING, GameProfile.Property::getValue)
+        .optionalNullable("signature", STRING, GameProfile.Property::getSignature));
+
+    MinecraftHasher<GameProfile> GAME_PROFILE = mapBuilder(builder -> builder
+        .optionalNullable("name", STRING, GameProfile::getName)
+        .optionalNullable("id", UUID, GameProfile::getId)
+        .optionalList("properties", GAME_PROFILE_PROPERTY, GameProfile::getProperties));
+
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
+
+    MinecraftHasher<Integer> DYE_COLOR = fromIdEnum(DyeColor.values(), DyeColor::getJavaIdentifier);
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = fromEnum();
 
@@ -98,6 +113,8 @@ public interface MinecraftHasher<T> {
     MinecraftHasher<GlobalPos> GLOBAL_POS = mapBuilder(builder -> builder
         .accept("dimension", KEY, GlobalPos::getDimension)
         .accept("pos", POS, GlobalPos::getPosition));
+
+    MinecraftHasher<Integer> FIREWORK_EXPLOSION_SHAPE = fromIdEnum(FireworkExplosionShape.values());
 
     HashCode hash(T value, MinecraftHashEncoder encoder);
 
@@ -136,6 +153,10 @@ public interface MinecraftHasher<T> {
 
     static <T> MinecraftHasher<T> recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
         return new Recursive<>(delegate);
+    }
+
+    static <T extends Enum<T>> MinecraftHasher<Integer> fromIdEnum(T[] values) {
+        return fromIdEnum(values, t -> t.name().toLowerCase());
     }
 
     static <T extends Enum<T>> MinecraftHasher<Integer> fromIdEnum(T[] values, Function<T, String> toName) {
