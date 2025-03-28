@@ -97,7 +97,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.RARITY, MinecraftHasher.RARITY);
         register(DataComponentTypes.ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
-        // TODO can place on/can break on, complicated
+        register(DataComponentTypes.CAN_PLACE_ON, RegistryHasher.ADVENTURE_MODE_PREDICATE);
+        register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE); // TODO needs tests
         register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().convert(ItemAttributeModifiers::getModifiers)); // TODO needs tests
 
         registerMap(DataComponentTypes.CUSTOM_MODEL_DATA, builder -> builder
