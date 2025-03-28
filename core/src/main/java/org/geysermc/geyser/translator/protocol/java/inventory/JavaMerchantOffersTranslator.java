@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -159,8 +160,10 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     }
 
     private static ItemStack toItemStack(VillagerTrade.ItemCost itemCost) {
-        // TODO 1.21.5 figure out how to deal with components here!
-        return new ItemStack(itemCost.itemId(), itemCost.count());
+        if (itemCost == null) {
+            return null;
+        }
+        return new ItemStack(itemCost.itemId(), itemCost.count(), new DataComponents(itemCost.components()));
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {

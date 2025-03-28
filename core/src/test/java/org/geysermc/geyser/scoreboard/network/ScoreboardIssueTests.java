@@ -70,34 +70,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Tests for issues reported on GitHub.
  */
 public class ScoreboardIssueTests {
-    // TODO 1.21.5
-//    /**
-//     * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5075">#5075</a>
-//     */
-//    @Test
-//    void entityWithoutUuid() {
-//        // experience orbs are the only known entities without an uuid, see Entity#teamIdentifier for more info
-//        mockContextScoreboard(context -> {
-//            var addExperienceOrbTranslator = new JavaAddExperienceOrbTranslator();
-//            var removeEntitiesTranslator = new JavaRemoveEntitiesTranslator();
-//
-//            // Entity#teamIdentifier used to throw because it returned uuid.toString where uuid could be null.
-//            // this would result in both EntityCache#spawnEntity and EntityCache#removeEntity throwing an exception,
-//            // because the entity would be registered and deregistered to the scoreboard.
-//            assertDoesNotThrow(() -> {
-//                context.translate(addExperienceOrbTranslator, new ClientboundAddExperienceOrbPacket(2, 0, 0, 0, 1));
-//
-//                String displayName = context.mockOrSpy(EntityCache.class).getEntityByJavaId(2).getDisplayName();
-//                assertEquals("entity.minecraft.experience_orb", displayName);
-//
-//                context.translate(removeEntitiesTranslator, new ClientboundRemoveEntitiesPacket(new int[] { 2 }));
-//            });
-//
-//            // we know that spawning and removing the entity should be fine
-//            assertNextPacketType(context, AddEntityPacket.class);
-//            assertNextPacketType(context, RemoveEntityPacket.class);
-//        });
-//    }
 
     /**
      * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5078">#5078</a>

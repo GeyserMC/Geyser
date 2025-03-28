@@ -272,11 +272,10 @@ public class Item {
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
-        // TODO 1.21.5
-//        DyedItemColor dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
-//        if (dyedItemColor != null) {
-//            builder.putInt("customColor", dyedItemColor.getRgb());
-//        }
+        Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
+        if (dyedItemColor != null) {
+            builder.putInt("customColor", dyedItemColor);
+        }
     }
 
     /**

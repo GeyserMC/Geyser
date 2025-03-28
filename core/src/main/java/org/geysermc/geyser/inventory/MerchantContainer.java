@@ -36,14 +36,14 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 
 import java.util.List;
 
+@Setter
 public class MerchantContainer extends Container {
-    @Getter @Setter
+    @Getter
     private Entity villager;
-    @Setter
     private List<VillagerTrade> villagerTrades;
-    @Getter @Setter
+    @Getter
     private ClientboundMerchantOffersPacket pendingOffersPacket;
-    @Getter @Setter
+    @Getter
     private int tradeExperience;
 
     public MerchantContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {

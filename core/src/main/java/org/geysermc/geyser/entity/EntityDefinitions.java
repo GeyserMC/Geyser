@@ -345,6 +345,7 @@ public final class EntityDefinitions {
                     .build();
             EXPERIENCE_ORB = EntityDefinition.inherited(ExpOrbEntity::new, entityBase)
                     .type(EntityType.EXPERIENCE_ORB)
+                    .addTranslator(null) // int determining xb orb texture
                     .identifier("minecraft:xp_orb")
                     .build();
             EVOKER_FANGS = EntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
