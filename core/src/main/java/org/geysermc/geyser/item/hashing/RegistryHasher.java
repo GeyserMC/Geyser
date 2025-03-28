@@ -35,11 +35,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
@@ -108,6 +110,12 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         return CUSTOM_SOUND.hash((CustomSound) sound, encoder);
     };
 
+    MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments);
+
+    MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
+
+    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.builder.cast());
+
     MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
         .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
@@ -171,6 +179,7 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
         };
     }
 
+    // TODO note that this only works if the enum constants match
     static <T extends Enum<T>> MinecraftHasher<T> enumRegistry() {
         return KEY.convert(t -> MinecraftKey.key(t.name().toLowerCase()));
     }
@@ -192,5 +201,41 @@ public interface RegistryHasher extends MinecraftHasher<Integer> {
             }
             throw new IllegalStateException("HolderSet must have either tag location or holders");
         };
+    }
+
+    enum ConsumeEffectType {
+        APPLY_EFFECTS(ConsumeEffect.ApplyEffects.class, builder -> builder
+            .acceptList("effects", MOB_EFFECT_INSTANCE, ConsumeEffect.ApplyEffects::effects)
+            .optional("probability", FLOAT, ConsumeEffect.ApplyEffects::probability, 1.0F)),
+        REMOVE_EFFECTS(ConsumeEffect.RemoveEffects.class, builder -> builder
+            .accept("effects", EFFECT_ID.holderSet(), ConsumeEffect.RemoveEffects::effects)),
+        CLEAR_ALL_EFFECTS(ConsumeEffect.ClearAllEffects.class),
+        TELEPORT_RANDOMLY(ConsumeEffect.TeleportRandomly.class, builder -> builder
+            .optional("diameter", FLOAT, ConsumeEffect.TeleportRandomly::diameter, 16.0F)),
+        PLAY_SOUND(ConsumeEffect.PlaySound.class, builder -> builder
+            .accept("sound", SOUND_EVENT, ConsumeEffect.PlaySound::sound));
+
+        private final Class<? extends ConsumeEffect> clazz;
+        private final MapBuilder<? extends ConsumeEffect> builder;
+
+        <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz) {
+            this.clazz = clazz;
+            this.builder = MapBuilder.empty();
+        }
+
+        <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz, MapBuilder<T> builder) {
+            this.clazz = clazz;
+            this.builder = builder;
+        }
+
+        static ConsumeEffectType fromEffect(ConsumeEffect effect) {
+            Class<? extends ConsumeEffect> clazz = effect.getClass();
+            for (ConsumeEffectType type : values()) {
+                if (clazz == type.clazz) {
+                    return type;
+                }
+            }
+            throw new IllegalStateException("Unimplemented consume effect type for hashing");
+        }
     }
 }

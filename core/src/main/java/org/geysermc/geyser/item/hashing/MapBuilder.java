@@ -29,4 +29,12 @@ import java.util.function.UnaryOperator;
 
 @FunctionalInterface
 public interface MapBuilder<T> extends UnaryOperator<MapHasher<T>> {
+
+    default <C> MapBuilder<C> cast() {
+        return builder -> builder.accept(this, casted -> (T) casted);
+    }
+
+    static <T> MapBuilder<T> empty() {
+        return builder -> builder;
+    }
 }

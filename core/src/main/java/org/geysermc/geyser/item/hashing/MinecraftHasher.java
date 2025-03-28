@@ -111,6 +111,10 @@ public interface MinecraftHasher<T> {
             .optionalNullable("filtered", this, Filterable::getOptional));
     }
 
+    default <D> MinecraftHasher<D> dispatch(Function<D, T> typeExtractor, Function<T, MapBuilder<D>> hashDispatch) {
+        return dispatch("type", typeExtractor, hashDispatch);
+    }
+
     default <D> MinecraftHasher<D> dispatch(String typeKey, Function<D, T> typeExtractor, Function<T, MapBuilder<D>> hashDispatch) {
         return mapBuilder(builder -> builder
             .accept(typeKey, this, typeExtractor)

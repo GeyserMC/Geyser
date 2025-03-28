@@ -46,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -89,7 +90,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.ITEM_MODEL, MinecraftHasher.KEY);
         register(DataComponentTypes.LORE, ComponentHasher.COMPONENT.list());
         register(DataComponentTypes.RARITY, MinecraftHasher.RARITY);
-        register(DataComponentTypes.ENCHANTMENTS, MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments));
+        register(DataComponentTypes.ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         // TODO can place on/can break on, complicated
         // TODO attribute modifiers, attribute registry and equipment slot group hashers
@@ -117,7 +118,8 @@ public class DataComponentHashers {
             .optional("consume_seconds", MinecraftHasher.FLOAT, Consumable::consumeSeconds, 1.6F)
             .optional("animation", MinecraftHasher.ITEM_USE_ANIMATION, Consumable::animation, Consumable.ItemUseAnimation.EAT)
             .optional("sound", RegistryHasher.SOUND_EVENT, Consumable::sound, BuiltinSound.ENTITY_GENERIC_EAT)
-            .optional("has_consume_particles", MinecraftHasher.BOOL, Consumable::hasConsumeParticles, true)); // TODO consume effect needs identifier in MCPL
+            .optional("has_consume_particles", MinecraftHasher.BOOL, Consumable::hasConsumeParticles, true)
+            .optionalList("on_consume_effects", RegistryHasher.CONSUME_EFFECT, Consumable::onConsumeEffects));
 
         register(DataComponentTypes.USE_REMAINDER, RegistryHasher.ITEM_STACK);
 
@@ -152,9 +154,10 @@ public class DataComponentHashers {
         registerUnit(DataComponentTypes.GLIDER);
         register(DataComponentTypes.TOOLTIP_STYLE, MinecraftHasher.KEY);
 
-        registerMap(DataComponentTypes.DEATH_PROTECTION, builder -> builder); // TODO consume effect needs identifier in MCPL
+        registerMap(DataComponentTypes.DEATH_PROTECTION, builder -> builder
+            .optionalList("death_effects", RegistryHasher.CONSUME_EFFECT, Function.identity()));
         registerMap(DataComponentTypes.BLOCKS_ATTACKS, builder -> builder); // TODO needs damage types, add a way to cache identifiers without reading objects in registrycache
-        register(DataComponentTypes.STORED_ENCHANTMENTS, MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).convert(ItemEnchantments::getEnchantments)); // TODO duplicate code?
+        register(DataComponentTypes.STORED_ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         registerInt(DataComponentTypes.DYED_COLOR);
         registerInt(DataComponentTypes.MAP_COLOR);
@@ -294,6 +297,11 @@ public class DataComponentHashers {
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(5, 1.4F, false), 445786378);
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(3, 5.7F, true), 1917653498);
         testHash(session, DataComponentTypes.FOOD, new FoodProperties(7, 0.15F, false), -184166204);
+
+        testHash(session, DataComponentTypes.CONSUMABLE, new Consumable(2.0F, Consumable.ItemUseAnimation.EAT,
+            BuiltinSound.ITEM_OMINOUS_BOTTLE_DISPOSE, true,
+            List.of(new ConsumeEffect.RemoveEffects(new HolderSet(new int[]{Effect.BAD_OMEN.ordinal(), Effect.REGENERATION.ordinal()})),
+                new ConsumeEffect.TeleportRandomly(3.0F))), 1742669333);
 
         testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.MELON.javaId(), 52), -1279684916);
 
