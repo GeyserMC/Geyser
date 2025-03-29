@@ -86,11 +86,9 @@ public class AbstractHorseEntity extends AnimalEntity {
         super.updateSaddled(saddled);
     }
 
-    // TODO 1.21.5 saddled flag doesnt exist anymore
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         boolean tamed = (xd & 0x02) == 0x02;
-        boolean saddled = (xd & 0x04) == 0x04;
         setFlag(EntityFlag.TAMED, tamed);
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);

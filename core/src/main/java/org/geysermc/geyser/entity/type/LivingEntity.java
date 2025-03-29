@@ -136,15 +136,17 @@ public class LivingEntity extends Entity {
         this.body = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setSaddle(ItemStack stack) {
+    public void setSaddle(@Nullable ItemStack stack) {
         this.saddle = ItemTranslator.translateToBedrock(session, stack);
 
         boolean saddled = false;
-        Item item = Registries.JAVA_ITEMS.get(stack.getId());
-        if (item != null) {
-            DataComponents components = item.gatherComponents(stack.getDataComponentsPatch());
-            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
-            saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
+        if (stack != null) {
+            Item item = Registries.JAVA_ITEMS.get(stack.getId());
+            if (item != null) {
+                DataComponents components = item.gatherComponents(stack.getDataComponentsPatch());
+                Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+                saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
+            }
         }
 
         updateSaddled(saddled);
@@ -163,7 +165,6 @@ public class LivingEntity extends Entity {
         updateBedrockMetadata();
 
         // Update the interactive tag, if necessary
-        // TODO 1.21.5 retest
         Entity mouseoverEntity = session.getMouseoverEntity();
         if (mouseoverEntity != null && mouseoverEntity.getEntityId() == entityId) {
             mouseoverEntity.updateInteractiveTag();

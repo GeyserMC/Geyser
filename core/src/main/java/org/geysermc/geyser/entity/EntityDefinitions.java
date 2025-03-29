@@ -482,7 +482,7 @@ public final class EntityDefinitions {
                     .identifier("minecraft:splash_potion")
                     .build();
             LINGERING_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
-                .type(EntityType.SPLASH_POTION)
+                .type(EntityType.LINGERING_POTION)
                 .heightAndWidth(0.25f)
                 .identifier("minecraft:splash_potion")
                 .build();
