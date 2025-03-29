@@ -70,8 +70,8 @@ public final class TagCache {
 
         for (Key registryKey : allTags.keySet()) {
             JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
-            if (registry == null || !registry.shouldStoreTags()) {
-                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries, or was not suitable to load tags)");
+            if (registry == null) {
+                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
                 continue;
             }
 

@@ -88,13 +88,13 @@ public enum BannerPattern {
         this.bedrockIdentifier = bedrockIdentifier;
     }
 
-    public static @Nullable BannerPattern getByJavaIdentifier(Key key) {
+    public static BannerPattern getByJavaIdentifier(Key key) {
         for (BannerPattern bannerPattern : VALUES) {
             if (bannerPattern.javaIdentifier.equals(key)) {
                 return bannerPattern;
             }
         }
-        return null;
+        return BASE; // Default fallback
     }
 
     public static @Nullable BannerPattern getByBedrockIdentifier(String bedrockIdentifier) {

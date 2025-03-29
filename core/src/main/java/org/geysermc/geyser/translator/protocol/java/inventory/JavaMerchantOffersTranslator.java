@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -73,11 +74,11 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
-        merchantInventory.setVillagerTrades(packet.getTrades());
-        merchantInventory.setTradeExperience(packet.getExperience());
+        merchantInventory.setVillagerTrades(packet.getOffers());
+        merchantInventory.setTradeExperience(packet.getVillagerXp());
 
         Entity villager = merchantInventory.getVillager();
-        if (packet.isRegularVillager()) {
+        if (packet.isShowProgress()) {
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
             villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
         } else {
@@ -85,7 +86,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
             villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
         }
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getExperience());
+        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getVillagerXp());
         villager.updateBedrockMetadata();
 
         // Construct the packet that opens the trading window
@@ -101,29 +102,29 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         updateTradePacket.setTraderUniqueEntityId(villager.getGeyserId());
 
         NbtMapBuilder builder = NbtMap.builder();
-        boolean addExtraTrade = packet.isRegularVillager() && packet.getVillagerLevel() < 5;
-        List<NbtMap> tags = new ArrayList<>(addExtraTrade ? packet.getTrades().length + 1 : packet.getTrades().length);
-        for (int i = 0; i < packet.getTrades().length; i++) {
-            VillagerTrade trade = packet.getTrades()[i];
+        boolean addExtraTrade = packet.isShowProgress() && packet.getVillagerLevel() < 5;
+        List<NbtMap> tags = new ArrayList<>(addExtraTrade ? packet.getOffers().size() + 1 : packet.getOffers().size());
+        for (int i = 0; i < packet.getOffers().size(); i++) {
+            VillagerTrade trade = packet.getOffers().get(i);
             NbtMapBuilder recipe = NbtMap.builder();
             recipe.putInt("netId", i + 1);
-            recipe.putInt("maxUses", trade.isTradeDisabled() ? 0 : trade.getMaxUses());
+            recipe.putInt("maxUses", trade.isOutOfStock() ? 0 : trade.getMaxUses());
             recipe.putInt("traderExp", trade.getXp());
             recipe.putFloat("priceMultiplierA", trade.getPriceMultiplier());
             recipe.putFloat("priceMultiplierB", 0.0f);
-            recipe.put("sell", getItemTag(session, trade.getOutput()));
+            recipe.put("sell", getItemTag(session, trade.getResult()));
 
             // The buy count before demand and special price adjustments
             // The first input CAN be null as of Java 1.19.0/Bedrock 1.19.10
             // Replicable item: https://gist.github.com/Camotoy/3f3f23d1f80981d1b4472bdb23bba698 from https://github.com/GeyserMC/Geyser/issues/3171
-            recipe.putInt("buyCountA", trade.getFirstInput() != null ? Math.max(trade.getFirstInput().getAmount(), 0) : 0);
-            recipe.putInt("buyCountB", trade.getSecondInput() != null ? Math.max(trade.getSecondInput().getAmount(), 0) : 0);
+            recipe.putInt("buyCountA", trade.getItemCostA() != null ? Math.max(trade.getItemCostA().count(), 0) : 0);
+            recipe.putInt("buyCountB", trade.getItemCostB() != null ? Math.max(trade.getItemCostB().count(), 0) : 0);
 
             recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
             recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
-            recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
-            recipe.put("buyB", getItemTag(session, trade.getSecondInput()));
-            recipe.putInt("uses", trade.getNumUses());
+            recipe.put("buyA", getItemTag(session, toItemStack(trade.getItemCostA()), trade.getSpecialPriceDiff(), trade.getDemand(), trade.getPriceMultiplier()));
+            recipe.put("buyB", getItemTag(session, toItemStack(trade.getItemCostB())));
+            recipe.putInt("uses", trade.getUses());
             recipe.putByte("rewardExp", (byte) 1);
             tags.add(recipe.build());
         }
@@ -156,6 +157,13 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
         updateTradePacket.setOffers(builder.build());
         session.sendUpstreamPacket(updateTradePacket);
+    }
+
+    private static ItemStack toItemStack(VillagerTrade.ItemCost itemCost) {
+        if (itemCost == null) {
+            return null;
+        }
+        return new ItemStack(itemCost.itemId(), itemCost.count(), new DataComponents(itemCost.components()));
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {

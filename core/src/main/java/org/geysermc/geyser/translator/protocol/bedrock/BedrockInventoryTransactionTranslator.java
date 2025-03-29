@@ -54,6 +54,7 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
 import org.geysermc.geyser.item.type.Item;
@@ -79,15 +80,14 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.SoundUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -133,7 +133,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             PlayerInventory inventory = session.getPlayerInventory();
                             int hotbarSlot = inventory.getOffsetForHotbar(containerAction.getSlot());
                             Click clickType = dropAll ? Click.DROP_ALL : Click.DROP_ONE;
-                            Int2ObjectMap<ItemStack> changedItem;
+                            Int2ObjectMap<HashedStack> changedItem;
                             if (dropAll) {
                                 inventory.setItem(hotbarSlot, GeyserItemStack.EMPTY, session);
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, null);
@@ -143,11 +143,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 itemStack.sub(1);
-                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
-                                    inventory.getCursor().getItemStack(), changedItem);
+                                    DataComponentHashers.hashStack(session, inventory.getCursor().getItemStack()), changedItem);
                             session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }
@@ -389,11 +389,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.GOAT_HORN) {
                                 // Temporary workaround while we don't have full item/block use tracking.
                                 if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
-                                    Holder<Instrument> holder = session.getPlayerInventory()
+                                    InstrumentComponent component = session.getPlayerInventory()
                                         .getItemInHand()
                                         .getComponent(DataComponentTypes.INSTRUMENT);
-                                    if (holder != null) {
-                                        GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+                                    if (component != null) {
+                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
                                         if (instrument.bedrockInstrument() != null) {
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();

@@ -141,6 +141,7 @@ public final class BlockTag {
     public static final Tag<Block> FENCE_GATES = create("fence_gates");
     public static final Tag<Block> UNSTABLE_BOTTOM_CENTER = create("unstable_bottom_center");
     public static final Tag<Block> MUSHROOM_GROW_BLOCK = create("mushroom_grow_block");
+    public static final Tag<Block> EDIBLE_FOR_SHEEP = create("edible_for_sheep");
     public static final Tag<Block> INFINIBURN_OVERWORLD = create("infiniburn_overworld");
     public static final Tag<Block> INFINIBURN_NETHER = create("infiniburn_nether");
     public static final Tag<Block> INFINIBURN_END = create("infiniburn_end");
@@ -171,6 +172,7 @@ public final class BlockTag {
     public static final Tag<Block> MINEABLE_PICKAXE = create("mineable/pickaxe");
     public static final Tag<Block> MINEABLE_SHOVEL = create("mineable/shovel");
     public static final Tag<Block> SWORD_EFFICIENT = create("sword_efficient");
+    public static final Tag<Block> SWORD_INSTANTLY_MINES = create("sword_instantly_mines");
     public static final Tag<Block> NEEDS_DIAMOND_TOOL = create("needs_diamond_tool");
     public static final Tag<Block> NEEDS_IRON_TOOL = create("needs_iron_tool");
     public static final Tag<Block> NEEDS_STONE_TOOL = create("needs_stone_tool");
@@ -200,13 +202,15 @@ public final class BlockTag {
     public static final Tag<Block> WOLVES_SPAWNABLE_ON = create("wolves_spawnable_on");
     public static final Tag<Block> FROGS_SPAWNABLE_ON = create("frogs_spawnable_on");
     public static final Tag<Block> BATS_SPAWNABLE_ON = create("bats_spawnable_on");
+    public static final Tag<Block> CAMELS_SPAWNABLE_ON = create("camels_spawnable_on");
     public static final Tag<Block> AZALEA_GROWS_ON = create("azalea_grows_on");
     public static final Tag<Block> CONVERTABLE_TO_MUD = create("convertable_to_mud");
     public static final Tag<Block> MANGROVE_LOGS_CAN_GROW_THROUGH = create("mangrove_logs_can_grow_through");
     public static final Tag<Block> MANGROVE_ROOTS_CAN_GROW_THROUGH = create("mangrove_roots_can_grow_through");
-    public static final Tag<Block> DEAD_BUSH_MAY_PLACE_ON = create("dead_bush_may_place_on");
+    public static final Tag<Block> DRY_VEGETATION_MAY_PLACE_ON = create("dry_vegetation_may_place_on");
     public static final Tag<Block> SNAPS_GOAT_HORN = create("snaps_goat_horn");
     public static final Tag<Block> REPLACEABLE_BY_TREES = create("replaceable_by_trees");
+    public static final Tag<Block> REPLACEABLE_BY_MUSHROOMS = create("replaceable_by_mushrooms");
     public static final Tag<Block> SNOW_LAYER_CANNOT_SURVIVE_ON = create("snow_layer_cannot_survive_on");
     public static final Tag<Block> SNOW_LAYER_CAN_SURVIVE_ON = create("snow_layer_can_survive_on");
     public static final Tag<Block> INVALID_SPAWN_INSIDE = create("invalid_spawn_inside");
@@ -219,6 +223,7 @@ public final class BlockTag {
     public static final Tag<Block> MAINTAINS_FARMLAND = create("maintains_farmland");
     public static final Tag<Block> BLOCKS_WIND_CHARGE_EXPLOSIONS = create("blocks_wind_charge_explosions");
     public static final Tag<Block> DOES_NOT_BLOCK_HOPPERS = create("does_not_block_hoppers");
+    public static final Tag<Block> PLAYS_AMBIENT_DESERT_BLOCK_SOUNDS = create("plays_ambient_desert_block_sounds");
     public static final Tag<Block> AIR = create("air");
 
     private BlockTag() {}

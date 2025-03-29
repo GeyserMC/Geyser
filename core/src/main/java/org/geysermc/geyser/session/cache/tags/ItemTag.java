@@ -76,6 +76,7 @@ public final class ItemTag {
     public static final Tag<Item> LEAVES = create("leaves");
     public static final Tag<Item> TRAPDOORS = create("trapdoors");
     public static final Tag<Item> SMALL_FLOWERS = create("small_flowers");
+    public static final Tag<Item> FLOWERS = create("flowers");
     public static final Tag<Item> BEDS = create("beds");
     public static final Tag<Item> FENCES = create("fences");
     public static final Tag<Item> PIGLIN_REPELLENTS = create("piglin_repellents");
@@ -85,6 +86,7 @@ public final class ItemTag {
     public static final Tag<Item> DUPLICATES_ALLAYS = create("duplicates_allays");
     public static final Tag<Item> BREWING_FUEL = create("brewing_fuel");
     public static final Tag<Item> SHULKER_BOXES = create("shulker_boxes");
+    public static final Tag<Item> EGGS = create("eggs");
     public static final Tag<Item> MEAT = create("meat");
     public static final Tag<Item> SNIFFER_FOOD = create("sniffer_food");
     public static final Tag<Item> PIGLIN_FOOD = create("piglin_food");
@@ -181,6 +183,7 @@ public final class ItemTag {
     public static final Tag<Item> DYEABLE = create("dyeable");
     public static final Tag<Item> FURNACE_MINECART_FUEL = create("furnace_minecart_fuel");
     public static final Tag<Item> BUNDLES = create("bundles");
+    public static final Tag<Item> BOOK_CLONING_TARGET = create("book_cloning_target");
     public static final Tag<Item> SKELETON_PREFERRED_WEAPONS = create("skeleton_preferred_weapons");
     public static final Tag<Item> DROWNED_PREFERRED_WEAPONS = create("drowned_preferred_weapons");
     public static final Tag<Item> PIGLIN_PREFERRED_WEAPONS = create("piglin_preferred_weapons");

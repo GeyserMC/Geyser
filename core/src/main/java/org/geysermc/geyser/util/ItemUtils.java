@@ -33,6 +33,7 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -57,7 +58,7 @@ public final class ItemUtils {
         }
 
         for (Map.Entry<Integer, Integer> entry : enchantmentData.getEnchantments().entrySet()) {
-            Enchantment enchantment = session.getRegistryCache().enchantments().byId(entry.getKey());
+            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
             if (enchantment.bedrockEnchantment() == bedrockEnchantment) {
                 return entry.getValue();
             }
@@ -80,7 +81,7 @@ public final class ItemUtils {
         }
 
         for (Integer id : enchantmentData.getEnchantments().keySet()) {
-            Enchantment enchantment = session.getRegistryCache().enchantments().byId(id);
+            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(id);
             if (enchantment.effects().contains(component)) {
                 return true;
             }

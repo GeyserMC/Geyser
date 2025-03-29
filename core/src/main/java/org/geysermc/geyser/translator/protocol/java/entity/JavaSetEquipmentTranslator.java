@@ -92,6 +92,9 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     livingEntity.setBoots(stack);
                     armorUpdated = true;
                 }
+                case SADDLE -> {
+                    livingEntity.setSaddle(stack);
+                }
                 case MAIN_HAND -> {
                     livingEntity.setHand(stack);
                     mainHandUpdated = true;

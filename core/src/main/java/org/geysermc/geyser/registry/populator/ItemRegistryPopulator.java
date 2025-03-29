@@ -112,46 +112,61 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        // 1.21.5
         Map<Item, Item> itemFallbacks = new HashMap<>();
-        itemFallbacks.put(Items.PALE_OAK_PLANKS, Items.BIRCH_PLANKS);
-        itemFallbacks.put(Items.PALE_OAK_FENCE, Items.BIRCH_FENCE);
-        itemFallbacks.put(Items.PALE_OAK_FENCE_GATE, Items.BIRCH_FENCE_GATE);
-        itemFallbacks.put(Items.PALE_OAK_STAIRS, Items.BIRCH_STAIRS);
-        itemFallbacks.put(Items.PALE_OAK_DOOR, Items.BIRCH_DOOR);
-        itemFallbacks.put(Items.PALE_OAK_TRAPDOOR, Items.BIRCH_TRAPDOOR);
-        itemFallbacks.put(Items.PALE_OAK_SLAB, Items.BIRCH_SLAB);
-        itemFallbacks.put(Items.PALE_OAK_LOG, Items.BIRCH_LOG);
-        itemFallbacks.put(Items.STRIPPED_PALE_OAK_LOG, Items.STRIPPED_BIRCH_LOG);
-        itemFallbacks.put(Items.PALE_OAK_WOOD, Items.BIRCH_WOOD);
-        itemFallbacks.put(Items.PALE_OAK_LEAVES, Items.BIRCH_LEAVES);
-        itemFallbacks.put(Items.PALE_OAK_SAPLING, Items.BIRCH_SAPLING);
-        itemFallbacks.put(Items.STRIPPED_PALE_OAK_WOOD, Items.STRIPPED_BIRCH_WOOD);
-        itemFallbacks.put(Items.PALE_OAK_SIGN, Items.BIRCH_SIGN);
-        itemFallbacks.put(Items.PALE_OAK_HANGING_SIGN, Items.BIRCH_HANGING_SIGN);
-        itemFallbacks.put(Items.PALE_OAK_BOAT, Items.BIRCH_BOAT);
-        itemFallbacks.put(Items.PALE_OAK_CHEST_BOAT, Items.BIRCH_CHEST_BOAT);
-        itemFallbacks.put(Items.PALE_OAK_BUTTON, Items.BIRCH_BUTTON);
-        itemFallbacks.put(Items.PALE_OAK_PRESSURE_PLATE, Items.BIRCH_PRESSURE_PLATE);
-        itemFallbacks.put(Items.RESIN_CLUMP, Items.RAW_COPPER);
-        itemFallbacks.put(Items.RESIN_BRICK_WALL, Items.RED_SANDSTONE_WALL);
-        itemFallbacks.put(Items.RESIN_BRICK_STAIRS, Items.RED_SANDSTONE_STAIRS);
-        itemFallbacks.put(Items.RESIN_BRICK_SLAB, Items.RED_SANDSTONE_SLAB);
-        itemFallbacks.put(Items.RESIN_BLOCK, Items.RED_SANDSTONE);
-        itemFallbacks.put(Items.RESIN_BRICK, Items.BRICK);
-        itemFallbacks.put(Items.RESIN_BRICKS, Items.CUT_RED_SANDSTONE);
-        itemFallbacks.put(Items.CHISELED_RESIN_BRICKS, Items.CHISELED_RED_SANDSTONE);
-        itemFallbacks.put(Items.CLOSED_EYEBLOSSOM, Items.WHITE_TULIP);
-        itemFallbacks.put(Items.OPEN_EYEBLOSSOM, Items.OXEYE_DAISY);
-        itemFallbacks.put(Items.PALE_MOSS_BLOCK, Items.MOSS_BLOCK);
-        itemFallbacks.put(Items.PALE_MOSS_CARPET, Items.MOSS_CARPET);
-        itemFallbacks.put(Items.PALE_HANGING_MOSS, Items.HANGING_ROOTS);
-        itemFallbacks.put(Items.CREAKING_HEART, Items.CHISELED_POLISHED_BLACKSTONE);
-        itemFallbacks.put(Items.CREAKING_SPAWN_EGG, Items.HOGLIN_SPAWN_EGG);
+        itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
+        itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
+        itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
+        itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
+        itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
+        itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
+        itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
+        itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
+        itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
+        itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
+        itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
+
+        // 1.21.4
+        Map<Item, Item> oneTwentyFourFallbacks = new HashMap<>(itemFallbacks);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_PLANKS, Items.BIRCH_PLANKS);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_FENCE, Items.BIRCH_FENCE);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_FENCE_GATE, Items.BIRCH_FENCE_GATE);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_STAIRS, Items.BIRCH_STAIRS);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_DOOR, Items.BIRCH_DOOR);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_TRAPDOOR, Items.BIRCH_TRAPDOOR);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_SLAB, Items.BIRCH_SLAB);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_LOG, Items.BIRCH_LOG);
+        oneTwentyFourFallbacks.put(Items.STRIPPED_PALE_OAK_LOG, Items.STRIPPED_BIRCH_LOG);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_WOOD, Items.BIRCH_WOOD);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_LEAVES, Items.BIRCH_LEAVES);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_SAPLING, Items.BIRCH_SAPLING);
+        oneTwentyFourFallbacks.put(Items.STRIPPED_PALE_OAK_WOOD, Items.STRIPPED_BIRCH_WOOD);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_SIGN, Items.BIRCH_SIGN);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_HANGING_SIGN, Items.BIRCH_HANGING_SIGN);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_BOAT, Items.BIRCH_BOAT);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_CHEST_BOAT, Items.BIRCH_CHEST_BOAT);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_BUTTON, Items.BIRCH_BUTTON);
+        oneTwentyFourFallbacks.put(Items.PALE_OAK_PRESSURE_PLATE, Items.BIRCH_PRESSURE_PLATE);
+        oneTwentyFourFallbacks.put(Items.RESIN_CLUMP, Items.RAW_COPPER);
+        oneTwentyFourFallbacks.put(Items.RESIN_BRICK_WALL, Items.RED_SANDSTONE_WALL);
+        oneTwentyFourFallbacks.put(Items.RESIN_BRICK_STAIRS, Items.RED_SANDSTONE_STAIRS);
+        oneTwentyFourFallbacks.put(Items.RESIN_BRICK_SLAB, Items.RED_SANDSTONE_SLAB);
+        oneTwentyFourFallbacks.put(Items.RESIN_BLOCK, Items.RED_SANDSTONE);
+        oneTwentyFourFallbacks.put(Items.RESIN_BRICK, Items.BRICK);
+        oneTwentyFourFallbacks.put(Items.RESIN_BRICKS, Items.CUT_RED_SANDSTONE);
+        oneTwentyFourFallbacks.put(Items.CHISELED_RESIN_BRICKS, Items.CHISELED_RED_SANDSTONE);
+        oneTwentyFourFallbacks.put(Items.CLOSED_EYEBLOSSOM, Items.WHITE_TULIP);
+        oneTwentyFourFallbacks.put(Items.OPEN_EYEBLOSSOM, Items.OXEYE_DAISY);
+        oneTwentyFourFallbacks.put(Items.PALE_MOSS_BLOCK, Items.MOSS_BLOCK);
+        oneTwentyFourFallbacks.put(Items.PALE_MOSS_CARPET, Items.MOSS_CARPET);
+        oneTwentyFourFallbacks.put(Items.PALE_HANGING_MOSS, Items.HANGING_ROOTS);
+        oneTwentyFourFallbacks.put(Items.CREAKING_HEART, Items.CHISELED_POLISHED_BLACKSTONE);
+        oneTwentyFourFallbacks.put(Items.CREAKING_SPAWN_EGG, Items.HOGLIN_SPAWN_EGG);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), oneTwentyFourFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();

@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
@@ -55,10 +56,7 @@ public class PaintingEntity extends Entity {
         if (!entityMetadata.getValue().isId()) {
             return;
         }
-        PaintingType type = session.getRegistryCache().paintings().byId(entityMetadata.getValue().id());
-        if (type == null) {
-            return;
-        }
+        PaintingType type = session.getRegistryCache().registry(JavaRegistries.PAINTING_VARIANT).byId(entityMetadata.getValue().id());
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);

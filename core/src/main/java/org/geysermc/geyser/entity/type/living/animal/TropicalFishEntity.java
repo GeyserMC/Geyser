@@ -61,6 +61,10 @@ public class TropicalFishEntity extends AbstractFishEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
     }
 
+    public static int getPackedVariant(int pattern, int baseColor, int patternColor) {
+        return pattern & 65535 | (baseColor & 0xFF) << 16 | (patternColor & 0xFF) << 24;
+    }
+
     public static int getShape(int variant) {
         return Math.min(variant & 0xFF, 1);
     }

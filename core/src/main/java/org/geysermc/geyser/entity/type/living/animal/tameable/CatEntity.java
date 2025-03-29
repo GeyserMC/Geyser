@@ -31,9 +31,12 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -45,7 +48,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class CatEntity extends TameableEntity {
+public class CatEntity extends TameableEntity implements VariantIntHolder {
 
     private byte collarColor = 14; // Red - default
 
@@ -81,17 +84,14 @@ public class CatEntity extends TameableEntity {
         updateCollarColor();
     }
 
-    public void setCatVariant(IntEntityMetadata entityMetadata) {
-        // Different colors in Java and Bedrock for some reason
-        int metadataValue = entityMetadata.getPrimitiveValue();
-        int variantColor = switch (metadataValue) {
-            case 0 -> 8;
-            case 8 -> 0;
-            case 9 -> 10;
-            case 10 -> 9;
-            default -> metadataValue;
-        };
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variantColor);
+    @Override
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.CAT_VARIANT;
+    }
+
+    @Override
+    public void setBedrockVariantId(int bedrockId) {
+        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -137,5 +137,21 @@ public class CatEntity extends TameableEntity {
             // Attempt to feed
             return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractionResult.PASS : InteractionResult.SUCCESS;
         }
+    }
+
+    // Ordered by bedrock id
+    // TODO: are these ordered correctly?
+    public enum BuiltInVariant implements BuiltIn {
+        WHITE,
+        BLACK,
+        RED,
+        SIAMESE,
+        BRITISH_SHORTHAIR,
+        CALICO,
+        PERSIAN,
+        RAGDOLL,
+        TABBY,
+        ALL_BLACK,
+        JELLIE
     }
 }

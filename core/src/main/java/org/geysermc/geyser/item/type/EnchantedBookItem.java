@@ -32,9 +32,11 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -50,8 +52,8 @@ public class EnchantedBookItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         List<NbtMap> bedrockEnchants = new ArrayList<>();
         ItemEnchantments enchantments = components.get(DataComponentTypes.STORED_ENCHANTMENTS);
@@ -81,7 +83,7 @@ public class EnchantedBookItem extends Item {
 
                 BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
-                    List<Enchantment> enchantments = session.getRegistryCache().enchantments().values();
+                    List<Enchantment> enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values();
                     for (int i = 0; i < enchantments.size(); i++) {
                         if (enchantments.get(i).bedrockEnchantment() == enchantment) {
                             int level = bedrockEnchantment.getShort("lvl", (short) 1);
@@ -94,7 +96,7 @@ public class EnchantedBookItem extends Item {
                 }
             }
             if (!javaEnchantments.isEmpty()) {
-                components.put(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments, true));
+                components.put(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments));
             }
         }
     }

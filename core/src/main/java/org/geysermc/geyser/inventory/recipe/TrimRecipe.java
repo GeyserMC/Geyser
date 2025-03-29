@@ -45,6 +45,7 @@ public final class TrimRecipe {
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
+    // TODO this is WRONG. this changed. FIXME in 1.21.5
     public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
@@ -65,6 +66,7 @@ public final class TrimRecipe {
         return new TrimMaterial(key, legacy.substring(2).trim(), itemMapping.getBedrockIdentifier());
     }
 
+    // TODO this is WRONG. this changed. FIXME in 1.21.5
     public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 

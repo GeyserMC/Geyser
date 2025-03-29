@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.BundleInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.CraftingInventoryTranslator;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.util.thirdparty.Fraction;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.MoveToHotbarAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSelectBundleItemPacket;
@@ -58,6 +60,7 @@ public final class ClickPlan {
      * Used for 1.17.1+ proper packet translation - any non-cursor item that is changed in a single transaction gets sent here.
      */
     private Int2ObjectMap<ItemStack> changedItems;
+    private Int2ObjectMap<HashedStack> changedHashedItems;
     private GeyserItemStack simulatedCursor;
     private int desiredBundleSlot;
     private boolean executionBegan;
@@ -74,6 +77,7 @@ public final class ClickPlan {
 
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.changedItems = null;
+        this.changedHashedItems = null;
         this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
         this.executionBegan = false;
 
@@ -118,6 +122,7 @@ public final class ClickPlan {
             }
 
             changedItems = new Int2ObjectOpenHashMap<>();
+            changedHashedItems = new Int2ObjectOpenHashMap<>();
 
             boolean emulatePost1_16Logic = session.isEmulatePost1_16Logic();
 
@@ -157,8 +162,8 @@ public final class ClickPlan {
                     action.slot,
                     action.click.actionType,
                     action.click.action,
-                    clickedItemStack,
-                    changedItems
+                    DataComponentHashers.hashStack(session, clickedItemStack),
+                    changedHashedItems
             );
 
             session.sendDownstreamGamePacket(clickPacket);
@@ -175,6 +180,7 @@ public final class ClickPlan {
         //update geyser inventory after simulation to avoid net id desync
         resetSimulation();
         changedItems = new Int2ObjectOpenHashMap<>();
+        changedHashedItems = new Int2ObjectOpenHashMap<>();
         for (ClickAction action : plan) {
             simulateAction(action);
         }
@@ -254,6 +260,7 @@ public final class ClickPlan {
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
         if (changedItems != null) {
             changedItems.put(slot, itemStack.getItemStack());
+            changedHashedItems.put(slot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
         }
     }
 

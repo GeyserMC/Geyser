@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -59,7 +60,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         entity.setEntityId(packet.getEntityId());
 
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
-        JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());
+        JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
