@@ -680,6 +680,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
+    /*
+     * Stores the number of attempts to open virtual inventories.
+     * Capped at 3, and isn't used in ideal circumstances.
+     * Used to resolve https://github.com/GeyserMC/Geyser/issues/5426
+     */
+    @Setter
+    private int containerOpenAttempts;
+
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
