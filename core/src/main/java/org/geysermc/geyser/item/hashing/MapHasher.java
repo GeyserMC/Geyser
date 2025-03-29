@@ -33,88 +33,168 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * {@link MapHasher}s are used to encode a {@link Type} to a map-like structure, which is then hashed using a {@link MinecraftHashEncoder}.
+ *
+ * <p>{@link MapHasher}s store the {@link Type} they are encoding, but it isn't directly accessible. Instead, extractor functions are used to extract specific properties of the {@link Type}.</p>
+ *
+ * @param <Type> the type this {@link MapHasher} encodes.
+ */
 @SuppressWarnings("UnstableApiUsage")
-public class MapHasher<T> {
+public class MapHasher<Type> {
     private static final boolean DEBUG = false;
 
     private final MinecraftHashEncoder encoder;
-    private final T object;
+    private final Type object;
     private final Map<HashCode, HashCode> map;
     private final Map<String, Object> unhashed;
 
-    MapHasher(T object, MinecraftHashEncoder encoder) {
+    MapHasher(Type object, MinecraftHashEncoder encoder) {
         this(object, encoder, new HashMap<>(), DEBUG ? new HashMap<>() : null);
     }
 
-    private MapHasher(T object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map, Map<String, Object> unhashed) {
+    private MapHasher(Type object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map, Map<String, Object> unhashed) {
         this.encoder = encoder;
         this.object = object;
         this.map = map;
         this.unhashed = unhashed;
     }
 
-    public MapHasher<T> accept(String key, HashCode hash) {
+    private MapHasher<Type> accept(String key, HashCode hash) {
         map.put(encoder.string(key), hash);
         return this;
     }
 
-    public <V> MapHasher<T> acceptConstant(String key, MinecraftHasher<V> hasher, V value) {
+    /**
+     * Adds a constant {@link Value} to the map.
+     *
+     * @param key the key to put the constant in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param value the {@link Value}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> acceptConstant(String key, MinecraftHasher<Value> hasher, Value value) {
         if (unhashed != null) {
             unhashed.put(key, value);
         }
         return accept(key, hasher.hash(value, encoder));
     }
 
-    public <V> MapHasher<T> accept(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> accept(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor) {
         return acceptConstant(key, hasher, extractor.apply(object));
     }
 
-    // Adds keys and values from the builder directly to this map (document me properly)
-    public MapHasher<T> accept(MapBuilder<T> builder) {
+    /**
+     * Applies the {@link MapBuilder} to this {@link MapHasher}, essentially adding all the keys it defines here.
+     */
+    public MapHasher<Type> accept(MapBuilder<Type> builder) {
         builder.apply(this);
         return this;
     }
 
-    // Adds keys and values from the builder directly to this map (document me properly)
-    public <V> MapHasher<T> accept(MapBuilder<V> builder, Function<T, V> extractor) {
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and applies the given {@link MapBuilder} for it to this {@link MapHasher},
+     * essentially adding the keys it defines here.
+     *
+     * @param builder the {@link MapBuilder} that encodes a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> accept(MapBuilder<Value> builder, Function<Type, Value> extractor) {
         builder.apply(new MapHasher<>(extractor.apply(object), encoder, map, unhashed));
         return this;
     }
 
-    // Adds keys and values from the builder directly to this map (document me properly)
-    public <V> MapHasher<T> accept(Function<V, MapBuilder<T>> builderExtractor, Function<T, V> extractor) {
-        builderExtractor.apply(extractor.apply(object)).apply(this);
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, then dispatches a {@link MapBuilder} from the {@link Value} using the {@code builderDispatcher},
+     * and applies it to this {@link MapHasher}, essentially adding the keys it defines here.
+     *
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param builderDispatcher the function that dispatches a {@link MapBuilder} from a {@link Value}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> accept(Function<Type, Value> extractor, Function<Value, MapBuilder<Type>> builderDispatcher) {
+        builderDispatcher.apply(extractor.apply(object)).apply(this);
         return this;
     }
 
-    public <V> MapHasher<T> optionalNullable(String key, MinecraftHasher<V> hasher, Function<T, V> extractor) {
-        V value = extractor.apply(object);
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map if it is not null.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optionalNullable(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor) {
+        Value value = extractor.apply(object);
         if (value != null) {
             acceptConstant(key, hasher, value);
         }
         return this;
     }
 
-    public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, Optional<V>> extractor) {
-        Optional<V> value = extractor.apply(object);
+    /**
+     * Extracts an {@link Optional} of a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map if it is present.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optional(String key, MinecraftHasher<Value> hasher, Function<Type, Optional<Value>> extractor) {
+        Optional<Value> value = extractor.apply(object);
         value.ifPresent(v -> acceptConstant(key, hasher, v));
         return this;
     }
 
-    public <V> MapHasher<T> optional(String key, MinecraftHasher<V> hasher, Function<T, V> extractor, V defaultValue) {
-        V value = extractor.apply(object);
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map if it's not equal to {@code defaultValue}.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param defaultValue the default {@link Value}. The {@link Value} won't be added to the map if it equals the default.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optional(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor, Value defaultValue) {
+        Value value = extractor.apply(object);
         if (!value.equals(defaultValue)) {
             acceptConstant(key, hasher, value);
         }
         return this;
     }
 
-    public <V> MapHasher<T> acceptList(String key, MinecraftHasher<V> valueHasher, Function<T, List<V>> extractor) {
+    /**
+     * Extracts a list of {@link Value}s from a {@link Type}, and adds it to the map.
+     *
+     * @param key the key to put the list of {@link Value}s in.
+     * @param valueHasher the hasher used to hash a single {@link Value}.
+     * @param extractor the function that extracts a list of {@link Value}s from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> acceptList(String key, MinecraftHasher<Value> valueHasher, Function<Type, List<Value>> extractor) {
         return acceptConstant(key, valueHasher.list(), extractor.apply(object));
     }
 
-    public <V> MapHasher<T> optionalList(String key, MinecraftHasher<V> valueHasher, Function<T, List<V>> extractor) {
-        List<V> list = extractor.apply(object);
+    /**
+     * Extracts a list of {@link Value}s from a {@link Type}, and adds it to the map if it is not empty.
+     *
+     * @param key the key to put the list of {@link Value}s in.
+     * @param valueHasher the hasher used to hash a single {@link Value}.
+     * @param extractor the function that extracts a list of {@link Value}s from a {@link Type}.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optionalList(String key, MinecraftHasher<Value> valueHasher, Function<Type, List<Value>> extractor) {
+        List<Value> list = extractor.apply(object);
         if (!list.isEmpty()) {
             acceptConstant(key, valueHasher.list(), list);
         }

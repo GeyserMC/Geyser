@@ -41,6 +41,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.function.Supplier;
 
+/**
+ * This interface contains various {@link MinecraftHasher}s used to encode properties of {@link Component}s. Usually, you'll only need {@link ComponentHasher#COMPONENT}.
+ */
 public interface ComponentHasher {
 
     MinecraftHasher<Component> COMPONENT = MinecraftHasher.lazyInitialize(new Supplier<>() {

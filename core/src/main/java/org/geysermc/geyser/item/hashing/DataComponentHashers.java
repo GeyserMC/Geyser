@@ -182,7 +182,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
         register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list());
-        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list());
+        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list()); // TODO test data component removal
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
@@ -285,20 +285,16 @@ public class DataComponentHashers {
         hashers.put(component, hasher);
     }
 
-    public static <T> MinecraftHasher<T> hasherOrEmpty(DataComponentType<T> component) {
+    public static <T> MinecraftHasher<T> hasher(DataComponentType<T> component) {
         MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
         if (hasher == null) {
-            return MinecraftHasher.UNIT.cast(value -> Unit.INSTANCE);
+            throw new IllegalStateException("Unregistered hasher for component " + component + "!");
         }
         return hasher;
     }
 
     public static <T> HashCode hash(GeyserSession session, DataComponentType<T> component, T value) {
-        MinecraftHasher<T> hasher = (MinecraftHasher<T>) hashers.get(component);
-        if (hasher == null) {
-            throw new IllegalStateException("Unregistered hasher for component " + component + "!");
-        }
-        return hasher.hash(value, new MinecraftHashEncoder(session));
+        return hasher(component).hash(value, new MinecraftHashEncoder(session));
     }
 
     public static HashedStack hashStack(GeyserSession session, ItemStack stack) {

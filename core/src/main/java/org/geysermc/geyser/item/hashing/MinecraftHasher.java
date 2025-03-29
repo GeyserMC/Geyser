@@ -41,6 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +49,6 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -69,7 +69,7 @@ import java.util.stream.IntStream;
  * </ul>
  *
  * <p>On top of these there are more methods, as well as static helper methods in this class, to create hashers.
- * One worth pointing out is {@link MinecraftHasher#mapBuilder(MapBuilder)}, which hashes an object into a map-like structure. Read the documentation there and on {@link MapBuilder} on how to use it.</p>
+ * One worth pointing out is {@link MinecraftHasher#mapBuilder(MapBuilder)}, which hashes an object into a map-like structure. Read the documentation there, on {@link MapBuilder}, and on {@link MapHasher} on how to use it.</p>
  *
  * <p>As of right now, hashers are used to create hash codes for data components, which Minecraft requires to be sent in inventory transactions. You'll find all the hashers for data components in
  * {@link DataComponentHashers}. In the future, hashers may be used elsewhere as well. If necessary, this system can even be refactored to write to different data structures, such as NBT or JSON files, as well.</p>
@@ -116,7 +116,9 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
-    MinecraftHasher<Key> TAG = STRING.cast(key -> "#" + key.asString());
+    MinecraftHasher<Key> TAG = STRING.cast(key -> '#' + key.asString());
+
+    MinecraftHasher<Key> KEY_REMOVAL = STRING.cast(key -> '!' + key.asString());
 
     MinecraftHasher<UUID> UUID = INT_ARRAY.cast(uuid -> {
         long mostSignificant = uuid.getMostSignificantBits();
@@ -223,7 +225,7 @@ public interface MinecraftHasher<Type> {
     default <Dispatched> MinecraftHasher<Dispatched> dispatch(String typeKey, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
         return mapBuilder(builder -> builder
             .accept(typeKey, this, typeExtractor)
-            .accept(mapDispatch, typeExtractor));
+            .accept(typeExtractor, mapDispatch));
     }
 
     /**
@@ -243,17 +245,14 @@ public interface MinecraftHasher<Type> {
         return (value, encoder) -> memoized.get().hash(value, encoder);
     }
 
-    // TODO currently unused, has to be used for mob effects, check
-    static <Type> MinecraftHasher<Type> recursive(UnaryOperator<MinecraftHasher<Type>> delegate) {
-        return new Recursive<>(delegate);
-    }
-
     /**
      * Uses {@link Enum#name()} (lowercased) as {@code toName} function in {@link MinecraftHasher#fromIdEnum(Enum[], Function)}.
      *
      * <p>Please be aware that you are using literal enum constants as string values here, meaning that if there is a typo in a constant, or a constant changes name, things
      * may break. Use cautiously.</p>
      *
+     * @param values the array of {@link EnumConstant}s.
+     * @param <EnumConstant> the enum.
      * @see MinecraftHasher#fromIdEnum(Enum[], Function)
      */
     static <EnumConstant extends Enum<EnumConstant>> MinecraftHasher<Integer> fromIdEnum(EnumConstant[] values) {
@@ -278,6 +277,7 @@ public interface MinecraftHasher<Type> {
      * <p>Please be aware that you are using literal enum constants as string values here, meaning that if there is a typo in a constant, or a constant changes name, things
      * may break. Use cautiously.</p>
      *
+     * @param <EnumConstant> the enum.
      * @see MinecraftHasher#fromEnum(Function)
      */
     static <EnumConstant extends Enum<EnumConstant>> MinecraftHasher<EnumConstant> fromEnum() {
@@ -296,7 +296,7 @@ public interface MinecraftHasher<Type> {
     }
 
     /**
-     * Creates a hasher that uses a {@link MapBuilder} to hash a {@link Type} into a map.
+     * Creates a hasher that uses a {@link MapBuilder}, which uses a {@link MapHasher} to hash a {@link Type} into a map.
      *
      * @param builder the builder that creates a map from a {@link Type}.
      * @param <Type> the type to hash.
@@ -306,20 +306,33 @@ public interface MinecraftHasher<Type> {
     }
 
     /**
-     * Creates a hasher that hashes {@link K} keys and {@link V} values into a map, using the {@code keyHasher} and {@code valueHasher} respectively.
-     *
-     * <p>Note that the key hasher is usually expected to hash into a string, but this is not necessarily a requirement. It may be once different encoders are used to encode to NBT or JSON,
-     * but this is not the case yet.</p>
+     * Creates a hasher that uses {@link MinecraftHasher#mapSet(MinecraftHasher, MinecraftHasher)} to hash {@link K} keys and {@link V} values into a map,
+     * using the {@code keyHasher} and {@code valueHasher} respectively.
      *
      * @param keyHasher the hasher that hashes objects of type {@link K}.
      * @param valueHasher the hasher that hashes objects of type {@link V}.
      * @param <K> the key type.
      * @param <V> the value type.
+     * @see MinecraftHasher#mapSet(MinecraftHasher, MinecraftHasher)
      */
     static <K, V> MinecraftHasher<Map<K, V>> map(MinecraftHasher<K> keyHasher, MinecraftHasher<V> valueHasher) {
-        return (map, encoder) -> encoder.map(map.entrySet().stream()
-            .map(entry -> Map.entry(keyHasher.hash(entry.getKey(), encoder), valueHasher.hash(entry.getValue(), encoder)))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        return MinecraftHasher.<Map.Entry<K, V>>mapSet(keyHasher.cast(Map.Entry::getKey), valueHasher.cast(Map.Entry::getValue)).cast(Map::entrySet);
+    }
+
+    /**
+     * Creates a hasher that hashes a set of {@link Type} entries into a map of keys and values, using {@code keyHasher} and {@code valueHasher} respectively.
+     *
+     * <p>Note that the key hasher is usually expected to hash into a string, but this is not necessarily a requirement. It may be once different encoders are used to encode to NBT or JSON,
+     * but this is not the case yet.</p>
+     *
+     * @param keyHasher the hasher that hashes a {@link Type} into a key to be used in the map.
+     * @param valueHasher the hasher that hashes a {@link Type} into a value to be used in the map.
+     * @param <Type> the entry type.
+     * @see MinecraftHasher#map(MinecraftHasher, MinecraftHasher)
+     */
+    static <Type> MinecraftHasher<Collection<Type>> mapSet(MinecraftHasher<Type> keyHasher, MinecraftHasher<Type> valueHasher) {
+        return (set, encoder) -> encoder.map(set.stream()
+            .collect(Collectors.toMap(value -> keyHasher.hash(value, encoder), value -> valueHasher.hash(value, encoder))));
     }
 
     /**
@@ -359,18 +372,5 @@ public interface MinecraftHasher<Type> {
      */
     static <Type> MinecraftHasher<Type> dispatch(Function<Type, MinecraftHasher<Type>> hashDispatch) {
         return (value, encoder) -> hashDispatch.apply(value).hash(value, encoder);
-    }
-
-    class Recursive<T> implements MinecraftHasher<T> {
-        private final Supplier<MinecraftHasher<T>> delegate;
-
-        public Recursive(UnaryOperator<MinecraftHasher<T>> delegate) {
-            this.delegate = Suppliers.memoize(() -> delegate.apply(this));
-        }
-
-        @Override
-        public HashCode hash(T value, MinecraftHashEncoder encoder) {
-            return delegate.get().hash(value, encoder);
-        }
     }
 }

@@ -84,7 +84,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.updateOwnRotation(entity.getYaw(), entity.getPitch(), entity.getHeadYaw());
 
             session.setSpawned(true);
-            DataComponentHashers.testHashing(session);
+            // DataComponentHashers.testHashing(session); // TODO remove me
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
             session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getXRot(), packet.getYRot(), packet.getId())); // TODO

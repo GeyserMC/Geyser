@@ -27,14 +27,29 @@ package org.geysermc.geyser.item.hashing;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * {@link MapBuilder}s can be used to define map-like structures to encode a {@link Type} using a {@link MapHasher}.
+ *
+ * @param <Type> the type to encode.
+ */
 @FunctionalInterface
-public interface MapBuilder<T> extends UnaryOperator<MapHasher<T>> {
+public interface MapBuilder<Type> extends UnaryOperator<MapHasher<Type>> {
 
-    default <C> MapBuilder<C> cast() {
-        return builder -> builder.accept(this, casted -> (T) casted);
+    /**
+     * Casts this map builder to a {@link Casted}. This cast is done unsafely, only use this if you are sure the object being encoded is of the type being cast to!
+     *
+     * @param <Casted> the type to cast to.
+     */
+    default <Casted> MapBuilder<Casted> cast() {
+        return builder -> builder.accept(this, casted -> (Type) casted);
     }
 
-    static <T> MapBuilder<T> empty() {
+    /**
+     * Returns a map builder that doesn't contain anything.
+     *
+     * @param <Type> the type to encode.
+     */
+    static <Type> MapBuilder<Type> empty() {
         return builder -> builder;
     }
 }
