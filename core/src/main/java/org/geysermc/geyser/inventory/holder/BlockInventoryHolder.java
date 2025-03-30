@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -182,6 +183,8 @@ public class BlockInventoryHolder extends InventoryHolder {
         containerOpenPacket.setBlockPosition(container.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(container.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
+
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, containerOpenPacket.toString());
     }
 
     @Override

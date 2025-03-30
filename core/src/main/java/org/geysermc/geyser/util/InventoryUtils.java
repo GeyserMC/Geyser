@@ -97,7 +97,6 @@ public class InventoryUtils {
             inventory.setPending(true);
             return;
         }
-
         displayInventory(session, inventory);
     }
 
@@ -183,7 +182,7 @@ public class InventoryUtils {
             session.getBundleCache().onInventoryClose(inventory);
         }
 
-        GeyserImpl.getInstance().getLogger().info("Closed inventory: " + inventory.getJavaId() + " is waiting on confirm?" + session.isClosingInventory());
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Closed inventory: " + inventory.getJavaId() + " is waiting on confirm?" + session.isClosingInventory());
         session.setOpenInventory(null);
     }
 

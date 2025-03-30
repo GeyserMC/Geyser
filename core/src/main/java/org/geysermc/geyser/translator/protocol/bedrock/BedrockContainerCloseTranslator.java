@@ -82,11 +82,11 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
-                GeyserImpl.getInstance().getLogger().debug("bedrock id matches, closing inventory java-side");
+                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "bedrock id matches, closing inventory java-side");
                 InventoryUtils.sendJavaContainerClose(session, openInventory);
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
-                GeyserImpl.getInstance().getLogger().info("opening pending inventory!");
+                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "opening pending inventory!");
                 InventoryUtils.displayInventory(session, openInventory);
                 openInventory.setPending(false);
 
