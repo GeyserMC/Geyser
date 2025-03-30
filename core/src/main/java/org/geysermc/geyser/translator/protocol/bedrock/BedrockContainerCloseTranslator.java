@@ -37,6 +37,8 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.geysermc.geyser.util.InventoryUtils.MAGIC_VIRTUAL_INVENTORY_HACK;
 
 @Translator(packet = ContainerClosePacket.class)
@@ -65,11 +67,13 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     container.setCurrentlyDelayed(true);
                     session.setPendingInventoryId(container.getJavaId());
 
-                    NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                    latencyPacket.setFromServer(true);
-                    latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                    session.sendUpstreamPacket(latencyPacket);
-                    GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "New latency packet hack attempt: " + latencyPacket.toString());
+                    session.scheduleInEventLoop(() -> {
+                        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+                        latencyPacket.setFromServer(true);
+                        latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                        session.sendUpstreamPacket(latencyPacket);
+                        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "New latency packet hack attempt: " + latencyPacket);
+                    }, 200, TimeUnit.MILLISECONDS);
                     return;
                 } else {
                     GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Exceeded 3 attempts to open a virtual inventory!");
@@ -88,7 +92,6 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             } else if (openInventory.isPending()) {
                 GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "opening pending inventory!");
                 InventoryUtils.displayInventory(session, openInventory);
-                openInventory.setPending(false);
 
                 if (openInventory instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
                     JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
