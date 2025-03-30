@@ -295,9 +295,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private @Nullable Inventory openInventory;
 
     @Setter
-    private @Nullable Inventory oldInventory;
-
-    @Setter
     private boolean closingInventory;
 
     /**

@@ -87,12 +87,13 @@ public class InventoryUtils {
     public static final long MAGIC_VIRTUAL_INVENTORY_HACK = -9876543210L;
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
-        session.setOldInventory(session.getOpenInventory());
         session.setOpenInventory(inventory);
         if (session.isClosingInventory() || !session.getUpstream().isInitialized() || session.getPendingInventoryId() != -1) {
             // Wait for close confirmation from client before opening the new inventory.
             // Handled in BedrockContainerCloseTranslator
             // or - client hasn't yet loaded in; wait until inventory is shown
+            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Inv (%s) set pending: closing inv? %s, pending inv id? %s"
+                .formatted(inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId()));
             inventory.setPending(true);
             return;
         }
@@ -103,14 +104,19 @@ public class InventoryUtils {
     public static void openPendingInventory(GeyserSession session) {
         Inventory currentInventory = session.getOpenInventory();
         if (currentInventory == null || !currentInventory.isPending()) {
+            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "No pending inventory, not opening an inventory!");
+            session.setPendingInventoryId(-1);
             return;
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
-        if (currentInventory.getJavaId() == session.getPendingInventoryId()) {
+        if (currentInventory.isCurrentlyDelayed() && currentInventory.getJavaId() == session.getPendingInventoryId()) {
+            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Attempting to open currently delayed inventory with matching java id! " + currentInventory.getJavaId());
             openAndUpdateInventory(session, currentInventory);
             return;
         }
+
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Opening any pending inventory! " + currentInventory.getJavaId());
 
         session.setPendingInventoryId(-1);
         openInventory(session, currentInventory);
@@ -119,8 +125,11 @@ public class InventoryUtils {
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = inventory.getTranslator();
         if (translator.prepareInventory(session, inventory)) {
+            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "prepared inventory!");
             if (translator.shouldDelayInventoryOpen(session, inventory)) {
+                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "starting delayed inventory open!");
                 inventory.setPending(true);
+                inventory.setCurrentlyDelayed(true);
                 session.setPendingInventoryId(inventory.getJavaId());
 
                 NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
@@ -128,6 +137,7 @@ public class InventoryUtils {
                 latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
                 session.sendUpstreamPacket(latencyPacket);
             } else {
+                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Immediately opening inventory!");
                 openAndUpdateInventory(session, inventory);
             }
         } else {
@@ -142,6 +152,7 @@ public class InventoryUtils {
         inventory.getTranslator().updateInventory(session, inventory);
         inventory.setDisplayed(true);
         inventory.setPending(false);
+        inventory.setCurrentlyDelayed(false);
         session.setPendingInventoryId(-1);
     }
 
@@ -172,8 +183,7 @@ public class InventoryUtils {
             session.getBundleCache().onInventoryClose(inventory);
         }
 
-        session.setPendingInventoryId(-1);
-        session.setOldInventory(null);
+        GeyserImpl.getInstance().getLogger().info("Closed inventory: " + inventory.getJavaId() + " is waiting on confirm?" + session.isClosingInventory());
         session.setOpenInventory(null);
     }
 

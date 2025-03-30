@@ -26,6 +26,9 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -34,11 +37,14 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
+import static org.geysermc.geyser.util.InventoryUtils.MAGIC_VIRTUAL_INVENTORY_HACK;
+
 @Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
 
     @Override
     public void translate(GeyserSession session, ContainerClosePacket packet) {
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, packet.toString());
         byte bedrockId = packet.getId();
 
         //Client wants close confirmation
@@ -51,28 +57,36 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
             bedrockId = (byte) openInventory.getBedrockId();
 
-//            // If virtual inventories are opened too quickly, they can be occasionally rejected
-//            if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
-//                if (session.getContainerOpenAttempts() < 3) {
-//                    session.setContainerOpenAttempts(session.getContainerOpenAttempts() + 1);
-//                    session.getInventoryTranslator().openInventory(session, session.getOpenInventory());
-//                    session.getInventoryTranslator().updateInventory(session, session.getOpenInventory());
-//                    session.getOpenInventory().setDisplayed(true);
-//                    return;
-//                } else {
-//                    GeyserImpl.getInstance().getLogger().debug("Exceeded 3 attempts to open a virtual inventory!");
-//                    GeyserImpl.getInstance().getLogger().debug(packet + " " + session.getOpenInventory().getClass().getSimpleName());
-//                }
-//            }
+            // If virtual inventories are opened too quickly, they can be occasionally rejected
+            // We just try and queue a new one
+            if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
+                if (session.getContainerOpenAttempts() < 3) {
+                    container.setPending(true);
+                    container.setCurrentlyDelayed(true);
+                    session.setPendingInventoryId(container.getJavaId());
+
+                    NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+                    latencyPacket.setFromServer(true);
+                    latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                    session.sendUpstreamPacket(latencyPacket);
+                    GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "New latency packet hack attempt: " + latencyPacket.toString());
+                    return;
+                } else {
+                    GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Exceeded 3 attempts to open a virtual inventory!");
+                    GeyserImpl.getInstance().getLogger().sessionDebugLog(session, packet + " " + session.getOpenInventory().getClass().getSimpleName());
+                }
+            }
         }
 
         session.setContainerOpenAttempts(0);
 
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
+                GeyserImpl.getInstance().getLogger().debug("bedrock id matches, closing inventory java-side");
                 InventoryUtils.sendJavaContainerClose(session, openInventory);
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
+                GeyserImpl.getInstance().getLogger().info("opening pending inventory!");
                 InventoryUtils.displayInventory(session, openInventory);
                 openInventory.setPending(false);
 

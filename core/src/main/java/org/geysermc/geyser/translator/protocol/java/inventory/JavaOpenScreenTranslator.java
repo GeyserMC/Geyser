@@ -46,7 +46,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, packet.toString());
         if (packet.getContainerId() == 0) {
             return;
         }
@@ -77,8 +77,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
-            // TODO properly test. This would allow us to open repeating virtual inventories quite a bit faster
-            // Attempt to re-use existing open inventories, if possible
+//            // TODO this would allow us to open repeating virtual inventories quite a bit faster.
+//            // Attempt to re-use existing open inventories, if possible
 //            if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
 //                // We need to handle pending virtual block inventories *slightly* different
 //                if (session.getPendingInventoryId() == openInventory.getJavaId()

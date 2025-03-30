@@ -94,7 +94,6 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        GeyserImpl.getInstance().getLogger().info("double chest inv prep");
         if (canUseRealBlock(session, inventory)) {
             return true;
         }
@@ -148,7 +147,6 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         session.sendUpstreamPacket(dataPacket);
 
         inventory.setHolderPosition(position);
-        GeyserImpl.getInstance().getLogger().info("holder pos: " + position);
 
         return true;
     }

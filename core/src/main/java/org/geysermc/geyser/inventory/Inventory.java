@@ -99,6 +99,10 @@ public abstract class Inventory {
     private boolean pending = false;
 
     @Getter
+    @Setter
+    private boolean isCurrentlyDelayed = false;
+
+    @Getter
     private final InventoryTranslator translator;
 
     protected Inventory(int id, int size, ContainerType containerType, InventoryTranslator translator) {

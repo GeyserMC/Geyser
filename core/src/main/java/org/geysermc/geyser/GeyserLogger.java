@@ -29,6 +29,7 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 
@@ -118,6 +119,10 @@ public interface GeyserLogger extends GeyserCommandSource {
      * @param debug if the logger should print debug messages
      */
     void setDebug(boolean debug);
+
+    default void sessionDebugLog(GeyserSession session, String message) {
+        debug("(" + session.bedrockUsername() + "): " + message);
+    }
 
     /**
      * If debug is enabled for this logger
