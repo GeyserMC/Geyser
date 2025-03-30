@@ -49,6 +49,7 @@ public class Container extends Inventory {
 
     /**
      * Used to minimize delay when switching between "same" containers.
+     * Currently unused; see {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenScreenTranslator} for info.
      */
     @Setter
     private boolean isReusingBlock = false;

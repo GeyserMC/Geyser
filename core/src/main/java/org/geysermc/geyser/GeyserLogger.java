@@ -120,8 +120,13 @@ public interface GeyserLogger extends GeyserCommandSource {
      */
     void setDebug(boolean debug);
 
-    default void sessionDebugLog(GeyserSession session, String message) {
-        debug("(" + session.bedrockUsername() + "): " + message);
+    /**
+     * A method to debug information specific to a session.
+     */
+    default void debug(GeyserSession session, String message, Object... arguments) {
+        if (isDebug()) {
+            debug("( %s ) " + message, session.bedrockUsername(), arguments);
+        }
     }
 
     /**

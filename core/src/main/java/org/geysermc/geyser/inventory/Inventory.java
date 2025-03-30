@@ -92,11 +92,11 @@ public abstract class Inventory {
 
     @Getter
     @Setter
-    private boolean displayed = false;
+    private boolean pending = false;
 
     @Getter
     @Setter
-    private boolean pending = false;
+    private boolean displayed = false;
 
     @Getter
     @Setter
@@ -191,5 +191,21 @@ public abstract class Inventory {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
+    }
+
+    /*
+     * Helper methods to avoid using the wrong translator to update specific inventories.
+     */
+
+    public void updateInventory(GeyserSession session) {
+        this.translator.updateInventory(session, this);
+    }
+
+    public void updateProperty(GeyserSession session, int rawProperty, int value) {
+        this.translator.updateProperty(session, this, rawProperty, value);
+    }
+
+    public void updateSlot(GeyserSession session, int slot) {
+        this.translator.updateSlot(session, this, slot);
     }
 }

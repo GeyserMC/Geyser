@@ -46,7 +46,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, packet.toString());
+        GeyserImpl.getInstance().getLogger().debug(session, packet.toString());
         if (packet.getContainerId() == 0) {
             return;
         }

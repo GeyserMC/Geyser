@@ -184,7 +184,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         containerOpenPacket.setUniqueEntityId(container.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
 
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, containerOpenPacket.toString());
+        GeyserImpl.getInstance().getLogger().debug(session, containerOpenPacket.toString());
     }
 
     @Override

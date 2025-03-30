@@ -32,7 +32,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -133,7 +132,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
             // Update local copy
             session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(bookItem), session);
-            InventoryUtils.getInventoryTranslator(session).updateInventory(session, session.getPlayerInventory());
+            session.getPlayerInventory().updateInventory(session);
 
             String title;
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {

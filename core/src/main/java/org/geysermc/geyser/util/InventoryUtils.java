@@ -84,49 +84,67 @@ public class InventoryUtils {
     
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new DataComponents(new HashMap<>()));
 
+    /**
+     * An arbitrary, negative long used to delay the opening of virtual inventories until the client is
+     * likely ready for it. The {@link org.geysermc.geyser.translator.protocol.bedrock.BedrockNetworkStackLatencyTranslator}
+     * will then call {@link #openPendingInventory(GeyserSession)}, which would finish opening the inventory.
+     */
     public static final long MAGIC_VIRTUAL_INVENTORY_HACK = -9876543210L;
 
+    /**
+     * The main entrypoint to open an inventory. It will mark inventories as pending when the client isn't ready to
+     * open the new inventory yet.
+     *
+     * @param session the geyser session
+     * @param inventory the new inventory to open
+     */
     public static void openInventory(GeyserSession session, Inventory inventory) {
         session.setOpenInventory(inventory);
         if (session.isClosingInventory() || !session.getUpstream().isInitialized() || session.getPendingInventoryId() != -1) {
             // Wait for close confirmation from client before opening the new inventory.
             // Handled in BedrockContainerCloseTranslator
             // or - client hasn't yet loaded in; wait until inventory is shown
-            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Inv (%s) set pending: closing inv? %s, pending inv id? %s"
-                .formatted(inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId()));
+            GeyserImpl.getInstance().getLogger().debug(session, "Inv (%s) set pending: closing inv? %s, pending inv id? %s", inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId());
             inventory.setPending(true);
             return;
         }
         displayInventory(session, inventory);
     }
 
+    /**
+     * Called when the Bedrock client is ready to open a pending inventory.
+     * Due to the nature of possible changes in the delayed time, this method also re-checks for changes that might have
+     * occurred in the time. For example, a queued virtual inventory might be "outdated", so we wouldn't open it.
+     */
     public static void openPendingInventory(GeyserSession session) {
         Inventory currentInventory = session.getOpenInventory();
         if (currentInventory == null || !currentInventory.isPending()) {
-            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "No pending inventory, not opening an inventory!");
+            GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", currentInventory);
             session.setPendingInventoryId(-1);
             return;
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
         if (currentInventory.isCurrentlyDelayed() && currentInventory.getJavaId() == session.getPendingInventoryId()) {
-            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Attempting to open currently delayed inventory with matching java id! " + currentInventory.getJavaId());
+            GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching java id! " + currentInventory.getJavaId());
             openAndUpdateInventory(session, currentInventory);
             return;
         }
 
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Opening any pending inventory! " + currentInventory.getJavaId());
+        GeyserImpl.getInstance().getLogger().debug(session, "Opening any pending inventory! " + currentInventory.getJavaId());
 
         session.setPendingInventoryId(-1);
         openInventory(session, currentInventory);
     }
 
+    /**
+     * Prepares and displays the current inventory. If necessary, it will queue the opening of virtual inventories.
+     * @param inventory the inventory to display
+     */
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = inventory.getTranslator();
         if (translator.prepareInventory(session, inventory)) {
-            GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "prepared inventory!");
             if (translator.shouldDelayInventoryOpen(session, inventory)) {
-                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "starting delayed inventory open!");
                 inventory.setPending(true);
                 inventory.setCurrentlyDelayed(true);
                 session.setPendingInventoryId(inventory.getJavaId());
@@ -135,8 +153,9 @@ public class InventoryUtils {
                 latencyPacket.setFromServer(true);
                 latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
                 session.sendUpstreamPacket(latencyPacket);
+
+                GeyserImpl.getInstance().getLogger().debug(session, "Queuing virtual inventory with id %s", inventory.getJavaId());
             } else {
-                GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Immediately opening inventory!");
                 openAndUpdateInventory(session, inventory);
             }
         } else {
@@ -146,6 +165,9 @@ public class InventoryUtils {
         }
     }
 
+    /**
+     * Opens and updates an inventory, and resets no longer used inventory variables.
+     */
     public static void openAndUpdateInventory(GeyserSession session, Inventory inventory) {
         inventory.getTranslator().openInventory(session, inventory);
         inventory.getTranslator().updateInventory(session, inventory);
@@ -166,6 +188,12 @@ public class InventoryUtils {
         return inventory.getTranslator();
     }
 
+    /**
+     * Closes the inventory that matches the java id.
+     * @param session the session to close the inventory for
+     * @param javaId the id of the inventory to close
+     * @param confirm whether to wait for the session to process the close before opening a new inventory.
+     */
     public static void closeInventory(GeyserSession session, int javaId, boolean confirm) {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
@@ -182,7 +210,7 @@ public class InventoryUtils {
             session.getBundleCache().onInventoryClose(inventory);
         }
 
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Closed inventory: " + (inventory != null ? inventory.getJavaId() : "null") + " is waiting on confirm?" + session.isClosingInventory());
+        GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: " + (inventory != null ? inventory.getJavaId() : "null") + " Waiting on confirm? %s", session.isClosingInventory());
         session.setOpenInventory(null);
     }
 

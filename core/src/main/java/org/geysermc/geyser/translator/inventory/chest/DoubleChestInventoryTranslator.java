@@ -160,7 +160,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
 
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, containerOpenPacket.toString());
+        GeyserImpl.getInstance().getLogger().debug(session, containerOpenPacket.toString());
     }
 
     @Override
