@@ -182,7 +182,7 @@ public class InventoryUtils {
             session.getBundleCache().onInventoryClose(inventory);
         }
 
-        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Closed inventory: " + inventory.getJavaId() + " is waiting on confirm?" + session.isClosingInventory());
+        GeyserImpl.getInstance().getLogger().sessionDebugLog(session, "Closed inventory: " + (inventory != null ? inventory.getJavaId() : "null") + " is waiting on confirm?" + session.isClosingInventory());
         session.setOpenInventory(null);
     }
 
