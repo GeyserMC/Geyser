@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -60,7 +61,7 @@ public abstract class Inventory {
     @Setter
     private int stateId;
     /**
-     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)}; used as a hack
+     * See {@link ClickPlan#execute(boolean)}; used as a hack
      */
     @Getter
     private int nextStateId = -1;
@@ -119,7 +120,7 @@ public abstract class Inventory {
     private boolean delayed = false;
 
     /**
-     * The translator for this inventory. Stored here to avoid de-syncs of the inventory & translator used.
+     * The translator for this inventory. Stored here to avoid de-syncs of the inventory and current translator.
      */
     @Getter
     private final InventoryTranslator translator;
