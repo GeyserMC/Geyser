@@ -153,11 +153,6 @@ public abstract class InventoryTranslator {
             return false;
         }
 
-        if (inventory.getJavaId() != previous.getJavaId()) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to java id change! ", InventoryUtils.debugInventory(inventory));
-            return false;
-        }
-
         if (inventory.getSize() != previous.getSize()) {
             GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to size change! ", InventoryUtils.debugInventory(inventory));
             return false;

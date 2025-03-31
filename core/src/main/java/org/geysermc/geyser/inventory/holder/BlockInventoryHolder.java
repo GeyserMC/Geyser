@@ -84,7 +84,8 @@ public class BlockInventoryHolder extends InventoryHolder {
             if (container.getHolderPosition() == previous.getHolderPosition()) {
                 return true;
             } else {
-                GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to real block holder changing! ", InventoryUtils.debugInventory(container));
+                GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to real block holder changing (%s -> %s)!",
+                    InventoryUtils.debugInventory(container), previous.getHolderPosition(), container.getHolderPosition());
                 return false;
             }
         }
@@ -92,9 +93,11 @@ public class BlockInventoryHolder extends InventoryHolder {
         // Check if we'd be using the same virtual inventory position.
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
         if (Objects.equals(position, previous.getHolderPosition())) {
+            container.setHolderPosition(position);
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing! ", InventoryUtils.debugInventory(container));
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",
+                InventoryUtils.debugInventory(container), previous.getHolderPosition(), position);
             return false;
         }
     }

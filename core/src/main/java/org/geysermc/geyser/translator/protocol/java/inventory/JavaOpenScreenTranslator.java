@@ -80,8 +80,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             // Attempt to re-use existing open inventories, if possible.
             // Pending inventories are also considered, as a Java server can re-request the same inventory.
             if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
-                // Use the same Bedrock id. The java id is already confirmed to match
-                // in the reuse inventory check.
+                // Use the same Bedrock id
                 newInventory.setBedrockId(openInventory.getBedrockId());
 
                 // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
