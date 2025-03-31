@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -76,11 +75,6 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
         this.variant = variant;
-
-        // TODO remove once 1.21.40 is dropped
-        if (variant == BoatVariant.PALE_OAK && GameProtocol.isPreWinterDrop(session)) {
-            variant = BoatVariant.BIRCH;
-        }
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 

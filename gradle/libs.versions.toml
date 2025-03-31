@@ -42,7 +42,7 @@ mixinextras = "0.3.5"
 minecraft = "1.21.5"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.4"
+runpaperversion = "1.21.5"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions

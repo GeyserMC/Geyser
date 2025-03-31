@@ -53,7 +53,6 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        // TODO 1.21.4
         float customModelDataInt = 0;
         CustomModelData customModelData = components.get(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (customModelData != null) {
