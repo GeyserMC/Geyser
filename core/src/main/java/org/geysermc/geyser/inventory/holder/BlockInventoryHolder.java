@@ -80,14 +80,23 @@ public class BlockInventoryHolder extends InventoryHolder {
     public boolean canReuseContainer(GeyserSession session, Container container, Container previous) {
         // We already ensured that the inventories are using the same type, size, and title
         if (canUseRealBlock(session, container)) {
-            // Only reuse if the position matches
-            return container.getHolderPosition() == previous.getHolderPosition();
+            // Check if we can reuse the same holder position.
+            if (container.getHolderPosition() == previous.getHolderPosition()) {
+                return true;
+            } else {
+                GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to real block holder changing! ", InventoryUtils.debugInventory(container));
+                return false;
+            }
         }
 
         // Check if we'd be using the same virtual inventory position.
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
-        // Reuse inventory if a virtual inventory position exists and matches
-        return Objects.equals(position, previous.getHolderPosition());
+        if (Objects.equals(position, previous.getHolderPosition())) {
+            return true;
+        } else {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing! ", InventoryUtils.debugInventory(container));
+            return false;
+        }
     }
 
     @Override

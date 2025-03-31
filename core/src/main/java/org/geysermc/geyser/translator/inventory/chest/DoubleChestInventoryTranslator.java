@@ -78,12 +78,22 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
         if (canUseRealBlock(session, container)) {
             // We can reuse the same holder position.
-            return container.getHolderPosition() == previous.getHolderPosition();
+            if (container.getHolderPosition() == previous.getHolderPosition()) {
+                return true;
+            } else {
+                GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to real block holder changing! ", InventoryUtils.debugInventory(inventory));
+                return false;
+            }
         }
 
         // Check if we'd be using the same virtual inventory position.
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
-        return Objects.equals(position, previous.getHolderPosition());
+        if (Objects.equals(position, previous.getHolderPosition())) {
+            return true;
+        } else {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
     }
 
     @Override

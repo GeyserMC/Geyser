@@ -502,7 +502,7 @@ public class InventoryUtils {
         return true;
     }
 
-    private static String debugInventory(@Nullable Inventory inventory) {
+    public static String debugInventory(@Nullable Inventory inventory) {
         if (inventory == null) {
             return "null";
         }

@@ -148,13 +148,28 @@ public abstract class InventoryTranslator {
         // Filter for mismatches that require a new inventory.
         if (inventory.getContainerType() == null || previous.getContainerType() == null
             || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
-            || inventory.getJavaId() != previous.getJavaId()
         ) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to type change! ", InventoryUtils.debugInventory(inventory));
             return false;
         }
 
-        // Inventory size and the title should also match.
-        return inventory.getSize() == previous.getSize() && Objects.equals(inventory.getTitle(), previous.getTitle());
+        if (inventory.getJavaId() != previous.getJavaId()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to java id change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (inventory.getSize() != previous.getSize()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to size change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (!Objects.equals(inventory.getTitle(), previous.getTitle())) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to title change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        // We can likely reuse the inventory!
+        return true;
     }
     public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
