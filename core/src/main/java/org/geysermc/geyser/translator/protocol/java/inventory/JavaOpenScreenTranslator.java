@@ -88,6 +88,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
                 newInventory.setDisplayed(openInventory.isDisplayed());
                 newInventory.setPending(pending);
                 newInventory.setDelayed(openInventory.isDelayed());
+                newInventory.setHolderPosition(openInventory.getHolderPosition());
+                newInventory.setHolderId(openInventory.getHolderId());
                 session.setOpenInventory(newInventory);
 
                 GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", pending);

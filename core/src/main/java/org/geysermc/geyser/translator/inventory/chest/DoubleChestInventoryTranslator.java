@@ -90,7 +90,6 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         // Check if we'd be using the same virtual inventory position.
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
         if (Objects.equals(position, previous.getHolderPosition())) {
-            container.setHolderPosition(position);
             return true;
         } else {
             GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",

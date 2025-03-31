@@ -37,6 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -160,6 +161,11 @@ public abstract class InventoryTranslator {
 
         if (!Objects.equals(inventory.getTitle(), previous.getTitle())) {
             GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to title change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (previous.getHolderId() == -1 && previous.getHolderPosition() == Vector3i.ZERO) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) since the old was not initialized! ", InventoryUtils.debugInventory(inventory));
             return false;
         }
 
