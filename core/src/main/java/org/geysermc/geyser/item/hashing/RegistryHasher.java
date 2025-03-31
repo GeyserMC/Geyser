@@ -271,7 +271,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
         List<ItemContainerSlot> slots = new ArrayList<>();
         for (int i = 0; i < stacks.size(); i++) {
-            slots.add(new ItemContainerSlot(i, stacks.get(i)));
+            ItemStack stack = stacks.get(i);
+            if (stack != null) {
+                slots.add(new ItemContainerSlot(i, stacks.get(i)));
+            }
         }
         return slots;
     });
