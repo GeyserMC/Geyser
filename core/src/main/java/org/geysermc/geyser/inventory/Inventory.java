@@ -80,7 +80,7 @@ public abstract class Inventory {
     protected final GeyserItemStack[] items;
 
     /**
-     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location
+     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location.
      */
     @Getter
     @Setter
@@ -94,18 +94,33 @@ public abstract class Inventory {
     @Setter
     protected long holderId = -1;
 
+    /**
+     * Whether this inventory is currently pending.
+     * It can be pending if this inventory was opened while another inventory was still open,
+     * or because opening this inventory takes more time (e.g. virtual inventories).
+     */
     @Getter
     @Setter
     private boolean pending = false;
 
+    /**
+     * Whether this inventory is currently shown to the Bedrock player.
+     */
     @Getter
     @Setter
     private boolean displayed = false;
 
+    /**
+     * Whether this inventory is currently being opened with a delay.
+     * Only applicable for virtual inventories.
+     */
     @Getter
     @Setter
     private boolean delayed = false;
 
+    /**
+     * The translator for this inventory. Stored here to avoid de-syncs of the inventory & translator used.
+     */
     @Getter
     private final InventoryTranslator translator;
 
@@ -133,8 +148,10 @@ public abstract class Inventory {
         this.bedrockId = javaId <= 100 ? javaId : (javaId % 100) + 1;
 
         // We occasionally need to re-open inventories with a delay in cases where
-        // Java wouldn't - e.g. for virtual chest menus that switch pages
-        if (session.getOpenInventory() != null && session.getOpenInventory().getBedrockId() == bedrockId) {
+        // Java wouldn't - e.g. for virtual chest menus that switch pages.
+        // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
+        // so to be safe we just deviate in that case as well.
+        if ((session.getOpenInventory() != null && session.getOpenInventory().getBedrockId() == bedrockId) || session.isClosingInventory()) {
             this.bedrockId += 1;
         }
     }

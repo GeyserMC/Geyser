@@ -77,7 +77,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         Inventory newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
-            // Attempt to re-use existing open inventories, if possible
+            // Attempt to re-use existing open inventories, if possible.
+            // Pending inventories are also considered, as a Java server can re-request the same inventory.
             if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
                 // Use the same Bedrock id. The java id is already confirmed to match
                 // in the reuse inventory check.

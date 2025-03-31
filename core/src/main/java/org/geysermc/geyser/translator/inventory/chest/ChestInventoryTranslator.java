@@ -53,7 +53,7 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public boolean shouldDelayInventoryOpen(GeyserSession session, Inventory inventory) {
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
         return inventory instanceof Container container && !container.isUsingRealBlock();
     }
 

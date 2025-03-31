@@ -137,7 +137,7 @@ public abstract class InventoryTranslator {
     public final int size;
 
     // Whether the inventory open should be delayed.
-    public boolean shouldDelayInventoryOpen(GeyserSession session, Inventory inventory) {
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
         return false;
     }
 
@@ -145,10 +145,10 @@ public abstract class InventoryTranslator {
      * Whether a new inventory should be prepared - or if we can re-use the previous one.
      */
     public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
-        // Filter for mismatches that require a new inventory. Further, if we're closing a current inventory, we cannot reuse it.
+        // Filter for mismatches that require a new inventory.
         if (inventory.getContainerType() == null || previous.getContainerType() == null
             || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
-            || inventory.getJavaId() != previous.getJavaId() || session.isClosingInventory()
+            || inventory.getJavaId() != previous.getJavaId()
         ) {
             return false;
         }

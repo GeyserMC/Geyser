@@ -78,7 +78,7 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public boolean shouldDelayInventoryOpen(GeyserSession session, Inventory inventory) {
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
         return inventory instanceof Container container && !container.isUsingRealBlock();
     }
 

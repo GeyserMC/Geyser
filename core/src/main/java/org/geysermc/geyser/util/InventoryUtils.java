@@ -137,6 +137,16 @@ public class InventoryUtils {
         openInventory(session, currentInventory);
     }
 
+    public static boolean shouldQueueRejectedInventory(GeyserSession session) {
+        Inventory currentInventory = session.getOpenInventory();
+        if (currentInventory == null || !currentInventory.isDelayed() || currentInventory.getBedrockId() != session.getPendingInventoryId()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Aborting NetworkStackLatency hack as the inventory has changed!");
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Prepares and displays the current inventory. If necessary, it will queue the opening of virtual inventories.
      * @param inventory the inventory to display
@@ -144,7 +154,7 @@ public class InventoryUtils {
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = inventory.getTranslator();
         if (translator.prepareInventory(session, inventory)) {
-            if (translator.shouldDelayInventoryOpen(session, inventory)) {
+            if (translator.requiresOpeningDelay(session, inventory)) {
                 inventory.setPending(true);
                 inventory.setDelayed(true);
                 session.setPendingInventoryId(inventory.getBedrockId());
