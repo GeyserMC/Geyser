@@ -68,23 +68,17 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
      * Mirrors {@link BlockInventoryHolder#canReuseContainer(GeyserSession, Container, Container)}
      */
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
-        if (!super.canReuseInventory(session, inventory, previous) ||
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory oldInventory) {
+        if (!super.canReuseInventory(session, inventory, oldInventory) ||
             !(inventory instanceof Container container) ||
-            !(previous instanceof Container)
+            !(oldInventory instanceof Container previous)
         ) {
             return false;
         }
 
-        if (canUseRealBlock(session, container)) {
-            // We can reuse the same holder position.
-            if (container.getHolderPosition() == previous.getHolderPosition()) {
-                return true;
-            } else {
-                GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to real block holder changing (%s -> %s)!",
-                    InventoryUtils.debugInventory(inventory), previous.getHolderPosition(), container.getHolderPosition());
-                return false;
-            }
+        // FIXME - but these aren't the reason we have this
+        if (previous.isUsingRealBlock()) {
+            return false;
         }
 
         // Check if we'd be using the same virtual inventory position.

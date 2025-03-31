@@ -112,14 +112,6 @@ public abstract class Inventory {
     private boolean displayed = false;
 
     /**
-     * Whether this inventory is currently being opened with a delay.
-     * Only applicable for virtual inventories.
-     */
-    @Getter
-    @Setter
-    private boolean delayed = false;
-
-    /**
      * The translator for this inventory. Stored here to avoid de-syncs of the inventory and current translator.
      */
     @Getter

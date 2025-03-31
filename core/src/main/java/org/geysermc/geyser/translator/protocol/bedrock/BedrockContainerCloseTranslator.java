@@ -67,8 +67,6 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
                 if (session.getContainerOpenAttempts() < 3) {
                     openInventory.setPending(true);
-                    openInventory.setDelayed(true);
-                    session.setPendingOrCurrentBedrockInventoryId(openInventory.getBedrockId());
 
                     session.scheduleInEventLoop(() -> {
                         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();

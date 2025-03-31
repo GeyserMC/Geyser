@@ -125,14 +125,13 @@ public class InventoryUtils {
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
-        if (currentInventory.isDelayed() && currentInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+        if (currentInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
             GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + currentInventory.getBedrockId());
             openAndUpdateInventory(session, currentInventory);
             return;
         }
 
         GeyserImpl.getInstance().getLogger().debug(session, "Opening any pending inventory! " + debugInventory(currentInventory));
-        session.setPendingOrCurrentBedrockInventoryId(-1);
         displayInventory(session, currentInventory);
     }
 
@@ -143,10 +142,9 @@ public class InventoryUtils {
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = inventory.getTranslator();
         if (translator.prepareInventory(session, inventory)) {
+            session.setPendingOrCurrentBedrockInventoryId(inventory.getBedrockId());
             if (translator.requiresOpeningDelay(session, inventory)) {
                 inventory.setPending(true);
-                inventory.setDelayed(true);
-                session.setPendingOrCurrentBedrockInventoryId(inventory.getBedrockId());
 
                 NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
                 latencyPacket.setFromServer(true);
@@ -159,6 +157,7 @@ public class InventoryUtils {
             }
         } else {
             // Can occur if we e.g. did not find a spot to put a fake container in
+            session.setPendingOrCurrentBedrockInventoryId(-1);
             sendJavaContainerClose(session, inventory);
             session.setOpenInventory(null);
         }
@@ -172,7 +171,6 @@ public class InventoryUtils {
         inventory.getTranslator().updateInventory(session, inventory);
         inventory.setDisplayed(true);
         inventory.setPending(false);
-        inventory.setDelayed(false);
     }
 
     /**
@@ -209,7 +207,6 @@ public class InventoryUtils {
             GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", inventory.getJavaId(), inventory.getBedrockId(), session.isClosingInventory());
         }
 
-        session.setPendingOrCurrentBedrockInventoryId(-1);
         session.setOpenInventory(null);
     }
 

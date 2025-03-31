@@ -87,7 +87,6 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
                 boolean pending = openInventory.isPending();
                 newInventory.setDisplayed(openInventory.isDisplayed());
                 newInventory.setPending(pending);
-                newInventory.setDelayed(openInventory.isDelayed());
                 newInventory.setHolderPosition(openInventory.getHolderPosition());
                 newInventory.setHolderId(openInventory.getHolderId());
                 session.setOpenInventory(newInventory);
