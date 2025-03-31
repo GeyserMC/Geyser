@@ -104,7 +104,7 @@ public abstract class Inventory {
 
     @Getter
     @Setter
-    private boolean isCurrentlyDelayed = false;
+    private boolean delayed = false;
 
     @Getter
     private final InventoryTranslator translator;

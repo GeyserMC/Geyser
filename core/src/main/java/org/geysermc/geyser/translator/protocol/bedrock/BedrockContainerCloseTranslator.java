@@ -64,8 +64,8 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             if (openInventory instanceof Container container && !(container instanceof MerchantContainer) && !container.isUsingRealBlock()) {
                 if (session.getContainerOpenAttempts() < 3) {
                     container.setPending(true);
-                    container.setCurrentlyDelayed(true);
-                    session.setPendingInventoryId(container.getJavaId());
+                    container.setDelayed(true);
+                    session.setPendingInventoryId(container.getBedrockId());
 
                     session.scheduleInEventLoop(() -> {
                         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();

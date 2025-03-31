@@ -87,11 +87,10 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
                 boolean pending = openInventory.isPending();
                 newInventory.setDisplayed(openInventory.isDisplayed());
                 newInventory.setPending(pending);
-                newInventory.setCurrentlyDelayed(openInventory.isCurrentlyDelayed());
+                newInventory.setDelayed(openInventory.isDelayed());
                 session.setOpenInventory(newInventory);
 
-                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory, matching Bedrock id (%s). Is current pending? %s",
-                    openInventory.getBedrockId(), pending);
+                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", pending);
 
                 // If the current inventory is still pending, it'll be updated once open
                 if (newInventory.isDisplayed()) {

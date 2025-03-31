@@ -145,10 +145,10 @@ public abstract class InventoryTranslator {
      * Whether a new inventory should be prepared - or if we can re-use the previous one.
      */
     public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
-        // Filter for mismatches that require a new inventory
+        // Filter for mismatches that require a new inventory. Further, if we're closing a current inventory, we cannot reuse it.
         if (inventory.getContainerType() == null || previous.getContainerType() == null
             || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
-            || inventory.getJavaId() != previous.getJavaId()
+            || inventory.getJavaId() != previous.getJavaId() || session.isClosingInventory()
         ) {
             return false;
         }

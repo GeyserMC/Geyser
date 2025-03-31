@@ -104,7 +104,7 @@ public class InventoryUtils {
             // Wait for close confirmation from client before opening the new inventory.
             // Handled in BedrockContainerCloseTranslator
             // or - client hasn't yet loaded in; wait until inventory is shown
-            GeyserImpl.getInstance().getLogger().debug(session, "Inventory (%s) set pending: closing inv? %s, pending inv id? %s", inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId());
+            GeyserImpl.getInstance().getLogger().debug(session, "Inventory (%s) set pending: closing inv? %s, pending inv id? %s", debugInventory(inventory), session.isClosingInventory(), session.getPendingInventoryId());
             inventory.setPending(true);
             return;
         }
@@ -119,19 +119,19 @@ public class InventoryUtils {
     public static void openPendingInventory(GeyserSession session) {
         Inventory currentInventory = session.getOpenInventory();
         if (currentInventory == null || !currentInventory.isPending()) {
-            GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", currentInventory);
+            GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(currentInventory));
             session.setPendingInventoryId(-1);
             return;
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
-        if (currentInventory.isCurrentlyDelayed() && currentInventory.getJavaId() == session.getPendingInventoryId()) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching java id! " + currentInventory.getJavaId());
+        if (currentInventory.isDelayed() && currentInventory.getBedrockId() == session.getPendingInventoryId()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + currentInventory.getBedrockId());
             openAndUpdateInventory(session, currentInventory);
             return;
         }
 
-        GeyserImpl.getInstance().getLogger().debug(session, "Opening any pending inventory! " + currentInventory.getJavaId());
+        GeyserImpl.getInstance().getLogger().debug(session, "Opening any pending inventory! " + debugInventory(currentInventory));
 
         session.setPendingInventoryId(-1);
         openInventory(session, currentInventory);
@@ -146,15 +146,15 @@ public class InventoryUtils {
         if (translator.prepareInventory(session, inventory)) {
             if (translator.shouldDelayInventoryOpen(session, inventory)) {
                 inventory.setPending(true);
-                inventory.setCurrentlyDelayed(true);
-                session.setPendingInventoryId(inventory.getJavaId());
+                inventory.setDelayed(true);
+                session.setPendingInventoryId(inventory.getBedrockId());
 
                 NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
                 latencyPacket.setFromServer(true);
                 latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
                 session.sendUpstreamPacket(latencyPacket);
 
-                GeyserImpl.getInstance().getLogger().debug(session, "Queuing virtual inventory with id %s", inventory.getJavaId());
+                GeyserImpl.getInstance().getLogger().debug(session, "Queuing virtual inventory (%s)", debugInventory(inventory));
             } else {
                 openAndUpdateInventory(session, inventory);
             }
@@ -173,7 +173,7 @@ public class InventoryUtils {
         inventory.getTranslator().updateInventory(session, inventory);
         inventory.setDisplayed(true);
         inventory.setPending(false);
-        inventory.setCurrentlyDelayed(false);
+        inventory.setDelayed(false);
         session.setPendingInventoryId(-1);
     }
 
@@ -490,5 +490,16 @@ public class InventoryUtils {
             }
         }
         return true;
+    }
+
+    private static String debugInventory(@Nullable Inventory inventory) {
+        if (inventory == null) {
+            return "null";
+        }
+
+        return inventory.getClass().getSimpleName() + ": javaId=" + inventory.getJavaId() +
+            ", bedrockId=" + inventory.getBedrockId() + ", size=" + inventory.getSize() +
+            ", type=" + inventory.getContainerType().name() + ", pending=" + inventory.isPending() +
+            ", displayed=" + inventory.isPending() + ", delayed=" + inventory.isPending();
     }
 }

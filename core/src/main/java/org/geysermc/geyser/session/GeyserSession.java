@@ -298,7 +298,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean closingInventory;
 
     /**
-     * Stores the java inventory id of the pending inventory, or -1 if no inventory is pending.
+     * Stores the bedrock inventory id of the pending inventory, or -1 if no inventory is pending.
      */
     @Setter
     private int pendingInventoryId = -1;
