@@ -153,6 +153,6 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         updateEquipPacket.setTag(builder.build());
         session.sendUpstreamPacket(updateEquipPacket);
 
-        InventoryUtils.openInventory(session, new Container(entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory(), inventoryTranslator));
+        InventoryUtils.openInventory(session, new Container(session, entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory(), inventoryTranslator));
     }
 }

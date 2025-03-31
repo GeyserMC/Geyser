@@ -75,34 +75,31 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         String name = MessageTranslator.convertMessage(packet.getTitle(), session.locale());
 
-        Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
+        Inventory newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
-//            // TODO this would allow us to open repeating virtual inventories quite a bit faster.
-//            // Attempt to re-use existing open inventories, if possible
-//            if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
-//                // We need to handle pending virtual block inventories *slightly* different
-//                if (session.getPendingInventoryId() == openInventory.getJavaId()
-//                    && openInventory.isPending()
-//                    && openInventory instanceof Container container
-//                    && newInventory instanceof Container newContainer
-//                    && !container.isUsingRealBlock()
-//                ) {
-//                    GeyserImpl.getInstance().getLogger().info("can reuse inv!");
-//                    // Check here if these inventories are the "same". If not, we will have to interrupt
-//                    // the pending inventory.
-//                    if (openInventory.getJavaId() == newInventory.getJavaId()) {
-//                        // no changes needed, they're the same; continue opening and ignore this packet
-//                        return;
-//                    }
-//
-//                    // We'll have to close the inventory :)))
-//                    newContainer.setReusingBlock(false);
-//                } else {
-//                    // Not a virtual inventory - seem to match though, so let's just update the inventory
-//                    newTranslator.updateInventory(session, newInventory);
-//                    return;
-//                }
-//            }
+            // Attempt to re-use existing open inventories, if possible
+            if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
+                // Use the same Bedrock id. The java id is already confirmed to match
+                // in the reuse inventory check.
+                newInventory.setBedrockId(openInventory.getBedrockId());
+
+                // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
+                boolean pending = openInventory.isPending();
+                newInventory.setDisplayed(openInventory.isDisplayed());
+                newInventory.setPending(pending);
+                newInventory.setCurrentlyDelayed(openInventory.isCurrentlyDelayed());
+                session.setOpenInventory(newInventory);
+
+                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory, matching Bedrock id (%s). Is current pending? %s",
+                    openInventory.getBedrockId(), pending);
+
+                // If the current inventory is still pending, it'll be updated once open
+                if (newInventory.isDisplayed()) {
+                    newTranslator.updateInventory(session, newInventory);
+                }
+
+                return;
+            }
 
             InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
         }

@@ -71,7 +71,7 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
 
             // Should never be null
             Objects.requireNonNull(translator, "lectern translator must exist");
-            Inventory inventory = translator.createInventory("", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
+            Inventory inventory = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
             ((LecternContainer) inventory).setFakeLecternBook(stack, session);
             InventoryUtils.openInventory(session, inventory);
         }

@@ -35,21 +35,20 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.jetbrains.annotations.Range;
 
+@Getter
 public class PlayerInventory extends Inventory {
     /**
      * Stores the held item slot, starting at index 0.
      * Add 36 in order to get the network item slot.
      */
-    @Getter
     @Setter
     private int heldItemSlot;
 
-    @Getter
     @NonNull
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
-    public PlayerInventory() {
-        super(0, 46, null, InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+    public PlayerInventory(GeyserSession session) {
+        super(session, 0, 46, null, InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         heldItemSlot = 0;
     }
 

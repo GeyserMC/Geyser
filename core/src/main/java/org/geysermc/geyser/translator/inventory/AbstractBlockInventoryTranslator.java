@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.Container;
@@ -78,11 +79,11 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
 
     @Override
     public boolean shouldDelayInventoryOpen(GeyserSession session, Inventory inventory) {
-        return inventory instanceof Container container && !container.isUsingRealBlock() && !container.isReusingBlock();
+        return inventory instanceof Container container && !container.isUsingRealBlock();
     }
 
     @Override
-    public boolean canReuseInventory(GeyserSession session, Inventory inventory, Inventory previous) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
         if (super.canReuseInventory(session, inventory, previous)
                 && inventory instanceof Container container
                 && previous instanceof Container previousContainer) {

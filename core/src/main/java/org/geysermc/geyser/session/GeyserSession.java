@@ -721,7 +721,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
 
-        this.playerInventory = new PlayerInventory();
+        this.playerInventory = new PlayerInventory(this);
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();

@@ -104,7 +104,7 @@ public class InventoryUtils {
             // Wait for close confirmation from client before opening the new inventory.
             // Handled in BedrockContainerCloseTranslator
             // or - client hasn't yet loaded in; wait until inventory is shown
-            GeyserImpl.getInstance().getLogger().debug(session, "Inv (%s) set pending: closing inv? %s, pending inv id? %s", inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId());
+            GeyserImpl.getInstance().getLogger().debug(session, "Inventory (%s) set pending: closing inv? %s, pending inv id? %s", inventory.getJavaId(), session.isClosingInventory(), session.getPendingInventoryId());
             inventory.setPending(true);
             return;
         }
@@ -208,9 +208,9 @@ public class InventoryUtils {
                 session.setClosingInventory(true);
             }
             session.getBundleCache().onInventoryClose(inventory);
+            GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", inventory.getJavaId(), inventory.getBedrockId(), session.isClosingInventory());
         }
 
-        GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: " + (inventory != null ? inventory.getJavaId() : "null") + " Waiting on confirm? %s", session.isClosingInventory());
         session.setOpenInventory(null);
     }
 

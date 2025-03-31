@@ -125,7 +125,7 @@ public interface GeyserLogger extends GeyserCommandSource {
      */
     default void debug(GeyserSession session, String message, Object... arguments) {
         if (isDebug()) {
-            debug("( " + session.bedrockUsername() + " ) " + message, arguments);
+            debug("(" + session.bedrockUsername() + ") " + message, arguments);
         }
     }
 

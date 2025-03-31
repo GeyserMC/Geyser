@@ -63,8 +63,8 @@ public class AnvilContainer extends Container {
 
     private int lastTargetSlot = -1;
 
-    public AnvilContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
-        super(title, id, size, containerType, playerInventory, translator);
+    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(session, title, id, size, containerType, playerInventory, translator);
     }
 
     /**

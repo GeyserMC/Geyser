@@ -46,8 +46,8 @@ public class LecternContainer extends Container {
 
     private boolean isBookInPlayerInventory = false;
 
-    public LecternContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
-        super(title, id, size, containerType, playerInventory, translator);
+    public LecternContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(session, title, id, size, containerType, playerInventory, translator);
     }
 
     /**

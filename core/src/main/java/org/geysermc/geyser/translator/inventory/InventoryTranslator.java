@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
@@ -143,23 +144,17 @@ public abstract class InventoryTranslator {
     /**
      * Whether a new inventory should be prepared - or if we can re-use the previous one.
      */
-    public boolean canReuseInventory(GeyserSession session, Inventory inventory, Inventory previous) {
-        // Filter for obvious mismatches that require a new inventory
-        if (previous == null
-            || inventory.getContainerType() == null
-            || previous.getContainerType() == null
-            || !Objects.equals(inventory.getContainerType(), previous.getContainerType())) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        // Filter for mismatches that require a new inventory
+        if (inventory.getContainerType() == null || previous.getContainerType() == null
+            || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
+            || inventory.getJavaId() != previous.getJavaId()
+        ) {
             return false;
         }
 
-        // Inventory size should also match.
-        if (inventory.getSize() != previous.getSize() || !Objects.equals(inventory.getTitle(), previous.getTitle())) {
-            return false;
-        }
-
-        // TODO can we easily set a new inventory name???
-
-        return true;
+        // Inventory size and the title should also match.
+        return inventory.getSize() == previous.getSize() && Objects.equals(inventory.getTitle(), previous.getTitle());
     }
     public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
@@ -171,7 +166,7 @@ public abstract class InventoryTranslator {
     public abstract int javaSlotToBedrock(int javaSlot);
     public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
     public abstract SlotType getSlotType(int javaSlot);
-    public abstract Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
+    public abstract Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
 
     /**
      * Used for crafting-related transactions. Will override in PlayerInventoryTranslator and CraftingInventoryTranslator.

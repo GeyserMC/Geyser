@@ -145,8 +145,8 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new BeaconContainer(name, windowId, this.size, containerType, playerInventory, this);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new BeaconContainer(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override

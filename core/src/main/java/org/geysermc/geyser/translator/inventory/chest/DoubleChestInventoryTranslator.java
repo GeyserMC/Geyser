@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory.chest;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -37,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -61,35 +63,27 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
                 .javaId();
     }
 
+    /**
+     * Additional checks to verify that we can re-use the block inventory holder.
+     * Mirrors {@link BlockInventoryHolder#canReuseContainer(GeyserSession, Container, Container)}
+     */
     @Override
-    public boolean canReuseInventory(GeyserSession session, Inventory inventory, Inventory previous) {
-        if (!super.canReuseInventory(session, inventory, previous)) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        if (!super.canReuseInventory(session, inventory, previous) ||
+            !(inventory instanceof Container container) ||
+            !(previous instanceof Container)
+        ) {
             return false;
         }
 
-        if (!(inventory instanceof Container container) || !(previous instanceof Container previousContainer)) {
-            return false;
-        }
-
-        // We already ensured that the inventories are the same type, size,
         if (canUseRealBlock(session, container)) {
             // We can reuse the same holder position.
-            if (container.getHolderPosition() != previous.getHolderPosition()) {
-                return false;
-            } else {
-                container.setReusingBlock(true);
-                return true;
-            }
+            return container.getHolderPosition() == previous.getHolderPosition();
         }
 
         // Check if we'd be using the same virtual inventory position.
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
-        if (Objects.equals(position, previous.getHolderPosition())) {
-            container.setReusingBlock(true);
-            return true;
-        }
-
-        return false;
+        return Objects.equals(position, previous.getHolderPosition());
     }
 
     @Override
@@ -165,6 +159,8 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
+        // this should no longer be possible; as we're storing the translator with the inventory to avoid desyncs.
+        // TODO use generics to ensure we don't need to cast unsafely in the first place
         if (!(inventory instanceof Container container)) {
             GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! Please report this error on discord.");
             GeyserImpl.getInstance().getLogger().warning("Current inventory translator: " + InventoryUtils.getInventoryTranslator(session).getClass().getSimpleName());

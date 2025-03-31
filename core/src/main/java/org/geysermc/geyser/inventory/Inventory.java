@@ -47,6 +47,10 @@ public abstract class Inventory {
     @Getter
     protected final int javaId;
 
+    @Setter
+    @Getter
+    private int bedrockId;
+
     /**
      * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
      * If this is out of sync with the server when a packet containing it is handled, the server will resync items.
@@ -105,11 +109,14 @@ public abstract class Inventory {
     @Getter
     private final InventoryTranslator translator;
 
-    protected Inventory(int id, int size, ContainerType containerType, InventoryTranslator translator) {
-        this("Inventory", id, size, containerType, translator);
+    @Getter
+    private final GeyserSession session;
+
+    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType, InventoryTranslator translator) {
+        this(session, "Inventory", id, size, containerType, translator);
     }
 
-    protected Inventory(String title, int javaId, int size, ContainerType containerType, InventoryTranslator translator) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType, InventoryTranslator translator) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
@@ -117,14 +124,19 @@ public abstract class Inventory {
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
         this.translator = translator;
-    }
+        this.session = session;
 
-    // This is to prevent conflicts with special bedrock inventory IDs.
-    // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
-    // so this is rarely needed. (certain plugins)
-    // Example: https://github.com/GeyserMC/Geyser/issues/3254
-    public int getBedrockId() {
-        return javaId <= 100 ? javaId : (javaId % 100) + 1;
+        // This is to prevent conflicts with special bedrock inventory IDs.
+        // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
+        // so this is rarely needed. (certain plugins)
+        // Example: https://github.com/GeyserMC/Geyser/issues/3254
+        this.bedrockId = javaId <= 100 ? javaId : (javaId % 100) + 1;
+
+        // We occasionally need to re-open inventories with a delay in cases where
+        // Java wouldn't - e.g. for virtual chest menus that switch pages
+        if (session.getOpenInventory() != null && session.getOpenInventory().getBedrockId() == bedrockId) {
+            this.bedrockId += 1;
+        }
     }
 
     public GeyserItemStack getItem(int slot) {
@@ -197,15 +209,15 @@ public abstract class Inventory {
      * Helper methods to avoid using the wrong translator to update specific inventories.
      */
 
-    public void updateInventory(GeyserSession session) {
+    public void updateInventory() {
         this.translator.updateInventory(session, this);
     }
 
-    public void updateProperty(GeyserSession session, int rawProperty, int value) {
+    public void updateProperty(int rawProperty, int value) {
         this.translator.updateProperty(session, this, rawProperty, value);
     }
 
-    public void updateSlot(GeyserSession session, int slot) {
+    public void updateSlot(int slot) {
         this.translator.updateSlot(session, this, slot);
     }
 }
