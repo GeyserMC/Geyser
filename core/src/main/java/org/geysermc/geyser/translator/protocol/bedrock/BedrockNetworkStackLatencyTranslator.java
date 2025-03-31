@@ -65,7 +65,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
             return;
         }
 
-        if (session.getPendingInventoryId() != -1) {
+        if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
             InventoryUtils.openPendingInventory(session);
         } else {
             session.scheduleInEventLoop(() -> {

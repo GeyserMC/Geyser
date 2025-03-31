@@ -31,6 +31,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
@@ -56,28 +57,26 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         Inventory openInventory = session.getOpenInventory();
         if (bedrockId == -1 && openInventory != null) {
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
-            bedrockId = (byte) openInventory.getBedrockId();
+            if (openInventory.getTranslator() instanceof MerchantInventoryTranslator) {
+                bedrockId = (byte) openInventory.getBedrockId();
+            }
 
             // If virtual inventories are opened too quickly, they can be occasionally rejected
             // We just try and queue a new one.
-            if (openInventory.getTranslator().requiresOpeningDelay(session, openInventory)) {
+            if (openInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+                // Before making another attempt to re-open, let's make sure we actually need this inventory open.
                 if (session.getContainerOpenAttempts() < 3) {
                     openInventory.setPending(true);
                     openInventory.setDelayed(true);
-                    session.setPendingInventoryId(openInventory.getBedrockId());
+                    session.setPendingOrCurrentBedrockInventoryId(openInventory.getBedrockId());
 
-                    byte finalBedrockId = bedrockId;
                     session.scheduleInEventLoop(() -> {
-                        if (InventoryUtils.shouldQueueRejectedInventory(session)) {
-                            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                            latencyPacket.setFromServer(true);
-                            latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                            session.sendUpstreamPacket(latencyPacket);
-                            GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sending another latency packet!");
-                        } else {
-                            closeCurrentOrOpenPending(session, finalBedrockId, session.getOpenInventory());
-                        }
-                    }, 200, TimeUnit.MILLISECONDS);
+                        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+                        latencyPacket.setFromServer(true);
+                        latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                        session.sendUpstreamPacket(latencyPacket);
+                        GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
+                    }, 100, TimeUnit.MILLISECONDS);
                     return;
                 } else {
                     GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 3 attempts to open a virtual inventory!");
@@ -86,6 +85,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             }
         }
 
+        session.setPendingOrCurrentBedrockInventoryId(-1);
         session.setContainerOpenAttempts(0);
         closeCurrentOrOpenPending(session, bedrockId, openInventory);
     }
