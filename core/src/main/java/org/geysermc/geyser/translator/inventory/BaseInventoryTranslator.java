@@ -90,7 +90,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Container(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new Container(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 }

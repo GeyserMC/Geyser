@@ -32,8 +32,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -46,6 +48,10 @@ public abstract class Inventory {
     @Getter
     protected final int javaId;
 
+    @Setter
+    @Getter
+    private int bedrockId;
+
     /**
      * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
      * If this is out of sync with the server when a packet containing it is handled, the server will resync items.
@@ -55,7 +61,7 @@ public abstract class Inventory {
     @Setter
     private int stateId;
     /**
-     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)}; used as a hack
+     * See {@link ClickPlan#execute(boolean)}; used as a hack
      */
     @Getter
     private int nextStateId = -1;
@@ -75,43 +81,72 @@ public abstract class Inventory {
     protected final GeyserItemStack[] items;
 
     /**
-     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location
+     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location.
      */
     @Getter
     @Setter
     protected Vector3i holderPosition = Vector3i.ZERO;
 
+    /**
+     * The entity id of the entity holding the inventory.
+     * Either this, or the holder position must be set in order for Bedrock to open inventories.
+     */
     @Getter
     @Setter
     protected long holderId = -1;
 
+    /**
+     * Whether this inventory is currently pending.
+     * It can be pending if this inventory was opened while another inventory was still open,
+     * or because opening this inventory takes more time (e.g. virtual inventories).
+     */
     @Getter
     @Setter
     private boolean pending = false;
 
+    /**
+     * Whether this inventory is currently shown to the Bedrock player.
+     */
     @Getter
     @Setter
     private boolean displayed = false;
 
-    protected Inventory(int id, int size, ContainerType containerType) {
-        this("Inventory", id, size, containerType);
+    /**
+     * The translator for this inventory. Stored here to avoid de-syncs of the inventory and current translator.
+     */
+    @Getter
+    private final InventoryTranslator translator;
+
+    @Getter
+    private final GeyserSession session;
+
+    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType, InventoryTranslator translator) {
+        this(session, "Inventory", id, size, containerType, translator);
     }
 
-    protected Inventory(String title, int javaId, int size, ContainerType containerType) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType, InventoryTranslator translator) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
-    }
+        this.translator = translator;
+        this.session = session;
 
-    // This is to prevent conflicts with special bedrock inventory IDs.
-    // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
-    // so this is rarely needed. (certain plugins)
-    // Example: https://github.com/GeyserMC/Geyser/issues/3254
-    public int getBedrockId() {
-        return javaId <= 100 ? javaId : (javaId % 100) + 1;
+        // This is to prevent conflicts with special bedrock inventory IDs.
+        // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
+        // so this is rarely needed. (certain plugins)
+        // Example: https://github.com/GeyserMC/Geyser/issues/3254
+        this.bedrockId = javaId <= 100 ? javaId : (javaId % 100) + 1;
+
+        // We occasionally need to re-open inventories with a delay in cases where
+        // Java wouldn't - e.g. for virtual chest menus that switch pages.
+        // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
+        // so to be safe we just deviate in that case as well.
+        if ((session.getOpenInventory() != null && session.getOpenInventory().getBedrockId() == bedrockId) || session.isClosingInventory()) {
+            this.bedrockId += 1;
+        }
     }
 
     public GeyserItemStack getItem(int slot) {
@@ -178,5 +213,21 @@ public abstract class Inventory {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
+    }
+
+    /*
+     * Helper methods to avoid using the wrong translator to update specific inventories.
+     */
+
+    public void updateInventory() {
+        this.translator.updateInventory(session, this);
+    }
+
+    public void updateProperty(int rawProperty, int value) {
+        this.translator.updateProperty(session, this, rawProperty, value);
+    }
+
+    public void updateSlot(int slot) {
+        this.translator.updateSlot(session, this, slot);
     }
 }

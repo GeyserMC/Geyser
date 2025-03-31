@@ -30,7 +30,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -61,7 +60,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         session.setOpenInventory(null);
         session.setClosingInventory(false);
 

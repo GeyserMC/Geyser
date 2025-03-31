@@ -51,6 +51,6 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
             + MinecraftLocale.getLocaleString("debug.prefix", session.locale())
             + " " + ChatColor.RESET
             + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
-        session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+        session.getPlayerInventory().updateInventory();
     }
 }

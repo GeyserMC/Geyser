@@ -174,7 +174,6 @@ import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -291,13 +290,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean isInWorldBorderWarningArea = false;
 
     private final PlayerInventory playerInventory;
+
     @Setter
     private @Nullable Inventory openInventory;
+
     @Setter
     private boolean closingInventory;
 
+    /**
+     * Stores the bedrock inventory id of the pending inventory, or -1 if no inventory is pending.
+     * This id is only set when the block that should be opened exists.
+     */
     @Setter
-    private @NonNull InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
+    private int pendingOrCurrentBedrockInventoryId = -1;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
@@ -717,7 +722,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
 
-        this.playerInventory = new PlayerInventory();
+        this.playerInventory = new PlayerInventory(this);
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();

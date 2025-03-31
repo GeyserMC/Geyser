@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.inventory.chest;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
@@ -49,6 +50,11 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
             return true;
         }
         return bedrockDestinationContainer == ContainerSlotType.LEVEL_ENTITY && javaDestinationSlot >= this.size;
+    }
+
+    @Override
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
+        return inventory instanceof Container container && !container.isUsingRealBlock();
     }
 
     @Override

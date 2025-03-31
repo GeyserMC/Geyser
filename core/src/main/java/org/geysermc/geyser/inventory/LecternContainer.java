@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
@@ -45,8 +46,8 @@ public class LecternContainer extends Container {
 
     private boolean isBookInPlayerInventory = false;
 
-    public LecternContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public LecternContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(session, title, id, size, containerType, playerInventory, translator);
     }
 
     /**

@@ -46,8 +46,8 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Generic3X3Container(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new Generic3X3Container(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override
