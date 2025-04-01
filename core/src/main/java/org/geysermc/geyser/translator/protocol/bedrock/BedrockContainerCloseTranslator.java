@@ -59,11 +59,9 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
             if (openInventory.getTranslator() instanceof MerchantInventoryTranslator) {
                 bedrockId = (byte) openInventory.getBedrockId();
-            }
-
-            // If virtual inventories are opened too quickly, they can be occasionally rejected
-            // We just try and queue a new one.
-            if (openInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+            } else if (openInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+                // If virtual inventories are opened too quickly, they can be occasionally rejected
+                // We just try and queue a new one.
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
                 if (session.getContainerOpenAttempts() < 3) {
                     openInventory.setPending(true);
