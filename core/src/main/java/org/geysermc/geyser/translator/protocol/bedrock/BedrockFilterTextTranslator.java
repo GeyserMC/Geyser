@@ -48,7 +48,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
         packet.setFromServer(true);
         if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
             packet.setText(anvilContainer.checkForRename(session, packet.getText()));
-            session.getInventoryTranslator().updateSlot(session, anvilContainer, 1);
+            anvilContainer.updateSlot(1);
         }
         session.sendUpstreamPacket(packet);
     }

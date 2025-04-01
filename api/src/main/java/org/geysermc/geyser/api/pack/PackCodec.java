@@ -98,7 +98,7 @@ public abstract class PackCodec {
      * @since 2.1.1
      */
     @NonNull
-    public static PathPackCodec path(@NonNull Path path) {
+    public static PackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
 
@@ -110,7 +110,7 @@ public abstract class PackCodec {
      * @since 2.6.2
      */
     @NonNull
-    public static UrlPackCodec url(@NonNull String url) {
+    public static PackCodec url(@NonNull String url) {
         return GeyserApi.api().provider(UrlPackCodec.class, url);
     }
 }
