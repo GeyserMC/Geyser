@@ -493,9 +493,12 @@ public class InventoryUtils {
             return "null";
         }
 
+        String inventoryType = inventory.getContainerType() != null ?
+            inventory.getContainerType().name() : "null";
+
         return inventory.getClass().getSimpleName() + ": javaId=" + inventory.getJavaId() +
             ", bedrockId=" + inventory.getBedrockId() + ", size=" + inventory.getSize() +
-            ", type=" + inventory.getContainerType().name() + ", pending=" + inventory.isPending() +
+            ", type=" + inventoryType + ", pending=" + inventory.isPending() +
             ", displayed=" + inventory.isPending() + ", delayed=" + inventory.isPending();
     }
 }
