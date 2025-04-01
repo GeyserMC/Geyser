@@ -15,7 +15,7 @@ protocol-common = "3.0.0.Beta6-20250324.162731-5"
 protocol-codec = "3.0.0.Beta6-20250324.162731-5"
 raknet = "1.0.0.CR3-20250218.160705-18"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.4-20250311.232133-24"
+mcprotocollib = "1.21.5-20250328.211816-22"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -33,23 +33,23 @@ commodore = "2.2"
 bungeecord = "1.21-R0.1-20250215.224541-54"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
-fabric-loader = "0.16.9"
-fabric-api = "0.109.1+1.21.4"
+fabric-loader = "0.16.10"
+fabric-api = "0.119.5+1.21.5"
 fabric-permissions-api = "0.3.3"
-neoforge-minecraft = "21.4.0-beta"
+neoforge-minecraft = "21.5.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.4"
+minecraft = "1.21.5"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.4"
+runpaperversion = "1.21.5"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "3.1.3"
 shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.9-SNAPSHOT"
+architectury-loom = "1.10-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
 blossom = "2.1.0"
@@ -75,6 +75,7 @@ fastutil-int-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "
 fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
 fastutil-object-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-object-maps", version.ref = "fastutil" }
 fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
+fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
 
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
@@ -161,7 +162,7 @@ runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

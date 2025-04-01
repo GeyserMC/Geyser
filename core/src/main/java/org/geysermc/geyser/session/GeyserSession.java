@@ -173,6 +173,7 @@ import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -748,7 +749,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Note: this.dimensionType may be null here if the player is connecting from online mode
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        for (JavaDimension javaDimension : this.registryCache.dimensions().values()) {
+        for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
             if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                 minY = Math.min(minY, javaDimension.minY());
                 maxY = Math.max(maxY, javaDimension.maxY());
@@ -1456,14 +1457,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet(), 0));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
     }
 
     public void setClientRenderDistance(int clientRenderDistance) {

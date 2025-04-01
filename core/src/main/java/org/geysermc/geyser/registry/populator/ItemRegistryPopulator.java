@@ -45,7 +45,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
@@ -112,46 +111,23 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        // 1.21.5
         Map<Item, Item> itemFallbacks = new HashMap<>();
-        itemFallbacks.put(Items.PALE_OAK_PLANKS, Items.BIRCH_PLANKS);
-        itemFallbacks.put(Items.PALE_OAK_FENCE, Items.BIRCH_FENCE);
-        itemFallbacks.put(Items.PALE_OAK_FENCE_GATE, Items.BIRCH_FENCE_GATE);
-        itemFallbacks.put(Items.PALE_OAK_STAIRS, Items.BIRCH_STAIRS);
-        itemFallbacks.put(Items.PALE_OAK_DOOR, Items.BIRCH_DOOR);
-        itemFallbacks.put(Items.PALE_OAK_TRAPDOOR, Items.BIRCH_TRAPDOOR);
-        itemFallbacks.put(Items.PALE_OAK_SLAB, Items.BIRCH_SLAB);
-        itemFallbacks.put(Items.PALE_OAK_LOG, Items.BIRCH_LOG);
-        itemFallbacks.put(Items.STRIPPED_PALE_OAK_LOG, Items.STRIPPED_BIRCH_LOG);
-        itemFallbacks.put(Items.PALE_OAK_WOOD, Items.BIRCH_WOOD);
-        itemFallbacks.put(Items.PALE_OAK_LEAVES, Items.BIRCH_LEAVES);
-        itemFallbacks.put(Items.PALE_OAK_SAPLING, Items.BIRCH_SAPLING);
-        itemFallbacks.put(Items.STRIPPED_PALE_OAK_WOOD, Items.STRIPPED_BIRCH_WOOD);
-        itemFallbacks.put(Items.PALE_OAK_SIGN, Items.BIRCH_SIGN);
-        itemFallbacks.put(Items.PALE_OAK_HANGING_SIGN, Items.BIRCH_HANGING_SIGN);
-        itemFallbacks.put(Items.PALE_OAK_BOAT, Items.BIRCH_BOAT);
-        itemFallbacks.put(Items.PALE_OAK_CHEST_BOAT, Items.BIRCH_CHEST_BOAT);
-        itemFallbacks.put(Items.PALE_OAK_BUTTON, Items.BIRCH_BUTTON);
-        itemFallbacks.put(Items.PALE_OAK_PRESSURE_PLATE, Items.BIRCH_PRESSURE_PLATE);
-        itemFallbacks.put(Items.RESIN_CLUMP, Items.RAW_COPPER);
-        itemFallbacks.put(Items.RESIN_BRICK_WALL, Items.RED_SANDSTONE_WALL);
-        itemFallbacks.put(Items.RESIN_BRICK_STAIRS, Items.RED_SANDSTONE_STAIRS);
-        itemFallbacks.put(Items.RESIN_BRICK_SLAB, Items.RED_SANDSTONE_SLAB);
-        itemFallbacks.put(Items.RESIN_BLOCK, Items.RED_SANDSTONE);
-        itemFallbacks.put(Items.RESIN_BRICK, Items.BRICK);
-        itemFallbacks.put(Items.RESIN_BRICKS, Items.CUT_RED_SANDSTONE);
-        itemFallbacks.put(Items.CHISELED_RESIN_BRICKS, Items.CHISELED_RED_SANDSTONE);
-        itemFallbacks.put(Items.CLOSED_EYEBLOSSOM, Items.WHITE_TULIP);
-        itemFallbacks.put(Items.OPEN_EYEBLOSSOM, Items.OXEYE_DAISY);
-        itemFallbacks.put(Items.PALE_MOSS_BLOCK, Items.MOSS_BLOCK);
-        itemFallbacks.put(Items.PALE_MOSS_CARPET, Items.MOSS_CARPET);
-        itemFallbacks.put(Items.PALE_HANGING_MOSS, Items.HANGING_ROOTS);
-        itemFallbacks.put(Items.CREAKING_HEART, Items.CHISELED_POLISHED_BLACKSTONE);
-        itemFallbacks.put(Items.CREAKING_SPAWN_EGG, Items.HOGLIN_SPAWN_EGG);
+        itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
+        itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
+        itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
+        itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
+        itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
+        itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
+        itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
+        itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
+        itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
+        itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
+        itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
@@ -167,7 +143,6 @@ public class ItemRegistryPopulator {
         }
 
         NbtMap vanillaComponents;
-        // TODO e.g. breeze rod icon does not load with our modified item components
         try (InputStream stream = bootstrap.getResourceOrThrow("bedrock/item_components.nbt")) {
             vanillaComponents = (NbtMap) NbtUtils.createGZIPReader(stream, true, true).readTag();
         } catch (Exception e) {

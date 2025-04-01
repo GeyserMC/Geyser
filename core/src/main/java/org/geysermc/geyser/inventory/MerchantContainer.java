@@ -35,11 +35,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 
+import java.util.List;
+
 @Setter
 public class MerchantContainer extends Container {
     @Getter
     private Entity villager;
-    private VillagerTrade[] villagerTrades;
+    private List<VillagerTrade> villagerTrades;
     @Getter
     private ClientboundMerchantOffersPacket pendingOffersPacket;
     @Getter
@@ -50,9 +52,9 @@ public class MerchantContainer extends Container {
     }
 
     public void onTradeSelected(GeyserSession session, int slot) {
-        if (villagerTrades != null && slot >= 0 && slot < villagerTrades.length) {
-            VillagerTrade trade = villagerTrades[slot];
-            setItem(2, GeyserItemStack.from(trade.getOutput()), session);
+        if (villagerTrades != null && slot >= 0 && slot < villagerTrades.size()) {
+            VillagerTrade trade = villagerTrades.get(slot);
+            setItem(2, GeyserItemStack.from(trade.getResult()), session);
 
             tradeExperience += trade.getXp();
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);

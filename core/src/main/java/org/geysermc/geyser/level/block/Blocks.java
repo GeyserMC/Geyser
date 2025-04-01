@@ -325,6 +325,9 @@ public final class Blocks {
     public static final Block SHORT_GRASS = register(new Block("short_grass", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block FERN = register(new Block("fern", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block DEAD_BUSH = register(new Block("dead_bush", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block BUSH = register(new Block("bush", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block SHORT_DRY_GRASS = register(new Block("short_dry_grass", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block TALL_DRY_GRASS = register(new Block("tall_dry_grass", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block SEAGRASS = register(new Block("seagrass", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block TALL_SEAGRASS = register(new Block("tall_seagrass", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.SEAGRASS)
         .enumState(DOUBLE_BLOCK_HALF)));
@@ -399,8 +402,8 @@ public final class Blocks {
     public static final Block SOUL_FIRE = register(new Block("soul_fire", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block SPAWNER = register(new SpawnerBlock("spawner", builder().setBlockEntity(BlockEntityType.MOB_SPAWNER).requiresCorrectToolForDrops().destroyTime(5.0f)));
     public static final Block CREAKING_HEART = register(new Block("creaking_heart", builder().setBlockEntity(BlockEntityType.CREAKING_HEART).destroyTime(10.0f)
-        .booleanState(ACTIVE)
         .enumState(AXIS, Axis.VALUES)
+        .enumState(CREAKING_HEART_STATE)
         .booleanState(NATURAL)));
     public static final Block OAK_STAIRS = register(new Block("oak_stairs", builder().destroyTime(2.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
@@ -640,6 +643,7 @@ public final class Blocks {
     public static final Block SNOW_BLOCK = register(new Block("snow_block", builder().requiresCorrectToolForDrops().destroyTime(0.2f)));
     public static final Block CACTUS = register(new Block("cactus", builder().destroyTime(0.4f).pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_15)));
+    public static final Block CACTUS_FLOWER = register(new Block("cactus_flower", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block CLAY = register(new Block("clay", builder().destroyTime(0.6f)));
     public static final Block SUGAR_CANE = register(new Block("sugar_cane", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_15)));
@@ -2268,6 +2272,9 @@ public final class Blocks {
         .enumState(STRUCTUREBLOCK_MODE)));
     public static final Block JIGSAW = register(new Block("jigsaw", builder().setBlockEntity(BlockEntityType.JIGSAW).requiresCorrectToolForDrops().destroyTime(-1.0f)
         .enumState(ORIENTATION, FrontAndTop.VALUES)));
+    public static final Block TEST_BLOCK = register(new Block("test_block", builder().setBlockEntity(BlockEntityType.TEST_BLOCK).destroyTime(-1.0f)
+        .enumState(TEST_BLOCK_MODE)));
+    public static final Block TEST_INSTANCE_BLOCK = register(new Block("test_instance_block", builder().setBlockEntity(BlockEntityType.TEST_INSTANCE_BLOCK).destroyTime(-1.0f)));
     public static final Block COMPOSTER = register(new Block("composter", builder().destroyTime(0.6f)
         .intState(LEVEL_COMPOSTER)));
     public static final Block TARGET = register(new Block("target", builder().destroyTime(0.5f)
@@ -2790,6 +2797,12 @@ public final class Blocks {
     public static final Block PINK_PETALS = register(new Block("pink_petals", builder().pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .intState(FLOWER_AMOUNT)));
+    public static final Block WILDFLOWERS = register(new Block("wildflowers", builder().pushReaction(PistonBehavior.DESTROY)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .intState(FLOWER_AMOUNT)));
+    public static final Block LEAF_LITTER = register(new Block("leaf_litter", builder().pushReaction(PistonBehavior.DESTROY)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .intState(SEGMENT_AMOUNT)));
     public static final Block MOSS_BLOCK = register(new Block("moss_block", builder().destroyTime(0.1f).pushReaction(PistonBehavior.DESTROY)));
     public static final Block BIG_DRIPLEAF = register(new Block("big_dripleaf", builder().destroyTime(0.1f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
@@ -2921,6 +2934,7 @@ public final class Blocks {
     public static final Block CLOSED_EYEBLOSSOM = register(new Block("closed_eyeblossom", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_OPEN_EYEBLOSSOM = register(new FlowerPotBlock("potted_open_eyeblossom", OPEN_EYEBLOSSOM, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_CLOSED_EYEBLOSSOM = register(new FlowerPotBlock("potted_closed_eyeblossom", CLOSED_EYEBLOSSOM, builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block FIREFLY_BUSH = register(new Block("firefly_bush", builder().pushReaction(PistonBehavior.DESTROY)));
 
     private static <T extends Block> T register(T block) {
         block.setJavaId(BlockRegistries.JAVA_BLOCKS.get().size());

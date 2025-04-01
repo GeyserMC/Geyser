@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.spawn;
+package org.geysermc.geyser.entity.type.living.animal;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddExperienceOrbPacket;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.ExpOrbEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-
-@Translator(packet = ClientboundAddExperienceOrbPacket.class)
-public class JavaAddExperienceOrbTranslator extends PacketTranslator<ClientboundAddExperienceOrbPacket> {
+/**
+ * Extension to {@link VariantHolder} to make it easier to implement on mobs that use bedrock's metadata system to set their variants, which are quite common.
+ *
+ * @see VariantHolder
+ */
+public interface VariantIntHolder extends VariantHolder<VariantIntHolder.BuiltIn> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundAddExperienceOrbPacket packet) {
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
+    default void setBedrockVariant(BuiltIn variant) {
+        setBedrockVariantId(variant.ordinal());
+    }
 
-        Entity entity = new ExpOrbEntity(
-                session, packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position
-        );
+    /**
+     * Should set the variant on bedrock's metadata. The bedrock ID has already been checked and is always valid.
+     */
+    void setBedrockVariantId(int bedrockId);
 
-        session.getEntityCache().spawnEntity(entity);
+    /**
+     * The enum constants should be ordered in the order of their bedrock network ID.
+     *
+     * @see org.geysermc.geyser.entity.type.living.animal.VariantHolder.BuiltIn
+     */
+    interface BuiltIn extends VariantHolder.BuiltIn {
+
+        int ordinal();
     }
 }
