@@ -157,7 +157,7 @@ public class StructureBlockUtils {
                 settings.isIgnoringEntities(),
                 false,
                 boundingBoxVisible,
-                false // TODO 1.21.5 test
+                false
         );
 
         session.sendDownstreamPacket(structureBlockPacket);
