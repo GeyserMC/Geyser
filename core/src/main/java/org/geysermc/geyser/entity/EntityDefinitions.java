@@ -544,9 +544,8 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.FLOAT, (minecartEntity, entityMetadata) ->
                             // Power in Java, hurt ticks in Bedrock
                             minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, Math.min((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 15)))
-                    .addTranslator(MetadataTypes.INT, MinecartEntity::setCustomBlock)
+                    .addTranslator(MetadataTypes.OPTIONAL_BLOCK_STATE, MinecartEntity::setCustomBlock)
                     .addTranslator(MetadataTypes.INT, MinecartEntity::setCustomBlockOffset)
-                    .addTranslator(MetadataTypes.BOOLEAN, MinecartEntity::setShowCustomBlock)
                     .build();
             CHEST_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
                     .type(EntityType.CHEST_MINECART)

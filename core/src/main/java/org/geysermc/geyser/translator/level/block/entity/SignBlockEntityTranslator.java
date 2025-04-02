@@ -75,16 +75,20 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        bedrockNbt.putCompound("FrontText", translateSide(javaNbt.getCompound("front_text")));
-        bedrockNbt.putCompound("BackText", translateSide(javaNbt.getCompound("back_text")));
+        bedrockNbt.putCompound("FrontText", translateSide(session, javaNbt.getCompound("front_text")));
+        bedrockNbt.putCompound("BackText", translateSide(session, javaNbt.getCompound("back_text")));
         bedrockNbt.putBoolean("IsWaxed", javaNbt.getBoolean("is_waxed"));
     }
 
-    private NbtMap translateSide(NbtMap javaNbt) {
+    private NbtMap translateSide(GeyserSession session, NbtMap javaNbt) {
         NbtMapBuilder builder = NbtMap.builder();
 
         StringBuilder signText = new StringBuilder();
-        List<String> messages = javaNbt.getList("messages", NbtType.STRING);
+        List<?> rawMessages = javaNbt.getList("messages", NbtType.COMPOUND);
+        if (rawMessages.isEmpty()) {
+            rawMessages = javaNbt.getList("messages", NbtType.STRING);
+        }
+        List<String> messages = MessageTranslator.signTextFromNbtTag(session, rawMessages);
         if (!messages.isEmpty()) {
             var it = messages.iterator();
             while (it.hasNext()) {

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.ScoreComponent;
@@ -56,6 +54,9 @@ import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -200,13 +201,6 @@ public class MessageTranslator {
 
             return "";
         }
-    }
-
-    /**
-     * Convenience method for locale getting.
-     */
-    public static String convertJsonMessage(GeyserSession session, String message) {
-        return convertJsonMessage(message, session.locale());
     }
 
     public static String convertJsonMessage(String message, String locale) {
@@ -446,6 +440,15 @@ public class MessageTranslator {
 
     public static Component componentFromNbtTag(Object nbtTag) {
         return componentFromNbtTag(nbtTag, Style.empty());
+    }
+
+    public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
+        var components = componentsFromNbtList(nbtTag, Style.empty());
+        List<String> messages = new ArrayList<>();
+        for (Component component : components) {
+            messages.add(convertMessageRaw(component, session.locale()));
+        }
+        return messages;
     }
 
     private static Component componentFromNbtTag(Object nbtTag, Style style) {
