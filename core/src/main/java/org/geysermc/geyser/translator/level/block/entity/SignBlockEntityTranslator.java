@@ -93,7 +93,6 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             var it = messages.iterator();
             while (it.hasNext()) {
                 String signLine = it.next();
-                signLine = MessageTranslator.convertMessageLenient(signLine);
 
                 // Check the character width on the sign to ensure there is no overflow that is usually hidden
                 // to Java Edition clients but will appear to Bedrock clients
