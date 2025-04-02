@@ -94,6 +94,9 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
         BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
+        // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
+        session.setPendingOrCurrentBedrockInventoryId(-1);
+
         super.closeInventory(session, inventory); // Removes the fake blocks if need be
 
         // Now: Restore the lectern, if it actually exists
