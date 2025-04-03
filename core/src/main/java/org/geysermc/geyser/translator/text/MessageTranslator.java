@@ -458,7 +458,7 @@ public class MessageTranslator {
             return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
         } else if (nbtTag instanceof NbtMap map) {
             Component component = null;
-            String text = map.getString("text", null);
+            String text = map.getString("text", map.getString("", null));
             if (text != null) {
                 component = Component.text(text);
             } else {
