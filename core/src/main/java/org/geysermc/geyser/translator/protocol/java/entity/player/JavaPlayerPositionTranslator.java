@@ -126,7 +126,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
         float lastPlayerPitch = entity.getPitch();
         Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
-        entity.moveAbsolute(teleportDestination, newYaw, newPitch, true, true);
+        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
 
         session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
