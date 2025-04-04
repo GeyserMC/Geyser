@@ -25,18 +25,31 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundPongPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-// Why does this packet exist? Whatever, we better implement it
+// This packet is the same as keep alive, except it runs on the client's main thread.
 @Translator(packet = ClientboundPingPacket.class)
 public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundPingPacket packet) {
-        session.sendDownstreamPacket(new ServerboundPongPacket(packet.getId()));
+        // We use this once the client replies
+        final int id = packet.getId();
+
+        if (!session.getGeyser().getConfig().isForwardPlayerPing()) {
+            session.sendDownstreamPacket(new ServerboundPongPacket(id));
+            return;
+        }
+
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(id);
+        session.getLatencyPingCache().add(() -> session.sendDownstreamPacket(new ServerboundPongPacket(id)));
+        session.sendUpstreamPacket(latencyPacket);
     }
 }

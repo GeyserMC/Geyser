@@ -32,19 +32,23 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.component.util.ComponentType;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,7 +96,23 @@ public class FormCache {
             latencyPacket.setFromServer(true);
             latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
             session.scheduleInEventLoop(
-                    () -> session.sendUpstreamPacket(latencyPacket),
+                    () -> {
+                        session.getLatencyPingCache().add(() -> session.scheduleInEventLoop(() -> {
+                            // Hack to fix the url image loading bug
+                            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                            attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+
+                            AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                            if (attribute != null) {
+                                attributesPacket.setAttributes(Collections.singletonList(attribute));
+                            } else {
+                                attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                            }
+
+                            session.sendUpstreamPacket(attributesPacket);
+                        }, 500, TimeUnit.MILLISECONDS));
+                        session.sendUpstreamPacket(latencyPacket);
+                    },
                     500, TimeUnit.MILLISECONDS
             );
         }
