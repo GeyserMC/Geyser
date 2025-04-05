@@ -34,6 +34,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.block.custom.component.*;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockFilterType;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
@@ -217,7 +218,11 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     /**
-     * Read a block mapping entry from a JSON node and Java identifier
+     * Read a block mapping entry from a JSON node and Java identifier.
+     *
+     * This code also handles the geyser_custom namespace. Registering it
+     * with the geyser_custom namespace lets you treat the item as both
+     * an item and a block.
      * 
      * @param identifier The Java identifier of the block
      * @param node The {@link JsonNode} containing the block mapping entry
@@ -261,6 +266,20 @@ public class MappingsReader_v1 extends MappingsReader {
                 .includedInCreativeInventory(includedInCreativeInventory)
                 .creativeCategory(creativeCategory)
                 .creativeGroup(creativeGroup);
+
+        // Check if block has the custom namespace, if so then use NonVanillaCustomBlockData
+        if (identifier.startsWith("geyser_custom:")) {
+            CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(node, identifier, name);
+            NonVanillaCustomBlockData blockData = NonVanillaCustomBlockData.builder()
+                .name(name)
+                .namespace("geyser_custom")
+                .includedInCreativeInventory(includedInCreativeInventory)
+                .creativeCategory(creativeCategory)
+                .creativeGroup(creativeGroup)
+                .components(componentsMapping.components())
+                .build();
+            return new CustomBlockMapping(blockData, Map.of(identifier, new CustomBlockStateMapping(blockData.defaultBlockState(), componentsMapping.extendedCollisionBox())), identifier, !onlyOverrideStates);
+        }
 
         if (BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
