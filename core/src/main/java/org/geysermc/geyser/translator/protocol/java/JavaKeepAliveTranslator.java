@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 
 /**
  * Used to forward the keep alive packet to the client in order to get back a reliable ping.
@@ -42,10 +43,11 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         if (!session.getGeyser().getConfig().isForwardPlayerPing()) {
             return;
         }
-        // We use this once the client replies (see BedrockNetworkStackLatencyTranslator)
-        session.getKeepAliveCache().add(packet.getPingId());
 
-        long timestamp = packet.getPingId();
+        // We use this once the client replies
+        final long javaId = packet.getPingId();
+
+        long timestamp = javaId;
 
         // We take the abs because we rely on the client responding with a negative value ONLY when we send
         // a negative timestamp in the form-image-hack performed in FormCache.
@@ -62,9 +64,17 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
             timestamp /= 10;
         }
 
+        session.getLatencyPingCache().add(() -> {
+            // use our cached value because
+            // a) bedrock can be inaccurate with the value returned
+            // b) playstation replies with a different magnitude than other platforms
+            // c) 1.20.10 and later reply with a different magnitude
+            session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId));
+        });
+
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
         latencyPacket.setTimestamp(timestamp);
-        session.sendUpstreamPacketImmediately(latencyPacket);
+        session.sendUpstreamPacket(latencyPacket);
     }
 }
