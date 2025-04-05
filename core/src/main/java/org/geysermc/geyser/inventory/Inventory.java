@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Range;
 import java.util.Arrays;
 
 @ToString
-public abstract class Inventory {
+public abstract class Inventory<Type extends Inventory<Type>> {
     @Getter
     protected final int javaId;
 
@@ -115,16 +115,16 @@ public abstract class Inventory {
      * The translator for this inventory. Stored here to avoid de-syncs of the inventory and current translator.
      */
     @Getter
-    private final InventoryTranslator translator;
+    private final InventoryTranslator<Type> translator;
 
     @Getter
     private final GeyserSession session;
 
-    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType, InventoryTranslator translator) {
+    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType, InventoryTranslator<Type> translator) {
         this(session, "Inventory", id, size, containerType, translator);
     }
 
-    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType, InventoryTranslator translator) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType, InventoryTranslator<Type> translator) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
@@ -220,14 +220,30 @@ public abstract class Inventory {
      */
 
     public void updateInventory() {
-        this.translator.updateInventory(session, this);
+        this.translator.updateInventory(session, (Type) this);
     }
 
     public void updateProperty(int rawProperty, int value) {
-        this.translator.updateProperty(session, this, rawProperty, value);
+        this.translator.updateProperty(session, (Type) this, rawProperty, value);
     }
 
     public void updateSlot(int slot) {
-        this.translator.updateSlot(session, this, slot);
+        this.translator.updateSlot(session, (Type) this, slot);
+    }
+
+    public void openInventory() {
+        this.translator.openInventory(session, (Type) this);
+    }
+
+    public void closeInventory() {
+        this.translator.closeInventory(session, (Type) this);
+    }
+
+    public boolean requiresOpeningDelay() {
+        return this.translator.requiresOpeningDelay(session, (Type) this);
+    }
+
+    public boolean prepareInventory() {
+        return this.translator.prepareInventory(session, (Type) this);
     }
 }

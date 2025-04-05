@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
 
 @Getter
-public class EnchantingContainer extends Container {
+public class EnchantingContainer extends Container<EnchantingContainer> {
     /**
      * A cache of what Bedrock sees
      */
@@ -42,7 +42,7 @@ public class EnchantingContainer extends Container {
      */
     private final GeyserEnchantOption[] geyserEnchantOptions;
 
-    public EnchantingContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public EnchantingContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<EnchantingContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
 
         enchantOptions = new EnchantOptionData[3];

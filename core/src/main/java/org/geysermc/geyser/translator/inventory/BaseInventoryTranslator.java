@@ -31,13 +31,13 @@ import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-public abstract class BaseInventoryTranslator extends InventoryTranslator {
+public abstract class BaseInventoryTranslator<Type extends Container> extends InventoryTranslator<Type> {
     public BaseInventoryTranslator(int size) {
         super(size);
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Type container, int key, int value) {
         //
     }
 
@@ -90,7 +90,8 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Container(session, name, windowId, this.size, containerType, playerInventory, this);
+    public Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        //noinspection unchecked
+        return (Type) new Container(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 }

@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTransl
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 @Getter
-public class LecternContainer extends Container {
+public class LecternContainer extends Container<LecternContainer> {
     @Setter
     private int currentBedrockPage = 0;
     @Setter
@@ -46,7 +46,7 @@ public class LecternContainer extends Container {
 
     private boolean isBookInPlayerInventory = false;
 
-    public LecternContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public LecternContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<LecternContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
     }
 

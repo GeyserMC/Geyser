@@ -34,13 +34,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 @Setter
 @Getter
-public class StonecutterContainer extends Container {
+public class StonecutterContainer extends Container<StonecutterContainer> {
     /**
      * The button that has currently been pressed Java-side
      */
     private int stonecutterButton = -1;
 
-    public StonecutterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public StonecutterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<StonecutterContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
     }
 

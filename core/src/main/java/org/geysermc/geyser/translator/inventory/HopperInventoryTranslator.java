@@ -29,14 +29,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
 /**
  * Implemented on top of any block that does not have special properties implemented
  */
-public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public HopperInventoryTranslator() {
         super(5, Blocks.HOPPER, ContainerType.HOPPER, ContainerInventoryUpdater.INSTANCE);
     }
@@ -50,7 +50,7 @@ public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return ContainerType.HOPPER;
     }
 }

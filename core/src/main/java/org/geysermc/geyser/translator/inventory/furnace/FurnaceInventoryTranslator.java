@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.level.block.Blocks;
 
 public class FurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslator {
@@ -46,7 +46,7 @@ public class FurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslat
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return ContainerType.FURNACE;
     }
 }

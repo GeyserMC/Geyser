@@ -36,7 +36,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.jetbrains.annotations.Range;
 
 @Getter
-public class CrafterContainer extends Container {
+public class CrafterContainer extends Container<CrafterContainer> {
     private GeyserItemStack resultItem = GeyserItemStack.EMPTY;
 
     @Setter
@@ -48,7 +48,7 @@ public class CrafterContainer extends Container {
      */
     private short disabledSlotsMask = 0;
 
-    public CrafterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public CrafterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<CrafterContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
     }
 

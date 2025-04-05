@@ -71,7 +71,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 
-public class PlayerInventoryTranslator extends InventoryTranslator {
+public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInventory> {
     private static final IntFunction<ItemData> UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(GeyserLocale.getLocaleStringLog("geyser.inventory.unusable_item.creative"));
 
     public PlayerInventoryTranslator() {
@@ -84,7 +84,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
+    public void updateInventory(GeyserSession session, PlayerInventory inventory) {
         updateCraftingGrid(session, inventory);
 
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
@@ -129,7 +129,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
      * @param session Connection of the player
      * @param inventory Inventory of the player
      */
-    public static void updateCraftingGrid(GeyserSession session, Inventory inventory) {
+    public static void updateCraftingGrid(GeyserSession session, PlayerInventory inventory) {
         // Crafting grid
         for (int i = 1; i < 5; i++) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -147,7 +147,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSession session, PlayerInventory inventory, int slot) {
         GeyserItemStack javaItem = inventory.getItem(slot);
         ItemData bedrockItem = javaItem.getItemData(session);
 
@@ -253,7 +253,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public ItemStackResponse translateRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateRequest(GeyserSession session, PlayerInventory inventory, ItemStackRequest request) {
         if (session.getGameMode() != GameMode.CREATIVE) {
             return super.translateRequest(session, inventory, request);
         }
@@ -438,7 +438,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    protected ItemStackResponse translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateCreativeRequest(GeyserSession session, PlayerInventory inventory, ItemStackRequest request) {
         ItemStack javaCreativeItem = null;
         boolean bundle = false;
         IntSet affectedSlots = new IntOpenHashSet();
@@ -570,22 +570,22 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+    public PlayerInventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull PlayerInventory inventory, @NonNull Inventory previous) {
         return true;
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, PlayerInventory inventory) {
         return true;
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, PlayerInventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId((byte) 0);
         containerOpenPacket.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
@@ -595,7 +595,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public void closeInventory(GeyserSession session, PlayerInventory inventory) {
         if (session.isServerRequestedClosePlayerInventory()) {
             session.setServerRequestedClosePlayerInventory(false);
             Vector3i pos = session.getPlayerEntity().getPosition().toInt();
@@ -617,6 +617,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, PlayerInventory inventory, int key, int value) {
     }
 }

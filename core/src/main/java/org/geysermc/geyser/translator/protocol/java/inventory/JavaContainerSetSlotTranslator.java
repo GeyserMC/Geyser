@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescripto
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
@@ -66,49 +67,47 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
         //TODO: support window id -2, should update player inventory
         //TODO: ^ I think this is outdated.
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
+        Inventory<?> inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null) {
             return;
         }
 
-        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
-        if (translator != null) {
-            int slot = packet.getSlot();
-            if (slot >= inventory.getSize()) {
-                GeyserLogger logger = session.getGeyser().getLogger();
-                logger.warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
-                        + " that exceeds inventory size!");
-                if (logger.isDebug()) {
-                    logger.debug(packet.toString());
-                    logger.debug(inventory.toString());
-                }
-                // 1.19.0 behavior: the state ID will not be set due to exception
-                return;
+        InventoryTranslator<?> translator = InventoryUtils.getInventoryTranslator(session);
+        int slot = packet.getSlot();
+        if (slot >= inventory.getSize()) {
+            GeyserLogger logger = session.getGeyser().getLogger();
+            logger.warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
+                    + " that exceeds inventory size!");
+            if (logger.isDebug()) {
+                logger.debug(packet.toString());
+                logger.debug(inventory.toString());
             }
-
-            if (translator instanceof SmithingInventoryTranslator) {
-                updateSmithingTableOutput(session, slot, packet.getItem(), inventory);
-            } else {
-                updateCraftingGrid(session, slot, packet.getItem(), inventory, translator);
-            }
-
-            GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            session.getBundleCache().initialize(newItem);
-            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
-                // In rare cases, the window ID can still be 0 but Java treats it as valid
-                // This behavior still exists as of Java Edition 1.21.2, despite the new packet
-                session.getPlayerInventory().setItem(slot, newItem, session);
-                InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
-            } else {
-                inventory.setItem(slot, newItem, session);
-                translator.updateSlot(session, inventory, slot);
-            }
-
-            // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
-            int stateId = packet.getStateId();
-            session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
-            inventory.setStateId(stateId);
+            // 1.19.0 behavior: the state ID will not be set due to exception
+            return;
         }
+
+        if (translator instanceof SmithingInventoryTranslator) {
+            updateSmithingTableOutput(session, slot, packet.getItem(), (Container<?>) inventory);
+        } else {
+            updateCraftingGrid(session, slot, packet.getItem(), inventory, translator);
+        }
+
+        GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+        session.getBundleCache().initialize(newItem);
+        if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+            // In rare cases, the window ID can still be 0 but Java treats it as valid
+            // This behavior still exists as of Java Edition 1.21.2, despite the new packet
+            session.getPlayerInventory().setItem(slot, newItem, session);
+            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
+        } else {
+            inventory.setItem(slot, newItem, session);
+            translator.updateSlot(session, inventory, slot);
+        }
+
+        // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
+        int stateId = packet.getStateId();
+        session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
+        inventory.setStateId(stateId);
     }
 
     /**
@@ -225,7 +224,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         }, 150, TimeUnit.MILLISECONDS));
     }
 
-    static void updateSmithingTableOutput(GeyserSession session, int slot, ItemStack output, Inventory inventory) {
+    static void updateSmithingTableOutput(GeyserSession session, int slot, ItemStack output, Container<?> inventory) {
         if (slot != SmithingInventoryTranslator.OUTPUT) {
             return;
         }
@@ -289,7 +288,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             slotPacket.setItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
 
-            InventoryUtils.getInventoryTranslator(session).updateSlot(session, inventory, SmithingInventoryTranslator.MATERIAL);
+            session.getOpenInventory().updateSlot(SmithingInventoryTranslator.MATERIAL);
         }, 150, TimeUnit.MILLISECONDS));
     }
 }

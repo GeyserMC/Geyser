@@ -97,8 +97,8 @@ public class BlockInventoryHolder extends InventoryHolder {
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Container inventory) {
-        if (canUseRealBlock(session, inventory)) {
+    public boolean prepareInventory(GeyserSession session, Container container) {
+        if (canUseRealBlock(session, container)) {
             return true;
         }
 
@@ -113,14 +113,14 @@ public class BlockInventoryHolder extends InventoryHolder {
         blockPacket.setDefinition(session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
-        inventory.setHolderPosition(position);
+        container.setHolderPosition(position);
 
-        setCustomName(session, position, inventory, defaultJavaBlockState);
+        setCustomName(session, position, container, defaultJavaBlockState);
 
         return true;
     }
 
-    protected boolean canUseRealBlock(GeyserSession session, Container inventory) {
+    protected boolean canUseRealBlock(GeyserSession session, Container container) {
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
@@ -131,9 +131,9 @@ public class BlockInventoryHolder extends InventoryHolder {
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
                 if (isValidBlock(state)) {
                     // We can safely use this block
-                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                    inventory.setUsingRealBlock(true, state.block());
-                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, state);
+                    container.setHolderPosition(session.getLastInteractionBlockPosition());
+                    container.setUsingRealBlock(true, state.block());
+                    setCustomName(session, session.getLastInteractionBlockPosition(), container, state);
 
                     return true;
                 }

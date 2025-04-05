@@ -36,7 +36,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.jetbrains.annotations.Range;
 
 @Getter
-public class PlayerInventory extends Inventory {
+public class PlayerInventory extends Inventory<PlayerInventory> {
     /**
      * Stores the held item slot, starting at index 0.
      * Add 36 in order to get the network item slot.

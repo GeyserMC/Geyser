@@ -33,11 +33,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class BeaconContainer extends Container {
+public class BeaconContainer extends Container<BeaconContainer> {
     private int primaryId;
     private int secondaryId;
 
-    public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<BeaconContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
     }
 }

@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
@@ -45,7 +46,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public ShulkerInventoryTranslator() {
         // Ensure that the shulker box default state won't be trying to open in a state facing the player
         super(27, new BlockInventoryHolder(Blocks.SHULKER_BOX.defaultBlockState().withValue(Properties.FACING, Direction.NORTH), ContainerType.CONTAINER) {
@@ -83,7 +84,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return ContainerType.CONTAINER;
     }
 }

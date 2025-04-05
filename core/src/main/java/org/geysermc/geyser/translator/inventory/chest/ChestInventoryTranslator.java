@@ -28,13 +28,12 @@ package org.geysermc.geyser.translator.inventory.chest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 
-public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
+public abstract class ChestInventoryTranslator extends BaseInventoryTranslator<Container> {
     private final InventoryUpdater updater;
 
     public ChestInventoryTranslator(int size, int paddedSize) {
@@ -43,7 +42,7 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Container container, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         // Reject any item placements that occur in the unusable inventory space
         if (bedrockSourceContainer == ContainerSlotType.LEVEL_ENTITY && javaSourceSlot >= this.size) {
@@ -53,18 +52,18 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
-        return inventory instanceof Container container && !container.isUsingRealBlock();
+    public boolean requiresOpeningDelay(GeyserSession session, Container container) {
+        return !container.isUsingRealBlock();
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
+    public void updateInventory(GeyserSession session, Container container) {
+        updater.updateInventory(this, session, container);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+    public void updateSlot(GeyserSession session, Container container, int slot) {
+        updater.updateSlot(this, session, container, slot);
     }
 
     @Override

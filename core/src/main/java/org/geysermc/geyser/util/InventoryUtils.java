@@ -55,7 +55,6 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
-import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
@@ -98,7 +97,7 @@ public class InventoryUtils {
      * @param session the geyser session
      * @param inventory the new inventory to open
      */
-    public static void openInventory(GeyserSession session, Inventory inventory) {
+    public static void openInventory(GeyserSession session, Inventory<?> inventory) {
         session.setOpenInventory(inventory);
         if (session.isClosingInventory() || !session.getUpstream().isInitialized() || session.getPendingOrCurrentBedrockInventoryId() != -1) {
             // Wait for close confirmation from client before opening the new inventory.
@@ -117,7 +116,7 @@ public class InventoryUtils {
      * occurred in the time. For example, a queued virtual inventory might be "outdated", so we wouldn't open it.
      */
     public static void openPendingInventory(GeyserSession session) {
-        Inventory currentInventory = session.getOpenInventory();
+        Inventory<?> currentInventory = session.getOpenInventory();
         if (currentInventory == null || !currentInventory.isPending()) {
             session.setPendingOrCurrentBedrockInventoryId(-1);
             GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(currentInventory));
@@ -139,11 +138,11 @@ public class InventoryUtils {
      * Prepares and displays the current inventory. If necessary, it will queue the opening of virtual inventories.
      * @param inventory the inventory to display
      */
-    public static void displayInventory(GeyserSession session, Inventory inventory) {
-        InventoryTranslator translator = inventory.getTranslator();
-        if (translator.prepareInventory(session, inventory)) {
+    public static void displayInventory(GeyserSession session, Inventory<?> inventory) {
+        InventoryTranslator<?> translator = inventory.getTranslator();
+        if (inventory.prepareInventory()) {
             session.setPendingOrCurrentBedrockInventoryId(inventory.getBedrockId());
-            if (translator.requiresOpeningDelay(session, inventory)) {
+            if (inventory.requiresOpeningDelay()) {
                 inventory.setPending(true);
 
                 NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
@@ -166,9 +165,9 @@ public class InventoryUtils {
     /**
      * Opens and updates an inventory, and resets no longer used inventory variables.
      */
-    public static void openAndUpdateInventory(GeyserSession session, Inventory inventory) {
-        inventory.getTranslator().openInventory(session, inventory);
-        inventory.getTranslator().updateInventory(session, inventory);
+    public static void openAndUpdateInventory(GeyserSession session, Inventory<?> inventory) {
+        inventory.openInventory();
+        inventory.updateInventory();
         inventory.setDisplayed(true);
         inventory.setPending(false);
     }
@@ -176,8 +175,8 @@ public class InventoryUtils {
     /**
      * Returns the current inventory translator.
      */
-    public static @NonNull InventoryTranslator getInventoryTranslator(GeyserSession session) {
-        Inventory inventory = session.getOpenInventory();
+    public static @NonNull InventoryTranslator<?> getInventoryTranslator(GeyserSession session) {
+        Inventory<?> inventory = session.getOpenInventory();
         if (inventory == null) {
             return InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
         }
@@ -194,12 +193,11 @@ public class InventoryUtils {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
-        Inventory inventory = getInventory(session, javaId);
+        Inventory<?> inventory = getInventory(session, javaId);
         if (inventory != null) {
-            InventoryTranslator translator = inventory.getTranslator();
-            translator.closeInventory(session, inventory);
+            inventory.closeInventory();
             if (confirm && inventory.isDisplayed() && !inventory.isPending()
-                    && !(translator instanceof LecternInventoryTranslator) // Closing lecterns is not followed with a close confirmation
+                    && !(inventory instanceof LecternContainer) // Closing lecterns is not followed with a close confirmation
             ) {
                 session.setClosingInventory(true);
             }
@@ -210,7 +208,7 @@ public class InventoryUtils {
         session.setOpenInventory(null);
     }
 
-    public static @Nullable Inventory getInventory(GeyserSession session, int javaId) {
+    public static @Nullable Inventory<?> getInventory(GeyserSession session, int javaId) {
         if (javaId == 0) {
             // ugly hack: lecterns aren't their own inventory on Java, and can hence be closed with e.g. an id of 0
             if (session.getOpenInventory() instanceof LecternContainer) {
@@ -218,7 +216,7 @@ public class InventoryUtils {
             }
             return session.getPlayerInventory();
         } else {
-            Inventory openInventory = session.getOpenInventory();
+            Inventory<?> openInventory = session.getOpenInventory();
             if (openInventory != null && javaId == openInventory.getJavaId()) {
                 return openInventory;
             }
@@ -226,7 +224,7 @@ public class InventoryUtils {
         }
     }
 
-    public static void sendJavaContainerClose(GeyserSession session, Inventory inventory) {
+    public static void sendJavaContainerClose(GeyserSession session, Inventory<?> inventory) {
         if (inventory.shouldConfirmContainerClose()) {
             ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(inventory.getJavaId());
             session.sendDownstreamGamePacket(closeWindowPacket);
@@ -488,7 +486,7 @@ public class InventoryUtils {
         return true;
     }
 
-    public static String debugInventory(@Nullable Inventory inventory) {
+    public static String debugInventory(@Nullable Inventory<?> inventory) {
         if (inventory == null) {
             return "null";
         }

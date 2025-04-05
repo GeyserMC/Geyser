@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
  * the expected level cost for AnvilInventoryUpdater
  */
 @Getter @Setter
-public class AnvilContainer extends Container {
+public class AnvilContainer extends Container<AnvilContainer> {
     /**
      * Stores the level cost received as a window property from Java
      */
@@ -63,7 +63,7 @@ public class AnvilContainer extends Container {
 
     private int lastTargetSlot = -1;
 
-    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<AnvilContainer> translator) {
         super(session, title, id, size, containerType, playerInventory, translator);
     }
 

@@ -42,7 +42,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetContentPacket packet) {
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
+        Inventory<?> inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null)
             return;
 
@@ -91,13 +91,13 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         }
     }
 
-    private void updateInventory(GeyserSession session, Inventory inventory, int containerId) {
-        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
+    private void updateInventory(GeyserSession session, Inventory<?> inventory, int containerId) {
+        InventoryTranslator<?> translator = InventoryUtils.getInventoryTranslator(session);
         if (containerId == 0 && !(translator instanceof PlayerInventoryTranslator)) {
             // In rare cases, the window ID can still be 0 but Java treats it as valid
-            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateInventory(session, inventory);
+            session.getPlayerInventory().updateInventory();
         } else {
-            translator.updateInventory(session, inventory);
+            inventory.updateInventory();
         }
     }
 }
