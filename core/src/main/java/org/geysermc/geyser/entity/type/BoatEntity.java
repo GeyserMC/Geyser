@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -76,16 +77,20 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
         this.variant = variant;
 
-        // TODO remove once 1.21.40 is dropped
-        if (variant == BoatVariant.PALE_OAK && GameProtocol.isPreWinterDrop(session)) {
-            variant = BoatVariant.BIRCH;
-        }
-
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
         dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
-        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);
+        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        if (GameProtocol.is1_21_70orHigher(session)) {
+            // Without this flag you cant stand on boats
+            setFlag(EntityFlag.COLLIDABLE, true);
+        }
     }
 
     @Override

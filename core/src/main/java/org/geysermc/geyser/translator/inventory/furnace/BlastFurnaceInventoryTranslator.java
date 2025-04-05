@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.translator.inventory.furnace;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.level.block.Blocks;
 
 public class BlastFurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslator {
@@ -41,5 +43,10 @@ public class BlastFurnaceInventoryTranslator extends AbstractFurnaceInventoryTra
             return new BedrockContainerSlot(ContainerSlotType.BLAST_FURNACE_INGREDIENT, javaSlotToBedrock(slot));
         }
         return super.javaSlotToBedrockContainer(slot);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+        return ContainerType.BLAST_FURNACE;
     }
 }

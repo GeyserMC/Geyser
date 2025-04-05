@@ -35,7 +35,9 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -75,7 +77,7 @@ import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslato
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -85,6 +87,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
 
@@ -134,6 +137,41 @@ public abstract class InventoryTranslator {
 
     public final int size;
 
+    // Whether the inventory open should be delayed.
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
+        return false;
+    }
+
+    /**
+     * Whether a new inventory should be prepared - or if we can re-use the previous one.
+     */
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        // Filter for mismatches that require a new inventory.
+        if (inventory.getContainerType() == null || previous.getContainerType() == null
+            || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
+        ) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to type change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (inventory.getSize() != previous.getSize()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to size change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (!Objects.equals(inventory.getTitle(), previous.getTitle())) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to title change! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        if (previous.getHolderId() == -1 && previous.getHolderPosition() == Vector3i.ZERO) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) since the old was not initialized! ", InventoryUtils.debugInventory(inventory));
+            return false;
+        }
+
+        // We can likely reuse the inventory!
+        return true;
+    }
     public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
     public abstract void closeInventory(GeyserSession session, Inventory inventory);
@@ -144,7 +182,7 @@ public abstract class InventoryTranslator {
     public abstract int javaSlotToBedrock(int javaSlot);
     public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
     public abstract SlotType getSlotType(int javaSlot);
-    public abstract Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
+    public abstract Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
 
     /**
      * Used for crafting-related transactions. Will override in PlayerInventoryTranslator and CraftingInventoryTranslator.
@@ -257,14 +295,14 @@ public abstract class InventoryTranslator {
 
                     if (this instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
-                            //only set the head if the destination is the head slot
+                            // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.hasNonBaseComponents()) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentType.PROFILE));
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
-                            //we are probably removing the head, so restore the original skin
+                            // we are probably removing the head, so restore the original skin
                             FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                         }
                     }
@@ -1040,7 +1078,7 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            Integer damage = itemStack.getComponent(DataComponentType.DAMAGE);
+            Integer damage = itemStack.getComponent(DataComponentTypes.DAMAGE);
             if (damage != null) {
                 durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
             }

@@ -33,7 +33,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -48,7 +48,8 @@ import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
@@ -106,12 +107,10 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping, CustomItemData customItemData, int bedrockId, int protocolVersion) {
-        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
-
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, mapping, customItemName, bedrockId, protocolVersion);
-        ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, ItemVersion.DATA_DRIVEN, true, builder.build());
 
-        return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
+        return new GeyserCustomMappingData(itemDefinition, customItemName, bedrockId);
     }
 
     static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
@@ -136,15 +135,17 @@ public class CustomItemRegistryPopulator {
         String customIdentifier = customItemData.identifier();
 
         DataComponents components = new DataComponents(new HashMap<>());
-        components.put(DataComponentType.MAX_STACK_SIZE, customItemData.stackSize());
-        components.put(DataComponentType.MAX_DAMAGE, customItemData.maxDamage());
+        components.put(DataComponentTypes.MAX_STACK_SIZE, customItemData.stackSize());
+        components.put(DataComponentTypes.MAX_DAMAGE, customItemData.maxDamage());
 
         Item item = new Item(customIdentifier, Item.builder().components(components));
         Items.register(item, customItemData.javaId());
 
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
+            customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
         ItemMapping customItemMapping = ItemMapping.builder()
                 .bedrockIdentifier(customIdentifier)
-                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, true))
+                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, ItemVersion.DATA_DRIVEN, true, builder.build()))
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
                 .toolType(customItemData.toolType())
@@ -153,11 +154,7 @@ public class CustomItemRegistryPopulator {
                 .javaItem(item)
                 .build();
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
-        ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
-
-        return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
+        return new NonVanillaItemRegistration(item, customItemMapping);
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, Item javaItem, GeyserMappingItem mapping,

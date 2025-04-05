@@ -32,7 +32,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class OminousBottleItem extends Item {
@@ -47,7 +47,7 @@ public class OminousBottleItem extends Item {
             // Level 1 ominous bottle is null components - Java 1.21.
             return builder;
         }
-        Integer amplifier = components.get(DataComponentType.OMINOUS_BOTTLE_AMPLIFIER);
+        Integer amplifier = components.get(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER);
         if (amplifier != null) {
             builder.damage(amplifier);
         }
@@ -62,7 +62,7 @@ public class OminousBottleItem extends Item {
         if (damage == 0) {
             return itemStack;
         }
-        itemStack.getOrCreateComponents().put(DataComponentType.OMINOUS_BOTTLE_AMPLIFIER, damage);
+        itemStack.getOrCreateComponents().put(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER, damage);
         return itemStack;
     }
 

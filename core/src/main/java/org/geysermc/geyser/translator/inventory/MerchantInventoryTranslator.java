@@ -195,7 +195,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new MerchantContainer(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new MerchantContainer(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 }

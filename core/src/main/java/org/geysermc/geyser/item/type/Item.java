@@ -37,21 +37,22 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -75,8 +76,13 @@ public class Item {
         this.attackDamage = builder.attackDamage;
     }
 
+    // TODO maybe deprecate?
     public String javaIdentifier() {
         return javaIdentifier.asString();
+    }
+
+    public Key javaKey() {
+        return javaIdentifier;
     }
 
     public int javaId() {
@@ -84,7 +90,7 @@ public class Item {
     }
 
     public int defaultMaxDamage() {
-        return baseComponents.getOrDefault(DataComponentType.MAX_DAMAGE, 0);
+        return baseComponents.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
     }
 
     public int defaultAttackDamage() {
@@ -92,11 +98,7 @@ public class Item {
     }
 
     public int defaultMaxStackSize() {
-        return baseComponents.getOrDefault(DataComponentType.MAX_STACK_SIZE, 1);
-    }
-
-    public Rarity defaultRarity() {
-        return Rarity.fromId(baseComponents.getOrDefault(DataComponentType.RARITY, 0));
+        return baseComponents.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
     }
 
     /**
@@ -161,22 +163,22 @@ public class Item {
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        List<Component> loreComponents = components.get(DataComponentType.LORE);
-        if (loreComponents != null && components.get(DataComponentType.HIDE_TOOLTIP) == null) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        List<Component> loreComponents = components.get(DataComponentTypes.LORE);
+        if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
                 lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
             }
         }
 
-        Integer damage = components.get(DataComponentType.DAMAGE);
+        Integer damage = components.get(DataComponentTypes.DAMAGE);
         if (damage != null) {
             builder.setDamage(damage);
         }
 
         List<NbtMap> enchantNbtList = new ArrayList<>();
-        ItemEnchantments enchantments = components.get(DataComponentType.ENCHANTMENTS);
+        ItemEnchantments enchantments = components.get(DataComponentTypes.ENCHANTMENTS);
         if (enchantments != null) {
             for (Map.Entry<Integer, Integer> enchantment : enchantments.getEnchantments().entrySet()) {
                 NbtMap enchantNbt = remapEnchantment(session, enchantment.getKey(), enchantment.getValue(), builder);
@@ -190,7 +192,7 @@ public class Item {
             builder.putList("ench", NbtType.COMPOUND, enchantNbtList);
         }
 
-        Integer repairCost = components.get(DataComponentType.REPAIR_COST);
+        Integer repairCost = components.get(DataComponentTypes.REPAIR_COST);
         // Java sets repair cost to 0 on all items via default components, that trips up Bedrock crafting.
         // See https://github.com/GeyserMC/Geyser/issues/5220 for more details
         if (repairCost != null && repairCost != 0) {
@@ -198,7 +200,7 @@ public class Item {
         }
 
         // If the tag exists, it's unbreakable; the value is just weather to show the tooltip. As of Java 1.21
-        if (components.getDataComponents().containsKey(DataComponentType.UNBREAKABLE)) {
+        if (components.getDataComponents().containsKey(DataComponentTypes.UNBREAKABLE)) {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
@@ -244,7 +246,7 @@ public class Item {
     }
 
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
-        Enchantment enchantment = session.getRegistryCache().enchantments().byId(enchantId);
+        Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(enchantId);
         if (enchantment == null) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;
@@ -270,9 +272,9 @@ public class Item {
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
-        DyedItemColor dyedItemColor = components.get(DataComponentType.DYED_COLOR);
+        Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
         if (dyedItemColor != null) {
-            builder.putInt("customColor", dyedItemColor.getRgb());
+            builder.putInt("customColor", dyedItemColor);
         }
     }
 

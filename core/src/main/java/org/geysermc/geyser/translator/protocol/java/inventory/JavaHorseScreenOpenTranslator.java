@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
-import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -38,6 +35,8 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -47,6 +46,7 @@ import org.geysermc.geyser.translator.inventory.horse.LlamaInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -153,7 +153,6 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         updateEquipPacket.setTag(builder.build());
         session.sendUpstreamPacket(updateEquipPacket);
 
-        session.setInventoryTranslator(inventoryTranslator);
-        InventoryUtils.openInventory(session, new Container(entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory()));
+        InventoryUtils.openInventory(session, new Container(session, entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory(), inventoryTranslator));
     }
 }

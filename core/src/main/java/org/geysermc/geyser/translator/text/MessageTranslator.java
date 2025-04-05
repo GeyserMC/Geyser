@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.ScoreComponent;
@@ -45,6 +43,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
@@ -55,6 +54,9 @@ import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -201,13 +203,6 @@ public class MessageTranslator {
         }
     }
 
-    /**
-     * Convenience method for locale getting.
-     */
-    public static String convertJsonMessage(GeyserSession session, String message) {
-        return convertJsonMessage(message, session.locale());
-    }
-
     public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
@@ -344,7 +339,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().chatTypes()::byId);
+        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages
@@ -447,6 +442,15 @@ public class MessageTranslator {
         return componentFromNbtTag(nbtTag, Style.empty());
     }
 
+    public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
+        var components = componentsFromNbtList(nbtTag, Style.empty());
+        List<String> messages = new ArrayList<>();
+        for (Component component : components) {
+            messages.add(convertMessageRaw(component, session.locale()));
+        }
+        return messages;
+    }
+
     private static Component componentFromNbtTag(Object nbtTag, Style style) {
         if (nbtTag instanceof String literal) {
             return Component.text(literal).style(style);
@@ -454,7 +458,7 @@ public class MessageTranslator {
             return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
         } else if (nbtTag instanceof NbtMap map) {
             Component component = null;
-            String text = map.getString("text", null);
+            String text = map.getString("text", map.getString("", null));
             if (text != null) {
                 component = Component.text(text);
             } else {

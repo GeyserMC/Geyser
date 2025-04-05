@@ -46,8 +46,8 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Generic3X3Container(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new Generic3X3Container(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override
@@ -67,5 +67,11 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+        return ((Generic3X3Container) inventory).isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER :
+            org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER;
     }
 }

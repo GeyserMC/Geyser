@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
@@ -102,8 +103,8 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new AnvilContainer(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new AnvilContainer(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override
@@ -114,5 +115,10 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
         anvilContainer.setJavaLevelCost(value);
         anvilContainer.setUseJavaLevelCost(true);
         updateSlot(session, anvilContainer, 1);
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+        return null;
     }
 }

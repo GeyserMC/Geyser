@@ -34,7 +34,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.Collections;
@@ -79,7 +79,7 @@ public class SkullBlock extends Block {
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
         DataComponents components = itemStack.getOrCreateComponents();
-        components.put(DataComponentType.BLOCK_ENTITY_DATA, builder.build());
+        components.put(DataComponentTypes.BLOCK_ENTITY_DATA, builder.build());
 
         UUID uuid = skull.getUuid();
         String texturesProperty = skull.getTexturesProperty();
@@ -87,7 +87,7 @@ public class SkullBlock extends Block {
         if (texturesProperty != null) {
             profile.setProperties(Collections.singletonList(new GameProfile.Property("textures", texturesProperty)));
         }
-        components.put(DataComponentType.PROFILE, profile);
+        components.put(DataComponentTypes.PROFILE, profile);
         return itemStack.getItemStack();
     }
 

@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BookEditPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.WrittenBookItem;
@@ -38,8 +32,17 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 @Translator(packet = BookEditPacket.class)
 public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> {
@@ -57,7 +60,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), components);
             List<String> pages = new LinkedList<>();
 
-            WritableBookContent writableBookContent = components.get(DataComponentType.WRITABLE_BOOK_CONTENT);
+            WritableBookContent writableBookContent = components.get(DataComponentTypes.WRITABLE_BOOK_CONTENT);
             if (writableBookContent != null) {
                 for (Filterable<String> page : writableBookContent.getPages()) {
                     pages.add(page.getRaw());
@@ -125,11 +128,11 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             for (String raw : pages) {
                 filterablePages.add(new Filterable<>(raw, null));
             }
-            components.put(DataComponentType.WRITABLE_BOOK_CONTENT, new WritableBookContent(filterablePages));
+            components.put(DataComponentTypes.WRITABLE_BOOK_CONTENT, new WritableBookContent(filterablePages));
 
             // Update local copy
             session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(bookItem), session);
-            session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+            session.getPlayerInventory().updateInventory();
 
             String title;
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {

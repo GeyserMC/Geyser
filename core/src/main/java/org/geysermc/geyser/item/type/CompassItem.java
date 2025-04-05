@@ -29,11 +29,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 
@@ -59,10 +60,10 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        LodestoneTracker tracker = components.get(DataComponentType.LODESTONE_TRACKER);
+        LodestoneTracker tracker = components.get(DataComponentTypes.LODESTONE_TRACKER);
         if (tracker != null) {
             int trackId = session.getLodestoneCache().store(tracker);
             // Set the bedrock tracking id - will return 0 if invalid
@@ -72,7 +73,7 @@ public class CompassItem extends Item {
 
     private boolean isLodestoneCompass(@Nullable DataComponents components) {
         if (components != null) {
-            return components.getDataComponents().containsKey(DataComponentType.LODESTONE_TRACKER);
+            return components.getDataComponents().containsKey(DataComponentTypes.LODESTONE_TRACKER);
         }
         return false;
     }

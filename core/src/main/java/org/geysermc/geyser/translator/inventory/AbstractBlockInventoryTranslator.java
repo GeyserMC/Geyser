@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
@@ -75,18 +78,33 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
+    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
+        return inventory instanceof Container container && !container.isUsingRealBlock();
+    }
+
+    @Override
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        if (super.canReuseInventory(session, inventory, previous)
+                && inventory instanceof Container container
+                && previous instanceof Container previousContainer) {
+            return holder.canReuseContainer(session, container, previousContainer);
+        }
+        return false;
+    }
+
+    @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        return holder.prepareInventory(this, session, inventory);
+        return holder.prepareInventory(session, (Container) inventory);
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
+        holder.openInventory(session, (Container) inventory);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        holder.closeInventory(session, (Container) inventory, closeContainerType(inventory));
     }
 
     @Override
@@ -98,4 +116,11 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
     }
+
+    /*
+    So. Sometime in 1.21, Bedrock just broke the ContainerClosePacket. As in: Geyser sends it, the player ignores it.
+    But only for some blocks! And some blocks only respond to specific container types (dispensers/droppers now require the specific type...)
+    When this returns null, we just... break the block, and replace it. Primitive. But if that works... fine.
+     */
+    public abstract @Nullable ContainerType closeContainerType(Inventory inventory);
 }

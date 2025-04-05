@@ -39,6 +39,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.io.InputStream;
@@ -48,6 +49,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Loads default item components for all Java items.
+ */
 public final class DataComponentRegistryPopulator {
 
     public static void populate() {
@@ -71,7 +75,7 @@ public final class DataComponentRegistryPopulator {
                     byte[] bytes = Base64.getDecoder().decode(encodedValue);
                     ByteBuf buf = Unpooled.wrappedBuffer(bytes);
                     int varInt = MinecraftTypes.readVarInt(buf);
-                    DataComponentType<?> dataComponentType = DataComponentType.from(varInt);
+                    DataComponentType<?> dataComponentType = DataComponentTypes.from(varInt);
                     DataComponent<?, ?> dataComponent = dataComponentType.readDataComponent(buf);
 
                     map.put(dataComponentType, dataComponent);

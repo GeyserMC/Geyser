@@ -70,7 +70,7 @@ public interface JavaBlockState {
     @Nullable String pistonBehavior();
 
     /**
-     * Gets whether the block state has block entity
+     * Gets whether the block state has a block entity
      * 
      * @return whether the block state has block entity
      * @deprecated Does not have an effect. If you were using this to

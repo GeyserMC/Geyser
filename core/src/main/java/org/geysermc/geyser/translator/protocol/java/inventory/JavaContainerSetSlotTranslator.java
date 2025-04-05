@@ -71,7 +71,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             return;
         }
 
-        InventoryTranslator translator = session.getInventoryTranslator();
+        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
         if (translator != null) {
             int slot = packet.getSlot();
             if (slot >= inventory.getSize()) {
@@ -285,11 +285,11 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             // Just set one of the slots to air, then right back to its proper item.
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
-            slotPacket.setSlot(session.getInventoryTranslator().javaSlotToBedrock(SmithingInventoryTranslator.MATERIAL));
+            slotPacket.setSlot(InventoryUtils.getInventoryTranslator(session).javaSlotToBedrock(SmithingInventoryTranslator.MATERIAL));
             slotPacket.setItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
 
-            session.getInventoryTranslator().updateSlot(session, inventory, SmithingInventoryTranslator.MATERIAL);
+            InventoryUtils.getInventoryTranslator(session).updateSlot(session, inventory, SmithingInventoryTranslator.MATERIAL);
         }, 150, TimeUnit.MILLISECONDS));
     }
 }

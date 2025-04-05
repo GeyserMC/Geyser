@@ -25,41 +25,74 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.geysermc.geyser.util.InventoryUtils.MAGIC_VIRTUAL_INVENTORY_HACK;
 
 @Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
 
     @Override
     public void translate(GeyserSession session, ContainerClosePacket packet) {
+        GeyserImpl.getInstance().getLogger().debug(session, packet.toString());
         byte bedrockId = packet.getId();
 
         //Client wants close confirmation
         session.sendUpstreamPacket(packet);
         session.setClosingInventory(false);
 
-        if (bedrockId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
-            // 1.16.200 - window ID is always -1 sent from Bedrock
-            bedrockId = (byte) session.getOpenInventory().getBedrockId();
+        // 1.21.70: Bedrock can reject opening inventories - in those cases it replies with -1
+        Inventory openInventory = session.getOpenInventory();
+        if (bedrockId == -1 && openInventory != null) {
+            // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
+            if (openInventory.getTranslator() instanceof MerchantInventoryTranslator) {
+                bedrockId = (byte) openInventory.getBedrockId();
+            } else if (openInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+                // If virtual inventories are opened too quickly, they can be occasionally rejected
+                // We just try and queue a new one.
+                // Before making another attempt to re-open, let's make sure we actually need this inventory open.
+                if (session.getContainerOpenAttempts() < 3) {
+                    openInventory.setPending(true);
+
+                    session.scheduleInEventLoop(() -> {
+                        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+                        latencyPacket.setFromServer(true);
+                        latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                        session.sendUpstreamPacket(latencyPacket);
+                        GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
+                    }, 100, TimeUnit.MILLISECONDS);
+                    return;
+                } else {
+                    GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 3 attempts to open a virtual inventory!");
+                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + session.getOpenInventory().getClass().getSimpleName());
+                }
+            }
         }
 
-        Inventory openInventory = session.getOpenInventory();
+        session.setPendingOrCurrentBedrockInventoryId(-1);
+        session.setContainerOpenAttempts(0);
+        closeCurrentOrOpenPending(session, bedrockId, openInventory);
+    }
+
+    private void closeCurrentOrOpenPending(GeyserSession session, byte bedrockId, Inventory openInventory) {
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
-                session.sendDownstreamGamePacket(closeWindowPacket);
+                InventoryUtils.sendJavaContainerClose(session, openInventory);
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
                 InventoryUtils.displayInventory(session, openInventory);
-                openInventory.setPending(false);
 
                 if (openInventory instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
                     JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);

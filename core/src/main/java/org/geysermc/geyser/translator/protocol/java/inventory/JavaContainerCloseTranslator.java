@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
+import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 
 @Translator(packet = ClientboundContainerClosePacket.class)
 public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundContainerClosePacket> {
@@ -38,6 +39,7 @@ public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundCo
     public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
         // Sometimes the server can request a window close of ID 0... when the window isn't even open
         // Don't confirm in this instance
+        session.setServerRequestedClosePlayerInventory(packet.getContainerId() == 0 && session.getOpenInventory() instanceof PlayerInventory);
         InventoryUtils.closeInventory(session, packet.getContainerId(), (session.getOpenInventory() != null && session.getOpenInventory().getJavaId() == packet.getContainerId()));
     }
 }

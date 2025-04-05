@@ -109,6 +109,12 @@ public class FakeHeadProvider {
             return;
         }
 
+        GameProfile current = session.getPlayerWithCustomHeads().get(entity.getUuid());
+        if (profile.equals(current)) {
+            // We already did this, no need to re-compute
+            return;
+        }
+
         Map<TextureType, Texture> textures;
         try {
             textures = profile.getTextures(false);
@@ -118,7 +124,7 @@ public class FakeHeadProvider {
         }
 
         if (textures == null || textures.isEmpty()) {
-            loadHead(session, entity, profile.getName());
+            loadHeadFromProfile(session, entity, profile);
             return;
         }
 
@@ -133,16 +139,18 @@ public class FakeHeadProvider {
 
         boolean isAlex = skinTexture.getModel() == TextureModel.SLIM;
 
-        loadHead(session, entity, new GameProfileData(skinTexture.getURL(), capeUrl, isAlex));
+        loadHeadFromProfile(session, entity, new GameProfileData(skinTexture.getURL(), capeUrl, isAlex), profile);
     }
 
-    public static void loadHead(GeyserSession session, PlayerEntity entity, String owner) {
-        if (owner == null || owner.isEmpty()) {
-            return;
+    public static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, GameProfile profile) {
+        CompletableFuture<String> texturesFuture;
+        if (profile.getId() != null) {
+            texturesFuture = SkinProvider.requestTexturesFromUUID(profile.getId().toString());
+        } else {
+            texturesFuture = SkinProvider.requestTexturesFromUsername(profile.getName());
         }
 
-        CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
-        completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
+        texturesFuture.whenCompleteAsync((encodedJson, throwable) -> {
             if (throwable != null) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
@@ -152,17 +160,17 @@ public class FakeHeadProvider {
                 if (gameProfileData == null) {
                     return;
                 }
-                loadHead(session, entity, gameProfileData);
+                loadHeadFromProfile(session, entity, gameProfileData, profile);
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
             }
         });
     }
 
-    public static void loadHead(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData) {
+    public static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData, GameProfile profile) {
         String fakeHeadSkinUrl = gameProfileData.skinUrl();
 
-        session.getPlayerWithCustomHeads().add(entity.getUuid());
+        session.getPlayerWithCustomHeads().put(entity.getUuid(), profile);
         String texturesProperty = entity.getTexturesProperty();
         SkinProvider.getExecutorService().execute(() -> {
             try {
@@ -179,7 +187,7 @@ public class FakeHeadProvider {
             return;
         }
 
-        if (!session.getPlayerWithCustomHeads().remove(entity.getUuid())) {
+        if (session.getPlayerWithCustomHeads().remove(entity.getUuid()) == null) {
             return;
         }
 

@@ -31,6 +31,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 /**
  * The packet sent for server-authoritative-style inventory transactions.
@@ -44,7 +45,7 @@ public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStac
         if (inventory == null)
             return;
 
-        InventoryTranslator translator = session.getInventoryTranslator();
+        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
         translator.translateRequests(session, inventory, packet.getRequests());
     }
 }

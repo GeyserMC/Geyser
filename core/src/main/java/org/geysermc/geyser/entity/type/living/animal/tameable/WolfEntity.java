@@ -30,41 +30,47 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.Collections;
-import java.util.Locale;
 import java.util.UUID;
 
-public class WolfEntity extends TameableEntity {
+public class WolfEntity extends TameableEntity implements VariantIntHolder {
     private byte collarColor = 14; // Red - default
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    @Override
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+        propertyManager.add("minecraft:sound_variant", "default");
+        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
     @Override
@@ -107,15 +113,14 @@ public class WolfEntity extends TameableEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
-    // 1.20.5+
-    public void setWolfVariant(ObjectEntityMetadata<Holder<WolfVariant>> entityMetadata) {
-        entityMetadata.getValue().ifId(id -> {
-            BuiltInWolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(id);
-            if (wolfVariant == null) {
-                wolfVariant = BuiltInWolfVariant.PALE;
-            }
-            dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
-        });
+    @Override
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.WOLF_VARIANT;
+    }
+
+    @Override
+    public void setBedrockVariantId(int bedrockId) {
+        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     @Override
@@ -129,7 +134,7 @@ public class WolfEntity extends TameableEntity {
         super.setBody(stack);
         isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
         // Not using ItemStack#getDataComponents as that wouldn't include default item components
-        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentType.REPAIRABLE);
+        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentTypes.REPAIRABLE);
     }
 
     @Override
@@ -188,7 +193,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     // Ordered by bedrock id
-    public enum BuiltInWolfVariant {
+    public enum BuiltInVariant implements BuiltIn {
         PALE,
         ASHEN,
         BLACK,
@@ -197,23 +202,6 @@ public class WolfEntity extends TameableEntity {
         SNOWY,
         SPOTTED,
         STRIPED,
-        WOODS;
-
-        private static final BuiltInWolfVariant[] VALUES = values();
-
-        private final String javaIdentifier;
-
-        BuiltInWolfVariant() {
-            this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
-        }
-
-        public static @Nullable BuiltInWolfVariant getByJavaIdentifier(String javaIdentifier) {
-            for (BuiltInWolfVariant wolfVariant : VALUES) {
-                if (wolfVariant.javaIdentifier.equals(javaIdentifier)) {
-                    return wolfVariant;
-                }
-            }
-            return null;
-        }
+        WOODS
     }
 }

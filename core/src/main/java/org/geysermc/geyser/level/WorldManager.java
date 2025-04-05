@@ -38,6 +38,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
@@ -202,7 +203,7 @@ public abstract class WorldManager {
         try {
             Map<DataComponentType<?>, DataComponent<?, ?>> components = new HashMap<>();
             Int2ObjectMaps.fastForEach(map, entry -> {
-                DataComponentType<?> type = DataComponentType.from(entry.getIntKey());
+                DataComponentType<?> type = DataComponentTypes.from(entry.getIntKey());
                 ByteBuf buf = Unpooled.wrappedBuffer(entry.getValue());
                 DataComponent<?, ?> value = type.readDataComponent(buf);
                 components.put(type, value);

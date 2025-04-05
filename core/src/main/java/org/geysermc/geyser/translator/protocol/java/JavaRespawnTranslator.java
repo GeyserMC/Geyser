@@ -30,7 +30,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -61,7 +61,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         session.setOpenInventory(null);
         session.setClosingInventory(false);
 
@@ -81,7 +80,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.updateThunder(0);
         }
 
-        JavaDimension newDimension = session.getRegistryCache().dimensions().byId(spawnInfo.getDimension());
+        JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
         if (session.getDimensionType() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
             if (session.getDimensionType().bedrockId() == newDimension.bedrockId()) {

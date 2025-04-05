@@ -45,6 +45,7 @@ import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 
 @UtilityClass
@@ -99,11 +100,18 @@ public class ChunkUtils {
             chunkPublisherUpdatePacket.setPosition(position);
             // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
             // https://github.com/GeyserMC/Geyser/issues/3490
-            chunkPublisherUpdatePacket.setRadius(GenericMath.ceil((session.getServerRenderDistance() + 1) * MathUtils.SQRT_OF_TWO) << 4);
+            chunkPublisherUpdatePacket.setRadius(squareToCircle(session.getServerRenderDistance()) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
         }
+    }
+
+    /**
+     * Converts a Java render distance number to the equivalent in Bedrock.
+     */
+    public static int squareToCircle(int renderDistance) {
+        return GenericMath.ceil((renderDistance + 1) * MathUtils.SQRT_OF_TWO);
     }
 
     /**
@@ -215,7 +223,7 @@ public class ChunkUtils {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.height()),
-                    session.getRegistryCache().dimensions().byValue(session.getDimensionType())));
+                    session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);

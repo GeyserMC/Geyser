@@ -29,7 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class FilledMapItem extends MapItem {
@@ -45,7 +45,7 @@ public class FilledMapItem extends MapItem {
             //return builder.tag(NbtMap.builder().putInt("map", 0).build()); TODO if this is *still* broken, let's move it to translateComponentsToBedrock
             return builder;
         } else {
-            Integer mapColor = components.get(DataComponentType.MAP_COLOR);
+            Integer mapColor = components.get(DataComponentTypes.MAP_COLOR);
             if (mapColor != null) {
                 // Note: damage 5 treasure map, 6 ???
                 // Java Edition allows any color; Bedrock only allows some. So let's take what colors we can get

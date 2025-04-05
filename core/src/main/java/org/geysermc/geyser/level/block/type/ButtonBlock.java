@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.level.block.type;
 
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.item.type.Item;
-
-/**
- * Implements ItemDefinition while also providing a reference to our item mappings.
- */
-public record GeyserItemDefinition(Item javaItem, String identifier, boolean componentBased, int runtimeId) implements ItemDefinition {
-    @Override
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public boolean isComponentBased() {
-        return componentBased;
-    }
-
-    @Override
-    public int getRuntimeId() {
-        return runtimeId;
+public class ButtonBlock extends Block {
+    public ButtonBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 }

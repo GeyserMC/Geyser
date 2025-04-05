@@ -133,7 +133,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
         if (componentsRaw != null) {
             byte[] bytes = Base64.getDecoder().decode(componentsRaw);
             ByteBuf buf = Unpooled.wrappedBuffer(bytes);
-            DataComponents components = MinecraftTypes.readDataComponentPatch(buf);
+            DataComponents components = MinecraftTypes.readDataComponentPatch(buf, false);
             return new ItemStack(id, count, components);
         }
         return new ItemStack(id, count);
