@@ -93,11 +93,11 @@ public enum PaintingType {
 
     public static PaintingType getByName(Key key) {
         if (!key.namespace().equals("minecraft")) {
-            return null;
+            return KEBAB;
         }
         for (PaintingType paintingName : VALUES) {
             if (paintingName.name().toLowerCase(Locale.ROOT).equals(key.value())) return paintingName;
         }
-        return null;
+        return KEBAB; // We use kebab as default. Yummy!
     }
 }

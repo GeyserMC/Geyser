@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.inventory;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -569,8 +570,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        return true;
     }
 
     @Override

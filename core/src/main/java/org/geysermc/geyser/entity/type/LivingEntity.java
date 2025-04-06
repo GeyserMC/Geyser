@@ -44,6 +44,8 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
@@ -51,6 +53,7 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -62,7 +65,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
@@ -80,6 +85,7 @@ public class LivingEntity extends Entity {
     protected ItemData leggings = ItemData.AIR;
     protected ItemData boots = ItemData.AIR;
     protected ItemData body = ItemData.AIR;
+    protected ItemData saddle = ItemData.AIR;
     protected ItemData hand = ItemData.AIR;
     protected ItemData offhand = ItemData.AIR;
 
@@ -118,10 +124,6 @@ public class LivingEntity extends Entity {
         this.chestplate = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setBody(ItemStack stack) {
-        this.body = ItemTranslator.translateToBedrock(session, stack);
-    }
-
     public void setLeggings(ItemStack stack) {
         this.leggings = ItemTranslator.translateToBedrock(session, stack);
     }
@@ -130,12 +132,43 @@ public class LivingEntity extends Entity {
         this.boots = ItemTranslator.translateToBedrock(session, stack);
     }
 
+    public void setBody(ItemStack stack) {
+        this.body = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setSaddle(@Nullable ItemStack stack) {
+        this.saddle = ItemTranslator.translateToBedrock(session, stack);
+
+        boolean saddled = false;
+        if (stack != null) {
+            Item item = Registries.JAVA_ITEMS.get(stack.getId());
+            if (item != null) {
+                DataComponents components = item.gatherComponents(stack.getDataComponentsPatch());
+                Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+                saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
+            }
+        }
+
+        updateSaddled(saddled);
+    }
+
     public void setHand(ItemStack stack) {
         this.hand = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setOffhand(ItemStack stack) {
         this.offhand = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    protected void updateSaddled(boolean saddled) {
+        setFlag(EntityFlag.SADDLED, saddled);
+        updateBedrockMetadata();
+
+        // Update the interactive tag, if necessary
+        Entity mouseoverEntity = session.getMouseoverEntity();
+        if (mouseoverEntity != null && mouseoverEntity.getEntityId() == entityId) {
+            mouseoverEntity.updateInteractiveTag();
+        }
     }
 
     public void switchHands() {
@@ -202,7 +235,7 @@ public class LivingEntity extends Entity {
                 continue;
             }
 
-            int color = ((EntityEffectParticleData) particle.getData()).getColor();
+            int color = ((ColorParticleData) particle.getData()).getColor();
             r += ((color >> 16) & 0xFF) / 255f;
             g += ((color >> 8) & 0xFF) / 255f;
             b += ((color) & 0xFF) / 255f;

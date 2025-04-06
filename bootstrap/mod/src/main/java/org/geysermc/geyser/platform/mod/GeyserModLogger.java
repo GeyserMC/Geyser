@@ -87,7 +87,7 @@ public class GeyserModLogger implements GeyserLogger {
     @Override
     public void debug(String message, Object... arguments) {
         if (debug) {
-            logger.info(message, arguments);
+            logger.info(String.format(message, arguments));
         }
     }
 

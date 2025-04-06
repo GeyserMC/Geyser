@@ -41,6 +41,7 @@ import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
@@ -73,7 +74,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                 // The Bedrock index might need changed, so let's look it up and see.
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
-                    Enchantment enchantment = session.getRegistryCache().enchantments().byId(value);
+                    Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(value);
                     if (enchantment != null && enchantment.bedrockEnchantment() != null) {
                         // Convert the Java enchantment index to Bedrock's
                         bedrockIndex = enchantment.bedrockEnchantment().ordinal();
@@ -168,8 +169,8 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new EnchantingContainer(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new EnchantingContainer(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override

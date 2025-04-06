@@ -30,28 +30,31 @@ import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 
+import java.util.List;
+
+@Setter
 public class MerchantContainer extends Container {
-    @Getter @Setter
+    @Getter
     private Entity villager;
-    @Setter
-    private VillagerTrade[] villagerTrades;
-    @Getter @Setter
+    private List<VillagerTrade> villagerTrades;
+    @Getter
     private ClientboundMerchantOffersPacket pendingOffersPacket;
-    @Getter @Setter
+    @Getter
     private int tradeExperience;
 
-    public MerchantContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public MerchantContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(session, title, id, size, containerType, playerInventory, translator);
     }
 
     public void onTradeSelected(GeyserSession session, int slot) {
-        if (villagerTrades != null && slot >= 0 && slot < villagerTrades.length) {
-            VillagerTrade trade = villagerTrades[slot];
-            setItem(2, GeyserItemStack.from(trade.getOutput()), session);
+        if (villagerTrades != null && slot >= 0 && slot < villagerTrades.size()) {
+            VillagerTrade trade = villagerTrades.get(slot);
+            setItem(2, GeyserItemStack.from(trade.getResult()), session);
 
             tradeExperience += trade.getXp();
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);

@@ -41,6 +41,7 @@ import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -136,7 +137,7 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
             },
             "minecraft:enchantments", (session, tag, components) -> { // Enchanted books already have glint. Translating them doesn't matter.
                 NbtMap levels = tag.getCompound("levels");
-                List<Enchantment> enchantmentRegistry = session.getRegistryCache().enchantments().values();
+                List<Enchantment> enchantmentRegistry = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values();
                 Int2ObjectMap<Integer> enchantments = new Int2ObjectOpenHashMap<>(levels.size());
                 for (Map.Entry<String, Object> entry : levels.entrySet()) {
                     for (int i = 0; i < enchantmentRegistry.size(); i++) {
@@ -145,6 +146,6 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                         }
                     }
                 }
-                components.put(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(enchantments, true));
+                components.put(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(enchantments));
             });
 }

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -45,6 +46,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
+        GeyserImpl.getInstance().getLogger().debug(session, packet.toString());
         if (packet.getContainerId() == 0) {
             return;
         }
@@ -65,6 +67,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             if (openInventory != null) {
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
             }
+
             ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getContainerId());
             session.sendDownstreamGamePacket(closeWindowPacket);
             return;
@@ -72,19 +75,35 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         String name = MessageTranslator.convertMessage(packet.getTitle(), session.locale());
 
-        Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
+        Inventory newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
-            // If the window type is the same, don't close.
-            // In rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
-            // Or, inventory names can change (useful for JsonUI). In these cases, we need to close the old inventory.
-            // FIXME 1.21.70 re-using containers doesn't quite work as expected
-            //if (openInventory.getContainerType() != packet.getType() || !openInventory.getTitle().equals(name)) {
-                // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), openInventory.getJavaId() != packet.getContainerId());
-            //}
+            // Attempt to re-use existing open inventories, if possible.
+            // Pending inventories are also considered, as a Java server can re-request the same inventory.
+            if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
+                // Use the same Bedrock id
+                newInventory.setBedrockId(openInventory.getBedrockId());
+
+                // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
+                boolean pending = openInventory.isPending();
+                newInventory.setDisplayed(openInventory.isDisplayed());
+                newInventory.setPending(pending);
+                newInventory.setHolderPosition(openInventory.getHolderPosition());
+                newInventory.setHolderId(openInventory.getHolderId());
+                session.setOpenInventory(newInventory);
+
+                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", pending);
+
+                // If the current inventory is still pending, it'll be updated once open
+                if (newInventory.isDisplayed()) {
+                    newTranslator.updateInventory(session, newInventory);
+                }
+
+                return;
+            }
+
+            InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
         }
 
-        session.setInventoryTranslator(newTranslator);
         InventoryUtils.openInventory(session, newInventory);
     }
 }

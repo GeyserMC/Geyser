@@ -60,7 +60,7 @@ import java.util.List;
 
 public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
-    private static final Tag<BannerPattern> NO_ITEMS_REQUIRED = new Tag<>(JavaRegistries.BANNER_PATTERNS, Key.key("no_item_required"));
+    private static final Tag<BannerPattern> NO_ITEMS_REQUIRED = new Tag<>(JavaRegistries.BANNER_PATTERN, Key.key("no_item_required"));
 
     public LoomInventoryTranslator() {
         super(4, Blocks.LOOM, ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
