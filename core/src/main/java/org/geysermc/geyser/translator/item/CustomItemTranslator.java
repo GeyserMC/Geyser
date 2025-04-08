@@ -44,6 +44,7 @@ import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -152,11 +153,10 @@ public final class CustomItemTranslator {
                 if (trim == null || trim.material().isCustom()) {
                     return false;
                 }
-                RegistryEntryData<TrimMaterial> registered = session.getRegistryCache().trimMaterials().entryById(trim.material().id());
-                return MinecraftKey.identifierToKey(material).equals(registered.key());
+                return MinecraftKey.identifierToKey(material).equals(JavaRegistries.TRIM_MATERIAL.keyFromNetworkId(session, trim.material().id()));
             } else if (match.property() == MatchPredicateProperty.CONTEXT_DIMENSION) {
                 Identifier dimension = (Identifier) match.data();
-                RegistryEntryData<JavaDimension> registered = session.getRegistryCache().dimensions().entryByValue(session.getDimensionType());
+                RegistryEntryData<JavaDimension> registered = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).entryByValue(session.getDimensionType());
                 return MinecraftKey.identifierToKey(dimension).equals(registered.key());
             } else if (match.property() == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
                 CustomModelDataString expected = (CustomModelDataString) match.data();
