@@ -128,7 +128,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {
-                        InventoryUtils.openInventory(session, session.getPlayerInventory());
+                        InventoryUtils.openInventory(session.getPlayerInventoryHolder());
                     }
                 }
         }

@@ -90,8 +90,8 @@ public abstract class BaseInventoryTranslator<Type extends Container> extends In
     }
 
     @Override
-    public Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+    public Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
         //noinspection unchecked
-        return (Type) new Container(session, name, windowId, this.size, containerType, playerInventory, this);
+        return (Type) new Container(session, name, windowId, this.size, containerType);
     }
 }

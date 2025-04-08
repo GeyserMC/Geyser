@@ -570,12 +570,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
     }
 
     @Override
-    public PlayerInventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+    public PlayerInventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull PlayerInventory inventory, @NonNull Inventory previous) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
         return true;
     }
 

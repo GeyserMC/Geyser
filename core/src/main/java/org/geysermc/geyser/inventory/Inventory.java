@@ -35,7 +35,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -44,7 +43,7 @@ import org.jetbrains.annotations.Range;
 import java.util.Arrays;
 
 @ToString
-public abstract class Inventory<Type extends Inventory<Type>> {
+public abstract class Inventory {
     @Getter
     protected final int javaId;
 
@@ -96,43 +95,23 @@ public abstract class Inventory<Type extends Inventory<Type>> {
     protected long holderId = -1;
 
     /**
-     * Whether this inventory is currently pending.
-     * It can be pending if this inventory was opened while another inventory was still open,
-     * or because opening this inventory takes more time (e.g. virtual inventories).
-     */
-    @Getter
-    @Setter
-    private boolean pending = false;
-
-    /**
      * Whether this inventory is currently shown to the Bedrock player.
      */
     @Getter
     @Setter
-    private boolean displayed = false;
+    private boolean displayed;
 
-    /**
-     * The translator for this inventory. Stored here to avoid de-syncs of the inventory and current translator.
-     */
-    @Getter
-    private final InventoryTranslator<Type> translator;
-
-    @Getter
-    private final GeyserSession session;
-
-    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType, InventoryTranslator<Type> translator) {
-        this(session, "Inventory", id, size, containerType, translator);
+    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType) {
+        this(session, "Inventory", id, size, containerType);
     }
 
-    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType, InventoryTranslator<Type> translator) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
-        this.translator = translator;
-        this.session = session;
 
         // This is to prevent conflicts with special bedrock inventory IDs.
         // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
@@ -144,7 +123,7 @@ public abstract class Inventory<Type extends Inventory<Type>> {
         // Java wouldn't - e.g. for virtual chest menus that switch pages.
         // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
         // so to be safe we just deviate in that case as well.
-        if ((session.getOpenInventory() != null && session.getOpenInventory().getBedrockId() == bedrockId) || session.isClosingInventory()) {
+        if ((session.getOpenInventory() != null && session.getOpenInventory().bedrockId() == bedrockId) || session.isClosingInventory()) {
             this.bedrockId += 1;
         }
     }
@@ -213,37 +192,5 @@ public abstract class Inventory<Type extends Inventory<Type>> {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
-    }
-
-    /*
-     * Helper methods to avoid using the wrong translator to update specific inventories.
-     */
-
-    public void updateInventory() {
-        this.translator.updateInventory(session, (Type) this);
-    }
-
-    public void updateProperty(int rawProperty, int value) {
-        this.translator.updateProperty(session, (Type) this, rawProperty, value);
-    }
-
-    public void updateSlot(int slot) {
-        this.translator.updateSlot(session, (Type) this, slot);
-    }
-
-    public void openInventory() {
-        this.translator.openInventory(session, (Type) this);
-    }
-
-    public void closeInventory() {
-        this.translator.closeInventory(session, (Type) this);
-    }
-
-    public boolean requiresOpeningDelay() {
-        return this.translator.requiresOpeningDelay(session, (Type) this);
-    }
-
-    public boolean prepareInventory() {
-        return this.translator.prepareInventory(session, (Type) this);
     }
 }

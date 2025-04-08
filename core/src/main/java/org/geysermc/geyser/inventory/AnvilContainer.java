@@ -30,7 +30,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -41,7 +40,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
  * the expected level cost for AnvilInventoryUpdater
  */
 @Getter @Setter
-public class AnvilContainer extends Container<AnvilContainer> {
+public class AnvilContainer extends Container {
     /**
      * Stores the level cost received as a window property from Java
      */
@@ -63,8 +62,8 @@ public class AnvilContainer extends Container<AnvilContainer> {
 
     private int lastTargetSlot = -1;
 
-    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<AnvilContainer> translator) {
-        super(session, title, id, size, containerType, playerInventory, translator);
+    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     /**

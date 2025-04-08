@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Range;
  * Combination of {@link Inventory} and {@link PlayerInventory}
  */
 @Getter
-public class Container<Type extends Container<Type>> extends Inventory<Type> {
+public class Container extends Inventory {
     protected final PlayerInventory playerInventory;
     private final int containerSize;
 
@@ -46,9 +46,9 @@ public class Container<Type extends Container<Type>> extends Inventory<Type> {
      */
     private boolean isUsingRealBlock = false;
 
-    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<Type> translator) {
-        super(session, title, id, size, containerType, translator);
-        this.playerInventory = playerInventory;
+    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
+        this.playerInventory = session.getPlayerInventory();
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
     }
 

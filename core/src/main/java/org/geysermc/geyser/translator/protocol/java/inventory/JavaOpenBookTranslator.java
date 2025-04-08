@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -60,20 +60,21 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
         }
 
         if (stack.asItem().equals(Items.WRITTEN_BOOK)) {
-            Inventory openInventory = session.getOpenInventory();
+            InventoryHolder<?> openInventory = session.getOpenInventory();
             if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
-                InventoryUtils.sendJavaContainerClose(session, openInventory);
+                InventoryUtils.closeInventory(session, openInventory.javaId(), true);
+                InventoryUtils.sendJavaContainerClose(openInventory);
             }
 
-            InventoryTranslator translator = InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
+            //noinspection unchecked
+            InventoryTranslator<LecternContainer> translator = (InventoryTranslator<LecternContainer>) InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
             Objects.requireNonNull(translator, "could not find lectern inventory translator!");
 
             // Should never be null
             Objects.requireNonNull(translator, "lectern translator must exist");
-            Inventory inventory = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
-            ((LecternContainer) inventory).setFakeLecternBook(stack, session);
-            InventoryUtils.openInventory(session, inventory);
+            LecternContainer container = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN);
+            container.setFakeLecternBook(stack, session);
+            InventoryUtils.openInventory(new InventoryHolder<>(session, container, translator));
         }
     }
 }

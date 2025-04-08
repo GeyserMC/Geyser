@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -132,7 +131,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     public void updateSlot(GeyserSession session, LecternContainer container, int slot) {
         // If we're not in a real lectern, the Java server thinks we are still in the player inventory.
         if (container.isBookInPlayerInventory()) {
-            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
+            session.getPlayerInventoryHolder().updateSlot(slot);
             return;
         }
         super.updateSlot(session, container, slot);
@@ -198,7 +197,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public LecternContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new LecternContainer(session, name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory, this);
+    public LecternContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new LecternContainer(session, name, windowId, this.size, containerType);
     }
 }

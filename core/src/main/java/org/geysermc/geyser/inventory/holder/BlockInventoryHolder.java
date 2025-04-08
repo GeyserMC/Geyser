@@ -90,8 +90,8 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",
-                InventoryUtils.debugInventory(container), previous.getHolderPosition(), position);
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
+                previous.getHolderPosition(), position);
             return false;
         }
     }

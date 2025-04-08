@@ -145,44 +145,76 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     /**
      * Whether a new inventory should be prepared - or if we can re-use the previous one.
      */
-    public boolean canReuseInventory(GeyserSession session, @NonNull Type inventory, @NonNull Inventory previous) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
         // Filter for mismatches that require a new inventory.
-        if (inventory.getContainerType() == null || previous.getContainerType() == null
-            || !Objects.equals(inventory.getContainerType(), previous.getContainerType())
+        if (inventory.getContainerType() == null || previous.getContainerType() == null ||
+            !Objects.equals(inventory.getContainerType(), previous.getContainerType()) ||
+            !Objects.equals(inventory.getTitle(), previous.getTitle()) ||
+            inventory.getSize() != previous.getSize()
         ) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to type change! ", InventoryUtils.debugInventory(inventory));
             return false;
         }
 
-        if (inventory.getSize() != previous.getSize()) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to size change! ", InventoryUtils.debugInventory(inventory));
-            return false;
-        }
-
-        if (!Objects.equals(inventory.getTitle(), previous.getTitle())) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to title change! ", InventoryUtils.debugInventory(inventory));
-            return false;
-        }
-
-        if (previous.getHolderId() == -1 && previous.getHolderPosition() == Vector3i.ZERO) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) since the old was not initialized! ", InventoryUtils.debugInventory(inventory));
-            return false;
-        }
-
-        // We can likely reuse the inventory!
-        return true;
+        // Finally, ensure that the previous inventory has been initialized
+        return previous.getHolderId() != -1 || previous.getHolderPosition() != Vector3i.ZERO;
     }
+
+    /**
+     * Prepares the inventory before opening it. Bedrock requires the inventory to "exist" before opening it - that can be
+     * either a real block (e.g. chest), or an entity (e.g. horse)
+     * @return whether the inventory was successfully prepared
+     */
     public abstract boolean prepareInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Opens the previously prepared inventory.
+     */
     public abstract void openInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Closes the inventory, and if necessary, cleans up the prepared inventory.
+     */
     public abstract void closeInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Updates a property in the inventory.
+     */
     public abstract void updateProperty(GeyserSession session, Type inventory, int key, int value);
+
+    /**
+     * Updates the inventory by re-sending items for all slots of the inventory.
+     */
     public abstract void updateInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Updates a specific slot by re-sending the item.
+     */
     public abstract void updateSlot(GeyserSession session, Type inventory, int slot);
+
+    /**
+     * Converts the Bedrock slot to the corresponding Java slot.
+     */
     public abstract int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData);
+
+    /**
+     * Converts a Java slot to the corresponding Bedrock slot.
+     */
     public abstract int javaSlotToBedrock(int javaSlot);
+
+    /**
+     * Converts a Java slot to the corresponding Bedrock container and slot
+     */
     public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
+
+    /**
+     * Returns the slot type for a Java slot id
+     */
     public abstract SlotType getSlotType(int javaSlot);
-    public abstract Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
+
+    /**
+     * Creates a new inventory.
+     */
+    public abstract Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType);
 
     /**
      * Used for crafting-related transactions. Will override in PlayerInventoryTranslator and CraftingInventoryTranslator.

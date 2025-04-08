@@ -86,8 +86,8 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public CartographyContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new CartographyContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public CartographyContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new CartographyContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override

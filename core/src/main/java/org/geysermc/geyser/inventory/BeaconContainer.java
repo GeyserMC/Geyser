@@ -25,19 +25,18 @@
 
 package org.geysermc.geyser.inventory;
 
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
 @Getter
 @Setter
-public class BeaconContainer extends Container<BeaconContainer> {
+public class BeaconContainer extends Container {
     private int primaryId;
     private int secondaryId;
 
-    public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<BeaconContainer> translator) {
-        super(session, title, id, size, containerType, playerInventory, translator);
+    public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 }

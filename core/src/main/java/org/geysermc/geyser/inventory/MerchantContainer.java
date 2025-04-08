@@ -30,7 +30,6 @@ import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
@@ -38,7 +37,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 import java.util.List;
 
 @Setter
-public class MerchantContainer extends Container<MerchantContainer> {
+public class MerchantContainer extends Container {
     @Getter
     private Entity villager;
     private List<VillagerTrade> villagerTrades;
@@ -47,8 +46,8 @@ public class MerchantContainer extends Container<MerchantContainer> {
     @Getter
     private int tradeExperience;
 
-    public MerchantContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator<MerchantContainer> translator) {
-        super(session, title, id, size, containerType, playerInventory, translator);
+    public MerchantContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     public void onTradeSelected(GeyserSession session, int slot) {

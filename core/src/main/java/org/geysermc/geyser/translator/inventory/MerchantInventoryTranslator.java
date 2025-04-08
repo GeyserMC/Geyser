@@ -164,7 +164,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
             // so we need to work around that with the delay. Specifically they force a window refresh after a
             // trade packet has been sent.
             session.scheduleInEventLoop(() -> {
-                if (session.getOpenInventory() instanceof MerchantContainer merchantInventory) {
+                InventoryHolder<? extends Inventory> holder = session.getOpenInventory();
+                if (holder != null && holder.inventory() instanceof MerchantContainer merchantInventory) {
                     merchantInventory.onTradeSelected(session, tradeChoice);
                     // Ignore output since we don't want to send a delayed response packet back to the client
                     translateRequest(session, inventory, request);
@@ -191,7 +192,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     }
 
     @Override
-    public MerchantContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new MerchantContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public MerchantContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new MerchantContainer(session, name, windowId, this.size, containerType);
     }
 }

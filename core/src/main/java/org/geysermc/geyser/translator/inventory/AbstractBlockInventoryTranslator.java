@@ -83,8 +83,11 @@ public abstract class AbstractBlockInventoryTranslator<Type extends Container> e
     }
 
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Type container, @NonNull Inventory previous) {
-        if (super.canReuseInventory(session, container, previous) && previous instanceof Container previousContainer) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory newInventory, @NonNull Inventory previous) {
+        if (super.canReuseInventory(session, newInventory, previous)
+            && newInventory instanceof Container container
+            && previous instanceof Container previousContainer
+        ) {
             return holder.canReuseContainer(session, container, previousContainer);
         }
         return false;

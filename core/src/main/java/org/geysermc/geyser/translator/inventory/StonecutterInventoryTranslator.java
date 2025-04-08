@@ -122,8 +122,8 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public StonecutterContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new StonecutterContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public StonecutterContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new StonecutterContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override

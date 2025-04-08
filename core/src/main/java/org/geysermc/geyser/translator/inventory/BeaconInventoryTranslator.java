@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.inventory.BeaconContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -143,8 +142,8 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
     }
 
     @Override
-    public BeaconContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new BeaconContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public BeaconContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new BeaconContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override

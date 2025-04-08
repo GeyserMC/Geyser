@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 import org.cloudburstmc.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.CartographyContainer;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,14 +42,15 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
 
     @Override
     public void translate(GeyserSession session, FilterTextPacket packet) {
-        if (session.getOpenInventory() instanceof CartographyContainer) {
+        InventoryHolder<?> holder = session.getOpenInventory();
+        if (holder != null && holder.inventory() instanceof CartographyContainer) {
             // We don't want to be able to rename in the cartography table
             return;
         }
         packet.setFromServer(true);
-        if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
+        if (holder != null && holder.inventory() instanceof AnvilContainer anvilContainer) {
             packet.setText(anvilContainer.checkForRename(session, packet.getText()));
-            anvilContainer.updateSlot(1);
+            holder.updateSlot(1);
         }
         session.sendUpstreamPacket(packet);
     }

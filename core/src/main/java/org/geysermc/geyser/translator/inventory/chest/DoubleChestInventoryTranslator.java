@@ -68,8 +68,9 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
      * Mirrors {@link BlockInventoryHolder#canReuseContainer(GeyserSession, Container, Container)}
      */
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Container container, @NonNull Inventory oldInventory) {
-        if (!super.canReuseInventory(session, container, oldInventory) ||
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory newInventory, @NonNull Inventory oldInventory) {
+        if (!super.canReuseInventory(session, newInventory, oldInventory) ||
+            !(newInventory instanceof Container) ||
             !(oldInventory instanceof Container previous)
         ) {
             return false;
@@ -85,8 +86,8 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",
-                InventoryUtils.debugInventory(container), previous.getHolderPosition(), position);
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
+                previous.getHolderPosition(), position);
             return false;
         }
     }

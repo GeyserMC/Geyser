@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.AnvilInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -101,8 +100,8 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
     }
 
     @Override
-    public AnvilContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new AnvilContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public AnvilContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new AnvilContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override

@@ -29,7 +29,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Generic3X3Container;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,8 +44,8 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Generic3X3Container createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Generic3X3Container(session, name, windowId, this.size, containerType, playerInventory, this);
+    public Generic3X3Container createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new Generic3X3Container(session, name, windowId, this.size, containerType);
     }
 
     @Override

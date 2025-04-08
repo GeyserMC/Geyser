@@ -167,8 +167,8 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public EnchantingContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new EnchantingContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public EnchantingContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new EnchantingContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override
