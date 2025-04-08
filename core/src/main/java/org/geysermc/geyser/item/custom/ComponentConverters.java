@@ -36,6 +36,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
@@ -55,10 +56,8 @@ import java.util.Map;
 /**
  * This class is used to convert components from the API module to MCPL ones.
  *
- * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 3 exceptions:
+ * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
  * <ul>
- *     <li>The {@link DataComponent#TOOL} component doesn't convert over to its MCPL counterpart as the only reason it's in the API as of right now is the {@code canDestroyInCreative} property. This is a 1.21.5 property,
- *     and once Geyser for 1.21.5 releases, this component should have a converter in here.</li>
  *     <li>The MCPL counterpart of the {@link DataComponent#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
  *     Also see {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
  *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent}) don't have converters registered, for obvious reasons.
@@ -109,6 +108,9 @@ public class ComponentConverters {
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
 
         registerConverter(DataComponent.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
+
+        registerConverter(DataComponent.TOOL, (itemMap, value) -> itemMap.put(DataComponentTypes.TOOL,
+            new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative())));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {

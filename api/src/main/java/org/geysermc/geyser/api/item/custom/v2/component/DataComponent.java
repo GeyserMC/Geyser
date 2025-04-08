@@ -83,7 +83,7 @@ public final class DataComponent<T> {
      */
     public static final DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
     /**
-     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option, which will be a feature in Java 1.21.5, but is already in use in Geyser.
+     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option.
      *
      * <p>Like other components, when not set this will fall back to the default value.</p>
      *

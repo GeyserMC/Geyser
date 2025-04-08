@@ -44,7 +44,6 @@ import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
-import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
 import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -66,6 +65,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
@@ -279,10 +279,8 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        // Temporary workaround: when 1.21.5 releases, this value will be mapped to an MCPL tool component, and this code will look nicer
-        // since we can get the value from the vanilla item component instead of using the vanilla mapping.
-        ToolProperties toolProperties = customItemDefinition.components().get(DataComponent.TOOL);
-        boolean canDestroyInCreative = toolProperties == null ? !"sword".equals(vanillaMapping.map(GeyserMappingItem::getToolType).orElse("")) : toolProperties.canDestroyBlocksInCreative();
+        ToolData toolData = components.get(DataComponentTypes.TOOL);
+        boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
         // Using API component here because MCPL one is just an ID holder set
