@@ -92,6 +92,8 @@ public class ComponentConverters {
                 case CHEST -> EquipmentSlot.CHESTPLATE;
                 case LEGS -> EquipmentSlot.LEGGINGS;
                 case FEET -> EquipmentSlot.BOOTS;
+                case BODY -> EquipmentSlot.BODY;
+                case SADDLE -> EquipmentSlot.SADDLE;
             };
             itemMap.put(DataComponentTypes.EQUIPPABLE, new Equippable(convertedSlot, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC,
                 null, null, null, false, false, false, false));

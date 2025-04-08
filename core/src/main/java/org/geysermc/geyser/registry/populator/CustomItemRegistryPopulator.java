@@ -451,34 +451,24 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    @SuppressWarnings("RedundantLabeledSwitchRuleCodeBlock") // Looks a lot nicer this way
     private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
-        switch (equippable.slot()) {
-            case HELMET -> {
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
-                    .putString("slot", "slot.armor.head")
-                    .putInt("protection", protectionValue)
-                    .build());
-            }
-            case CHESTPLATE -> {
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
-                    .putString("slot", "slot.armor.chest")
-                    .putInt("protection", protectionValue)
-                    .build());
-            }
-            case LEGGINGS -> {
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
-                    .putString("slot", "slot.armor.legs")
-                    .putInt("protection", protectionValue)
-                    .build());
-            }
-            case BOOTS -> {
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
-                    .putString("slot", "slot.armor.feet")
-                    .putInt("protection", protectionValue)
-                    .build());
-            }
+        String slotName = switch (equippable.slot()) {
+            case BOOTS -> "armor.feet";
+            case LEGGINGS -> "armor.legs";
+            case CHESTPLATE -> "armor.chest";
+            case HELMET -> "armor.head";
+            case BODY -> "armor";
+            case SADDLE -> "saddle";
+            default -> "";
+        };
+        if (slotName.isEmpty()) {
+            return;
         }
+
+        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
+            .putString("slot", "slot." + slotName)
+            .putInt("protection", protectionValue)
+            .build());
     }
 
     private static void computeEnchantableProperties(int enchantmentValue, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {

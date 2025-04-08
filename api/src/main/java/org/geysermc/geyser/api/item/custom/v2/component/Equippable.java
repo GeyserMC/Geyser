@@ -31,6 +31,8 @@ public record Equippable(EquipmentSlot slot) {
         HEAD,
         CHEST,
         LEGS,
-        FEET
+        FEET,
+        BODY,
+        SADDLE
     }
 }
