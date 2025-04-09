@@ -43,7 +43,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
         // Bedrock wants to either move a page or exit
-        InventoryHolder<?> holder = session.getOpenInventory();
+        InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null || !(holder.inventory() instanceof LecternContainer lecternContainer)) {
             session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
             return;

@@ -69,7 +69,7 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void markCurrent() {
-        this.session.setOpenInventory(this);
+        this.session.setInventoryHolder(this);
     }
 
     public boolean shouldSetPending() {
@@ -108,7 +108,7 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void openInventory() {
-        if (session.getOpenInventory() != this) {
+        if (session.getInventoryHolder() != this) {
             throw new IllegalStateException("Inventory is not open!");
         }
         this.translator.openInventory(session, inventory);
@@ -117,7 +117,7 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void closeInventory() {
-        if (session.getOpenInventory() != this) {
+        if (session.getInventoryHolder() != this) {
             throw new IllegalStateException("Inventory is not open!");
         }
         this.translator.closeInventory(session, inventory);

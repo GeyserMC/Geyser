@@ -123,7 +123,7 @@ public abstract class Inventory {
         // Java wouldn't - e.g. for virtual chest menus that switch pages.
         // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
         // so to be safe we just deviate in that case as well.
-        if ((session.getOpenInventory() != null && session.getOpenInventory().bedrockId() == bedrockId) || session.isClosingInventory()) {
+        if ((session.getInventoryHolder() != null && session.getInventoryHolder().bedrockId() == bedrockId) || session.isClosingInventory()) {
             this.bedrockId += 1;
         }
     }

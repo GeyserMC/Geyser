@@ -50,7 +50,7 @@ public class DebugCommand extends GeyserCommand {
 
         if (session != null) {
 
-            var holder = session.getOpenInventory();
+            var holder = session.getInventoryHolder();
             if (holder != null && holder.translator() instanceof SingleChestInventoryTranslator) {
                 for (int i = 0; i <= holder.inventory().getSize(); i++) {
                     int bedrockSlot = holder.translator().javaSlotToBedrock(i);

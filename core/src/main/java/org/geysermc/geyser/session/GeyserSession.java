@@ -293,11 +293,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private boolean isInWorldBorderWarningArea = false;
 
+    /**
+     * Stores the player inventory and player inventory translator
+     */
     private final InventoryHolder<PlayerInventory> playerInventoryHolder;
 
+    /**
+     * Stores the current open inventory, including the correct translator.
+     */
     @Setter
-    private @Nullable InventoryHolder<? extends Inventory> openInventory;
+    private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
 
+    /**
+     * Whether the client is currently closing an inventory.
+     * Used to open new inventories while another one is currently open.
+     */
     @Setter
     private boolean closingInventory;
 
@@ -718,7 +728,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
-        this.openInventory = null;
+        this.inventoryHolder = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
@@ -1496,8 +1506,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
-    public PlayerInventory getPlayerInventory() {
+    public @NonNull PlayerInventory getPlayerInventory() {
         return this.playerInventoryHolder.inventory();
+    }
+
+    public @Nullable Inventory getOpenInventory() {
+        if (this.inventoryHolder == null) {
+            return null;
+        }
+        return this.inventoryHolder.inventory();
     }
 
     @Override

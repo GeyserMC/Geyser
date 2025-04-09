@@ -42,16 +42,20 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
 
     @Override
     public void translate(GeyserSession session, FilterTextPacket packet) {
-        InventoryHolder<?> holder = session.getOpenInventory();
-        if (holder != null && holder.inventory() instanceof CartographyContainer) {
-            // We don't want to be able to rename in the cartography table
-            return;
+        InventoryHolder<?> holder = session.getInventoryHolder();
+
+        if (holder != null) {
+            if (holder.inventory() instanceof CartographyContainer) {
+                // We don't want to be able to rename in the cartography table
+                return;
+            }
+            if (holder.inventory() instanceof AnvilContainer anvilContainer) {
+                packet.setText(anvilContainer.checkForRename(session, packet.getText()));
+                holder.updateSlot(1);
+            }
         }
+
         packet.setFromServer(true);
-        if (holder != null && holder.inventory() instanceof AnvilContainer anvilContainer) {
-            packet.setText(anvilContainer.checkForRename(session, packet.getText()));
-            holder.updateSlot(1);
-        }
         session.sendUpstreamPacket(packet);
     }
 }

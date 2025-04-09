@@ -39,7 +39,7 @@ public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStac
 
     @Override
     public void translate(GeyserSession session, ItemStackRequestPacket packet) {
-        InventoryHolder<?> holder = session.getOpenInventory();
+        InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null)
             return;
 

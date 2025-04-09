@@ -57,7 +57,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     @Override
     public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
-        InventoryHolder<?> holder = session.getOpenInventory();
+        InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null) {
             return;
         }

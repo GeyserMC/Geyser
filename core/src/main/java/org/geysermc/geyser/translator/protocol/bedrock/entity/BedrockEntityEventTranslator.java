@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity;
 
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -52,8 +51,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 session.sendDownstreamGamePacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {
-                    InventoryHolder<?> openInventory = session.getOpenInventory();
-                    if (openInventory != null && openInventory.inventory() instanceof MerchantContainer merchantInventory) {
+                    if (session.getOpenInventory() instanceof MerchantContainer merchantInventory) {
                         merchantInventory.onTradeSelected(session, packet.getData());
                     }
                 }, 100, TimeUnit.MILLISECONDS);

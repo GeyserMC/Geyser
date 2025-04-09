@@ -55,7 +55,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         session.setClosingInventory(false);
 
         // 1.21.70: Bedrock can reject opening inventories - in those cases it replies with -1
-        InventoryHolder<? extends Inventory> holder = session.getOpenInventory();
+        InventoryHolder<? extends Inventory> holder = session.getInventoryHolder();
         if (bedrockId == -1 && holder != null) {
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
             if (holder.translator() instanceof MerchantInventoryTranslator) {
@@ -78,7 +78,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     return;
                 } else {
                     GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 3 attempts to open a virtual inventory!");
-                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + session.getOpenInventory().getClass().getSimpleName());
+                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + session.getInventoryHolder().getClass().getSimpleName());
                 }
             }
         }

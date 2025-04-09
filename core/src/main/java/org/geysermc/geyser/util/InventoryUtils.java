@@ -115,7 +115,7 @@ public class InventoryUtils {
      * occurred in the time. For example, a queued virtual inventory might be "outdated", so we wouldn't open it.
      */
     public static void openPendingInventory(GeyserSession session) {
-        InventoryHolder<?> holder = session.getOpenInventory();
+        InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null || !holder.pending()) {
             session.setPendingOrCurrentBedrockInventoryId(-1);
             GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(holder));
@@ -156,7 +156,7 @@ public class InventoryUtils {
             // Can occur if we e.g. did not find a spot to put a fake container in
             holder.session().setPendingOrCurrentBedrockInventoryId(-1);
             sendJavaContainerClose(holder);
-            holder.session().setOpenInventory(null);
+            holder.session().setInventoryHolder(null);
         }
     }
 
@@ -188,19 +188,19 @@ public class InventoryUtils {
             GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", holder.javaId(), holder.bedrockId(), session.isClosingInventory());
         }
 
-        session.setOpenInventory(null);
+        session.setInventoryHolder(null);
     }
 
     /**
      * A util method to get the an inventory based on a Java id. This is used over
-     * {@link GeyserSession#getOpenInventory()} when needing to account for player inventories instead of just the open inventory.
+     * {@link GeyserSession#getInventoryHolder()} when needing to account for player inventories instead of just the open inventory.
      */
     public static @Nullable InventoryHolder<?> getInventory(GeyserSession session, int javaId) {
-        InventoryHolder<?> holder = session.getOpenInventory();
+        InventoryHolder<?> holder = session.getInventoryHolder();
         if (javaId == 0) {
             // ugly hack: lecterns aren't their own inventory on Java, and can hence be closed with e.g. an id of 0
             if (holder != null && holder.inventory() instanceof LecternContainer) {
-                return session.getOpenInventory();
+                return session.getInventoryHolder();
             }
             return session.getPlayerInventoryHolder();
         } else {

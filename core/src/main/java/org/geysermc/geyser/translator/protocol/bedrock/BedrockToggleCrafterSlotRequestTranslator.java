@@ -37,7 +37,7 @@ public class BedrockToggleCrafterSlotRequestTranslator extends PacketTranslator<
 
     @Override
     public void translate(GeyserSession session, ToggleCrafterSlotRequestPacket packet) {
-        if (session.getOpenInventory() == null || !(session.getOpenInventory().inventory() instanceof CrafterContainer container)) {
+        if (!(session.getOpenInventory() instanceof CrafterContainer container)) {
             return;
         }
 

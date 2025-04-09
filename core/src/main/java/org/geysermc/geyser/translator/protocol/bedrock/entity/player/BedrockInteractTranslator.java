@@ -121,7 +121,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                if (session.getOpenInventory() == null) {
+                if (session.getInventoryHolder() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
                     if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof ChestBoatEntity) {
                         // This mob has an inventory of its own that we should open instead.
