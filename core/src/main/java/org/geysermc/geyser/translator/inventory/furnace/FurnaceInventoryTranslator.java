@@ -38,11 +38,11 @@ public class FurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslat
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_INGREDIENT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, inventory);
     }
 
     @Override

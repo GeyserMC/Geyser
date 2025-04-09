@@ -73,12 +73,12 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, inventory);
         };
     }
 

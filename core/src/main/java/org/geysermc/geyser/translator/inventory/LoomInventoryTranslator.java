@@ -149,13 +149,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.LOOM_INPUT, 9);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.LOOM_DYE, 10);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.LOOM_MATERIAL, 11);
             case 3 -> new BedrockContainerSlot(ContainerSlotType.LOOM_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, inventory);
         };
     }
 

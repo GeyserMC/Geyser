@@ -66,12 +66,12 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, MerchantContainer inventory) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_1, 4);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_2, 5);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, inventory);
         };
     }
 

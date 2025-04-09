@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.furnace;
+package org.geysermc.geyser.inventory;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Container;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-public class BlastFurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslator {
-    public BlastFurnaceInventoryTranslator() {
-        super(Blocks.BLAST_FURNACE, ContainerType.BLAST_FURNACE);
+/**
+ * A "hack" to be able to use existing barrels.
+ * The only difference to chests appears to be the different ContainerSlotType - this accounts for it.
+ */
+@Getter @Setter
+public class Generic9X3Container extends Container {
+
+    private boolean isBarrel;
+
+    public Generic9X3Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
-        if (slot == 0) {
-            return new BedrockContainerSlot(ContainerSlotType.BLAST_FURNACE_INGREDIENT, javaSlotToBedrock(slot));
+    public void setUsingRealBlock(boolean usingRealBlock, Block block) {
+        super.setUsingRealBlock(usingRealBlock, block);
+        if (usingRealBlock) {
+            isBarrel = block == Blocks.BARREL;
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
-    }
-
-    @Override
-    public @Nullable ContainerType closeContainerType(Container container) {
-        return ContainerType.BLAST_FURNACE;
     }
 }

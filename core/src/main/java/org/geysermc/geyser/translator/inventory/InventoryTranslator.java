@@ -204,7 +204,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     /**
      * Converts a Java slot to the corresponding Bedrock container and slot
      */
-    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
+    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Type inventory);
 
     /**
      * Returns the slot type for a Java slot id
@@ -279,6 +279,8 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 // Sync our copy of the inventory with Bedrock's to prevent desyncs
                 refresh = true;
             }
+
+            GeyserImpl.getInstance().getLogger().info(request + " " + response);
 
             responsePacket.getEntries().add(response);
         }
@@ -1088,7 +1090,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         IntIterator it = affectedSlots.iterator();
         while (it.hasNext()) {
             int slot = it.nextInt();
-            BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
+            BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot, inventory);
             List<ItemStackResponseSlot> list = containerMap.computeIfAbsent(bedrockSlot.container(), k -> new ArrayList<>());
             list.add(makeItemEntry(bedrockSlot.slot(), inventory.getItem(slot)));
         }

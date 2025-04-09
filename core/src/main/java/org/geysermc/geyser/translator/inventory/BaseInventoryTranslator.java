@@ -27,7 +27,9 @@ package org.geysermc.geyser.translator.inventory;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
@@ -72,7 +74,7 @@ public abstract class BaseInventoryTranslator<Type extends Container> extends In
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Type inventory) {
         if (slot >= this.size) {
             final int tmp = slot - this.size;
             if (tmp < 27) {

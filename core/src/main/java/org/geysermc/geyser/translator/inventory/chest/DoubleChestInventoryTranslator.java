@@ -52,7 +52,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Objects;
 
-public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
+public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Container> {
     private final int defaultJavaBlockState;
 
     public DoubleChestInventoryTranslator(int size) {

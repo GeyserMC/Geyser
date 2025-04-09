@@ -25,8 +25,9 @@
 
 package org.geysermc.geyser.translator.inventory.chest;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.inventory.Generic9X3Container;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
 import org.geysermc.geyser.level.block.Blocks;
@@ -35,7 +36,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 
-public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
+public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Generic9X3Container> {
     private final InventoryHolder holder;
 
     public SingleChestInventoryTranslator(int size) {
@@ -56,17 +57,30 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Container container) {
+    public boolean prepareInventory(GeyserSession session, Generic9X3Container container) {
         return holder.prepareInventory(session, container);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Container container) {
+    public void openInventory(GeyserSession session, Generic9X3Container container) {
         holder.openInventory(session, container);
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Container container) {
+    public void closeInventory(GeyserSession session, Generic9X3Container container) {
         holder.closeInventory(session, container, ContainerType.CONTAINER);
+    }
+
+    @Override
+    public Generic9X3Container createInventory(GeyserSession session, String name, int windowId, org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType containerType) {
+        return new Generic9X3Container(session, name, windowId, this.size, containerType);
+    }
+
+    @Override
+    protected ContainerSlotType slotType(Generic9X3Container generic9X3Container) {
+        if (generic9X3Container.isBarrel()) {
+            return ContainerSlotType.BARREL;
+        }
+        return super.slotType(generic9X3Container);
     }
 }

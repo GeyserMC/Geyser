@@ -71,13 +71,13 @@ public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockIn
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_FUEL, javaSlotToBedrock(slot));
         }
         if (slot == 2) {
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_RESULT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, inventory);
     }
 }

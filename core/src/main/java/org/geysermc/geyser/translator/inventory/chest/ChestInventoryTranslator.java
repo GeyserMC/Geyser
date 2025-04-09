@@ -33,7 +33,7 @@ import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 
-public abstract class ChestInventoryTranslator extends BaseInventoryTranslator<Container> {
+public abstract class ChestInventoryTranslator<Type extends Container> extends BaseInventoryTranslator<Type> {
     private final InventoryUpdater updater;
 
     public ChestInventoryTranslator(int size, int paddedSize) {
@@ -42,35 +42,43 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator<C
     }
 
     @Override
-    protected boolean shouldRejectItemPlace(GeyserSession session, Container container, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Type container, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         // Reject any item placements that occur in the unusable inventory space
-        if (bedrockSourceContainer == ContainerSlotType.LEVEL_ENTITY && javaSourceSlot >= this.size) {
+        if (bedrockSourceContainer == slotType(container) && javaSourceSlot >= this.size) {
             return true;
         }
-        return bedrockDestinationContainer == ContainerSlotType.LEVEL_ENTITY && javaDestinationSlot >= this.size;
+        return bedrockDestinationContainer == slotType(container) && javaDestinationSlot >= this.size;
     }
 
     @Override
-    public boolean requiresOpeningDelay(GeyserSession session, Container container) {
+    public boolean requiresOpeningDelay(GeyserSession session, Type container) {
         return !container.isUsingRealBlock();
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Container container) {
+    public void updateInventory(GeyserSession session, Type container) {
         updater.updateInventory(this, session, container);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Container container, int slot) {
+    public void updateSlot(GeyserSession session, Type container, int slot) {
         updater.updateSlot(this, session, container, slot);
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Type inventory) {
         if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
+            return new BedrockContainerSlot(slotType(inventory), javaSlot);
         }
-        return super.javaSlotToBedrockContainer(javaSlot);
+        return super.javaSlotToBedrockContainer(javaSlot, inventory);
+    }
+
+    /**
+     * Overridden by the SingleChestInventoryTranslator in case barrels are used.
+     * Bedrock uses the ContainerSlotType.BARREL for those.
+     */
+    protected ContainerSlotType slotType(Type type) {
+        return ContainerSlotType.LEVEL_ENTITY;
     }
 }

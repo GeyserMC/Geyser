@@ -45,7 +45,6 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
-import org.geysermc.geyser.command.defaults.DebugCommand;
 import org.geysermc.geyser.command.defaults.DumpCommand;
 import org.geysermc.geyser.command.defaults.ExtensionsCommand;
 import org.geysermc.geyser.command.defaults.HelpCommand;
@@ -164,7 +163,6 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
         registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
         registerBuiltInCommand(new PingCommand("ping", "geyser.commands.ping.desc", "geyser.command.ping"));
-        registerBuiltInCommand(new DebugCommand("debug", "", "", TriState.TRUE, false, false));
         if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }

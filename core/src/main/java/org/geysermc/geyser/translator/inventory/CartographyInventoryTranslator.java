@@ -66,12 +66,12 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, CartographyContainer inventory) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, inventory);
         };
     }
 

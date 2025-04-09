@@ -227,7 +227,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, PlayerInventory inventory) {
         if (slot >= 36 && slot <= 44) {
             return new BedrockContainerSlot(ContainerSlotType.HOTBAR, slot - 36);
         } else if (slot >= 9 && slot <= 35) {

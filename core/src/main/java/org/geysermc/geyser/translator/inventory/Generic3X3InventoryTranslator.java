@@ -60,11 +60,11 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Generic3X3Container inventory) {
         if (javaSlot < this.size) {
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
-        return super.javaSlotToBedrockContainer(javaSlot);
+        return super.javaSlotToBedrockContainer(javaSlot, inventory);
     }
 
     @Override

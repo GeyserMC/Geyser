@@ -53,14 +53,14 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
         if (isCraftingGrid(slot)) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTING_INPUT, slot + 31);
         }
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTING_OUTPUT, 0);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, inventory);
     }
 
     @Override

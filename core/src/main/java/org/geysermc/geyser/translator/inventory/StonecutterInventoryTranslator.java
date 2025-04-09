@@ -92,14 +92,14 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, StonecutterContainer inventory) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.STONECUTTER_INPUT, 3);
         }
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.STONECUTTER_RESULT, 50);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, inventory);
     }
 
     @Override

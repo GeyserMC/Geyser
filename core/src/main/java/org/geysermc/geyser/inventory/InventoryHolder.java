@@ -29,7 +29,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
@@ -121,7 +120,9 @@ public final class InventoryHolder<T extends Inventory> {
             throw new IllegalStateException("Inventory is not open!");
         }
         this.translator.closeInventory(session, inventory);
-        session.getContainerOutputFuture().cancel(true);
+        if (session.getContainerOutputFuture() != null) {
+            session.getContainerOutputFuture().cancel(true);
+        }
     }
 
     public boolean requiresOpeningDelay() {
@@ -134,10 +135,6 @@ public final class InventoryHolder<T extends Inventory> {
 
     public void translateRequests(List<ItemStackRequest> requests) {
         this.translator.translateRequests(session, inventory, requests);
-    }
-
-    public void checkNetId(ItemStackRequestSlotData data) {
-        this.translator.checkNetId(session, inventory, data);
     }
 
     public GeyserSession session() {

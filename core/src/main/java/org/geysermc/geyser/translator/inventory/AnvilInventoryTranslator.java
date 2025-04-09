@@ -80,12 +80,12 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, AnvilContainer inventory) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_INPUT, 1);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_MATERIAL, 2);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, inventory);
         };
     }
 
