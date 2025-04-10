@@ -48,6 +48,13 @@ public class GeyserVelocityInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+        // TEMPORARY until Netty 4.2 is implemented with these changes in mind.
+        try {
+            Class.forName("io.netty.channel.MultiThreadIoEventLoopGroup");
+            return;
+        } catch (ClassNotFoundException ignored) {
+        }
+
         Field cm = proxy.getClass().getDeclaredField("cm");
         cm.setAccessible(true);
         Object connectionManager = cm.get(proxy);
