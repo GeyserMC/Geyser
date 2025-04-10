@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -55,7 +56,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     private boolean receivedBook = false;
 
     public LecternInventoryTranslator() {
-        super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
+        super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override
@@ -87,7 +88,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
         // Heck, the latter crashes the client xd
         // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
-        Vector3i position = container.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : container.getHolderPosition();
+        Vector3i position = container.getHolderPosition();
         var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
         BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
@@ -109,7 +110,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         if (key == 0) { // Lectern page update
             inventory.setCurrentBedrockPage(value / 2);
             inventory.setBlockEntityTag(inventory.getBlockEntityTag().toBuilder().putInt("page", inventory.getCurrentBedrockPage()).build());
-            BlockEntityUtils.updateBlockEntity(session, inventory.getBlockEntityTag(), inventory.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, inventory.getBlockEntityTag(), inventory.getHolderPosition());
         }
     }
 
@@ -129,11 +130,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void updateSlot(GeyserSession session, LecternContainer container, int slot) {
-        // If we're not in a real lectern, the Java server thinks we are still in the player inventory.
-        if (container.isBookInPlayerInventory()) {
-            session.getPlayerInventoryHolder().updateSlot(slot);
-            return;
-        }
         super.updateSlot(session, container, slot);
         if (slot == 0) {
             updateBook(session, container, container.getItem(0));
@@ -148,16 +144,19 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     /**
      * Translate the data of the book in the lectern into a block entity tag.
      */
-    private void updateBook(GeyserSession session, LecternContainer inventory, GeyserItemStack book) {
+    private void updateBook(GeyserSession session, LecternContainer container, GeyserItemStack book) {
         if (session.isDroppingLecternBook()) {
-            // We have to enter the inventory GUI to eject the book
-            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), 3);
-            session.sendDownstreamGamePacket(packet);
-            session.setDroppingLecternBook(false);
-            InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
-        } else if (inventory.getBlockEntityTag() == null) {
-            Vector3i position = inventory.isUsingRealBlock() ?
-                    session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+            InventoryHolder<?> holder = session.getInventoryHolder();
+            if (holder != null && !container.isBookInPlayerInventory()) {
+                // We have to enter the inventory GUI to eject the book
+                ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), 3);
+                session.sendDownstreamGamePacket(packet);
+                session.setDroppingLecternBook(false);
+                InventoryUtils.sendJavaContainerClose(holder);
+                InventoryUtils.closeInventory(session, container.getJavaId(), false);
+            }
+        } else if (container.getBlockEntityTag() == null) {
+            Vector3i position = container.getHolderPosition();
 
             NbtMap blockEntityTag;
             if (book.hasNonBaseComponents()) {
@@ -180,17 +179,14 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                         .putString("Name", "minecraft:written_book")
                         .putCompound("tag", itemData.getTag())
                         .build());
-                lecternTag.putInt("page", inventory.getCurrentBedrockPage());
+                lecternTag.putInt("page", container.getCurrentBedrockPage());
                 blockEntityTag = lecternTag.build();
             } else {
                 // There is *a* book here, but... no NBT.
                 blockEntityTag = LecternBlock.getBaseLecternTag(position, true);
             }
 
-            // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
-            // the block entity tag
-            inventory.setBlockEntityTag(blockEntityTag);
-            inventory.setPosition(position);
+            container.setBlockEntityTag(blockEntityTag);
 
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
         }

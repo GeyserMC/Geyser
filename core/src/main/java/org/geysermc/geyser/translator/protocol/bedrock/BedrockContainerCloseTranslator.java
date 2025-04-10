@@ -91,7 +91,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         if (holder != null) {
             if (bedrockId == holder.bedrockId()) {
                 InventoryUtils.sendJavaContainerClose(holder);
-                InventoryUtils.closeInventory(session, holder.javaId(), false);
+                InventoryUtils.closeInventory(session, holder, false);
             } else if (holder.pending()) {
                 InventoryUtils.displayInventory(holder);
 

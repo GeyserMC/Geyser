@@ -39,7 +39,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
-import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
@@ -63,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSta
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.jetbrains.annotations.Contract;
 
@@ -175,10 +175,14 @@ public class InventoryUtils {
      * @param confirm whether to wait for the session to process the close before opening a new inventory.
      */
     public static void closeInventory(GeyserSession session, int javaId, boolean confirm) {
+        InventoryHolder<?> holder = getInventory(session, javaId);
+        closeInventory(session, holder, confirm);
+    }
+
+    public static void closeInventory(GeyserSession session, InventoryHolder<?> holder, boolean confirm) {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
-        InventoryHolder<?> holder = getInventory(session, javaId);
         if (holder != null) {
             holder.closeInventory();
             if (holder.shouldConfirmClose(confirm)) {
@@ -192,18 +196,15 @@ public class InventoryUtils {
     }
 
     /**
-     * A util method to get the an inventory based on a Java id. This is used over
-     * {@link GeyserSession#getInventoryHolder()} when needing to account for player inventories instead of just the open inventory.
+     * A util method to get an (open) inventory based on a Java id. This method should be used over
+     * {@link GeyserSession#getOpenInventory()} (or {@link GeyserSession#getInventoryHolder()}) to account for an edge-case where the Java server expects
+     * Geyser to have the player inventory open while we're using a virtual lectern for the {@link ClientboundOpenBookPacket}.
      */
     public static @Nullable InventoryHolder<?> getInventory(GeyserSession session, int javaId) {
-        InventoryHolder<?> holder = session.getInventoryHolder();
         if (javaId == 0) {
-            // ugly hack: lecterns aren't their own inventory on Java, and can hence be closed with e.g. an id of 0
-            if (holder != null && holder.inventory() instanceof LecternContainer) {
-                return session.getInventoryHolder();
-            }
             return session.getPlayerInventoryHolder();
         } else {
+            InventoryHolder<?> holder = session.getInventoryHolder();
             if (holder != null && javaId == holder.javaId()) {
                 return holder;
             }

@@ -66,7 +66,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
             if (currentInventory != null) {
-                InventoryUtils.closeInventory(session, currentInventory.javaId(), true);
+                InventoryUtils.closeInventory(session, currentInventory, true);
             }
 
             ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getContainerId());
@@ -93,7 +93,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
                 return;
             }
 
-            InventoryUtils.closeInventory(session, currentInventory.javaId(), true);
+            InventoryUtils.closeInventory(session, currentInventory, true);
         }
 
         InventoryUtils.openInventory(newInventoryHolder);

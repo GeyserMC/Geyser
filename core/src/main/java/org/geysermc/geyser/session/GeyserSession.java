@@ -138,8 +138,9 @@ import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
-import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
@@ -299,7 +300,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final InventoryHolder<PlayerInventory> playerInventoryHolder;
 
     /**
-     * Stores the current open inventory, including the correct translator.
+     * Stores the current open Bedrock inventory, including the correct translator.
+     * Prefer using {@link InventoryUtils#getInventory(GeyserSession, int)}, as this
+     * method can e.g. return a {@code InventoryHolder<LecternContainer>} due to the
+     * workaround in {@link LecternContainer#isBookInPlayerInventory()} workaround.
      */
     @Setter
     private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
