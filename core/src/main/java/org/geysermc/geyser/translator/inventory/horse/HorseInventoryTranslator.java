@@ -44,10 +44,10 @@ public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 0 || slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 }

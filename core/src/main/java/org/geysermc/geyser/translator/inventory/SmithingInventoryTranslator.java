@@ -55,13 +55,13 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case TEMPLATE -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
             case INPUT -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case MATERIAL -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
             case OUTPUT -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot, inventory);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 

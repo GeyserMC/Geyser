@@ -109,7 +109,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, CrafterContainer inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, CrafterContainer container) {
         if (javaSlot == JAVA_RESULT_SLOT) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTER_BLOCK_CONTAINER, BEDROCK_RESULT_SLOT);
         }

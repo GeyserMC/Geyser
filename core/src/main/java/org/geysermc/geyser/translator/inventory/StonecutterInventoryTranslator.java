@@ -48,12 +48,12 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, StonecutterContainer inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, StonecutterContainer container) {
         return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE;
     }
 
     @Override
-    protected ItemStackResponse translateSpecialRequest(GeyserSession session, StonecutterContainer inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateSpecialRequest(GeyserSession session, StonecutterContainer container, ItemStackRequest request) {
         // Guarded by shouldHandleRequestFirst
         CraftRecipeAction data = (CraftRecipeAction) request.getActions()[0];
 
@@ -67,19 +67,19 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         int button = craftingData.buttonId();
 
         // If we've already pressed the button with this item, no need to press it again!
-        if (inventory.getStonecutterButton() != button) {
+        if (container.getStonecutterButton() != button) {
             // Getting the index of the item in the Java stonecutter list
-            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), button);
+            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), button);
             session.sendDownstreamGamePacket(packet);
-            inventory.setStonecutterButton(button);
+            container.setStonecutterButton(button);
         }
 
-        if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
+        if (container.getItem(1).getJavaId() != javaOutput.getId()) {
             // We don't know there is an output here, so we tell ourselves that there is
-            inventory.setItem(1, GeyserItemStack.from(javaOutput), session);
+            container.setItem(1, GeyserItemStack.from(javaOutput), session);
         }
 
-        return translateRequest(session, inventory, request);
+        return translateRequest(session, container, request);
     }
 
     @Override
@@ -92,14 +92,14 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, StonecutterContainer inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, StonecutterContainer container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.STONECUTTER_INPUT, 3);
         }
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.STONECUTTER_RESULT, 50);
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override

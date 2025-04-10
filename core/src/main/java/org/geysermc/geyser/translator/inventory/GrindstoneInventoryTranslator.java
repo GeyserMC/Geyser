@@ -49,12 +49,12 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_INPUT, 16);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_ADDITIONAL, 17);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot, inventory);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 

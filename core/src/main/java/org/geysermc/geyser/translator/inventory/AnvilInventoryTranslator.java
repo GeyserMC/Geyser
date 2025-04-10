@@ -49,24 +49,24 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, AnvilContainer inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, AnvilContainer container) {
         return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE_OPTIONAL;
     }
 
     @Override
-    protected ItemStackResponse translateSpecialRequest(GeyserSession session, AnvilContainer inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateSpecialRequest(GeyserSession session, AnvilContainer container, ItemStackRequest request) {
         // Guarded by shouldHandleRequestFirst check
         CraftRecipeOptionalAction data = (CraftRecipeOptionalAction) request.getActions()[0];
 
         if (request.getFilterStrings().length != 0) {
             // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
             String name = request.getFilterStrings()[data.getFilteredStringIndex()];
-            if (!Objects.equals(name, inventory.getNewName())) { // TODO is this still necessary after pre-1.19.50 support is dropped?
-                inventory.checkForRename(session, name);
+            if (!Objects.equals(name, container.getNewName())) { // TODO is this still necessary after pre-1.19.50 support is dropped?
+                container.checkForRename(session, name);
             }
         }
 
-        return super.translateRequest(session, inventory, request);
+        return super.translateRequest(session, container, request);
     }
 
     @Override
@@ -80,12 +80,12 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, AnvilContainer inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, AnvilContainer container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_INPUT, 1);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_MATERIAL, 2);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot, inventory);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -105,12 +105,12 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
     }
 
     @Override
-    public void updateProperty(GeyserSession session, AnvilContainer inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, AnvilContainer container, int key, int value) {
         // The only property sent by Java is key 0 which is the level cost
         if (key != 0) return;
-        inventory.setJavaLevelCost(value);
-        inventory.setUseJavaLevelCost(true);
-        updateSlot(session, inventory, 1);
+        container.setJavaLevelCost(value);
+        container.setUseJavaLevelCost(true);
+        updateSlot(session, container, 1);
     }
 
     @Override

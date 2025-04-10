@@ -99,12 +99,12 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case 0, 1, 2 -> new BedrockContainerSlot(ContainerSlotType.BREWING_RESULT, javaSlotToBedrock(slot));
             case 3 -> new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
             case 4 -> new BedrockContainerSlot(ContainerSlotType.BREWING_FUEL, 4);
-            default -> super.javaSlotToBedrockContainer(slot, inventory);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 

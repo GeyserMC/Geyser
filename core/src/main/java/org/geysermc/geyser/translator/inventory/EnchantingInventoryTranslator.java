@@ -145,14 +145,14 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, EnchantingContainer inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, EnchantingContainer container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_INPUT, 14);
         }
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_MATERIAL, 15);
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override

@@ -126,11 +126,11 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, BeaconContainer inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, BeaconContainer container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.BEACON_PAYMENT, 27);
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override

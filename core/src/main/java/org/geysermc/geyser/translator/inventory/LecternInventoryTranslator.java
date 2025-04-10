@@ -106,11 +106,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public void updateProperty(GeyserSession session, LecternContainer inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, LecternContainer container, int key, int value) {
         if (key == 0) { // Lectern page update
-            inventory.setCurrentBedrockPage(value / 2);
-            inventory.setBlockEntityTag(inventory.getBlockEntityTag().toBuilder().putInt("page", inventory.getCurrentBedrockPage()).build());
-            BlockEntityUtils.updateBlockEntity(session, inventory.getBlockEntityTag(), inventory.getHolderPosition());
+            container.setCurrentBedrockPage(value / 2);
+            container.setBlockEntityTag(container.getBlockEntityTag().toBuilder().putInt("page", container.getCurrentBedrockPage()).build());
+            BlockEntityUtils.updateBlockEntity(session, container.getBlockEntityTag(), container.getHolderPosition());
         }
     }
 

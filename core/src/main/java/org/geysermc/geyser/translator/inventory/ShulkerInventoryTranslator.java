@@ -76,11 +76,11 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Container container) {
         if (javaSlot < this.size) {
             return new BedrockContainerSlot(ContainerSlotType.SHULKER_BOX, javaSlot);
         }
-        return super.javaSlotToBedrockContainer(javaSlot, inventory);
+        return super.javaSlotToBedrockContainer(javaSlot, container);
     }
 
     @Override

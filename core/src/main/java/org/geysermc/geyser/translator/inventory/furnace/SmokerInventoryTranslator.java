@@ -38,11 +38,11 @@ public class SmokerInventoryTranslator extends AbstractFurnaceInventoryTranslato
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container inventory) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.SMOKER_INGREDIENT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot, inventory);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
