@@ -60,6 +60,13 @@ public class GeyserVelocityInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+        try {
+            Class.forName("io.netty.channel.MultiThreadIoEventLoopGroup");
+        } catch (ClassNotFoundException e) {
+            bootstrap.getGeyserLogger().error("use-direct-connection disabled as Velocity is not up-to-date.");
+            return;
+        }
+
         Field cm = proxy.getClass().getDeclaredField("cm");
         cm.setAccessible(true);
         Object connectionManager = cm.get(proxy);
