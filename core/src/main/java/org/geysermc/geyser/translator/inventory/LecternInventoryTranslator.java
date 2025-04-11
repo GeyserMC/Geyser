@@ -152,7 +152,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), 3);
                 session.sendDownstreamGamePacket(packet);
                 session.setDroppingLecternBook(false);
-                InventoryUtils.sendJavaContainerClose(holder);
                 InventoryUtils.closeInventory(session, container.getJavaId(), false);
             }
         } else if (container.getBlockEntityTag() == null) {

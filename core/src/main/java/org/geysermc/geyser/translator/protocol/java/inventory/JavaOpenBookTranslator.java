@@ -60,10 +60,8 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
         }
 
         // The item doesn't need to be a book; just needs to have either of these components.
-        if (stack.hasNonBaseComponents() &&
-            stack.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT) != null ||
-            stack.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT) != null
-        ) {
+        if (stack.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT) != null ||
+            stack.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT) != null) {
             InventoryHolder<?> openInventory = session.getInventoryHolder();
             if (openInventory != null) {
                 InventoryUtils.sendJavaContainerClose(openInventory);
