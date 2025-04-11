@@ -175,6 +175,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -488,6 +489,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private boolean isUsingExperimentalMinecartLogic = false;
+
+    /**
+     * Whether a fishing bobber in the world is connected to the player. Used for custom items, updates the item the player is holding when changed.
+     */
+    private boolean hasFishingRodCast = false;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -1334,6 +1340,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.clientData = data;
         this.inputCache.setInputMode(
             org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
+    public boolean hasFishingRodCast() {
+        return hasFishingRodCast;
+    }
+
+    /**
+     * Also updates the item the player is holding.
+     */
+    public void setFishingRodCast(boolean cast) {
+        this.hasFishingRodCast = cast;
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(this, playerInventory, playerInventory.getOffsetForHotbar(playerInventory.getHeldItemSlot()));
     }
 
     /**
