@@ -44,7 +44,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
     public static final CrafterInventoryUpdater INSTANCE = new CrafterInventoryUpdater();
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         ItemData[] bedrockItems;
         InventoryContentPacket contentPacket;
 
@@ -74,7 +74,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         int containerId;
         if (javaSlot < CrafterInventoryTranslator.GRID_SIZE || javaSlot == CrafterInventoryTranslator.JAVA_RESULT_SLOT) {
             // Parts of the Crafter UI

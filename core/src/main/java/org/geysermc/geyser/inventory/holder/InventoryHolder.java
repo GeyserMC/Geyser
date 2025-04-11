@@ -30,8 +30,8 @@ import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.session.GeyserSession;
 
 public abstract class InventoryHolder {
-    public abstract boolean canReuseContainer(GeyserSession session, Container inventory, Container oldInventory);
-    public abstract boolean prepareInventory(GeyserSession session, Container inventory);
-    public abstract void openInventory(GeyserSession session, Container inventory);
-    public abstract void closeInventory(GeyserSession session, Container inventory, ContainerType containerType);
+    public abstract boolean canReuseContainer(GeyserSession session, Container container, Container oldInventory);
+    public abstract boolean prepareInventory(GeyserSession session, Container container);
+    public abstract void openInventory(GeyserSession session, Container container);
+    public abstract void closeInventory(GeyserSession session, Container container, ContainerType containerType);
 }

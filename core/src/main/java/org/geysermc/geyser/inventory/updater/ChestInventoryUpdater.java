@@ -46,7 +46,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     private final int paddedSize;
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
         List<ItemData> bedrockItems = new ArrayList<>(paddedSize);
@@ -65,7 +65,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
 

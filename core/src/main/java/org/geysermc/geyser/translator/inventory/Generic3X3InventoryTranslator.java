@@ -29,8 +29,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Generic3X3Container;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -39,39 +37,39 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 /**
  * Droppers and dispensers
  */
-public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator {
+public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator<Generic3X3Container> {
     public Generic3X3InventoryTranslator() {
         super(9, Blocks.DISPENSER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
                 Blocks.DROPPER);
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Generic3X3Container(session, name, windowId, this.size, containerType, playerInventory, this);
+    public Generic3X3Container createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new Generic3X3Container(session, name, windowId, this.size, containerType);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Generic3X3Container container) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getBedrockId());
+        containerOpenPacket.setId((byte) container.getBedrockId());
         // Required for opening the real block - otherwise, if the container type is incorrect, it refuses to open
-        containerOpenPacket.setType(((Generic3X3Container) inventory).isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER : org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER);
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
+        containerOpenPacket.setType(container.isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER : org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER);
+        containerOpenPacket.setBlockPosition(container.getHolderPosition());
+        containerOpenPacket.setUniqueEntityId(container.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Generic3X3Container container) {
         if (javaSlot < this.size) {
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
-        return super.javaSlotToBedrockContainer(javaSlot);
+        return super.javaSlotToBedrockContainer(javaSlot, container);
     }
 
     @Override
-    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
-        return ((Generic3X3Container) inventory).isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER :
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Generic3X3Container container) {
+        return container.isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER :
             org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER;
     }
 }

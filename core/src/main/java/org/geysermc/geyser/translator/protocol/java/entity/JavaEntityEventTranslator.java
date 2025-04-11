@@ -48,7 +48,6 @@ import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -186,7 +185,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 if (totemItemWorkaround) {
                     // Reset the item again
-                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), 45);
+                    session.getPlayerInventoryHolder().updateSlot(45);
                 }
 
                 return;

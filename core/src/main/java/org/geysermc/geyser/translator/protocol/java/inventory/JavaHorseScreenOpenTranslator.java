@@ -38,6 +38,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
 import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.horse.DonkeyInventoryTranslator;
@@ -119,7 +120,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         // but everything is still indexed the same.
         int slotCount = 2; // Don't depend on slot count sent from server
 
-        InventoryTranslator inventoryTranslator;
+        InventoryTranslator<Container> inventoryTranslator;
         if (entity instanceof LlamaEntity llamaEntity) {
             if (entity.getFlag(EntityFlag.CHESTED)) {
                 slotCount += llamaEntity.getStrength() * 3;
@@ -153,6 +154,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         updateEquipPacket.setTag(builder.build());
         session.sendUpstreamPacket(updateEquipPacket);
 
-        InventoryUtils.openInventory(session, new Container(session, entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory(), inventoryTranslator));
+        Container container = new Container(session, entity.getNametag(), packet.getContainerId(), slotCount, null);
+        InventoryUtils.openInventory(new InventoryHolder<>(session, container, inventoryTranslator));
     }
 }

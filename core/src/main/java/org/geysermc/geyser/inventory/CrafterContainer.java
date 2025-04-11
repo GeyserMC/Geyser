@@ -48,8 +48,8 @@ public class CrafterContainer extends Container {
      */
     private short disabledSlotsMask = 0;
 
-    public CrafterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
-        super(session, title, id, size, containerType, playerInventory, translator);
+    public CrafterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     @Override

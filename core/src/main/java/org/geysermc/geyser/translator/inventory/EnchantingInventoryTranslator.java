@@ -47,15 +47,14 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 import java.util.Arrays;
 
-public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator<EnchantingContainer> {
     public EnchantingInventoryTranslator() {
         super(2, Blocks.ENCHANTING_TABLE, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, EnchantingContainer container, int key, int value) {
         int slotToUpdate;
-        EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;
         boolean shouldUpdate = false;
         switch (key) {
             case 0:
@@ -63,7 +62,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             case 2:
                 // Experience required
                 slotToUpdate = key;
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setXpCost(value);
+                container.getGeyserEnchantOptions()[slotToUpdate].setXpCost(value);
                 break;
             case 4:
             case 5:
@@ -83,45 +82,44 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                         bedrockIndex = -1;
                     }
                 }
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(bedrockIndex);
+                container.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(bedrockIndex);
                 break;
             case 7:
             case 8:
             case 9:
                 // Enchantment level
                 slotToUpdate = key - 7;
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantLevel(value);
+                container.getGeyserEnchantOptions()[slotToUpdate].setEnchantLevel(value);
                 shouldUpdate = true; // Java sends each property as its own packet, so let's only update after all properties have been sent
                 break;
             default:
                 return;
         }
-        GeyserEnchantOption enchantOption = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate];
+        GeyserEnchantOption enchantOption = container.getGeyserEnchantOptions()[slotToUpdate];
         if (shouldUpdate && enchantOption.hasChanged()) {
-            enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantOption.build(session);
+            container.getEnchantOptions()[slotToUpdate] = enchantOption.build(session);
             PlayerEnchantOptionsPacket packet = new PlayerEnchantOptionsPacket();
-            packet.getOptions().addAll(Arrays.asList(enchantingInventory.getEnchantOptions()));
+            packet.getOptions().addAll(Arrays.asList(container.getEnchantOptions()));
             session.sendUpstreamPacket(packet);
         }
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, EnchantingContainer container) {
         return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE;
     }
 
     @Override
-    public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateSpecialRequest(GeyserSession session, EnchantingContainer container, ItemStackRequest request) {
         // Client has requested an item to be enchanted
         CraftRecipeAction craftRecipeData = (CraftRecipeAction) request.getActions()[0];
-        EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;
         int javaSlot = -1;
-        for (int i = 0; i < enchantingInventory.getEnchantOptions().length; i++) {
-            EnchantOptionData enchantData = enchantingInventory.getEnchantOptions()[i];
+        for (int i = 0; i < container.getEnchantOptions().length; i++) {
+            EnchantOptionData enchantData = container.getEnchantOptions()[i];
             if (enchantData != null) {
                 if (craftRecipeData.getRecipeNetworkId() == enchantData.getEnchantNetId()) {
                     // Enchant net ID is how we differentiate between what item Bedrock wants
-                    javaSlot = enchantingInventory.getGeyserEnchantOptions()[i].getJavaIndex();
+                    javaSlot = container.getGeyserEnchantOptions()[i].getJavaIndex();
                     break;
                 }
             }
@@ -130,9 +128,9 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             // Slot should be determined as 0, 1, or 2
             return rejectRequest(request);
         }
-        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), javaSlot);
+        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), javaSlot);
         session.sendDownstreamGamePacket(packet);
-        return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
+        return acceptRequest(request, makeContainerEntries(session, container, IntSets.emptySet()));
     }
 
     @Override
@@ -147,14 +145,14 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, EnchantingContainer container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_INPUT, 14);
         }
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_MATERIAL, 15);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
@@ -169,12 +167,12 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new EnchantingContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public EnchantingContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new EnchantingContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override
-    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(Inventory inventory) {
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(EnchantingContainer container) {
         return null;
     }
 }

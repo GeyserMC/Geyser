@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -39,7 +42,24 @@ public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundCo
     public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
         // Sometimes the server can request a window close of ID 0... when the window isn't even open
         // Don't confirm in this instance
-        session.setServerRequestedClosePlayerInventory(packet.getContainerId() == 0 && session.getOpenInventory() instanceof PlayerInventory);
-        InventoryUtils.closeInventory(session, packet.getContainerId(), (session.getOpenInventory() != null && session.getOpenInventory().getJavaId() == packet.getContainerId()));
+        InventoryHolder<? extends Inventory> holder = session.getInventoryHolder();
+        boolean confirm = false;
+        if (holder != null) {
+            if (packet.getContainerId() == 0) {
+                Inventory inventory = holder.inventory();
+                if (inventory instanceof PlayerInventory) {
+                    session.setServerRequestedClosePlayerInventory(true);
+                }
+
+                if (inventory instanceof LecternContainer container && container.isBookInPlayerInventory()) {
+                    InventoryUtils.closeInventory(session, holder, false);
+                    return;
+                }
+            }
+
+            confirm = holder.javaId() == packet.getContainerId();
+        }
+
+        InventoryUtils.closeInventory(session, packet.getContainerId(), confirm);
     }
 }
