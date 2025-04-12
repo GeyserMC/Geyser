@@ -127,7 +127,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     }
 
     @Override
-    public void closeInventory(GeyserSession session, MerchantContainer container) {
+    public void closeInventory(GeyserSession session, MerchantContainer container, boolean force) {
         if (container.getVillager() != null) {
             container.getVillager().despawnEntity();
         }

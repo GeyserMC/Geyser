@@ -49,7 +49,7 @@ public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Container container) {
+    public void closeInventory(GeyserSession session, Container container, boolean force) {
         // TODO find a way to implement
         // Can cause inventory de-sync if the Java server requests an inventory close
     }

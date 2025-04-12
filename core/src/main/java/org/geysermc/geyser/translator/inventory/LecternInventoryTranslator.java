@@ -47,6 +47,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBook
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
+import java.util.concurrent.TimeUnit;
+
 public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator<LecternContainer> {
 
     /**
@@ -83,8 +85,14 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         }
     }
 
+    // Lecterns don't require a delay before opening.
     @Override
-    public void closeInventory(GeyserSession session, LecternContainer container) {
+    public boolean requiresOpeningDelay(GeyserSession session, LecternContainer container) {
+        return false;
+    }
+
+    @Override
+    public void closeInventory(GeyserSession session, LecternContainer container, boolean force) {
         // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
         // Heck, the latter crashes the client xd
         // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
@@ -95,13 +103,21 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
         session.setPendingOrCurrentBedrockInventoryId(-1);
 
-        super.closeInventory(session, container); // Removes the fake blocks if need be
-
+        super.closeInventory(session, container, force); // Removes the fake blocks if need be
         // Now: Restore the lectern, if it actually exists
         if (container.isUsingRealBlock()) {
-            boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
-            NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
-            BlockEntityUtils.updateBlockEntity(session, map, position);
+            Runnable closeLecternRunnable = () -> {
+                boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
+                NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
+                BlockEntityUtils.updateBlockEntity(session, map, position);
+            };
+
+            if (force) {
+                // Without a delay, an inventory close request can *occasionally* be ignored as we're restoring the book too quickly
+                session.scheduleInEventLoop(closeLecternRunnable, 100, TimeUnit.MILLISECONDS);
+            } else {
+                closeLecternRunnable.run();
+            }
         }
     }
 

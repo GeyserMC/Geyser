@@ -174,7 +174,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     /**
      * Closes the inventory, and if necessary, cleans up the prepared inventory.
      */
-    public abstract void closeInventory(GeyserSession session, Type inventory);
+    public abstract void closeInventory(GeyserSession session, Type inventory, boolean force);
 
     /**
      * Updates a property in the inventory.

@@ -107,19 +107,13 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void openInventory() {
-        if (session.getInventoryHolder() != this) {
-            throw new IllegalStateException("Inventory is not open!");
-        }
         this.translator.openInventory(session, inventory);
         this.pending = false;
         this.inventory.setDisplayed(true);
     }
 
-    public void closeInventory() {
-        if (session.getInventoryHolder() != this) {
-            throw new IllegalStateException("Inventory is not open!");
-        }
-        this.translator.closeInventory(session, inventory);
+    public void closeInventory(boolean force) {
+        this.translator.closeInventory(session, inventory, force);
         if (session.getContainerOutputFuture() != null) {
             session.getContainerOutputFuture().cancel(true);
         }

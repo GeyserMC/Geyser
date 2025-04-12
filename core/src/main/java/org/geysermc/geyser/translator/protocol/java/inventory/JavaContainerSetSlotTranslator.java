@@ -61,18 +61,14 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = ClientboundContainerSetSlotPacket.class)
 public class JavaContainerSetSlotTranslator extends PacketTranslator<ClientboundContainerSetSlotPacket> {
 
-    // TODO
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
-        //TODO: support window id -2, should update player inventory
-        //TODO: ^ I think this is outdated.
         InventoryHolder<?> holder = InventoryUtils.getInventory(session, packet.getContainerId());
         if (holder == null) {
             return;
         }
 
         Inventory inventory = holder.inventory();
-
         int slot = packet.getSlot();
         if (slot >= inventory.getSize()) {
             GeyserLogger logger = session.getGeyser().getLogger();

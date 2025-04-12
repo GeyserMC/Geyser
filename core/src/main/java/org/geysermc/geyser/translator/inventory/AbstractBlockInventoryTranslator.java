@@ -104,7 +104,7 @@ public abstract class AbstractBlockInventoryTranslator<Type extends Container> e
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Type container) {
+    public void closeInventory(GeyserSession session, Type container, boolean force) {
         holder.closeInventory(session, container, closeContainerType(container));
     }
 

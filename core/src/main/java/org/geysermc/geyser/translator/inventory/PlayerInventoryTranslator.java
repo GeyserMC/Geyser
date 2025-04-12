@@ -595,9 +595,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
     }
 
     @Override
-    public void closeInventory(GeyserSession session, PlayerInventory inventory) {
-        if (session.isServerRequestedClosePlayerInventory()) {
-            session.setServerRequestedClosePlayerInventory(false);
+    public void closeInventory(GeyserSession session, PlayerInventory inventory, boolean force) {
+        if (force) {
             Vector3i pos = session.getPlayerEntity().getPosition().toInt();
 
             UpdateBlockPacket packet = new UpdateBlockPacket();

@@ -67,7 +67,7 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Generic9X3Container container) {
+    public void closeInventory(GeyserSession session, Generic9X3Container container, boolean force) {
         holder.closeInventory(session, container, ContainerType.CONTAINER);
     }
 

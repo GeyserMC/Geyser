@@ -164,7 +164,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Container container) {
+    public void closeInventory(GeyserSession session, Container container, boolean force) {
         // No need to reset a block since we didn't change any blocks
         // But send a container close packet because we aren't destroying the original.
         if (container.isDisplayed()) {

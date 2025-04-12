@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -46,13 +45,8 @@ public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundCo
         boolean confirm = false;
         if (holder != null) {
             if (packet.getContainerId() == 0) {
-                Inventory inventory = holder.inventory();
-                if (inventory instanceof PlayerInventory) {
-                    session.setServerRequestedClosePlayerInventory(true);
-                }
-
-                if (inventory instanceof LecternContainer container && container.isBookInPlayerInventory()) {
-                    InventoryUtils.closeInventory(session, holder, false);
+                if (holder.inventory() instanceof LecternContainer container && container.isBookInPlayerInventory()) {
+                    InventoryUtils.closeInventory(session, holder, true);
                     return;
                 }
             }

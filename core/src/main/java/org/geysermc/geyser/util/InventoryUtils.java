@@ -184,7 +184,7 @@ public class InventoryUtils {
         updateCursor(session);
 
         if (holder != null) {
-            holder.closeInventory();
+            holder.closeInventory(confirm);
             if (holder.shouldConfirmClose(confirm)) {
                 session.setClosingInventory(true);
             }
