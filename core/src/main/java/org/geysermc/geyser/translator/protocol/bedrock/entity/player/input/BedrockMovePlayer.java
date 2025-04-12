@@ -87,11 +87,6 @@ final class BedrockMovePlayer {
             session.setLookBackScheduledFuture(null);
         }
 
-        // This takes into account no movement sent from the client, but the player is trying to move anyway.
-        // (Press into a wall in a corner - you're trying to move but nothing actually happens)
-        // This isn't sent when a player is riding a vehicle (as of 1.21.62)
-        boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
-
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
@@ -99,7 +94,7 @@ final class BedrockMovePlayer {
 
         // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
         boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
-        if (onClimbableBlock && (packet.getInputData().contains(PlayerAuthInputData.JUMPING) || horizontalCollision)) {
+        if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
         }
 
@@ -113,6 +108,11 @@ final class BedrockMovePlayer {
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
+
+        // This takes into account no movement sent from the client, but the player is trying to move anyway.
+        // (Press into a wall in a corner - you're trying to move but nothing actually happens)
+        // This isn't sent when a player is riding a vehicle (as of 1.21.62)
+        boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
 
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla

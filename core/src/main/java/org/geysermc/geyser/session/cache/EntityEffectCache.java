@@ -46,7 +46,7 @@ public class EntityEffectCache {
     @Getter
     private int miningFatigue;
 
-    /* Used to calculate jumping velocity jumping */
+    /* Used to calculate jumping velocity */
     @Getter
     private int jumpPower;
 

@@ -420,12 +420,12 @@ public class SessionPlayerEntity extends PlayerEntity {
      * Used to calculate player jumping velocity for ground status calculation.
      */
     public float getJumpVelocity() {
-        float f = 0.42F;
+        float velocity = 0.42F;
 
         if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
-            f *= 0.6F;
+            velocity *= 0.6F;
         }
 
-        return f + 0.1F * session.getEffectCache().getJumpPower();
+        return velocity + 0.1F * session.getEffectCache().getJumpPower();
     }
 }
