@@ -33,6 +33,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
@@ -86,14 +87,27 @@ final class BedrockMovePlayer {
             session.setLookBackScheduledFuture(null);
         }
 
+        // Simulate jumping since it happened this tick, not from the last tick end.
+        if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
+            entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
+        }
+
+        // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
+        boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
+        if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
+            entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
+        }
+
         // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
         if (hasVehicle) {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
-            isOnGround = Math.abs(packet.getDelta().getY()) < 0.1;
+            isOnGround = Math.abs(entity.getLastTickEndVelocity().getY()) < 0.1;
         } else {
-            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && packet.getDelta().getY() < 0;
+            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
+
+        entity.setLastTickEndVelocity(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)

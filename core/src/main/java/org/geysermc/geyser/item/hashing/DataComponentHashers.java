@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -86,6 +87,7 @@ import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 public class DataComponentHashers {
+    private static final Set<DataComponentType<?>> NOT_HASHED = ReferenceOpenHashSet.of(DataComponentTypes.CREATIVE_SLOT_LOCK, DataComponentTypes.MAP_POST_PROCESSING);
     private static final Map<DataComponentType<?>, MinecraftHasher<?>> hashers = new HashMap<>();
 
     static {
@@ -317,7 +319,9 @@ public class DataComponentHashers {
         Map<DataComponentType<?>, Integer> hashedAdditions = new HashMap<>();
         Set<DataComponentType<?>> removals = new HashSet<>();
         for (Map.Entry<DataComponentType<?>, DataComponent<?, ?>> component : components.entrySet()) {
-            if (component.getValue().getValue() == null) {
+            if (NOT_HASHED.contains(component.getKey())) {
+                GeyserImpl.getInstance().getLogger().debug("Not hashing component " + component.getKey() + " on stack " + stack);
+            } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {
                 hashedAdditions.put(component.getKey(), hash(session, (DataComponentType) component.getKey(), component.getValue().getValue()).asInt());
