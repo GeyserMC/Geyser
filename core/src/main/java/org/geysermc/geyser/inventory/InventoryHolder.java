@@ -76,17 +76,18 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public boolean shouldConfirmClose(boolean confirm) {
-        return confirm && inventory.isDisplayed() && !pending && !(inventory instanceof LecternContainer);
+        return confirm && inventory.isDisplayed() && !pending;
     }
 
     public void inheritFromExisting(InventoryHolder<? extends Inventory> existing) {
-        inventory.setBedrockId(existing.inventory.getBedrockId());
+        inventory.setBedrockId(existing.bedrockId());
 
         // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
+        Inventory existingInventory = this.inventory;
         this.pending = existing.pending();
-        inventory.setDisplayed(existing.inventory().isDisplayed());
-        inventory.setHolderPosition(existing.inventory().getHolderPosition());
-        inventory.setHolderId(existing.inventory().getHolderId());
+        inventory.setDisplayed(existingInventory.isDisplayed());
+        inventory.setHolderPosition(existingInventory.getHolderPosition());
+        inventory.setHolderId(existingInventory.getHolderId());
         this.markCurrent();
     }
 

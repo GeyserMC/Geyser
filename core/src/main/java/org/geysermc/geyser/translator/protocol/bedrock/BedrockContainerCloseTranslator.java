@@ -30,12 +30,10 @@ import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
-import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;
@@ -84,21 +82,17 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         }
 
         session.setPendingOrCurrentBedrockInventoryId(-1);
-        closeCurrentOrOpenPending(session, bedrockId, holder);
-    }
 
-    private void closeCurrentOrOpenPending(GeyserSession session, byte bedrockId, InventoryHolder<? extends Inventory> holder) {
         if (holder != null) {
+            // Send close confirmation to Java edition if container closing is client-initiated
             if (bedrockId == holder.bedrockId()) {
                 InventoryUtils.sendJavaContainerClose(holder);
                 InventoryUtils.closeInventory(session, holder, false);
-            } else if (holder.pending()) {
-                InventoryUtils.displayInventory(holder);
-
-                if (holder.inventory() instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
-                    JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
-                }
+                return;
             }
+
+            // Try open a pending inventory
+            InventoryUtils.openPendingInventory(session);
         }
     }
 }

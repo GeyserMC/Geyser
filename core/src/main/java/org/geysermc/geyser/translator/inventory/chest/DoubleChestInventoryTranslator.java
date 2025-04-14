@@ -76,7 +76,12 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
             return false;
         }
 
-        // FIXME - but these aren't the reason we have this
+        // While we could reuse real blocks for virtual inventories,
+        // it can result in unpleasant visual artifacts with specific plugins.
+        // Specifically - a few plugins send multiple ClientboundOpenScreen packets
+        // with different titles; where Geyser needs to re-open the menu fully in order to get
+        // the correct title to appear. The additional delay added by using virtual blocks masks
+        // the quick closing of the first packet.
         if (previous.isUsingRealBlock()) {
             return false;
         }

@@ -110,6 +110,9 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
                 NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
                 BlockEntityUtils.updateBlockEntity(session, map, position);
+                // Bedrock will not follow up with a ContainerClosePacket that'd reset this.
+                session.setClosingInventory(false);
+                InventoryUtils.openPendingInventory(session);
             };
 
             if (force) {
@@ -118,6 +121,10 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             } else {
                 closeLecternRunnable.run();
             }
+        } else {
+            // Bedrock doesn't reply with a ContainerClosePacket for lecterns
+            session.setClosingInventory(false);
+            InventoryUtils.openPendingInventory(session);
         }
     }
 

@@ -39,6 +39,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
+import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
@@ -129,8 +131,11 @@ public class InventoryUtils {
             return;
         }
 
-        GeyserImpl.getInstance().getLogger().debug(session, "Opening any pending inventory! " + debugInventory(holder));
+        GeyserImpl.getInstance().getLogger().debug(session, "Opening current pending inventory! " + debugInventory(holder));
         displayInventory(holder);
+        if (holder.inventory() instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
+            JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
+        }
     }
 
     /**
