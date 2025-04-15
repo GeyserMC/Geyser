@@ -280,8 +280,6 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 refresh = true;
             }
 
-            GeyserImpl.getInstance().getLogger().info(request + " " + response);
-
             responsePacket.getEntries().add(response);
         }
         session.sendUpstreamPacket(responsePacket);
