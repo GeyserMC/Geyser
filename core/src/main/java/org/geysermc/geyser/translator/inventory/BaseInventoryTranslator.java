@@ -27,17 +27,19 @@ package org.geysermc.geyser.translator.inventory;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-public abstract class BaseInventoryTranslator extends InventoryTranslator {
+public abstract class BaseInventoryTranslator<Type extends Container> extends InventoryTranslator<Type> {
     public BaseInventoryTranslator(int size) {
         super(size);
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Type container, int key, int value) {
         //
     }
 
@@ -72,7 +74,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Type inventory) {
         if (slot >= this.size) {
             final int tmp = slot - this.size;
             if (tmp < 27) {
@@ -90,7 +92,8 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new Container(session, name, windowId, this.size, containerType, playerInventory, this);
+    public Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        //noinspection unchecked
+        return (Type) new Container(session, name, windowId, this.size, containerType);
     }
 }

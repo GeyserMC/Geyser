@@ -80,7 +80,12 @@ public class BlockInventoryHolder extends InventoryHolder {
     public boolean canReuseContainer(GeyserSession session, Container container, Container previous) {
         // We already ensured that the inventories are using the same type, size, and title
 
-        // TODO this would currently break, so we're not reusing this
+        // While we could reuse real blocks for virtual inventories,
+        // it can result in unpleasant visual artifacts with specific plugins.
+        // Specifically - a few plugins send multiple ClientboundOpenScreen packets
+        // with different titles; where Geyser needs to re-open the menu fully in order to get
+        // the correct title to appear. The additional delay added by using virtual blocks masks
+        // the quick closing of the first packet.
         if (previous.isUsingRealBlock()) {
             return false;
         }
@@ -90,15 +95,15 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",
-                InventoryUtils.debugInventory(container), previous.getHolderPosition(), position);
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
+                previous.getHolderPosition(), position);
             return false;
         }
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Container inventory) {
-        if (canUseRealBlock(session, inventory)) {
+    public boolean prepareInventory(GeyserSession session, Container container) {
+        if (canUseRealBlock(session, container)) {
             return true;
         }
 
@@ -113,14 +118,14 @@ public class BlockInventoryHolder extends InventoryHolder {
         blockPacket.setDefinition(session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
-        inventory.setHolderPosition(position);
+        container.setHolderPosition(position);
 
-        setCustomName(session, position, inventory, defaultJavaBlockState);
+        setCustomName(session, position, container, defaultJavaBlockState);
 
         return true;
     }
 
-    protected boolean canUseRealBlock(GeyserSession session, Container inventory) {
+    protected boolean canUseRealBlock(GeyserSession session, Container container) {
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
@@ -131,9 +136,9 @@ public class BlockInventoryHolder extends InventoryHolder {
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
                 if (isValidBlock(state)) {
                     // We can safely use this block
-                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                    inventory.setUsingRealBlock(true, state.block());
-                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, state);
+                    container.setHolderPosition(session.getLastInteractionBlockPosition());
+                    container.setUsingRealBlock(true, state.block());
+                    setCustomName(session, session.getLastInteractionBlockPosition(), container, state);
 
                     return true;
                 }

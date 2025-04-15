@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.inventory.horse;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 
 public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
     public HorseInventoryTranslator(int size) {
@@ -43,10 +44,10 @@ public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 0 || slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 }

@@ -66,11 +66,11 @@ public final class ClickPlan {
     private boolean executionBegan;
 
     private final GeyserSession session;
-    private final InventoryTranslator translator;
+    private final InventoryTranslator<?> translator;
     private final Inventory inventory;
     private final int gridSize;
 
-    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
+    public ClickPlan(GeyserSession session, InventoryTranslator<?> translator, Inventory inventory) {
         this.session = session;
         this.translator = translator;
         this.inventory = inventory;

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.LecternUpdatePacket;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -43,15 +43,16 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
         // Bedrock wants to either move a page or exit
-        if (!(session.getOpenInventory() instanceof LecternContainer lecternContainer)) {
+        InventoryHolder<?> holder = session.getInventoryHolder();
+        if (holder == null || !(holder.inventory() instanceof LecternContainer lecternContainer)) {
             session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
             return;
         }
 
         if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
             // The same page means Bedrock is closing the window
-            InventoryUtils.sendJavaContainerClose(session, lecternContainer);
-            InventoryUtils.closeInventory(session, lecternContainer.getJavaId(), false);
+            InventoryUtils.sendJavaContainerClose(holder);
+            InventoryUtils.closeInventory(session, holder, false);
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
@@ -61,8 +62,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // So, fun fact: We need to separately handle fake lecterns!
             // Since those are not actually a real lectern... the Java server won't respond to our requests.
             if (!lecternContainer.isUsingRealBlock()) {
-                Inventory inventory = session.getOpenInventory();
-                inventory.getTranslator().updateProperty(session, inventory, 0, newJavaPage);
+                holder.updateProperty(0, newJavaPage);
                 return;
             }
 

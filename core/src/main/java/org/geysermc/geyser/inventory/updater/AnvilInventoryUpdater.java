@@ -60,7 +60,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private static final int MAX_LEVEL_COST = 40;
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
@@ -82,7 +82,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
@@ -151,7 +151,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return 0;
     }
 
-    private void updateTargetSlot(InventoryTranslator translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
+    private void updateTargetSlot(InventoryTranslator<?> translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 

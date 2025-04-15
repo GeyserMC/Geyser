@@ -44,7 +44,7 @@ public class BedrockSetPlayerInventoryOptionsTranslator extends PacketTranslator
 
         // This should ensure that we never send these packets when the player inventory is opened while in creative
         // Java edition can't craft in the 2x2 grid in creative, and subsequently doesn't have a recipe book
-        if (session.getGameMode() == GameMode.CREATIVE && session.getPlayerInventory() == session.getOpenInventory()) {
+        if (session.getGameMode() == GameMode.CREATIVE && session.getPlayerInventoryHolder() == session.getInventoryHolder()) {
             return;
         }
 

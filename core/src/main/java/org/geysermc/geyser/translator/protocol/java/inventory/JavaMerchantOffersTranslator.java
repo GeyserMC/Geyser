@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.VillagerTrade;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -56,13 +57,18 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     @Override
     public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
-        Inventory openInventory = session.getOpenInventory();
-        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getJavaId() == packet.getContainerId())) {
+        InventoryHolder<?> holder = session.getInventoryHolder();
+        if (holder == null) {
+            return;
+        }
+
+        Inventory inventory = holder.inventory();
+        if (!(inventory instanceof MerchantContainer merchantInventory && inventory.getJavaId() == packet.getContainerId())) {
             return;
         }
 
         // No previous inventory was closed -> no need of queuing the merchant inventory
-        if (!openInventory.isPending()) {
+        if (!holder.pending()) {
             openMerchant(session, packet, merchantInventory);
             return;
         }
@@ -94,7 +100,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setContainerId((short) packet.getContainerId());
         updateTradePacket.setContainerType(ContainerType.TRADE);
-        updateTradePacket.setDisplayName(session.getOpenInventory().getTitle());
+        updateTradePacket.setDisplayName(merchantInventory.getTitle());
         updateTradePacket.setSize(0);
         updateTradePacket.setNewTradingUi(true);
         updateTradePacket.setUsingEconomyTrade(true);

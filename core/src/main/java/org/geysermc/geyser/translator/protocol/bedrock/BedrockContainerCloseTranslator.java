@@ -29,12 +29,11 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.MerchantContainer;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;
@@ -54,17 +53,18 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         session.setClosingInventory(false);
 
         // 1.21.70: Bedrock can reject opening inventories - in those cases it replies with -1
-        Inventory openInventory = session.getOpenInventory();
-        if (bedrockId == -1 && openInventory != null) {
+        InventoryHolder<? extends Inventory> holder = session.getInventoryHolder();
+        if (bedrockId == -1 && holder != null) {
             // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
-            if (openInventory.getTranslator() instanceof MerchantInventoryTranslator) {
-                bedrockId = (byte) openInventory.getBedrockId();
-            } else if (openInventory.getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+            if (holder.translator() instanceof MerchantInventoryTranslator) {
+                bedrockId = (byte) holder.bedrockId();
+            } else if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
                 // If virtual inventories are opened too quickly, they can be occasionally rejected
                 // We just try and queue a new one.
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
-                if (session.getContainerOpenAttempts() < 3) {
-                    openInventory.setPending(true);
+                if (holder.containerOpenAttempts() < 5) {
+                    holder.incrementContainerOpenAttempts();
+                    holder.pending(true);
 
                     session.scheduleInEventLoop(() -> {
                         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
@@ -75,29 +75,24 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     }, 100, TimeUnit.MILLISECONDS);
                     return;
                 } else {
-                    GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 3 attempts to open a virtual inventory!");
-                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + session.getOpenInventory().getClass().getSimpleName());
+                    GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 5 attempts to open a virtual inventory!");
+                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + holder.inventory().getClass().getSimpleName());
                 }
             }
         }
 
         session.setPendingOrCurrentBedrockInventoryId(-1);
-        session.setContainerOpenAttempts(0);
-        closeCurrentOrOpenPending(session, bedrockId, openInventory);
-    }
 
-    private void closeCurrentOrOpenPending(GeyserSession session, byte bedrockId, Inventory openInventory) {
-        if (openInventory != null) {
-            if (bedrockId == openInventory.getBedrockId()) {
-                InventoryUtils.sendJavaContainerClose(session, openInventory);
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
-            } else if (openInventory.isPending()) {
-                InventoryUtils.displayInventory(session, openInventory);
-
-                if (openInventory instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
-                    JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
-                }
+        if (holder != null) {
+            // Send close confirmation to Java edition if container closing is client-initiated
+            if (bedrockId == holder.bedrockId()) {
+                InventoryUtils.sendJavaContainerClose(holder);
+                InventoryUtils.closeInventory(session, holder, false);
+                return;
             }
+
+            // Try open a pending inventory
+            InventoryUtils.openPendingInventory(session);
         }
     }
 }
