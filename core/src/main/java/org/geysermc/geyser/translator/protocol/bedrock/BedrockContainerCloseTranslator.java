@@ -76,7 +76,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     return;
                 } else {
                     GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 5 attempts to open a virtual inventory!");
-                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + session.getInventoryHolder().getClass().getSimpleName());
+                    GeyserImpl.getInstance().getLogger().debug(session, packet + " " + holder.inventory().getClass().getSimpleName());
                 }
             }
         }
