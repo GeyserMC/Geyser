@@ -62,7 +62,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                 // If virtual inventories are opened too quickly, they can be occasionally rejected
                 // We just try and queue a new one.
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
-                if (holder.containerOpenAttempts() < 5) {
+                if (holder.containerOpenAttempts() < 7) {
                     holder.incrementContainerOpenAttempts();
                     holder.pending(true);
 
@@ -72,11 +72,14 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                         latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
                         session.sendUpstreamPacket(latencyPacket);
                         GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
-                    }, 100, TimeUnit.MILLISECONDS);
+                    }, 150, TimeUnit.MILLISECONDS);
                     return;
                 } else {
-                    GeyserImpl.getInstance().getLogger().debug(session, "Exceeded 5 attempts to open a virtual inventory!");
+                    GeyserImpl.getInstance().getLogger().warning(session.bedrockUsername() + " exceeded 7 attempts to open a virtual inventory!");
                     GeyserImpl.getInstance().getLogger().debug(session, packet + " " + holder.inventory().getClass().getSimpleName());
+
+                    // Prevent inventory deadlocks by letting the code below close the inventory
+                    bedrockId = (byte) holder.bedrockId();
                 }
             }
         }
