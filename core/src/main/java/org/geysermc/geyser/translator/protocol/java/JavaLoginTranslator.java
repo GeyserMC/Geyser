@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.packet.DeathInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.erosion.Constants;
@@ -107,6 +108,13 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn", !packet.isEnableRespawnScreen()));
         session.sendUpstreamPacket(gamerulePacket);
+
+        // Prevent issues such as https://github.com/GeyserMC/Geyser/issues/5489
+        if (!entity.isAlive()) {
+            DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
+            deathInfoPacket.setCauseAttackName("");
+            session.sendUpstreamPacket(deathInfoPacket);
+        }
 
         session.setReducedDebugInfo(packet.isReducedDebugInfo());
 
