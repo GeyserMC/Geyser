@@ -80,10 +80,11 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void inheritFromExisting(InventoryHolder<? extends Inventory> existing) {
+        // Mirror Bedrock id
         inventory.setBedrockId(existing.bedrockId());
 
         // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
-        Inventory existingInventory = this.inventory;
+        Inventory existingInventory = existing.inventory;
         this.pending = existing.pending();
         inventory.setDisplayed(existingInventory.isDisplayed());
         inventory.setHolderPosition(existingInventory.getHolderPosition());
