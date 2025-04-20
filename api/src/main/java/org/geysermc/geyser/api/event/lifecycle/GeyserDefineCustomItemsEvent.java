@@ -65,6 +65,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @deprecated use {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
+    @Deprecated
     @NonNull
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 

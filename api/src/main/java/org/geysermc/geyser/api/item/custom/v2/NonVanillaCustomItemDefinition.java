@@ -31,8 +31,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
@@ -71,7 +72,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * <p>Trying to use predicates will result in an error.</p>
      */
     @Override
-    @NonNull List<CustomItemPredicate> predicates();
+    @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
      * Predicates are currently not supported for non-vanilla custom item definitions.
@@ -117,12 +118,6 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
         @Override
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
-
-        @Override
-        Builder predicate(@NonNull CustomItemPredicate predicate);
-
-        @Override
-        Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
         @Override
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);

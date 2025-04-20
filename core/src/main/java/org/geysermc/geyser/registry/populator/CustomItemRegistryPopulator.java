@@ -584,6 +584,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
+        /*
         for (CustomItemPredicate predicate : definition.predicates()) { // TODO
             if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
                 Identifier component = (Identifier) condition.data();
@@ -591,7 +592,7 @@ public class CustomItemRegistryPopulator {
                     return true;
                 }
             }
-        }
+        }*/
         return false;
     }
 

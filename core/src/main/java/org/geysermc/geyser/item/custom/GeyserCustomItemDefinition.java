@@ -82,7 +82,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     }
 
     @Override
-    public @NonNull List<CustomItemPredicate> predicates() {
+    public @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates() {
         return predicates;
     }
 
