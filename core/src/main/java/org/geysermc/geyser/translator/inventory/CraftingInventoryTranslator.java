@@ -29,12 +29,12 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
-public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public CraftingInventoryTranslator() {
         super(10, Blocks.CRAFTING_TABLE, ContainerType.WORKBENCH, UIInventoryUpdater.INSTANCE);
     }
@@ -53,14 +53,14 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (isCraftingGrid(slot)) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTING_INPUT, slot + 31);
         }
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTING_OUTPUT, 0);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public ContainerType closeContainerType(Inventory inventory) {
+    public ContainerType closeContainerType(Container container) {
         return null;
     }
 }

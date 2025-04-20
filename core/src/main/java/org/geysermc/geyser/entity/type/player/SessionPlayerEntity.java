@@ -36,9 +36,11 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -87,6 +89,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     private int vehicleJumpStrength;
 
     private int lastAirSupply = getMaxAir();
+
+    /**
+     * The client last tick end velocity, used for calculating player onGround.
+     */
+    @Getter @Setter
+    private Vector3f lastTickEndVelocity = Vector3f.ZERO;
 
     /**
      * Determines if our position is currently out-of-sync with the Java server
@@ -406,5 +414,18 @@ public class SessionPlayerEntity extends PlayerEntity {
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         session.sendUpstreamPacketImmediately(movePlayerPacket);
+    }
+
+    /**
+     * Used to calculate player jumping velocity for ground status calculation.
+     */
+    public float getJumpVelocity() {
+        float velocity = 0.42F;
+
+        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
+            velocity *= 0.6F;
+        }
+
+        return velocity + 0.1F * session.getEffectCache().getJumpPower();
     }
 }

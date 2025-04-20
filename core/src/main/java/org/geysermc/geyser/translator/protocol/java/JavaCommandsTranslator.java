@@ -47,6 +47,7 @@ import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -357,7 +358,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (enchantments != null) {
                 return enchantments;
             }
-            return (enchantments = session.getRegistryCache().enchantments().values().stream()
+            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values().stream()
                     .map(Enchantment::identifier).toArray(String[]::new));
         }
 

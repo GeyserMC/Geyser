@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.spawn;
+package org.geysermc.geyser.inventory;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddExperienceOrbPacket;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.ExpOrbEntity;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-@Translator(packet = ClientboundAddExperienceOrbPacket.class)
-public class JavaAddExperienceOrbTranslator extends PacketTranslator<ClientboundAddExperienceOrbPacket> {
+/**
+ * A "hack" to be able to use existing barrels.
+ * The only difference to chests appears to be the different ContainerSlotType - this accounts for it.
+ */
+@Getter @Setter
+public class Generic9X3Container extends Container {
+
+    private boolean isBarrel;
+
+    public Generic9X3Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundAddExperienceOrbPacket packet) {
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-
-        Entity entity = new ExpOrbEntity(
-                session, packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position
-        );
-
-        session.getEntityCache().spawnEntity(entity);
+    public void setUsingRealBlock(boolean usingRealBlock, Block block) {
+        super.setUsingRealBlock(usingRealBlock, block);
+        if (usingRealBlock) {
+            isBarrel = block == Blocks.BARREL;
+        }
     }
 }

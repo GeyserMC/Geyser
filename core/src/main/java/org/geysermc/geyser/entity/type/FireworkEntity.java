@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -59,7 +60,8 @@ public class FireworkEntity extends Entity {
         // TODO this looked the same, so I'm going to assume it is and (keep below comment if true)
         // Translate using item methods to get firework NBT for Bedrock
         BedrockItemBuilder builder = new BedrockItemBuilder();
-        Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, builder);
+        TooltipOptions tooltip = TooltipOptions.fromComponents(components);
+        Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, tooltip, builder);
         
         dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }

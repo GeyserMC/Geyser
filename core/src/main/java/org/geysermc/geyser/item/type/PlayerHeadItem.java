@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,8 +43,8 @@ public class PlayerHeadItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         // Use the correct color, determined by the rarity of the item
         char rarity = Rarity.fromId(components.get(DataComponentTypes.RARITY)).getColor();

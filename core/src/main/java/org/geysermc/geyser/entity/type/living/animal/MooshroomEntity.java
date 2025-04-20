@@ -30,13 +30,14 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
@@ -48,9 +49,9 @@ public class MooshroomEntity extends CowEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setVariant(ObjectEntityMetadata<String> entityMetadata) {
-        isBrown = entityMetadata.getValue().equals("brown");
-        dirtyMetadata.put(EntityDataTypes.VARIANT, isBrown ? 1 : 0);
+    public void setMooshroomVariant(IntEntityMetadata metadata) {
+        isBrown = metadata.getPrimitiveValue() == 1;
+        dirtyMetadata.put(EntityDataTypes.VARIANT, metadata.getPrimitiveValue());
     }
 
     @Override

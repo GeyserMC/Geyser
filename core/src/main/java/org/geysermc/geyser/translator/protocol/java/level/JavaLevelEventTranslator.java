@@ -42,6 +42,7 @@ import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -79,7 +80,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.SOUND_PLAY_JUKEBOX_SONG) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            JukeboxSong jukeboxSong = session.getRegistryCache().jukeboxSongs().byId(recordEventData.getRecordId());
+            JukeboxSong jukeboxSong = session.getRegistryCache().registry(JavaRegistries.JUKEBOX_SONG).byId(recordEventData.getRecordId());
             if (jukeboxSong == null) {
                 return;
             }

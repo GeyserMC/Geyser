@@ -29,11 +29,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
-public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public static final int TEMPLATE = 0;
     public static final int INPUT = 1;
     public static final int MATERIAL = 2;
@@ -55,13 +55,13 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case TEMPLATE -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
             case INPUT -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case MATERIAL -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
             case OUTPUT -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -77,7 +77,7 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
-    public ContainerType closeContainerType(Inventory inventory) {
+    public ContainerType closeContainerType(Container container) {
         return null;
     }
 }

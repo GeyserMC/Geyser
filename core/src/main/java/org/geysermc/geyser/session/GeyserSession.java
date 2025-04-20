@@ -139,6 +139,8 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
@@ -173,6 +175,7 @@ import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -290,14 +293,33 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private boolean isInWorldBorderWarningArea = false;
 
-    private final PlayerInventory playerInventory;
+    /**
+     * Stores the player inventory and player inventory translator
+     */
+    private final InventoryHolder<PlayerInventory> playerInventoryHolder;
+
+    /**
+     * Stores the current open Bedrock inventory, including the correct translator.
+     * Prefer using {@link InventoryUtils#getInventory(GeyserSession, int)}, as this
+     * method can e.g. return a {@code InventoryHolder<LecternContainer>} due to the
+     * workaround in {@link LecternContainer#isBookInPlayerInventory()} workaround.
+     */
     @Setter
-    private @Nullable Inventory openInventory;
+    private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
+
+    /**
+     * Whether the client is currently closing an inventory.
+     * Used to open new inventories while another one is currently open.
+     */
     @Setter
     private boolean closingInventory;
 
+    /**
+     * Stores the bedrock inventory id of the pending inventory, or -1 if no inventory is pending.
+     * This id is only set when the block that should be opened exists.
+     */
     @Setter
-    private @NonNull InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
+    private int pendingOrCurrentBedrockInventoryId = -1;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
@@ -527,14 +549,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean placedBucket;
 
     /**
-     * Stores whether the Java server requested the player inventory to be closed.
-     * Used to prevent our hacky player inventory closing workaround in {@link org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator#closeInventory(GeyserSession, Inventory)}
-     * to run when the closing is initated by the Bedrock client.
-     */
-    @Setter
-    private boolean serverRequestedClosePlayerInventory;
-
-    /**
      * Counts how many ticks have occurred since an arm animation started.
      * -1 means there is no active arm swing
      */
@@ -675,15 +689,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
-    /*
-     * Stores the number of attempts to open virtual inventories.
-     * Capped at 3, and isn't used in ideal circumstances.
-     * Used to resolve https://github.com/GeyserMC/Geyser/issues/5426
-     */
-    @Setter
-    private int containerOpenAttempts;
-
-
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -717,8 +722,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
 
-        this.playerInventory = new PlayerInventory();
-        this.openInventory = null;
+        this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        this.inventoryHolder = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
@@ -743,10 +748,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Note: this.dimensionType may be null here if the player is connecting from online mode
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        for (JavaDimension javaDimension : this.registryCache.dimensions().values()) {
+        for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
             if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                 minY = Math.min(minY, javaDimension.minY());
-                maxY = Math.max(maxY, javaDimension.maxY());
+                maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
             }
         }
         minY = Math.max(minY, -512);
@@ -1233,10 +1238,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         worldTicks++;
     }
 
-    public void setAuthenticationData(AuthData authData) {
-        this.authData = authData;
-    }
-
     public void startSneaking() {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
@@ -1326,8 +1327,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void setClientData(BedrockClientData data) {
         this.clientData = data;
-        this.inputCache.setInputMode(
-            org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+        this.inputCache.setInputMode(org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
     }
 
     /**
@@ -1350,9 +1350,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking and sends a packet to the Java server.
      */
     private boolean attemptToBlock() {
-        if (playerInventory.getItemInHand().asItem() == Items.SHIELD) {
+        if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
             useItem(Hand.MAIN_HAND);
-        } else if (playerInventory.getOffhand().asItem() == Items.SHIELD) {
+        } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {
             useItem(Hand.OFF_HAND);
         } else {
             // No blocking
@@ -1451,14 +1451,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet(), 0));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
     }
 
     public void setClientRenderDistance(int clientRenderDistance) {
@@ -1499,6 +1499,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
+    }
+
+    public @NonNull PlayerInventory getPlayerInventory() {
+        return this.playerInventoryHolder.inventory();
+    }
+
+    public @Nullable Inventory getOpenInventory() {
+        if (this.inventoryHolder == null) {
+            return null;
+        }
+        return this.inventoryHolder.inventory();
     }
 
     @Override

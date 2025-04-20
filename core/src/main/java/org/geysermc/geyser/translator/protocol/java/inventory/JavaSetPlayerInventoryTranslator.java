@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundSetPlayerInventoryPacket;
@@ -58,6 +57,6 @@ public class JavaSetPlayerInventoryTranslator extends PacketTranslator<Clientbou
         GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
         session.getBundleCache().initialize(newItem);
         session.getPlayerInventory().setItem(slot, newItem, session);
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
+        session.getPlayerInventoryHolder().updateSlot(slot);
     }
 }

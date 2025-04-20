@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.entity.type.living.animal.farm;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -31,9 +31,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
@@ -43,6 +41,8 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.EntityUtils;
@@ -53,17 +53,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
+public class PigEntity extends TemperatureVariantAnimal implements Tickable, ClientVehicle {
     private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
 
     public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-    }
-
-    @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, "temperate");
-        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
     @Override
@@ -154,5 +148,10 @@ public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
     @Override
     public boolean isClientControlled() {
         return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
+    }
+
+    @Override
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+        return JavaRegistries.PIG_VARIANT;
     }
 }

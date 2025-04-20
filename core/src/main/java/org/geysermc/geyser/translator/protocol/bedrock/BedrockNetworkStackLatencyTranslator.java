@@ -32,6 +32,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 
 import java.util.Collections;
@@ -64,20 +65,24 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
             return;
         }
 
-        session.scheduleInEventLoop(() -> {
-            // Hack to fix the url image loading bug
-            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-            attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
+            InventoryUtils.openPendingInventory(session);
+        } else {
+            session.scheduleInEventLoop(() -> {
+                // Hack to fix the url image loading bug
+                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
 
-            AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
-            if (attribute != null) {
-                attributesPacket.setAttributes(Collections.singletonList(attribute));
-            } else {
-                attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
-            }
+                AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                if (attribute != null) {
+                    attributesPacket.setAttributes(Collections.singletonList(attribute));
+                } else {
+                    attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                }
 
-            session.sendUpstreamPacket(attributesPacket);
-        }, 500, TimeUnit.MILLISECONDS);
+                session.sendUpstreamPacket(attributesPacket);
+            }, 500, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override

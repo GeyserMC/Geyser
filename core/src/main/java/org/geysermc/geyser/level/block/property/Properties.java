@@ -29,7 +29,6 @@ import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 
 public final class Properties {
-    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final BooleanProperty ATTACHED = BooleanProperty.create("attached");
     public static final BooleanProperty BERRIES = BooleanProperty.create("berries");
     public static final BooleanProperty BLOOM = BooleanProperty.create("bloom");
@@ -77,6 +76,7 @@ public final class Properties {
     public static final EnumProperty<Direction> FACING_HOPPER = EnumProperty.create("facing", Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
     public static final EnumProperty<Direction> HORIZONTAL_FACING = EnumProperty.create("facing", Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
     public static final IntegerProperty FLOWER_AMOUNT = IntegerProperty.create("flower_amount", 1, 4);
+    public static final IntegerProperty SEGMENT_AMOUNT = IntegerProperty.create("segment_amount", 1, 4);
     public static final EnumProperty<FrontAndTop> ORIENTATION = EnumProperty.create("orientation", FrontAndTop.VALUES);
     public static final BasicEnumProperty ATTACH_FACE = BasicEnumProperty.create("face", "floor", "wall", "ceiling");
     public static final BasicEnumProperty BELL_ATTACHMENT = BasicEnumProperty.create("attachment", "floor", "ceiling", "single_wall", "double_wall");
@@ -145,5 +145,8 @@ public final class Properties {
     public static final BooleanProperty CRAFTING = BooleanProperty.create("crafting");
     public static final BasicEnumProperty TRIAL_SPAWNER_STATE = BasicEnumProperty.create("trial_spawner_state", "inactive", "waiting_for_players", "active", "waiting_for_reward_ejection", "ejecting_reward", "cooldown");
     public static final BasicEnumProperty VAULT_STATE = BasicEnumProperty.create("vault_state", "inactive", "active", "unlocking", "ejecting");
+    public static final BasicEnumProperty CREAKING_HEART_STATE = BasicEnumProperty.create("creaking_heart_state", "uprooted", "dormant", "awake");
     public static final BooleanProperty OMINOUS = BooleanProperty.create("ominous");
+    public static final BasicEnumProperty TEST_BLOCK_MODE = BasicEnumProperty.create("mode", "start", "log", "fail", "accept");
+    public static final BooleanProperty MAP = BooleanProperty.create("map");
 }
