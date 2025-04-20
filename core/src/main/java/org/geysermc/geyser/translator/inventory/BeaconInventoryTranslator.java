@@ -38,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.inventory.BeaconContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
@@ -61,12 +62,12 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
             }
 
             @Override
-            public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-                if (!((BeaconContainer) inventory).isUsingRealBlock()) {
-                    InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
+            public void openInventory(GeyserSession session, Container container) {
+                if (!container.isUsingRealBlock()) {
+                    InventoryUtils.closeInventory(session, container.getJavaId(), false);
                     return;
                 }
-                super.openInventory(translator, session, inventory);
+                super.openInventory(session, container);
             }
         }, UIInventoryUpdater.INSTANCE);
     }
@@ -144,8 +145,8 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new BeaconContainer(name, windowId, this.size, containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new BeaconContainer(session, name, windowId, this.size, containerType, playerInventory, this);
     }
 
     @Override

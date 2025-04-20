@@ -25,24 +25,25 @@
 
 package org.geysermc.geyser.inventory;
 
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
 
+@Getter
 public class EnchantingContainer extends Container {
     /**
      * A cache of what Bedrock sees
      */
-    @Getter
     private final EnchantOptionData[] enchantOptions;
     /**
      * A mutable cache of what the server sends us
      */
-    @Getter
     private final GeyserEnchantOption[] geyserEnchantOptions;
 
-    public EnchantingContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public EnchantingContainer(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
+        super(session, title, id, size, containerType, playerInventory, translator);
 
         enchantOptions = new EnchantOptionData[3];
         geyserEnchantOptions = new GeyserEnchantOption[3];

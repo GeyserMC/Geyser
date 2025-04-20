@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.UUID;
 
@@ -58,9 +57,13 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     @Override
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
         customBlock = entityMetadata.getPrimitiveValue();
+        showCustomBlock = entityMetadata.getPrimitiveValue() != 0;
 
         if (showCustomBlock) {
             dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
+        } else {
+            updateDefaultBlockMetadata();
         }
     }
 
@@ -70,18 +73,6 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
 
         if (showCustomBlock) {
             dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
-        }
-    }
-
-    @Override
-    public void setShowCustomBlock(BooleanEntityMetadata entityMetadata) {
-        if (entityMetadata.getPrimitiveValue()) {
-            showCustomBlock = true;
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
-        } else {
-            showCustomBlock = false;
-            updateDefaultBlockMetadata();
         }
     }
 

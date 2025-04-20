@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.registry.populator.conversion;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
-import org.geysermc.geyser.session.cache.tags.Tag;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
-import java.util.UUID;
+// A variety of methods to help with re-mapping blocks and items to older versions.
+public class ConversionHelper {
 
-public class ChickenEntity extends AnimalEntity {
-
-    public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    static NbtMap withName(NbtMap tag, String name) {
+        NbtMapBuilder builder = tag.toBuilder();
+        builder.replace("name", "minecraft:" + name);
+        return builder.build();
     }
 
-    @Override
-    @Nullable
-    protected Tag<Item> getFoodTag() {
-        return ItemTag.CHICKEN_FOOD;
+    static NbtMap withoutStates(String name) {
+        NbtMapBuilder tagBuilder = NbtMap.builder();
+        tagBuilder.putString("name", "minecraft:" + name);
+        tagBuilder.putCompound("states", NbtMap.EMPTY);
+        return tagBuilder.build();
     }
+
 }

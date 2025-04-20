@@ -33,8 +33,11 @@ import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -43,9 +46,10 @@ import java.util.Map;
 public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCustomItemsEvent {
     private final Multimap<String, CustomItemData> deprecatedCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
     private final Multimap<Identifier, CustomItemDefinition> customItems;
-    private final List<NonVanillaCustomItemData> nonVanillaCustomItems;
+    private final List<NonVanillaCustomItemData> deprecatedNonVanillaCustomItems = new ArrayList<>();
+    private final Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems;
 
-    public GeyserDefineCustomItemsEventImpl(Multimap<Identifier, CustomItemDefinition> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+    public GeyserDefineCustomItemsEventImpl(Multimap<Identifier, CustomItemDefinition> customItems, Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
         this.customItems = customItems;
         this.nonVanillaCustomItems = nonVanillaCustomItems;
     }
@@ -62,8 +66,14 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     }
 
     @Override
+    @Deprecated
     public @NonNull List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems() {
-        return Collections.unmodifiableList(this.nonVanillaCustomItems);
+        return Collections.unmodifiableList(this.deprecatedNonVanillaCustomItems);
+    }
+
+    @Override
+    public @NotNull Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions() {
+        return Collections.unmodifiableMap(nonVanillaCustomItems.asMap());
     }
 
     @Override
@@ -73,6 +83,17 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
             Identifier vanillaItemIdentifier = Identifier.of(identifier);
             register(vanillaItemIdentifier, customItemData.toDefinition(vanillaItemIdentifier).build());
             deprecatedCustomItems.put(identifier, customItemData);
+            return true;
+        } catch (CustomItemDefinitionRegisterException exception) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean register(NonVanillaCustomItemData customItemData) {
+        try {
+            register(customItemData.toDefinition().build());
+            deprecatedNonVanillaCustomItems.add(customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {
             return false;

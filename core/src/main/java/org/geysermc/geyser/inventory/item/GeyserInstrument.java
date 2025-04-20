@@ -29,13 +29,13 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.Locale;
@@ -77,7 +77,7 @@ public interface GeyserInstrument {
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
     static int bedrockIdToJava(GeyserSession session, int id) {
-        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().instruments();
+        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
@@ -90,34 +90,40 @@ public interface GeyserInstrument {
         return -1;
     }
 
-    static GeyserInstrument fromHolder(GeyserSession session, Holder<Instrument> holder) {
-        if (holder.isId()) {
-            return session.getRegistryCache().instruments().byId(holder.id());
+    // TODO test in 1.21.5
+    static GeyserInstrument fromComponent(GeyserSession session, InstrumentComponent component) {
+        if (component.instrumentLocation() != null) {
+            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byKey(component.instrumentLocation());
+        } else if (component.instrumentHolder() != null) {
+            if (component.instrumentHolder().isId()) {
+                return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.instrumentHolder().id());
+            }
+            InstrumentComponent.Instrument custom = component.instrumentHolder().custom();
+            return new Wrapper(custom, session.locale());
         }
-        Instrument custom = holder.custom();
-        return new Wrapper(custom, session.locale());
+        throw new IllegalStateException("InstrumentComponent must have either a location or a holder");
     }
 
-    record Wrapper(Instrument instrument, String locale) implements GeyserInstrument {
+    record Wrapper(InstrumentComponent.Instrument instrument, String locale) implements GeyserInstrument {
         @Override
         public String soundEvent() {
-            return instrument.getSoundEvent().getName();
+            return instrument.soundEvent().getName();
         }
 
         @Override
         public float range() {
-            return instrument.getRange();
+            return instrument.range();
         }
 
         @Override
         public String description() {
-            return MessageTranslator.convertMessageForTooltip(instrument.getDescription(), locale);
+            return MessageTranslator.convertMessageForTooltip(instrument.description(), locale);
         }
 
         @Override
         public BedrockInstrument bedrockInstrument() {
-            if (instrument.getSoundEvent() instanceof BuiltinSound) {
-                return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.getSoundEvent().getName()));
+            if (instrument.soundEvent() instanceof BuiltinSound) {
+                return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.soundEvent().getName()));
             }
             // Probably custom
             return null;

@@ -35,6 +35,8 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -69,7 +71,7 @@ public final class CustomItemTranslator {
 
         ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
 
-        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
+        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates // TODO
         Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>(); // TODO also fix this
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;

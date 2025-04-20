@@ -94,6 +94,9 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
         BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
+        // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
+        session.setPendingOrCurrentBedrockInventoryId(-1);
+
         super.closeInventory(session, inventory); // Removes the fake blocks if need be
 
         // Now: Restore the lectern, if it actually exists
@@ -199,7 +202,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory);
+    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new LecternContainer(session, name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory, this);
     }
 }

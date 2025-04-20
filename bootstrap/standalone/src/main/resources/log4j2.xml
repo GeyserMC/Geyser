@@ -4,9 +4,6 @@
         <TerminalConsole name="TerminalConsole">
             <PatternLayout pattern="[%d{HH:mm:ss} %style{%highlight{%level}{FATAL=red, ERROR=red, WARN=yellow bright, INFO=cyan bright, DEBUG=green, TRACE=white}}] %minecraftFormatting{%msg}%n"/>
         </TerminalConsole>
-        <Console name="Console" target="SYSTEM_OUT" follow="true">
-            <PatternLayout pattern="[%d{HH:mm:ss} %style{%highlight{%level}{FATAL=red, ERROR=red, WARN=yellow bright, INFO=cyan bright, DEBUG=green, TRACE=white}}] %minecraftFormatting{%msg}%n"/>
-        </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{HH:mm:ss.SSS} %t/%level] %minecraftFormatting{%msg}{strip}%n"/>
             <Policies>
@@ -18,7 +15,6 @@
     <Loggers>
         <Root level="INFO" >
             <AppenderRef ref="TerminalConsole"/>
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
             <filters>
                 <MarkerFilter marker="packet_logging" onMatch="DENY" onMismatch="ACCEPT" />

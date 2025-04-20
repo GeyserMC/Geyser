@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.entity.attribute;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 
 @Getter
 @AllArgsConstructor

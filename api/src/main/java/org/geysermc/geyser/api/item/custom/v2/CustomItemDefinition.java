@@ -139,7 +139,7 @@ public interface CustomItemDefinition {
 
     interface Builder {
 
-        Builder displayName(String displayName);
+        Builder displayName(@NonNull String displayName);
 
         Builder priority(int priority);
 

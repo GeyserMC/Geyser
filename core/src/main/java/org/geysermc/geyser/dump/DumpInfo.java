@@ -178,9 +178,8 @@ public class DumpInfo {
 
         NetworkInfo() {
             if (AsteriskSerializer.showSensitive) {
-                try {
+                try (Socket socket = new Socket()) {
                     // This is the most reliable for getting the main local IP
-                    Socket socket = new Socket();
                     socket.connect(new InetSocketAddress("geysermc.org", 80));
                     this.internalIP = socket.getLocalAddress().getHostAddress();
                 } catch (IOException e1) {

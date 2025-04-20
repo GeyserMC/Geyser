@@ -25,14 +25,20 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
+
+import java.util.Collections;
 
 @Translator(packet = ClientboundUpdateMobEffectPacket.class)
 public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundUpdateMobEffectPacket> {
@@ -44,25 +50,46 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
             return;
         }
 
+        var event = MobEffectPacket.Event.ADD;
+
         if (entity == session.getPlayerEntity()) {
-            session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
+            EntityEffectCache cache = session.getEffectCache();
+            cache.setEffect(packet.getEffect(), packet.getAmplifier());
+            // Matches BDS
+            if (cache.getEntityEffects().contains(packet.getEffect())) {
+                event = MobEffectPacket.Event.MODIFY;
+            }
         } else if (entity instanceof ClientVehicle clientVehicle) {
             clientVehicle.getVehicleComponent().setEffect(packet.getEffect(), packet.getAmplifier());
         }
 
-        int duration = packet.getDuration();
-        if (duration < 0) {
-            // java edition uses -1 for infinite, but bedrock doesn't have infinite
-            duration = Integer.MAX_VALUE;
-        }
-
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
         mobEffectPacket.setAmplifier(packet.getAmplifier());
-        mobEffectPacket.setDuration(duration);
-        mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
+        mobEffectPacket.setDuration(packet.getDuration());
+        mobEffectPacket.setEvent(event);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
         session.sendUpstreamPacket(mobEffectPacket);
+
+        // Bedrock expects some attributes to be updated in the same tick as the effect causing them
+        if (entity == session.getPlayerEntity()) {
+            AttributeData attribute = switch (packet.getEffect()) {
+                // Fixes https://github.com/GeyserMC/Geyser/issues/5347
+                case ABSORPTION -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
+                // Fixes https://github.com/GeyserMC/Geyser/issues/5388
+                case SPEED -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
+                default -> null;
+            };
+
+            if (attribute == null) {
+                return;
+            }
+
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+            attributesPacket.setAttributes(Collections.singletonList(attribute));
+            session.sendUpstreamPacket(attributesPacket);
+        }
     }
 }

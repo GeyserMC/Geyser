@@ -53,4 +53,8 @@ public interface Identifier {
     String namespace();
 
     String path();
+    
+    default boolean vanilla() {
+        return namespace().equals(DEFAULT_NAMESPACE);
+    }
 }

@@ -31,8 +31,9 @@ import org.geysermc.geyser.api.util.Identifier;
 import java.util.function.Predicate;
 
 /**
- * Data components used to indicate item behaviour of custom items. It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
+ * Data components are used to indicate item behaviour of custom items. It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
  *
+ * @see GeyserDataComponent
  * @see CustomItemDefinition#components()
  */
 public final class DataComponent<T> {
@@ -82,7 +83,7 @@ public final class DataComponent<T> {
      */
     public static final DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
     /**
-     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option, which will be a feature in Java 1.21.5, but is already in use in Geyser.
+     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option.
      *
      * <p>Like other components, when not set this will fall back to the default value.</p>
      *
@@ -98,18 +99,32 @@ public final class DataComponent<T> {
 
     private final Identifier identifier;
     private final Predicate<T> validator;
+    private final boolean vanilla;
 
-    private DataComponent(Identifier identifier, Predicate<T> validator) {
+    private DataComponent(Identifier identifier, Predicate<T> validator, boolean vanilla) {
         this.identifier = identifier;
         this.validator = validator;
+        this.vanilla = vanilla;
     }
 
     private static <T> DataComponent<T> create(String name) {
-        return new DataComponent<>(Identifier.of(name), t -> true);
+        return new DataComponent<>(Identifier.of(name), t -> true, true);
     }
 
     private static <T> DataComponent<T> create(String name, Predicate<T> validator) {
-        return new DataComponent<>(Identifier.of(name), validator);
+        return new DataComponent<>(Identifier.of(name), validator, true);
+    }
+
+    static <T> DataComponent<T> createGeyser(String name) {
+        return new DataComponent<>(Identifier.of("geyser", name), t -> true, false);
+    }
+
+    static <T> DataComponent<T> createGeyser(String name, Predicate<T> validator) {
+        return new DataComponent<>(Identifier.of("geyser", name), validator, false);
+    }
+
+    public boolean vanilla() {
+        return vanilla;
     }
 
     public boolean validate(T value) {
@@ -118,6 +133,6 @@ public final class DataComponent<T> {
 
     @Override
     public String toString() {
-        return "data component " + identifier.toString();
+        return "data component " + identifier.toString() + (vanilla ? "" : " (not vanilla)");
     }
 }
