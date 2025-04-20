@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate.context.item;
+package org.geysermc.geyser.api.predicate.item;
 
 public record CustomModelDataFloat(float value, int index) {
 }

@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.predicate.item;
 
 import org.geysermc.geyser.api.predicate.PredicateCreator;
-import org.geysermc.geyser.api.predicate.context.item.CustomModelDataFloat;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 
 /**

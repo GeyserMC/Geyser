@@ -123,8 +123,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
     private static <T> T getSafeCustomModelData(List<T> data, int index) {
         if (index < 0) {
             return null;
-        }
-        if (index < data.size()) {
+        } else if (index < data.size()) {
             return data.get(index);
         }
         return null;

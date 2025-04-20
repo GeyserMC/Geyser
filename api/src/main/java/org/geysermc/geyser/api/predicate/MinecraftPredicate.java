@@ -54,6 +54,7 @@ public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends
         return (context) -> !this.test(context);
     }
 
+    // TODO javadoc?
     @Override
     default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
         Objects.requireNonNull(other);
