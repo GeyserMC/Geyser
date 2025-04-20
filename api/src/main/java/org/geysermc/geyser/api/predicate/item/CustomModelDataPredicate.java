@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,39 +23,41 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 
 import java.util.Objects;
-import java.util.function.Predicate;
 
-/**
- * A predicate for a {@link MinecraftPredicateContext}.
- *
- * <p>Right now this is used to determine if a {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition} should be used.</p>
- *
- * @param <C> the predicate context.
- */
-@FunctionalInterface
-public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {
+final class CustomModelDataPredicate {
 
-    @Override
-    default @NonNull MinecraftPredicate<C> and(@NonNull Predicate<? super C> other) {
-        Objects.requireNonNull(other);
-        return (context) -> this.test(context) && other.test(context);
+    private CustomModelDataPredicate() {}
+
+    record FlagPredicate(int index, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
+
+        @Override
+        public boolean test(ItemPredicateContext context) {
+            return negated != context.customModelDataFlag(index);
+        }
+
+        @Override
+        public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+            return new FlagPredicate(index, !negated);
+        }
     }
 
-    @Override
-    default @NonNull MinecraftPredicate<C> negate() {
-        return (context) -> !this.test(context);
-    }
+    record StringPredicate(String string, int index, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
-    // TODO javadoc?
-    @Override
-    default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
-        Objects.requireNonNull(other);
-        return (context) -> this.test(context) || other.test(context);
+        @Override
+        public boolean test(ItemPredicateContext context) {
+            return negated != Objects.equals(string, context.customModelDataString(index));
+        }
+
+        @Override
+        public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+            return new StringPredicate(string, index, !negated);
+        }
     }
 }

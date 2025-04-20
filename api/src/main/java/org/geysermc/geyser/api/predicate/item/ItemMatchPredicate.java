@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateCreator;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
@@ -41,21 +40,19 @@ public interface ItemMatchPredicate {
      *
      * @see ItemPredicateContext#chargedProjectiles()
      */
-    PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = data ->
-        context -> context.chargedProjectiles().stream().anyMatch(projectile -> projectile.type() == data);
+    PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = type -> new ChargeTypePredicate(type, false);
 
     /**
      * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
      *
      * @see ItemPredicateContext#trimMaterial()
      */
-    PredicateCreator<ItemPredicateContext, Identifier> TRIM_MATERIAL = data -> MinecraftPredicate.isEqual(ItemPredicateContext::trimMaterial, data);
+    PredicateCreator<ItemPredicateContext, Identifier> TRIM_MATERIAL = material -> new TrimMaterialPredicate(material, false);
 
     /**
      * Matches a string of the item's custom model data strings.
      *
      * @see ItemPredicateContext#customModelDataString(int)
      */
-    PredicateCreator<ItemPredicateContext, CustomModelDataString> CUSTOM_MODEL_DATA = data ->
-        MinecraftPredicate.isEqual(context -> context.customModelDataString(data.index()), data.value());
+    PredicateCreator<ItemPredicateContext, CustomModelDataString> CUSTOM_MODEL_DATA = data -> new CustomModelDataPredicate.StringPredicate(data.value(), data.index(), false);
 }

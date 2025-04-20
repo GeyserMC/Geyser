@@ -23,20 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
-/**
- * Contains creators for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
- */
-public interface MatchPredicate {
+record HasComponentPredicate(Identifier component, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
-    /**
-     * Matches the dimension identifier the Bedrock session player is currently in.
-     *
-     * @see MinecraftPredicateContext#dimension()
-     */
-    PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = dimension -> new DimensionPredicate(dimension, false);
+    @Override
+    public boolean test(ItemPredicateContext context) {
+        return negated != context.components().contains(component);
+    }
+
+    @Override
+    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+        return new HasComponentPredicate(component, !negated);
+    }
 }

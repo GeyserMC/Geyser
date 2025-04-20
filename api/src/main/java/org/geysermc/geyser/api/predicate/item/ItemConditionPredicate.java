@@ -65,12 +65,12 @@ public interface ItemConditionPredicate {
      *
      * @see ItemPredicateContext#customModelDataFlag(int)
      */
-    PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFlag(data);
+    PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = index -> new CustomModelDataPredicate.FlagPredicate(index, false);
 
     /**
      * Returns true if the item stack has a component with the specified identifier.
      *
      * @see ItemPredicateContext#components()
      */
-    PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = data -> context -> context.components().contains(data);
+    PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = component -> new HasComponentPredicate(component, false);
 }

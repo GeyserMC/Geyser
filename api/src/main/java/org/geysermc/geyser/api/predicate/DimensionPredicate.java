@@ -25,18 +25,21 @@
 
 package org.geysermc.geyser.api.predicate;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
-/**
- * Contains creators for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
- */
-public interface MatchPredicate {
+import java.util.Objects;
 
-    /**
-     * Matches the dimension identifier the Bedrock session player is currently in.
-     *
-     * @see MinecraftPredicateContext#dimension()
-     */
-    PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = dimension -> new DimensionPredicate(dimension, false);
+record DimensionPredicate(Identifier dimension, boolean negated) implements MinecraftPredicate<MinecraftPredicateContext>  {
+
+    @Override
+    public boolean test(MinecraftPredicateContext context) {
+        return negated != Objects.equals(context.dimension(), dimension);
+    }
+
+    @Override
+    public @NonNull MinecraftPredicate<MinecraftPredicateContext> negate() {
+        return new DimensionPredicate(dimension, !negated);
+    }
 }

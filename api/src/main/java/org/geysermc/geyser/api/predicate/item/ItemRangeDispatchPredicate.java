@@ -40,14 +40,14 @@ public interface ItemRangeDispatchPredicate {
      *
      * @see ItemPredicateContext#bundleFullness()
      */
-    PredicateCreator<ItemPredicateContext, Double> BUNDLE_FULLNESS = data -> context -> context.bundleFullness() >= data;
+    PredicateCreator<ItemPredicateContext, Double> BUNDLE_FULLNESS = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.BUNDLE_FULLNESS, threshold, 0, false, false);
 
     /**
      * Checks the item's damage value.
      *
      * @see ItemPredicateContext#damage()
      */
-    PredicateCreator<ItemPredicateContext, Double> DAMAGE = data -> context -> context.damage() >= data;
+    PredicateCreator<ItemPredicateContext, Double> DAMAGE = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.DAMAGE, threshold);
 
     /**
      * Checks the item's damage value, normalised ({@code damage / max_damage}). Always returns false is {@code max_damage} is 0.
@@ -55,14 +55,14 @@ public interface ItemRangeDispatchPredicate {
      * @see ItemPredicateContext#damage()
      * @see ItemPredicateContext#maxDamage()
      */
-    PredicateCreator<ItemPredicateContext, Double> DAMAGE_NORMALISED = data -> context -> context.maxDamage() != 0 && (double) context.damage() / context.maxDamage() >= data;
+    PredicateCreator<ItemPredicateContext, Double> DAMAGE_NORMALISED = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.DAMAGE, threshold, true);
 
     /**
      * Checks the item's stack count.
      *
      * @see ItemPredicateContext#count()
      */
-    PredicateCreator<ItemPredicateContext, Double> COUNT = data -> context -> context.count() >= data;
+    PredicateCreator<ItemPredicateContext, Double> COUNT = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.COUNT, threshold);
 
     /**
      * Checks the item's stack count, normalised ({@code count / max_stack_size}).
@@ -70,12 +70,12 @@ public interface ItemRangeDispatchPredicate {
      * @see ItemPredicateContext#count()
      * @see ItemPredicateContext#maxStackSize() ()
      */
-    PredicateCreator<ItemPredicateContext, Double> COUNT_NORMALISED = data -> context -> (double) context.count() / context.maxStackSize() >= data;
+    PredicateCreator<ItemPredicateContext, Double> COUNT_NORMALISED = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.COUNT, threshold, true);
 
     /**
      * Checks one of the item's custom model data floats.
      *
      * @see ItemPredicateContext#customModelDataFloat(int)
      */
-    PredicateCreator<ItemPredicateContext, CustomModelDataFloat> CUSTOM_MODEL_DATA = data -> context -> context.customModelDataFloat(data.index()) >= data.value();
+    PredicateCreator<ItemPredicateContext, CustomModelDataFloat> CUSTOM_MODEL_DATA = data -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.CUSTOM_MODEL_DATA, data.value(), data.index());
 }

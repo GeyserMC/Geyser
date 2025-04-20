@@ -209,12 +209,17 @@ public class CustomItemRegistryPopulator {
         if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
             return "both entries don't have predicates, one must have a predicate";
         }
-        // If their predicates are equal then they also conflict
+
+        // If their amount of predicates is equal, and the new definition contains all the existing predicates, then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
-            for (MinecraftPredicate predicate : existing.getValue().predicates()) { // TODO fix this
+
+            // This only works for common predicates that are backed using record classes in the API module!!
+            // Custom predicates defined by API users (not by JSON mappings, those only use common predicates) will not work with conflict detection here!
+            for (MinecraftPredicate<?> predicate : existing.getValue().predicates()) {
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
+                    break;
                 }
             }
             if (equal) {
