@@ -44,7 +44,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier, int count, Supplier<Integer> maxStackSizeSupplier,
-                                         Supplier<Integer> damageSupplier, Supplier<Integer> maxDamageSupplier, Supplier<Boolean> unbreakableSupplier,
+                                         Supplier<Integer> damageSupplier, Supplier<Integer> maxDamageSupplier,
+                                         Supplier<Boolean> fishingRodCastSupplier, Supplier<Boolean> unbreakableSupplier,
                                          Supplier<Integer> bundleFullnessSupplier, Supplier<Identifier> trimMaterialSupplier, Supplier<List<ChargedProjectile>> chargedProjectilesSupplier,
                                          Supplier<List<Identifier>> componentsSupplier, Supplier<List<Boolean>> customModelDataFlagsSupplier, Supplier<List<String>> customModelDataStringsSupplier,
                                          Supplier<List<Float>> customModelDataFloatsSupplier) implements ItemPredicateContext {
@@ -68,6 +69,11 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
     @Override
     public int maxDamage() {
         return maxDamageSupplier.get();
+    }
+
+    @Override
+    public boolean hasFishingRodCast() {
+        return fishingRodCastSupplier.get();
     }
 
     @Override
@@ -136,6 +142,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
         Supplier<Integer> damage = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.DAMAGE, 0));
         Supplier<Integer> maxDamage = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0));
 
+        Supplier<Boolean> fishingRodCast = Suppliers.memoize(session::hasFishingRodCast);
         Supplier<Boolean> unbreakable = Suppliers.memoize((() -> components.get(DataComponentTypes.UNBREAKABLE) != null));
 
         Supplier<Integer> bundleFullness = Suppliers.memoize(() -> {
@@ -169,8 +176,8 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
         Supplier<List<String>> strings = Suppliers.memoize(() -> customModelData.get().strings());
         Supplier<List<Float>> floats = Suppliers.memoize(() -> customModelData.get().floats());
 
-        return new GeyserItemPredicateContext(dimension, stackSize, maxStackSize, damage, maxDamage, unbreakable, bundleFullness,
-            trimMaterial, chargedProjectiles, componentList, flags, strings, floats);
+        return new GeyserItemPredicateContext(dimension, stackSize, maxStackSize, damage, maxDamage, fishingRodCast, unbreakable,
+            bundleFullness, trimMaterial, chargedProjectiles, componentList, flags, strings, floats);
     }
 
     private static ChargedProjectile stackToProjectile(ItemStack stack) {

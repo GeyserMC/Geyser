@@ -39,7 +39,8 @@ public enum ItemConditionProperty implements PredicateReader<ItemPredicateContex
     CUSTOM_MODEL_DATA((element, context)
         -> ItemConditionPredicate.CUSTOM_MODEL_DATA.create(MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context))),
     HAS_COMPONENT((element, context)
-        -> ItemConditionPredicate.HAS_COMPONENT.create(MappingsUtil.readOrThrow(element, "component", NodeReader.IDENTIFIER, context)));
+        -> ItemConditionPredicate.HAS_COMPONENT.create(MappingsUtil.readOrThrow(element, "component", NodeReader.IDENTIFIER, context))),
+    FISHING_ROD_CAST(ItemConditionPredicate.FISHING_ROD_CAST);
 
     private final PredicateReader<? super ItemPredicateContext> reader;
 

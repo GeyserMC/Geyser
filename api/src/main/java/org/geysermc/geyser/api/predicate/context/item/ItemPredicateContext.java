@@ -57,6 +57,11 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
     int maxDamage();
 
     /**
+     * @return if the session player is holding a fishing rod cast.
+     */
+    boolean hasFishingRodCast();
+
+    /**
      * @return true if the {@code minecraft:unbreakable} component is present.
      */
     boolean unbreakable();

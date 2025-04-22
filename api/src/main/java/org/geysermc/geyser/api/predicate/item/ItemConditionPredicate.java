@@ -61,6 +61,13 @@ public interface ItemConditionPredicate {
     MinecraftPredicate<ItemPredicateContext> DAMAGED = DAMAGEABLE.and(context -> context.damage() >= 0);
 
     /**
+     * Checks if the session player is holding a fishing rod cast.
+     *
+     * @see ItemPredicateContext#hasFishingRodCast()
+     */
+    MinecraftPredicate<ItemPredicateContext> FISHING_ROD_CAST = ItemPredicateContext::hasFishingRodCast;
+
+    /**
      * Checks for one of the item's custom model data flags.
      *
      * @see ItemPredicateContext#customModelDataFlag(int)
