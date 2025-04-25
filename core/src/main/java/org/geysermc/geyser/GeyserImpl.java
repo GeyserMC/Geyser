@@ -304,13 +304,13 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         // Warnings to users who enable options that they might not need.
         if (config.bedrock().useProxyProtocol()) {
-            logger.warning("Geyser is configured to expect proxy protocol for Bedrock connections.");
-            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-proxy-protocol\" under the  \"bedrock\" section to \"false\".");
+            logger.warning("Geyser is configured to expect HAProxy protocol for incoming Bedrock connections.");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"bedrock\" section to \"false\".");
         }
 
         if (config.java().useProxyProtocol()) {
             logger.warning("Geyser is configured to use proxy protocol when connecting to the Java server.");
-            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-proxy-protocol\" under the  \"java\" section to \"false\".");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"java\" section to \"false\".");
         }
 
         if (config.advanced().disableXboxAuth()) {

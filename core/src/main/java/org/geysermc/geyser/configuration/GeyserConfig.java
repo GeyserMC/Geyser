@@ -262,14 +262,14 @@ public interface GeyserConfig {
         int compressionLevel();
 
         @Comment("""
-                Whether to expect PROXY protocol for connecting Bedrock clients.
+                Whether to expect HAPROXY protocol for connecting Bedrock clients.
                 This is useful only when you are running a UDP reverse proxy in front of your Geyser instance.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
         boolean useProxyProtocol();
 
         @Comment("""
-                A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
+                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
@@ -297,9 +297,9 @@ public interface GeyserConfig {
         void authType(AuthType authType);
 
         @Comment("""
-                Whether to enable PROXY protocol when connecting to the Java server.
+                Whether to enable HAPROXY protocol when connecting to the Java server.
                 This is useful only when:
-                1) Your Java server supports PROXY protocol (it probably doesn't)
+                1) Your Java server supports HAPROXY protocol (it probably doesn't)
                 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         boolean useProxyProtocol();
