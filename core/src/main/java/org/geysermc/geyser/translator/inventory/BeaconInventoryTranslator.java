@@ -38,8 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.inventory.BeaconContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -51,7 +50,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 import java.util.OptionalInt;
 
-public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<BeaconContainer> {
     public BeaconInventoryTranslator() {
         super(1, new BlockInventoryHolder(Blocks.BEACON, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
@@ -61,39 +60,38 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
             }
 
             @Override
-            public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-                if (!((BeaconContainer) inventory).isUsingRealBlock()) {
-                    InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
+            public void openInventory(GeyserSession session, Container container) {
+                if (!container.isUsingRealBlock()) {
+                    InventoryUtils.closeInventory(session, container.getJavaId(), false);
                     return;
                 }
-                super.openInventory(translator, session, inventory);
+                super.openInventory(session, container);
             }
         }, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, BeaconContainer container, int key, int value) {
         //FIXME?: Beacon graphics look weird after inputting an item. This might be a Bedrock bug, since it resets to nothing
         // on BDS
-        BeaconContainer beaconContainer = (BeaconContainer) inventory;
         switch (key) {
             case 0:
                 // Power - beacon doesn't use this, and uses the block position instead
                 break;
             case 1:
-                beaconContainer.setPrimaryId(value == -1 ? 0 : value);
+                container.setPrimaryId(value == -1 ? 0 : value);
                 break;
             case 2:
-                beaconContainer.setSecondaryId(value == -1 ? 0 : value);
+                container.setSecondaryId(value == -1 ? 0 : value);
                 break;
         }
 
         // Send a block entity data packet update to the fake beacon inventory
-        Vector3i position = inventory.getHolderPosition();
+        Vector3i position = container.getHolderPosition();
         NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Beacon", position)
-                .putString("CustomName", inventory.getTitle())
-                .putInt("primary", beaconContainer.getPrimaryId())
-                .putInt("secondary", beaconContainer.getSecondaryId());
+                .putString("CustomName", container.getTitle())
+                .putInt("primary", container.getPrimaryId())
+                .putInt("secondary", container.getSecondaryId());
 
         BlockEntityDataPacket packet = new BlockEntityDataPacket();
         packet.setBlockPosition(position);
@@ -102,17 +100,17 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, BeaconContainer container) {
         return action.getType() == ItemStackRequestActionType.BEACON_PAYMENT;
     }
 
     @Override
-    public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateSpecialRequest(GeyserSession session, BeaconContainer container, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
         session.sendDownstreamGamePacket(packet);
-        return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
+        return acceptRequest(request, makeContainerEntries(session, container, IntSets.emptySet()));
     }
 
     private OptionalInt toJava(int effectChoice) {
@@ -128,11 +126,11 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, BeaconContainer container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.BEACON_PAYMENT, 27);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
@@ -144,12 +142,12 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new BeaconContainer(name, windowId, this.size, containerType, playerInventory);
+    public BeaconContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new BeaconContainer(session, name, windowId, this.size, containerType);
     }
 
     @Override
-    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(Inventory inventory) {
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(BeaconContainer container) {
         return null;
     }
 }

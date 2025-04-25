@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -48,7 +48,6 @@ import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -143,7 +142,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.TAME_SUCCEEDED);
                 break;
             case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
-                LevelSoundEvent2Packet soundPacket = new LevelSoundEvent2Packet();
+                LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                 soundPacket.setSound(SoundEvent.REMEDY);
                 soundPacket.setPosition(entity.getPosition());
                 soundPacket.setExtraData(-1);
@@ -186,7 +185,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 if (totemItemWorkaround) {
                     // Reset the item again
-                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), 45);
+                    session.getPlayerInventoryHolder().updateSlot(45);
                 }
 
                 return;
@@ -241,7 +240,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case LIVING_EQUIPMENT_BREAK_FEET:
             case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
-                LevelSoundEvent2Packet equipmentBreakPacket = new LevelSoundEvent2Packet();
+                LevelSoundEventPacket equipmentBreakPacket = new LevelSoundEventPacket();
                 equipmentBreakPacket.setSound(SoundEvent.BREAK);
                 equipmentBreakPacket.setPosition(entity.getPosition());
                 equipmentBreakPacket.setExtraData(-1);

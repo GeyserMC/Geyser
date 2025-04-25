@@ -41,7 +41,6 @@ import java.util.Map;
  * Loads sounds from the given input.
  */
 public class SoundRegistryLoader implements RegistryLoader<String, Map<String, SoundMapping>> {
-
     @Override
     public Map<String, SoundMapping> load(String input) {
         JsonObject soundsJson;
@@ -61,7 +60,8 @@ public class SoundRegistryLoader implements RegistryLoader<String, Map<String, S
                             brMap.has("playsound_mapping") ? brMap.get("playsound_mapping").getAsString() : null,
                             brMap.has("extra_data") ? brMap.get("extra_data").getAsInt() : -1,
                             brMap.has("identifier") ? brMap.get("identifier").getAsString() : null,
-                            brMap.has("level_event") && brMap.get("level_event").getAsBoolean()
+                            brMap.has("level_event") && brMap.get("level_event").getAsBoolean(),
+                            brMap.has("pitch_adjust") ? brMap.get("pitch_adjust").getAsFloat() : 1.0f
                     )
             );
         }

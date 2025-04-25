@@ -37,12 +37,14 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -51,7 +53,6 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -75,8 +76,13 @@ public class Item {
         this.attackDamage = builder.attackDamage;
     }
 
+    // TODO maybe deprecate?
     public String javaIdentifier() {
         return javaIdentifier.asString();
+    }
+
+    public Key javaKey() {
+        return javaIdentifier;
     }
 
     public int javaId() {
@@ -157,9 +163,9 @@ public class Item {
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         List<Component> loreComponents = components.get(DataComponentTypes.LORE);
-        if (loreComponents != null && components.get(DataComponentTypes.HIDE_TOOLTIP) == null) {
+        if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
                 lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
@@ -240,7 +246,7 @@ public class Item {
     }
 
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
-        Enchantment enchantment = session.getRegistryCache().enchantments().byId(enchantId);
+        Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(enchantId);
         if (enchantment == null) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;
@@ -266,9 +272,9 @@ public class Item {
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
-        DyedItemColor dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
+        Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
         if (dyedItemColor != null) {
-            builder.putInt("customColor", dyedItemColor.getRgb());
+            builder.putInt("customColor", dyedItemColor);
         }
     }
 

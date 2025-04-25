@@ -78,6 +78,10 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamGamePacket(sneakPacket);
 
+                // Reset steering to avoid these accidentally triggering session#isHandsBusy
+                session.setSteeringLeft(false);
+                session.setSteeringRight(false);
+
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
                     session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
@@ -117,14 +121,14 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                if (session.getOpenInventory() == null) {
+                if (session.getInventoryHolder() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
                     if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof ChestBoatEntity) {
                         // This mob has an inventory of its own that we should open instead.
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {
-                        InventoryUtils.openInventory(session, session.getPlayerInventory());
+                        InventoryUtils.openInventory(session.getPlayerInventoryHolder());
                     }
                 }
         }

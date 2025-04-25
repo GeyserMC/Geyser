@@ -32,17 +32,17 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.Generic3X3InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
+@Getter
 public class Generic3X3Container extends Container {
     /**
      * Whether we need to set the container type as {@link org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType#DROPPER}.
      * <p>
-     * Used at {@link Generic3X3InventoryTranslator#openInventory(GeyserSession, Inventory)}
+     * Used at {@link Generic3X3InventoryTranslator#openInventory(GeyserSession, Generic3X3Container)}
      */
-    @Getter
     private boolean isDropper = false;
 
-    public Generic3X3Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public Generic3X3Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     @Override

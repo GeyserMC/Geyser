@@ -38,7 +38,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
     public static final ContainerInventoryUpdater INSTANCE = new ContainerInventoryUpdater();
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
         ItemData[] bedrockItems = new ItemData[translator.size];
@@ -53,7 +53,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
 

@@ -122,6 +122,12 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     }
 
     @Override
+    public void debug(String message, Object... arguments) {
+        // We can't use the debug call that would format for us as we're using Java's string formatting
+        log.debug(ChatColor.GRAY + String.format(message, arguments));
+    }
+
+    @Override
     public void setDebug(boolean debug) {
         Configurator.setLevel(log.getName(), debug ? Level.DEBUG : Level.INFO);
     }

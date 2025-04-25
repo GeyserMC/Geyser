@@ -27,8 +27,6 @@ package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator;
@@ -40,33 +38,18 @@ public class LecternContainer extends Container {
     private int currentBedrockPage = 0;
     @Setter
     private NbtMap blockEntityTag;
-    @Setter
-    private Vector3i position;
 
     private boolean isBookInPlayerInventory = false;
 
-    public LecternContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
-    }
-
-    /**
-     * When the Java server asks the client to open a book in their hotbar, we create a fake lectern to show it to the client.
-     * We can't use the {@link #isUsingRealBlock()} check as we may also be dealing with a real virtual lectern (with its own inventory).
-     */
-    @Override
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
-        if (isBookInPlayerInventory) {
-            session.getPlayerInventory().setItem(slot, newItem, session);
-        } else {
-            super.setItem(slot, newItem, session);
-        }
+    public LecternContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     /**
      * This is used ONLY once to set the book of a fake lectern in {@link JavaOpenBookTranslator}.
      * See {@link LecternContainer#setItem(int, GeyserItemStack, GeyserSession)} as for why this is separate.
      */
-    public void setFakeLecternBook(GeyserItemStack book, GeyserSession session) {
+    public void setVirtualLecternBook(GeyserItemStack book, GeyserSession session) {
         this.isBookInPlayerInventory = true;
         super.setItem(0, book, session);
     }

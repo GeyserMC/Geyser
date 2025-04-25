@@ -26,19 +26,30 @@
 package org.geysermc.geyser.inventory.recipe;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
  */
 public final class TrimRecipe {
+    private static final Map<ProvidesTrimMaterial, Item> trimMaterialProviders = new HashMap<>();
+
     // For CraftingDataPacket
     public static final String ID = "minecraft:smithing_armor_trim";
     public static final ItemDescriptorWithCount BASE = tagDescriptor("minecraft:trimmable_armors");
@@ -49,22 +60,31 @@ public final class TrimRecipe {
         String key = context.id().asMinimalString();
 
         // Color is used when hovering over the item
-        // Find the nearest legacy color from the RGB Java gives us to work with
-        // Also yes this is a COMPLETE hack but it works ok!!!!!
-        String colorTag = context.data().getCompound("description").getString("color");
-        TextColor color = TextColor.fromHexString(colorTag);
-        String legacy = MessageTranslator.convertMessage(Component.space().color(color));
+        // Find the nearest legacy color from the style Java gives us to work with
+        Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
+        String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
 
-        String itemIdentifier = context.data().getString("ingredient");
-        ItemMapping itemMapping = context.session().getItemMappings().getMapping(itemIdentifier);
-        if (itemMapping == null) {
-            // This should never happen so not sure what to do here.
-            itemMapping = ItemMapping.AIR;
+        int networkId = context.getNetworkId(context.id());
+        ItemMapping trimItem = null;
+        for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
+            Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
+            if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
+                trimItem = context.session().getItemMappings().getMapping(materialProviders().get(provider));
+                break;
+            }
         }
+
+        if (trimItem == null) {
+            // This happens for custom trim materials, not sure what to do here.
+            GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
+            trimItem = ItemMapping.AIR;
+        }
+
         // Just pick out the resulting color code, without RESET in front.
-        return new TrimMaterial(key, legacy.substring(2).trim(), itemMapping.getBedrockIdentifier());
+        return new TrimMaterial(key, legacy.substring(2).trim(), trimItem.getBedrockIdentifier());
     }
 
+    // TODO this is WRONG. this changed. FIXME in 1.21.5
     public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
@@ -79,6 +99,19 @@ public final class TrimRecipe {
 
     private TrimRecipe() {
         //no-op
+    }
+
+    // Lazy initialise
+    private static Map<ProvidesTrimMaterial, Item> materialProviders() {
+        if (trimMaterialProviders.isEmpty()) {
+            for (Item item : Registries.JAVA_ITEMS.get()) {
+                ProvidesTrimMaterial provider = item.getComponent(DataComponentTypes.PROVIDES_TRIM_MATERIAL);
+                if (provider != null) {
+                    trimMaterialProviders.put(provider, item);
+                }
+            }
+        }
+        return trimMaterialProviders;
     }
 
     private static ItemDescriptorWithCount tagDescriptor(String tag) {

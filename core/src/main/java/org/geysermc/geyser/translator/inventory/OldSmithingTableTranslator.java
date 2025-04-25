@@ -40,7 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -52,7 +52,7 @@ import java.util.function.IntFunction;
  * Translator for smithing tables for pre-1.20 servers.
  * This adapts ViaVersion's furnace ui to the 1.20+ smithing table; with the addition of a fake smithing template so Bedrock clients can use it.
  */
-public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator {
+public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator<Container> {
 
     public static final OldSmithingTableTranslator INSTANCE = new OldSmithingTableTranslator();
 
@@ -73,12 +73,12 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -93,12 +93,12 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+    public boolean shouldHandleRequestFirst(ItemStackRequestAction action, Container container) {
         return true;
     }
 
     @Override
-    protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateSpecialRequest(GeyserSession session, Container container, ItemStackRequest request) {
         for (var action: request.getActions()) {
             switch (action.getType()) {
                 case DROP -> {
@@ -127,7 +127,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
             }
         }
         // Allow everything else that doesn't involve the fake template
-        return super.translateRequest(session, inventory, request);
+        return super.translateRequest(session, container, request);
     }
 
     private boolean isInvalidAction(ItemStackRequestSlotData slotData) {
@@ -135,8 +135,8 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        super.openInventory(session, inventory);
+    public void openInventory(GeyserSession session, Container container) {
+        super.openInventory(session, container);
 
         // pre-1.20 server has no concept of templates, but we are working with a 1.20 client
         // put a fake netherite upgrade template in the template slot otherwise the client doesn't recognize a valid recipe
@@ -148,7 +148,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return null;
     }
 }

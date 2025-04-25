@@ -6,19 +6,19 @@ configurate = "4.2.0-GeyserMC-SNAPSHOT"
 erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 yaml = "2.2"
-fastutil = "8.5.2"
+fastutil = "8.5.15-SNAPSHOT"
 netty = "4.1.107.Final"
 netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
 gson-runtime = "2.10.1"
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta6-20250212.131009-3"
-protocol-common = "3.0.0.Beta6-20250212.131009-3"
-protocol-codec = "3.0.0.Beta6-20250212.131009-3"
+protocol-connection = "3.0.0.Beta6-20250415.154650-7"
+protocol-common = "3.0.0.Beta6-20250415.154650-7"
+protocol-codec = "3.0.0.Beta6-20250415.154650-7"
 raknet = "1.0.0.CR3-20250218.160705-18"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.4-20250218.175633-22"
+mcprotocollib = "1.21.5-20250410.194555-25"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -36,23 +36,23 @@ commodore = "2.2"
 bungeecord = "1.21-R0.1-20250215.224541-54"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
-fabric-loader = "0.16.9"
-fabric-api = "0.109.1+1.21.4"
+fabric-loader = "0.16.10"
+fabric-api = "0.119.5+1.21.5"
 fabric-permissions-api = "0.3.3"
-neoforge-minecraft = "21.4.0-beta"
+neoforge-minecraft = "21.5.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.4"
+minecraft = "1.21.5"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.4"
+runpaperversion = "1.21.5"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "3.1.3"
 shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.9-SNAPSHOT"
+architectury-loom = "1.10-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
 blossom = "2.1.0"
@@ -72,12 +72,14 @@ configurate-interface-ap = { module = "org.spongepowered:configurate-extra-inter
 configurate-interface = { module = "org.spongepowered:configurate-extra-interface", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 
-fastutil-int-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-int-maps", version.ref = "fastutil" }
-fastutil-int-long-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-long-maps", version.ref = "fastutil" }
-fastutil-int-byte-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-byte-maps", version.ref = "fastutil" }
-fastutil-int-boolean-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-boolean-maps", version.ref = "fastutil" }
-fastutil-object-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-int-maps", version.ref = "fastutil" }
-fastutil-object-object-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-object-maps", version.ref = "fastutil" }
+fastutil-int-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-int-maps", version.ref = "fastutil" }
+fastutil-int-long-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-long-maps", version.ref = "fastutil" }
+fastutil-int-byte-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-byte-maps", version.ref = "fastutil" }
+fastutil-int-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-boolean-maps", version.ref = "fastutil" }
+fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
+fastutil-object-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-object-maps", version.ref = "fastutil" }
+fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
+fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
 
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
@@ -167,7 +169,7 @@ runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
 runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

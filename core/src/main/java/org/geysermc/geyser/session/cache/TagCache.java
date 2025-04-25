@@ -51,7 +51,7 @@ import java.util.Map;
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
- * Only tags from suitable registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
+ * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
@@ -70,8 +70,8 @@ public final class TagCache {
 
         for (Key registryKey : allTags.keySet()) {
             JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
-            if (registry == null || !registry.shouldStoreTags()) {
-                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries, or was not suitable to load tags)");
+            if (registry == null) {
+                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
                 continue;
             }
 
