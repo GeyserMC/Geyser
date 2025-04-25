@@ -151,7 +151,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserEnable() {
-        this.geyserConfig = new ConfigLoader(this)
+        this.geyserConfig = new ConfigLoader(this, configFilename)
             .transformer(this::handleArgsConfigOptions)
             .load(GeyserRemoteConfig.class);
         if (this.geyserConfig == null) {

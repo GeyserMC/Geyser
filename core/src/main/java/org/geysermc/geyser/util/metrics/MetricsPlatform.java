@@ -39,6 +39,7 @@ public interface MetricsPlatform {
 
     boolean logResponseStatusText();
 
+    // We're not relocating on Geyser-Standalone, and using JiJ on modded platforms
     default boolean disableRelocateCheck() {
         PlatformType platformType = GeyserImpl.getInstance().platformType();
         return platformType == PlatformType.FABRIC ||

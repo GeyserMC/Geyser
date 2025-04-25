@@ -88,6 +88,11 @@ public final class ConfigLoader {
         configFile = new File(bootstrap.getConfigFolder().toFile(), "config.yml");
     }
 
+    public ConfigLoader(GeyserBootstrap bootstrap, String configFileName) {
+        this.bootstrap = bootstrap;
+        configFile = new File(bootstrap.getConfigFolder().toFile(), configFileName);
+    }
+
     @VisibleForTesting
     ConfigLoader(File file) {
         this.bootstrap = null;
