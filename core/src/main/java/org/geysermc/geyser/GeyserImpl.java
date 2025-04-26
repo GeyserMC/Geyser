@@ -314,13 +314,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         if (config.advanced().disableXboxAuth()) {
-            logger.error("      / \\");
-            logger.error("     /   \\");
-            logger.error("    /  |  \\     " + "XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
-            logger.error("   /   |   \\    " + "While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
-            logger.error("  /         \\   " + "To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config-advanced.yml file.");
-            logger.error(" /     o     \\");
-            logger.error("/_____________\\");
+            logger.error("XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
+            logger.error("While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
+            logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config-advanced.yml file.");
         }
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
