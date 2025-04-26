@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
@@ -73,7 +74,7 @@ public interface GeyserBootstrap {
     /**
      * Returns the platform type this Geyser instance is running on.
      *
-     * @return The current PlatformType
+     * @return the PlatformType this Geyser instance is running on.
      */
     @NonNull
     PlatformType platformType();
@@ -209,5 +210,9 @@ public interface GeyserBootstrap {
     @Nullable
     default MetricsPlatform createMetricsPlatform() {
         return new ProvidedMetricsPlatform();
+    }
+
+    default <T extends GeyserConfig> T loadConfig(Class<T> configClass) {
+        return new ConfigLoader(this).createFolder().load(configClass);
     }
 }

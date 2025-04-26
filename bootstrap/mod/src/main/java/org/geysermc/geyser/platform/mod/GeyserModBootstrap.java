@@ -37,7 +37,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -79,7 +78,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         instance = this;
         dataFolder = this.platform.dataFolder(this.platform.configPath());
         GeyserLocale.init(this);
-        if (!loadConfig()) {
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
             return;
         }
         this.geyser = GeyserImpl.load(this);
@@ -92,7 +92,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         }
 
         if (GeyserImpl.getInstance().isReloading()) {
-            if (!loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
                 return;
             }
         }
@@ -140,7 +141,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return this.platform.platformType();
     }
 
@@ -224,11 +225,5 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
-        return this.geyserConfig != null;
     }
 }

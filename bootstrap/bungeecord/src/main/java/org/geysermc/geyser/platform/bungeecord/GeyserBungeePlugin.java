@@ -40,7 +40,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
@@ -97,7 +96,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
         }
 
-        if (!this.loadConfig()) {
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
             return;
         }
         this.geyser = GeyserImpl.load(this);
@@ -161,7 +161,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     public void onGeyserEnable() {
         if (GeyserImpl.getInstance().isReloading()) {
-            if (!loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
                 return;
             }
         }
@@ -223,7 +224,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.BUNGEECORD;
     }
 
@@ -311,11 +312,5 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
-        return this.geyserConfig != null;
     }
 }

@@ -46,7 +46,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.GameProtocol;
@@ -102,7 +101,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             geyserLogger.error("/_____________\\");
         }
 
-        if (!loadConfig()) {
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
             return;
         }
 
@@ -133,7 +133,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             return;
         }
         if (GeyserImpl.getInstance().isReloading()) {
-            if (!loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
                 return;
             }
         }
@@ -170,7 +171,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.VELOCITY;
     }
 
@@ -263,11 +264,5 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             }
             return null;
         }
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
-        return this.geyserConfig != null;
     }
 }

@@ -49,6 +49,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -71,7 +72,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     private static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
-    private GeyserPluginConfig config;
+    private GeyserPluginConfig geyserConfig;
     private GeyserImpl geyser;
     private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
@@ -148,7 +149,8 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public void onGeyserInitialize() {
-        if (!this.loadConfig()) {
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
             return;
         }
 
@@ -165,7 +167,8 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         }
         boolean reloading = geyser.isReloading();
         if (reloading) {
-            if (!this.loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
                 return;
             }
         } else {
@@ -186,7 +189,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
         }
-        if (this.config.java().authType() == AuthType.FLOODGATE) {
+        if (this.geyserConfig.java().authType() == AuthType.FLOODGATE) {
             ViaProxy.getConfig().setPassthroughBungeecordPlayerInfo(true);
         }
     }
@@ -202,13 +205,13 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.VIAPROXY;
     }
 
     @Override
     public GeyserPluginConfig config() {
-        return this.config;
+        return this.geyserConfig;
     }
 
     @Override
@@ -262,12 +265,12 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public Path getFloodgateKeyPath() {
-        return new File(ROOT_FOLDER, config.advanced().floodgateKeyFile()).toPath();
+        return new File(ROOT_FOLDER, geyserConfig.advanced().floodgateKeyFile()).toPath();
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        this.config = new ConfigLoader(this)
+    @Override
+    public <T extends GeyserConfig> T loadConfig(Class<T> configClass) {
+        T config = new ConfigLoader(this)
             .transformer(node -> {
                 try {
                     if (!ViaProxy.getConfig().getWildcardDomainHandling().equals(ViaProxyConfig.WildcardDomainHandling.NONE)) {
@@ -285,12 +288,10 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
                 }
             })
             .configFile(new File(ROOT_FOLDER, "config.yml"))
-            .load(GeyserPluginConfig.class);
-        if (this.config == null) {
-            return false;
+            .load(configClass);
+        if (config != null) {
+            config.java().authType(Files.isRegularFile(getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
         }
-        this.config.java().authType(Files.isRegularFile(getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
-        return true;
+        return config;
     }
-
 }

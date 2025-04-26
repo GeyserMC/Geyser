@@ -151,9 +151,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserEnable() {
-        this.geyserConfig = new ConfigLoader(this, configFilename)
-            .transformer(this::handleArgsConfigOptions)
-            .load(GeyserRemoteConfig.class);
+        this.geyserConfig = loadConfig(GeyserRemoteConfig.class);
         if (this.geyserConfig == null) {
             if (gui == null) {
                 System.exit(1);
@@ -193,6 +191,13 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyserLogger.start();
     }
 
+    @Override
+    public <T extends GeyserConfig> T loadConfig(Class<T> configClass) {
+        return new ConfigLoader(this, configFilename)
+            .transformer(this::handleArgsConfigOptions)
+            .load(configClass);
+    }
+
     /**
      * Check using {@link java.awt.GraphicsEnvironment} that we are a headless client
      *
@@ -221,7 +226,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.STANDALONE;
     }
 

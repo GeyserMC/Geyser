@@ -52,7 +52,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -161,7 +160,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // no-op
         }
 
-        if (!loadConfig()) {
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
+            // We'll disable ourselves later
             return;
         }
 
@@ -224,7 +225,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Configs are loaded once early - so we can create the logger, then load extensions and finally register
         // extension commands in #onEnable. To ensure reloading geyser also reloads the geyser config, this exists
         if (GeyserImpl.getInstance().isReloading()) {
-            if (!loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
+                Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
         }
@@ -359,7 +362,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.SPIGOT;
     }
 
@@ -466,16 +469,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public MetricsPlatform createMetricsPlatform() {
         return new SpigotMetrics(this);
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        this.geyserConfig = new ConfigLoader(this).createFolder().load(GeyserPluginConfig.class);
-        if (this.geyserConfig == null) {
-            Bukkit.getPluginManager().disablePlugin(this);
-            return false;
-        }
-        return true;
     }
 
     private void warnInvalidProxySetups(String platform) {
