@@ -102,7 +102,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             byte[] buffer;
 
             try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-                if (geyser.config().java().useProxyProtocol()) {
+                if (geyser.config().java().useHaproxyProtocol()) {
                     // HAProxy support
                     // Based on https://github.com/netty/netty/blob/d8ad931488f6b942dabe28ecd6c399b4438da0a8/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageEncoder.java#L78
                     dataOutputStream.write(HAPROXY_BINARY_PREFIX);
