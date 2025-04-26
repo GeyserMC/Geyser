@@ -48,10 +48,10 @@ import java.util.List;
 
 @ConfigSerializable
 public interface GeyserConfig {
-    @Comment("This section contains config options related to Geyser's Bedrock listener.")
+    @Comment("Settings related to networking for the Bedrock listener.")
     BedrockConfig bedrock();
 
-    @Comment("This section contains config options related to Geyser's Java server connection.")
+    @Comment("Settings related to networking for the Java server connection.")
     JavaConfig java();
 
     @Comment("""
