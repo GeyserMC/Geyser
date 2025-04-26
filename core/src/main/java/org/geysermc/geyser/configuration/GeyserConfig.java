@@ -266,7 +266,7 @@ public interface GeyserConfig {
                 This is useful only when you are running a UDP reverse proxy in front of your Geyser instance.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
-        boolean useProxyProtocol();
+        boolean useHaproxyProtocol();
 
         @Comment("""
                 A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
@@ -302,7 +302,7 @@ public interface GeyserConfig {
                 1) Your Java server supports HAPROXY protocol (it probably doesn't)
                 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
-        boolean useProxyProtocol();
+        boolean useHaproxyProtocol();
 
         boolean forwardHostname();
 

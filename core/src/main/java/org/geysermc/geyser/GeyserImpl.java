@@ -303,12 +303,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         Registries.RESOURCE_PACKS.load();
 
         // Warnings to users who enable options that they might not need.
-        if (config.bedrock().useProxyProtocol()) {
+        if (config.bedrock().useHaproxyProtocol()) {
             logger.warning("Geyser is configured to expect HAProxy protocol for incoming Bedrock connections.");
             logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"bedrock\" section to \"false\".");
         }
 
-        if (config.java().useProxyProtocol()) {
+        if (config.java().useHaproxyProtocol()) {
             logger.warning("Geyser is configured to use proxy protocol when connecting to the Java server.");
             logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"java\" section to \"false\".");
         }
