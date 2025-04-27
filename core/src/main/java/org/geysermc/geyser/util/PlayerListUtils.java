@@ -43,7 +43,7 @@ public class PlayerListUtils {
      */
     public static void batchSendPlayerList(GeyserSession session, List<PlayerListPacket.Entry> entries, PlayerListPacket.Action action) {
         if (entries.size() > MAX_PLAYER_LIST_PACKET_ENTRIES) {
-            int batches = entries.size() / MAX_PLAYER_LIST_PACKET_ENTRIES + 1;
+            int batches = entries.size() / MAX_PLAYER_LIST_PACKET_ENTRIES + (entries.size() % MAX_PLAYER_LIST_PACKET_ENTRIES > 0 ? 1 : 0);
             for (int i = 0; i < batches; i++) {
                 int start = i * MAX_PLAYER_LIST_PACKET_ENTRIES;
                 int end = Math.min(start + MAX_PLAYER_LIST_PACKET_ENTRIES, entries.size());
