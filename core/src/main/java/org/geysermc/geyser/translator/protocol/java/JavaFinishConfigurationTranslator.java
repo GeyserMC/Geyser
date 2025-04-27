@@ -34,8 +34,10 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,12 +58,11 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
     @Override
     public void translate(GeyserSession session, ClientboundFinishConfigurationPacket packet) {
         // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
-        PlayerListPacket playerListPacket = new PlayerListPacket();
-        playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
+        List<PlayerListPacket.Entry> entries = new ArrayList<>();
         for (PlayerEntity otherEntity : session.getEntityCache().getAllPlayerEntities()) {
-            playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
+            entries.add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
         }
-        session.sendUpstreamPacket(playerListPacket);
+        PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
         session.getEntityCache().removeAllPlayerEntities();
 
         // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
