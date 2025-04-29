@@ -26,12 +26,12 @@
 package org.geysermc.geyser.platform.spigot;
 
 import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
-import com.destroystokyo.paper.network.StatusClient;
+import org.bukkit.Bukkit;
 import org.bukkit.event.server.ServerListPingEvent;
-import org.bukkit.util.CachedServerIcon;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 
 /**
@@ -42,8 +42,9 @@ public final class ReflectedNames {
     static boolean checkPaperPingEvent() {
         try {
             Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
+            paperServerListPingEventConstructor();
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (Throwable ignored) {
             return false;
         }
     }
@@ -52,18 +53,27 @@ public final class ReflectedNames {
         return getConstructor(ServerListPingEvent.class, InetAddress.class, String.class, boolean.class, int.class, int.class) != null;
     }
 
-    static @Nullable Constructor<PaperServerListPingEvent> getOldPaperPingConstructor() {
-        if (getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, int.class,
-                int.class, String.class, int.class, CachedServerIcon.class) != null) {
-            // @NotNull StatusClient client, @NotNull String motd, int numPlayers, int maxPlayers,
-            //            @NotNull String version, int protocolVersion, @Nullable CachedServerIcon favicon
-            // New constructor is present
-            return null;
+    // Ugly workaround that's necessary due to relocation of adventure components
+    static Method motdGetter() {
+        try {
+            return Bukkit.class.getMethod("motd");
+        } catch (Throwable e) {
+            throw new RuntimeException("Could not find component motd method! Please report this issue.", e);
         }
-        // @NotNull StatusClient client, @NotNull String motd, boolean shouldSendChatPreviews, int numPlayers, int maxPlayers,
-        //            @NotNull String version, int protocolVersion, @Nullable CachedServerIcon favicon
-        return getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, boolean.class, int.class, int.class,
-                String.class, int.class, CachedServerIcon.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    static Constructor<PaperServerListPingEvent> paperServerListPingEventConstructor() {
+        var constructors = PaperServerListPingEvent.class.getConstructors();
+        for (var constructor : constructors) {
+            // We want to get the constructor with the adventure component motd, but without referencing the
+            // component class as that's relocated
+            if (constructor.getParameters()[1].getType() != String.class) {
+                return (Constructor<PaperServerListPingEvent>) constructor;
+            }
+        }
+
+        throw new IllegalStateException("Could not find component motd method!");
     }
 
     /**
