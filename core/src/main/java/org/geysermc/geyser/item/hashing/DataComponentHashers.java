@@ -317,6 +317,10 @@ public class DataComponentHashers {
         }
     }
 
+    public static <V, T extends DataComponentType<V>> HashCode hash(GeyserSession session, DataComponent<V, T> component) {
+        return hash(session, component.getType(), component.getValue());
+    }
+
     public static HashedStack hashStack(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return null;
