@@ -411,6 +411,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         }
                                     }
                                 }
+                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().fireworkRocket().getBedrockDefinition()) {
+                                // TODO prevent elytra boosting when not gliding
                             }
                         }
 

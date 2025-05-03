@@ -140,12 +140,31 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 }
                 case START_GLIDING -> {
-                    // Otherwise gliding will not work in creative
-                    ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
-                    session.sendDownstreamGamePacket(playerAbilitiesPacket);
-                    sendPlayerGlideToggle(session, entity);
+                    // Bedrock can send both start_glide and stop_glide in the same packet.
+                    // last replicated on 1.21.70 by "walking" and jumping while in water
+                    if (!entity.isGliding() && !packet.getInputData().contains(PlayerAuthInputData.STOP_GLIDING)) {
+                        entity.setFlag(EntityFlag.GLIDING, true);
+
+                        if (entity.canStartGliding()) {
+                            // On Java you can't start gliding while flying
+                            if (session.isFlying()) {
+                                session.setFlying(false);
+                                session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
+                            }
+                            entity.updateBedrockMetadata();
+                            session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
+                        } else {
+                            entity.stopGliding();
+                            // return to flying if we can't start gliding
+                            if (session.isFlying()) {
+                                session.sendAdventureSettings();
+                            }
+                        }
+                    }
                 }
-                case STOP_GLIDING -> sendPlayerGlideToggle(session, entity);
+                case STOP_GLIDING -> {
+                    entity.setFlag(EntityFlag.GLIDING, false);
+                }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
 
@@ -176,11 +195,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
         }
-    }
-
-    private static void sendPlayerGlideToggle(GeyserSession session, Entity entity) {
-        ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
-        session.sendDownstreamGamePacket(glidePacket);
     }
 
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
