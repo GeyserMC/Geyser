@@ -46,14 +46,8 @@ public class PlayerHeadItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Get the rarity of the item or default to uncommon
-        Integer id = components.get(DataComponentTypes.RARITY);
-        if (id == null) {
-            id = Rarity.UNCOMMON.ordinal();
-        }
-
         // Use the correct color, determined by the rarity of the item
-        char rarity = Rarity.fromId(id).getColor();
+        char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
         GameProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
