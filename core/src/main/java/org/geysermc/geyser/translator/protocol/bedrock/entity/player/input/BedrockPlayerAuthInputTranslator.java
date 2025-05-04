@@ -28,17 +28,15 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -66,6 +64,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -83,24 +82,19 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         processVehicleInput(session, packet, wasJumping);
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
+        // These inputs are sent in order, so if e.g. START_GLIDING and STOP_GLIDING are both present,
+        // it's important to make sure we send the last known status instead of both to the Java server.
+        Set<PlayerAuthInputData> leftOverInputData = new HashSet<>(packet.getInputData());
         for (PlayerAuthInputData input : inputData) {
+            leftOverInputData.remove(input);
             switch (input) {
+                case HANDLE_TELEPORT, ASCEND_BLOCK, DESCEND_BLOCK -> {
+                    // TODO handle_teleport case
+                    // TODO scaffolding fixes for mobile
+                    GeyserImpl.getInstance().getLogger().error("handle tp / scaffolding!");
+                }
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
-                case START_SPRINTING -> {
-                    if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                        ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                        session.sendDownstreamGamePacket(startSprintPacket);
-                        session.setSprinting(true);
-                    }
-                }
-                case STOP_SPRINTING -> {
-                    if (!entity.getFlag(EntityFlag.SWIMMING)) {
-                        ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                        session.sendDownstreamGamePacket(stopSprintPacket);
-                    }
-                    session.setSprinting(false);
-                }
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
                 case START_CRAWLING -> session.setCrawling(true);
@@ -123,16 +117,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         session.setFlying(true);
                         session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
                     } else {
-                        // update whether we can fly
+                        // Stop flying & remind the client about not trying to fly :)
+                        session.setFlying(false);
                         session.sendAdventureSettings();
-                        // stop flying
-                        PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
-                        stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                        stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
-                        stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
-                        stopFlyingPacket.setResultPosition(Vector3i.ZERO);
-                        stopFlyingPacket.setFace(0);
-                        session.sendUpstreamPacket(stopFlyingPacket);
                     }
                 }
                 case STOP_FLYING -> {
@@ -141,17 +128,16 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
                 case START_GLIDING -> {
                     // Bedrock can send both start_glide and stop_glide in the same packet.
+                    // We only want to start gliding if the client hasn't stopped gliding in the same tick.
                     // last replicated on 1.21.70 by "walking" and jumping while in water
-                    if (!entity.isGliding() && !packet.getInputData().contains(PlayerAuthInputData.STOP_GLIDING)) {
-                        entity.setFlag(EntityFlag.GLIDING, true);
-
+                    if (!entity.isGliding() && !leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
                         if (entity.canStartGliding()) {
                             // On Java you can't start gliding while flying
                             if (session.isFlying()) {
                                 session.setFlying(false);
                                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                             }
-                            entity.updateBedrockMetadata();
+                            session.setGliding(true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
                             entity.stopGliding();
@@ -163,7 +149,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     }
                 }
                 case STOP_GLIDING -> {
-                    entity.setFlag(EntityFlag.GLIDING, false);
+                    GeyserImpl.getInstance().getLogger().info("Stopping gliding");
+                    session.setGliding(false);
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());

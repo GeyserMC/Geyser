@@ -78,6 +78,7 @@ public final class InputCache {
         }
 
         boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
+        boolean sprint = bedrockInput.contains(PlayerAuthInputData.SPRINTING);
 
         // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
@@ -87,7 +88,7 @@ public final class InputCache {
             .withRight(right)
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMPING)) // Looks like this only triggers when the JUMP key input is being pressed. There's also JUMP_DOWN?
             .withShift(sneaking)
-            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINTING)); // SPRINTING will trigger even if the player isn't moving
+            .withSprint(sprint);
 
         // Send sneaking state before inputs, matches Java client
         if (oldInputPacket.isShift() != sneaking) {
@@ -97,6 +98,17 @@ public final class InputCache {
             } else {
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SNEAKING));
                 session.stopSneaking();
+            }
+        }
+
+        // TODO test whether accounting for swimming is needed
+        if (oldInputPacket.isSprint() != sprint) {
+            if (sprint) {
+                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING));
+                session.setSprinting(true);
+            } else {
+                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING));
+                session.setSprinting(false);
             }
         }
 

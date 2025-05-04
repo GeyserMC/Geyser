@@ -1254,6 +1254,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         setSneaking(false);
     }
 
+    public void setGliding(boolean gliding) {
+        if (gliding) {
+            this.pose = Pose.FALL_FLYING;
+            playerEntity.setBoundingBoxHeight(0.6f);
+        } else {
+            this.pose = Pose.STANDING;
+            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
+        }
+        playerEntity.setFlag(EntityFlag.GLIDING, gliding);
+        playerEntity.updateBedrockMetadata();
+    }
+
     private void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
 
@@ -1789,6 +1801,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();
+
+    public void sendAbilities() {
+
+    }
 
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
