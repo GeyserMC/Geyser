@@ -25,15 +25,26 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,17 +81,19 @@ public class WebUtils {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonNode}.
+     * Makes a web request to the given URL and returns the body as a {@link JsonObject}.
      *
      * @param reqURL URL to fetch
      * @return the response as JSON
      */
-    public static JsonNode getJson(String reqURL) throws IOException {
+    public static JsonObject getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
         con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
-        return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
+        try (JsonReader reader = GeyserImpl.GSON.newJsonReader(new InputStreamReader(con.getInputStream()))) {
+            return new JsonParser().parse(reader).getAsJsonObject();
+        }
     }
 
     /**
@@ -116,7 +129,7 @@ public class WebUtils {
 
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION);
             con.setInstanceFollowRedirects(true);
 
             int responseCode = con.getResponseCode();
@@ -307,7 +320,7 @@ public class WebUtils {
                 return ((String) attr.get(0)).split(" ");
             }
         } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-            if (geyser.getConfig().isDebugMode()) {
+            if (geyser.config().debugMode()) {
                 geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
                 ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }
@@ -338,6 +351,6 @@ public class WebUtils {
     }
 
     public static String getUserAgent() {
-        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
+        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }
