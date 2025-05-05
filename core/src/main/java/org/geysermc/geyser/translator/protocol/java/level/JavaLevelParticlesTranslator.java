@@ -174,6 +174,17 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     return packet;
                 };
             }
+            case FIREWORK -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:sparkler_emitter");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": 1.0}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": 1.0}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": 1.0}},{\"name\": \".a\", \"value\": {\"type\": \"float\", \"value\": 1.0}}]}}]\n"));
+                    return particlePacket;
+                };
+            }
             default -> {
                 ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
                 if (particleMapping == null) { //TODO ensure no particle can be null
