@@ -29,9 +29,11 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
@@ -118,12 +120,18 @@ public class ComponentConverters {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
-        for (DataComponent<?> component : customDefinitionMap.keySet()) {
+    public static void convertAndApplyComponentPatch(DataComponents itemMap, DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals) {
+        for (DataComponent<?> component : customDefinitionPatch.keySet()) {
             ComponentConverter converter = converters.get(component);
             if (converter != null) {
-                Object value = customDefinitionMap.get(component);
+                Object value = customDefinitionPatch.get(component);
                 converter.convertAndPut(itemMap, value);
+            }
+        }
+        for (Identifier removed : customDefinitionRemovals) {
+            DataComponentType<?> component = DataComponentTypes.fromKey(MinecraftKey.identifierToKey(removed));
+            if (component != null) {
+                itemMap.remove(component);
             }
         }
     }

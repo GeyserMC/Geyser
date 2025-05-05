@@ -607,7 +607,7 @@ public class CustomItemRegistryPopulator {
      */
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
         DataComponents convertedComponents = new DataComponents(new HashMap<>());
-        ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
+        ComponentConverters.convertAndApplyComponentPatch(convertedComponents, definition.components(), definition.removedComponents());
         if (javaItem != null) {
             return javaItem.gatherComponents(convertedComponents);
         }

@@ -147,7 +147,7 @@ public class MappingsReader_v2 extends MappingsReader {
         if (componentsElement != null) {
             if (componentsElement instanceof JsonObject components) {
                 for (Map.Entry<String, JsonElement> entry : components.entrySet()) {
-                    DataComponentReaders.readDataComponent(builder, MinecraftKey.key(entry.getKey()), entry.getValue(), context);
+                    DataComponentReaders.readDataComponent(builder, entry.getKey(), entry.getValue(), context);
                 }
             } else {
                 throw new InvalidCustomMappingsFileException("reading components", "components key must be an object", context);

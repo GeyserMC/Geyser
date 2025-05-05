@@ -31,6 +31,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
@@ -107,6 +108,11 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         @Override
         public <T> NonVanillaCustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
             return (Builder) super.component(component, value);
+        }
+
+        @Override
+        public CustomItemDefinition.Builder removeComponent(Identifier component) {
+            throw new UnsupportedOperationException("Removing default item components is not supported for non-vanilla items");
         }
 
         @Override
