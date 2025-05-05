@@ -211,6 +211,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         session.setGliding(value);
     }
 
+    @Override
+    public void setSpinAttack(boolean value) {
+        session.setSpinAttack(value);
+    }
+
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
      * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
