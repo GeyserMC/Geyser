@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -88,11 +87,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         for (PlayerAuthInputData input : inputData) {
             leftOverInputData.remove(input);
             switch (input) {
-                case HANDLE_TELEPORT, ASCEND_BLOCK, DESCEND_BLOCK -> {
-                    // TODO handle_teleport case
-                    // TODO scaffolding fixes for mobile
-                    GeyserImpl.getInstance().getLogger().error("handle tp / scaffolding!");
-                }
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
                 case START_SWIMMING -> session.setSwimming(true);
@@ -128,7 +122,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
                 case START_GLIDING -> {
                     // Bedrock can send both start_glide and stop_glide in the same packet.
-                    // We only want to start gliding if the client hasn't stopped gliding in the same tick.
+                    // We only want to start gliding if the client has not stopped gliding in the same tick.
                     // last replicated on 1.21.70 by "walking" and jumping while in water
                     if (!entity.isGliding() && !leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
                         if (entity.canStartGliding()) {
@@ -140,7 +134,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                             session.setGliding(true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
-                            entity.stopGliding();
+                            session.setGliding(false);
                             // return to flying if we can't start gliding
                             if (session.isFlying()) {
                                 session.sendAdventureSettings();
@@ -148,9 +142,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         }
                     }
                 }
+                case START_SPIN_ATTACK -> session.setSpinAttack(true);
+                case STOP_SPIN_ATTACK -> session.setSpinAttack(false);
                 case STOP_GLIDING -> {
-                    GeyserImpl.getInstance().getLogger().info("Stopping gliding");
-                    session.setGliding(false);
+                    // Java doesn't allow elytra gliding to stop mid-air.
+                    session.setGliding(entity.isGliding() && entity.canStartGliding());
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());

@@ -416,7 +416,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    public void setDimensions(Pose pose) {
         float height;
         float width;
         switch (pose) {

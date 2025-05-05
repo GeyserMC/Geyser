@@ -41,12 +41,10 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
@@ -379,9 +377,6 @@ public class Entity implements GeyserEntity {
                 propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
                 propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
             }
-            if (this instanceof SessionPlayerEntity) {
-                GeyserImpl.getInstance().getLogger().severe(entityDataPacket.toString());
-            }
             session.sendUpstreamPacket(entityDataPacket);
         }
     }
@@ -410,7 +405,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
 
         // Swimming is ignored here and instead we rely on the pose
-        setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+        setGliding((xd & 0x80) == 0x80);
 
         setInvisible((xd & 0x20) == 0x20);
     }
@@ -422,6 +417,13 @@ public class Entity implements GeyserEntity {
      */
     protected void setInvisible(boolean value) {
         setFlag(EntityFlag.INVISIBLE, value);
+    }
+
+    /**
+     * Set a boolean - whether the entity is gliding
+     */
+    protected void setGliding(boolean value) {
+        setFlag(EntityFlag.GLIDING, value);
     }
 
     /**
@@ -533,9 +535,8 @@ public class Entity implements GeyserEntity {
      * Usually used for bounding box and not animation.
      */
     public void setPose(Pose pose) {
-        GeyserImpl.getInstance().getLogger().info("setting pose: " + pose);
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
-        setFlag(EntityFlag.GLIDING, pose.equals(Pose.FALL_FLYING));
+        // FALL_FLYING is instead set via setFlags
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
         setDimensions(pose);
@@ -544,7 +545,7 @@ public class Entity implements GeyserEntity {
     /**
      * Set the height and width of the entity's bounding box
      */
-    protected void setDimensions(Pose pose) {
+    public void setDimensions(Pose pose) {
         // No flexibility options for basic entities
         setBoundingBoxHeight(definition.height());
         setBoundingBoxWidth(definition.width());

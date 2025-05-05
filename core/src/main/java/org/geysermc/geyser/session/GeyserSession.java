@@ -1254,15 +1254,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         setSneaking(false);
     }
 
+    public void setSpinAttack(boolean spinAttack) {
+        switchPose(spinAttack, EntityFlag.DAMAGE_NEARBY_MOBS, Pose.SPIN_ATTACK);
+    }
+
     public void setGliding(boolean gliding) {
-        if (gliding) {
-            this.pose = Pose.FALL_FLYING;
-            playerEntity.setBoundingBoxHeight(0.6f);
-        } else {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        }
-        playerEntity.setFlag(EntityFlag.GLIDING, gliding);
+        this.pose = gliding ? Pose.FALL_FLYING : Pose.STANDING;
+        playerEntity.setDimensions(this.pose);
+        playerEntity.setGlidingFlag(gliding);
         playerEntity.updateBedrockMetadata();
     }
 
@@ -1302,22 +1301,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             playerEntity.updateBedrockMetadata();
             return;
         }
-        toggleSwimmingPose(swimming, EntityFlag.SWIMMING);
+        switchPose(swimming, EntityFlag.SWIMMING, Pose.SWIMMING);
     }
 
     public void setCrawling(boolean crawling) {
-        toggleSwimmingPose(crawling, EntityFlag.CRAWLING);
+        switchPose(crawling, EntityFlag.CRAWLING, Pose.SWIMMING);
     }
 
-    private void toggleSwimmingPose(boolean crawling, EntityFlag flag) {
-        if (crawling) {
-            this.pose = Pose.SWIMMING;
-            playerEntity.setBoundingBoxHeight(0.6f);
-        } else {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        }
-        playerEntity.setFlag(flag, crawling);
+    private void switchPose(boolean value, EntityFlag flag, Pose pose) {
+        this.pose = value ? pose : Pose.STANDING;
+        playerEntity.setDimensions(this.pose);
+        playerEntity.setFlag(flag, value);
         playerEntity.updateBedrockMetadata();
     }
 
@@ -1801,10 +1795,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();
-
-    public void sendAbilities() {
-
-    }
 
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags

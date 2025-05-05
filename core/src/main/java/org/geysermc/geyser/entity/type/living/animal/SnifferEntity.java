@@ -64,7 +64,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    public void setDimensions(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
             setBoundingBoxHeight(DIGGING_HEIGHT);
             setBoundingBoxWidth(definition.width());

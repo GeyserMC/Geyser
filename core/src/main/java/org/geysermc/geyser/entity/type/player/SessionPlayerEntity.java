@@ -206,6 +206,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
     }
 
+    @Override
+    protected void setGliding(boolean value) {
+        session.setGliding(value);
+    }
+
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
      * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
@@ -466,7 +471,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             return false;
         }
 
-        if (this.isOnClimbableBlock()) {
+        if (this.isOnClimbableBlock() || session.getPlayerEntity().isOnGround()) {
             return false;
         }
 
@@ -484,17 +489,23 @@ public class SessionPlayerEntity extends PlayerEntity {
                     return true;
                 }
             }
+
+            // Bedrock will NOT allow flight when not wearing an elytra; even if it doesn't have a glider component
+            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().asItem().equals(Items.ELYTRA)) {
+                return false;
+            }
         }
 
         return false;
     }
 
-    public boolean isGliding() {
-        return getFlag(EntityFlag.GLIDING);
+    public void setGlidingFlag(boolean gliding) {
+        setFlag(EntityFlag.GLIDING, gliding);
+        // ALWAYS send the gliding flag - otherwise the Bedrock client can misbehave
+        setFlagsDirty(true);
     }
 
-    public void stopGliding() {
-        setFlag(EntityFlag.GLIDING, false);
-        updateBedrockMetadata();
+    public boolean isGliding() {
+        return getFlag(EntityFlag.GLIDING);
     }
 }

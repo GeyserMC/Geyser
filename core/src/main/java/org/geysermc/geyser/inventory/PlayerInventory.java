@@ -86,7 +86,7 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
-    // TODO other equipment slots???
+    // TODO other equipment slots
     public Map<EquipmentSlot, GeyserItemStack> getEquipment() {
         return Map.of(
             EquipmentSlot.MAIN_HAND, getItemInHand(),
