@@ -44,6 +44,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -128,6 +129,8 @@ public class SkinManager {
         entry.setPlatformChatId("");
         entry.setTeacher(false);
         entry.setTrustedSkin(true);
+        // Without a color set, player list entries will not show up.
+        entry.setColor(Color.BLACK);
         return entry;
     }
 
