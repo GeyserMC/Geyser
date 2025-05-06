@@ -790,7 +790,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
             biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
             upstream.sendPacket(biomeDefinitionListPacket);
-            GeyserImpl.getInstance().getLogger().info(biomeDefinitionListPacket.toString());
         } else {
             BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
             biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
