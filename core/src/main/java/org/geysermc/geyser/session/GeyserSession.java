@@ -786,9 +786,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
-        upstream.sendPacket(biomeDefinitionListPacket);
+        if (GameProtocol.is1_21_80orHigher(this)) {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+            GeyserImpl.getInstance().getLogger().info(biomeDefinitionListPacket.toString());
+        } else {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+        }
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
