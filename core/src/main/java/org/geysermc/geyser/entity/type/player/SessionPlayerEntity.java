@@ -40,8 +40,8 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -414,18 +414,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         session.sendUpstreamPacketImmediately(movePlayerPacket);
-    }
 
-    /**
-     * Used to calculate player jumping velocity for ground status calculation.
-     */
-    public float getJumpVelocity() {
-        float velocity = 0.42F;
-
-        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
-            velocity *= 0.6F;
-        }
-
-        return velocity + 0.1F * session.getEffectCache().getJumpPower();
+        session.getUnconfirmedTeleports().add(new TeleportCache(null, newPosition.down(EntityDefinitions.PLAYER.offset()), this.getPitch(), this.getYaw(), -1));
     }
 }

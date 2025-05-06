@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.level.notify.EnterCreditsValue;
@@ -95,6 +97,8 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
                     movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
                     session.sendUpstreamPacket(movePlayerPacket);
+
+                    session.getUnconfirmedTeleports().add(new TeleportCache(null, entity.getPosition().down(EntityDefinitions.PLAYER.offset()), entity.getPitch(), entity.getYaw(), -1));
                 }
 
                 // Update the crafting grid to add/remove barriers for creative inventory

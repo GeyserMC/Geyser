@@ -51,8 +51,8 @@ final class BedrockMovePlayer {
         if (!session.isSpawned()) return;
 
         // Ignore movement packets until Bedrock's position matches the teleported position
-        if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+        if (!session.getUnconfirmedTeleports().isEmpty()) {
+            session.confirmTeleport(packet.getPosition().down(EntityDefinitions.PLAYER.offset()), packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
             return;
         }
 
@@ -87,16 +87,7 @@ final class BedrockMovePlayer {
             session.setLookBackScheduledFuture(null);
         }
 
-        // Simulate jumping since it happened this tick, not from the last tick end.
-        if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
-            entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
-        }
-
-        // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
-        boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
-        if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
-            entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
-        }
+        boolean verticalCollision = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
 
         // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
@@ -104,7 +95,21 @@ final class BedrockMovePlayer {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
             isOnGround = Math.abs(entity.getLastTickEndVelocity().getY()) < 0.1;
         } else {
-            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
+            isOnGround = verticalCollision && entity.getLastTickEndVelocity().getY() < 0;
+
+            // We only have to check for these cases if player is having vertical collision else the onGround status will always be false.
+            // These cases will always (I think so?) have upwards motion so don't even bother checking what the actual tick end y, the status is going to be false.
+            if (verticalCollision) {
+                if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
+                    isOnGround = false;
+                }
+
+                // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
+                boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
+                if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
+                    isOnGround = false;
+                }
+            }
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
@@ -134,7 +139,7 @@ final class BedrockMovePlayer {
         } else if (positionChangedAndShouldUpdate) {
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
                 if (!session.getWorldBorder().isPassingIntoBorderBoundaries(entity.getPosition(), true)) {
-                    CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
+                    CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround);
                     if (result != null) { // A null return value cancels the packet
                         Vector3d position = result.correctedMovement();
                         boolean isBelowVoid = entity.isVoidPositionDesynched();

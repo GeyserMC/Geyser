@@ -52,7 +52,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector2i;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -210,6 +209,8 @@ import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.Serverbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
@@ -285,7 +286,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final WorldCache worldCache;
 
     @Setter
-    private TeleportCache unconfirmedTeleport;
+    private Queue<TeleportCache> unconfirmedTeleports = new ConcurrentLinkedQueue<>();
 
     private final WorldBorder worldBorder;
     /**
@@ -1643,23 +1644,43 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return itemNetId.getAndIncrement();
     }
 
-    public void confirmTeleport(Vector3d position) {
-        if (unconfirmedTeleport == null) {
+    public void confirmTeleport(Vector3f position, boolean teleport) {
+        if (this.unconfirmedTeleports.isEmpty() || !teleport) {
             return;
         }
 
-        if (unconfirmedTeleport.canConfirm(position)) {
-            unconfirmedTeleport = null;
-            return;
-        }
+        final List<TeleportCache> caches = new ArrayList<>();
+        while (!this.unconfirmedTeleports.isEmpty()) {
+            TeleportCache cache = this.unconfirmedTeleports.poll();
+            if (cache.getJavaPosition() != null) {
+                caches.add(cache);
+            }
 
-        // Resend the teleport every few packets until Bedrock responds
-        unconfirmedTeleport.incrementUnconfirmedFor();
-        if (unconfirmedTeleport.shouldResend()) {
-            unconfirmedTeleport.resetUnconfirmedFor();
-            geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
-            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
-                unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
+            boolean confirmed = cache.canConfirm(position);
+            if (confirmed || this.unconfirmedTeleports.isEmpty()) {
+                for (TeleportCache teleportCache : caches) {
+                    // Confirm the teleport when we receive to match Java edition behaviour.
+                    ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(teleportCache.getTeleportConfirmId());
+                    this.sendDownstreamGamePacket(teleportConfirmPacket);
+                    // Most server expect exact coordinates given back to them.
+                    ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(
+                        false, false,
+                        teleportCache.getJavaPosition().getX(), teleportCache.getJavaPosition().getY(), teleportCache.getJavaPosition().getZ(),
+                        teleportCache.getYaw(), teleportCache.getPitch());
+                    this.sendDownstreamGamePacket(positionPacket);
+                }
+            }
+
+            if (confirmed) {
+                break;
+            }
+
+            // Player claimed that they have already accepted the teleport but none of the cached position match, resending teleport...
+            if (this.unconfirmedTeleports.isEmpty()) {
+                geyser.getLogger().debug("Resending teleport " + cache.getTeleportConfirmId());
+                getPlayerEntity().moveAbsolute(cache.getBedrockPosition(), cache.getYaw(), cache.getPitch(), playerEntity.isOnGround(), true);
+                this.unconfirmedTeleports.add(new TeleportCache(null, cache.getBedrockPosition(), cache.getPitch(), cache.getYaw(), -1));
+            }
         }
     }
 
