@@ -46,9 +46,9 @@ public class Container extends Inventory {
      */
     private boolean isUsingRealBlock = false;
 
-    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory, InventoryTranslator translator) {
-        super(session, title, id, size, containerType, translator);
-        this.playerInventory = playerInventory;
+    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
+        this.playerInventory = session.getPlayerInventory();
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
     }
 

@@ -57,6 +57,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -74,6 +75,7 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
+    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
@@ -194,7 +196,41 @@ public class MessageTranslator {
                 lastFormatReset = next == 'r';
             }
 
-            return finalLegacy.toString();
+            String finalLegacyString = finalLegacy.toString();
+
+            // Remove duplicate resets and trailing resets
+            finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
+            if (finalLegacyString.endsWith(RESET)) {
+                finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
+            }
+
+            // If the message contains \n then go through and re-set the color after each by caching the last color
+            // Bedrock is dumb and resets the color after a newline
+            if (finalLegacyString.contains("\n")) {
+                StringBuilder output = new StringBuilder();
+
+                StringBuilder lastColors = new StringBuilder();
+                for (int i = 0; i < finalLegacyString.length(); i++) {
+                    char c = finalLegacyString.charAt(i);
+
+                    output.append(c);
+
+                    if (c == ChatColor.ESCAPE) {
+                        char newColor = finalLegacyString.charAt(i + 1);
+                        if (newColor == 'r') {
+                            lastColors = new StringBuilder();
+                        } else {
+                            lastColors.append(ChatColor.ESCAPE).append(newColor);
+                        }
+                    } else if (c == '\n' && !lastColors.isEmpty()) {
+                        output.append(lastColors);
+                    }
+                }
+
+                return output.toString();
+            } else {
+                return finalLegacyString;
+            }
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);

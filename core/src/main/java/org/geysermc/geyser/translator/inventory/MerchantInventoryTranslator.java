@@ -47,7 +47,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 
 import java.util.concurrent.TimeUnit;
 
-public class MerchantInventoryTranslator extends BaseInventoryTranslator {
+public class MerchantInventoryTranslator extends BaseInventoryTranslator<MerchantContainer> {
     private final InventoryUpdater updater;
 
     public MerchantInventoryTranslator() {
@@ -66,12 +66,12 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, MerchantContainer container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_1, 4);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_2, 5);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -94,9 +94,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        MerchantContainer merchantInventory = (MerchantContainer) inventory;
-        if (merchantInventory.getVillager() == null) {
+    public boolean prepareInventory(GeyserSession session, MerchantContainer container) {
+        if (container.getVillager() == null) {
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
             Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
 
@@ -115,66 +114,63 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
             linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().getGeyserId(), geyserId, type, true, false, 0f));
             session.sendUpstreamPacket(linkPacket);
 
-            merchantInventory.setVillager(villager);
+            container.setVillager(villager);
         }
 
         return true;
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, MerchantContainer container) {
         //Handled in JavaMerchantOffersTranslator
         //TODO: send a blank inventory here in case the villager doesn't send a TradeList packet
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        MerchantContainer merchantInventory = (MerchantContainer) inventory;
-        if (merchantInventory.getVillager() != null) {
-            merchantInventory.getVillager().despawnEntity();
+    public void closeInventory(GeyserSession session, MerchantContainer container, boolean force) {
+        if (container.getVillager() != null) {
+            container.getVillager().despawnEntity();
         }
     }
 
     @Override
-    public ItemStackResponse translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateCraftingRequest(GeyserSession session, MerchantContainer container, ItemStackRequest request) {
         // Behavior as of 1.18.10.
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
         int tradeChoice = ((CraftRecipeAction) request.getActions()[0]).getRecipeNetworkId() - 1;
-        return handleTrade(session, inventory, request, tradeChoice);
+        return handleTrade(session, container, request, tradeChoice);
     }
 
     @Override
-    public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, MerchantContainer container, ItemStackRequest request) {
         // 1.18.10 update - seems impossible to call without consoles/controller input
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
         int tradeChoice = ((AutoCraftRecipeAction) request.getActions()[0]).getRecipeNetworkId() - 1;
-        return handleTrade(session, inventory, request, tradeChoice);
+        return handleTrade(session, container, request, tradeChoice);
     }
 
-    private ItemStackResponse handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
+    private ItemStackResponse handleTrade(GeyserSession session, MerchantContainer container, ItemStackRequest request, int tradeChoice) {
         ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
         session.sendDownstreamGamePacket(packet);
 
         if (session.isEmulatePost1_13Logic()) {
             // 1.18 Java cooperates nicer than older versions
-            if (inventory instanceof MerchantContainer merchantInventory) {
-                merchantInventory.onTradeSelected(session, tradeChoice);
-            }
-            return translateRequest(session, inventory, request);
+            container.onTradeSelected(session, tradeChoice);
+            return translateRequest(session, container, request);
         } else {
             // 1.18 servers works fine without a workaround, but ViaVersion needs to work around 1.13 servers,
             // so we need to work around that with the delay. Specifically they force a window refresh after a
             // trade packet has been sent.
             session.scheduleInEventLoop(() -> {
-                if (inventory instanceof MerchantContainer merchantInventory) {
+                if (session.getOpenInventory() instanceof MerchantContainer merchantInventory) {
                     merchantInventory.onTradeSelected(session, tradeChoice);
                     // Ignore output since we don't want to send a delayed response packet back to the client
-                    translateRequest(session, inventory, request);
+                    translateRequest(session, container, request);
 
                     // Resync items once more
-                    updateInventory(session, inventory);
+                    updateInventory(session, container);
                     InventoryUtils.updateCursor(session);
                 }
             }, 100, TimeUnit.MILLISECONDS);
@@ -185,17 +181,17 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
+    public void updateInventory(GeyserSession session, MerchantContainer container) {
+        updater.updateInventory(this, session, container);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+    public void updateSlot(GeyserSession session, MerchantContainer container, int slot) {
+        updater.updateSlot(this, session, container, slot);
     }
 
     @Override
-    public Inventory createInventory(GeyserSession session, String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new MerchantContainer(session, name, windowId, this.size, containerType, playerInventory, this);
+    public MerchantContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new MerchantContainer(session, name, windowId, this.size, containerType);
     }
 }

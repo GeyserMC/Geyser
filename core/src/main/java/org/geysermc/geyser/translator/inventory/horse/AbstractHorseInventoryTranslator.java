@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.inventory.horse;
 
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.HorseInventoryUpdater;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 
-public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTranslator {
+public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTranslator<Container> {
     private final InventoryUpdater updater;
 
     public AbstractHorseInventoryTranslator(int size) {
@@ -40,27 +40,27 @@ public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Container container) {
         return true;
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Container container) {
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public void closeInventory(GeyserSession session, Container container, boolean force) {
         // TODO find a way to implement
         // Can cause inventory de-sync if the Java server requests an inventory close
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
+    public void updateInventory(GeyserSession session, Container container) {
+        updater.updateInventory(this, session, container);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+    public void updateSlot(GeyserSession session, Container container, int slot) {
+        updater.updateSlot(this, session, container, slot);
     }
 }

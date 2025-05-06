@@ -36,12 +36,11 @@ import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
-import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.SmithingInventoryTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -64,67 +63,59 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
-        //TODO: support window id -2, should update player inventory
-        //TODO: ^ I think this is outdated.
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
-        if (inventory == null) {
+        InventoryHolder<?> holder = InventoryUtils.getInventory(session, packet.getContainerId());
+        if (holder == null) {
             return;
         }
 
-        InventoryTranslator translator = InventoryUtils.getInventoryTranslator(session);
-        if (translator != null) {
-            int slot = packet.getSlot();
-            if (slot >= inventory.getSize()) {
-                GeyserLogger logger = session.getGeyser().getLogger();
-                logger.warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
-                        + " that exceeds inventory size!");
-                if (logger.isDebug()) {
-                    logger.debug(packet.toString());
-                    logger.debug(inventory.toString());
-                }
-                // 1.19.0 behavior: the state ID will not be set due to exception
-                return;
+        Inventory inventory = holder.inventory();
+        int slot = packet.getSlot();
+        if (slot >= inventory.getSize()) {
+            GeyserLogger logger = session.getGeyser().getLogger();
+            logger.warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
+                    + " that exceeds inventory size!");
+            if (logger.isDebug()) {
+                logger.debug(packet.toString());
+                logger.debug(inventory.toString());
             }
-
-            if (translator instanceof SmithingInventoryTranslator) {
-                updateSmithingTableOutput(session, slot, packet.getItem(), inventory);
-            } else {
-                updateCraftingGrid(session, slot, packet.getItem(), inventory, translator);
-            }
-
-            GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            session.getBundleCache().initialize(newItem);
-            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
-                // In rare cases, the window ID can still be 0 but Java treats it as valid
-                // This behavior still exists as of Java Edition 1.21.2, despite the new packet
-                session.getPlayerInventory().setItem(slot, newItem, session);
-                InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
-            } else {
-                inventory.setItem(slot, newItem, session);
-                translator.updateSlot(session, inventory, slot);
-            }
-
-            // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
-            int stateId = packet.getStateId();
-            session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
-            inventory.setStateId(stateId);
+            // 1.19.0 behavior: the state ID will not be set due to exception
+            return;
         }
+
+        if (holder.translator() instanceof SmithingInventoryTranslator) {
+            updateSmithingTableOutput(slot, packet.getItem(), holder);
+        } else {
+            updateCraftingGrid(slot, packet.getItem(), holder);
+        }
+
+        GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+        session.getBundleCache().initialize(newItem);
+
+        holder.inventory().setItem(slot, newItem, session);
+        holder.updateSlot(slot);
+
+        // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
+        int stateId = packet.getStateId();
+        session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
+        inventory.setStateId(stateId);
     }
 
     /**
      * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
      */
-    private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
+    private static void updateCraftingGrid(int slot, ItemStack item, InventoryHolder<? extends Inventory> holder) {
         // Check if it's the crafting grid result slot.
         if (slot != 0) {
             return;
         }
 
         // Check if there is any crafting grid.
-        int gridSize = translator.getGridSize();
+        int gridSize = holder.translator().getGridSize();
         if (gridSize == -1) {
             return;
         }
+
+        GeyserSession session = holder.session();
 
         // Only process the most recent crafting grid result, and cancel the previous one.
         if (session.getContainerOutputFuture() != null) {
@@ -142,7 +133,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             int firstCol = -1, width = -1;
             for (int row = 0; row < gridDimensions; row++) {
                 for (int col = 0; col < gridDimensions; col++) {
-                    if (!inventory.getItem(col + (row * gridDimensions) + 1).isEmpty()) {
+                    if (!holder.inventory().getItem(col + (row * gridDimensions) + 1).isEmpty()) {
                         if (firstRow == -1) {
                             firstRow = row;
                             firstCol = col;
@@ -163,7 +154,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             height += -firstRow + 1;
             width += -firstCol + 1;
 
-            if (InventoryUtils.getValidRecipe(session, item, inventory::getItem, gridDimensions, firstRow,
+            if (InventoryUtils.getValidRecipe(session, item, holder.inventory()::getItem, gridDimensions, firstRow,
                     height, firstCol, width) != null) {
                 // Recipe is already present on the client; don't send packet
                 return;
@@ -178,7 +169,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             int index = 0;
             for (int row = firstRow; row < height + firstRow; row++) {
                 for (int col = firstCol; col < width + firstCol; col++) {
-                    GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
+                    GeyserItemStack geyserItemStack = holder.inventory().getItem(col + (row * gridDimensions) + 1);
                     ingredients[index] = geyserItemStack.getItemData(session);
                     javaIngredients.add(geyserItemStack.asSlotDisplay());
 
@@ -225,10 +216,11 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         }, 150, TimeUnit.MILLISECONDS));
     }
 
-    static void updateSmithingTableOutput(GeyserSession session, int slot, ItemStack output, Inventory inventory) {
+    static void updateSmithingTableOutput(int slot, ItemStack output, InventoryHolder<?> holder) {
         if (slot != SmithingInventoryTranslator.OUTPUT) {
             return;
         }
+        GeyserSession session = holder.session();
 
         // Only process the most recent output result, and cancel the previous one.
         if (session.getContainerOutputFuture() != null) {
@@ -239,6 +231,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             return;
         }
 
+        Inventory inventory = holder.inventory();
         session.setContainerOutputFuture(session.scheduleInEventLoop(() -> {
             GeyserItemStack template = inventory.getItem(SmithingInventoryTranslator.TEMPLATE);
             if (template.asItem() != Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE) {
@@ -285,11 +278,11 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             // Just set one of the slots to air, then right back to its proper item.
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
-            slotPacket.setSlot(InventoryUtils.getInventoryTranslator(session).javaSlotToBedrock(SmithingInventoryTranslator.MATERIAL));
+            slotPacket.setSlot(holder.translator().javaSlotToBedrock(SmithingInventoryTranslator.MATERIAL));
             slotPacket.setItem(ItemData.AIR);
             session.sendUpstreamPacket(slotPacket);
 
-            InventoryUtils.getInventoryTranslator(session).updateSlot(session, inventory, SmithingInventoryTranslator.MATERIAL);
+            holder.updateSlot(SmithingInventoryTranslator.MATERIAL);
         }, 150, TimeUnit.MILLISECONDS));
     }
 }
