@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -87,7 +88,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         for (PlayerAuthInputData input : inputData) {
             leftOverInputData.remove(input);
             switch (input) {
-                case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
+                case PERFORM_ITEM_INTERACTION -> {
+                    GeyserImpl.getInstance().getLogger().info(packet.toString());
+                    processItemUseTransaction(session, packet.getItemUseTransaction());
+                }
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
@@ -167,6 +171,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     // Java edition sends a cooldown when hitting air.
                     CooldownUtils.sendCooldown(session);
                 }
+                case START_USING_ITEM -> {
+                    GeyserImpl.getInstance().getLogger().info("Using item! " + packet);
+                    //entity.setFlag(EntityFlag.USING_ITEM, true);
+                }
             }
         }
 
@@ -181,6 +189,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     }
 
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
+        GeyserImpl.getInstance().getLogger().info("item transaction: " + transaction);
         if (transaction.getActionType() == 2) {
             int blockState = session.getGameMode() == GameMode.CREATIVE ?
                 session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : session.getBreakingBlock();

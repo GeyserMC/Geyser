@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -214,6 +215,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setSpinAttack(boolean value) {
         session.setSpinAttack(value);
+    }
+
+    @Override
+    public void setUsingItem(boolean value) {
+        GeyserImpl.getInstance().getLogger().error("Server is stopping item use!  " + value);
+        setFlagForce(EntityFlag.USING_ITEM, value);
     }
 
     /**
@@ -504,10 +511,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         return false;
     }
 
-    public void setGlidingFlag(boolean gliding) {
-        setFlag(EntityFlag.GLIDING, gliding);
-        // ALWAYS send the gliding flag - otherwise the Bedrock client can misbehave
+    // A method that is guaranteed to send updated flags, even if "nothing changed".
+    // This is useful to prevent e.g. Elytra gliding stopping
+    public void setFlagForce(EntityFlag flag, boolean value) {
+        setFlag(flag, value);
         setFlagsDirty(true);
+        updateBedrockMetadata();
     }
 
     public boolean isGliding() {

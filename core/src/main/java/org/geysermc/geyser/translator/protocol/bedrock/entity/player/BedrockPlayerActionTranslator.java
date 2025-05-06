@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -115,6 +116,9 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
                 attributesPacket.setRuntimeEntityId(entity.getGeyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
+            }
+            default -> {
+                GeyserImpl.getInstance().getLogger().error("unhandled: " + packet);
             }
         }
     }

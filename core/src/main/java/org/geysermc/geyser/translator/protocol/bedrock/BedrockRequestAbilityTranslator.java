@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
-import org.cloudburstmc.protocol.bedrock.data.Ability;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.RequestAbilityPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -42,23 +39,24 @@ public class BedrockRequestAbilityTranslator extends PacketTranslator<RequestAbi
 
     @Override
     public void translate(GeyserSession session, RequestAbilityPacket packet) {
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
         // TODO: Since 1.20.30, this was replaced by a START_FLYING and STOP_FLYING case in BedrockActionTranslator
-        if (packet.getAbility() == Ability.FLYING) {
-            boolean isFlying = packet.isBoolValue();
-            if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
-                // We should always be flying in spectator mode
-                session.sendAdventureSettings();
-                return;
-            } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
-                // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
-                // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
-                session.sendAdventureSettings();
-                return;
-            }
-
-            session.setFlying(isFlying);
-            ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
-            session.sendDownstreamGamePacket(abilitiesPacket);
-        }
+//        if (packet.getAbility() == Ability.FLYING) {
+//            boolean isFlying = packet.isBoolValue();
+//            if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
+//                // We should always be flying in spectator mode
+//                session.sendAdventureSettings();
+//                return;
+//            } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+//                // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+//                // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+//                session.sendAdventureSettings();
+//                return;
+//            }
+//
+//            session.setFlying(isFlying);
+//            ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
+//            session.sendDownstreamGamePacket(abilitiesPacket);
+//        }
     }
 }
