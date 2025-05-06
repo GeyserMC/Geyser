@@ -39,6 +39,11 @@ public final class RegistryLoaders {
     public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
 
     /**
+     * The {@link RegistryLoader} responsible for loading biome data.
+     */
+    public static final BiomeLoader BIOME_LOADER = new BiomeLoader();
+
+    /**
      * The {@link RegistryLoader} responsible for loading resource packs.
      */
     public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
