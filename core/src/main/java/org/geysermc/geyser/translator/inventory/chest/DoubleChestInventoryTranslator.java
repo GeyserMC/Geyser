@@ -52,7 +52,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Objects;
 
-public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
+public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Container> {
     private final int defaultJavaBlockState;
 
     public DoubleChestInventoryTranslator(int size) {
@@ -68,15 +68,20 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
      * Mirrors {@link BlockInventoryHolder#canReuseContainer(GeyserSession, Container, Container)}
      */
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory oldInventory) {
-        if (!super.canReuseInventory(session, inventory, oldInventory) ||
-            !(inventory instanceof Container container) ||
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory newInventory, @NonNull Inventory oldInventory) {
+        if (!super.canReuseInventory(session, newInventory, oldInventory) ||
+            !(newInventory instanceof Container) ||
             !(oldInventory instanceof Container previous)
         ) {
             return false;
         }
 
-        // FIXME - but these aren't the reason we have this
+        // While we could reuse real blocks for virtual inventories,
+        // it can result in unpleasant visual artifacts with specific plugins.
+        // Specifically - a few plugins send multiple ClientboundOpenScreen packets
+        // with different titles; where Geyser needs to re-open the menu fully in order to get
+        // the correct title to appear. The additional delay added by using virtual blocks masks
+        // the quick closing of the first packet.
         if (previous.isUsingRealBlock()) {
             return false;
         }
@@ -86,15 +91,15 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory (%s) due to virtual block holder changing (%s -> %s)!",
-                InventoryUtils.debugInventory(inventory), previous.getHolderPosition(), position);
+            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
+                previous.getHolderPosition(), position);
             return false;
         }
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        if (canUseRealBlock(session, inventory)) {
+    public boolean prepareInventory(GeyserSession session, Container container) {
+        if (canUseRealBlock(session, container)) {
             return true;
         }
 
@@ -116,7 +121,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         NbtMapBuilder tag = BlockEntityTranslator.getConstantBedrockTag("Chest", position)
                 .putInt("pairx", pairPosition.getX())
                 .putInt("pairz", pairPosition.getZ())
-                .putString("CustomName", inventory.getTitle())
+                .putString("CustomName", container.getTitle())
                 .putBoolean("pairlead", false);
 
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
@@ -138,7 +143,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
                 .putInt("z", pairPosition.getZ())
                 .putInt("pairx", position.getX())
                 .putInt("pairz", position.getZ())
-                .putString("CustomName", inventory.getTitle())
+                .putString("CustomName", container.getTitle())
                 .putBoolean("pairlead", true);
 
         dataPacket = new BlockEntityDataPacket();
@@ -146,53 +151,37 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         dataPacket.setBlockPosition(pairPosition);
         session.sendUpstreamPacket(dataPacket);
 
-        inventory.setHolderPosition(position);
+        container.setHolderPosition(position);
 
         return true;
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Container container) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getBedrockId());
+        containerOpenPacket.setId((byte) container.getBedrockId());
         containerOpenPacket.setType(ContainerType.CONTAINER);
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
+        containerOpenPacket.setBlockPosition(container.getHolderPosition());
+        containerOpenPacket.setUniqueEntityId(container.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
 
         GeyserImpl.getInstance().getLogger().debug(session, containerOpenPacket.toString());
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        // this should no longer be possible; as we're storing the translator with the inventory to avoid desyncs.
-        // TODO use generics to ensure we don't need to cast unsafely in the first place
-        if (!(inventory instanceof Container container)) {
-            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! Please report this error on discord.");
-            GeyserImpl.getInstance().getLogger().warning("Current inventory translator: " + InventoryUtils.getInventoryTranslator(session).getClass().getSimpleName());
-            GeyserImpl.getInstance().getLogger().warning("Current inventory: " + inventory.getClass().getSimpleName());
-            // Try to save ourselves? maybe?
-            // https://github.com/GeyserMC/Geyser/issues/4141
-            // TODO: improve once this issue is pinned down
-            if (session.getOpenInventory() != null) {
-                session.getOpenInventory().getTranslator().closeInventory(session, inventory);
-                session.setOpenInventory(null);
-            }
-            return;
-        }
-
+    public void closeInventory(GeyserSession session, Container container, boolean force) {
         // No need to reset a block since we didn't change any blocks
         // But send a container close packet because we aren't destroying the original.
         if (container.isDisplayed()) {
             ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getBedrockId());
+            packet.setId((byte) container.getBedrockId());
             packet.setServerInitiated(true);
             packet.setType(ContainerType.CONTAINER);
             session.sendUpstreamPacket(packet);
         }
 
         if (!container.isUsingRealBlock()) {
-            Vector3i holderPos = inventory.getHolderPosition();
+            Vector3i holderPos = container.getHolderPosition();
             int realBlock = session.getGeyser().getWorldManager().getBlockAt(session, holderPos);
             UpdateBlockPacket blockPacket = new UpdateBlockPacket();
             blockPacket.setDataLayer(0);
@@ -210,18 +199,18 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         }
     }
 
-    private boolean canUseRealBlock(GeyserSession session, Inventory inventory) {
+    private boolean canUseRealBlock(GeyserSession session, Container container) {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
                 if ((state.block() == Blocks.CHEST || state.block() == Blocks.TRAPPED_CHEST)
                     && state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
-                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                    ((Container) inventory).setUsingRealBlock(true, state.block());
+                    container.setHolderPosition(session.getLastInteractionBlockPosition());
+                    container.setUsingRealBlock(true, state.block());
 
                     NbtMapBuilder tag = BlockEntityTranslator.getConstantBedrockTag("Chest", session.getLastInteractionBlockPosition())
-                        .putString("CustomName", inventory.getTitle());
+                        .putString("CustomName", container.getTitle());
 
                     DoubleChestBlockEntityTranslator.translateChestValue(tag, state,
                         session.getLastInteractionBlockPosition().getX(), session.getLastInteractionBlockPosition().getZ());

@@ -40,7 +40,7 @@ import org.geysermc.geyser.session.GeyserSession;
 /**
  * Provided as a base for any inventory that requires a block for opening it
  */
-public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTranslator {
+public abstract class AbstractBlockInventoryTranslator<Type extends Container> extends BaseInventoryTranslator<Type> {
     private final InventoryHolder holder;
     private final InventoryUpdater updater;
 
@@ -78,43 +78,44 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public boolean requiresOpeningDelay(GeyserSession session, Inventory inventory) {
-        return inventory instanceof Container container && !container.isUsingRealBlock();
+    public boolean requiresOpeningDelay(GeyserSession session, Type container) {
+        return !container.isUsingRealBlock();
     }
 
     @Override
-    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
-        if (super.canReuseInventory(session, inventory, previous)
-                && inventory instanceof Container container
-                && previous instanceof Container previousContainer) {
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory newInventory, @NonNull Inventory previous) {
+        if (super.canReuseInventory(session, newInventory, previous)
+            && newInventory instanceof Container container
+            && previous instanceof Container previousContainer
+        ) {
             return holder.canReuseContainer(session, container, previousContainer);
         }
         return false;
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        return holder.prepareInventory(session, (Container) inventory);
+    public boolean prepareInventory(GeyserSession session, Type container) {
+        return holder.prepareInventory(session, container);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(session, (Container) inventory);
+    public void openInventory(GeyserSession session, Type container) {
+        holder.openInventory(session, container);
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(session, (Container) inventory, closeContainerType(inventory));
+    public void closeInventory(GeyserSession session, Type container, boolean force) {
+        holder.closeInventory(session, container, closeContainerType(container));
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
+    public void updateInventory(GeyserSession session, Type container) {
+        updater.updateInventory(this, session, container);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+    public void updateSlot(GeyserSession session, Type container, int slot) {
+        updater.updateSlot(this, session, container, slot);
     }
 
     /*
@@ -122,5 +123,5 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     But only for some blocks! And some blocks only respond to specific container types (dispensers/droppers now require the specific type...)
     When this returns null, we just... break the block, and replace it. Primitive. But if that works... fine.
      */
-    public abstract @Nullable ContainerType closeContainerType(Inventory inventory);
+    public abstract @Nullable ContainerType closeContainerType(Type container);
 }

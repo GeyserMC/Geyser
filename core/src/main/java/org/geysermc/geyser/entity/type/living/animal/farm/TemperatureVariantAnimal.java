@@ -58,7 +58,7 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
         updateBedrockEntityProperties();
     }
 
-    public enum BuiltInVariant implements BuiltIn {
+    public enum BuiltInVariant implements VariantHolder.BuiltIn {
         COLD,
         TEMPERATE,
         WARM

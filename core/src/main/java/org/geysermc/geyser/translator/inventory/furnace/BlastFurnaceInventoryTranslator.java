@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.level.block.Blocks;
 
 public class BlastFurnaceInventoryTranslator extends AbstractFurnaceInventoryTranslator {
@@ -38,15 +38,15 @@ public class BlastFurnaceInventoryTranslator extends AbstractFurnaceInventoryTra
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.BLAST_FURNACE_INGREDIENT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return ContainerType.BLAST_FURNACE;
     }
 }

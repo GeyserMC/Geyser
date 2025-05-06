@@ -49,6 +49,10 @@ public class BlockPlaceMixin {
     @Inject(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FF)V"))
     private void geyser$hijackPlaySound(BlockPlaceContext blockPlaceContext, CallbackInfoReturnable<InteractionResult> callbackInfoReturnable,
                                         @Local BlockPos pos, @Local Player player, @Local(ordinal = 1) BlockState placedState) {
+        if (player == null) {
+            return;
+        }
+
         GeyserSession session = GeyserImpl.getInstance().connectionByUuid(player.getUUID());
         if (session == null) {
             return;
