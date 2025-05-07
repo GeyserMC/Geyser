@@ -10,8 +10,6 @@ dependencies {
 
     compileOnlyApi(libs.velocity.api)
     api(libs.cloud.velocity)
-
-    compileOnlyApi(libs.netty.transport.updated)
 }
 
 platformRelocate("com.fasterxml.jackson")

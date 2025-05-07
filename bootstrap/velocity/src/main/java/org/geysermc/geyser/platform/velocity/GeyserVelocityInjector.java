@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.netty.WatchedSingleThreadIoEventLoop;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

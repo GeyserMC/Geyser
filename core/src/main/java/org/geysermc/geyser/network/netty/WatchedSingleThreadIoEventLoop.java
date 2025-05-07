@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity;
+package org.geysermc.geyser.network.netty;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
