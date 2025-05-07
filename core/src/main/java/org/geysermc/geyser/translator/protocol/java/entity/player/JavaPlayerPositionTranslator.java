@@ -87,6 +87,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
             session.getUnconfirmedTeleports().add(new TeleportCache(pos, entity.getPosition().down(EntityDefinitions.PLAYER.offset()), packet.getXRot(), packet.getYRot(), packet.getId()));
+            acceptTeleport(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getYRot(), packet.getXRot(), packet.getId());
 
             if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
                 // See DimensionUtils for an explanation
@@ -120,20 +121,21 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
         session.getGeyser().getLogger().debug("Teleport (" + id + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
+        Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
         Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
         float lastPlayerPitch = entity.getPitch();
-        Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
-        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+        // Bedrock ignores teleports that are extremely close to the player's original position and orientation
+        // so we simply ignore if the teleport is close enough.
+        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5) {
+            acceptTeleport(session, newX, newY, newZ, newYaw, newPitch, id);
+            return;
+        }
 
+        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
         session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
-        // Bedrock ignores teleports that are extremely close to the player's original position and orientation,
-        // so check if we need to cache the teleport
-        if (lastPlayerPosition.distanceSquared(teleportDestination) > 0.001 || Math.abs(newPitch - lastPlayerPitch) > 5) {
-            session.getUnconfirmedTeleports().add(new TeleportCache(Vector3d.from(newX, newY, newZ), teleportDestination, newPitch, newYaw, id));
-        } else {
-            acceptTeleport(session, newX, newY, newZ, newYaw, newPitch, id);
-        }
+        session.getUnconfirmedTeleports().add(new TeleportCache(Vector3d.from(newX, newY, newZ), teleportDestination, newPitch, newYaw, id));
+        acceptTeleport(session, newX, newY, newZ, newYaw, newPitch, id);
     }
 
     private void acceptTeleport(GeyserSession session, double x, double y, double z, float yaw, float pitch, int id) {

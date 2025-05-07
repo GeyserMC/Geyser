@@ -1656,22 +1656,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 caches.add(cache);
             }
 
-            boolean confirmed = cache.canConfirm(position);
-            if (confirmed || this.unconfirmedTeleports.isEmpty()) {
-                for (TeleportCache teleportCache : caches) {
-                    // Confirm the teleport when we receive to match Java edition behaviour.
-                    ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(teleportCache.getTeleportConfirmId());
-                    this.sendDownstreamGamePacket(teleportConfirmPacket);
-                    // Most server expect exact coordinates given back to them.
-                    ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(
-                        false, false,
-                        teleportCache.getJavaPosition().getX(), teleportCache.getJavaPosition().getY(), teleportCache.getJavaPosition().getZ(),
-                        teleportCache.getYaw(), teleportCache.getPitch());
-                    this.sendDownstreamGamePacket(positionPacket);
-                }
-            }
-
-            if (confirmed) {
+            if (cache.canConfirm(position)) {
                 break;
             }
 
