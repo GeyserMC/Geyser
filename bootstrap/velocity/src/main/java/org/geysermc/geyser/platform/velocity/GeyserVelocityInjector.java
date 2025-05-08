@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -42,6 +41,7 @@ import io.netty.channel.local.LocalIoHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.WatchedSingleThreadIoEventLoop;
@@ -104,7 +104,7 @@ public class GeyserVelocityInjector extends GeyserInjector {
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
-        ServerBootstrap serverBootstrap = new ServerBootstrap()
+        ChannelFuture channelFuture = (new ServerBootstrap()
             .channel(LocalServerChannelWrapper.class)
             .childHandler(new ChannelInitializer<>() {
                 @Override
@@ -119,15 +119,10 @@ public class GeyserVelocityInjector extends GeyserInjector {
             })
             .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup) // Cannot be DefaultEventLoopGroup
             .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
-            .localAddress(LocalAddress.ANY);
-
-        // Checking for system property to ensure it can be overridden
-        if (System.getProperty("io.netty.allocator.type") == null) {
-            // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
-            serverBootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        }
-
-        ChannelFuture channelFuture = serverBootstrap.bind().syncUninterruptibly();
+            .option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR)
+            .localAddress(LocalAddress.ANY))
+            .bind()
+            .syncUninterruptibly();
 
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();

@@ -37,7 +37,7 @@ import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.mcprotocollib.network.BuiltinFlags;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.mcprotocollib.network.helper.NettyHelper;
 import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
@@ -73,7 +73,7 @@ public final class LocalSession extends ClientNetworkSession {
         if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR != null) {
             bootstrap.option(ChannelOption.ALLOCATOR, PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR);
         } else {
-            bootstrap.option(ChannelOption.ALLOCATOR, getFlag(BuiltinFlags.ALLOCATOR, PooledByteBufAllocator.DEFAULT));
+            bootstrap.option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR);
         }
     }
 

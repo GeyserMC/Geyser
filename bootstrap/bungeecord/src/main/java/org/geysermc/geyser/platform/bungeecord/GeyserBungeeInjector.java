@@ -111,18 +111,13 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
 
         Class<? extends ProxyServer> proxyClass = proxy.getClass();
         // Using the specified EventLoop is required, or else an error will be thrown
-        EventLoopGroup bossGroup;
         MultiThreadIoEventLoopGroup workerGroup;
         try {
-            MultiThreadIoEventLoopGroup eventLoops = (MultiThreadIoEventLoopGroup) proxyClass.getField("eventLoops").get(proxy);
-            // Netty redirects ServerBootstrap#group(EventLoopGroup) to #group(EventLoopGroup, EventLoopGroup) and uses the same event loop for both.
-            bossGroup = eventLoops;
-            workerGroup = eventLoops;
+            workerGroup = (MultiThreadIoEventLoopGroup) proxyClass.getField("eventLoops").get(proxy);
             bootstrap.getGeyserLogger().debug("BungeeCord event loop style detected.");
         } catch (NoSuchFieldException e) {
             // Waterfall uses two separate event loops
             // https://github.com/PaperMC/Waterfall/blob/fea7ec356dba6c6ac28819ff11be604af6eb484e/BungeeCord-Patches/0022-Use-a-worker-and-a-boss-event-loop-group.patch
-            bossGroup = (EventLoopGroup) proxyClass.getField("bossEventLoopGroup").get(proxy);
             workerGroup = (MultiThreadIoEventLoopGroup) proxyClass.getField("workerEventLoopGroup").get(proxy);
             bootstrap.getGeyserLogger().debug("Waterfall event loop style detected.");
         }
@@ -207,7 +202,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 .childAttr(listener, listenerInfo)
                 .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup)
                 // Hardcoded to pooled allocator on BungeeCord
-                // https://github.com/SpigotMC/BungeeCord/blob/master/proxy%2Fsrc%2Fmain%2Fjava%2Fnet%2Fmd_5%2Fbungee%2Fnetty%2FPipelineUtils.java#L224
+                // https://github.com/SpigotMC/BungeeCord/blob/617c2728a25347487eee4e8649d52fe57f1ff6e2/proxy/src/main/java/net/md_5/bungee/netty/PipelineUtils.java#L224
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .localAddress(LocalAddress.ANY))
                 .bind()

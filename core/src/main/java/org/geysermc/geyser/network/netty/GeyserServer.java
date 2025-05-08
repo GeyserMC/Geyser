@@ -26,7 +26,6 @@
 package org.geysermc.geyser.network.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -233,7 +232,7 @@ public final class GeyserServer {
         boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
-        ServerBootstrap boostrap = new ServerBootstrap()
+        return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
@@ -241,16 +240,8 @@ public final class GeyserServer {
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
+                .option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR)
                 .childHandler(serverInitializer);
-
-        if (System.getProperty("io.netty.allocator.type") == null) {
-            // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
-            boostrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        } else {
-            GeyserImpl.getInstance().getLogger().debug("Netty allocator type specified by system property! " + System.getProperty("io.netty.allocator.type"));
-        }
-
-        return boostrap;
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
