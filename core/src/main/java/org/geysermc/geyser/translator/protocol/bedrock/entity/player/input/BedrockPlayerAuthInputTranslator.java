@@ -171,7 +171,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         // Only set steering values when the vehicle is a boat and when the client is actually in it
         if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
             boolean up = inputData.contains(PlayerAuthInputData.UP);
-            // Yes. These are flipped. It's always been an issue with Geyser. That's what it's like working with this codebase.
+            // Yes. These are flipped. Welcome to Bedrock edition.
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));

@@ -65,7 +65,7 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     session.getEntityCache().updateBossBars();
 
                     // Double sigh - https://github.com/GeyserMC/Geyser/issues/2677 - as of Bedrock 1.18
-                    if (session.getOpenInventory() != null) {
+                    if (session.getInventoryHolder() != null) {
                         InventoryUtils.openPendingInventory(session);
                     }
 

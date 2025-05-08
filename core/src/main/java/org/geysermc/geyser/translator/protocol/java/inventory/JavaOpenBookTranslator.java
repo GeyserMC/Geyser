@@ -26,15 +26,15 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 
 import java.util.Objects;
@@ -59,21 +59,21 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
             return;
         }
 
-        if (stack.asItem().equals(Items.WRITTEN_BOOK)) {
-            Inventory openInventory = session.getOpenInventory();
+        // The item doesn't need to be a book; just needs to have either of these components.
+        if (stack.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT) != null ||
+            stack.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT) != null) {
+            InventoryHolder<?> openInventory = session.getInventoryHolder();
             if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
-                InventoryUtils.sendJavaContainerClose(session, openInventory);
+                InventoryUtils.sendJavaContainerClose(openInventory);
+                InventoryUtils.closeInventory(session, openInventory, true);
             }
 
-            InventoryTranslator translator = InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
+            //noinspection unchecked
+            InventoryTranslator<LecternContainer> translator = (InventoryTranslator<LecternContainer>) InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
             Objects.requireNonNull(translator, "could not find lectern inventory translator!");
-
-            // Should never be null
-            Objects.requireNonNull(translator, "lectern translator must exist");
-            Inventory inventory = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
-            ((LecternContainer) inventory).setFakeLecternBook(stack, session);
-            InventoryUtils.openInventory(session, inventory);
+            LecternContainer container = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN);
+            container.setVirtualLecternBook(stack, session);
+            InventoryUtils.openInventory(new InventoryHolder<>(session, container, translator));
         }
     }
 }

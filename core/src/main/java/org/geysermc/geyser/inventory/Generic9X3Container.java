@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,29 @@ package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-@Getter
-@Setter
-public class BeaconContainer extends Container {
-    private int primaryId;
-    private int secondaryId;
+/**
+ * A "hack" to be able to use existing barrels.
+ * The only difference to chests appears to be the different ContainerSlotType - this accounts for it.
+ */
+@Getter @Setter
+public class Generic9X3Container extends Container {
 
-    public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+    private boolean isBarrel;
+
+    public Generic9X3Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
         super(session, title, id, size, containerType);
+    }
+
+    @Override
+    public void setUsingRealBlock(boolean usingRealBlock, Block block) {
+        super.setUsingRealBlock(usingRealBlock, block);
+        if (usingRealBlock) {
+            isBarrel = block == Blocks.BARREL;
+        }
     }
 }
