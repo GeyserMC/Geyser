@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -103,24 +104,30 @@ public class GeyserVelocityInjector extends GeyserInjector {
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
-        ChannelFuture channelFuture = (new ServerBootstrap()
-                .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<>() {
-                    @Override
-                    protected void initChannel(@NonNull Channel ch) throws Exception {
-                        initChannel.invoke(channelInitializer, ch);
+        ServerBootstrap serverBootstrap = new ServerBootstrap()
+            .channel(LocalServerChannelWrapper.class)
+            .childHandler(new ChannelInitializer<>() {
+                @Override
+                protected void initChannel(@NonNull Channel ch) throws Exception {
+                    initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
-                            ch.pipeline().addAfter("minecraft-encoder", "geyser-compression-disabler",
-                                    new GeyserVelocityCompressionDisabler());
-                        }
+                    if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
+                        ch.pipeline().addAfter("minecraft-encoder", "geyser-compression-disabler",
+                            new GeyserVelocityCompressionDisabler());
                     }
-                })
-                .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup) // Cannot be DefaultEventLoopGroup
-                .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
-                .localAddress(LocalAddress.ANY))
-                .bind()
-                .syncUninterruptibly();
+                }
+            })
+            .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup) // Cannot be DefaultEventLoopGroup
+            .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
+            .localAddress(LocalAddress.ANY);
+
+        // Checking for system property to ensure it can be overridden
+        if (System.getProperty("io.netty.allocator.type") == null) {
+            // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
+            serverBootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        }
+
+        ChannelFuture channelFuture = serverBootstrap.bind().syncUninterruptibly();
 
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();

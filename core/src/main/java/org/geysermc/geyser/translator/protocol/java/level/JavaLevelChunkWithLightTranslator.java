@@ -26,8 +26,8 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
@@ -465,7 +465,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
-            byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
+            byteBuf = PooledByteBufAllocator.DEFAULT.ioBuffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
                 if (section != null) {

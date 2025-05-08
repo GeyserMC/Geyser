@@ -26,9 +26,11 @@
 package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.IoEventLoop;
 import io.netty.channel.IoEventLoopGroup;
@@ -204,6 +206,9 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 })
                 .childAttr(listener, listenerInfo)
                 .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup)
+                // Hardcoded to pooled allocator on BungeeCord
+                // https://github.com/SpigotMC/BungeeCord/blob/master/proxy%2Fsrc%2Fmain%2Fjava%2Fnet%2Fmd_5%2Fbungee%2Fnetty%2FPipelineUtils.java#L224
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();

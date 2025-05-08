@@ -26,7 +26,7 @@
 package org.geysermc.geyser.util;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
@@ -162,7 +162,7 @@ public class ChunkUtils {
 
         byte[] payload;
         // Allocate output buffer
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
+        ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
         try {
             byteBuf.writeBytes(EMPTY_BIOME_DATA);
             for (int i = 1; i < bedrockSubChunkCount; i++) {

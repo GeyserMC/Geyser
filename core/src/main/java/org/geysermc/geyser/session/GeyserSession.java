@@ -27,6 +27,7 @@ package org.geysermc.geyser.session;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.Pair;
@@ -1035,6 +1036,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // We'll handle this since we have the registry data on hand
         downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
+
+        if (System.getProperty("io.netty.allocator.type") == null) {
+            // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
+            downstream.setFlag(BuiltinFlags.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        }
 
         // We manually add the default listener to ensure the order of listeners.
         protocol.setUseDefaultListeners(false);
