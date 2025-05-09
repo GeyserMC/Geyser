@@ -130,8 +130,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()));
-        // Not a typo; they're the same
-        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v800.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
