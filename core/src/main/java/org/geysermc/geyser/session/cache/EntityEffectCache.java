@@ -46,16 +46,11 @@ public class EntityEffectCache {
     @Getter
     private int miningFatigue;
 
-    /* Used to calculate jumping velocity */
-    @Getter
-    private int jumpPower;
-
     public void setEffect(Effect effect, int effectAmplifier) {
         switch (effect) {
             case CONDUIT_POWER -> conduitPower = effectAmplifier + 1;
             case HASTE -> haste = effectAmplifier + 1;
             case MINING_FATIGUE -> miningFatigue = effectAmplifier + 1;
-            case JUMP_BOOST -> jumpPower = effectAmplifier + 1;
         }
         entityEffects.add(effect);
     }
@@ -65,7 +60,6 @@ public class EntityEffectCache {
             case CONDUIT_POWER -> conduitPower = 0;
             case HASTE -> haste = 0;
             case MINING_FATIGUE -> miningFatigue = 0;
-            case JUMP_BOOST -> jumpPower = 0;
         }
         entityEffects.remove(effect);
     }
