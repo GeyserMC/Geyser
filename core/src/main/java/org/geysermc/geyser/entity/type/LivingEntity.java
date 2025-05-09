@@ -201,7 +201,7 @@ public class LivingEntity extends Entity {
 
         boolean isUsingShield = hasShield(isUsingOffhand);
 
-        setUsingItem(isUsingItem && !isUsingShield);
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
         // Override the blocking
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
@@ -214,10 +214,6 @@ public class LivingEntity extends Entity {
 
     public void setSpinAttack(boolean value) {
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, value);
-    }
-
-    public void setUsingItem(boolean value) {
-        setFlag(EntityFlag.USING_ITEM, value);
     }
 
     public void setHealth(FloatEntityMetadata entityMetadata) {

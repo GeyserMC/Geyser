@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -89,7 +88,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             leftOverInputData.remove(input);
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> {
-                    GeyserImpl.getInstance().getLogger().info(packet.toString());
                     processItemUseTransaction(session, packet.getItemUseTransaction());
                 }
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
@@ -128,7 +126,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     // Bedrock can send both start_glide and stop_glide in the same packet.
                     // We only want to start gliding if the client has not stopped gliding in the same tick.
                     // last replicated on 1.21.70 by "walking" and jumping while in water
-                    if (!entity.isGliding() && !leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
+                    if (!leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
                         if (entity.canStartGliding()) {
                             // On Java you can't start gliding while flying
                             if (session.isFlying()) {
@@ -138,6 +136,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                             session.setGliding(true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
+                            entity.forceFlagUpdate();
                             session.setGliding(false);
                             // return to flying if we can't start gliding
                             if (session.isFlying()) {
@@ -150,7 +149,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case STOP_SPIN_ATTACK -> session.setSpinAttack(false);
                 case STOP_GLIDING -> {
                     // Java doesn't allow elytra gliding to stop mid-air.
-                    session.setGliding(entity.isGliding() && entity.canStartGliding());
+                    boolean shouldBeGliding = entity.isGliding() && entity.canStartGliding();
+                    // Always update; Bedrock can get real weird if the gliding state is mismatching
+                    entity.forceFlagUpdate();
+                    session.setGliding(shouldBeGliding);
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
@@ -171,10 +173,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     // Java edition sends a cooldown when hitting air.
                     CooldownUtils.sendCooldown(session);
                 }
-                case START_USING_ITEM -> {
-                    GeyserImpl.getInstance().getLogger().info("Using item! " + packet);
-                    //entity.setFlag(EntityFlag.USING_ITEM, true);
-                }
             }
         }
 
@@ -189,7 +187,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     }
 
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
-        GeyserImpl.getInstance().getLogger().info("item transaction: " + transaction);
         if (transaction.getActionType() == 2) {
             int blockState = session.getGameMode() == GameMode.CREATIVE ?
                 session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : session.getBreakingBlock();

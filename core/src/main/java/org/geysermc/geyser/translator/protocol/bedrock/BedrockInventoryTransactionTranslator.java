@@ -30,11 +30,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.MovementEffectType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
@@ -44,11 +42,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetIte
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovementEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -178,7 +173,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case INVENTORY_MISMATCH:
                 break;
             case ITEM_USE:
-                GeyserImpl.getInstance().getLogger().info("start item use! " + packet);
                 switch (packet.getActionType()) {
                     case 0 -> {
                         final Vector3i packetBlockPosition = packet.getBlockPosition();
@@ -368,7 +362,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     }
                     case 1 -> {
                         if (isIncorrectHeldItem(session, packet)) {
-                            session.getPlayerEntity().setFlag(EntityFlag.USING_ITEM, false);
                             session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
                         }
@@ -377,9 +370,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
                             break;
                         }
-
-                        // NOT updating here on purpose; will do that in auth input OR when the java server replies
-                        //session.getPlayerEntity().setFlag(EntityFlag.USING_ITEM, true);
 
                         // Handled in ITEM_USE if the item is not milk
                         if (packet.getItemInHand() != null) {
@@ -420,25 +410,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             session.sendUpstreamPacket(playSoundPacket);
                                         }
                                     }
-                                }
-                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().fireworkRocket().getBedrockDefinition()) {
-                                GeyserImpl.getInstance().getLogger().error("firework! " + session.getPlayerEntity().isGliding() + " " + session.getPlayerEntity().getMotion() + " " + packet);
-                                // TODO prevent elytra boosting when not gliding
-                                if (!session.getPlayerEntity().isGliding()) {
-                                    // Need to wait until we can "confirm" the session wants to use this rocket to fly
-                                    session.setFireworkBoostTick(session.getTicks());
-                                } else {
-                                    // Prevent boost from applying, we're gonna do that instead of the server
-                                    MovementEffectPacket effectPacket = new MovementEffectPacket();
-                                    effectPacket.setEffectType(MovementEffectType.GLIDE_BOOST);
-                                    effectPacket.setDuration(0);
-                                    effectPacket.setEntityRuntimeId(session.getPlayerEntity().getEntityId());
-                                    session.sendUpstreamPacket(effectPacket);
-
-                                    SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-                                    motionPacket.setMotion(session.getPlayerEntity().getMotion());
-                                    motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                                    session.sendUpstreamPacket(motionPacket);
                                 }
                             }
                         }

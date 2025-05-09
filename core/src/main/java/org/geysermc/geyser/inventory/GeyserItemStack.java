@@ -161,7 +161,7 @@ public class GeyserItemStack {
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
         // A data component patch may contain null values to remove base components
         // e.g. an elytra without the glider component
-        if (components != null && components.getDataComponents().containsKey(type)) {
+        if (components != null && components.contains(type)) {
             return components.get(type);
         }
 

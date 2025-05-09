@@ -667,9 +667,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private @Nullable ItemData currentBook = null;
 
-    @Setter
-    private int fireworkBoostTick;
-
     /**
      * Stores cookies sent by the Java server.
      */
@@ -1268,9 +1265,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setGliding(boolean gliding) {
-        this.pose = gliding ? Pose.FALL_FLYING : Pose.STANDING;
-        playerEntity.setDimensions(this.pose);
-        playerEntity.setFlagForce(EntityFlag.GLIDING, gliding);
+        switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
     }
 
     private void setSneaking(boolean sneaking) {
