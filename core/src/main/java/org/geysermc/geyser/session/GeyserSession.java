@@ -789,9 +789,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
-        upstream.sendPacket(biomeDefinitionListPacket);
+        if (GameProtocol.is1_21_80orHigher(this)) {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+        } else {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+        }
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
@@ -1609,6 +1615,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Allows Vibrant Visuals to appear in the settings menu
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
