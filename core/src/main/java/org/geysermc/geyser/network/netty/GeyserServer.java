@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.netty;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
@@ -239,6 +240,7 @@ public final class GeyserServer {
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
+                .option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR)
                 .childHandler(serverInitializer);
     }
 

@@ -5,8 +5,7 @@ erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.15-SNAPSHOT"
-netty = "4.1.107.Final"
-netty-io-uring = "0.0.25.Final-SNAPSHOT"
+netty = "4.2.0.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
@@ -15,7 +14,7 @@ protocol-common = "3.0.0.Beta6-20250506.012145-17"
 protocol-codec = "3.0.0.Beta6-20250506.012145-17"
 raknet = "1.0.0.CR3-20250218.160705-18"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.5-20250410.194555-25"
+mcprotocollib = "1.21.5-20250508.090923-28"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -88,7 +87,7 @@ netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", versio
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
-netty-transport-native-io_uring = { group = "io.netty.incubator", name = "netty-incubator-transport-native-io_uring", version.ref = "netty-io-uring" }
+netty-transport-native-io_uring = { group = "io.netty", name = "netty-transport-native-io_uring", version.ref = "netty" }
 
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
