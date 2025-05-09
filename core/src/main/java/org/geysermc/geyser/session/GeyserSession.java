@@ -423,8 +423,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
+    /**
+     * Stores the blockstate of the block being currently broken.
+     */
     @Setter
     private int breakingBlock;
+
+    /**
+     * Stores the block break position of the currently broken block.
+     */
+    @Setter
+    private Vector3i blockBreakPosition;
+
+    /**
+     * Stores the block breaking progress of the currently broken block.
+     */
+    @Setter
+    private double blockBreakProgress;
 
     @Setter
     private Vector3i lastBlockPlacePosition;
@@ -1621,7 +1636,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
-        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
