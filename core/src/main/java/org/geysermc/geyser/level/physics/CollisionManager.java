@@ -424,6 +424,9 @@ public class CollisionManager {
         return state.is(Blocks.WATER) && state.getValue(Properties.LEVEL) == 0;
     }
 
+    /**
+     * @return if the player is currently touching water
+     */
     public boolean isPlayerTouchingWater() {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().position().toInt());
         return state.is(Blocks.WATER);

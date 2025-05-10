@@ -32,7 +32,9 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
@@ -43,6 +45,7 @@ import java.util.Set;
 public final class InputCache {
     private final GeyserSession session;
     private ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(false, false, false, false, false, false, false);
+    @Setter
     private boolean lastHorizontalCollision;
     private int ticksSinceLastMovePacket;
     @Getter @Setter
@@ -56,7 +59,7 @@ public final class InputCache {
         this.session = session;
     }
 
-    public void processInputs(PlayerEntity entity, PlayerAuthInputPacket packet) {
+    public void processInputs(SessionPlayerEntity entity, PlayerAuthInputPacket packet) {
         // Input is sent to the server before packet positions, as of 1.21.2
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
         var oldInputPacket = this.inputPacket;
@@ -78,17 +81,7 @@ public final class InputCache {
         }
 
         boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
-        boolean sprint = bedrockInput.contains(PlayerAuthInputData.SPRINTING);
-
-        // TODO when is UP_LEFT, etc. used?
-        this.inputPacket = this.inputPacket
-            .withForward(up)
-            .withBackward(down)
-            .withLeft(left)
-            .withRight(right)
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMPING)) // Looks like this only triggers when the JUMP key input is being pressed. There's also JUMP_DOWN?
-            .withShift(sneaking)
-            .withSprint(sprint);
+        boolean sprint = isSprinting(bedrockInput, session.isSprinting());
 
         // Send sneaking state before inputs, matches Java client
         if (oldInputPacket.isShift() != sneaking) {
@@ -101,17 +94,37 @@ public final class InputCache {
             }
         }
 
-        // TODO test whether accounting for swimming is needed
-        if (oldInputPacket.isSprint() != sprint) {
+        // We're checking the session here as we need to check the current sprint state, not the keypress
+        if (session.isSprinting() != sprint) {
             if (sprint) {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING));
-                session.setSprinting(true);
+                // Check if the player is standing on but not surrounded by water; don't allow sprinting in that case
+                // resolves <https://github.com/GeyserMC/Geyser/issues/1705>
+                if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
+                    // Update movement speed attribute to prevent sprinting on water. This is fixed in 1.21.80+ natively.
+                    UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                    attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                    attributesPacket.getAttributes().addAll(entity.getAttributes().values());
+                    session.sendUpstreamPacket(attributesPacket);
+                } else {
+                    session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING));
+                    session.setSprinting(true);
+                }
             } else {
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING));
                 session.setSprinting(false);
             }
         }
 
+        // TODO when is UP_LEFT, etc. used?
+        this.inputPacket = this.inputPacket
+            .withForward(up)
+            .withBackward(down)
+            .withLeft(left)
+            .withRight(right)
+            // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
+            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN) || bedrockInput.contains(PlayerAuthInputData.SNEAK_TOGGLE_DOWN))
+            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }
@@ -134,7 +147,14 @@ public final class InputCache {
         return lastHorizontalCollision;
     }
 
-    public void setLastHorizontalCollision(boolean lastHorizontalCollision) {
-        this.lastHorizontalCollision = lastHorizontalCollision;
+    // Determines whether the client is currently sprinting.
+    public boolean isSprinting(Set<PlayerAuthInputData> authInputData, boolean sprinting) {
+        for (PlayerAuthInputData authInput : authInputData) {
+            switch (authInput) {
+                case START_SPRINTING -> sprinting = true;
+                case STOP_SPRINTING -> sprinting = false;
+            }
+        }
+        return sprinting;
     }
 }
