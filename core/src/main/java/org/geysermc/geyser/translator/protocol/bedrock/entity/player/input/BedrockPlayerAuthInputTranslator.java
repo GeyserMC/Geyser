@@ -110,11 +110,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     }
                 }
                 case STOP_SPRINTING -> {
-                    if (!leftOverInputData.contains(PlayerAuthInputData.START_SPRINTING)) {
+                    // Don't send sprinting update when we weren't sprinting
+                    if (!leftOverInputData.contains(PlayerAuthInputData.START_SPRINTING) && session.isSprinting()) {
                         sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING);
                         session.setSprinting(false);
                     }
-
                 }
                 case START_FLYING -> { // Since 1.20.30
                     if (session.isCanFly()) {
