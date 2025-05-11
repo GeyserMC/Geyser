@@ -171,7 +171,7 @@ public class Entity implements GeyserEntity {
         dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
-        setDimensions(Pose.STANDING);
+        setDimensionsFromPose(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -539,13 +539,13 @@ public class Entity implements GeyserEntity {
         // FALL_FLYING is instead set via setFlags
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
-        setDimensions(pose);
+        setDimensionsFromPose(pose);
     }
 
     /**
      * Set the height and width of the entity's bounding box
      */
-    public void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
         setBoundingBoxHeight(definition.height());
         setBoundingBoxWidth(definition.width());

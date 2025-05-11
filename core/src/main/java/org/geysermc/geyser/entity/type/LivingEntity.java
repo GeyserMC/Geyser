@@ -283,12 +283,12 @@ public class LivingEntity extends Entity {
     }
 
     @Override
-    public void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SLEEPING) {
             setBoundingBoxWidth(0.2f);
             setBoundingBoxHeight(0.2f);
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
