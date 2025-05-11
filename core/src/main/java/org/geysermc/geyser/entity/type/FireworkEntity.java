@@ -27,9 +27,7 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
@@ -72,20 +70,22 @@ public class FireworkEntity extends Entity {
         // and checks to make sure the player that is gliding is the one getting sent the packet
         // or else every player near the gliding player will boost too.
         if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
-            PlayerEntity entity = session.getPlayerEntity();
-            float yaw = entity.getYaw();
-            float pitch = entity.getPitch();
-            // Uses math from NukkitX
-            entity.setMotion(Vector3f.from(
-                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
-                    -Math.sin(Math.toRadians(pitch)) * 2,
-                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
-            // Need to update the EntityMotionPacket or else the player won't boost
-            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-            entityMotionPacket.setMotion(entity.getMotion());
-
-            session.sendUpstreamPacket(entityMotionPacket);
+            // TODO Firework rocket boosting is client side. Sending this boost is no longer needed
+            // Good luck to whoever is going to try implementing cancelling firework rocket boosting :)
+//            PlayerEntity entity = session.getPlayerEntity();
+//            float yaw = entity.getYaw();
+//            float pitch = entity.getPitch();
+//            // Uses math from NukkitX
+//            entity.setMotion(Vector3f.from(
+//                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
+//                    -Math.sin(Math.toRadians(pitch)) * 2,
+//                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
+//            // Need to update the EntityMotionPacket or else the player won't boost
+//            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+//            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+//            entityMotionPacket.setMotion(entity.getMotion());
+//
+//            session.sendUpstreamPacket(entityMotionPacket);
         }
     }
 }

@@ -32,7 +32,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
@@ -43,6 +43,7 @@ import java.util.Set;
 public final class InputCache {
     private final GeyserSession session;
     private ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(false, false, false, false, false, false, false);
+    @Setter
     private boolean lastHorizontalCollision;
     private int ticksSinceLastMovePacket;
     @Getter @Setter
@@ -56,7 +57,7 @@ public final class InputCache {
         this.session = session;
     }
 
-    public void processInputs(PlayerEntity entity, PlayerAuthInputPacket packet) {
+    public void processInputs(SessionPlayerEntity entity, PlayerAuthInputPacket packet) {
         // Input is sent to the server before packet positions, as of 1.21.2
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
         var oldInputPacket = this.inputPacket;
@@ -77,19 +78,25 @@ public final class InputCache {
             right = analogMovement.getX() < 0;
         }
 
-        boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
-
         // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
             .withForward(up)
             .withBackward(down)
             .withLeft(left)
             .withRight(right)
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMPING)) // Looks like this only triggers when the JUMP key input is being pressed. There's also JUMP_DOWN?
-            .withShift(sneaking)
-            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINTING)); // SPRINTING will trigger even if the player isn't moving
+            // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
+            // using the "raw" values allows us sending key presses even with locked input
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW))
+            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW))
+            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
         // Send sneaking state before inputs, matches Java client
+        boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING) ||
+            // DESCEND_BLOCK is ONLY sent while mobile clients are descending scaffolding.
+            // PERSIST_SNEAK is ALWAYS sent by mobile clients.
+            // While we could use SNEAK_CURRENT_RAW, that would also be sent with locked inputs.
+            // fixes https://github.com/GeyserMC/Geyser/issues/5384
+            (bedrockInput.contains(PlayerAuthInputData.DESCEND_BLOCK) && bedrockInput.contains(PlayerAuthInputData.PERSIST_SNEAK));
         if (oldInputPacket.isShift() != sneaking) {
             if (sneaking) {
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SNEAKING));
@@ -120,9 +127,5 @@ public final class InputCache {
 
     public boolean lastHorizontalCollision() {
         return lastHorizontalCollision;
-    }
-
-    public void setLastHorizontalCollision(boolean lastHorizontalCollision) {
-        this.lastHorizontalCollision = lastHorizontalCollision;
     }
 }
