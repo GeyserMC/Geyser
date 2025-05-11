@@ -32,9 +32,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
@@ -81,7 +79,6 @@ public final class InputCache {
         }
 
         boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
-        boolean sprint = isSprinting(bedrockInput, session.isSprinting());
 
         // Send sneaking state before inputs, matches Java client
         if (oldInputPacket.isShift() != sneaking) {
@@ -107,28 +104,6 @@ public final class InputCache {
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }
-
-        // We're checking the session here as we need to check the current sprint state, not the keypress
-        if (session.isSprinting() != sprint) {
-            if (sprint) {
-                // Check if the player is standing on but not surrounded by water; don't allow sprinting in that case
-                // resolves <https://github.com/GeyserMC/Geyser/issues/1705>
-                if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
-                    // Update movement speed attribute to prevent sprinting on water. This is fixed in 1.21.80+ natively.
-                    UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                    attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                    attributesPacket.getAttributes().addAll(entity.getAttributes().values());
-                    session.sendUpstreamPacket(attributesPacket);
-                } else {
-                    session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING));
-                    session.setSprinting(true);
-                }
-            } else {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING));
-                session.setSprinting(false);
-            }
-        }
-
     }
 
     public boolean wasJumping() {
@@ -146,16 +121,5 @@ public final class InputCache {
 
     public boolean lastHorizontalCollision() {
         return lastHorizontalCollision;
-    }
-
-    // Determines whether the client is currently sprinting.
-    public boolean isSprinting(Set<PlayerAuthInputData> authInputData, boolean sprinting) {
-        for (PlayerAuthInputData authInput : authInputData) {
-            switch (authInput) {
-                case START_SPRINTING -> sprinting = true;
-                case STOP_SPRINTING -> sprinting = false;
-            }
-        }
-        return sprinting;
     }
 }

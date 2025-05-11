@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTrans
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -45,6 +46,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -76,9 +78,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
 
-        BedrockMovePlayer.translate(session, packet);
-
-        processVehicleInput(session, packet, wasJumping);
+        ServerboundPlayerCommandPacket sprintPacket = null;
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
         // These inputs are sent in order, so if e.g. START_GLIDING and STOP_GLIDING are both present,
@@ -95,6 +95,29 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case STOP_SWIMMING -> session.setSwimming(false);
                 case START_CRAWLING -> session.setCrawling(true);
                 case STOP_CRAWLING -> session.setCrawling(false);
+                case START_SPRINTING -> {
+                    if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
+                        // Check if the player is standing on but not surrounded by water; don't allow sprinting in that case
+                        // resolves <https://github.com/GeyserMC/Geyser/issues/1705>
+                        if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
+                            // Update movement speed attribute to prevent sprinting on water. This is fixed in 1.21.80+ natively.
+                            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                            attributesPacket.getAttributes().addAll(entity.getAttributes().values());
+                            session.sendUpstreamPacket(attributesPacket);
+                        } else {
+                            sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
+                            session.setSprinting(true);
+                        }
+                    }
+                }
+                case STOP_SPRINTING -> {
+                    if (!leftOverInputData.contains(PlayerAuthInputData.START_SPRINTING)) {
+                        sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING);
+                        session.setSprinting(false);
+                    }
+
+                }
                 case START_FLYING -> { // Since 1.20.30
                     if (session.isCanFly()) {
                         if (session.getGameMode() == GameMode.SPECTATOR) {
@@ -175,6 +198,16 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
             }
         }
+
+        // Vehicle input is send before player movement
+        processVehicleInput(session, packet, wasJumping);
+
+        // Java edition sends sprinting after vehicle input, but before player movement
+        if (sprintPacket != null) {
+            session.sendDownstreamGamePacket(sprintPacket);
+        }
+
+        BedrockMovePlayer.translate(session, packet);
 
         // Only set steering values when the vehicle is a boat and when the client is actually in it
         if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
