@@ -70,7 +70,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -606,8 +605,7 @@ public class CustomItemRegistryPopulator {
      * @see ComponentConverters
      */
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
-        DataComponents convertedComponents = new DataComponents(new HashMap<>());
-        ComponentConverters.convertAndApplyComponentPatch(convertedComponents, definition.components(), definition.removedComponents());
+        DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents());
         if (javaItem != null) {
             return javaItem.gatherComponents(convertedComponents);
         }

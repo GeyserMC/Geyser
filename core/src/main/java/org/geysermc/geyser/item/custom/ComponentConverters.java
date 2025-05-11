@@ -120,20 +120,23 @@ public class ComponentConverters {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void convertAndApplyComponentPatch(DataComponents itemMap, DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals) {
+    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals) {
+        DataComponents converted = new DataComponents(new HashMap<>());
         for (DataComponent<?> component : customDefinitionPatch.keySet()) {
             ComponentConverter converter = converters.get(component);
             if (converter != null) {
                 Object value = customDefinitionPatch.get(component);
-                converter.convertAndPut(itemMap, value);
+                converter.convertAndPut(converted, value);
             }
         }
+
         for (Identifier removed : customDefinitionRemovals) {
             DataComponentType<?> component = DataComponentTypes.fromKey(MinecraftKey.identifierToKey(removed));
             if (component != null) {
-                itemMap.remove(component);
+                converted.put(component, null);
             }
         }
+        return converted;
     }
 
     @FunctionalInterface
