@@ -94,6 +94,20 @@ public final class InputCache {
             }
         }
 
+        // TODO when is UP_LEFT, etc. used?
+        this.inputPacket = this.inputPacket
+            .withForward(up)
+            .withBackward(down)
+            .withLeft(left)
+            .withRight(right)
+            // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
+            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN) || bedrockInput.contains(PlayerAuthInputData.SNEAK_TOGGLE_DOWN))
+            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
+        if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
+            session.sendDownstreamGamePacket(this.inputPacket);
+        }
+
         // We're checking the session here as we need to check the current sprint state, not the keypress
         if (session.isSprinting() != sprint) {
             if (sprint) {
@@ -115,19 +129,6 @@ public final class InputCache {
             }
         }
 
-        // TODO when is UP_LEFT, etc. used?
-        this.inputPacket = this.inputPacket
-            .withForward(up)
-            .withBackward(down)
-            .withLeft(left)
-            .withRight(right)
-            // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
-            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN) || bedrockInput.contains(PlayerAuthInputData.SNEAK_TOGGLE_DOWN))
-            .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
-        if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
-            session.sendDownstreamGamePacket(this.inputPacket);
-        }
     }
 
     public boolean wasJumping() {
