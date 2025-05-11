@@ -78,19 +78,6 @@ public final class InputCache {
             right = analogMovement.getX() < 0;
         }
 
-        boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
-
-        // Send sneaking state before inputs, matches Java client
-        if (oldInputPacket.isShift() != sneaking) {
-            if (sneaking) {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SNEAKING));
-                session.startSneaking();
-            } else {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SNEAKING));
-                session.stopSneaking();
-            }
-        }
-
         // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
             .withForward(up)
@@ -101,6 +88,19 @@ public final class InputCache {
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
             .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN) || bedrockInput.contains(PlayerAuthInputData.SNEAK_TOGGLE_DOWN))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
+
+        // Send sneaking state before inputs, matches Java client
+        boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING);
+        if (oldInputPacket.isShift() != sneaking) {
+            if (sneaking) {
+                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SNEAKING));
+                session.startSneaking();
+            } else {
+                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SNEAKING));
+                session.stopSneaking();
+            }
+        }
+
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }

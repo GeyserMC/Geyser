@@ -87,9 +87,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         for (PlayerAuthInputData input : inputData) {
             leftOverInputData.remove(input);
             switch (input) {
-                case PERFORM_ITEM_INTERACTION -> {
-                    processItemUseTransaction(session, packet.getItemUseTransaction());
-                }
+                case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
@@ -287,15 +285,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
             sendMovement = !(vehicle instanceof ClientVehicle);
         } else if (vehicle instanceof BoatEntity) {
-            if (vehicle.getPassengers().size() == 1) {
-                // The player is the only rider
-                sendMovement = true;
-            } else {
-                // Check if the player is the front rider
-                if (session.getPlayerEntity().isRidingInFront()) {
-                    sendMovement = true;
-                }
-            }
+            // The player is either the only or the front rider.
+            sendMovement = vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront();
         }
 
         if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
