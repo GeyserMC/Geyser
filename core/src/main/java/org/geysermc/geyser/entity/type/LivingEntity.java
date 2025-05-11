@@ -212,7 +212,7 @@ public class LivingEntity extends Entity {
         setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
     }
 
-    public void setSpinAttack(boolean value) {
+    protected void setSpinAttack(boolean value) {
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, value);
     }
 

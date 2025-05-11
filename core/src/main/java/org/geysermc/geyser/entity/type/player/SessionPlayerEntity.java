@@ -212,7 +212,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void setSpinAttack(boolean value) {
+    protected void setSpinAttack(boolean value) {
         session.setSpinAttack(value);
     }
 
