@@ -181,8 +181,8 @@ public class CustomItemRegistryPopulator {
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.vanilla()) {
             return "custom item bedrock identifier namespace can't be minecraft";
-        } else if (item.model().vanilla() && item.predicates().isEmpty()) {
-            return "custom item definition model can't be in the minecraft namespace without a predicate";
+        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
+            return "custom item definition model can't equal vanilla item identifier without a predicate";
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
