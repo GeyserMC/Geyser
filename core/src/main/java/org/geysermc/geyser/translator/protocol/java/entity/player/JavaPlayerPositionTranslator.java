@@ -139,10 +139,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
     }
 
     private void acceptTeleport(GeyserSession session, double x, double y, double z, float yaw, float pitch, int id) {
-        // Confirm the teleport when we receive to match Java edition behaviour.
+        // Confirm the teleport when we receive it to match Java edition behaviour.
         ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
         session.sendDownstreamGamePacket(teleportConfirmPacket);
-        // Most server expect exact coordinates given back to them.
+        // Most servers expect exact coordinates given back to them.
         ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, x, y, z, yaw, pitch);
         session.sendDownstreamGamePacket(positionPacket);
     }

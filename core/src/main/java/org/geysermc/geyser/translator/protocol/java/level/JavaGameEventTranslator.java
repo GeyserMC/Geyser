@@ -98,7 +98,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
                     session.sendUpstreamPacket(movePlayerPacket);
 
-                    session.getUnconfirmedTeleports().add(new TeleportCache(null, entity.getPosition().down(EntityDefinitions.PLAYER.offset()), entity.getPitch(), entity.getYaw(), -1));
+                    session.getUnconfirmedTeleports().add(new TeleportCache(null, entity.position(), entity.getPitch(), entity.getYaw(), -1));
                 }
 
                 // Update the crafting grid to add/remove barriers for creative inventory

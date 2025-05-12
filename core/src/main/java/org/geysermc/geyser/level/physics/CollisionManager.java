@@ -293,8 +293,6 @@ public class CollisionManager {
     }
 
     public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld) {
-        // On the teleported check: see https://github.com/GeyserMC/Geyser/issues/2540
-        // As of this commit we don't know how it happens but we don't need to check movement here anyway in that case
         if ((!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
             return movement;
         }
