@@ -42,7 +42,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.type.Block;
@@ -83,7 +82,6 @@ import static org.geysermc.geyser.util.ChunkUtils.*;
 @Translator(packet = ClientboundLevelChunkWithLightPacket.class)
 public class JavaLevelChunkWithLightTranslator extends PacketTranslator<ClientboundLevelChunkWithLightPacket> {
     private static final ThreadLocal<ExtendedCollisionsStorage> EXTENDED_COLLISIONS_STORAGE = ThreadLocal.withInitial(ExtendedCollisionsStorage::new);
-    private static final ByteBufAllocator ALLOCATOR = GeyserImpl.ALLOCATOR;
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
@@ -467,7 +465,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
-            byteBuf = ALLOCATOR.ioBuffer(size);
+            byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
                 if (section != null) {

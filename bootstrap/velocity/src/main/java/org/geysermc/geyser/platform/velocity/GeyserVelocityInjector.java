@@ -119,7 +119,6 @@ public class GeyserVelocityInjector extends GeyserInjector {
             })
             .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup) // Cannot be DefaultEventLoopGroup
             .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
-            .option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR)
             .localAddress(LocalAddress.ANY))
             .bind()
             .syncUninterruptibly();

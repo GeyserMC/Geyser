@@ -29,8 +29,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -152,8 +150,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
      */
     public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
-    public static ByteBufAllocator ALLOCATOR;
-
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
     private final SessionManager sessionManager = new SessionManager();
@@ -203,15 +199,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         this.platformType = platformType;
         this.bootstrap = bootstrap;
-
-        if (System.getProperty("io.netty.allocator.type") == null || platformType == PlatformType.BUNGEECORD) {
-            // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
-            // BungeeCord also hardcodes it.
-            ALLOCATOR = PooledByteBufAllocator.DEFAULT;
-        } else {
-            // Takes the system property into account.
-            ALLOCATOR = ByteBufAllocator.DEFAULT;
-        }
 
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();

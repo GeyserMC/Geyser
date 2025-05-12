@@ -1036,9 +1036,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // We'll handle this since we have the registry data on hand
         downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
 
-        // Netty 4.2 uses the adaptive allocator by default, which has some issues with memory management
-        downstream.setFlag(BuiltinFlags.ALLOCATOR, GeyserImpl.ALLOCATOR);
-
         // We manually add the default listener to ensure the order of listeners.
         protocol.setUseDefaultListeners(false);
 

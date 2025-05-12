@@ -26,7 +26,7 @@
 package org.geysermc.geyser.network.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelHandler;
@@ -37,7 +37,6 @@ import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.mcprotocollib.network.helper.NettyHelper;
 import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
@@ -72,8 +71,6 @@ public final class LocalSession extends ClientNetworkSession {
     protected void setOptions(Bootstrap bootstrap) {
         if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR != null) {
             bootstrap.option(ChannelOption.ALLOCATOR, PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR);
-        } else {
-            bootstrap.option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR);
         }
     }
 
@@ -113,7 +110,7 @@ public final class LocalSession extends ClientNetworkSession {
     public static void createDirectByteBufAllocator() {
         if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR == null) {
             PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = new PreferredDirectByteBufAllocator();
-            PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR.updateAllocator(PooledByteBufAllocator.DEFAULT);
+            PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR.updateAllocator(ByteBufAllocator.DEFAULT);
         }
     }
 }

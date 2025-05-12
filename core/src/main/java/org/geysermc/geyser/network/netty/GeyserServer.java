@@ -240,7 +240,6 @@ public final class GeyserServer {
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
-                .option(ChannelOption.ALLOCATOR, GeyserImpl.ALLOCATOR)
                 .childHandler(serverInitializer);
     }
 

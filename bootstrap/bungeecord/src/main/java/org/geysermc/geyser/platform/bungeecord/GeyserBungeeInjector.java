@@ -201,9 +201,6 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 })
                 .childAttr(listener, listenerInfo)
                 .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup)
-                // Hardcoded to pooled allocator on BungeeCord
-                // https://github.com/SpigotMC/BungeeCord/blob/617c2728a25347487eee4e8649d52fe57f1ff6e2/proxy/src/main/java/net/md_5/bungee/netty/PipelineUtils.java#L224
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();
