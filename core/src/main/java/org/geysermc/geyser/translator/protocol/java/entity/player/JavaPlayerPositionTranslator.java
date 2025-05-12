@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -86,7 +87,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // DataComponentHashers.testHashing(session); // TODO remove me
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
-            session.getUnconfirmedTeleports().add(new TeleportCache(pos, entity.position(), packet.getXRot(), packet.getYRot(), packet.getId()));
+            session.setUnconfirmedTeleport(new TeleportCache(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getXRot(), packet.getYRot(), packet.getId())); // TODO
+
             acceptTeleport(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getYRot(), packet.getXRot(), packet.getId());
 
             if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
@@ -121,28 +123,29 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
         session.getGeyser().getLogger().debug("Teleport (" + id + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
-        Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
-        Vector3f lastPlayerPosition = entity.position();
+        Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
         float lastPlayerPitch = entity.getPitch();
-        // Bedrock ignores teleports that are extremely close to the player's original position and orientation
-        // so we simply ignore if the teleport is close enough.
-        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5) {
-            acceptTeleport(session, newX, newY, newZ, newYaw, newPitch, id);
-            return;
-        }
-
+        Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
         entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+
         session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
-        session.getUnconfirmedTeleports().add(new TeleportCache(Vector3d.from(newX, newY, newZ), teleportDestination, newPitch, newYaw, id));
+        // Bedrock ignores teleports that are extremely close to the player's original position and orientation,
+        // so check if we need to cache the teleport
+        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5) {
+            session.setUnconfirmedTeleport(null);
+        } else {
+            session.setUnconfirmedTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, id));
+        }
+
         acceptTeleport(session, newX, newY, newZ, newYaw, newPitch, id);
     }
 
     private void acceptTeleport(GeyserSession session, double x, double y, double z, float yaw, float pitch, int id) {
-        // Confirm the teleport when we receive it to match Java edition behaviour.
+        // Confirm the teleport when we receive it to match Java edition
         ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
         session.sendDownstreamGamePacket(teleportConfirmPacket);
-        // Most servers expect exact coordinates given back to them.
+        // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
         ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, x, y, z, yaw, pitch);
         session.sendDownstreamGamePacket(positionPacket);
     }

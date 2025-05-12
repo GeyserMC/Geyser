@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.session.cache;
 
+import org.cloudburstmc.math.vector.Vector3d;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.math.vector.Vector3d;
-import org.cloudburstmc.math.vector.Vector3f;
 
 /**
  * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
@@ -42,17 +41,36 @@ import org.cloudburstmc.math.vector.Vector3f;
 @RequiredArgsConstructor
 @Data
 public class TeleportCache {
+
     private static final double ERROR_X_AND_Z = 0.1;
     private static final double ERROR_Y = 0.1;
 
-    private final Vector3d javaPosition;
-    private final Vector3f bedrockPosition;
+    /**
+     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
+     */
+    private static final int RESEND_THRESHOLD = 20; // Make it one full second with auth input
+
+    private final double x, y, z;
     private final float pitch, yaw;
     private final int teleportConfirmId;
 
-    public boolean canConfirm(Vector3f position) {
-        return Math.abs(this.bedrockPosition.getX() - position.getX()) < ERROR_X_AND_Z &&
-            Math.abs(this.bedrockPosition.getY() - position.getY()) < ERROR_Y &&
-            Math.abs(this.bedrockPosition.getZ() - position.getZ()) < ERROR_X_AND_Z;
+    private int unconfirmedFor = 0;
+
+    public boolean canConfirm(Vector3d position) {
+        return (Math.abs(this.x - position.getX()) < ERROR_X_AND_Z &&
+                Math.abs(this.y - position.getY()) < ERROR_Y &&
+                Math.abs(this.z - position.getZ()) < ERROR_X_AND_Z);
+    }
+
+    public void incrementUnconfirmedFor() {
+        unconfirmedFor++;
+    }
+
+    public void resetUnconfirmedFor() {
+        unconfirmedFor = 0;
+    }
+
+    public boolean shouldResend() {
+        return unconfirmedFor >= RESEND_THRESHOLD;
     }
 }
