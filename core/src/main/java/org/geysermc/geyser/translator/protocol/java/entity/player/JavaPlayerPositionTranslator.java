@@ -86,7 +86,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // DataComponentHashers.testHashing(session); // TODO remove me
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
-            session.getUnconfirmedTeleports().add(new TeleportCache(pos, entity.getPosition().down(EntityDefinitions.PLAYER.offset()), packet.getXRot(), packet.getYRot(), packet.getId()));
+            session.getUnconfirmedTeleports().add(new TeleportCache(pos, entity.position(), packet.getXRot(), packet.getYRot(), packet.getId()));
             acceptTeleport(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(), packet.getYRot(), packet.getXRot(), packet.getId());
 
             if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
@@ -122,7 +122,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         session.getGeyser().getLogger().debug("Teleport (" + id + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
         Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
-        Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
+        Vector3f lastPlayerPosition = entity.position();
         float lastPlayerPitch = entity.getPitch();
         // Bedrock ignores teleports that are extremely close to the player's original position and orientation
         // so we simply ignore if the teleport is close enough.
