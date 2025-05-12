@@ -47,7 +47,6 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -435,8 +434,19 @@ public class SessionPlayerEntity extends PlayerEntity {
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         session.sendUpstreamPacketImmediately(movePlayerPacket);
+    }
 
-        session.getUnconfirmedTeleports().add(new TeleportCache(null, newPosition.down(EntityDefinitions.PLAYER.offset()), this.getPitch(), this.getYaw(), -1));
+    /**
+     * Used to calculate player jumping velocity for ground status calculation.
+     */
+    public float getJumpVelocity() {
+        float velocity = 0.42F;
+
+        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
+            velocity *= 0.6F;
+        }
+
+        return velocity + 0.1F * session.getEffectCache().getJumpPower();
     }
 
     public boolean isOnClimbableBlock() {

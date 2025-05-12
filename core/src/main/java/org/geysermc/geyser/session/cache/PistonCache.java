@@ -170,7 +170,7 @@ public class PistonCache {
             delta = clientVehicle.getVehicleComponent().correctMovement(delta);
             clientVehicle.getVehicleComponent().moveRelative(delta);
         } else {
-            delta = session.getCollisionManager().correctPlayerMovement(delta, true);
+            delta = session.getCollisionManager().correctPlayerMovement(delta, true, false);
             session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
         }
 
