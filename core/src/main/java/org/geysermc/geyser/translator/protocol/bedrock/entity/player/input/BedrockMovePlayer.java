@@ -105,7 +105,7 @@ final class BedrockMovePlayer {
                 }
 
                 // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
-                if (session.getPlayerEntity().isOnClimbableBlock() && (packet.getInputData().contains(PlayerAuthInputData.JUMPING) || p)) {
+                if (session.getPlayerEntity().isOnClimbableBlock() && (packet.getInputData().contains(PlayerAuthInputData.JUMPING) || packet.getInputData().contains(PlayerAuthInputData.ASCEND_BLOCK))) {
                     isOnGround = false;
                 }
             }
