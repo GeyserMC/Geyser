@@ -155,10 +155,9 @@ public class CollisionManager {
      *
      * @param bedrockPosition the current Bedrock position of the client
      * @param onGround whether the Bedrock player is on the ground
-     * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -182,7 +181,7 @@ public class CollisionManager {
 
         Vector3d startingPos = playerBoundingBox.getBottomCenter();
         Vector3d movement = position.sub(startingPos);
-        Vector3d adjustedMovement = correctPlayerMovement(movement, false, teleported);
+        Vector3d adjustedMovement = correctPlayerMovement(movement, false);
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
         playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
         // Correct player position
@@ -293,10 +292,8 @@ public class CollisionManager {
         return true;
     }
 
-    public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld, boolean teleported) {
-        // On the teleported check: see https://github.com/GeyserMC/Geyser/issues/2540
-        // As of this commit we don't know how it happens but we don't need to check movement here anyway in that case
-        if (teleported || (!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
+    public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld) {
+        if ((!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
             return movement;
         }
         return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld, false);
