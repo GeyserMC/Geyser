@@ -33,7 +33,6 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
@@ -89,12 +88,13 @@ final class BedrockMovePlayer {
 
         boolean verticalCollision = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
 
-        // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
         if (hasVehicle) {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
-            isOnGround = Math.abs(entity.getLastTickEndVelocity().getY()) < 0.1;
+            // If the player is riding a vehicle or is in spectator mode, onGround is always set to false for the player
+            isOnGround = false;
         } else {
+            // Client is telling us it wants to move down, but something is blocking it from doing so.
             isOnGround = verticalCollision && entity.getLastTickEndVelocity().getY() < 0;
 
             // We only have to check for these cases if player is having vertical collision else the onGround status will always be false.
@@ -105,8 +105,7 @@ final class BedrockMovePlayer {
                 }
 
                 // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
-                boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
-                if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
+                if (session.getPlayerEntity().isOnClimbableBlock() && (packet.getInputData().contains(PlayerAuthInputData.JUMPING) || p)) {
                     isOnGround = false;
                 }
             }
