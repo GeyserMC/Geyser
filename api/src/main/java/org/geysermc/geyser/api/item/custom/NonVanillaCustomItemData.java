@@ -188,7 +188,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
     @Override
     default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
-        throw new IllegalArgumentException("Use toDefinition()");
+        throw new UnsupportedOperationException("Use toDefinition()");
     }
 
     default NonVanillaCustomItemDefinition.Builder toDefinition() {

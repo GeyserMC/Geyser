@@ -54,6 +54,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     private final int priority;
     private final @NonNull CustomItemBedrockOptions bedrockOptions;
     private final @NonNull DataComponentMap components;
+    private final @NonNull List<Identifier> removedComponents;
 
     public GeyserCustomItemDefinition(Builder builder) {
         this.bedrockIdentifier = builder.bedrockIdentifier;
@@ -64,6 +65,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         this.priority = builder.priority;
         this.bedrockOptions = builder.bedrockOptions;
         this.components = new ComponentMap(builder.components);
+        this.removedComponents = builder.removedComponents;
     }
 
     @Override
@@ -106,11 +108,17 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         return components;
     }
 
+    @Override
+    public @NonNull List<Identifier> removedComponents() {
+        return removedComponents;
+    }
+
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
         private final List<MinecraftPredicate<? super ItemPredicateContext>> predicates = new ArrayList<>();
         private final Reference2ObjectMap<DataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
+        private final List<Identifier> removedComponents = new ArrayList<>();
 
         private String displayName;
         private int priority = 0;
@@ -161,6 +169,12 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
                 throw new IllegalArgumentException("Value " + value + " is invalid for " + component);
             }
             components.put(component, value);
+            return this;
+        }
+
+        @Override
+        public CustomItemDefinition.Builder removeComponent(Identifier component) {
+            removedComponents.add(component);
             return this;
         }
 

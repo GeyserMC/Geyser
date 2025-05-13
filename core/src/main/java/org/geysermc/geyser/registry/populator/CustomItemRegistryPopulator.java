@@ -68,7 +68,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -180,8 +179,8 @@ public class CustomItemRegistryPopulator {
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.vanilla()) {
             return "custom item bedrock identifier namespace can't be minecraft";
-        } else if (item.model().vanilla() && item.predicates().isEmpty()) {
-            return "custom item definition model can't be in the minecraft namespace without a predicate";
+        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
+            return "custom item definition model can't equal vanilla item identifier without a predicate";
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
@@ -610,8 +609,7 @@ public class CustomItemRegistryPopulator {
      * @see ComponentConverters
      */
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
-        DataComponents convertedComponents = new DataComponents(new HashMap<>());
-        ComponentConverters.convertAndPutComponents(convertedComponents, definition.components());
+        DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents());
         if (javaItem != null) {
             return javaItem.gatherComponents(convertedComponents);
         }

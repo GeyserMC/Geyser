@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator;
@@ -51,8 +52,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             return;
         }
 
-        InventoryTranslator newTranslator;
-        Inventory openInventory = session.getOpenInventory();
+        InventoryTranslator<? extends Inventory> newTranslator;
+        InventoryHolder<? extends Inventory> currentInventory = session.getInventoryHolder();
 
         // Hack: ViaVersion translates the old (pre 1.20) smithing table to a anvil (does not work for Bedrock). We can detect this and translate it back to a smithing table.
         // (Implementation note: used to be a furnace. Was changed sometime before 1.21.2)
@@ -64,8 +65,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
-            if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
+            if (currentInventory != null) {
+                InventoryUtils.closeInventory(session, currentInventory, true);
             }
 
             ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getContainerId());
@@ -75,35 +76,26 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         String name = MessageTranslator.convertMessage(packet.getTitle(), session.locale());
 
-        Inventory newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
-        if (openInventory != null) {
+        var newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType());
+        InventoryHolder<? extends Inventory> newInventoryHolder = new InventoryHolder<>(session, newInventory, newTranslator);
+        if (currentInventory != null) {
             // Attempt to re-use existing open inventories, if possible.
             // Pending inventories are also considered, as a Java server can re-request the same inventory.
-            if (newTranslator.canReuseInventory(session, newInventory, openInventory)) {
-                // Use the same Bedrock id
-                newInventory.setBedrockId(openInventory.getBedrockId());
-
-                // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
-                boolean pending = openInventory.isPending();
-                newInventory.setDisplayed(openInventory.isDisplayed());
-                newInventory.setPending(pending);
-                newInventory.setHolderPosition(openInventory.getHolderPosition());
-                newInventory.setHolderId(openInventory.getHolderId());
-                session.setOpenInventory(newInventory);
-
-                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", pending);
+            if (newTranslator.canReuseInventory(session, newInventory, currentInventory.inventory())) {
+                newInventoryHolder.inheritFromExisting(currentInventory);
+                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", currentInventory.pending());
 
                 // If the current inventory is still pending, it'll be updated once open
                 if (newInventory.isDisplayed()) {
-                    newTranslator.updateInventory(session, newInventory);
+                    newInventoryHolder.updateInventory();
                 }
 
                 return;
             }
 
-            InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
+            InventoryUtils.closeInventory(session, currentInventory, true);
         }
 
-        InventoryUtils.openInventory(session, newInventory);
+        InventoryUtils.openInventory(newInventoryHolder);
     }
 }

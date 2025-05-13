@@ -29,9 +29,11 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
@@ -118,14 +120,23 @@ public class ComponentConverters {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void convertAndPutComponents(DataComponents itemMap, DataComponentMap customDefinitionMap) {
-        for (DataComponent<?> component : customDefinitionMap.keySet()) {
+    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals) {
+        DataComponents converted = new DataComponents(new HashMap<>());
+        for (DataComponent<?> component : customDefinitionPatch.keySet()) {
             ComponentConverter converter = converters.get(component);
             if (converter != null) {
-                Object value = customDefinitionMap.get(component);
-                converter.convertAndPut(itemMap, value);
+                Object value = customDefinitionPatch.get(component);
+                converter.convertAndPut(converted, value);
             }
         }
+
+        for (Identifier removed : customDefinitionRemovals) {
+            DataComponentType<?> component = DataComponentTypes.fromKey(MinecraftKey.identifierToKey(removed));
+            if (component != null) {
+                converted.put(component, null);
+            }
+        }
+        return converted;
     }
 
     @FunctionalInterface

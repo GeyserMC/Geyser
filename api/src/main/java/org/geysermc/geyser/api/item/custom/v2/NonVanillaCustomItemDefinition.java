@@ -94,6 +94,9 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent} can
      * also be used. Like with vanilla data components, it is still expected that the item <em>always</em> has the behaviour defined by its components.
      *
+     * <p>Default component removals are not supported for non-vanilla items, since here the data component map defines default components, instead of
+     * a patch on top of a vanilla base item.</p>
+     *
      * @see CustomItemDefinition#components()
      * @see org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent
      */

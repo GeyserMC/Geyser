@@ -130,11 +130,20 @@ public interface CustomItemDefinition {
      * and do not have to be specified here.</p>
      *
      * @see DataComponent
+     * @see CustomItemDefinition#removedComponents()
      */
     @NonNull DataComponentMap components();
 
-    static Builder builder(Identifier identifier, Identifier itemModel) {
-        return GeyserApi.api().provider(Builder.class, identifier, itemModel);
+    /**
+     * A list of removed default item data components. These are components that are present on the vanilla base item, but not on the custom item. Like with custom added
+     * components, it is expected that this <em>always</em> matches the removed components on the server.
+     *
+     * @see CustomItemDefinition#components()
+     */
+    @NonNull List<Identifier> removedComponents();
+
+    static Builder builder(Identifier bedrockIdentifier, Identifier itemModel) {
+        return GeyserApi.api().provider(Builder.class, bedrockIdentifier, itemModel);
     }
 
     interface Builder {
@@ -150,6 +159,15 @@ public interface CustomItemDefinition {
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
+
+        Builder removeComponent(Identifier component);
+
+        default Builder removeComponent(DataComponent<?> component) {
+            if (!component.vanilla()) {
+                throw new IllegalArgumentException("Cannot remove non-vanilla component");
+            }
+            return removeComponent(component.identifier());
+        }
 
         CustomItemDefinition build();
     }

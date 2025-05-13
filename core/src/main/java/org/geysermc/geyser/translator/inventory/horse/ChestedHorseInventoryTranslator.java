@@ -31,7 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
@@ -63,14 +63,14 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == this.equipSlot) {
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, 0);
         }
         if (slot <= this.size - 1) { // Accommodate for the lack of one slot (saddle or armor)
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, slot - 1);
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 
     @Override
@@ -85,11 +85,11 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
+    public void updateInventory(GeyserSession session, Container container) {
         ItemData[] bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
             final int offset = i < 9 ? 27 : -9;
-            bedrockItems[i] = inventory.getItem(this.size + i + offset).getItemData(session);
+            bedrockItems[i] = container.getItem(this.size + i + offset).getItemData(session);
         }
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(ContainerId.INVENTORY);
@@ -99,13 +99,13 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         ItemData[] horseItems = new ItemData[chestSize + 1];
         // Manually specify the first slot - Java always has two slots (armor and saddle) and one is invisible.
         // Bedrock doesn't have this invisible slot.
-        horseItems[0] = inventory.getItem(this.equipSlot).getItemData(session);
+        horseItems[0] = container.getItem(this.equipSlot).getItemData(session);
         for (int i = 1; i < horseItems.length; i++) {
-            horseItems[i] = inventory.getItem(i + 1).getItemData(session);
+            horseItems[i] = container.getItem(i + 1).getItemData(session);
         }
 
         InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
-        horseContentsPacket.setContainerId(inventory.getBedrockId());
+        horseContentsPacket.setContainerId(container.getBedrockId());
         horseContentsPacket.setContents(Arrays.asList(horseItems));
         session.sendUpstreamPacket(horseContentsPacket);
     }

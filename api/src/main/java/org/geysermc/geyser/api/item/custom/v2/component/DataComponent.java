@@ -123,6 +123,10 @@ public final class DataComponent<T> {
         return new DataComponent<>(Identifier.of("geyser", name), validator, false);
     }
 
+    public Identifier identifier() {
+        return identifier;
+    }
+
     public boolean vanilla() {
         return vanilla;
     }

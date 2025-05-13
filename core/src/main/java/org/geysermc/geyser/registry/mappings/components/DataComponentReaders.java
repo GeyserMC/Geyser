@@ -30,6 +30,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EnchantableReader;
@@ -47,8 +48,14 @@ import java.util.Map;
 public class DataComponentReaders {
     private static final Map<Key, DataComponentReader<?>> READERS = new HashMap<>();
 
-    public static void readDataComponent(CustomItemDefinition.Builder builder, Key key, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
-        DataComponentReader<?> reader = READERS.get(key);
+    public static void readDataComponent(CustomItemDefinition.Builder builder, String key, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
+        // Component removal
+        if (key.startsWith("!")) {
+            builder.removeComponent(Identifier.of(key.substring(1)));
+            return;
+        }
+
+        DataComponentReader<?> reader = READERS.get(MinecraftKey.key(key));
         if (reader == null) {
             throw new InvalidCustomMappingsFileException("reading data components", "unknown data component " + key, baseContext);
         }
