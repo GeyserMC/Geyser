@@ -96,7 +96,7 @@ public interface CustomItemDefinition {
      *
      * <p>It is recommended to use built-in predicates created from classes such as {@link org.geysermc.geyser.api.predicate.MatchPredicate}, {@link org.geysermc.geyser.api.predicate.item.ItemMatchPredicate},
      * {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate}, and {@link org.geysermc.geyser.api.predicate.item.ItemConditionPredicate} when possible. These predicates
-     * work with conflict detection, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover.</p>
+     * work with conflict detection, value caching, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover, and makes Geyser a bit more performant.</p>
      */
     @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 

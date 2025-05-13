@@ -71,8 +71,10 @@ public final class CustomItemTranslator {
 
         ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
 
-        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates // TODO
-        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>(); // TODO also fix this
+        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
+        // As with predicate conflict detection, this only works for common predicates that are backed using record classes in the API module, since they work with .equals().
+        // JSON mappings use only these common predicates, extensions may not.
+        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>();
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
             boolean allMatch = true;
