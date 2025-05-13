@@ -35,7 +35,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import java.util.Set;
 
 /**
- * This is used to store options for a custom item defintion that can't be described using item components.
+ * This is used to store options for a custom item definition that can't be described using item components.
  */
 public interface CustomItemBedrockOptions {
 

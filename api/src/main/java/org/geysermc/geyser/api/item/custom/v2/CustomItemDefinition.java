@@ -137,8 +137,8 @@ public interface CustomItemDefinition {
      */
     @NonNull List<Identifier> removedComponents();
 
-    static Builder builder(Identifier identifier, Identifier itemModel) {
-        return GeyserApi.api().provider(Builder.class, identifier, itemModel);
+    static Builder builder(Identifier bedrockIdentifier, Identifier itemModel) {
+        return GeyserApi.api().provider(Builder.class, bedrockIdentifier, itemModel);
     }
 
     interface Builder {
