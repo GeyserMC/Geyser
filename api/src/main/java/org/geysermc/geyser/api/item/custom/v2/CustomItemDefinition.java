@@ -130,10 +130,10 @@ public interface CustomItemDefinition {
      *     <li>{@code minecraft:enchantable} ({@link DataComponent#ENCHANTABLE})</li>
      *     <li>{@code minecraft:tool} ({@link DataComponent#TOOL})</li>
      *     <li>{@code minecraft:repairable} ({@link DataComponent#REPAIRABLE})</li>
+     *     <li>{@code minecraft:enchantment_glint_override} ({@link DataComponent#ENCHANTMENT_GLINT_OVERRIDE})</li>
      * </ul>
      *
-     * <p>Note: some components, for example {@code minecraft:rarity}, {@code minecraft:enchantment_glint_override}, and {@code minecraft:attribute_modifiers} are translated automatically,
-     * and do not have to be specified here.</p>
+     * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.</p>
      *
      * @see DataComponent
      * @see CustomItemDefinition#removedComponents()

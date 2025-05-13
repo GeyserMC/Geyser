@@ -45,6 +45,8 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
@@ -75,8 +77,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
-    private static final Identifier UNBREAKABLE_COMPONENT = Identifier.of("minecraft", "unbreakable");
-
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
     // These don't all work correctly on Bedrock - see the Consumable.Animation Javadoc in the API
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
@@ -301,6 +301,14 @@ public class CustomItemRegistryPopulator {
             computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
 
+        Boolean glint = components.get(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+        if (glint != null) {
+            itemProperties.putBoolean("foil", glint);
+            componentBuilder.putCompound("minecraft:glint", NbtMap.builder()
+                .putBoolean("value", glint)
+                .build());
+        }
+
         Consumable consumable = components.get(DataComponentTypes.CONSUMABLE);
         if (consumable != null) {
             FoodProperties foodProperties = components.get(DataComponentTypes.FOOD);
@@ -389,7 +397,9 @@ public class CustomItemRegistryPopulator {
         int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
 
         itemProperties.putInt("max_stack_size", stackSize);
-        if (maxDamage > 0) {
+
+        // Ignore durability if the item's predicates requires that it be unbreakable
+        if (maxDamage > 0 && !isUnbreakableItem(definition)) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                 .putCompound("damage_chance", NbtMap.builder()
                     .putInt("max", 1)
@@ -488,9 +498,8 @@ public class CustomItemRegistryPopulator {
         // all block items registered should be given this component to prevent double placement
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder()
             .putString("block", blockPlacer.block().toString())
-            .putBoolean("canUseBlockAsIcon", false)
+            .putBoolean("canUseBlockAsIcon", blockPlacer.replaceBlockItem()) // TODO is this right?
             .putList("use_on", NbtType.STRING)
-            .putBoolean("replace_block_item", blockPlacer.replaceBlockItem()) // TODO this is wrong
             .build());
     }
 
@@ -588,15 +597,11 @@ public class CustomItemRegistryPopulator {
     }
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
-        /*
-        for (CustomItemPredicate predicate : definition.predicates()) { // TODO
-            if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
-                Identifier component = (Identifier) condition.data();
-                if (UNBREAKABLE_COMPONENT.equals(component)) {
-                    return true;
-                }
+        for (MinecraftPredicate<? super ItemPredicateContext> predicate : definition.predicates()) {
+            if (predicate.equals(ItemConditionPredicate.UNBREAKABLE)) {
+                return true;
             }
-        }*/
+        }
         return false;
     }
 

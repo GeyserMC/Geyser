@@ -96,6 +96,10 @@ public final class DataComponent<T> {
      * @see Repairable
      */
     public static final DataComponent<Repairable> REPAIRABLE = create("repairable");
+    /**
+     * Overrides the item's enchantment glint.
+     */
+    public static final DataComponent<Boolean> ENCHANTMENT_GLINT_OVERRIDE = create("enchantment_glint_override");
 
     private final Identifier identifier;
     private final Predicate<T> validator;

@@ -113,6 +113,8 @@ public class ComponentConverters {
 
         registerConverter(DataComponent.TOOL, (itemMap, value) -> itemMap.put(DataComponentTypes.TOOL,
             new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative())));
+
+        registerConverter(DataComponent.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
