@@ -64,6 +64,8 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
@@ -86,7 +88,11 @@ import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -94,6 +100,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -735,47 +742,112 @@ public class ItemRegistryPopulator {
      *     <li>Lastly by the amount of predicates, from most to least.</li>
      * </ol>
      *
-     * <p>This comparator regards 2 custom item definitions as the same if their model differs, since it is only checking for predicates, and those
-     * don't matter if their models are different.</p>
+     * <p>If two definitions are the same, 0 is returned. If the model of two definitions differs, they are compared using their bedrock identifier, since
+     * predicates won't matter there. If two definitions have the same model, same priority, same amount of predicates and no range dispatch preference, they are compared
+     * using their bedrock identifier.</p>
+     *
+     * <p>As such, it is important that bedrock identifiers are always unique when using this comparator. This comparator can regard 2 definitions as equal if their
+     * bedrock identifier is equal.</p>
+     *
+     * <p>Please note! The range dispatch predicate sorting only works when two definitions both only have one range dispatch predicate, both of which have the same properties
+     * (property, index, normalised, negated). If there's a more complicated setup with e.g. multiple range dispatch predicates, priority values should be used to ensure
+     * proper sorting.</p>
      */
     private static class CustomItemDefinitionComparator implements Comparator<GeyserCustomMappingData> {
 
         @Override
         public int compare(GeyserCustomMappingData firstData, GeyserCustomMappingData secondData) {
+            // Important to remember when reading through this code: returning a positive number means the second definition will be checked before the first.
+            // Returning a negative number means the first definition will be checked before the second.
+            // Returning zero means the definitions are equal.
+
             CustomItemDefinition first = firstData.definition();
             CustomItemDefinition second = secondData.definition();
-            if (first.equals(second) || !first.model().equals(second.model())) {
+            if (first.equals(second)) {
+                // If equal, return 0
                 return 0;
+            } else if (first.model().equals(second.model())) {
+                // If models differ, compare by bedrock identifier, which should always be unique
+                return first.bedrockIdentifier().toString().compareTo(second.bedrockIdentifier().toString());
             }
 
             if (first.priority() != second.priority()) {
+                // If priority differs, prefer the higher priority value
                 return second.priority() - first.priority();
             }
 
             if (first.predicates().isEmpty() || second.predicates().isEmpty()) {
-                return second.predicates().size() - first.predicates().size(); // No need checking for range predicates if either one has no predicates
+                // If either one has no predicates, there's no need to check for range dispatch predicates.
+                // Prefer the one with the most amount of predicates
+                return second.predicates().size() - first.predicates().size();
             }
 
-            /*
-            for (MinecraftPredicate predicate : first.predicates()) {
-                if (predicate instanceof RangeDispatchPredicate rangeDispatch) {
+            // Loop through the predicates of the first definition and look for a range dispatch predicate
+            for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
+                RangeDispatchPredicate rangeDispatch = RangeDispatchPredicate.fromPredicate(predicate);
+                if (rangeDispatch != null) {
+                    // Look for a similar predicate in the other definition's predicates
                     Optional<RangeDispatchPredicate> other = second.predicates().stream()
-                        .filter(otherPredicate -> otherPredicate instanceof RangeDispatchPredicate otherDispatch && otherDispatch.property() == rangeDispatch.property())
-                        .map(otherPredicate -> (RangeDispatchPredicate) otherPredicate)
+                        .map(RangeDispatchPredicate::fromPredicate)
+                        .filter(otherPredicate -> otherPredicate != null
+                            && otherPredicate.property == rangeDispatch.property
+                            && otherPredicate.index == rangeDispatch.index
+                            && otherPredicate.normalised == rangeDispatch.normalised
+                            && otherPredicate.negated == rangeDispatch.negated)
                         .findFirst();
+
                     if (other.isPresent()) {
-                        double otherScaledThreshold = other.get().threshold() / other.get().scale();
-                        double thisThreshold = rangeDispatch.threshold() / rangeDispatch.scale();
-                        return (int) (otherScaledThreshold - thisThreshold);
+                        // If a similar predicate was found, check if they're negated
+                        // If they are, prefer the one with the lowest threshold
+                        // If they aren't, prefer the one with the highest threshold
+                        return (int) (rangeDispatch.negated ? rangeDispatch.threshold - other.get().threshold : other.get().threshold - rangeDispatch.threshold);
                     }
-                } // TODO not a fan of how this looks
-            }*/ // TODO fix this
+                }
+            }
 
             if (first.predicates().size() == second.predicates().size()) {
-                return -1; // If there's no preferred range predicate order and they both have the same amount of predicates, prefer the first
+                // If there's no preferred range predicate order and they both have the same amount of predicates, compare by bedrock identifier
+                return first.bedrockIdentifier().toString().compareTo(second.bedrockIdentifier().toString());
             }
 
+            // Prefer the one with the most amount of predicates
             return second.predicates().size() - first.predicates().size();
+        }
+    }
+
+    private record RangeDispatchPredicate(int property, double threshold, int index, boolean normalised, boolean negated) {
+
+        private static RangeDispatchPredicate fromPredicate(MinecraftPredicate<? super ItemPredicateContext> predicate) {
+            // Yep, we're using reflection here. I'm not a fan of it either.
+            // Here's the problem: predicates can be dynamically defined by extensions, but we still want a way of somewhat sorting range dispatch predicates
+            // and checking for predicate conflicts. So, there are a number of internal, package-private classes in the API module for commonly used predicates,
+            // which are also all the predicates used by JSON-mappings.
+            // These package-private predicate implementations are records, meaning they work with .equals checks and thus with conflict detection.
+            //
+            // However, to sort range dispatch predicates here, we need to access their components, such as their property, threshold, etc.
+            // We can't do that, since the classes are package-private in the API. So, we have to use reflection.
+            // If you have any better idea as to how to create a class that can be accessed by the API and by the core module, but not by extensions, do suggest it!
+            if (!predicate.getClass().getName().equals("org.geysermc.geyser.api.predicate.item.RangeDispatchPredicate")) {
+                return null;
+            }
+
+            RecordComponent[] components = predicate.getClass().getRecordComponents();
+            try {
+                int property = ((Enum<?>) tryGetComponent(components[0], predicate)).ordinal();
+                double threshold = (double) tryGetComponent(components[1], predicate);
+                int index = (int) tryGetComponent(components[2], predicate);
+                boolean normalised = (boolean) tryGetComponent(components[3], predicate);
+                boolean negated = (boolean) tryGetComponent(components[4], predicate);
+                return new RangeDispatchPredicate(property, threshold, index, normalised, negated);
+            } catch (InvocationTargetException | IllegalAccessException exception) {
+                throw new RuntimeException("Failed to execute reflection hacks to get range dispatch predicate properties!", exception);
+            }
+        }
+
+        private static Object tryGetComponent(RecordComponent component, Object record) throws InvocationTargetException, IllegalAccessException {
+            Method getter = component.getAccessor();
+            getter.trySetAccessible();
+            return getter.invoke(record);
         }
     }
 }

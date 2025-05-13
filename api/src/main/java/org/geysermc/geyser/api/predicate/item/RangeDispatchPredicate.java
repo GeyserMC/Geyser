@@ -46,6 +46,10 @@ record RangeDispatchPredicate(Property property, double threshold, int index, bo
         this(property, threshold, 0, false, false);
     }
 
+    public int propertyId() {
+        return property.ordinal();
+    }
+
     @Override
     public boolean test(ItemPredicateContext context) {
         Number value = property.getter.apply(context, this);
