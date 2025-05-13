@@ -40,14 +40,14 @@ public interface ItemRangeDispatchPredicate {
      *
      * @see ItemPredicateContext#bundleFullness()
      */
-    PredicateCreator<ItemPredicateContext, Double> BUNDLE_FULLNESS = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.BUNDLE_FULLNESS, threshold, 0, false, false);
+    PredicateCreator<ItemPredicateContext, Integer> BUNDLE_FULLNESS = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.BUNDLE_FULLNESS, threshold);
 
     /**
      * Checks the item's damage value.
      *
      * @see ItemPredicateContext#damage()
      */
-    PredicateCreator<ItemPredicateContext, Double> DAMAGE = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.DAMAGE, threshold);
+    PredicateCreator<ItemPredicateContext, Integer> DAMAGE = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.DAMAGE, threshold);
 
     /**
      * Checks the item's damage value, normalised ({@code damage / max_damage}). Always returns false is {@code max_damage} is 0.
@@ -62,7 +62,7 @@ public interface ItemRangeDispatchPredicate {
      *
      * @see ItemPredicateContext#count()
      */
-    PredicateCreator<ItemPredicateContext, Double> COUNT = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.COUNT, threshold);
+    PredicateCreator<ItemPredicateContext, Integer> COUNT = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.COUNT, threshold);
 
     /**
      * Checks the item's stack count, normalised ({@code count / max_stack_size}).
@@ -71,6 +71,13 @@ public interface ItemRangeDispatchPredicate {
      * @see ItemPredicateContext#maxStackSize() ()
      */
     PredicateCreator<ItemPredicateContext, Double> COUNT_NORMALISED = threshold -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.COUNT, threshold, true);
+
+    /**
+     * Checks for the first of the item's custom model data floats, which is the custom model data value on Java servers below 1.21.4.
+     *
+     * @see ItemPredicateContext#customModelDataFloat(int)
+     */
+    PredicateCreator<ItemPredicateContext, Integer> LEGACY_CUSTOM_MODEL_DATA = data -> new RangeDispatchPredicate(RangeDispatchPredicate.Property.CUSTOM_MODEL_DATA, data, 0);
 
     /**
      * Checks one of the item's custom model data floats.

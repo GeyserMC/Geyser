@@ -36,6 +36,13 @@ import org.geysermc.geyser.api.util.Identifier;
 public interface ItemConditionPredicate {
 
     /**
+     * Checks if the item is unbreakable.
+     *
+     * @see ItemPredicateContext#unbreakable()
+     */
+    MinecraftPredicate<ItemPredicateContext> UNBREAKABLE = ItemPredicateContext::unbreakable;
+
+    /**
      * Checks if the item is damageable (not unbreakable and has a max damage value above 0).
      *
      * @see ItemPredicateContext#unbreakable()

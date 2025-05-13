@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.TriState;
@@ -139,16 +141,19 @@ public interface CustomItemData {
                 .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
             );
 
-        // TODO maybe specify priority here for correct sorting
         CustomItemOptions options = customItemOptions();
         if (options.customModelData().isPresent()) {
-            definition.predicate(context -> context.customModelDataFloat(0) >= options.customModelData().getAsInt());
+            definition.predicate(ItemRangeDispatchPredicate.LEGACY_CUSTOM_MODEL_DATA.create(options.customModelData().getAsInt()));
         }
         if (options.damagePredicate().isPresent()) {
-            definition.predicate(context -> context.damage() >= options.damagePredicate().getAsInt());
+            definition.predicate(ItemRangeDispatchPredicate.DAMAGE.create(options.damagePredicate().getAsInt()));
         }
         if (options.unbreakable() != TriState.NOT_SET) {
-            definition.predicate(context -> context.unbreakable() == Boolean.TRUE.equals(options.unbreakable().toBoolean()));
+            if (options.unbreakable() == TriState.TRUE) {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE);
+            } else {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE.negate());
+            }
         }
         return definition;
     }
