@@ -86,8 +86,9 @@ public final class InputCache {
             .withRight(right)
             // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
             // using the "raw" values allows us sending key presses even with locked input
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW))
-            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW))
+            // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
+            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
         // Send sneaking state before inputs, matches Java client
