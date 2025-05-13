@@ -35,6 +35,9 @@ final class CustomModelDataPredicate {
 
     private CustomModelDataPredicate() {}
 
+    /**
+     * Use {@link ItemConditionPredicate#CUSTOM_MODEL_DATA}.
+     */
     record FlagPredicate(int index, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
         @Override
@@ -48,6 +51,9 @@ final class CustomModelDataPredicate {
         }
     }
 
+    /**
+     * Use {@link ItemMatchPredicate#CUSTOM_MODEL_DATA}.
+     */
     record StringPredicate(String string, int index, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
         @Override

@@ -30,6 +30,8 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 
 /**
  * Contains creators for often-used "range dispatch" predicates, which check if a value in {@link org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext} is at or above a certain threshold.
+ *
+ * <p>Predicates created through these creators support conflict detection and proper sorting when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
  */
 public interface ItemRangeDispatchPredicate {
 

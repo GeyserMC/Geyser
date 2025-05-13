@@ -32,6 +32,9 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
+/**
+ * Use {@link ItemMatchPredicate#TRIM_MATERIAL}.
+ */
 record TrimMaterialPredicate(Identifier trimMaterial, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
     @Override

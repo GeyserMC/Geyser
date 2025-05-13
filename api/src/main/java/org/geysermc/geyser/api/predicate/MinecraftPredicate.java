@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.predicate;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
 import java.util.Objects;
@@ -34,9 +35,12 @@ import java.util.function.Predicate;
 /**
  * A predicate for a {@link MinecraftPredicateContext}.
  *
- * <p>Right now this is used to determine if a {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition} should be used.</p>
+ * <p>Right now this is used to determine if a {@link CustomItemDefinition} should be used. While this does
+ * allow you to define your own predicates with custom checks, it is recommended to use commonly defined predicates and predicate creators when possible,
+ * since these support conflict detection among other benefits. See {@link CustomItemDefinition#predicates()}.</p>
  *
  * @param <C> the predicate context.
+ * @see CustomItemDefinition#predicates()
  */
 @FunctionalInterface
 public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {
@@ -52,7 +56,6 @@ public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends
         return (context) -> !this.test(context);
     }
 
-    // TODO javadoc?
     @Override
     default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
         Objects.requireNonNull(other);

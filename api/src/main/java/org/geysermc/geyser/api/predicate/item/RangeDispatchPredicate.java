@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+// Be careful when changing things in this record, reflection is used elsewhere (ItemRegistryPopulator in core Geyser) to access some properties.
 record RangeDispatchPredicate(Property property, double threshold, int index, boolean normalised, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
     RangeDispatchPredicate(Property property, double threshold, boolean normalised) {
@@ -44,10 +45,6 @@ record RangeDispatchPredicate(Property property, double threshold, int index, bo
 
     RangeDispatchPredicate(Property property, double threshold) {
         this(property, threshold, 0, false, false);
-    }
-
-    public int propertyId() {
-        return property.ordinal();
     }
 
     @Override

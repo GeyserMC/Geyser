@@ -32,6 +32,8 @@ import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Contains creators for often-used "match" predicates, that match for a value in {@link ItemPredicateContext}.
+ *
+ * <p>Predicates created through these creators support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
  */
 public interface ItemMatchPredicate {
 

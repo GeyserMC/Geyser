@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.intellij.lang.annotations.Subst;
@@ -39,14 +40,14 @@ public final class MinecraftKey {
         return Key.key(s);
     }
 
-    public static Key identifierToKey(Identifier identifier) {
+    public static Key identifierToKey(@Nullable Identifier identifier) {
         if (identifier == null) {
             return null;
         }
         return identifier instanceof IdentifierImpl impl ? impl.identifier() : Key.key(identifier.namespace(), identifier.path());
     }
 
-    public static Identifier keyToIdentifier(Key key) {
+    public static Identifier keyToIdentifier(@Nullable Key key) {
         if (key == null) {
             return null;
         }

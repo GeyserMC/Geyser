@@ -30,6 +30,9 @@ import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 
+/**
+ * Use {@link ItemMatchPredicate#CHARGE_TYPE}.
+ */
 record ChargeTypePredicate(ChargedProjectile.ChargeType type, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
     @Override

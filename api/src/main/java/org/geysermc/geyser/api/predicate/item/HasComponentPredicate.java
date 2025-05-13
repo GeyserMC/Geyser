@@ -30,6 +30,9 @@ import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Use {@link ItemConditionPredicate#HAS_COMPONENT}.
+ */
 record HasComponentPredicate(Identifier component, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
     @Override

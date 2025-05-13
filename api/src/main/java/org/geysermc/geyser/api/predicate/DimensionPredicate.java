@@ -31,6 +31,9 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
+/**
+ * Use {@link MatchPredicate#CONTEXT_DIMENSION}.
+ */
 record DimensionPredicate(Identifier dimension, boolean negated) implements MinecraftPredicate<MinecraftPredicateContext>  {
 
     @Override
