@@ -34,8 +34,9 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     private final @NonNull Identifier bedrockIdentifier;
     private final @NonNull String displayName;
     private final @NonNull Identifier model;
-    private final @NonNull List<CustomItemPredicate> predicates;
+    private final @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates;
     private final PredicateStrategy predicateStrategy;
     private final int priority;
     private final @NonNull CustomItemBedrockOptions bedrockOptions;
@@ -83,7 +84,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     }
 
     @Override
-    public @NonNull List<CustomItemPredicate> predicates() {
+    public @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates() {
         return predicates;
     }
 
@@ -115,7 +116,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     public static class Builder implements CustomItemDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
-        private final List<CustomItemPredicate> predicates = new ArrayList<>();
+        private final List<MinecraftPredicate<? super ItemPredicateContext>> predicates = new ArrayList<>();
         private final Reference2ObjectMap<DataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
         private final List<Identifier> removedComponents = new ArrayList<>();
 
@@ -149,7 +150,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         }
 
         @Override
-        public CustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
+        public CustomItemDefinition.Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate) {
             predicates.add(predicate);
             return this;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.match;
+package org.geysermc.geyser.api.predicate.context.item;
 
-/**
- * Values returned by the {@link MatchPredicateProperty#CHARGE_TYPE} predicate property.
- */
-public enum ChargeType {
-    /**
-     * Returned if there are no projectiles loaded in the crossbow.
-     */
-    NONE,
-    /**
-     * Returned if there are any projectiles (except fireworks) loaded in the crossbow.
-     */
-    ARROW,
-    /**
-     * Returned if there are firework rocket projectiles loaded in the crossbow.
-     */
-    ROCKET
+public record ChargedProjectile(ChargeType type, int count) {
+
+    public enum ChargeType {
+        /**
+         * Any item that is not {@code minecraft:firework_rocket}.
+         */
+        ARROW,
+        /**
+         * {@code minecraft:firework_rocket}
+         */
+        ROCKET
+    }
 }

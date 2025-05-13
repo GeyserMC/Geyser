@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.match;
+package org.geysermc.geyser.api.predicate;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
-public final class MatchPredicateProperty<T> {
+import java.util.Objects;
 
-    /**
-     * Matches for the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
-     */
-    public static final MatchPredicateProperty<ChargeType> CHARGE_TYPE = create();
-    /**
-     * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
-     */
-    public static final MatchPredicateProperty<Identifier> TRIM_MATERIAL = create();
-    /**
-     * Matches the dimension identifier the Bedrock session player is currently in.
-     */
-    public static final MatchPredicateProperty<Identifier> CONTEXT_DIMENSION = create();
-    /**
-     * Matches a string of the item's custom model data strings.
-     */
-    public static final MatchPredicateProperty<CustomModelDataString> CUSTOM_MODEL_DATA = create();
+/**
+ * Use {@link MatchPredicate#CONTEXT_DIMENSION}.
+ */
+record DimensionPredicate(Identifier dimension, boolean negated) implements MinecraftPredicate<MinecraftPredicateContext>  {
 
-    private MatchPredicateProperty() {}
+    @Override
+    public boolean test(MinecraftPredicateContext context) {
+        return negated != Objects.equals(context.dimension(), dimension);
+    }
 
-    private static <T> MatchPredicateProperty<T> create() {
-        return new MatchPredicateProperty<>();
+    @Override
+    public @NonNull MinecraftPredicate<MinecraftPredicateContext> negate() {
+        return new DimensionPredicate(dimension, !negated);
     }
 }

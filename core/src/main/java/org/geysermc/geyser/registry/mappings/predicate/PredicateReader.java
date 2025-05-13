@@ -23,15 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.registry.mappings.predicate;
 
-public enum PredicateStrategy {
-    /**
-     * Require all predicates to pass for the item to be used.
-     */
-    AND,
-    /**
-     * Require only one of the predicates to pass for the item to be used.
-     */
-    OR
+import com.google.gson.JsonElement;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+
+@FunctionalInterface
+public interface PredicateReader<C extends MinecraftPredicateContext> {
+
+    MinecraftPredicate<? super C> read(JsonElement element, String... context) throws InvalidCustomMappingsFileException;
 }

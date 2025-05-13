@@ -23,18 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
 /**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#condition(ConditionPredicateProperty, boolean, Object)
+ * Used to create often-used predicates.
+ *
+ * @param <C> predicate context.
+ * @param <D> predicate data.
  */
-public interface ConditionItemPredicate<T> extends CustomItemPredicate {
+@FunctionalInterface
+public interface PredicateCreator<C extends MinecraftPredicateContext, D> {
 
-    ConditionPredicateProperty<T> property();
-
-    boolean expected();
-
-    T data();
+    MinecraftPredicate<C> create(@NonNull D data);
 }

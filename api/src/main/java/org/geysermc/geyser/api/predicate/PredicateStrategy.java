@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.MatchItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
-
-public record MatchPredicate<T>(MatchPredicateProperty<T> property, T data) implements MatchItemPredicate<T> {
+public enum PredicateStrategy {
+    /**
+     * Require all predicates to pass
+     */
+    AND,
+    /**
+     * Require only one of the predicates to pass
+     */
+    OR
 }

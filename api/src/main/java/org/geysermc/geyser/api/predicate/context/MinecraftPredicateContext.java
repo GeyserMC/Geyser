@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate.context;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.ConditionItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
-public record ConditionPredicate<T>(ConditionPredicateProperty<T> property, boolean expected, T data) implements ConditionItemPredicate<T> {
+/**
+ * Generic Minecraft context. Used in {@link org.geysermc.geyser.api.predicate.MinecraftPredicate}s.
+ */
+public interface MinecraftPredicateContext {
+
+    /**
+     * @return the context dimension. This is usually the dimension the player is in.
+     */
+    Identifier dimension();
 }

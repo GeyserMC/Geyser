@@ -34,14 +34,14 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.CustomModelDataString;
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
+import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
+import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
+import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
@@ -197,47 +197,22 @@ public class MappingsReader_v2 extends MappingsReader {
 
         switch (type) {
             case "condition" -> {
-                ConditionPredicateProperty<?> conditionProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.CONDITION_PREDICATE_PROPERTY, context);
+                ItemConditionProperty conditionProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_CONDITION_PROPERTY, context);
                 boolean expected = MappingsUtil.readOrDefault(element, "expected", NodeReader.BOOLEAN, true, context);
+                MinecraftPredicate<? super ItemPredicateContext> predicate = conditionProperty.read(element, context);
 
-                if (!conditionProperty.requiresData) {
-                    builder.predicate(CustomItemPredicate.condition((ConditionPredicateProperty<Void>) conditionProperty, expected));
-                } else if (conditionProperty == ConditionPredicateProperty.CUSTOM_MODEL_DATA) {
-                    int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
-                    builder.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.CUSTOM_MODEL_DATA, expected, index));
-                } else if (conditionProperty == ConditionPredicateProperty.HAS_COMPONENT) {
-                    Identifier component = MappingsUtil.readOrThrow(element, "component", NodeReader.IDENTIFIER, context);
-                    builder.predicate(CustomItemPredicate.condition(ConditionPredicateProperty.HAS_COMPONENT, expected, component));
-                } else {
-                    throw new InvalidCustomMappingsFileException("reading condition predicate", "unimplemented reading of condition predicate property!", context);
+                if (!expected) {
+                    predicate = predicate.negate();
                 }
+                builder.predicate(predicate);
             }
             case "match" -> {
-                MatchPredicateProperty<?> property = MappingsUtil.readOrThrow(element, "property", NodeReader.MATCH_PREDICATE_PROPERTY, context);
-
-                if (property == MatchPredicateProperty.CHARGE_TYPE) {
-                    builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CHARGE_TYPE,
-                        MappingsUtil.readOrThrow(element, "value", NodeReader.CHARGE_TYPE, context)));
-                } else if (property == MatchPredicateProperty.TRIM_MATERIAL || property == MatchPredicateProperty.CONTEXT_DIMENSION) {
-                    builder.predicate(CustomItemPredicate.match((MatchPredicateProperty<Identifier>) property,
-                        MappingsUtil.readOrThrow(element, "value", NodeReader.IDENTIFIER, context)));
-                } else if (property == MatchPredicateProperty.CUSTOM_MODEL_DATA) {
-                    builder.predicate(CustomItemPredicate.match(MatchPredicateProperty.CUSTOM_MODEL_DATA,
-                        new CustomModelDataString(MappingsUtil.readOrThrow(element, "value", NodeReader.STRING, context),
-                            MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context))));
-                } else {
-                    throw new InvalidCustomMappingsFileException("reading match predicate", "unimplemented reading of match predicate property!", context);
-                }
+                ItemMatchProperty matchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_MATCH_PROPERTY, context);
+                builder.predicate(matchProperty.read(element, context));
             }
             case "range_dispatch" -> {
-                RangeDispatchPredicateProperty property = MappingsUtil.readOrThrow(element, "property", NodeReader.RANGE_DISPATCH_PREDICATE_PROPERTY, context);
-
-                double threshold = MappingsUtil.readOrThrow(element, "threshold", NodeReader.DOUBLE, context);
-                double scale = MappingsUtil.readOrDefault(element, "scale", NodeReader.DOUBLE, 1.0, context);
-                boolean normalizeIfPossible = MappingsUtil.readOrDefault(element, "normalize", NodeReader.BOOLEAN, false, context);
-                int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
-
-                builder.predicate(CustomItemPredicate.rangeDispatch(property, threshold, scale, normalizeIfPossible, index));
+                ItemRangeDispatchProperty rangeDispatchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_RANGE_DISPATCH_PROPERTY, context);
+                builder.predicate(rangeDispatchProperty.read(element, context));
             }
             default -> throw new InvalidCustomMappingsFileException("reading predicate", "unknown predicate type " + type, context);
         }

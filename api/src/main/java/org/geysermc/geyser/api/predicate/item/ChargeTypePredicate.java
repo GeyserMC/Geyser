@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.api.predicate.item;
 
-import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.impl.IdentifierImpl;
-import org.intellij.lang.annotations.Subst;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 
-public final class MinecraftKey {
+/**
+ * Use {@link ItemMatchPredicate#CHARGE_TYPE}.
+ */
+record ChargeTypePredicate(ChargedProjectile.ChargeType type, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
 
-    /**
-     * To prevent constant warnings from invalid regex.
-     */
-    public static Key key(@Subst("empty") String s) {
-        return Key.key(s);
+    @Override
+    public boolean test(ItemPredicateContext context) {
+        return negated != context.chargedProjectiles().stream().anyMatch(projectile -> projectile.type() == this.type);
     }
 
-    public static Key identifierToKey(@Nullable Identifier identifier) {
-        if (identifier == null) {
-            return null;
-        }
-        return identifier instanceof IdentifierImpl impl ? impl.identifier() : Key.key(identifier.namespace(), identifier.path());
-    }
-
-    public static Identifier keyToIdentifier(@Nullable Key key) {
-        if (key == null) {
-            return null;
-        }
-        return new IdentifierImpl(key);
+    @Override
+    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+        return new ChargeTypePredicate(type, !negated);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate.match;
+package org.geysermc.geyser.api.predicate.item;
 
-public record CustomModelDataString(String value, int index) {
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.Identifier;
+
+import java.util.Objects;
+
+/**
+ * Use {@link ItemMatchPredicate#TRIM_MATERIAL}.
+ */
+record TrimMaterialPredicate(Identifier trimMaterial, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
+
+    @Override
+    public boolean test(ItemPredicateContext context) {
+        return negated != Objects.equals(context.trimMaterial(), trimMaterial);
+    }
+
+    @Override
+    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+        return new TrimMaterialPredicate(trimMaterial, !negated);
+    }
 }

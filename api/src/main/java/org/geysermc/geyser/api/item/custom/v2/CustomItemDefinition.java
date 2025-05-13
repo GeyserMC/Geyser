@@ -29,8 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
@@ -46,11 +47,13 @@ import java.util.List;
  *
  * <ol>
  *     <li>First by checking their priority values, higher priority values going first.</li>
- *     <li>Then by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first.</li>
+ *     <li>Then by checking if they both have a similar {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate} predicate, the one with the highest (or lowest, when both are negated) threshold going first.</li>
  *     <li>Lastly by the amount of predicates, from most to least.</li>
  * </ol>
  *
- * <p>This ensures predicates will be checked in the correct order. In most cases, specifying a priority value isn't necessary, but it can be added to ensure the intended order. </p>
+ * <p>Please note! While this system in most cases ensures predicates will be checked in the correct order,
+ * the range dispatch predicate sorting only works when 2 definitions only have 1 range dispatch predicate that is similar enough. With more complicated predicate checks,
+ * it is recommended to make use of priority values, to ensure the intended order.</p>
  */
 public interface CustomItemDefinition {
 
@@ -81,13 +84,21 @@ public interface CustomItemDefinition {
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      */
     default @NonNull String icon() {
-        return bedrockOptions().icon() == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : bedrockOptions().icon();
+        String setIcon = bedrockOptions().icon();
+        return setIcon == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : setIcon;
     }
 
     /**
-     * The predicates that have to match for this item definition to be used. These predicates are similar to the Java item model predicates.
+     * The predicates that have to match for this item definition to be used. These predicates can access properties similar to the Java item model predicates.
+     *
+     * <p>When adding predicates, prevent chaining many predicates that use an OR expression - instead, set the {@link PredicateStrategy} of the definition to
+     * {@link PredicateStrategy#OR}.</p>
+     *
+     * <p>It is recommended to use built-in predicates created from classes such as {@link org.geysermc.geyser.api.predicate.MatchPredicate}, {@link org.geysermc.geyser.api.predicate.item.ItemMatchPredicate},
+     * {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate}, and {@link org.geysermc.geyser.api.predicate.item.ItemConditionPredicate} when possible. These predicates
+     * work with conflict detection, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover.</p>
      */
-    @NonNull List<CustomItemPredicate> predicates();
+    @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
      * The predicate strategy to be used. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
@@ -149,7 +160,7 @@ public interface CustomItemDefinition {
 
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
-        Builder predicate(@NonNull CustomItemPredicate predicate);
+        Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate);
 
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 

@@ -44,15 +44,13 @@ import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.condition.ConditionPredicateProperty;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.ComponentConverters;
-import org.geysermc.geyser.item.custom.predicate.ConditionPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -210,12 +208,17 @@ public class CustomItemRegistryPopulator {
         if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
             return "both entries don't have predicates, one must have a predicate";
         }
-        // If their predicates are equal then they also conflict
+
+        // If their amount of predicates is equal, and the new definition contains all the existing predicates, then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
-            for (CustomItemPredicate predicate : existing.getValue().predicates()) {
+
+            // This only works for common predicates that are backed using record classes in the API module!!
+            // Custom predicates defined by API users (not by JSON mappings, those only use common predicates) will not work with conflict detection here!
+            for (MinecraftPredicate<?> predicate : existing.getValue().predicates()) {
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
+                    break;
                 }
             }
             if (equal) {
@@ -386,7 +389,7 @@ public class CustomItemRegistryPopulator {
         int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
 
         itemProperties.putInt("max_stack_size", stackSize);
-        if (maxDamage > 0 && !isUnbreakableItem(definition)) {
+        if (maxDamage > 0) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                 .putCompound("damage_chance", NbtMap.builder()
                     .putInt("max", 1)
@@ -585,14 +588,15 @@ public class CustomItemRegistryPopulator {
     }
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
-        for (CustomItemPredicate predicate : definition.predicates()) {
+        /*
+        for (CustomItemPredicate predicate : definition.predicates()) { // TODO
             if (predicate instanceof ConditionPredicate<?> condition && condition.property() == ConditionPredicateProperty.HAS_COMPONENT && condition.expected()) {
                 Identifier component = (Identifier) condition.data();
                 if (UNBREAKABLE_COMPONENT.equals(component)) {
                     return true;
                 }
             }
-        }
+        }*/
         return false;
     }
 

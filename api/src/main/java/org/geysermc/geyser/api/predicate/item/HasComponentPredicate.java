@@ -23,25 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
-public enum RangeDispatchPredicateProperty {
-    /**
-     * Checks the item's bundle fullness. Returns the total stack count of all the items in a bundle.
-     *
-     * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
-     */
-    BUNDLE_FULLNESS,
-    /**
-     * Checks the item's damage value. Can be normalised.
-     */
-    DAMAGE,
-    /**
-     * Checks the item's stack count. Can be normalised.
-     */
-    COUNT,
-    /**
-     * Checks one of the item's custom model data floats, defaults to 0.0.
-     */
-    CUSTOM_MODEL_DATA
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.Identifier;
+
+/**
+ * Use {@link ItemConditionPredicate#HAS_COMPONENT}.
+ */
+record HasComponentPredicate(Identifier component, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
+
+    @Override
+    public boolean test(ItemPredicateContext context) {
+        return negated != context.components().contains(component);
+    }
+
+    @Override
+    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+        return new HasComponentPredicate(component, !negated);
+    }
 }

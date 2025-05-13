@@ -23,16 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.predicate;
+package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.match.MatchPredicateProperty;
-
-/**
- * @see org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate#match(MatchPredicateProperty, Object)
- */
-public interface MatchItemPredicate<T> extends CustomItemPredicate {
-
-    MatchPredicateProperty<T> property();
-
-    T data();
+public record CustomModelDataFloat(float value, int index) {
 }

@@ -34,8 +34,9 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.predicate.CustomItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 @EqualsAndHashCode(callSuper = true)
@@ -96,12 +97,12 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         }
 
         @Override
-        public NonVanillaCustomItemDefinition.Builder predicate(@NonNull CustomItemPredicate predicate) {
+        public CustomItemDefinition.Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate) {
             throw new IllegalArgumentException("Predicates are not supported for non-vanilla custom item definitions");
         }
 
         @Override
-        public NonVanillaCustomItemDefinition.Builder predicateStrategy(@NonNull PredicateStrategy strategy) {
+        public CustomItemDefinition.Builder predicateStrategy(@NonNull PredicateStrategy strategy) {
             throw new IllegalArgumentException("Predicates are not supported for non-vanilla custom item definitions");
         }
 

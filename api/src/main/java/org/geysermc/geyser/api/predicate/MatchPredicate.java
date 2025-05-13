@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.predicate;
+package org.geysermc.geyser.api.predicate;
 
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchItemPredicate;
-import org.geysermc.geyser.api.item.custom.v2.predicate.RangeDispatchPredicateProperty;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import org.geysermc.geyser.api.util.Identifier;
 
-public record RangeDispatchPredicate(RangeDispatchPredicateProperty property, double threshold, double scale, boolean normalizeIfPossible, int index) implements RangeDispatchItemPredicate {
+/**
+ * Contains creators for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
+ *
+ * <p>Predicates created through these creators support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
+ */
+public interface MatchPredicate {
+
+    /**
+     * Matches the dimension identifier the Bedrock session player is currently in.
+     *
+     * @see MinecraftPredicateContext#dimension()
+     */
+    PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = dimension -> new DimensionPredicate(dimension, false);
 }
