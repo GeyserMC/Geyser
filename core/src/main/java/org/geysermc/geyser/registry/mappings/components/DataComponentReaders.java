@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.components.readers.BooleanComponentReader;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EnchantableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
@@ -72,5 +73,6 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("enchantable"), new EnchantableReader());
         READERS.put(MinecraftKey.key("tool"), new ToolPropertiesReader());
         READERS.put(MinecraftKey.key("repairable"), new RepairableReader());
+        READERS.put(MinecraftKey.key("enchantment_glint_override"), new BooleanComponentReader(DataComponent.ENCHANTMENT_GLINT_OVERRIDE));
     }
 }

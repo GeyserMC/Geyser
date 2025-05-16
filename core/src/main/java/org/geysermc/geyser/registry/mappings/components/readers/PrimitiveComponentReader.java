@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,28 +25,26 @@
 
 package org.geysermc.geyser.registry.mappings.components.readers;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.util.NodeReader;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 
-public class IntComponentReader extends PrimitiveComponentReader<Integer> {
-    private final int minimum;
-    private final int maximum;
+public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
 
-    public IntComponentReader(DataComponent<Integer> type, int minimum, int maximum) {
+    protected PrimitiveComponentReader(DataComponent<V> type) {
         super(type);
-        this.minimum = minimum;
-        this.maximum = maximum;
     }
 
-    public IntComponentReader(DataComponent<Integer> type, int minimum) {
-        this(type, minimum, Integer.MAX_VALUE);
-    }
+    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
 
     @Override
-    protected Integer readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException {
-        return NodeReader.boundedInt(minimum, maximum).read(primitive, "reading component", context);
+    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        if (!element.isJsonPrimitive()) {
+            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
+        }
+        return readValue((JsonPrimitive) element, context);
     }
 }

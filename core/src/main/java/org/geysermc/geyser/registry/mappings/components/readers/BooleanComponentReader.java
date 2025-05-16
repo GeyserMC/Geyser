@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,22 +31,14 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class IntComponentReader extends PrimitiveComponentReader<Integer> {
-    private final int minimum;
-    private final int maximum;
+public class BooleanComponentReader extends PrimitiveComponentReader<Boolean> {
 
-    public IntComponentReader(DataComponent<Integer> type, int minimum, int maximum) {
+    public BooleanComponentReader(DataComponent<Boolean> type) {
         super(type);
-        this.minimum = minimum;
-        this.maximum = maximum;
-    }
-
-    public IntComponentReader(DataComponent<Integer> type, int minimum) {
-        this(type, minimum, Integer.MAX_VALUE);
     }
 
     @Override
-    protected Integer readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException {
-        return NodeReader.boundedInt(minimum, maximum).read(primitive, "reading component", context);
+    protected Boolean readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException {
+        return NodeReader.BOOLEAN.read(primitive, "reading component", context);
     }
 }
