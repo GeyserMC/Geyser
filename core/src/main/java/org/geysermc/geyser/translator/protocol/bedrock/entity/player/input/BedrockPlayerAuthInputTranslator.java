@@ -324,8 +324,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
-            // Can't rely on y-delta being 0, as the value is -0.078 even when standing still
-            vehicle.setOnGround(Math.abs(packet.getDelta().getY()) < 0.1);
+            vehicle.setOnGround(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
@@ -346,7 +345,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 return;
             }
 
-            if (vehicle instanceof BoatEntity && !vehicle.isOnGround()) {
+            if (vehicle instanceof BoatEntity) {
                 // Remove some Y position to prevents boats flying up
                 vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
             }
