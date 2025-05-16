@@ -416,16 +416,16 @@ public class CustomItemRegistryPopulator {
      * We want this since we calculate break speed server side in BedrockActionTranslator
      */
     private static void computeToolProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        List<NbtMap> speed = new ArrayList<>(List.of(
+        List<NbtMap> speed = List.of(
             NbtMap.builder()
                 .putCompound("block", NbtMap.builder()
                     .putString("name", "")
                     .putCompound("states", NbtMap.EMPTY)
                     .putString("tags", "1")
                     .build())
-                .putInt("speed", 0)
+                .putInt("speed", 1) // TODO this is broken
                 .build()
-        ));
+        );
 
         componentBuilder.putCompound("minecraft:digger", NbtMap.builder()
             .putList("destroy_speeds", NbtType.COMPOUND, speed)
