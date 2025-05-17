@@ -45,6 +45,7 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.type.ArrowItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.level.block.type.Block;
@@ -183,7 +184,9 @@ public final class ItemTranslator {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible when shown in tooltip
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
-                customName += getPotionEffectInfo(potionContents, session.locale()); // TODO should this be done with lore instead?
+                // Add to the name (use '\n' to wrap lines) instead of the lore
+                // to make it show in HUD like the effect information of vanilla Bedrock potion
+                customName += getPotionEffectInfo(potionContents, session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
@@ -379,6 +382,7 @@ public final class ItemTranslator {
             }
             Component component = Component.text()
                 .resetStyle()
+                // Use blue to distinguish the gray vanilla Bedrock effect
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
@@ -400,7 +404,21 @@ public final class ItemTranslator {
         }
         if (!contents.getCustomEffects().isEmpty()) {
             // Make a name when has custom effects
-            String potionName = potion == null ? "empty" : potion.toString().toLowerCase(Locale.ROOT);
+            // because the custom effect information is display from the second line of the name.
+            // if name is not set, the custom effect information will not be displayed.
+            String potionName;
+            if (potion != null) {
+                potionName = potion.toString().toLowerCase(Locale.ROOT);
+                // Remove the incorrect prefix
+                // for example, potion "long_leaping" should use "leaping" in translatable name
+                if (potionName.startsWith("strong_")) {
+                    potionName = potionName.substring(7);
+                } else if (potionName.startsWith("long_")) {
+                    potionName = potionName.substring(5);
+                }
+            } else {
+                potionName = "empty";
+            }
             return MessageTranslator.convertMessage(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName), language);
         }
         return null;
@@ -538,7 +556,7 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
-                if (mapping.getJavaItem() instanceof PotionItem) {
+                if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof ArrowItem) {
                     PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                     if (potionContents != null) {
                         String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
