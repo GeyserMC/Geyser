@@ -33,7 +33,6 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
@@ -93,7 +92,7 @@ final class BedrockMovePlayer {
         }
 
         // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
-        boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
+        boolean onClimbableBlock = entity.isOnClimbableBlock();
         if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
         }
@@ -102,7 +101,8 @@ final class BedrockMovePlayer {
         boolean isOnGround;
         if (hasVehicle) {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
-            isOnGround = Math.abs(entity.getLastTickEndVelocity().getY()) < 0.1;
+            // If the player is riding a vehicle or is in spectator mode, onGround is always set to false for the player
+            isOnGround = false;
         } else {
             isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
