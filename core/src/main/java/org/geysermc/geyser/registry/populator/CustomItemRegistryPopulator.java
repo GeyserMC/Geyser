@@ -363,6 +363,8 @@ public class CustomItemRegistryPopulator {
     private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         CustomItemBedrockOptions options = definition.bedrockOptions();
 
+        // Don't send an icon if the item has a block placer component, and is set to use its block as icon
+        // This makes bedrock use a 3D render of the block this item places as icon
         BlockPlacer blockPlacer = definition.components().get(GeyserDataComponent.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
             NbtMap iconMap = NbtMap.builder()
