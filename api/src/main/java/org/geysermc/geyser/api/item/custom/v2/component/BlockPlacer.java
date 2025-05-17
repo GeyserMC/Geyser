@@ -27,5 +27,5 @@ package org.geysermc.geyser.api.item.custom.v2.component;
 
 import org.geysermc.geyser.api.util.Identifier;
 
-public record BlockPlacer(Identifier block, boolean replaceBlockItem) {
+public record BlockPlacer(Identifier block, boolean useBlockIcon) {
 }

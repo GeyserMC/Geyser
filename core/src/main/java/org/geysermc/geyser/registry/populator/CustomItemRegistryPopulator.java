@@ -362,12 +362,16 @@ public class CustomItemRegistryPopulator {
 
     private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         CustomItemBedrockOptions options = definition.bedrockOptions();
-        NbtMap iconMap = NbtMap.builder()
-            .putCompound("textures", NbtMap.builder()
-                .putString("default", definition.icon())
-                .build())
-            .build();
-        itemProperties.putCompound("minecraft:icon", iconMap);
+
+        BlockPlacer blockPlacer = definition.components().get(GeyserDataComponent.BLOCK_PLACER);
+        if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
+            NbtMap iconMap = NbtMap.builder()
+                .putCompound("textures", NbtMap.builder()
+                    .putString("default", definition.icon())
+                    .build())
+                .build();
+            itemProperties.putCompound("minecraft:icon", iconMap);
+        }
 
         if (options.creativeCategory() != CreativeCategory.NONE) {
             itemProperties.putInt("creative_category", options.creativeCategory().id());
@@ -423,7 +427,7 @@ public class CustomItemRegistryPopulator {
                     .putCompound("states", NbtMap.EMPTY)
                     .putString("tags", "1")
                     .build())
-                .putInt("speed", 1) // TODO this is broken
+                .putInt("speed", 1)
                 .build()
         );
 
@@ -498,7 +502,7 @@ public class CustomItemRegistryPopulator {
         // all block items registered should be given this component to prevent double placement
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder()
             .putString("block", blockPlacer.block().toString())
-            .putBoolean("canUseBlockAsIcon", blockPlacer.replaceBlockItem()) // TODO is this right?
+            .putBoolean("canUseBlockAsIcon", blockPlacer.useBlockIcon())
             .putList("use_on", NbtType.STRING)
             .build());
     }
