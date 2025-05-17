@@ -181,12 +181,14 @@ public final class ItemTranslator {
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
-            PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-            // Make custom effect information visible when shown in tooltip
-            if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
-                // Add to the name (use '\n' to wrap lines) instead of the lore
-                // to make it show in HUD like the effect information of vanilla Bedrock potion
-                customName += getPotionEffectInfo(potionContents, session.locale());
+            if (javaItem instanceof PotionItem || javaItem instanceof ArrowItem) {
+                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
+                // Make custom effect information visible when shown in tooltip
+                if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
+                    // Add to the name (use '\n' to wrap lines) instead of the lore
+                    // to make it show in HUD like the effect information of vanilla Bedrock potion
+                    customName += getPotionEffectInfo(potionContents, session.locale());
+                }
             }
 
             nbtBuilder.setCustomName(customName);
