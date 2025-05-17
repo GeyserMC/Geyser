@@ -87,7 +87,7 @@ public class ShulkerBoxItem extends BlockItem {
                         if (potionContents != null) {
                             Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                             if (potion != null) {
-                                bedrockData = potion.getBedrockId();
+                                bedrockData = boxMapping.getJavaItem() instanceof ArrowItem ? potion.tippedArrowId() : potion.getBedrockId();
                             }
                         }
                     }
