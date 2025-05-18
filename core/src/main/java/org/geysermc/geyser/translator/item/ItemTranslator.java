@@ -45,9 +45,9 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.item.type.ArrowItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.geyser.item.type.TippedArrowItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -392,23 +392,27 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
-        String customPotionName = contents.getCustomName();
-        Potion potion = Potion.getByJavaId(contents.getPotionId());
-
-        if (customPotionName != null) {
-            // "custom_name" tag in "potion_contents" component
-            return MessageTranslator.convertMessage(
-                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
-                language);
+    public static String getPotionName(PotionContents contents, ItemMapping mapping,
+                                       boolean isPotionItem, boolean customOnly, String language) {
+        if (isPotionItem) {
+            String customPotionName = contents.getCustomName();
+            if (customPotionName != null) {
+                // "custom_name" tag in "potion_contents" component
+                return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
+            }
         }
-        if (!contents.getCustomEffects().isEmpty()) {
+
+        if (!customOnly && !contents.getCustomEffects().isEmpty()) {
+            if (!isPotionItem) {
+                return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey(), language);
+            }
             // Make a name when has custom effects
             // because the custom effect information is display from the second line of the name.
             // if name is not set, the custom effect information will not be displayed.
             String potionName;
+            Potion potion = Potion.getByJavaId(contents.getPotionId());
             if (potion != null) {
-                potionName = potion.toString().toLowerCase(Locale.ROOT);
+                potionName = potion.name().toLowerCase(Locale.ROOT);
                 // Remove the incorrect prefix
                 // for example, potion "long_leaping" should use "leaping" in translatable name
                 if (potionName.startsWith("strong_")) {
@@ -419,8 +423,9 @@ public final class ItemTranslator {
             } else {
                 potionName = "empty";
             }
-            return MessageTranslator.convertMessage(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName), language);
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + potionName, language);
         }
+
         return null;
     }
 
@@ -542,7 +547,7 @@ public final class ItemTranslator {
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
     public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping,
-                                       char translationColor, boolean customNameOnly, boolean includeAll) {
+                                       char translationColor, boolean customNameOnly, boolean shulkerBoxTooltip) {
         if (components != null) {
             // If the tooltip is hidden entirely, return an empty custom name
             if (TooltipOptions.hideTooltip(components)) {
@@ -556,17 +561,18 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
-                if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof ArrowItem) {
-                    PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-                    if (potionContents != null) {
-                        String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
-                        if (potionName != null) {
-                            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
-                        }
+                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
+                if (potionContents != null) {
+                    boolean isPotionItem = mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem;
+                    boolean customOnly = shulkerBoxTooltip ||
+                        !TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
+                    String potionName = getPotionName(potionContents, mapping, isPotionItem, customOnly, session.locale()); // TODO also test this
+                    if (potionName != null) {
+                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                     }
                 }
 
-                if (includeAll) {
+                if (shulkerBoxTooltip) {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
