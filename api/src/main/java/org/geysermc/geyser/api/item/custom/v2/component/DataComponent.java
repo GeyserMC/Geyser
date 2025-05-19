@@ -72,6 +72,9 @@ public final class DataComponent<T> {
     /**
      * Marks the item to have a use cooldown. To properly function, the item must be able to be used: it must be consumable or have some other kind of use logic.
      *
+     * <p>The cooldown group can be {@code null}, in this case the identifier of the vanilla item (in case of vanilla custom items),
+     * or the item itself (in case of non-vanilla custom items) will be used.</p>
+     *
      * @see UseCooldown
      */
     public static final DataComponent<UseCooldown> USE_COOLDOWN = create("use_cooldown");

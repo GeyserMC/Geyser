@@ -44,7 +44,7 @@ public class UseCooldownReader extends DataComponentReader<UseCooldown> {
     @Override
     protected UseCooldown readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         float seconds = MappingsUtil.readOrThrow(element, "seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), context);
-        Identifier cooldownGroup = MappingsUtil.readOrThrow(element, "cooldown_group", NodeReader.IDENTIFIER, context);
+        Identifier cooldownGroup = MappingsUtil.readOrDefault(element, "cooldown_group", NodeReader.IDENTIFIER, null, context);
 
         return new UseCooldown(seconds, cooldownGroup);
     }
