@@ -1260,6 +1260,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         setSneaking(false);
     }
 
+    public void setSpinAttack(boolean spinAttack) {
+        switchPose(spinAttack, EntityFlag.DAMAGE_NEARBY_MOBS, Pose.SPIN_ATTACK);
+    }
+
+    public void setGliding(boolean gliding) {
+        switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
+    }
+
     private void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
 
@@ -1296,22 +1304,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             playerEntity.updateBedrockMetadata();
             return;
         }
-        toggleSwimmingPose(swimming, EntityFlag.SWIMMING);
+        switchPose(swimming, EntityFlag.SWIMMING, Pose.SWIMMING);
     }
 
     public void setCrawling(boolean crawling) {
-        toggleSwimmingPose(crawling, EntityFlag.CRAWLING);
+        switchPose(crawling, EntityFlag.CRAWLING, Pose.SWIMMING);
     }
 
-    private void toggleSwimmingPose(boolean crawling, EntityFlag flag) {
-        if (crawling) {
-            this.pose = Pose.SWIMMING;
-            playerEntity.setBoundingBoxHeight(0.6f);
-        } else {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        }
-        playerEntity.setFlag(flag, crawling);
+    private void switchPose(boolean value, EntityFlag flag, Pose pose) {
+        this.pose = value ? pose : Pose.STANDING;
+        playerEntity.setDimensionsFromPose(this.pose);
+        playerEntity.setFlag(flag, value);
         playerEntity.updateBedrockMetadata();
     }
 
@@ -1975,7 +1978,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                  FALL_FLYING, // Elytra
                  SPIN_ATTACK -> 0.4f; // Trident spin attack
             case SLEEPING -> 0.2f;
-            default -> EntityDefinitions.PLAYER.offset();
+            default -> EntityDefinitions.PLAYER.offset(); // 1.62F
         };
     }
 

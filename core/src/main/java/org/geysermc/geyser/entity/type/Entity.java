@@ -171,7 +171,7 @@ public class Entity implements GeyserEntity {
         dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
-        setDimensions(Pose.STANDING);
+        setDimensionsFromPose(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -405,7 +405,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
 
         // Swimming is ignored here and instead we rely on the pose
-        setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+        setGliding((xd & 0x80) == 0x80);
 
         setInvisible((xd & 0x20) == 0x20);
     }
@@ -417,6 +417,13 @@ public class Entity implements GeyserEntity {
      */
     protected void setInvisible(boolean value) {
         setFlag(EntityFlag.INVISIBLE, value);
+    }
+
+    /**
+     * Set a boolean - whether the entity is gliding
+     */
+    protected void setGliding(boolean value) {
+        setFlag(EntityFlag.GLIDING, value);
     }
 
     /**
@@ -529,15 +536,16 @@ public class Entity implements GeyserEntity {
      */
     public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+        // FALL_FLYING is instead set via setFlags
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
-        setDimensions(pose);
+        setDimensionsFromPose(pose);
     }
 
     /**
      * Set the height and width of the entity's bounding box
      */
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
         setBoundingBoxHeight(definition.height());
         setBoundingBoxWidth(definition.width());

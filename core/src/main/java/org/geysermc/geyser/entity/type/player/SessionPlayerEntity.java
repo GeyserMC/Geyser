@@ -31,6 +31,7 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -38,13 +39,20 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
@@ -52,6 +60,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Collections;
 import java.util.List;
@@ -194,6 +204,16 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
             super.setFlags(entityMetadata);
         }
+    }
+
+    @Override
+    protected void setGliding(boolean value) {
+        session.setGliding(value);
+    }
+
+    @Override
+    protected void setSpinAttack(boolean value) {
+        session.setSpinAttack(value);
     }
 
     /**
@@ -427,5 +447,68 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
 
         return velocity + 0.1F * session.getEffectCache().getJumpPower();
+    }
+
+    public boolean isOnClimbableBlock() {
+        if (session.getGameMode() == GameMode.SPECTATOR) {
+            return false;
+        }
+        Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
+        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
+            return true;
+        }
+
+        if (state.block() instanceof TrapDoorBlock) {
+            if (!state.getValue(Properties.OPEN)) {
+                return false;
+            } else {
+                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, pos.down());
+                return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
+            }
+        }
+        return false;
+    }
+
+    public boolean canStartGliding() {
+        // You can't start gliding when levitation is applied
+        if (session.getEffectCache().getEntityEffects().contains(Effect.LEVITATION)) {
+            return false;
+        }
+
+        if (this.isOnClimbableBlock() || session.getPlayerEntity().isOnGround()) {
+            return false;
+        }
+
+        if (session.getCollisionManager().isPlayerTouchingWater()) {
+            return false;
+        }
+
+        // Unfortunately gliding is still client-side, so we cannot force the client to glide even
+        // if we wanted to. However, we still need to check that gliding is possible even with, say,
+        // an elytra that does not have the glider component.
+        for (Map.Entry<EquipmentSlot, GeyserItemStack> entry : session.getPlayerInventory().getEquipment().entrySet()) {
+            if (entry.getValue().getComponent(DataComponentTypes.GLIDER) != null) {
+                Equippable equippable = entry.getValue().getComponent(DataComponentTypes.EQUIPPABLE);
+                if (equippable != null && equippable.slot() == entry.getKey() && !entry.getValue().nextDamageWillBreak()) {
+                    return true;
+                }
+            }
+
+            // Bedrock will NOT allow flight when not wearing an elytra; even if it doesn't have a glider component
+            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().asItem().equals(Items.ELYTRA)) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public void forceFlagUpdate() {
+        setFlagsDirty(true);
+    }
+
+    public boolean isGliding() {
+        return getFlag(EntityFlag.GLIDING);
     }
 }
