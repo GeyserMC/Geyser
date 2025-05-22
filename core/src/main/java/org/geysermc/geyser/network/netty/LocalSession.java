@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
 public final class LocalSession extends ClientNetworkSession {
-    private static DefaultEventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
+    private static EventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 
     private final SocketAddress spoofedRemoteAddress;
@@ -77,6 +77,7 @@ public final class LocalSession extends ClientNetworkSession {
     @Override
     protected EventLoopGroup getEventLoopGroup() {
         if (DEFAULT_EVENT_LOOP_GROUP == null) {
+            // TODO use local io group here???
             DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup(new DefaultThreadFactory(this.getClass(), true));
             Runtime.getRuntime().addShutdownHook(new Thread(
                 () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));

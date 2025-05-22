@@ -70,6 +70,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
         exclude(dependency("io.netty:netty-transport-classes-kqueue:.*"))
         exclude(dependency("io.netty:netty-transport-native-kqueue:.*"))
+        exclude(dependency("io.netty:netty-transport-native-io_uring:.*"))
+        exclude(dependency("io.netty:netty-transport-classes-io_uring:.*"))
         exclude(dependency("io.netty:netty-handler:.*"))
         exclude(dependency("io.netty:netty-common:.*"))
         exclude(dependency("io.netty:netty-buffer:.*"))
