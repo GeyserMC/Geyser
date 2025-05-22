@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
+import io.netty.buffer.AdaptiveByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.CommandSender;
@@ -82,9 +84,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
+        // TODO remove when this isn't an issue anymore
+        boolean adaptiveAllocatorUsed = System.getProperty("io.netty.allocator.type") == null && ByteBufAllocator.DEFAULT instanceof AdaptiveByteBufAllocator;
+
         try {
             List<Integer> supportedProtocols = ProtocolConstants.SUPPORTED_VERSION_IDS;
-            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion())) {
+            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion()) || adaptiveAllocatorUsed) {
                 geyserLogger.error("      / \\");
                 geyserLogger.error("     /   \\");
                 geyserLogger.error("    /  |  \\");
