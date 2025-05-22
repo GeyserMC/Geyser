@@ -82,12 +82,12 @@ public class ShulkerBoxItem extends BlockItem {
                     bedrockData = 0;
                 } else {
                     // Manual checks for potions/tipped arrows
-                    if (boxMapping.getJavaItem() instanceof PotionItem || boxMapping.getJavaItem() instanceof ArrowItem) {
+                    if (boxMapping.getJavaItem() instanceof PotionItem || boxMapping.getJavaItem() instanceof TippedArrowItem) {
                         PotionContents potionContents = boxComponents.get(DataComponentTypes.POTION_CONTENTS);
                         if (potionContents != null) {
                             Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                             if (potion != null) {
-                                bedrockData = boxMapping.getJavaItem() instanceof ArrowItem ? potion.tippedArrowId() : potion.getBedrockId();
+                                bedrockData = boxMapping.getJavaItem() instanceof TippedArrowItem ? potion.tippedArrowId() : potion.getBedrockId();
                             }
                         }
                     }

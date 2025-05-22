@@ -356,7 +356,7 @@ public final class ItemTranslator {
             MobEffectDetails details = effectInstance.getDetails();
             int amplifier = details.getAmplifier();
             int durations = details.getDuration();
-            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase(Locale.ROOT));
+            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.name().toLowerCase(Locale.ROOT));
             if (amplifier != 0) {
                 appendTranslatable = Component.translatable("potion.withAmplifier",
                     appendTranslatable,
@@ -547,7 +547,7 @@ public final class ItemTranslator {
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
     public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping,
-                                       char translationColor, boolean customNameOnly, boolean shulkerBoxTooltip) {
+                                       char translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
             // If the tooltip is hidden entirely, return an empty custom name
             if (TooltipOptions.hideTooltip(components)) {
@@ -564,15 +564,14 @@ public final class ItemTranslator {
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
                     boolean isPotionItem = mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem;
-                    boolean customOnly = shulkerBoxTooltip ||
-                        !TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
-                    String potionName = getPotionName(potionContents, mapping, isPotionItem, customOnly, session.locale()); // TODO also test this
+                    boolean customOnly = !TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
+                    String potionName = getPotionName(potionContents, mapping, isPotionItem, customOnly, session.locale());
                     if (potionName != null) {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                     }
                 }
 
-                if (shulkerBoxTooltip) {
+                if (includeAll) {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
