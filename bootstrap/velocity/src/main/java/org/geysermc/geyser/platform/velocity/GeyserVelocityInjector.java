@@ -27,15 +27,29 @@ package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.IoEventLoop;
+import io.netty.channel.IoHandlerFactory;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.local.LocalAddress;
+import io.netty.channel.local.LocalIoHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.netty.WatchedSingleThreadIoEventLoop;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
 
 public class GeyserVelocityInjector extends GeyserInjector {
@@ -48,11 +62,11 @@ public class GeyserVelocityInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
-        // TEMPORARY until Netty 4.2 is implemented with these changes in mind.
         try {
             Class.forName("io.netty.channel.MultiThreadIoEventLoopGroup");
+        } catch (ClassNotFoundException e) {
+            bootstrap.getGeyserLogger().error("use-direct-connection disabled as Velocity is not up-to-date.");
             return;
-        } catch (ClassNotFoundException ignored) {
         }
 
         Field cm = proxy.getClass().getDeclaredField("cm");
@@ -70,34 +84,44 @@ public class GeyserVelocityInjector extends GeyserInjector {
         serverWriteMarkField.setAccessible(true);
         WriteBufferWaterMark serverWriteMark = (WriteBufferWaterMark) serverWriteMarkField.get(null);
 
-        EventLoopGroup bossGroup = (EventLoopGroup) connectionManagerClass.getMethod("getBossGroup").invoke(connectionManager);
-
         Field workerGroupField = connectionManagerClass.getDeclaredField("workerGroup");
         workerGroupField.setAccessible(true);
         EventLoopGroup workerGroup = (EventLoopGroup) workerGroupField.get(connectionManager);
+
+        EventLoopGroup wrapperGroup = new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()) {
+            @Override
+            protected ThreadFactory newDefaultThreadFactory() {
+                return new DefaultThreadFactory("Geyser Backend Worker Group", Thread.MAX_PRIORITY);
+            }
+
+            @Override
+            protected IoEventLoop newChild(Executor executor, IoHandlerFactory ioHandlerFactory, Object... args) {
+                return new WatchedSingleThreadIoEventLoop(workerGroup, this, executor, ioHandlerFactory);
+            }
+        };
 
         // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
         ChannelFuture channelFuture = (new ServerBootstrap()
-                .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<>() {
-                    @Override
-                    protected void initChannel(@NonNull Channel ch) throws Exception {
-                        initChannel.invoke(channelInitializer, ch);
+            .channel(LocalServerChannelWrapper.class)
+            .childHandler(new ChannelInitializer<>() {
+                @Override
+                protected void initChannel(@NonNull Channel ch) throws Exception {
+                    initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
-                            ch.pipeline().addAfter("minecraft-encoder", "geyser-compression-disabler",
-                                    new GeyserVelocityCompressionDisabler());
-                        }
+                    if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
+                        ch.pipeline().addAfter("minecraft-encoder", "geyser-compression-disabler",
+                            new GeyserVelocityCompressionDisabler());
                     }
-                })
-                .group(bossGroup, workerGroup) // Cannot be DefaultEventLoopGroup
-                .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
-                .localAddress(LocalAddress.ANY))
-                .bind()
-                .syncUninterruptibly();
+                }
+            })
+            .group(new MultiThreadIoEventLoopGroup(LocalIoHandler.newFactory()), wrapperGroup) // Cannot be DefaultEventLoopGroup
+            .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
+            .localAddress(LocalAddress.ANY))
+            .bind()
+            .syncUninterruptibly();
 
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();
