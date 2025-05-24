@@ -500,7 +500,7 @@ public class MessageTranslator {
             } else {
                 String translateKey = map.getString("translate", null);
                 if (translateKey != null) {
-                    String fallback = map.getString("fallback", "");
+                    String fallback = map.getString("fallback", null);
                     List<Component> args = new ArrayList<>();
 
                     Object with = map.get("with");
