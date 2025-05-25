@@ -81,8 +81,6 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 adventure-text-serializer-bungeecord = { group = "net.kyori", name = "adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
 
-netty-resolver-dns = { group = "io.netty", name = "netty-resolver-dns", version.ref = "netty" }
-netty-resolver-dns-native-macos = { group = "io.netty", name = "netty-resolver-dns-native-macos", version.ref = "netty" }
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }

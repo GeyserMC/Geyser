@@ -48,6 +48,15 @@ fun Project.exclude(group: String) {
     }
 }
 
+// Excludes all dependencies from a module - except one
+fun Project.exclude(group: String, lib: Provider<MinimalExternalModuleDependency>) {
+    tasks.named<ShadowJar>("shadowJar") {
+        dependencies {
+            exclude { it.moduleGroup == group && it.moduleName != lib.get().module.name }
+        }
+    }
+}
+
 fun Project.platformRelocate(pattern: String, exclusion: String = "") {
     tasks.named<ShadowJar>("shadowJar") {
         relocate(pattern, "org.geysermc.geyser.platform.${project.name}.shaded.$pattern") {
