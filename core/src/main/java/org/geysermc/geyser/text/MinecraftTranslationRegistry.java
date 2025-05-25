@@ -67,8 +67,8 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         // replace single quote instances which get lost in MessageFormat otherwise
         localeString = localeString.replace("'", "''");
 
-        // Escape all curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
-        if (localeString.contains("{") || localeString.contains("}")) {
+        // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
+        if (localeString.contains("{")) {
             localeString = escapeBraces(localeString);
         }
 
@@ -102,21 +102,17 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         StringBuilder sb = new StringBuilder();
         while (true) {
             // Get the index of the nearest brace
-            int braceIndexL = splited.indexOf("{");
-            int braceIndexR = splited.indexOf("}");
-            int braceIndex = (braceIndexL == -1 && braceIndexR != -1) ? braceIndexR :
-                    (braceIndexL != -1 && braceIndexR == -1) ? braceIndexL :
-                    Math.min(braceIndexL, braceIndexR);
-            // Append from the content after the last brace and return the result
+            int braceIndex = splited.indexOf("{"); // Only left braces need to be escaped
+            // Append from the content that splited by the braces
             if (braceIndex == -1) {
+                // Return the result after the last brace
                 if (!first) {
                     sb.append("'");
                 }
-                sb.append(splited);
-                return sb.toString();
+                return sb.append(splited).toString();
             }
-            // Append from each content between braces
             String appendContent = splited.substring(0, braceIndex);
+            // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
             boolean inBracket = first || braceIndex == 0 || appendContent.matches("'+");
             if (!inBracket) {
                 sb.append("'");
@@ -125,7 +121,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
             if (!inBracket || first) {
                 sb.append("'");
             }
-            sb.append(braceIndexL == braceIndex ? "{" : "}");
+            sb.append("{");
             // The next one starts after the current braces
             splited = splited.substring(braceIndex + 1);
             first = false;
