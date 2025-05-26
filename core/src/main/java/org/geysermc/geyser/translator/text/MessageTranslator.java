@@ -457,6 +457,42 @@ public class MessageTranslator {
     }
 
     /**
+     * Escape All left curly braces to make MessageFormat ignore them
+     * @param origin Text to escape
+     * @return Text with left curly braces enclosed by single quotes
+     */
+    public static String escapeBraces(String origin) {
+        boolean first = true;
+        StringBuilder sb = null;
+        while (true) {
+            // Get the index of the nearest brace
+            int braceIndex = origin.indexOf("{"); // Only left braces need to be escaped
+            // Append from the content that split by the braces
+            if (braceIndex == -1) {
+                // Return the result after the last brace
+                return first ? origin : sb.append("'").append(origin).toString();
+            }
+            if (first) {
+                sb = new StringBuilder();
+            }
+            String appendContent = origin.substring(0, braceIndex);
+            // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
+            boolean inBracket = first || braceIndex == 0 || Pattern.matches("'+", appendContent);
+            if (!inBracket) {
+                sb.append("'");
+            }
+            sb.append(appendContent);
+            if (!inBracket || first) {
+                sb.append("'");
+            }
+            sb.append("{");
+            // The next one starts after the current braces
+            origin = origin.substring(braceIndex + 1);
+            first = false;
+        }
+    }
+
+    /**
      * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
      */
     public static String deserializeDescription(GeyserSession session, NbtMap tag) {

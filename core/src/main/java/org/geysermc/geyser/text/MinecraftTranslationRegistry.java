@@ -28,6 +28,7 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -67,7 +68,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         localeString = localeString.replace("'", "''");
 
         // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
-        localeString = escapeBraces(localeString);
+        localeString = MessageTranslator.escapeBraces(localeString);
 
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
@@ -91,37 +92,5 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
 
         // Locale shouldn't need to be specific - dates for example will not be handled
         return new MessageFormat(sb.toString(), Locale.ROOT);
-    }
-
-    private String escapeBraces(String origin) {
-        boolean first = true;
-        String splited = origin;
-        StringBuilder sb = null;
-        while (true) {
-            // Get the index of the nearest brace
-            int braceIndex = splited.indexOf("{"); // Only left braces need to be escaped
-            // Append from the content that splited by the braces
-            if (braceIndex == -1) {
-                // Return the result after the last brace
-                return first ? origin : sb.append("'").append(splited).toString();
-            }
-            if (first) {
-                sb = new StringBuilder();
-            }
-            String appendContent = splited.substring(0, braceIndex);
-            // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
-            boolean inBracket = first || braceIndex == 0 || Pattern.matches("'+", appendContent);
-            if (!inBracket) {
-                sb.append("'");
-            }
-            sb.append(appendContent);
-            if (!inBracket || first) {
-                sb.append("'");
-            }
-            sb.append("{");
-            // The next one starts after the current braces
-            splited = splited.substring(braceIndex + 1);
-            first = false;
-        }
     }
 }
