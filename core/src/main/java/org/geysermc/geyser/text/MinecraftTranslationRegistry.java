@@ -28,7 +28,6 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -68,9 +67,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         localeString = localeString.replace("'", "''");
 
         // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
-        if (localeString.contains("{")) {
-            localeString = escapeBraces(localeString);
-        }
+        localeString = escapeBraces(localeString);
 
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
@@ -96,24 +93,24 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         return new MessageFormat(sb.toString(), Locale.ROOT);
     }
 
-    private @NotNull String escapeBraces(String origin) {
+    private String escapeBraces(String origin) {
         boolean first = true;
         String splited = origin;
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = null;
         while (true) {
             // Get the index of the nearest brace
             int braceIndex = splited.indexOf("{"); // Only left braces need to be escaped
             // Append from the content that splited by the braces
             if (braceIndex == -1) {
                 // Return the result after the last brace
-                if (!first) {
-                    sb.append("'");
-                }
-                return sb.append(splited).toString();
+                return first ? origin : sb.append("'").append(splited).toString();
+            }
+            if (first) {
+                sb = new StringBuilder();
             }
             String appendContent = splited.substring(0, braceIndex);
             // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
-            boolean inBracket = first || braceIndex == 0 || appendContent.matches("'+");
+            boolean inBracket = first || braceIndex == 0 || Pattern.matches("'+", appendContent);
             if (!inBracket) {
                 sb.append("'");
             }
