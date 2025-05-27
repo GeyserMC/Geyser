@@ -458,6 +458,7 @@ public class MessageTranslator {
 
     /**
      * Escape All left curly braces to make MessageFormat ignore them
+     *
      * @param origin Text to escape
      * @return Text with left curly braces enclosed by single quotes
      */
@@ -476,6 +477,7 @@ public class MessageTranslator {
                 sb = new StringBuilder();
             }
             String appendContent = origin.substring(0, braceIndex);
+
             // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
             boolean inBracket = first || braceIndex == 0 || Pattern.matches("'+", appendContent);
             if (!inBracket) {
@@ -486,6 +488,7 @@ public class MessageTranslator {
                 sb.append("'");
             }
             sb.append("{");
+
             // The next one starts after the current braces
             origin = origin.substring(braceIndex + 1);
             first = false;
