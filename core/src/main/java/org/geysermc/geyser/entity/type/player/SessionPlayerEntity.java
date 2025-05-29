@@ -100,6 +100,9 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     private int lastAirSupply = getMaxAir();
 
+    @Getter @Setter
+    private boolean insideScaffolding = false;
+
     /**
      * The client last tick end velocity, used for calculating player onGround.
      */
@@ -207,8 +210,23 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected void setSprinting(boolean value) {
+        super.setSprinting(value);
+        session.setSprinting(value);
+    }
+
+    @Override
     protected void setGliding(boolean value) {
         session.setGliding(value);
+    }
+
+    @Override
+    protected void setSneaking(boolean value) {
+        if (value) {
+            session.startSneaking();
+        } else {
+            session.stopSneaking();
+        }
     }
 
     @Override

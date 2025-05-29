@@ -1359,6 +1359,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking and sends a packet to the Java server.
      */
     private boolean attemptToBlock() {
+        // Don't try to block while in scaffolding
+        if (playerEntity.isInsideScaffolding()) {
+            return false;
+        }
+
         if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
             useItem(Hand.MAIN_HAND);
         } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {

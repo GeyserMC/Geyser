@@ -91,14 +91,9 @@ public final class InputCache {
             .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
-        // Send sneaking state before inputs, matches Java client
-        boolean sneaking = bedrockInput.contains(PlayerAuthInputData.SNEAKING) ||
-            // DESCEND_BLOCK is ONLY sent while mobile clients are descending scaffolding.
-            // PERSIST_SNEAK is ALWAYS sent by mobile clients.
-            // While we could use SNEAK_CURRENT_RAW, that would also be sent with locked inputs.
-            // fixes https://github.com/GeyserMC/Geyser/issues/5384
-            (bedrockInput.contains(PlayerAuthInputData.DESCEND_BLOCK) && bedrockInput.contains(PlayerAuthInputData.PERSIST_SNEAK));
-        if (oldInputPacket.isShift() != sneaking) {
+        // Send sneaking before inputs; matches Java edition
+        boolean sneaking = isSneaking(bedrockInput);
+        if (session.isSneaking() != sneaking) {
             if (sneaking) {
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SNEAKING));
                 session.startSneaking();
@@ -128,5 +123,44 @@ public final class InputCache {
 
     public boolean lastHorizontalCollision() {
         return lastHorizontalCollision;
+    }
+
+    /*
+     As of 1.21.80: relying on the SNEAKING flag will also cause the player to be sneaking after opening chests while sneaking,
+     even after the client sent STOP_SNEAKING. See https://github.com/GeyserMC/Geyser/issues/5552
+     Hence, we do not rely on the SNEAKING flag altogether :)
+
+     This method is designed to detect changes in sneaking to return the new sneaking state.
+     */
+    public boolean isSneaking(Set<PlayerAuthInputData> authInputData) {
+        // Flying doesn't send start / stop fly cases; might as well return early
+        if (session.isFlying()) {
+            // Of course e.g. mobile handles it differently with a descend case, while
+            // e.g. Win10 sends SNEAK_DOWN. Why? We'll never know.
+            return authInputData.contains(PlayerAuthInputData.DESCEND) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
+        }
+
+        boolean sneaking = session.isSneaking();
+        // Looping through input data as e.g. stop/start sneaking can be sent in the same packet
+        // and then, the last sent instruction matters
+        for (PlayerAuthInputData authInput : authInputData) {
+            switch (authInput) {
+                case STOP_SNEAKING -> sneaking = false;
+                case START_SNEAKING -> sneaking = true;
+                // DESCEND_BLOCK is ONLY sent while mobile clients are descending scaffolding.
+                // PERSIST_SNEAK is ALWAYS sent by mobile clients.
+                // fixes https://github.com/GeyserMC/Geyser/issues/5384
+                case PERSIST_SNEAK -> {
+                    // Ignoring start/stop sneaking while in scaffolding on purpose to ensure
+                    // that we don't spam both cases for every block we went down
+                    if (session.getPlayerEntity().isInsideScaffolding()) {
+                        return authInputData.contains(PlayerAuthInputData.DESCEND_BLOCK) &&
+                            authInputData.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW);
+                    }
+                }
+            }
+        }
+
+        return sneaking;
     }
 }
