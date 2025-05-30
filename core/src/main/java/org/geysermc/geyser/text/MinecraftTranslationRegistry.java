@@ -28,7 +28,6 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -42,6 +41,7 @@ import java.util.regex.Pattern;
 public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<String> {
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
+    private final Pattern escapeBraces = Pattern.compile("\\{+['{]+\\{+|\\{+");
 
     // Exists to maintain compatibility with Velocity's older Adventure version
     @Override
@@ -68,12 +68,18 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         localeString = localeString.replace("'", "''");
 
         // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
-        localeString = MessageTranslator.escapeBraces(localeString);
-
-        // Replace the `%s` with numbered inserts `{0}`
-        Pattern p = stringReplacement;
+        Pattern p = escapeBraces;
         Matcher m = p.matcher(localeString);
         StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            m.appendReplacement(sb, "'" + m.group() + "'");
+        }
+        m.appendTail(sb);
+
+        // Replace the `%s` with numbered inserts `{0}`
+        p = stringReplacement;
+        m = p.matcher(sb.toString());
+        sb = new StringBuilder();
         int i = 0;
         while (m.find()) {
             m.appendReplacement(sb, "{" + (i++) + "}");

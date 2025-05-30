@@ -32,7 +32,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,13 +98,6 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");
         Assertions.assertEquals("", MessageTranslator.convertToPlainTextLenient("", "en_US"), "Empty message is not handled properly");
         Assertions.assertEquals("     ", MessageTranslator.convertToPlainTextLenient("     ", "en_US"), "Whitespace is not preserved");
-    }
-
-    @Test
-    public void escapeBraces() {
-        Assertions.assertEquals("tt{ttAAtt}tt", new MessageFormat(MessageTranslator.escapeBraces("tt{tt%stt}tt".replace("'", "''")).replace("%s", "{0}")).format(new Object[]{"AA"}), "Braces that should be escaped are not handled properly");
-        Assertions.assertEquals("tt{''{tt", new MessageFormat(MessageTranslator.escapeBraces("tt{''{tt".replace("'", "''")).replace("%s", "{0}")).format(new Object[]{"AA"}), "Braces that should be escaped are not handled properly");
-        Assertions.assertEquals("tt{{''}}tt", new MessageFormat(MessageTranslator.escapeBraces("tt{{''}}tt".replace("'", "''")).replace("%s", "{0}")).format(new Object[]{"AA"}), "Braces that should be escaped are not handled properly");
     }
 
     @Test

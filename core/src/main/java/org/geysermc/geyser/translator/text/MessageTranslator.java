@@ -77,9 +77,6 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
-    // Continuous single quotes character
-    private static final Pattern SINGLE_QUOTES_PATTERN = Pattern.compile("'+");
-
     static {
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
         GsonComponentSerializer source = DefaultComponentSerializer.get()
@@ -457,49 +454,6 @@ public class MessageTranslator {
             return "";
         }
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
-    }
-
-    /**
-     * Escape All left curly braces to make MessageFormat ignore them
-     *
-     * @param origin Text to escape
-     * @return Text with left curly braces enclosed by single quotes
-     */
-    public static String escapeBraces(String origin) {
-        boolean first = true;
-        StringBuilder sb = null;
-        while (true) {
-            // Get the index of the nearest brace
-            int braceIndex = origin.indexOf("{"); // Only left braces need to be escaped
-
-            // After the last brace or have not any braces need to be escaped in the content
-            if (braceIndex == -1) {
-                // Return the result after the last brace
-                return first ? origin : sb.append("'").append(origin).toString();
-            }
-
-            // Initial StringBuilder to splice strings only if the content contains braces
-            if (first) {
-                sb = new StringBuilder();
-            }
-
-            // Append from the content that split by the braces
-            String appendContent = origin.substring(0, braceIndex);
-            // Append single quote on both sides of the continuous braces or the continuous single quotes that enclosed by braces
-            boolean inBracket = first || braceIndex == 0 || SINGLE_QUOTES_PATTERN.matcher(appendContent).matches();
-            if (!inBracket) {
-                sb.append("'");
-            }
-            sb.append(appendContent);
-            if (!inBracket || first) {
-                sb.append("'");
-            }
-            sb.append("{");
-
-            // The next one starts after the current braces
-            origin = origin.substring(braceIndex + 1);
-            first = false;
-        }
     }
 
     /**
