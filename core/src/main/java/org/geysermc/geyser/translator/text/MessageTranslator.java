@@ -77,6 +77,9 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
+    // Continuous single quotes character
+    private static final Pattern SINGLE_QUOTES_PATTERN = Pattern.compile("'+");
+
     static {
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
         GsonComponentSerializer source = DefaultComponentSerializer.get()
@@ -479,7 +482,7 @@ public class MessageTranslator {
             String appendContent = origin.substring(0, braceIndex);
 
             // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
-            boolean inBracket = first || braceIndex == 0 || Pattern.matches("'+", appendContent);
+            boolean inBracket = first || braceIndex == 0 || SINGLE_QUOTES_PATTERN.matcher(appendContent).matches();
             if (!inBracket) {
                 sb.append("'");
             }
