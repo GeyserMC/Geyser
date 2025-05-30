@@ -471,17 +471,21 @@ public class MessageTranslator {
         while (true) {
             // Get the index of the nearest brace
             int braceIndex = origin.indexOf("{"); // Only left braces need to be escaped
-            // Append from the content that split by the braces
+
+            // After the last brace or have not any braces need to be escaped in the content
             if (braceIndex == -1) {
                 // Return the result after the last brace
                 return first ? origin : sb.append("'").append(origin).toString();
             }
+
+            // Initial StringBuilder to splice strings only if the content contains braces
             if (first) {
                 sb = new StringBuilder();
             }
-            String appendContent = origin.substring(0, braceIndex);
 
-            // Append single quote on both sides of the braces area or the single quote area that enclosed by braces
+            // Append from the content that split by the braces
+            String appendContent = origin.substring(0, braceIndex);
+            // Append single quote on both sides of the continuous braces or the continuous single quotes that enclosed by braces
             boolean inBracket = first || braceIndex == 0 || SINGLE_QUOTES_PATTERN.matcher(appendContent).matches();
             if (!inBracket) {
                 sb.append("'");
