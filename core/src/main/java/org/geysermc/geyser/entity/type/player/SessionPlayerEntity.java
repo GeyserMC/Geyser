@@ -33,9 +33,12 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.MovementEffectType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovementEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -47,6 +50,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -108,6 +112,12 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter @Setter
     private Vector3f lastTickEndVelocity = Vector3f.ZERO;
+
+    /**
+     * Queued velocity to be sent post teleport (used for firework boosting cancel).
+     */
+    @Getter @Setter
+    private Vector3f queuedPostTeleportVelocity = null;
 
     /**
      * Determines if our position is currently out-of-sync with the Java server
@@ -174,7 +184,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
-        
+
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
         movePlayerPacket.setPosition(position);
@@ -528,5 +538,31 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public boolean isGliding() {
         return getFlag(EntityFlag.GLIDING);
+    }
+
+    /**
+     * Used to force player to stop elytra boosting client-sided.
+     * */
+    public void stopElytraBoost() {
+        // Elytra boost affect player for 20 ticks (by default), we have to send this to reset it back to 0 so it stop applying boost.
+        MovementEffectPacket effectPacket = new MovementEffectPacket();
+        effectPacket.setTick(this.session.getClientTick());
+        effectPacket.setEffectType(MovementEffectType.GLIDE_BOOST);
+        effectPacket.setDuration(0);
+        effectPacket.setEntityRuntimeId(this.getGeyserId());
+        this.session.sendUpstreamPacket(effectPacket);
+
+        MoveEntityDeltaPacket moveDelta = new MoveEntityDeltaPacket();
+        moveDelta.setRuntimeEntityId(this.getGeyserId());
+        moveDelta.setX(this.getPosition().getX());
+        moveDelta.setY(this.getPosition().getY());
+        moveDelta.setZ(this.getPosition().getZ());
+        moveDelta.getFlags().addAll(List.of(MoveEntityDeltaPacket.Flag.HAS_X, MoveEntityDeltaPacket.Flag.HAS_Y, MoveEntityDeltaPacket.Flag.HAS_Z, MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY));
+        this.session.sendUpstreamPacket(moveDelta);
+
+        this.queuedPostTeleportVelocity = this.getLastTickEndVelocity();
+
+        // We don't want player to move to the boosted location and then back, don't let movement packet pass through.
+        session.setUnconfirmedTeleport(new TeleportCache(this.getPosition().getX(), this.position().getY(), this.getPosition().getZ(), this.getPitch(), this.getYaw(), -1));
     }
 }

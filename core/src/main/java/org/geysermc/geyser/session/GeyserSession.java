@@ -644,6 +644,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long worldTicks;
 
     /**
+     * The last tick that client sends to us through PlayerAuthInputPacket.
+     */
+    @Setter
+    private long clientTick;
+
+    /**
      * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
      */
     @Setter

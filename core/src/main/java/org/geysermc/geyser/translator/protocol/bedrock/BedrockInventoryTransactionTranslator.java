@@ -412,6 +412,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         }
                                     }
                                 }
+                            } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.FIREWORK_ROCKET && session.getPlayerEntity().isGliding()) {
+                                session.getPlayerEntity().stopElytraBoost();
                             }
                         }
 

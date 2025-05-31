@@ -29,6 +29,7 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
@@ -53,6 +54,16 @@ final class BedrockMovePlayer {
         if (session.getUnconfirmedTeleport() != null) {
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
+        }
+
+        // Ensure that the velocity won't arrive at the same tick as teleport (and get overridden by teleport).
+        if (entity.getQueuedPostTeleportVelocity() != null) {
+            SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+            motionPacket.setMotion(entity.getQueuedPostTeleportVelocity());
+            motionPacket.setRuntimeEntityId(entity.getGeyserId());
+            session.sendUpstreamPacketImmediately(motionPacket); // Send this right away.
+
+            entity.setQueuedPostTeleportVelocity(null);
         }
 
         boolean actualPositionChanged = !entity.getPosition().equals(packet.getPosition());

@@ -54,6 +54,9 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         SessionPlayerEntity entity = session.getPlayerEntity();
         Vector3d pos = packet.getPosition();
 
+        // Teleport overridden velocity.
+        entity.setQueuedPostTeleportVelocity(null);
+
         if (!session.isSpawned()) {
             // TODO this behavior seems outdated (1.21.2).
             // The server sends an absolute teleport everytime the player is respawned
