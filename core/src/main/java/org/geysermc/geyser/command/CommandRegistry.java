@@ -97,6 +97,9 @@ public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE ||
+        GeyserImpl.getInstance().getPlatformType() == PlatformType.VIAPROXY;
+
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
     private final boolean applyRootPermission;
@@ -275,8 +278,12 @@ public class CommandRegistry implements EventRegistrar {
         cloud.command(builder.handler(context -> {
             GeyserCommandSource source = context.sender();
             if (!source.hasPermission(help.permission())) {
-                // delegate if possible - otherwise we have nothing else to offer the user.
-                source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
+                if (STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
+                    session.sendCommand(context.rawInput().input());
+                } else {
+                    // delegate if possible - otherwise we have nothing else to offer the user.
+                    source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
+                }
                 return;
             }
             help.execute(source);
