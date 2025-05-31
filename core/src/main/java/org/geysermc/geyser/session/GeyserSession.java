@@ -1343,6 +1343,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
      */
     public void useItem(Hand hand) {
+        if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
             hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
     }
