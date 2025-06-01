@@ -34,9 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 
 import java.util.Set;
 
@@ -88,20 +86,8 @@ public final class InputCache {
             // using the "raw" values allows us sending key presses even with locked input
             // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
-            .withShift(bedrockInput.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.SNEAK_DOWN))
+            .withShift(isSneaking(bedrockInput))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
-
-        // Send sneaking before inputs; matches Java edition
-        boolean sneaking = isSneaking(bedrockInput);
-        if (session.isSneaking() != sneaking) {
-            if (sneaking) {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SNEAKING));
-                session.startSneaking();
-            } else {
-                session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SNEAKING));
-                session.stopSneaking();
-            }
-        }
 
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);

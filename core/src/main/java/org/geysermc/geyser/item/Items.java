@@ -685,6 +685,7 @@ public final class Items {
     public static final Item BLACK_CONCRETE_POWDER = register(new BlockItem(builder(), Blocks.BLACK_CONCRETE_POWDER));
     public static final Item TURTLE_EGG = register(new BlockItem(builder(), Blocks.TURTLE_EGG));
     public static final Item SNIFFER_EGG = register(new BlockItem(builder(), Blocks.SNIFFER_EGG));
+    public static final Item DRIED_GHAST = register(new BlockItem(builder(), Blocks.DRIED_GHAST));
     public static final Item DEAD_TUBE_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_TUBE_CORAL_BLOCK));
     public static final Item DEAD_BRAIN_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_BRAIN_CORAL_BLOCK));
     public static final Item DEAD_BUBBLE_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_BUBBLE_CORAL_BLOCK));
@@ -867,6 +868,22 @@ public final class Items {
     public static final Item RAIL = register(new BlockItem(builder(), Blocks.RAIL));
     public static final Item ACTIVATOR_RAIL = register(new BlockItem(builder(), Blocks.ACTIVATOR_RAIL));
     public static final Item SADDLE = register(new Item("saddle", builder()));
+    public static final Item WHITE_HARNESS = register(new Item("white_harness", builder()));
+    public static final Item ORANGE_HARNESS = register(new Item("orange_harness", builder()));
+    public static final Item MAGENTA_HARNESS = register(new Item("magenta_harness", builder()));
+    public static final Item LIGHT_BLUE_HARNESS = register(new Item("light_blue_harness", builder()));
+    public static final Item YELLOW_HARNESS = register(new Item("yellow_harness", builder()));
+    public static final Item LIME_HARNESS = register(new Item("lime_harness", builder()));
+    public static final Item PINK_HARNESS = register(new Item("pink_harness", builder()));
+    public static final Item GRAY_HARNESS = register(new Item("gray_harness", builder()));
+    public static final Item LIGHT_GRAY_HARNESS = register(new Item("light_gray_harness", builder()));
+    public static final Item CYAN_HARNESS = register(new Item("cyan_harness", builder()));
+    public static final Item PURPLE_HARNESS = register(new Item("purple_harness", builder()));
+    public static final Item BLUE_HARNESS = register(new Item("blue_harness", builder()));
+    public static final Item BROWN_HARNESS = register(new Item("brown_harness", builder()));
+    public static final Item GREEN_HARNESS = register(new Item("green_harness", builder()));
+    public static final Item RED_HARNESS = register(new Item("red_harness", builder()));
+    public static final Item BLACK_HARNESS = register(new Item("black_harness", builder()));
     public static final Item MINECART = register(new Item("minecart", builder()));
     public static final Item CHEST_MINECART = register(new Item("chest_minecart", builder()));
     public static final Item FURNACE_MINECART = register(new Item("furnace_minecart", builder()));
@@ -1131,7 +1148,7 @@ public final class Items {
     public static final Item BLAZE_POWDER = register(new Item("blaze_powder", builder()));
     public static final Item MAGMA_CREAM = register(new Item("magma_cream", builder()));
     public static final Item BREWING_STAND = register(new BlockItem(builder(), Blocks.BREWING_STAND));
-    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON, Blocks.LAVA_CAULDRON));
+    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON));
     public static final Item ENDER_EYE = register(new Item("ender_eye", builder()));
     public static final Item GLISTERING_MELON_SLICE = register(new Item("glistering_melon_slice", builder()));
     public static final Item ARMADILLO_SPAWN_EGG = register(new SpawnEggItem("armadillo_spawn_egg", builder()));
@@ -1160,6 +1177,7 @@ public final class Items {
     public static final Item FOX_SPAWN_EGG = register(new SpawnEggItem("fox_spawn_egg", builder()));
     public static final Item FROG_SPAWN_EGG = register(new SpawnEggItem("frog_spawn_egg", builder()));
     public static final Item GHAST_SPAWN_EGG = register(new SpawnEggItem("ghast_spawn_egg", builder()));
+    public static final Item HAPPY_GHAST_SPAWN_EGG = register(new SpawnEggItem("happy_ghast_spawn_egg", builder()));
     public static final Item GLOW_SQUID_SPAWN_EGG = register(new SpawnEggItem("glow_squid_spawn_egg", builder()));
     public static final Item GOAT_SPAWN_EGG = register(new SpawnEggItem("goat_spawn_egg", builder()));
     public static final Item GUARDIAN_SPAWN_EGG = register(new SpawnEggItem("guardian_spawn_egg", builder()));
@@ -1316,6 +1334,7 @@ public final class Items {
     public static final Item MUSIC_DISC_5 = register(new Item("music_disc_5", builder()));
     public static final Item MUSIC_DISC_PIGSTEP = register(new Item("music_disc_pigstep", builder()));
     public static final Item MUSIC_DISC_PRECIPICE = register(new Item("music_disc_precipice", builder()));
+    public static final Item MUSIC_DISC_TEARS = register(new Item("music_disc_tears", builder()));
     public static final Item DISC_FRAGMENT_5 = register(new Item("disc_fragment_5", builder()));
     public static final Item TRIDENT = register(new Item("trident", builder().attackDamage(9.0)));
     public static final Item NAUTILUS_SHELL = register(new Item("nautilus_shell", builder()));

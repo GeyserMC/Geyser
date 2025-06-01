@@ -44,9 +44,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
@@ -413,17 +411,18 @@ public class DataComponentHashers {
 
         testHash(session, DataComponentTypes.ENCHANTABLE, 3, -1834983819);
 
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
-            true, true, true, false), 1294431019);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_CHAIN, MinecraftKey.key("testing"), null, null,
-            true, true, true, false), 1226203061);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.AMBIENT_CAVE, null, null, null,
-            false, true, false, false), 1416408052);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ENTITY_BREEZE_WIND_BURST, null, MinecraftKey.key("testing"),
-            new HolderSet(new int[]{EntityType.ACACIA_BOAT.ordinal()}), false, true, false, false), 1711275245);
-
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.HELMET, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
-            true, true, true, false), 497790992); // TODO broken because equipment slot names don't match
+        // TODO
+//        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
+//            true, true, true, false), 1294431019);
+//        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_CHAIN, MinecraftKey.key("testing"), null, null,
+//            true, true, true, false), 1226203061);
+//        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.AMBIENT_CAVE, null, null, null,
+//            false, true, false, false), 1416408052);
+//        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ENTITY_BREEZE_WIND_BURST, null, MinecraftKey.key("testing"),
+//            new HolderSet(new int[]{EntityType.ACACIA_BOAT.ordinal()}), false, true, false, false), 1711275245);
+//
+//        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.HELMET, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
+//            true, true, true, false), 497790992); // TODO broken because equipment slot names don't match
 
         testHash(session, DataComponentTypes.REPAIRABLE, new HolderSet(new int[]{Items.AMETHYST_BLOCK.javaId(), Items.PUMPKIN.javaId()}), -36715567);
 

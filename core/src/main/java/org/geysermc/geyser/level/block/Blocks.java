@@ -1804,6 +1804,10 @@ public final class Blocks {
         .intState(HATCH)));
     public static final Block SNIFFER_EGG = register(new Block("sniffer_egg", builder().destroyTime(0.5f)
         .intState(HATCH)));
+    public static final Block DRIED_GHAST = register(new Block("dried_ghast", builder()
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .intState(DRIED_GHAST_HYDRATION_LEVELS)
+        .booleanState(WATERLOGGED)));
     public static final Block DEAD_TUBE_CORAL_BLOCK = register(new Block("dead_tube_coral_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block DEAD_BRAIN_CORAL_BLOCK = register(new Block("dead_brain_coral_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block DEAD_BUBBLE_CORAL_BLOCK = register(new Block("dead_bubble_coral_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
