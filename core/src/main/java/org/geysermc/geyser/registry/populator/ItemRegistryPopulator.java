@@ -45,8 +45,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
-import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
@@ -113,24 +111,46 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         // 1.21.5
+        //Map<Item, Item> itemFallbacks = new HashMap<>();
+        //itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
+        //itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
+        //itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
+        //itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
+        //itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
+        //itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
+        //itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
+        //itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
+        //itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
+        //itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
+        //itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
+
+        // 1.21.6
         Map<Item, Item> itemFallbacks = new HashMap<>();
-        itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
-        itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
-        itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
-        itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
-        itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
-        itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
-        itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
-        itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
-        itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
-        itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
-        itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
+        itemFallbacks.put(Items.BLACK_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.BLUE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.BROWN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.RED_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.GREEN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.YELLOW_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.ORANGE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.MAGENTA_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIGHT_BLUE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIME_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.PINK_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.GRAY_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.CYAN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.PURPLE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIGHT_GRAY_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.WHITE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.HAPPY_GHAST_SPAWN_EGG, Items.EGG);
+        itemFallbacks.put(Items.DRIED_GHAST, Items.PLAYER_HEAD);
+        itemFallbacks.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()));
+        //paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        //paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5), (item, mapping) -> mapping));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
