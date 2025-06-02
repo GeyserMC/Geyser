@@ -28,7 +28,11 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.cumulus.response.FormResponse;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -93,21 +97,30 @@ public abstract class Dialog {
 
     protected abstract Optional<DialogAction> onCancel();
 
-    protected CustomForm.Builder createForm(GeyserSession session) {
-        CustomForm.Builder builder = CustomForm.builder()
-            .title(title);
-        for (String label : labels) {
-            builder.label(label);
-        }
+    protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session) {
+        if (inputs.isEmpty()) {
+            SimpleForm.Builder builder = SimpleForm.builder()
+                .title(title);
+            builder.content(String.join("\n", labels));
 
-        builder.closedOrInvalidResultHandler(actionResult(session, onCancel())); // TODO parse input
-        addCustomComponents(session, builder);
-        return builder;
+            builder.closedOrInvalidResultHandler(actionResult(session, onCancel()));
+            addCustomComponents(session, builder);
+            return builder;
+        } else {
+            CustomForm.Builder builder = CustomForm.builder()
+                .title(title);
+
+            builder.closedOrInvalidResultHandler(actionResult(session, onCancel())); // TODO parse input
+            addCustomComponents(session, builder);
+            return builder;
+        }
     }
 
     protected abstract void addCustomComponents(GeyserSession session, CustomForm.Builder builder);
 
-    public CustomForm buildForm(GeyserSession session) {
+    protected abstract void addCustomComponents(GeyserSession session, SimpleForm.Builder builder);
+
+    public Form buildForm(GeyserSession session) {
         return createForm(session).build();
     }
 
@@ -142,9 +155,10 @@ public abstract class Dialog {
         return new Dialog(session, map) {
 
             @Override
-            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
+            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {}
 
-            }
+            @Override
+            protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {}
 
             @Override
             protected Optional<DialogAction> onCancel() {

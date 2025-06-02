@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -53,5 +54,10 @@ public class NoticeDialog extends Dialog {
     @Override
     protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
         builder.validResultHandler(validResultAction(session, button.flatMap(DialogButton::action))); // TODO parse input
+    }
+
+    @Override
+    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {
+        builder.validResultHandler(response -> button.flatMap(DialogButton::action).ifPresent(action -> action.run(session, afterAction)));
     }
 }

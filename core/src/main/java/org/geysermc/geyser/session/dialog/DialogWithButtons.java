@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.dialog;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -56,6 +57,17 @@ public abstract class DialogWithButtons extends Dialog {
             parseInput(response); // TODO
             int selection = response.asDropdown();
             buttons.get(selection).action().ifPresent(action -> action.run(session, afterAction)); // TODO check size?
+        });
+    }
+
+    @Override
+    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {
+        for (DialogButton button : buttons) {
+            builder.button(button.label());
+        }
+
+        builder.validResultHandler(response -> {
+            buttons.get(response.clickedButtonId()).action().ifPresent(action -> action.run(session, afterAction)); // TODO maybe button press method
         });
     }
 
