@@ -28,10 +28,8 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.List;
 import java.util.Optional;
 
 public class ConfirmationDialog extends DialogWithButtons {
@@ -43,7 +41,7 @@ public class ConfirmationDialog extends DialogWithButtons {
     }
 
     @Override
-    protected Optional<DialogAction> onCancel() {
-        return buttons.get(1).action(); // "no" button
+    protected Optional<DialogButton> onCancel() {
+        return buttons.size() > 1 ? Optional.of(buttons.get(1)) : Optional.empty(); // "no" button, there should always be 2 buttons but check just to be sure
     }
 }

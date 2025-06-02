@@ -23,22 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.dialog;
+package org.geysermc.geyser.session.dialog.input;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.List;
 import java.util.Optional;
 
-public class ServerLinksDialog extends DialogWithButtons {
+public class BooleanInput extends DialogInput<Boolean> {
 
-    protected ServerLinksDialog(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
-        super(session, map, buttons);
+    public static final Key TYPE = MinecraftKey.key("boolean");
+
+    private final boolean initial;
+    private final String onTrue;
+    private final String onFalse;
+
+    public BooleanInput(GeyserSession session, NbtMap map) {
+        super(session, map);
+        initial = map.getBoolean("initial", false);
+        onTrue = map.getString("on_true", "true");
+        onFalse = map.getString("on_false", "false");
     }
 
     @Override
-    protected Optional<DialogButton> onCancel() {
-        return Optional.empty();
+    public void addComponent(CustomForm.Builder builder, Optional<Boolean> restored) {
+        builder.toggle(label, restored.orElse(initial));
+    }
+
+    @Override
+    public Boolean read(CustomFormResponse response) {
+        return response.asToggle();
+    }
+
+    @Override
+    public String asSubstitution(Boolean value) {
+        return value ? onTrue : onFalse;
+    }
+
+    @Override
+    public void addToMap(NbtMapBuilder builder, Boolean value) {
+        builder.put(key, value);
+    }
+
+    @Override
+    public Boolean defaultValue() {
+        return initial;
     }
 }

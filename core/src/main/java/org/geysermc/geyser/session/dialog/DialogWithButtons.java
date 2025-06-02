@@ -30,6 +30,7 @@ import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +55,9 @@ public abstract class DialogWithButtons extends Dialog {
         builder.dropdown(dropdown);
 
         builder.validResultHandler(response -> {
-            parseInput(response); // TODO
+            ParsedInputs inputs = parseInput(response);
             int selection = response.asDropdown();
-            buttons.get(selection).action().ifPresent(action -> action.run(session, afterAction)); // TODO check size?
+            runButton(session, Optional.of(buttons.get(selection)), inputs);
         });
     }
 
@@ -66,9 +67,7 @@ public abstract class DialogWithButtons extends Dialog {
             builder.button(button.label());
         }
 
-        builder.validResultHandler(response -> {
-            buttons.get(response.clickedButtonId()).action().ifPresent(action -> action.run(session, afterAction)); // TODO maybe button press method
-        });
+        builder.validResultHandler(response -> runButton(session, Optional.of(buttons.get(response.clickedButtonId())), ParsedInputs.EMPTY));
     }
 
     @SafeVarargs

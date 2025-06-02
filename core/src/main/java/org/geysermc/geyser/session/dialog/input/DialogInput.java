@@ -23,22 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.dialog;
+package org.geysermc.geyser.session.dialog.input;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.List;
 import java.util.Optional;
 
-public class ServerLinksDialog extends DialogWithButtons {
+public abstract class DialogInput<T> {
+    protected final String key;
+    protected final String label;
 
-    protected ServerLinksDialog(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
-        super(session, map, buttons);
+    protected DialogInput(GeyserSession session, NbtMap map) {
+        this.key = map.getString("key");
+        this.label = MessageTranslator.convertFromNullableNbtTag(session, map.get("label"));
     }
 
-    @Override
-    protected Optional<DialogButton> onCancel() {
-        return Optional.empty();
+    public abstract void addComponent(CustomForm.Builder builder, Optional<T> restored);
+
+    public abstract T read(CustomFormResponse response);
+
+    public abstract String asSubstitution(T value);
+
+    public abstract void addToMap(NbtMapBuilder builder, T value);
+
+    public abstract T defaultValue();
+
+    public static DialogInput<?> read(GeyserSession session, NbtMap tag) {
+        Key type = MinecraftKey.key(tag.getString("type"));
+        if (type.equals(BooleanInput.TYPE)) {
+            return new BooleanInput(session, tag);
+        }
+
+        throw new UnsupportedOperationException("Unknown dialog input type " + type);
     }
 }

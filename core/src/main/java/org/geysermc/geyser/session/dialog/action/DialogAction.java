@@ -31,10 +31,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
+import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomClickActionPacket;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public interface DialogAction {
@@ -50,22 +53,29 @@ public interface DialogAction {
         } else if (type.equals(RunCommand.TYPE)) {
             return Optional.of(new RunCommand(map.getString("command")));
         } else if (type.equals(ShowDialog.TYPE)) {
-            return Optional.of(ShowDialog.readDialog(map.get("dialog"), idGetter));
+            return Optional.of(ShowDialog.read(map.get("dialog"), idGetter));
         } else if (type.equals(Custom.TYPE)) {
             return Optional.of(new Custom(MinecraftKey.key(map.getString("id")), map.getCompound("payload")));
+        } else if (type.equals(DynamicRunCommand.TYPE)) {
+            return Optional.of(DynamicRunCommand.read(map.getString("template")));
+        } else if (type.equals(DynamicCustom.TYPE)) {
+            return Optional.of(new DynamicCustom(MinecraftKey.key(map.getString("id")), map.getCompound("additions")));
         }
-        // TODO the dynamic types
+
+        // Unknown or unsupported type
+        // Currently unsupported types are: suggest_command, change_page, copy_to_clipboard
+        // open_file is not supported by Java in dialogs
         return Optional.empty();
     }
 
-    void run(GeyserSession session, Dialog.AfterAction after);
+    void run(GeyserSession session, ParsedInputs inputs);
 
     record OpenUrl(String url) implements DialogAction {
 
         public static final Key TYPE = MinecraftKey.key("open_url");
 
         @Override
-        public void run(GeyserSession session, Dialog.AfterAction after) {
+        public void run(GeyserSession session, ParsedInputs inputs) {
             session.sendForm(SimpleForm.builder().title("Open URL").content(url));
         }
     }
@@ -75,7 +85,7 @@ public interface DialogAction {
         public static final Key TYPE = MinecraftKey.key("run_command");
 
         @Override
-        public void run(GeyserSession session, Dialog.AfterAction after) {
+        public void run(GeyserSession session, ParsedInputs inputs) {
             session.sendCommand(command);
         }
     }
@@ -84,7 +94,7 @@ public interface DialogAction {
 
         public static final Key TYPE = MinecraftKey.key("show_dialog");
 
-        private static ShowDialog readDialog(Object dialog, Dialog.IdGetter idGetter) {
+        private static ShowDialog read(Object dialog, Dialog.IdGetter idGetter) {
             if (dialog instanceof NbtMap map) {
                 return new ShowDialog(Holder.ofCustom(map));
             } else if (dialog instanceof String string) {
@@ -94,7 +104,7 @@ public interface DialogAction {
         }
 
         @Override
-        public void run(GeyserSession session, Dialog.AfterAction after) {
+        public void run(GeyserSession session, ParsedInputs inputs) {
             // TODO figure out parent dialog
             Dialog.showDialog(session, dialog);
         }
@@ -106,8 +116,83 @@ public interface DialogAction {
         public static final Key TYPE = MinecraftKey.key("custom");
 
         @Override
-        public void run(GeyserSession session, Dialog.AfterAction after) {
+        public void run(GeyserSession session, ParsedInputs inputs) {
             session.sendDownstreamPacket(new ServerboundCustomClickActionPacket(id, tag));
+        }
+    }
+
+    record DynamicRunCommand(List<String> segments, List<String> variables) implements DialogAction {
+
+        public static final Key TYPE = MinecraftKey.key("dynamic/run_command");
+
+        private static DynamicRunCommand read(String command) {
+            // Inspired by StringTemplate in mojmap
+            // Reads commands with 'macros', variables that are replaced with inputs, in a format like this:
+            // /say hey everyone, $(your_name) is super cool!
+
+            int length = command.length();
+            int lastVariable = 0;
+            int nextVariable = command.indexOf('$');
+
+            List<String> segments = new ArrayList<>();
+            List<String> variables = new ArrayList<>();
+            while (nextVariable != -1) {
+                if (nextVariable != length - 1 && command.charAt(nextVariable + 1) ==  '(') {
+                    segments.add(command.substring(lastVariable, nextVariable));
+                    int variableEnd = command.indexOf(')', nextVariable + 1);
+                    if (variableEnd == -1) {
+                        throw new IllegalArgumentException("Command ended with an open variable");
+                    }
+
+                    variables.add(command.substring(nextVariable + 2, variableEnd));
+                    lastVariable = variableEnd + 1;
+                    nextVariable = command.indexOf('$', lastVariable);
+                } else {
+                    // If this $ was just an $ without a (, so no variable, which can occur in e.g. text components, just go to the next one
+                    nextVariable = command.indexOf('$', nextVariable + 1);
+                }
+            }
+
+            if (lastVariable == 0) {
+                throw new IllegalArgumentException("No variables in command template");
+            } else {
+                // Append the remaining segment if there is one
+                if (lastVariable != length) {
+                    segments.add(command.substring(lastVariable));
+                }
+
+                return new DynamicRunCommand(segments, variables);
+            }
+        }
+
+        @Override
+        public void run(GeyserSession session, ParsedInputs inputs) {
+            StringBuilder command = new StringBuilder();
+
+            List<String> parsedVariables = variables.stream().map(inputs::getSubstitution).toList();
+
+            for (int i = 0; i < variables.size(); i++) {
+                command.append(segments.get(i)).append(parsedVariables.get(i));
+            }
+
+            // Append the remaining segment if there is one
+            if (segments.size() > variables.size()) {
+                command.append(segments.get(segments.size() - 1));
+            }
+
+            session.sendCommand(command.toString());
+        }
+    }
+
+    record DynamicCustom(Key id, NbtMap additions) implements DialogAction {
+
+        public static final Key TYPE = MinecraftKey.key("dynamic/custom");
+
+        @Override
+        public void run(GeyserSession session, ParsedInputs inputs) {
+            NbtMap map = inputs.asNbtMap();
+            map.putAll(additions); // Can be optional on Java. We just read an empty map when it doesn't exist.
+            session.sendDownstreamPacket(new ServerboundCustomClickActionPacket(id, map));
         }
     }
 }

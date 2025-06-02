@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
@@ -36,7 +37,8 @@ import org.geysermc.cumulus.response.FormResponse;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.session.dialog.action.DialogAction;
+import org.geysermc.geyser.session.dialog.input.DialogInput;
+import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -46,7 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 public abstract class Dialog {
@@ -55,9 +56,9 @@ public abstract class Dialog {
 
     private final String title;
     private final String externalTitle;
-    protected final AfterAction afterAction;
+    private final AfterAction afterAction;
     private final List<String> labels;
-    private final List<Object> inputs; // TODO
+    private final List<DialogInput<?>> inputs = new ArrayList<>();
 
     protected Dialog(GeyserSession session, NbtMap map) {
         title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
@@ -70,20 +71,22 @@ public abstract class Dialog {
         } else if (bodyTag instanceof NbtMap bodyMap) {
             labels = readBody(session, bodyMap).map(List::of).orElse(List.of());
         } else if (bodyTag instanceof List<?> bodyList) {
-            List<String> bodies = new ArrayList<>();
+            labels = new ArrayList<>();
             for (Object tag : bodyList) {
                 if (tag instanceof NbtMap bodyMap) {
-                    readBody(session, bodyMap).ifPresent(bodies::add);
+                    readBody(session, bodyMap).ifPresent(labels::add);
                 } else {
                     throw new IllegalStateException("Found non-NBT map in list of bodies, was: " + tag);
                 }
             }
-            labels = List.copyOf(bodies);
         } else {
             throw new IllegalStateException("Expected body tag to either be a NBT map or list thereof, was: " + bodyTag);
         }
 
-        inputs = List.of();
+        List<NbtMap> inputTag = map.getList("inputs", NbtType.COMPOUND);
+        for (NbtMap input : inputTag) {
+            inputs.add(DialogInput.read(session, input));
+        }
     }
 
     private static Optional<String> readBody(GeyserSession session, NbtMap tag) {
@@ -95,7 +98,7 @@ public abstract class Dialog {
         return Optional.empty();
     }
 
-    protected abstract Optional<DialogAction> onCancel();
+    protected abstract Optional<DialogButton> onCancel();
 
     protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session) {
         if (inputs.isEmpty()) {
@@ -103,14 +106,15 @@ public abstract class Dialog {
                 .title(title);
             builder.content(String.join("\n", labels));
 
-            builder.closedOrInvalidResultHandler(actionResult(session, onCancel()));
+            builder.closedOrInvalidResultHandler(() -> runButton(session, onCancel(), ParsedInputs.EMPTY));
             addCustomComponents(session, builder);
             return builder;
         } else {
             CustomForm.Builder builder = CustomForm.builder()
                 .title(title);
 
-            builder.closedOrInvalidResultHandler(actionResult(session, onCancel())); // TODO parse input
+            inputs.forEach(input -> input.addComponent(builder, Optional.empty()));
+            builder.closedOrInvalidResultHandler(response -> runButton(session, onCancel(), new ParsedInputs(inputs)));
             addCustomComponents(session, builder);
             return builder;
         }
@@ -124,17 +128,12 @@ public abstract class Dialog {
         return createForm(session).build();
     }
 
-    protected Object parseInput(CustomFormResponse response) {
-        return 0; // TODO
+    protected ParsedInputs parseInput(CustomFormResponse response) {
+        return new ParsedInputs(inputs, response);
     }
 
-    protected Runnable actionResult(GeyserSession session, Optional<DialogAction> action) {
-        return () -> action.ifPresent(present -> present.run(session, afterAction));
-    }
-
-    protected Consumer<CustomFormResponse> validResultAction(GeyserSession session, Optional<DialogAction> action) {
-        Runnable runnable = actionResult(session, action);
-        return response -> runnable.run();
+    protected void runButton(GeyserSession session, Optional<DialogButton> button, ParsedInputs inputs) {
+        button.flatMap(DialogButton::action).ifPresent(action -> action.run(session, inputs));
     }
 
     public static Dialog readDialog(RegistryEntryContext context) {
@@ -161,7 +160,7 @@ public abstract class Dialog {
             protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {}
 
             @Override
-            protected Optional<DialogAction> onCancel() {
+            protected Optional<DialogButton> onCancel() {
                 return Optional.empty();
             }
         };

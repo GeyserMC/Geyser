@@ -29,7 +29,6 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -46,7 +45,7 @@ public class MultiActionDialog extends DialogWithButtons {
     }
 
     @Override
-    protected Optional<DialogAction> onCancel() {
-        return exit.flatMap(DialogButton::action);
+    protected Optional<DialogButton> onCancel() {
+        return exit;
     }
 }

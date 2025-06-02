@@ -30,7 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.dialog.action.DialogAction;
+import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -47,17 +47,17 @@ public class NoticeDialog extends Dialog {
     }
 
     @Override
-    protected Optional<DialogAction> onCancel() {
-        return button.flatMap(DialogButton::action);
+    protected Optional<DialogButton> onCancel() {
+        return button;
     }
 
     @Override
     protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
-        builder.validResultHandler(validResultAction(session, button.flatMap(DialogButton::action))); // TODO parse input
+        builder.validResultHandler(response -> runButton(session, button, parseInput(response)));
     }
 
     @Override
     protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {
-        builder.validResultHandler(response -> button.flatMap(DialogButton::action).ifPresent(action -> action.run(session, afterAction)));
+        builder.validResultHandler(response -> runButton(session, button, ParsedInputs.EMPTY));
     }
 }
