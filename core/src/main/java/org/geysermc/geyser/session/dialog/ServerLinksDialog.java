@@ -28,29 +28,18 @@ package org.geysermc.geyser.session.dialog;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public record DialogButton(String label, Optional<DialogAction> action) {
+public class ServerLinksDialog extends DialogWithButtons {
 
-    public static List<DialogButton> readList(GeyserSession session, List<NbtMap> tag, Dialog.IdGetter idGetter) {
-        if (tag == null) {
-            return List.of();
-        }
-        List<DialogButton> buttons = new ArrayList<>();
-        for (NbtMap map : tag) {
-            buttons.add(read(session, map, idGetter).orElseThrow()); // Should never throw
-        }
-        return buttons;
+    protected ServerLinksDialog(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
+        super(session, map, buttons);
     }
 
-    public static Optional<DialogButton> read(GeyserSession session, Object tag, Dialog.IdGetter idGetter) {
-        if (!(tag instanceof NbtMap map)) {
-            return Optional.empty();
-        }
-        return Optional.of(new DialogButton(MessageTranslator.convertFromNullableNbtTag(session, map.get("label")), DialogAction.read(map.get("action"), idGetter)));
+    @Override
+    protected Optional<DialogAction> onCancel() {
+        return Optional.empty();
     }
 }

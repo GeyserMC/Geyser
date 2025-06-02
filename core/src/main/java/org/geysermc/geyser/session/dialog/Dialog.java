@@ -135,6 +135,8 @@ public abstract class Dialog {
             return new NoticeDialog(session, map, idGetter);
         } else if (type.equals(ConfirmationDialog.TYPE)) {
             return new ConfirmationDialog(session, map, idGetter);
+        } else if (type.equals(MultiActionDialog.TYPE)) {
+            return new MultiActionDialog(session, map, idGetter);
         }
 
         return new Dialog(session, map) {
