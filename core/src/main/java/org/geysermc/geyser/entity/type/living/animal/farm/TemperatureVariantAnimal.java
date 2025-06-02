@@ -54,13 +54,17 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
 
     @Override
     public void setBedrockVariant(BuiltInVariant variant) {
-        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.name().toLowerCase(Locale.ROOT));
+        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.toBedrock());
         updateBedrockEntityProperties();
     }
 
     public enum BuiltInVariant implements VariantHolder.BuiltIn {
         COLD,
         TEMPERATE,
-        WARM
+        WARM;
+
+        public String toBedrock() {
+            return name().toLowerCase(Locale.ROOT);
+        }
     }
 }

@@ -44,12 +44,14 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -99,10 +101,10 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
-                if (entity.getDefinition() == EntityDefinitions.EGG) {
+                if (entity instanceof ThrowableEggEntity egg) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.ICON_CRACK);
-                    particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockDefinition().getRuntimeId() << 16);
+                    particlePacket.setData(ItemTranslator.getBedrockItemDefinition(session, egg.getItemStack()).getRuntimeId() << 16);
                     particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
