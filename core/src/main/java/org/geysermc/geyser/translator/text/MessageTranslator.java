@@ -39,6 +39,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -472,6 +473,14 @@ public class MessageTranslator {
         Object description = tag.get("description");
         Component parsed = componentFromNbtTag(description);
         return convertMessageForTooltip(parsed, session.locale());
+    }
+
+    @Nullable
+    public static String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return null;
+        }
+        return convertMessage(session, componentFromNbtTag(nbtTag));
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {

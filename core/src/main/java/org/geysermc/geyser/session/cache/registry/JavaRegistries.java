@@ -44,6 +44,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 
@@ -70,6 +71,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material");
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern");
     public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
+    public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant");

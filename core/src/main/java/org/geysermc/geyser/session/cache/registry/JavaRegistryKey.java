@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Defines a Java registry, which can be hardcoded or data-driven. This class doesn't store registry contents itself, that is handled by {@link org.geysermc.geyser.session.cache.RegistryCache} in the case of
@@ -80,5 +81,10 @@ public record JavaRegistryKey<T>(Key registryKey, NetworkSerializer<T> networkSe
     public interface NetworkIdentifier<T> {
 
         Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return "Java registry: " + registryKey;
     }
 }

@@ -23,26 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.dialogues;
+package org.geysermc.geyser.session.dialog;
 
+import net.kyori.adventure.key.Key;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.dialog.Dialog;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundShowDialogGamePacket;
+import org.geysermc.geyser.util.MinecraftKey;
 
-@Translator(packet = ClientboundShowDialogGamePacket.class)
-public class JavaShowDialogGameTranslator extends PacketTranslator<ClientboundShowDialogGamePacket> {
+public class NoticeDialog extends Dialog {
 
-    @Override
-    public void translate(GeyserSession session, ClientboundShowDialogGamePacket packet) {
-        Dialog dialog;
-        if (packet.getDialog().isId()) {
-            dialog = JavaRegistries.DIALOG.fromNetworkId(session, packet.getDialog().id());
-        } else {
-            dialog = Dialog.readDialog(session, packet.getDialog().custom());
-        }
-        session.sendForm(dialog.buildForm());
+    public static final Key TYPE = MinecraftKey.key("notice");
+
+    public NoticeDialog(GeyserSession session, NbtMap map) {
+        super(session, map);
     }
 }
