@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.dialogues;
 
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -37,12 +36,6 @@ public class JavaShowDialogGameTranslator extends PacketTranslator<ClientboundSh
 
     @Override
     public void translate(GeyserSession session, ClientboundShowDialogGamePacket packet) {
-        Dialog dialog;
-        if (packet.getDialog().isId()) {
-            dialog = JavaRegistries.DIALOG.fromNetworkId(session, packet.getDialog().id());
-        } else {
-            dialog = Dialog.readDialog(session, packet.getDialog().custom());
-        }
-        session.sendForm(dialog.buildForm());
+        Dialog.showDialog(session, packet.getDialog());
     }
 }

@@ -26,16 +26,25 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.ToIntFunction;
 
 public abstract class Dialog {
 
@@ -56,20 +65,12 @@ public abstract class Dialog {
         if (bodyTag == null) {
             labels = List.of();
         } else if (bodyTag instanceof NbtMap bodyMap) {
-            String body = readBody(session, bodyMap);
-            if (body != null) {
-                labels = List.of(body);
-            } else {
-                labels = List.of();
-            }
+            labels = readBody(session, bodyMap).map(List::of).orElse(List.of());
         } else if (bodyTag instanceof List<?> bodyList) {
             List<String> bodies = new ArrayList<>();
             for (Object tag : bodyList) {
                 if (tag instanceof NbtMap bodyMap) {
-                    String body = readBody(session, bodyMap);
-                    if (body != null) {
-                        bodies.add(body);
-                    }
+                    readBody(session, bodyMap).ifPresent(bodies::add);
                 } else {
                     throw new IllegalStateException("Found non-NBT map in list of bodies, was: " + tag);
                 }
@@ -82,40 +83,72 @@ public abstract class Dialog {
         inputs = List.of();
     }
 
-    public CustomForm buildForm() {
-        return createForm().build();
+    private static Optional<String> readBody(GeyserSession session, NbtMap tag) {
+        Key type = MinecraftKey.key(tag.getString("type"));
+        if (type.equals(PLAIN_MESSAGE_BODY)) {
+            return Optional.of(MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents")));
+        }
+        // Other type is item, can't display that in forms
+        return Optional.empty();
     }
 
-    protected CustomForm.Builder createForm() {
+    protected @Nullable abstract DialogAction onCancel();
+
+    public CustomForm buildForm(GeyserSession session) {
+        return createForm(session).build();
+    }
+
+    protected CustomForm.Builder createForm(GeyserSession session) {
         CustomForm.Builder builder = CustomForm.builder()
             .title(title);
         for (String label : labels) {
             builder.label(label);
         }
+
+        builder.closedOrInvalidResultHandler(actionResult(session, onCancel()));
         return builder;
     }
 
-    private static String readBody(GeyserSession session, NbtMap tag) {
-        Key type = MinecraftKey.key(tag.getString("type"));
-        if (type.equals(PLAIN_MESSAGE_BODY)) {
-            return MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents"));
-        }
-        // Other type is item, can't display that in forms
-        return null;
+    protected Consumer<CustomFormResponse> validResultAction(GeyserSession session, @Nullable DialogAction action) {
+        Runnable runnable = actionResult(session, action);
+        return response -> runnable.run();
     }
 
     public static Dialog readDialog(RegistryEntryContext context) {
-        return readDialog(context.session(), context.data());
+        return readDialog(context.session(), context.data(), context::getNetworkId);
     }
 
-    public static Dialog readDialog(GeyserSession session, NbtMap map) {
+    public static Dialog readDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
         // TYPES: notice, server_links, dialog_list, multi_action, confirmation
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
-            return new NoticeDialog(session, map);
+            return new NoticeDialog(session, map, idGetter);
         }
-        return new Dialog(session, map) {};
+        return new Dialog(session, map) {
+            @Override
+            protected @Nullable DialogAction onCancel() {
+                return null;
+            }
+        };
         // throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!"); // TODO put this here once all types are implemented
+    }
+
+    public static void showDialog(GeyserSession session, Holder<NbtMap> holder) {
+        Dialog dialog;
+        if (holder.isId()) {
+            dialog = JavaRegistries.DIALOG.fromNetworkId(session, holder.id());
+        } else {
+            dialog = Dialog.readDialog(session, holder.custom(), key -> JavaRegistries.DIALOG.keyToNetworkId(session, key));
+        }
+        session.sendForm(Objects.requireNonNull(dialog).buildForm(session));
+    }
+
+    protected Runnable actionResult(GeyserSession session, @Nullable DialogAction action) {
+        return () -> {
+            if (action != null) {
+                action.run(session, afterAction);
+            }
+        };
     }
 
     public enum AfterAction {
@@ -132,4 +165,7 @@ public abstract class Dialog {
             return null;
         }
     }
+
+    @FunctionalInterface
+    public interface IdGetter extends ToIntFunction<Key> {}
 }

@@ -44,12 +44,14 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
@@ -57,8 +59,10 @@ import java.util.List;
 public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
-    public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS, Block::javaId, Block::javaIdentifier);
-    public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS, Item::javaId, Item::javaKey);
+    public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS,
+        Block::javaId, Block::javaIdentifier, key -> Optional.ofNullable(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get(key.asString())).orElse(-1));
+    public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
+        Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
@@ -82,23 +86,19 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant");
 
-    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer,
-                                                 JavaRegistryKey.NetworkIdentifier<T> networkIdentifier) {
-        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer, networkIdentifier);
+    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup) {
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registryLookup);
         VALUES.add(registry);
         return registry;
     }
 
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer, RegistryIdentifierMapper<T> identifierMapper) {
-        return create(key, (session, $, object) -> networkSerializer.get(object),
-            (session, $, id) -> registry.get(id),
-            (session, $, id) -> identifierMapper.get(registry.get(id)));
+    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
+                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper<T> idMapper) {
+        return create(key, new HardcodedLookup<>(registry, networkSerializer, identifierMapper, idMapper));
     }
 
     private static <T> JavaRegistryKey<T> create(String key) {
-        return create(key, (session, registry, object) -> session.getRegistryCache().registry(registry).byValue(object),
-            (session, registry, id) -> session.getRegistryCache().registry(registry).byId(id),
-            (session, registry, id) -> session.getRegistryCache().registry(registry).entryById(id).key());
+        return create(key, new RegistryCacheLookup<>());
     }
 
     @Nullable
@@ -121,5 +121,66 @@ public class JavaRegistries {
     interface RegistryIdentifierMapper<T> {
 
         Key get(T object);
+    }
+
+    @FunctionalInterface
+    interface RegistryIdMapper<T> {
+
+        int get(Key key);
+    }
+
+    private record HardcodedLookup<T>(ListRegistry<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
+                                      RegistryIdMapper<T> idMapper) implements JavaRegistryKey.RegistryLookup<T> {
+
+        @Override
+        public int toNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+            return networkMapper.get(object);
+        }
+
+        @Override
+        public @Nullable T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, int id) {
+            return registry.get(id);
+        }
+
+        @Override
+        public int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+            return idMapper.get(key);
+        }
+
+        @Override
+        public @Nullable Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, int id) {
+            return identifierMapper.get(registry.get(id));
+        }
+    }
+
+    private static class RegistryCacheLookup<T> implements JavaRegistryKey.RegistryLookup<T> {
+
+        @Override
+        public int toNetworkId(GeyserSession session, JavaRegistryKey<T> registry, T object) {
+            return session.getRegistryCache().registry(registry).byValue(object);
+        }
+
+        @Override
+        public @Nullable T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId) {
+            return session.getRegistryCache().registry(registry).byId(networkId);
+        }
+
+        @Override
+        public int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registry, Key key) {
+            RegistryEntryData<T> entry = session.getRegistryCache().registry(registry).entryByKey(key);
+            if (entry != null) {
+                return entry.id();
+            }
+            return -1;
+        }
+
+        @Override
+        public @Nullable Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId) {
+            RegistryEntryData<T> entry = session.getRegistryCache().registry(registry).entryById(networkId);
+            if (entry != null) {
+                return entry.key();
+            }
+            return null;
+        }
     }
 }

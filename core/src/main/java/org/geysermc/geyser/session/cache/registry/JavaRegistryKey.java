@@ -26,8 +26,9 @@
 package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Defines a Java registry, which can be hardcoded or data-driven. This class doesn't store registry contents itself, that is handled by {@link org.geysermc.geyser.session.cache.RegistryCache} in the case of
@@ -37,54 +38,66 @@ import org.jetbrains.annotations.NotNull;
  * class are kept in {@link JavaRegistries}, which also has useful methods for creating instances of this class.</p>
  *
  * @param registryKey the registry key, as it appears on Java.
- * @param networkSerializer a method that converts an object in this registry to its network ID.
- * @param networkDeserializer a method that converts a network ID to an object in this registry.
- * @param networkIdentifier a method that converts a network ID to its respective key in this registry.
+ * @param registryLookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
  * @param <T> the object type this registry holds.
  */
-public record JavaRegistryKey<T>(Key registryKey, NetworkSerializer<T> networkSerializer, NetworkDeserializer<T> networkDeserializer, NetworkIdentifier<T> networkIdentifier) {
+public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> registryLookup) {
 
     /**
-     * Converts an object in this registry to its network ID.
+     * Converts an object in this registry to its network ID, or -1 if it is not registered.
      */
     public int toNetworkId(GeyserSession session, T object) {
-        return networkSerializer.toNetworkId(session, this, object);
+        return registryLookup.toNetworkId(session, this, object);
     }
 
     /**
-     * Converts a network ID to an object in this registry.
+     * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public T fromNetworkId(GeyserSession session, int networkId) {
-        return networkDeserializer.fromNetworkId(session, this, networkId);
+    public @Nullable T fromNetworkId(GeyserSession session, int networkId) {
+        return registryLookup.fromNetworkId(session, this, networkId);
     }
 
     /**
-     * Converts a network ID to the key it's registered under in this registry.
+     * Converts a key registered under this registry to its network ID, or -1 if it is not registered.
      */
-    public Key keyFromNetworkId(GeyserSession session, int networkId) {
-        return networkIdentifier.keyFromNetworkId(session, this, networkId);
+    public int keyToNetworkId(GeyserSession session, Key key) {
+        return registryLookup.keyToNetworkId(session, this, key);
     }
 
-    @FunctionalInterface
-    public interface NetworkSerializer<T> {
+    /**
+     * Converts a network ID to the key it is registered under in this registry, or null if it is not registered.
+     */
+    public @Nullable Key keyFromNetworkId(GeyserSession session, int networkId) {
+        return registryLookup.keyFromNetworkId(session, this, networkId);
+    }
 
+    public interface RegistryLookup<T> {
+
+        /**
+         * Implementations should return the network ID of the registered object, or -1 if it is not registered.
+         */
         int toNetworkId(GeyserSession session, JavaRegistryKey<T> registry, T object);
-    }
 
-    @FunctionalInterface
-    public interface NetworkDeserializer<T> {
-
+        /**
+         * Implementations should return the object that is registered under the given network ID, or null if it is not registered.
+         */
+        @Nullable
         T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
-    }
 
-    @FunctionalInterface
-    public interface NetworkIdentifier<T> {
+        /**
+         * Implementations should return the network ID that corresponds to the given registered key, or -1 if it is not registered.
+         */
+        int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registry, Key key);
 
+        /**
+         * Implementations should return the key that corresponds to the registered network ID, or null if it is not registered.
+         */
+        @Nullable
         Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
     }
 
     @Override
-    public @NotNull String toString() {
+    public @NonNull String toString() {
         return "Java registry: " + registryKey;
     }
 }

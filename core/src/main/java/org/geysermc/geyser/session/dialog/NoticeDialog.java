@@ -26,15 +26,31 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
 
 public class NoticeDialog extends Dialog {
 
     public static final Key TYPE = MinecraftKey.key("notice");
 
-    public NoticeDialog(GeyserSession session, NbtMap map) {
+    private final DialogAction action;
+
+    public NoticeDialog(GeyserSession session, NbtMap map, Dialog.IdGetter idGetter) {
         super(session, map);
+        action = DialogAction.read(map.getCompound("action", null), idGetter);
+    }
+
+    @Override
+    protected @Nullable DialogAction onCancel() {
+        return action;
+    }
+
+    @Override
+    protected CustomForm.Builder createForm(GeyserSession session) {
+        return super.createForm(session).validResultHandler(validResultAction(session, action));
     }
 }

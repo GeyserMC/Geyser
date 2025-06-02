@@ -193,7 +193,7 @@ public final class RegistryCache {
                     // Registry readers should never return null, rather return a default value
                     throw new IllegalStateException("Registry reader returned null for an entry!");
                 }
-                builder.add(i, new RegistryEntryData<>(entry.getId(), cacheEntry));
+                builder.add(i, new RegistryEntryData<>(i, entry.getId(), cacheEntry));
             }
             registry.reset(builder);
         });
