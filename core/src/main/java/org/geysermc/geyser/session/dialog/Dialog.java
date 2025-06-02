@@ -26,7 +26,6 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
@@ -52,7 +51,7 @@ public abstract class Dialog {
 
     private final String title;
     private final String externalTitle;
-    private final AfterAction afterAction;
+    protected final AfterAction afterAction;
     private final List<String> labels;
     private final List<Object> inputs; // TODO
 
@@ -92,11 +91,7 @@ public abstract class Dialog {
         return Optional.empty();
     }
 
-    protected @Nullable abstract DialogAction onCancel();
-
-    public CustomForm buildForm(GeyserSession session) {
-        return createForm(session).build();
-    }
+    protected abstract Optional<DialogAction> onCancel();
 
     protected CustomForm.Builder createForm(GeyserSession session) {
         CustomForm.Builder builder = CustomForm.builder()
@@ -105,29 +100,53 @@ public abstract class Dialog {
             builder.label(label);
         }
 
-        builder.closedOrInvalidResultHandler(actionResult(session, onCancel()));
+        builder.closedOrInvalidResultHandler(actionResult(session, onCancel())); // TODO parse input
+        addCustomComponents(session, builder);
         return builder;
     }
 
-    protected Consumer<CustomFormResponse> validResultAction(GeyserSession session, @Nullable DialogAction action) {
+    protected abstract void addCustomComponents(GeyserSession session, CustomForm.Builder builder);
+
+    public CustomForm buildForm(GeyserSession session) {
+        return createForm(session).build();
+    }
+
+    protected Object parseInput(CustomFormResponse response) {
+        return 0; // TODO
+    }
+
+    protected Runnable actionResult(GeyserSession session, Optional<DialogAction> action) {
+        return () -> action.ifPresent(present -> present.run(session, afterAction));
+    }
+
+    protected Consumer<CustomFormResponse> validResultAction(GeyserSession session, Optional<DialogAction> action) {
         Runnable runnable = actionResult(session, action);
         return response -> runnable.run();
     }
 
     public static Dialog readDialog(RegistryEntryContext context) {
-        return readDialog(context.session(), context.data(), context::getNetworkId);
+        return readDialogFromNbt(context.session(), context.data(), context::getNetworkId);
     }
 
-    public static Dialog readDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
+    public static Dialog readDialogFromNbt(GeyserSession session, NbtMap map, IdGetter idGetter) {
         // TYPES: notice, server_links, dialog_list, multi_action, confirmation
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
             return new NoticeDialog(session, map, idGetter);
+        } else if (type.equals(ConfirmationDialog.TYPE)) {
+            return new ConfirmationDialog(session, map, idGetter);
         }
+
         return new Dialog(session, map) {
+
             @Override
-            protected @Nullable DialogAction onCancel() {
-                return null;
+            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
+
+            }
+
+            @Override
+            protected Optional<DialogAction> onCancel() {
+                return Optional.empty();
             }
         };
         // throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!"); // TODO put this here once all types are implemented
@@ -138,17 +157,9 @@ public abstract class Dialog {
         if (holder.isId()) {
             dialog = JavaRegistries.DIALOG.fromNetworkId(session, holder.id());
         } else {
-            dialog = Dialog.readDialog(session, holder.custom(), key -> JavaRegistries.DIALOG.keyToNetworkId(session, key));
+            dialog = Dialog.readDialogFromNbt(session, holder.custom(), key -> JavaRegistries.DIALOG.keyToNetworkId(session, key));
         }
         session.sendForm(Objects.requireNonNull(dialog).buildForm(session));
-    }
-
-    protected Runnable actionResult(GeyserSession session, @Nullable DialogAction action) {
-        return () -> {
-            if (action != null) {
-                action.run(session, afterAction);
-            }
-        };
     }
 
     public enum AfterAction {

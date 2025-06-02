@@ -25,33 +25,19 @@
 
 package org.geysermc.geyser.session.dialog;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
-import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.Optional;
 
-public class NoticeDialog extends Dialog {
+public record DialogButton(String label, Optional<DialogAction> action) {
 
-    public static final Key TYPE = MinecraftKey.key("notice");
-
-    private final Optional<DialogButton> button;
-
-    public NoticeDialog(GeyserSession session, NbtMap map, Dialog.IdGetter idGetter) {
-        super(session, map);
-        button = DialogButton.read(session, map.getCompound("action"), idGetter);
-    }
-
-    @Override
-    protected Optional<DialogAction> onCancel() {
-        return button.flatMap(DialogButton::action);
-    }
-
-    @Override
-    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
-        builder.validResultHandler(validResultAction(session, button.flatMap(DialogButton::action))); // TODO parse input
+    public static Optional<DialogButton> read(GeyserSession session, Object tag, Dialog.IdGetter idGetter) {
+        if (!(tag instanceof NbtMap map)) {
+            return Optional.empty();
+        }
+        return Optional.of(new DialogButton(MessageTranslator.convertFromNullableNbtTag(session, map.get("label")), DialogAction.read(map.get("action"), idGetter)));
     }
 }

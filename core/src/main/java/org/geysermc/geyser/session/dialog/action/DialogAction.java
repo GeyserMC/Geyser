@@ -35,25 +35,27 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomClickActionPacket;
 
+import java.util.Optional;
+
 public interface DialogAction {
 
-    static DialogAction read(NbtMap map, Dialog.IdGetter idGetter) {
-        if (map == null) {
-            return null;
+    static Optional<DialogAction> read(Object tag, Dialog.IdGetter idGetter) {
+        if (!(tag instanceof NbtMap map)) {
+            return Optional.empty();
         }
 
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(OpenUrl.TYPE)) {
-            return new OpenUrl(map.getString("url"));
+            return Optional.of(new OpenUrl(map.getString("url")));
         } else if (type.equals(RunCommand.TYPE)) {
-            return new RunCommand(map.getString("command"));
+            return Optional.of(new RunCommand(map.getString("command")));
         } else if (type.equals(ShowDialog.TYPE)) {
-            return ShowDialog.readDialog(map.get("dialog"), idGetter);
+            return Optional.of(ShowDialog.readDialog(map.get("dialog"), idGetter));
         } else if (type.equals(Custom.TYPE)) {
-            return new Custom(MinecraftKey.key(map.getString("id")), map.getCompound("payload"));
+            return Optional.of(new Custom(MinecraftKey.key(map.getString("id")), map.getCompound("payload")));
         }
         // TODO the dynamic types
-        return null;
+        return Optional.empty();
     }
 
     void run(GeyserSession session, Dialog.AfterAction after);

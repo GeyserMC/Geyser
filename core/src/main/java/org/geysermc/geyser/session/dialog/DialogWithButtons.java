@@ -25,33 +25,46 @@
 
 package org.geysermc.geyser.session.dialog;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.dialog.action.DialogAction;
-import org.geysermc.geyser.util.MinecraftKey;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-public class NoticeDialog extends Dialog {
+public abstract class DialogWithButtons extends Dialog {
 
-    public static final Key TYPE = MinecraftKey.key("notice");
+    protected final List<DialogButton> buttons;
 
-    private final Optional<DialogButton> button;
-
-    public NoticeDialog(GeyserSession session, NbtMap map, Dialog.IdGetter idGetter) {
+    protected DialogWithButtons(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
         super(session, map);
-        button = DialogButton.read(session, map.getCompound("action"), idGetter);
-    }
-
-    @Override
-    protected Optional<DialogAction> onCancel() {
-        return button.flatMap(DialogButton::action);
+        this.buttons = buttons;
     }
 
     @Override
     protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
-        builder.validResultHandler(validResultAction(session, button.flatMap(DialogButton::action))); // TODO parse input
+        DropdownComponent.Builder dropdown = DropdownComponent.builder();
+        dropdown.text("Please select an option:");
+        for (DialogButton button : buttons) {
+            dropdown.option(button.label());
+        }
+        builder.dropdown(dropdown);
+
+        builder.validResultHandler(response -> {
+            parseInput(response); // TODO
+            int selection = response.asDropdown();
+            buttons.get(selection).action().ifPresent(action -> action.run(session, afterAction)); // TODO check size?
+        });
+    }
+
+    @SafeVarargs
+    protected static List<DialogButton> parseOptionalList(Optional<DialogButton>... buttons) {
+        List<DialogButton> checked = new ArrayList<>();
+        for (Optional<DialogButton> button : buttons) {
+            checked.add(button.orElseThrow());
+        }
+        return checked;
     }
 }

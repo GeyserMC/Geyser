@@ -27,31 +27,23 @@ package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
 
+import java.util.List;
 import java.util.Optional;
 
-public class NoticeDialog extends Dialog {
+public class ConfirmationDialog extends DialogWithButtons {
 
-    public static final Key TYPE = MinecraftKey.key("notice");
+    public static final Key TYPE = MinecraftKey.key("confirmation");
 
-    private final Optional<DialogButton> button;
-
-    public NoticeDialog(GeyserSession session, NbtMap map, Dialog.IdGetter idGetter) {
-        super(session, map);
-        button = DialogButton.read(session, map.getCompound("action"), idGetter);
+    public ConfirmationDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
+        super(session, map, parseOptionalList(DialogButton.read(session, map.get("yes"), idGetter), DialogButton.read(session, map.get("no"), idGetter)));
     }
 
     @Override
     protected Optional<DialogAction> onCancel() {
-        return button.flatMap(DialogButton::action);
-    }
-
-    @Override
-    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
-        builder.validResultHandler(validResultAction(session, button.flatMap(DialogButton::action))); // TODO parse input
+        return buttons.get(1).action(); // "no" button
     }
 }

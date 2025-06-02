@@ -475,8 +475,7 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
-    @Nullable
-    public static String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
             return null;
         }
