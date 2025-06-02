@@ -35,43 +35,46 @@ import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
 
-public class BooleanInput extends DialogInput<Boolean> {
+public class TextInput extends DialogInput<String> {
 
-    public static final Key TYPE = MinecraftKey.key("boolean");
+    public static final Key TYPE = MinecraftKey.key("text");
 
-    private final boolean initial;
-    private final String onTrue;
-    private final String onFalse;
+    private final boolean labelVisible;
+    private final String initial;
+    private final int maxLength;
 
-    public BooleanInput(GeyserSession session, NbtMap map) {
+    public TextInput(GeyserSession session, NbtMap map) {
         super(session, map);
-        initial = map.getBoolean("initial", false);
-        onTrue = map.getString("on_true", "true");
-        onFalse = map.getString("on_false", "false");
+        labelVisible = map.getBoolean("label_visible", true);
+        initial = map.getString("initial", "");
+        maxLength = map.getInt("max_length", 32);
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, Optional<Boolean> restored) {
-        builder.toggle(label, restored.orElse(initial));
+    public void addComponent(CustomForm.Builder builder, Optional<String> restored) {
+        builder.input(labelVisible ? label : "", "", restored.orElse(initial));
     }
 
     @Override
-    public Boolean read(CustomFormResponse response) {
-        return response.asToggle();
+    public String read(CustomFormResponse response) {
+        String raw = response.asInput();
+        assert raw != null;
+        // Bedrock doesn't support setting a max length, so we just cut it off to not have the server complain
+        return raw.substring(0, Math.min(raw.length(), maxLength));
     }
 
     @Override
-    public String asSubstitution(Boolean value) {
-        return value ? onTrue : onFalse;
+    public String asSubstitution(String value) {
+        return value;
     }
 
     @Override
-    public void addToMap(NbtMapBuilder builder, Boolean value) {
-        builder.putBoolean(key, value);
+    public void addToMap(NbtMapBuilder builder, String value) {
+        builder.putString(key, value);
     }
 
     @Override
-    public Boolean defaultValue() {
+    public String defaultValue() {
         return initial;
     }
 }

@@ -59,6 +59,12 @@ public abstract class DialogInput<T> {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(BooleanInput.TYPE)) {
             return new BooleanInput(session, tag);
+        } else if (type.equals(NumberRangeInput.TYPE)) {
+            return new NumberRangeInput(session, tag);
+        } else if (type.equals(SingleOptionInput.TYPE)) {
+            return new SingleOptionInput(session, tag);
+        } else if (type.equals(TextInput.TYPE)) {
+            return new TextInput(session, tag);
         }
 
         throw new UnsupportedOperationException("Unknown dialog input type " + type);

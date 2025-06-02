@@ -35,43 +35,47 @@ import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
 
-public class BooleanInput extends DialogInput<Boolean> {
+public class NumberRangeInput extends DialogInput<Float> {
 
-    public static final Key TYPE = MinecraftKey.key("boolean");
+    public static final Key TYPE = MinecraftKey.key("number_range");
 
-    private final boolean initial;
-    private final String onTrue;
-    private final String onFalse;
+    private final float start;
+    private final float end;
+    private final float initial;
+    private final float step;
 
-    public BooleanInput(GeyserSession session, NbtMap map) {
+    public NumberRangeInput(GeyserSession session, NbtMap map) {
         super(session, map);
-        initial = map.getBoolean("initial", false);
-        onTrue = map.getString("on_true", "true");
-        onFalse = map.getString("on_false", "false");
+        start = map.getFloat("start");
+        end = map.getFloat("end");
+        initial = map.getFloat("initial", start + (end - start) / 2.0F);
+        step = map.getFloat("step", 1.0F);
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, Optional<Boolean> restored) {
-        builder.toggle(label, restored.orElse(initial));
+    public void addComponent(CustomForm.Builder builder, Optional<Float> restored) {
+        // Note: Java uses live labels which change as you change the slider, showing the value. This is what the "label_format" key is for. This is not supported on bedrock.
+        builder.slider(label, start, end, step, restored.orElse(initial));
     }
 
     @Override
-    public Boolean read(CustomFormResponse response) {
-        return response.asToggle();
+    public Float read(CustomFormResponse response) {
+        return response.asSlider();
     }
 
     @Override
-    public String asSubstitution(Boolean value) {
-        return value ? onTrue : onFalse;
+    public String asSubstitution(Float value) {
+        int rounded = value.intValue();
+        return (float) rounded == value ? Integer.toString(rounded) : Float.toString(value);
     }
 
     @Override
-    public void addToMap(NbtMapBuilder builder, Boolean value) {
-        builder.putBoolean(key, value);
+    public void addToMap(NbtMapBuilder builder, Float value) {
+        builder.putFloat(key, value);
     }
 
     @Override
-    public Boolean defaultValue() {
+    public Float defaultValue() {
         return initial;
     }
 }
