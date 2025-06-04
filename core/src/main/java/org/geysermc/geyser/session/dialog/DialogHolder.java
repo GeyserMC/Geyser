@@ -26,14 +26,18 @@
 package org.geysermc.geyser.session.dialog;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
+import org.geysermc.geyser.text.MinecraftLocale;
 
 import java.util.Optional;
 
 public class DialogHolder {
     private final DialogManager manager;
     private final Dialog dialog;
+    private long responseWaitTime = 0;
+    private boolean sendBackButton = false;
     private ParsedInputs lastInputs;
 
     public DialogHolder(DialogManager manager, Dialog dialog) {
@@ -67,7 +71,23 @@ public class DialogHolder {
                     manager.close();
                 }
             }
-            case WAIT_FOR_RESPONSE -> {} // TODO
+            case WAIT_FOR_RESPONSE -> {
+                // If no new dialog was opened, open a form telling the user we're waiting on a response from the server
+                // This dialog is replaced with a similar form with a "back" button after 5 seconds, matching Java behaviour
+                if (stillValid) {
+                    responseWaitTime = System.currentTimeMillis();
+                    sendBackButton = false;
+                    waitForResponse();
+                }
+            }
+        }
+    }
+
+    public void tick() {
+        // Replace wait form with one with a back button if no replacement dialog was given
+        if (responseWaitTime > 0 && !sendBackButton && System.currentTimeMillis() - responseWaitTime > 5000) {
+            sendBackButton = true;
+            manager.session().closeForm(); // Automatically reopens with a back button
         }
     }
 
@@ -81,14 +101,42 @@ public class DialogHolder {
             }
         } else if (manager.open() == this) { // Check if this is still the currently open dialog
             // If player should not have been able to close the dialog, reopen it with the last inputs
-
-            // lastInputs might be null here since it's possible none were sent yet, and bedrock doesn't send them when just closing the form
-            if (lastInputs == null) {
-                dialog.sendForm(manager.session(), this);
-            } else {
-                dialog.restoreForm(manager.session(), lastInputs, this);
-            }
+            reopenDialog();
         }
+    }
+
+    private void reopenDialog() {
+        responseWaitTime = 0;
+
+        // lastInputs might be null here since it's possible none were sent yet
+        // Bedrock doesn't send them when just closing the form
+        if (lastInputs == null) {
+            dialog.sendForm(manager.session(), this);
+        } else {
+            dialog.restoreForm(manager.session(), lastInputs, this);
+        }
+    }
+
+    private void waitForResponse() {
+        String content = "Geyser is waiting for the server to respond with a new dialog.";
+        if (sendBackButton) {
+            content += " The server is taking a while to respond. You can press the button below to go back to the game.";
+        } else {
+            content += " If no new dialog is shown within 5 seconds, a button will appear to go back to the game.";
+        }
+
+        manager.session().sendDialogForm(SimpleForm.builder()
+            .translator(MinecraftLocale::getLocaleString, manager.session().locale())
+            .title("gui.waitingForResponse.title")
+            .content(content)
+            .optionalButton("Back", sendBackButton)
+            .closedOrInvalidResultHandler(() -> {
+                if (manager.open() == this) { // If still waiting on a new dialog
+                    waitForResponse();
+                }
+            })
+            .validResultHandler(response -> manager.close()) // Back button was pressed, meaning no new dialog was sent
+            .build());
     }
 
     // Returns true if this dialog is still regarded open by the DialogManager

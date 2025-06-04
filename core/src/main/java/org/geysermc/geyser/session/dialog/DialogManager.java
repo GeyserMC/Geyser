@@ -58,6 +58,12 @@ public class DialogManager {
         dialog.sendForm(session, open);
     }
 
+    public void tick() {
+        if (open != null) {
+            open.tick();
+        }
+    }
+
     /**
      * Closes the currently open dialog, if any. The dialog's closing action will not be executed.
      */

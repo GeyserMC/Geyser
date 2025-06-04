@@ -1240,6 +1240,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
             }
+
+            dialogManager.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

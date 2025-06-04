@@ -42,6 +42,7 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.dialog.input.DialogInput;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -111,6 +112,7 @@ public abstract class Dialog {
     protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session, Optional<ParsedInputs> restored, DialogHolder holder) {
         if (inputs.isEmpty()) {
             SimpleForm.Builder builder = SimpleForm.builder()
+                .translator(MinecraftLocale::getLocaleString, session.locale())
                 .title(title);
             builder.content(String.join("\n\n", labels));
 
@@ -119,6 +121,7 @@ public abstract class Dialog {
             return builder;
         } else {
             CustomForm.Builder builder = CustomForm.builder()
+                .translator(MinecraftLocale::getLocaleString, session.locale())
                 .title(title);
 
             restored.ifPresentOrElse(last -> last.restore(builder), () -> inputs.forEach(input -> input.addComponent(builder)));
