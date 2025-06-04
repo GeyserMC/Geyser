@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.dialog.action;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
@@ -76,7 +75,8 @@ public interface DialogAction {
 
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
-            session.sendForm(SimpleForm.builder().title("Open URL").content(url));
+            //session.sendForm(SimpleForm.builder().title("Open URL").content(url));
+            // TODO if we use form here we need a connection in dialog stack
         }
     }
 
@@ -105,8 +105,7 @@ public interface DialogAction {
 
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
-            // TODO figure out parent dialog
-            Dialog.showDialog(session, dialog);
+            session.getDialogManager().openDialog(dialog);
         }
     }
 

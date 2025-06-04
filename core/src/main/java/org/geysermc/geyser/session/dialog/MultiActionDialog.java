@@ -31,21 +31,11 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.Optional;
-
 public class MultiActionDialog extends DialogWithButtons {
 
     public static final Key TYPE = MinecraftKey.key("multi_action");
 
-    private final Optional<DialogButton> exit;
-
     protected MultiActionDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
-        super(session, map, DialogButton.readList(session, map.getList("actions", NbtType.COMPOUND), idGetter));
-        exit = DialogButton.read(session, map.get("exit_action"), idGetter);
-    }
-
-    @Override
-    protected Optional<DialogButton> onCancel() {
-        return exit;
+        super(session, map, DialogButton.readList(session, map.getList("actions", NbtType.COMPOUND), idGetter), DialogButton.read(session, map.get("exit_action"), idGetter));
     }
 }

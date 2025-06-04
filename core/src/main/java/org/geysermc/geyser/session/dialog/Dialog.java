@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.session.dialog;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.cumulus.form.CustomForm;
@@ -50,12 +53,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
 
+@Accessors(fluent = true)
 public abstract class Dialog {
 
     private static final Key PLAIN_MESSAGE_BODY = MinecraftKey.key("plain_message");
 
     private final String title;
     private final String externalTitle;
+    @Getter
+    private final boolean canCloseWithEscape;
+    @Getter
     private final AfterAction afterAction;
     private final List<String> labels;
     private final List<DialogInput<?>> inputs = new ArrayList<>();
@@ -63,6 +70,7 @@ public abstract class Dialog {
     protected Dialog(GeyserSession session, NbtMap map) {
         title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
         externalTitle = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
+        canCloseWithEscape = map.getBoolean("can_close_with_escape", true);
         afterAction = AfterAction.fromString(map.getString("after_action"));
 
         Object bodyTag = map.get("body");
@@ -100,40 +108,40 @@ public abstract class Dialog {
 
     protected abstract Optional<DialogButton> onCancel();
 
-    protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session) {
+    protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session, Optional<ParsedInputs> restored, DialogHolder holder) {
         if (inputs.isEmpty()) {
             SimpleForm.Builder builder = SimpleForm.builder()
                 .title(title);
-            builder.content(String.join("\n", labels));
+            builder.content(String.join("\n\n", labels));
 
-            builder.closedOrInvalidResultHandler(() -> runButton(session, onCancel(), ParsedInputs.EMPTY));
-            addCustomComponents(session, builder);
+            builder.closedOrInvalidResultHandler(() -> holder.closeDialog(onCancel()));
+            addCustomComponents(session, builder, holder);
             return builder;
         } else {
             CustomForm.Builder builder = CustomForm.builder()
                 .title(title);
 
-            inputs.forEach(input -> input.addComponent(builder, Optional.empty()));
-            builder.closedOrInvalidResultHandler(response -> runButton(session, onCancel(), new ParsedInputs(inputs)));
-            addCustomComponents(session, builder);
+            restored.ifPresentOrElse(last -> last.restore(builder), () -> inputs.forEach(input -> input.addComponent(builder)));
+            builder.closedOrInvalidResultHandler(response -> holder.closeDialog(onCancel()));
+            addCustomComponents(session, builder, holder);
             return builder;
         }
     }
 
-    protected abstract void addCustomComponents(GeyserSession session, CustomForm.Builder builder);
+    protected abstract void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder);
 
-    protected abstract void addCustomComponents(GeyserSession session, SimpleForm.Builder builder);
+    protected abstract void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder);
 
-    public Form buildForm(GeyserSession session) {
-        return createForm(session).build();
+    public void sendForm(GeyserSession session, DialogHolder holder) {
+        session.sendDialogForm(createForm(session, Optional.empty(), holder).build());
+    }
+
+    public void restoreForm(GeyserSession session, @NonNull ParsedInputs inputs, DialogHolder holder) {
+        session.sendDialogForm(createForm(session, Optional.of(inputs), holder).build());
     }
 
     protected ParsedInputs parseInput(CustomFormResponse response) {
         return new ParsedInputs(inputs, response);
-    }
-
-    protected void runButton(GeyserSession session, Optional<DialogButton> button, ParsedInputs inputs) {
-        button.flatMap(DialogButton::action).ifPresent(action -> action.run(session, inputs));
     }
 
     public static Dialog readDialog(RegistryEntryContext context) {
@@ -154,10 +162,10 @@ public abstract class Dialog {
         return new Dialog(session, map) {
 
             @Override
-            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {}
+            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {}
 
             @Override
-            protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {}
+            protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder) {}
 
             @Override
             protected Optional<DialogButton> onCancel() {
@@ -167,14 +175,12 @@ public abstract class Dialog {
         // throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!"); // TODO put this here once all types are implemented
     }
 
-    public static void showDialog(GeyserSession session, Holder<NbtMap> holder) {
-        Dialog dialog;
+    public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
         if (holder.isId()) {
-            dialog = JavaRegistries.DIALOG.fromNetworkId(session, holder.id());
+            return Objects.requireNonNull(JavaRegistries.DIALOG.fromNetworkId(session, holder.id()));
         } else {
-            dialog = Dialog.readDialogFromNbt(session, holder.custom(), key -> JavaRegistries.DIALOG.keyToNetworkId(session, key));
+            return Dialog.readDialogFromNbt(session, holder.custom(), key -> JavaRegistries.DIALOG.keyToNetworkId(session, key));
         }
-        session.sendForm(Objects.requireNonNull(dialog).buildForm(session));
     }
 
     public enum AfterAction {
@@ -188,7 +194,7 @@ public abstract class Dialog {
                     return action;
                 }
             }
-            return null;
+            return CLOSE;
         }
     }
 

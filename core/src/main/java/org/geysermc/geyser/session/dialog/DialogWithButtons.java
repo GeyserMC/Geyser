@@ -39,35 +39,55 @@ import java.util.Optional;
 public abstract class DialogWithButtons extends Dialog {
 
     protected final List<DialogButton> buttons;
+    protected final Optional<DialogButton> exitAction;
 
-    protected DialogWithButtons(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
+    protected DialogWithButtons(GeyserSession session, NbtMap map, List<DialogButton> buttons, Optional<DialogButton> exitAction) {
         super(session, map);
         this.buttons = buttons;
+        this.exitAction = exitAction;
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder) {
+    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
         dropdown.text("Please select an option:");
         for (DialogButton button : buttons) {
             dropdown.option(button.label());
         }
+        exitAction.ifPresent(button -> dropdown.option(button.label()));
         builder.dropdown(dropdown);
 
         builder.validResultHandler(response -> {
             ParsedInputs inputs = parseInput(response);
             int selection = response.asDropdown();
-            runButton(session, Optional.of(buttons.get(selection)), inputs);
+            if (selection == buttons.size()) {
+                holder.runButton(exitAction, inputs);
+            } else {
+                holder.runButton(Optional.of(buttons.get(selection)), inputs);
+            }
         });
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder) {
+    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder) {
         for (DialogButton button : buttons) {
             builder.button(button.label());
         }
+        exitAction.ifPresent(button -> builder.button(button.label()));
 
-        builder.validResultHandler(response -> runButton(session, Optional.of(buttons.get(response.clickedButtonId())), ParsedInputs.EMPTY));
+        builder.validResultHandler(response -> {
+            if (response.clickedButtonId() == buttons.size()) {
+                holder.runButton(exitAction, ParsedInputs.EMPTY);
+            } else {
+
+                holder.runButton(Optional.of(buttons.get(response.clickedButtonId())), ParsedInputs.EMPTY);
+            }
+        });
+    }
+
+    @Override
+    protected Optional<DialogButton> onCancel() {
+        return exitAction;
     }
 
     @SafeVarargs

@@ -37,11 +37,6 @@ public class ConfirmationDialog extends DialogWithButtons {
     public static final Key TYPE = MinecraftKey.key("confirmation");
 
     public ConfirmationDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
-        super(session, map, parseOptionalList(DialogButton.read(session, map.get("yes"), idGetter), DialogButton.read(session, map.get("no"), idGetter)));
-    }
-
-    @Override
-    protected Optional<DialogButton> onCancel() {
-        return buttons.size() > 1 ? Optional.of(buttons.get(1)) : Optional.empty(); // "no" button, there should always be 2 buttons but check just to be sure
+        super(session, map, parseOptionalList(DialogButton.read(session, map.get("yes"), idGetter), DialogButton.read(session, map.get("no"), idGetter)), Optional.empty());
     }
 }

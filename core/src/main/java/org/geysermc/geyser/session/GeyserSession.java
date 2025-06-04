@@ -176,6 +176,7 @@ import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -306,6 +307,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
+
+    @Getter
+    private final DialogManager dialogManager = new DialogManager(this);
 
     /**
      * Whether the client is currently closing an inventory.
@@ -1515,6 +1519,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull Form form) {
+        // First close any dialogs that are open. This won't execute the dialog's closing action.
+        dialogManager.close();
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public boolean sendDialogForm(@NonNull Form form) {
+        return doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
     }

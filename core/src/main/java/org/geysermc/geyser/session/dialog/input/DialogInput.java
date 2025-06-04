@@ -45,6 +45,10 @@ public abstract class DialogInput<T> {
         this.label = MessageTranslator.convertFromNullableNbtTag(session, map.get("label"));
     }
 
+    public void addComponent(CustomForm.Builder builder) {
+        addComponent(builder, Optional.empty());
+    }
+
     public abstract void addComponent(CustomForm.Builder builder, Optional<T> restored);
 
     public abstract T read(CustomFormResponse response);
