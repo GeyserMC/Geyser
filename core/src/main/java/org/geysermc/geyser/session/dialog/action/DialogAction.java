@@ -67,6 +67,24 @@ public interface DialogAction {
         return Optional.empty();
     }
 
+    interface CommandAction extends DialogAction {
+
+        String command(GeyserSession session, ParsedInputs inputs);
+
+        default String trimmedCommand(GeyserSession session, ParsedInputs inputs) {
+            String command = command(session, inputs);
+            if (command.startsWith("/")) {
+                return command.substring(1);
+            }
+            return command;
+        }
+
+        @Override
+        default void run(GeyserSession session, ParsedInputs inputs) {
+            throw new IllegalCallerException("Should be implemented elsewhere to run with a confirmation form");
+        }
+    }
+
     void run(GeyserSession session, ParsedInputs inputs);
 
     record OpenUrl(String url) implements DialogAction {
@@ -80,13 +98,13 @@ public interface DialogAction {
         }
     }
 
-    record RunCommand(String command) implements DialogAction {
+    record RunCommand(String command) implements CommandAction {
 
         public static final Key TYPE = MinecraftKey.key("run_command");
 
         @Override
-        public void run(GeyserSession session, ParsedInputs inputs) {
-            session.sendCommand(command);
+        public String command(GeyserSession session, ParsedInputs inputs) {
+            return command;
         }
     }
 
@@ -120,7 +138,7 @@ public interface DialogAction {
         }
     }
 
-    record DynamicRunCommand(List<String> segments, List<String> variables) implements DialogAction {
+    record DynamicRunCommand(List<String> segments, List<String> variables) implements CommandAction {
 
         public static final Key TYPE = MinecraftKey.key("dynamic/run_command");
 
@@ -165,7 +183,7 @@ public interface DialogAction {
         }
 
         @Override
-        public void run(GeyserSession session, ParsedInputs inputs) {
+        public String command(GeyserSession session, ParsedInputs inputs) {
             StringBuilder command = new StringBuilder();
 
             List<String> parsedVariables = variables.stream().map(inputs::getSubstitution).toList();
@@ -179,7 +197,7 @@ public interface DialogAction {
                 command.append(segments.get(segments.size() - 1));
             }
 
-            session.sendCommand(command.toString());
+            return command.toString();
         }
     }
 

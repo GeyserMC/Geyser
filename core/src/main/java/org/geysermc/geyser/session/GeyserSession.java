@@ -311,6 +311,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Getter
     private final DialogManager dialogManager = new DialogManager(this);
 
+    @Setter
+    private List<String> knownCommands = List.of();
+    @Setter
+    private List<String> restrictedCommands = List.of();
+
     /**
      * Whether the client is currently closing an inventory.
      * Used to open new inventories while another one is currently open.
