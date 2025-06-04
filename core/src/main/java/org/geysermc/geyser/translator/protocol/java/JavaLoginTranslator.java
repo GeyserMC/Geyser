@@ -78,6 +78,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // Remove extra hearts, hunger, etc.
             entity.resetAttributes();
             entity.resetMetadata();
+
+            // Reset inventories; just in case. Might resolve some issues where inventories get stuck?
+            session.setInventoryHolder(null);
+            session.setPendingOrCurrentBedrockInventoryId(-1);
+            session.setClosingInventory(false);
         }
 
         session.setDimensionType(newDimension);
