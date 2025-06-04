@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -97,11 +98,13 @@ final class BedrockBlockActions {
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
                 ItemMapping mapping = item.getMapping(session);
                 ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
-                CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
                 SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
 
+                CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
+                JavaBlockState nonVanillaJavaBlockState = BlockRegistries.JAVA_ID_TO_NON_VANILLA_BLOCK_STATE.get(blockState);
+
                 session.setBlockBreakStartTime(0);
-                if (blockStateOverride != null || customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+                if (blockStateOverride != null || nonVanillaJavaBlockState != null || customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
                     session.setBlockBreakStartTime(System.currentTimeMillis());
                 }
                 startBreak.setData((int) (65535 / breakTime));

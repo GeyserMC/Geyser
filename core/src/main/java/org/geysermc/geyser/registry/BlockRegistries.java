@@ -83,6 +83,11 @@ public class BlockRegistries {
     public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
 
     /**
+     * A mapped registry containing the Java IDS to non-vanilla block states.
+     */
+    public static final MappedRegistry<Integer, JavaBlockState, Int2ObjectMap<JavaBlockState>> JAVA_ID_TO_NON_VANILLA_BLOCK_STATE = MappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
      * A registry containing all the waterlogged blockstates.
      * Properties.WATERLOGGED should not be relied on for two reasons:
      * - Custom blocks
