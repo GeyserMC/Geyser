@@ -36,7 +36,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
  */
 @Accessors(fluent = true)
 public class DialogManager {
-    @Getter
     private final GeyserSession session;
     @Getter
     private DialogHolder open;
@@ -53,9 +52,9 @@ public class DialogManager {
      * Opens a new dialog. If a dialog was already open, this one will be closed. Its closing action will not be executed. This matches Java behaviour.
      */
     public void openDialog(Dialog dialog) {
-        open = new DialogHolder(this, dialog);
+        open = new DialogHolder(session, this, dialog);
         session.closeForm();
-        dialog.sendForm(session, open);
+        dialog.sendForm(open);
     }
 
     public void tick() {

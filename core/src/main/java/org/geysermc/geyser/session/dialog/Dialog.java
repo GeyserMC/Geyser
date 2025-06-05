@@ -112,19 +112,19 @@ public abstract class Dialog {
 
     protected abstract Optional<DialogButton> onCancel();
 
-    protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(GeyserSession session, Optional<ParsedInputs> restored, DialogHolder holder) {
+    protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(DialogHolder holder, Optional<ParsedInputs> restored) {
         if (inputs.isEmpty()) {
             SimpleForm.Builder builder = SimpleForm.builder()
-                .translator(MinecraftLocale::getLocaleString, session.locale())
+                .translator(MinecraftLocale::getLocaleString, holder.session().locale())
                 .title(title);
             builder.content(String.join("\n\n", labels));
 
             builder.closedOrInvalidResultHandler(() -> holder.closeDialog(onCancel()));
-            addCustomComponents(session, builder, holder);
+            addCustomComponents(holder, builder);
             return builder;
         } else {
             CustomForm.Builder builder = CustomForm.builder()
-                .translator(MinecraftLocale::getLocaleString, session.locale())
+                .translator(MinecraftLocale::getLocaleString, holder.session().locale())
                 .title(title);
             for (String label : labels) {
                 builder.label(label);
@@ -132,27 +132,27 @@ public abstract class Dialog {
 
             restored.ifPresentOrElse(last -> last.restore(builder), () -> inputs.forEach(input -> input.addComponent(builder)));
             builder.closedOrInvalidResultHandler(response -> holder.closeDialog(onCancel()));
-            addCustomComponents(session, builder, holder);
+            addCustomComponents(holder, builder);
             return builder;
         }
     }
 
-    protected abstract void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder);
+    protected abstract void addCustomComponents(DialogHolder holder, CustomForm.Builder builder);
 
-    protected abstract void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder);
+    protected abstract void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder);
 
-    public void sendForm(GeyserSession session, DialogHolder holder) {
-        session.sendDialogForm(createForm(session, Optional.empty(), holder).build());
+    public void sendForm(DialogHolder holder) {
+        holder.session().sendDialogForm(createForm(holder, Optional.empty()).build());
     }
 
-    public void restoreForm(GeyserSession session, @NonNull ParsedInputs inputs, DialogHolder holder) {
-        session.sendDialogForm(createForm(session, Optional.of(inputs), holder).build());
+    public void restoreForm(DialogHolder holder, @NonNull ParsedInputs inputs) {
+        holder.session().sendDialogForm(createForm(holder, Optional.of(inputs)).build());
     }
 
-    protected Optional<ParsedInputs> parseInput(GeyserSession session, CustomFormResponse response, DialogHolder holder) {
+    protected Optional<ParsedInputs> parseInput(DialogHolder holder, CustomFormResponse response) {
         ParsedInputs parsed = new ParsedInputs(inputs, response);
         if (parsed.hasErrors()) {
-            restoreForm(session, parsed, holder);
+            restoreForm(holder, parsed);
             return Optional.empty();
         }
         return Optional.of(parsed);
@@ -176,10 +176,10 @@ public abstract class Dialog {
         return new Dialog(session, map) {
 
             @Override
-            protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {}
+            protected void addCustomComponents(DialogHolder holder, CustomForm.Builder builder) {}
 
             @Override
-            protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder) {}
+            protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {}
 
             @Override
             protected Optional<DialogButton> onCancel() {

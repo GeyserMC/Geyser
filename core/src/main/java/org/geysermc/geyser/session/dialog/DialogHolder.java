@@ -25,11 +25,14 @@
 
 package org.geysermc.geyser.session.dialog;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -82,7 +85,10 @@ import java.util.Optional;
  *
  * <p>Final note: when reading through this code, a dialog is "valid" when it is still considered open.</p>
  */
+@Accessors(fluent = true)
 public class DialogHolder {
+    @Getter
+    private final GeyserSession session;
     private final DialogManager manager;
     private final Dialog dialog;
 
@@ -100,7 +106,8 @@ public class DialogHolder {
     private boolean shouldClose = false;
     private ParsedInputs lastInputs;
 
-    public DialogHolder(DialogManager manager, Dialog dialog) {
+    public DialogHolder(GeyserSession session, DialogManager manager, Dialog dialog) {
+        this.session = session;
         this.manager = manager;
         this.dialog = dialog;
     }
@@ -125,7 +132,7 @@ public class DialogHolder {
         // Replace wait form with one with a back button if no replacement dialog was given
         if (responseWaitTime > 0 && !sendBackButton && System.currentTimeMillis() - responseWaitTime > 5000) {
             sendBackButton = true;
-            manager.session().closeForm(); // Automatically reopens with a back button
+            session.closeForm(); // Automatically reopens with a back button
         }
     }
 
@@ -170,9 +177,9 @@ public class DialogHolder {
                 // lastInputs might be null here since it's possible none were sent yet
                 // Bedrock doesn't send them when just closing the form
                 if (lastInputs == null) {
-                    dialog.sendForm(manager.session(), this);
+                    dialog.sendForm(this);
                 } else {
-                    dialog.restoreForm(manager.session(), lastInputs, this);
+                    dialog.restoreForm(this, lastInputs);
                 }
             }
         }
@@ -185,7 +192,7 @@ public class DialogHolder {
         switch (dialog.afterAction()) {
             case NONE -> {
                 // If no new dialog was opened, reopen this one
-                dialog.restoreForm(manager.session(), lastInputs, this);
+                dialog.restoreForm(this, lastInputs);
             }
             case CLOSE -> {
                 // If no new dialog was opened, tell the manager this one is now closed
@@ -212,8 +219,8 @@ public class DialogHolder {
             content += " If no new dialog is shown within 5 seconds, a button will appear to go back to the game.";
         }
 
-        manager.session().sendDialogForm(SimpleForm.builder()
-            .translator(MinecraftLocale::getLocaleString, manager.session().locale())
+        session.sendDialogForm(SimpleForm.builder()
+            .translator(MinecraftLocale::getLocaleString, session.locale())
             .title("gui.waitingForResponse.title")
             .content(content)
             .optionalButton("gui.back", sendBackButton)
@@ -240,22 +247,22 @@ public class DialogHolder {
         if (action != null) {
             // Ask the user for confirmation if the dialog wants to run an unknown command or a command that requires operator permissions
             if (action instanceof DialogAction.CommandAction runCommand) {
-                String command = runCommand.trimmedCommand(manager.session(), inputs);
+                String command = runCommand.trimmedCommand(session, inputs);
                 String root = command.split(" ")[0];
 
                 // This check is not perfect. Ideally we'd check the entire command and see if any of its arguments require operator permissions, but, that's complicated
-                if (manager.session().getRestrictedCommands().contains(root)) {
+                if (session.getRestrictedCommands().contains(root)) {
                     showCommandConfirmation(command, false);
                     return false;
-                } else if (!manager.session().getKnownCommands().contains(root)) {
+                } else if (!session.getKnownCommands().contains(root)) {
                     showCommandConfirmation(command, true);
                     return false;
                 }
 
-                manager.session().sendCommand(command);
+                session.sendCommand(command);
                 return true;
             } else {
-                action.run(manager.session(), inputs);
+                action.run(session, inputs);
                 return !(action instanceof DialogAction.ShowDialog);
             }
         }
@@ -269,10 +276,10 @@ public class DialogHolder {
         Component content = Component.translatable(unknown ? "multiplayer.confirm_command.parse_errors" : "multiplayer.confirm_command.permissions_required",
             Component.text(trimmedCommand).color(NamedTextColor.YELLOW));
 
-        manager.session().sendDialogForm(ModalForm.builder()
-            .translator(MinecraftLocale::getLocaleString, manager.session().locale())
+        session.sendDialogForm(ModalForm.builder()
+            .translator(MinecraftLocale::getLocaleString, session.locale())
             .title("multiplayer.confirm_command.title")
-            .content(MessageTranslator.convertMessage(manager.session(), content))
+            .content(MessageTranslator.convertMessage(session, content))
             .button1("gui.yes")
             .button2("gui.no")
             .closedOrInvalidResultHandler(() -> {
@@ -282,7 +289,7 @@ public class DialogHolder {
             })
             .validResultHandler(response -> {
                 if (response.clickedFirst()) {
-                    manager.session().sendCommand(trimmedCommand);
+                    session.sendCommand(trimmedCommand);
                     if (shouldClose) {
                         manager.close();
                     } else {

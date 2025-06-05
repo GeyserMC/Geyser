@@ -48,7 +48,7 @@ public abstract class DialogWithButtons extends Dialog {
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {
+    protected void addCustomComponents(DialogHolder holder, CustomForm.Builder builder) {
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
         dropdown.text("Please select an option:");
         for (DialogButton button : buttons) {
@@ -57,20 +57,18 @@ public abstract class DialogWithButtons extends Dialog {
         exitAction.ifPresent(button -> dropdown.option(button.label()));
         builder.dropdown(dropdown);
 
-        builder.validResultHandler(response -> {
-            parseInput(session, response, holder).ifPresent(inputs -> {
-                int selection = response.asDropdown();
-                if (selection == buttons.size()) {
-                    holder.runButton(exitAction, inputs);
-                } else {
-                    holder.runButton(Optional.of(buttons.get(selection)), inputs);
-                }
-            });
-        });
+        builder.validResultHandler(response -> parseInput(holder, response).ifPresent(inputs -> {
+            int selection = response.asDropdown();
+            if (selection == buttons.size()) {
+                holder.runButton(exitAction, inputs);
+            } else {
+                holder.runButton(Optional.of(buttons.get(selection)), inputs);
+            }
+        }));
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder) {
+    protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
         for (DialogButton button : buttons) {
             builder.button(button.label());
         }

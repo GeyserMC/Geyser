@@ -67,6 +67,8 @@ public interface DialogAction {
         return Optional.empty();
     }
 
+    void run(GeyserSession session, ParsedInputs inputs);
+
     interface CommandAction extends DialogAction {
 
         String command(GeyserSession session, ParsedInputs inputs);
@@ -84,8 +86,6 @@ public interface DialogAction {
             throw new IllegalCallerException("Should be implemented elsewhere to run with a confirmation form");
         }
     }
-
-    void run(GeyserSession session, ParsedInputs inputs);
 
     record OpenUrl(String url) implements DialogAction {
 

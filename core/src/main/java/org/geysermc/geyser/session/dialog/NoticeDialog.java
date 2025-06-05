@@ -52,12 +52,12 @@ public class NoticeDialog extends Dialog {
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {
-        builder.validResultHandler(response -> parseInput(session, response, holder).ifPresent(inputs -> holder.runButton(button, inputs)));
+    protected void addCustomComponents(DialogHolder holder, CustomForm.Builder builder) {
+        builder.validResultHandler(response -> parseInput(holder, response).ifPresent(inputs -> holder.runButton(button, inputs)));
     }
 
     @Override
-    protected void addCustomComponents(GeyserSession session, SimpleForm.Builder builder, DialogHolder holder) {
+    protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
         builder.button(button.map(DialogButton::label).orElse("gui.ok"))
             .validResultHandler(response -> holder.runButton(button, ParsedInputs.EMPTY));
     }
