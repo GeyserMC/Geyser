@@ -35,6 +35,6 @@ public class JavaClearDialogTranslator extends PacketTranslator<ClientboundClear
 
     @Override
     public void translate(GeyserSession session, ClientboundClearDialogPacket packet) {
-
+        session.getDialogManager().close();
     }
 }
