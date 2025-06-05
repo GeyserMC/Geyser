@@ -34,6 +34,11 @@ import java.util.Optional;
 public class ServerLinksDialog extends DialogWithButtons {
 
     protected ServerLinksDialog(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
-        super(session, map, buttons, Optional.empty());
+        super(session, map, Optional.empty());
+    }
+
+    @Override
+    protected List<DialogButton> buttons(DialogHolder holder) {
+        return List.of();
     }
 }

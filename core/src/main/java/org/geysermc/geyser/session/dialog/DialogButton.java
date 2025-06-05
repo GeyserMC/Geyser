@@ -42,7 +42,7 @@ public record DialogButton(String label, Optional<DialogAction> action) {
         }
         List<DialogButton> buttons = new ArrayList<>();
         for (NbtMap map : tag) {
-            buttons.add(read(session, map, idGetter).orElseThrow()); // Should never throw
+            buttons.add(read(session, map, idGetter).orElseThrow()); // Should never throw because we know map is a NbtMap
         }
         return buttons;
     }

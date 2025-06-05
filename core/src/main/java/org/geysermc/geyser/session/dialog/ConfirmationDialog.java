@@ -30,13 +30,29 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ConfirmationDialog extends DialogWithButtons {
 
     public static final Key TYPE = MinecraftKey.key("confirmation");
 
+    private final DialogButton yes;
+    private final DialogButton no;
+
     public ConfirmationDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
-        super(session, map, parseOptionalList(DialogButton.read(session, map.get("yes"), idGetter), DialogButton.read(session, map.get("no"), idGetter)), Optional.empty());
+        super(session, map, Optional.empty());
+        yes = DialogButton.read(session, map.get("yes"), idGetter).orElseThrow();
+        no = DialogButton.read(session, map.get("no"), idGetter).orElseThrow();
+    }
+
+    @Override
+    protected List<DialogButton> buttons(DialogHolder holder) {
+        return List.of(yes, no);
+    }
+
+    @Override
+    protected Optional<DialogButton> onCancel() {
+        return Optional.of(no);
     }
 }

@@ -108,22 +108,26 @@ public interface DialogAction {
         }
     }
 
-    record ShowDialog(Holder<NbtMap> dialog) implements DialogAction {
+    record ShowDialog(Optional<Dialog> dialog, Holder<NbtMap> holder) implements DialogAction {
 
         public static final Key TYPE = MinecraftKey.key("show_dialog");
 
+        public ShowDialog(Dialog dialog) {
+            this(Optional.of(dialog), null);
+        }
+
         private static ShowDialog read(Object dialog, Dialog.IdGetter idGetter) {
             if (dialog instanceof NbtMap map) {
-                return new ShowDialog(Holder.ofCustom(map));
+                return new ShowDialog(Optional.empty(), Holder.ofCustom(map));
             } else if (dialog instanceof String string) {
-                return new ShowDialog(Holder.ofId(idGetter.applyAsInt(MinecraftKey.key(string))));
+                return new ShowDialog(Optional.empty(), Holder.ofId(idGetter.applyAsInt(MinecraftKey.key(string))));
             }
             throw new IllegalArgumentException("Expected dialog in show_dialog action to be a NBT map or a resource location");
         }
 
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
-            session.getDialogManager().openDialog(dialog);
+            dialog.ifPresentOrElse(normal -> session.getDialogManager().openDialog(normal), () -> session.getDialogManager().openDialog(holder));
         }
     }
 

@@ -59,8 +59,10 @@ public abstract class Dialog {
 
     private static final Key PLAIN_MESSAGE_BODY = MinecraftKey.key("plain_message");
 
+    @Getter
     private final String title;
-    private final String externalTitle;
+    @Getter
+    private final Optional<String> externalTitle;
     @Getter
     private final boolean canCloseWithEscape;
     @Getter
@@ -72,7 +74,7 @@ public abstract class Dialog {
 
     protected Dialog(GeyserSession session, NbtMap map) {
         title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
-        externalTitle = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
+        externalTitle = Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, map.get("external_title")));
         canCloseWithEscape = map.getBoolean("can_close_with_escape", true);
         afterAction = AfterAction.fromString(map.getString("after_action"));
 
@@ -167,6 +169,8 @@ public abstract class Dialog {
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
             return new NoticeDialog(session, map, idGetter);
+        } else if (type.equals(DialogListDialog.TYPE)) {
+            return new DialogListDialog(session, map, idGetter);
         } else if (type.equals(ConfirmationDialog.TYPE)) {
             return new ConfirmationDialog(session, map, idGetter);
         } else if (type.equals(MultiActionDialog.TYPE)) {

@@ -32,23 +32,24 @@ import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public abstract class DialogWithButtons extends Dialog {
 
-    protected final List<DialogButton> buttons;
     protected final Optional<DialogButton> exitAction;
 
-    protected DialogWithButtons(GeyserSession session, NbtMap map, List<DialogButton> buttons, Optional<DialogButton> exitAction) {
+    protected DialogWithButtons(GeyserSession session, NbtMap map, Optional<DialogButton> exitAction) {
         super(session, map);
-        this.buttons = buttons;
         this.exitAction = exitAction;
     }
 
+    protected abstract List<DialogButton> buttons(DialogHolder holder);
+
     @Override
     protected void addCustomComponents(DialogHolder holder, CustomForm.Builder builder) {
+        List<DialogButton> buttons = buttons(holder);
+
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
         dropdown.text("Please select an option:");
         for (DialogButton button : buttons) {
@@ -69,6 +70,7 @@ public abstract class DialogWithButtons extends Dialog {
 
     @Override
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
+        List<DialogButton> buttons = buttons(holder);
         for (DialogButton button : buttons) {
             builder.button(button.label());
         }
@@ -88,12 +90,7 @@ public abstract class DialogWithButtons extends Dialog {
         return exitAction;
     }
 
-    @SafeVarargs
-    protected static List<DialogButton> parseOptionalList(Optional<DialogButton>... buttons) {
-        List<DialogButton> checked = new ArrayList<>();
-        for (Optional<DialogButton> button : buttons) {
-            checked.add(button.orElseThrow());
-        }
-        return checked;
+    protected static Optional<DialogButton> readDefaultExitAction(GeyserSession session, NbtMap map, IdGetter idGetter) {
+        return DialogButton.read(session, map.get("exit_action"), idGetter);
     }
 }

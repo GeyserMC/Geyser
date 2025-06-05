@@ -128,6 +128,8 @@ public final class GeyserHolderSet<T> {
     /**
      * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
      *
+     * <p>Uses {@link JavaRegistryKey#keyToNetworkId(GeyserSession, Key)} to resolve registry keys to network IDs.</p>
+     *
      * @param session the Geyser session.
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
@@ -136,6 +138,13 @@ public final class GeyserHolderSet<T> {
         return readHolderSet(registry, holderSet, key -> registry.keyToNetworkId(session, key));
     }
 
+    /**
+     * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
+     *
+     * @param registry the registry the HolderSet contains IDs from.
+     * @param holderSet the HolderSet as a NBT object.
+     * @param idMapper a function that maps a key in this registry to its respective network ID.
+     */
     public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, ToIntFunction<Key> idMapper) {
         return readHolderSet(registry, holderSet, idMapper, null);
     }
