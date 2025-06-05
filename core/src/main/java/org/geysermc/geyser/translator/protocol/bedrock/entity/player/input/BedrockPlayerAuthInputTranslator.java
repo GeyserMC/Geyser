@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
@@ -71,6 +70,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
+        BedrockBlockActions.tickBlockBreaking(session, packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;
 
@@ -82,8 +82,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             leftOverInputData.remove(input);
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
-                case PERFORM_ITEM_STACK_REQUEST -> session.getInventoryTranslator().translateRequests(session, session.getPlayerInventory(), List.of(packet.getItemStackRequest()));
-                case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
+                case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
                 case START_CRAWLING -> session.setCrawling(true);

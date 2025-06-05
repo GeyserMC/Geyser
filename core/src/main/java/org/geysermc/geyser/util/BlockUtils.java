@@ -52,7 +52,11 @@ public final class BlockUtils {
         return getPlayerDestroySpeed(session, block, itemInHand) / destroySpeed / speedMultiplier;
     }
 
-    private static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
+    public static double getTotalTimeLeft(float ticks) {
+        return Math.ceil(1 / ticks);
+    }
+
+    public static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
         return !block.requiresCorrectToolForDrops() || isCorrectItemForDrops(session, block, stack);
     }
 

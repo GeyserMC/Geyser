@@ -178,6 +178,7 @@ import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.protocol.bedrock.entity.player.input.BlockBreakHandler;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -415,6 +416,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
+
     /**
      * Which dimension Bedrock understands themselves to be in.
      * This should only be set after the ChangeDimensionPacket is sent, or
@@ -424,22 +426,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
     /**
-     * Stores the blockstate of the block being currently broken.
+     * The block break handler for this session.
      */
-    @Setter
-    private int breakingBlock;
-
-    /**
-     * Stores the block break position of the currently broken block.
-     */
-    @Setter
-    private Vector3i blockBreakPosition;
-
-    /**
-     * Stores the block breaking progress of the currently broken block.
-     */
-    @Setter
-    private double blockBreakProgress;
+    BlockBreakHandler blockBreakHandler = new BlockBreakHandler(this);
 
     @Setter
     private Vector3i lastBlockPlacePosition;
