@@ -37,6 +37,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.ToIntFunction;
 
 /**
@@ -72,7 +73,8 @@ public final class GeyserHolderSet<T> {
      * Constructs a {@link GeyserHolderSet} from a MCPL HolderSet.
      */
     public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
-        return new GeyserHolderSet<>(registry, new Tag<>(registry, holderSet.getLocation()), holderSet.getHolders());
+        Tag<T> tag = holderSet.getLocation() == null ? null : new Tag<>(registry, holderSet.getLocation());
+        return new GeyserHolderSet<>(registry, tag, holderSet.getHolders());
     }
 
     /**
