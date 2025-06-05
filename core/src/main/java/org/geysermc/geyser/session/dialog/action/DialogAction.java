@@ -93,8 +93,7 @@ public interface DialogAction {
 
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
-            //session.sendForm(SimpleForm.builder().title("Open URL").content(url));
-            // TODO if we use form here we need a connection in dialog stack
+            throw new IllegalCallerException("Should be implemented elsewhere to open a form");
         }
     }
 

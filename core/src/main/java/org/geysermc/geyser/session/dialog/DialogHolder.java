@@ -261,6 +261,9 @@ public class DialogHolder {
 
                 session.sendCommand(command);
                 return true;
+            } else if (action instanceof DialogAction.OpenUrl openUrl) {
+                showUrl(openUrl.url());
+                return false;
             } else {
                 action.run(session, inputs);
                 return !(action instanceof DialogAction.ShowDialog);
@@ -270,7 +273,8 @@ public class DialogHolder {
     }
 
     /**
-     * Opens an "are you sure you want to do this?" form. This method assumes the dialog is still valid!
+     * Opens an "are you sure you want to do this?" form. After confirmation, runs the command and the after action, or closes
+     * the dialog if it should be closed. When cancelled, returns back to the dialog, matching Java behaviour. This method assumes the dialog is still valid!
      */
     private void showCommandConfirmation(String trimmedCommand, boolean unknown) {
         Component content = Component.translatable(unknown ? "multiplayer.confirm_command.parse_errors" : "multiplayer.confirm_command.permissions_required",
@@ -285,9 +289,11 @@ public class DialogHolder {
             .closedOrInvalidResultHandler(() -> {
                 // Upon pressing "no" (or closing the form), we should return back to the dialog, even if it was supposed to close
                 shouldClose = false;
+                // Checks stillValid
                 reopenDialog();
             })
             .validResultHandler(response -> {
+                // stillValid check not needed here - valid result means the button was pressed, meaning no new dialog took over and closed this form
                 if (response.clickedFirst()) {
                     session.sendCommand(trimmedCommand);
                     if (shouldClose) {
@@ -302,6 +308,34 @@ public class DialogHolder {
                 }
             })
             .build());
+    }
+
+    /**
+     * Opens a form to let the user know they should open a URL. Runs the after action when closed, or closes the dialog if it should be
+     * closed. This method assumes the dialog is still valid!
+     */
+    private void showUrl(String url) {
+        String content = MessageTranslator.convertMessage(session,
+                Component.text("The server is asking you to open the following URL:\n\n")
+                        .append(Component.text(url))
+                        .append(Component.text("\n\n"))
+                        .append(Component.translatable("chat.link.warning").color(NamedTextColor.RED)));
+
+        session.sendDialogForm(SimpleForm.builder()
+                .translator(MinecraftLocale::getLocaleString, session.locale())
+                .title("Open URL")
+                .content(content)
+                .button("gui.ok")
+                .resultHandler((form, result) -> {
+                    if (stillValid()) {
+                        if (shouldClose) {
+                            manager.close();
+                        } else {
+                            runAfterAction();
+                        }
+                    }
+                })
+                .build());
     }
 
     /**
