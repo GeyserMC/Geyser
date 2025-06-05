@@ -56,11 +56,13 @@ public class TextInput extends DialogInput<String> {
     }
 
     @Override
-    public String read(CustomFormResponse response) {
-        String raw = response.asInput();
-        assert raw != null;
-        // Bedrock doesn't support setting a max length, so we just cut it off to not have the server complain
-        return raw.substring(0, Math.min(raw.length(), maxLength));
+    public String read(CustomFormResponse response) throws DialogInputParseException {
+        String text = response.asInput();
+        assert text != null;
+        if (text.length() > maxLength) {
+            throw new DialogInputParseException("length of text cannot be above " + maxLength, text);
+        }
+        return text;
     }
 
     @Override

@@ -30,19 +30,26 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class ParsedInputs {
-    public static final ParsedInputs EMPTY = new ParsedInputs(List.of(), null);
+    public static final ParsedInputs EMPTY = new ParsedInputs(List.of());
 
     private final Map<DialogInput<?>, Object> values = new LinkedHashMap<>();
+    private final Map<DialogInput<?>, String> errors = new HashMap<>();
 
     public ParsedInputs(List<DialogInput<?>> inputs, CustomFormResponse response) {
         for (DialogInput<?> input : inputs) {
-            values.put(input, input.read(response));
+            try {
+                values.put(input, input.read(response));
+            } catch (DialogInputParseException exception) {
+                values.put(input, exception.getPartial());
+                errors.put(input, exception.getMessage());
+            }
         }
     }
 
@@ -54,6 +61,11 @@ public class ParsedInputs {
 
     public void restore(CustomForm.Builder builder) {
         for (Map.Entry<DialogInput<?>, Object> entry : values.entrySet()) {
+            String error = errors.get(entry.getKey());
+            if (error != null) {
+                builder.label("§cError parsing input data: " + error + ".");
+                builder.label("§cPlease adjust!");
+            }
             // Can't be a Geyser update without eclipse dealing with generics
             ((DialogInput) entry.getKey()).addComponent(builder, Optional.of(entry.getValue()));
         }
@@ -74,5 +86,9 @@ public class ParsedInputs {
             ((DialogInput) entry.getKey()).addToMap(builder, entry.getValue());
         }
         return builder.build();
+    }
+
+    public boolean hasErrors() {
+        return !errors.isEmpty();
     }
 }

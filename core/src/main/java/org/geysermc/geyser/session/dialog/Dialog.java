@@ -67,6 +67,8 @@ public abstract class Dialog {
     private final AfterAction afterAction;
     private final List<String> labels;
     private final List<DialogInput<?>> inputs = new ArrayList<>();
+    @Getter
+    private final ParsedInputs defaultInputs;
 
     protected Dialog(GeyserSession session, NbtMap map) {
         title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
@@ -96,6 +98,7 @@ public abstract class Dialog {
         for (NbtMap input : inputTag) {
             inputs.add(DialogInput.read(session, input));
         }
+        defaultInputs = inputs.isEmpty() ? ParsedInputs.EMPTY : new ParsedInputs(inputs);
     }
 
     private static Optional<String> readBody(GeyserSession session, NbtMap tag) {
@@ -123,6 +126,9 @@ public abstract class Dialog {
             CustomForm.Builder builder = CustomForm.builder()
                 .translator(MinecraftLocale::getLocaleString, session.locale())
                 .title(title);
+            for (String label : labels) {
+                builder.label(label);
+            }
 
             restored.ifPresentOrElse(last -> last.restore(builder), () -> inputs.forEach(input -> input.addComponent(builder)));
             builder.closedOrInvalidResultHandler(response -> holder.closeDialog(onCancel()));
@@ -143,8 +149,13 @@ public abstract class Dialog {
         session.sendDialogForm(createForm(session, Optional.of(inputs), holder).build());
     }
 
-    protected ParsedInputs parseInput(CustomFormResponse response) {
-        return new ParsedInputs(inputs, response);
+    protected Optional<ParsedInputs> parseInput(GeyserSession session, CustomFormResponse response, DialogHolder holder) {
+        ParsedInputs parsed = new ParsedInputs(inputs, response);
+        if (parsed.hasErrors()) {
+            restoreForm(session, parsed, holder);
+            return Optional.empty();
+        }
+        return Optional.of(parsed);
     }
 
     public static Dialog readDialog(RegistryEntryContext context) {

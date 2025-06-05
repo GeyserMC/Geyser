@@ -51,7 +51,7 @@ public abstract class DialogInput<T> {
 
     public abstract void addComponent(CustomForm.Builder builder, Optional<T> restored);
 
-    public abstract T read(CustomFormResponse response);
+    public abstract T read(CustomFormResponse response) throws DialogInputParseException;
 
     public abstract String asSubstitution(T value);
 

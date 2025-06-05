@@ -56,7 +56,7 @@ public class BooleanInput extends DialogInput<Boolean> {
     }
 
     @Override
-    public Boolean read(CustomFormResponse response) {
+    public Boolean read(CustomFormResponse response) throws DialogInputParseException {
         return response.asToggle();
     }
 

@@ -53,7 +53,7 @@ public class NoticeDialog extends Dialog {
 
     @Override
     protected void addCustomComponents(GeyserSession session, CustomForm.Builder builder, DialogHolder holder) {
-        builder.validResultHandler(response -> holder.runButton(button, parseInput(response)));
+        builder.validResultHandler(response -> parseInput(session, response, holder).ifPresent(inputs -> holder.runButton(button, inputs)));
     }
 
     @Override

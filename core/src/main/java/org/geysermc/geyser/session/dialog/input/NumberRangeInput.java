@@ -59,7 +59,7 @@ public class NumberRangeInput extends DialogInput<Float> {
     }
 
     @Override
-    public Float read(CustomFormResponse response) {
+    public Float read(CustomFormResponse response) throws DialogInputParseException {
         return response.asSlider();
     }
 

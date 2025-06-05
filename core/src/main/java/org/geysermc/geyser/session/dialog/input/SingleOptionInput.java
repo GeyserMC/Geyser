@@ -78,7 +78,7 @@ public class SingleOptionInput extends DialogInput<String> {
     }
 
     @Override
-    public String read(CustomFormResponse response) {
+    public String read(CustomFormResponse response) throws DialogInputParseException {
         return entries.get(response.asDropdown()).id();
     }
 

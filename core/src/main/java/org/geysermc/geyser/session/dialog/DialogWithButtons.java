@@ -58,13 +58,14 @@ public abstract class DialogWithButtons extends Dialog {
         builder.dropdown(dropdown);
 
         builder.validResultHandler(response -> {
-            ParsedInputs inputs = parseInput(response);
-            int selection = response.asDropdown();
-            if (selection == buttons.size()) {
-                holder.runButton(exitAction, inputs);
-            } else {
-                holder.runButton(Optional.of(buttons.get(selection)), inputs);
-            }
+            parseInput(session, response, holder).ifPresent(inputs -> {
+                int selection = response.asDropdown();
+                if (selection == buttons.size()) {
+                    holder.runButton(exitAction, inputs);
+                } else {
+                    holder.runButton(Optional.of(buttons.get(selection)), inputs);
+                }
+            });
         });
     }
 
@@ -79,7 +80,6 @@ public abstract class DialogWithButtons extends Dialog {
             if (response.clickedButtonId() == buttons.size()) {
                 holder.runButton(exitAction, ParsedInputs.EMPTY);
             } else {
-
                 holder.runButton(Optional.of(buttons.get(response.clickedButtonId())), ParsedInputs.EMPTY);
             }
         });

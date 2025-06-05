@@ -146,7 +146,7 @@ public class DialogHolder {
         // Don't run close functionality if we're asking for command confirmation
         if (dialog.canCloseWithEscape()) {
             shouldClose = true;
-            if (runAction(onCancel, lastInputs == null ? ParsedInputs.EMPTY : lastInputs)) {
+            if (runAction(onCancel, lastInputs == null ? dialog.defaultInputs() : lastInputs)) {
                 manager.close();
             }
             return;
@@ -216,7 +216,7 @@ public class DialogHolder {
             .translator(MinecraftLocale::getLocaleString, manager.session().locale())
             .title("gui.waitingForResponse.title")
             .content(content)
-            .optionalButton("Back", sendBackButton)
+            .optionalButton("gui.back", sendBackButton)
             .closedOrInvalidResultHandler(() -> {
                 if (stillValid()) { // If still waiting on a new dialog
                     waitForResponse();
@@ -229,7 +229,7 @@ public class DialogHolder {
     /**
      * This method runs the given action, if present, with the given inputs.
      *
-     * <p>These inputs can be {@link ParsedInputs#EMPTY} when the dialog has no inputs, or the dialog was closed without entering anything, but can never be {@code null}.
+     * <p>These inputs can be {@link ParsedInputs#EMPTY} when the dialog has no inputs, but can never be {@code null}.
      * The method returns {@code true} if the dialog's after action can be executed, and {@code false} if not. The latter is the case when the action opened a new
      * dialog or screen, in which case the after action will not be handled or be handled by the screen, respectively.</p>
      *
