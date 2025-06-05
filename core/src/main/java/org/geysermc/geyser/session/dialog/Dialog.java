@@ -165,32 +165,20 @@ public abstract class Dialog {
     }
 
     public static Dialog readDialogFromNbt(GeyserSession session, NbtMap map, IdGetter idGetter) {
-        // TYPES: notice, server_links, dialog_list, multi_action, confirmation
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
             return new NoticeDialog(session, map, idGetter);
+        } else if (type.equals(ServerLinksDialog.TYPE)) {
+            return new ServerLinksDialog(session, map, idGetter);
         } else if (type.equals(DialogListDialog.TYPE)) {
             return new DialogListDialog(session, map, idGetter);
-        } else if (type.equals(ConfirmationDialog.TYPE)) {
-            return new ConfirmationDialog(session, map, idGetter);
         } else if (type.equals(MultiActionDialog.TYPE)) {
             return new MultiActionDialog(session, map, idGetter);
+        } else if (type.equals(ConfirmationDialog.TYPE)) {
+            return new ConfirmationDialog(session, map, idGetter);
         }
 
-        return new Dialog(session, map) {
-
-            @Override
-            protected void addCustomComponents(DialogHolder holder, CustomForm.Builder builder) {}
-
-            @Override
-            protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {}
-
-            @Override
-            protected Optional<DialogButton> onCancel() {
-                return Optional.empty();
-            }
-        };
-        // throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!"); // TODO put this here once all types are implemented
+        throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!");
     }
 
     public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {

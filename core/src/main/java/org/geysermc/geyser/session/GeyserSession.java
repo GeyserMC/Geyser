@@ -195,6 +195,7 @@ import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
+import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -311,8 +312,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Getter
     private final DialogManager dialogManager = new DialogManager(this);
 
+    /**
+     * A list of links sent to us by the server in the server links packet.
+     */
+    @Setter
+    private List<ServerLink> serverLinks = List.of();
+
+    /**
+     * A list of commands known to the client. These are all the commands that have been sent to us by the server.
+     */
     @Setter
     private List<String> knownCommands = List.of();
+    /**
+     * A list of "restricted" commands known to the client. These are all the commands that have been sent to us by the server, and require some sort of elevated permissions.
+     */
     @Setter
     private List<String> restrictedCommands = List.of();
 

@@ -25,20 +25,39 @@
 
 package org.geysermc.geyser.session.dialog;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.dialog.action.DialogAction;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
+import org.geysermc.mcprotocollib.protocol.data.game.ServerLinkType;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class ServerLinksDialog extends DialogWithButtons {
 
-    protected ServerLinksDialog(GeyserSession session, NbtMap map, List<DialogButton> buttons) {
-        super(session, map, Optional.empty());
+    public static final Key TYPE = MinecraftKey.key("server_links");
+
+    protected ServerLinksDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
+        super(session, map, readDefaultExitAction(session, map, idGetter));
     }
 
     @Override
     protected List<DialogButton> buttons(DialogHolder holder) {
-        return List.of();
+        return holder.session().getServerLinks().stream()
+            .map(link -> new DialogButton(linkDisplayName(holder, link), Optional.of(new DialogAction.OpenUrl(link.link()))))
+            .toList();
+    }
+
+    private static String linkDisplayName(DialogHolder holder, ServerLink link) {
+        if (link.knownType() != null) {
+            String linkName = link.knownType() == ServerLinkType.BUG_REPORT ? "report_bug" : link.knownType().name().toLowerCase(Locale.ROOT);
+            return "known_server_link." + linkName;
+        }
+        return MessageTranslator.convertMessage(holder.session(), link.unknownType());
     }
 }
