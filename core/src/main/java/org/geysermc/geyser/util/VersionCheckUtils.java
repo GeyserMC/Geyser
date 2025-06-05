@@ -39,6 +39,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.net.UnknownHostException;
 import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -120,6 +121,8 @@ public final class VersionCheckUtils {
                                         .build()))
                         .build();
                 sender.sendMessage(message);
+            } catch (UnknownHostException e) {
+                GeyserImpl.getInstance().getLogger().error("Unable to resolve Geyser api! Cannot check for Geyser updates.");
             } catch (Exception e) {
                 GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
             }

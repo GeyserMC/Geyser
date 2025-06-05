@@ -57,6 +57,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -74,6 +75,7 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
+    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
@@ -197,7 +199,7 @@ public class MessageTranslator {
             String finalLegacyString = finalLegacy.toString();
 
             // Remove duplicate resets and trailing resets
-            finalLegacyString = finalLegacyString.replaceAll("(" + RESET + "){2,}", RESET);
+            finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
             if (finalLegacyString.endsWith(RESET)) {
                 finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
             }

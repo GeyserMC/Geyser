@@ -63,12 +63,12 @@ public class GoatEntity extends AnimalEntity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.LONG_JUMPING) {
             setBoundingBoxWidth(LONG_JUMPING_WIDTH);
             setBoundingBoxHeight(LONG_JUMPING_HEIGHT);
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 

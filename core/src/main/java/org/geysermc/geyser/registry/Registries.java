@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -98,8 +99,14 @@ public final class Registries {
 
     /**
      * A registry holding a NbtMap of all the known biomes.
+     * Remove once 1.21.80 is lowest supported version - replaced by {@link Registries#BIOMES}
      */
     public static final SimpleDeferredRegistry<NbtMap> BIOMES_NBT = SimpleDeferredRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
+
+    /**
+     * A registry holding biome data for all known biomes.
+     */
+    public static final SimpleDeferredRegistry<BiomeDefinitions> BIOMES = SimpleDeferredRegistry.create("bedrock/stripped_biome_definitions.json", RegistryLoaders.BIOME_LOADER);
 
     /**
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
@@ -200,6 +207,7 @@ public final class Registries {
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();
+        BIOMES.load();
         BIOME_IDENTIFIERS.load();
         BLOCK_ENTITIES.load();
         PARTICLES.load();

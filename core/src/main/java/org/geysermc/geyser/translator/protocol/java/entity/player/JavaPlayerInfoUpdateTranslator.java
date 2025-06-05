@@ -34,6 +34,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
@@ -119,16 +120,10 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
             }
 
             if (!toAdd.isEmpty()) {
-                PlayerListPacket tabListPacket = new PlayerListPacket();
-                tabListPacket.setAction(PlayerListPacket.Action.ADD);
-                tabListPacket.getEntries().addAll(toAdd);
-                session.sendUpstreamPacket(tabListPacket);
+                PlayerListUtils.batchSendPlayerList(session, toAdd, PlayerListPacket.Action.ADD);
             }
             if (!toRemove.isEmpty()) {
-                PlayerListPacket tabListPacket = new PlayerListPacket();
-                tabListPacket.setAction(PlayerListPacket.Action.REMOVE);
-                tabListPacket.getEntries().addAll(toRemove);
-                session.sendUpstreamPacket(tabListPacket);
+                PlayerListUtils.batchSendPlayerList(session, toRemove, PlayerListPacket.Action.REMOVE);
             }
         }
     }

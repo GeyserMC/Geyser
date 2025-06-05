@@ -206,10 +206,14 @@ public class LivingEntity extends Entity {
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
         // Riptide spin attack
-        setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
+        setSpinAttack((xd & 0x04) == 0x04);
 
         // OptionalPack usage
         setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
+    }
+
+    protected void setSpinAttack(boolean value) {
+        setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, value);
     }
 
     public void setHealth(FloatEntityMetadata entityMetadata) {
@@ -279,12 +283,12 @@ public class LivingEntity extends Entity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SLEEPING) {
             setBoundingBoxWidth(0.2f);
             setBoundingBoxHeight(0.2f);
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 

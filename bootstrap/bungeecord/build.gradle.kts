@@ -6,6 +6,8 @@ plugins {
 dependencies {
     api(projects.core)
 
+    compileOnly(libs.netty.transport.native.io.uring)
+
     implementation(libs.cloud.bungee)
     implementation(libs.adventure.text.serializer.bungeecord)
     compileOnlyApi(libs.bungeecord.proxy)

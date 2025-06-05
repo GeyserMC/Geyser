@@ -786,9 +786,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
-        upstream.sendPacket(biomeDefinitionListPacket);
+        if (GameProtocol.is1_21_80orHigher(this)) {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+        } else {
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
+            upstream.sendPacket(biomeDefinitionListPacket);
+        }
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
@@ -1254,6 +1260,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         setSneaking(false);
     }
 
+    public void setSpinAttack(boolean spinAttack) {
+        switchPose(spinAttack, EntityFlag.DAMAGE_NEARBY_MOBS, Pose.SPIN_ATTACK);
+    }
+
+    public void setGliding(boolean gliding) {
+        switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
+    }
+
     private void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
 
@@ -1290,22 +1304,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             playerEntity.updateBedrockMetadata();
             return;
         }
-        toggleSwimmingPose(swimming, EntityFlag.SWIMMING);
+        switchPose(swimming, EntityFlag.SWIMMING, Pose.SWIMMING);
     }
 
     public void setCrawling(boolean crawling) {
-        toggleSwimmingPose(crawling, EntityFlag.CRAWLING);
+        switchPose(crawling, EntityFlag.CRAWLING, Pose.SWIMMING);
     }
 
-    private void toggleSwimmingPose(boolean crawling, EntityFlag flag) {
-        if (crawling) {
-            this.pose = Pose.SWIMMING;
-            playerEntity.setBoundingBoxHeight(0.6f);
-        } else {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        }
-        playerEntity.setFlag(flag, crawling);
+    private void switchPose(boolean value, EntityFlag flag, Pose pose) {
+        this.pose = value ? pose : Pose.STANDING;
+        playerEntity.setDimensionsFromPose(this.pose);
+        playerEntity.setFlag(flag, value);
         playerEntity.updateBedrockMetadata();
     }
 
@@ -1334,6 +1343,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
      */
     public void useItem(Hand hand) {
+        if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
             hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
     }
@@ -1350,6 +1363,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking and sends a packet to the Java server.
      */
     private boolean attemptToBlock() {
+        // Don't try to block while in scaffolding
+        if (playerEntity.isInsideScaffolding()) {
+            return false;
+        }
+
         if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
             useItem(Hand.MAIN_HAND);
         } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {
@@ -1601,6 +1619,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Allows Vibrant Visuals to appear in the settings menu
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1967,7 +1987,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                  FALL_FLYING, // Elytra
                  SPIN_ATTACK -> 0.4f; // Trident spin attack
             case SLEEPING -> 0.2f;
-            default -> EntityDefinitions.PLAYER.offset();
+            default -> EntityDefinitions.PLAYER.offset(); // 1.62F
         };
     }
 

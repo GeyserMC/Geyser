@@ -54,11 +54,12 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
 
         if (entity == session.getPlayerEntity()) {
             EntityEffectCache cache = session.getEffectCache();
-            cache.setEffect(packet.getEffect(), packet.getAmplifier());
             // Matches BDS
             if (cache.getEntityEffects().contains(packet.getEffect())) {
                 event = MobEffectPacket.Event.MODIFY;
             }
+
+            cache.setEffect(packet.getEffect(), packet.getAmplifier());
         } else if (entity instanceof ClientVehicle clientVehicle) {
             clientVehicle.getVehicleComponent().setEffect(packet.getEffect(), packet.getAmplifier());
         }

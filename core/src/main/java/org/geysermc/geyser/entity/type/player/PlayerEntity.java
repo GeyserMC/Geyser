@@ -416,7 +416,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    public void setDimensionsFromPose(Pose pose) {
         float height;
         float width;
         switch (pose) {
@@ -433,7 +433,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 width = 0.2f;
             }
             default -> {
-                super.setDimensions(pose);
+                super.setDimensionsFromPose(pose);
                 return;
             }
         }

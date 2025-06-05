@@ -210,11 +210,19 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
 
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
+            if (GameProtocol.is1_21_80orHigher(session)) {
+                dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
+            } else {
+                sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
+            }
         }
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
-            sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
+            if (GameProtocol.is1_21_80orHigher(session)) {
+                dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
+            } else {
+                sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
+            }
         }
     }
 

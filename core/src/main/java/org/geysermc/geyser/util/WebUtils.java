@@ -52,9 +52,10 @@ public class WebUtils {
      * Makes a web request to the given URL and returns the body as a string
      *
      * @param reqURL URL to fetch
-     * @return Body contents or error message if the request fails
+     * @return body content or
+     * @throws IOException / a wrapped UnknownHostException for nicer errors.
      */
-    public static String getBody(String reqURL) {
+    public static String getBody(String reqURL) throws IOException {
         try {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -64,8 +65,8 @@ public class WebUtils {
             con.setReadTimeout(10000);
 
             return connectionToString(con);
-        } catch (Exception e) {
-            return e.getMessage();
+        } catch (UnknownHostException e) {
+            throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
         }
     }
 

@@ -158,7 +158,7 @@ public class GeyserLocale {
         // By loading both, we ensure that if a language string doesn't exist in the custom properties folder,
         // it's loaded from our jar
         if (validLocalLanguage) {
-            try (InputStream stream = new FileInputStream(localLanguage)) {
+            try (InputStreamReader stream = new InputStreamReader(new FileInputStream(localLanguage), StandardCharsets.UTF_8)) {
                 localeProp.load(stream);
             } catch (IOException e) {
                 String message = "Unable to load custom language override!";

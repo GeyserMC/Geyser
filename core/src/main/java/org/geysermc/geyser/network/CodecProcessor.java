@@ -282,8 +282,6 @@ class CodecProcessor {
             .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748)
             .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
             .updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER)
-            .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER)
             // Ignored only when serverbound
             .updateSerializer(BossEventPacket.class, bossEventSerializer)
             .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
@@ -302,6 +300,13 @@ class CodecProcessor {
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
+
+            // These packets have been removed post 1.21.80.
+            if (codec.getProtocolVersion() < 800) {
+                codecBuilder
+                    .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
+                    .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
+            }
 
             return codecBuilder.build();
     }

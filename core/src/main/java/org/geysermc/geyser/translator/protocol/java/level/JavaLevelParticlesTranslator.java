@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
@@ -172,6 +173,33 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                                     .build()
                     );
                     return packet;
+                };
+            }
+            case FIREWORK -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:sparkler_emitter");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": 1.0}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": 1.0}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": 1.0}},{\"name\": \".a\", \"value\": {\"type\": \"float\", \"value\": 1.0}}]}}]"));
+                    return particlePacket;
+                };
+            }
+            case TINTED_LEAVES -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                ColorParticleData data = (ColorParticleData) particle.getData();
+                int rgbData = data.getColor();
+                float red = ((rgbData >> 16) & 0xFF) / 255f;
+                float green = ((rgbData >> 8) & 0xFF) / 255f;
+                float blue = (rgbData & 0xFF) / 255f;
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:biome_tinted_leaves_particle");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}}]"));
+                    return particlePacket;
                 };
             }
             default -> {

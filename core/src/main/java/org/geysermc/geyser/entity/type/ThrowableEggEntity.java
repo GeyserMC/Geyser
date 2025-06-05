@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
@@ -42,7 +43,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import java.util.Locale;
 import java.util.UUID;
 
+@Getter
 public class ThrowableEggEntity extends ThrowableItemEntity {
+
+    // Used for egg break particles
+    private GeyserItemStack itemStack;
+
     public ThrowableEggEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -58,6 +64,7 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
         GeyserItemStack stack = GeyserItemStack.from(entityMetadata.getValue());
         propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, getVariantOrFallback(session, stack));
         updateBedrockEntityProperties();
+        this.itemStack = stack;
     }
 
     private static String getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
@@ -71,6 +78,6 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
             }
         }
 
-        return TemperatureVariantAnimal.BuiltInVariant.TEMPERATE.name().toLowerCase(Locale.ROOT);
+        return TemperatureVariantAnimal.BuiltInVariant.TEMPERATE.toBedrock();
     }
 }

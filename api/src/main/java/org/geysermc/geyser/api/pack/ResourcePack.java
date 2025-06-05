@@ -27,7 +27,6 @@ package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
-import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.UUID;
 
@@ -99,7 +98,7 @@ public interface ResourcePack {
      * @since 2.6.2
      */
     static Builder builder(@NonNull PackCodec codec) {
-        return GeyserApi.api().provider(Builder.class, codec);
+        return codec.createBuilder();
     }
 
     /**

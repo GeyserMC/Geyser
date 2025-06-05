@@ -32,6 +32,11 @@ tasks.named<Jar>("jar") {
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Standalone")
 
+    // temporary measure - incubator's io_uring is not compatible with 4.2.1
+    dependencies {
+        exclude(dependency("io.netty.incubator:.*"))
+    }
+
     transform(Log4j2PluginsCacheFileTransformer())
 }
 

@@ -31,15 +31,17 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlayerListUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Translator(packet = ClientboundPlayerInfoRemovePacket.class)
 public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<ClientboundPlayerInfoRemovePacket> {
     @Override
     public void translate(GeyserSession session, ClientboundPlayerInfoRemovePacket packet) {
-        PlayerListPacket translate = new PlayerListPacket();
-        translate.setAction(PlayerListPacket.Action.REMOVE);
+        List<PlayerListPacket.Entry> entries = new ArrayList<>();
 
         for (UUID id : packet.getProfileIds()) {
             // As the player entity is no longer present, we can remove the entry
@@ -52,9 +54,9 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
             } else {
                 removeId = id;
             }
-            translate.getEntries().add(new PlayerListPacket.Entry(removeId));
+            entries.add(new PlayerListPacket.Entry(removeId));
         }
 
-        session.sendUpstreamPacket(translate);
+        PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
     }
 }
