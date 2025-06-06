@@ -76,6 +76,33 @@ public interface GeyserConnection extends Connection, CommandSource {
     int protocolVersion();
 
     /**
+     * Tries to open the {@code minecraft:pause_screen_additions} dialog tag. This method opens this tag the same way Java does, that is:
+     *
+     * <ul>
+     *     <li>If there are multiple dialogs in the additions tag, the {@code minecraft:custom_options} dialog is opened to select a dialog.</li>
+     *     <li>If there is one dialog in the additions tag, that dialog is opened.</li>
+     *     <li>If there are no dialogs in the tag, but there are server links sent to the client, the {@code minecraft:server_links} dialog is opened.</li>
+     *     <li>If all of the above fails, no dialog is opened.</li>
+     * </ul>
+     *
+     * <p>This method returns {@code true} if a dialog was opened, and {@code false} otherwise.</p>
+     */
+    boolean openPauseScreenAdditions();
+
+    /**
+     * Tries to open the {@code minecraft:quick_actions} dialog tag. This method opens this tag the same way Java does, that is:
+     *
+     * <ul>
+     *     <li>If there are multiple dialogs in the actions tag, the {@code minecraft:quick_actions} dialog is opened to select a dialog.</li>
+     *     <li>If there is one dialog in the actions tag, that dialog is opened.</li>
+     *     <li>If there are no dialogs in the tag, no dialog is opened.</li>
+     * </ul>
+     *
+     * <p>This method returns {@code true} if a dialog was opened, and {@code false} otherwise.</p>
+     */
+    boolean openQuickActions();
+
+    /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
      * @deprecated Use {@link EntityData#entityByJavaId(int)} instead

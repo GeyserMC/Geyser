@@ -176,6 +176,9 @@ import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.dialog.BuiltInDialog;
+import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -1501,6 +1504,36 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void sendCommand(String command) {
         sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
+    }
+
+    @Override
+    public boolean openPauseScreenAdditions() {
+        List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
+        if (additions.isEmpty()) {
+            if (serverLinks.isEmpty()) {
+                return false;
+            } else {
+                dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
+            }
+        } else if (additions.size() == 1) {
+            dialogManager.openDialog(additions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean openQuickActions() {
+        List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
+        if (quickActions.isEmpty()) {
+            return false;
+        } else if (quickActions.size() == 1) {
+            dialogManager.openDialog(quickActions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        }
+        return true;
     }
 
     public void setClientRenderDistance(int clientRenderDistance) {

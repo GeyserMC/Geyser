@@ -33,16 +33,16 @@ import org.incendo.cloud.context.CommandContext;
 
 import java.util.Objects;
 
-public class CustomOptionsCommand extends GeyserCommand {
+public class QuickActionsCommand extends GeyserCommand {
 
-    public CustomOptionsCommand(String name, String description, String permission) {
+    public QuickActionsCommand(String name, String description, String permission) {
         super(name, description, permission, TriState.TRUE, true, true);
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        if (!Objects.requireNonNull(context.sender().connection()).openPauseScreenAdditions()) {
-            context.sender().sendMessage(Component.text("The server has not provided any custom options"));
+        if (!Objects.requireNonNull(context.sender().connection()).openQuickActions()) {
+            context.sender().sendMessage(Component.text("The server has not provided any quick actions"));
         }
     }
 }
