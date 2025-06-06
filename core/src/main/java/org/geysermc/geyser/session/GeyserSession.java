@@ -1823,7 +1823,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Changes the daylight cycle gamerule on the client
-     * This is used in the login screen along-side normal usage
+     * This is used in login and configuration screens along-side normal usage
      *
      * @param doCycle If the cycle should continue
      */
