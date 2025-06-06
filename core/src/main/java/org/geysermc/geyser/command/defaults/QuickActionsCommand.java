@@ -42,7 +42,7 @@ public class QuickActionsCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         if (!Objects.requireNonNull(context.sender().connection()).openQuickActions()) {
-            context.sender().sendMessage(Component.text("The server has not provided any quick actions"));
+            context.sender().sendMessage(Component.text("geyser.commands.quickactions.fail"));
         }
     }
 }

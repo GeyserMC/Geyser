@@ -32,9 +32,12 @@ public class DialogInputParseException extends Exception {
     // Exceptions don't work with generics, so we have to do a bit of unsafe casting and assume the object is of the input type :(
     @Getter
     private final Object partial;
+    @Getter
+    private final Object[] values;
 
-    public DialogInputParseException(String message, Object partial) {
+    public DialogInputParseException(String message, Object partial, Object... values) {
         super(message);
         this.partial = partial;
+        this.values = values;
     }
 }

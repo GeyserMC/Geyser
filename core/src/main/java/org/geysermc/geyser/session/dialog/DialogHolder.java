@@ -35,6 +35,7 @@ import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -212,11 +213,11 @@ public class DialogHolder {
      * Opens a "waiting for response" form. This method assumes the dialog is still valid!
      */
     private void waitForResponse() {
-        String content = "Geyser is waiting for the server to respond with a new dialog.";
+        String content;
         if (sendBackButton) {
-            content += " The server is taking a while to respond. You can press the button below to go back to the game.";
+            content = GeyserLocale.getPlayerLocaleString("geyser.dialogs.waiting_for_a_while", session.locale());
         } else {
-            content += " If no new dialog is shown within 5 seconds, a button will appear to go back to the game.";
+            content = GeyserLocale.getPlayerLocaleString("geyser.dialogs.waiting_for_response", session.locale());
         }
 
         session.sendDialogForm(SimpleForm.builder()
@@ -316,14 +317,15 @@ public class DialogHolder {
      */
     private void showUrl(String url) {
         String content = MessageTranslator.convertMessage(session,
-                Component.text("The server is asking you to open the following URL:\n\n")
+                Component.text(GeyserLocale.getPlayerLocaleString("geyser.dialogs.open_url", session.locale()))
+                        .append(Component.text("\n\n"))
                         .append(Component.text(url))
                         .append(Component.text("\n\n"))
                         .append(Component.translatable("chat.link.warning").color(NamedTextColor.RED)));
 
         session.sendDialogForm(SimpleForm.builder()
                 .translator(MinecraftLocale::getLocaleString, session.locale())
-                .title("Open URL")
+                .title("chat.link.open")
                 .content(content)
                 .button("gui.ok")
                 .resultHandler((form, result) -> {

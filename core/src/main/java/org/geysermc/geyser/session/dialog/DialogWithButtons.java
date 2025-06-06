@@ -31,6 +31,7 @@ import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public abstract class DialogWithButtons extends Dialog {
         List<DialogButton> buttons = buttons(holder);
 
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
-        dropdown.text("Please select an option:");
+        dropdown.text(GeyserLocale.getPlayerLocaleString("geyser.dialogs.select_action", holder.session().locale()));
         for (DialogButton button : buttons) {
             dropdown.option(button.label());
         }

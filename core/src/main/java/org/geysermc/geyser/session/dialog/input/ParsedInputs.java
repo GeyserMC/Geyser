@@ -29,6 +29,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.geyser.session.dialog.DialogHolder;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -40,7 +42,7 @@ public class ParsedInputs {
     public static final ParsedInputs EMPTY = new ParsedInputs(List.of());
 
     private final Map<DialogInput<?>, Object> values = new LinkedHashMap<>();
-    private final Map<DialogInput<?>, String> errors = new HashMap<>();
+    private final Map<DialogInput<?>, DialogInputParseException> errors = new HashMap<>();
 
     public ParsedInputs(List<DialogInput<?>> inputs, CustomFormResponse response) {
         for (DialogInput<?> input : inputs) {
@@ -48,7 +50,7 @@ public class ParsedInputs {
                 values.put(input, input.read(response));
             } catch (DialogInputParseException exception) {
                 values.put(input, exception.getPartial());
-                errors.put(input, exception.getMessage());
+                errors.put(input, exception);
             }
         }
     }
@@ -59,12 +61,15 @@ public class ParsedInputs {
         }
     }
 
-    public void restore(CustomForm.Builder builder) {
+    public void restore(DialogHolder holder, CustomForm.Builder builder) {
         for (Map.Entry<DialogInput<?>, Object> entry : values.entrySet()) {
-            String error = errors.get(entry.getKey());
-            if (error != null) {
-                builder.label("§cError parsing input data: " + error + ".");
-                builder.label("§cPlease adjust!");
+            DialogInputParseException exception = errors.get(entry.getKey());
+            if (exception != null) {
+                String formattedException = GeyserLocale.getPlayerLocaleString(exception.getMessage(), holder.session().locale(), exception.getValues());
+                String error = GeyserLocale.getPlayerLocaleString("geyser.dialogs.input_validation_error", holder.session().locale(), formattedException);
+
+                builder.label("§c" + error);
+                builder.label("§c" + GeyserLocale.getPlayerLocaleString("geyser.dialogs.input_adjust", holder.session().locale()));
             }
             // Can't be a Geyser update without eclipse dealing with generics
             ((DialogInput) entry.getKey()).addComponent(builder, Optional.of(entry.getValue()));

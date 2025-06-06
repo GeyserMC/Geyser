@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -42,7 +41,7 @@ public class CustomOptionsCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         if (!Objects.requireNonNull(context.sender().connection()).openPauseScreenAdditions()) {
-            context.sender().sendMessage(Component.text("The server has not provided any custom options"));
+            context.sender().sendMessage("geyser.commands.options.fail");
         }
     }
 }

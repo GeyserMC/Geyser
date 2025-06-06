@@ -60,7 +60,7 @@ public class TextInput extends DialogInput<String> {
         String text = response.asInput();
         assert text != null;
         if (text.length() > maxLength) {
-            throw new DialogInputParseException("length of text cannot be above " + maxLength, text);
+            throw new DialogInputParseException("geyser.dialogs.text_input_limit", text, maxLength);
         }
         return text;
     }

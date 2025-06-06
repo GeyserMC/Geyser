@@ -132,7 +132,7 @@ public abstract class Dialog {
                 builder.label(label);
             }
 
-            restored.ifPresentOrElse(last -> last.restore(builder), () -> inputs.forEach(input -> input.addComponent(builder)));
+            restored.ifPresentOrElse(last -> last.restore(holder, builder), () -> inputs.forEach(input -> input.addComponent(builder)));
             builder.closedOrInvalidResultHandler(response -> holder.closeDialog(onCancel()));
             addCustomComponents(holder, builder);
             return builder;
