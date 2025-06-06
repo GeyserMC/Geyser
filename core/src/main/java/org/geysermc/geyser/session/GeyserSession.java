@@ -1475,6 +1475,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Sends a command to the Java server.
      */
+    @Override
     public void sendCommand(String command) {
         sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
     }
