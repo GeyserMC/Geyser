@@ -76,6 +76,13 @@ public interface GeyserConnection extends Connection, CommandSource {
     int protocolVersion();
 
     /**
+     * Sends a command as if the player had executed it.
+     *
+     * @param command The command without the leading forward-slash
+     */
+    void sendCommand(String command);
+
+    /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
      * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
