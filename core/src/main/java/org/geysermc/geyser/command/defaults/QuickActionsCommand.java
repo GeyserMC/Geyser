@@ -29,6 +29,8 @@ import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.context.CommandContext;
 
 import java.util.Objects;
@@ -41,8 +43,9 @@ public class QuickActionsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        if (!Objects.requireNonNull(context.sender().connection()).openQuickActions()) {
-            context.sender().sendMessage(Component.text("geyser.commands.quickactions.fail"));
+        GeyserSession session = Objects.requireNonNull(context.sender().connection());
+        if (!session.openQuickActions()) {
+            context.sender().sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.quickactions.fail", session.locale()));
         }
     }
 }
