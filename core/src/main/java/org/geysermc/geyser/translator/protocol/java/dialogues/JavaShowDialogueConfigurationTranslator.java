@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.dialogues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundShowDialogConfigurationPacket;
 
 @Translator(packet = ClientboundShowDialogConfigurationPacket.class)
@@ -35,6 +36,9 @@ public class JavaShowDialogueConfigurationTranslator extends PacketTranslator<Cl
 
     @Override
     public void translate(GeyserSession session, ClientboundShowDialogConfigurationPacket packet) {
-
+        if (!session.isSentSpawnPacket()) {
+            session.connect();
+        }
+        session.getDialogManager().openDialog(Holder.ofCustom(packet.getDialog()));
     }
 }
