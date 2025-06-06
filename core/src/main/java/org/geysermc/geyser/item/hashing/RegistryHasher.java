@@ -349,12 +349,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
     /**
-     * Creates a hasher that uses the {@link JavaRegistryKey#keyFromNetworkId(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
+     * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
      *
      * @param registry the registry to create a hasher for.
      */
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::keyFromNetworkId);
+        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::key);
         return hasher::hash;
     }
 

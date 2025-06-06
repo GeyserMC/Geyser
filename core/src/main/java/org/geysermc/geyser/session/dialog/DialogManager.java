@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.dialog;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -42,6 +43,10 @@ public class DialogManager {
 
     public DialogManager(GeyserSession session) {
         this.session = session;
+    }
+
+    public void openDialog(Key dialog) {
+        openDialog(Dialog.getDialogFromKey(session, dialog));
     }
 
     public void openDialog(Holder<NbtMap> dialog) {

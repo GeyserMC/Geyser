@@ -51,6 +51,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -93,7 +94,7 @@ public class JavaRegistries {
     }
 
     private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
-                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper<T> idMapper) {
+                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
         return create(key, new HardcodedLookup<>(registry, networkSerializer, identifierMapper, idMapper));
     }
 
@@ -124,63 +125,53 @@ public class JavaRegistries {
     }
 
     @FunctionalInterface
-    interface RegistryIdMapper<T> {
+    interface RegistryIdMapper {
 
         int get(Key key);
     }
 
     private record HardcodedLookup<T>(ListRegistry<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
-                                      RegistryIdMapper<T> idMapper) implements JavaRegistryKey.RegistryLookup<T> {
+                                      RegistryIdMapper idMapper) implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override
-        public int toNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
-            return networkMapper.get(object);
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
+            return Optional.ofNullable(registry.get(networkId))
+                .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(identifierMapper.get(value)), value));
         }
 
         @Override
-        public @Nullable T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, int id) {
-            return registry.get(id);
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+            int id = idMapper.get(key);
+            return Optional.ofNullable(registry.get(id)).map(value -> new RegistryEntryData<>(id, key, value));
         }
 
         @Override
-        public int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
-            return idMapper.get(key);
-        }
-
-        @Override
-        public @Nullable Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registryKey, int id) {
-            return identifierMapper.get(registry.get(id));
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+            int id = networkMapper.get(object);
+            return Optional.ofNullable(registry.get(id))
+                .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(identifierMapper.get(value)), value));
         }
     }
 
     private static class RegistryCacheLookup<T> implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override
-        public int toNetworkId(GeyserSession session, JavaRegistryKey<T> registry, T object) {
-            return session.getRegistryCache().registry(registry).byValue(object);
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
+            return Optional.ofNullable(registry(session, registryKey).entryById(networkId));
         }
 
         @Override
-        public @Nullable T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId) {
-            return session.getRegistryCache().registry(registry).byId(networkId);
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+            return Optional.ofNullable(registry(session, registryKey).entryByKey(key));
         }
 
         @Override
-        public int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registry, Key key) {
-            RegistryEntryData<T> entry = session.getRegistryCache().registry(registry).entryByKey(key);
-            if (entry != null) {
-                return entry.id();
-            }
-            return -1;
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+            return Optional.ofNullable(registry(session, registryKey).entryByValue(object));
         }
 
-        @Override
-        public @Nullable Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId) {
-            RegistryEntryData<T> entry = session.getRegistryCache().registry(registry).entryById(networkId);
-            if (entry != null) {
-                return entry.key();
-            }
-            return null;
+        private JavaRegistry<T> registry(GeyserSession session, JavaRegistryKey<T> key) {
+            return session.getRegistryCache().registry(key);
         }
     }
 }

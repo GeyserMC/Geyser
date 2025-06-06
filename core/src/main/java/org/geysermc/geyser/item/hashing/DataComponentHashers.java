@@ -255,7 +255,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, MinecraftHasher.KEY
-            .sessionCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.keyFromNetworkId(session, id)))); // Why, Mojang?
+            .sessionCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id)))); // Why, Mojang?
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.holder());

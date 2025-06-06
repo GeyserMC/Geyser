@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Optional;
+
 /**
  * Defines a Java registry, which can be hardcoded or data-driven. This class doesn't store registry contents itself, that is handled by {@link org.geysermc.geyser.session.cache.RegistryCache} in the case of
  * data-driven registries and other classes in the case of hardcoded registries.
@@ -37,63 +39,78 @@ import org.geysermc.geyser.session.GeyserSession;
  * <p>This class is used when, for a Java registry, data-driven objects and/or tags need to be loaded. Only one instance of this class should be created for each Java registry. Instances of this
  * class are kept in {@link JavaRegistries}, which also has useful methods for creating instances of this class.</p>
  *
+ * <p>This class has a few handy utility methods to convert between the various representations of an object in a registry (network ID, resource location/key, value).</p>
+ *
  * @param registryKey the registry key, as it appears on Java.
- * @param registryLookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
+ * @param lookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
  * @param <T> the object type this registry holds.
  */
-public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> registryLookup) {
+public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
 
     /**
-     * Converts an object in this registry to its network ID, or -1 if it is not registered.
+     * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int toNetworkId(GeyserSession session, T object) {
-        return registryLookup.toNetworkId(session, this, object);
+    public int networkId(GeyserSession session, T object) {
+        return entry(session, object).map(RegistryEntryData::id).orElse(-1);
+    }
+
+    /**
+     * Converts a registered key to its network ID, or -1 if it is not registered.
+     */
+    public int networkId(GeyserSession session, Key key) {
+        return entry(session, key).map(RegistryEntryData::id).orElse(-1);
+    }
+
+    /**
+     * Converts an object to its registered key, or null if it is not registered.
+     */
+    public @Nullable Key key(GeyserSession session, T object) {
+        return entry(session, object).map(RegistryEntryData::key).orElse(null);
+    }
+
+    /**
+     * Converts a network ID to its registered key, or null if it is not registered.
+     */
+    public @Nullable Key key(GeyserSession session, int networkId) {
+        return entry(session, networkId).map(RegistryEntryData::key).orElse(null);
     }
 
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T fromNetworkId(GeyserSession session, int networkId) {
-        return registryLookup.fromNetworkId(session, this, networkId);
+    public @Nullable T value(GeyserSession session, int networkId) {
+        return entry(session, networkId).map(RegistryEntryData::data).orElse(null);
     }
 
     /**
-     * Converts a key registered under this registry to its network ID, or -1 if it is not registered.
+     * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public int keyToNetworkId(GeyserSession session, Key key) {
-        return registryLookup.keyToNetworkId(session, this, key);
+    public @Nullable T value(GeyserSession session, Key key) {
+        return entry(session, key).map(RegistryEntryData::data).orElse(null);
+    }
+
+    private Optional<RegistryEntryData<T>> entry(GeyserSession session, T object) {
+        return lookup.entry(session, this, object);
+    }
+
+    private Optional<RegistryEntryData<T>> entry(GeyserSession session, int networkId) {
+        return lookup.entry(session, this, networkId);
+    }
+
+    private Optional<RegistryEntryData<T>> entry(GeyserSession session, Key key) {
+        return lookup.entry(session, this, key);
     }
 
     /**
-     * Converts a network ID to the key it is registered under in this registry, or null if it is not registered.
+     * Implementations should look up an element in the given registry by its value, network ID, or registered key. Return an empty optional if it does not exist.
      */
-    public @Nullable Key keyFromNetworkId(GeyserSession session, int networkId) {
-        return registryLookup.keyFromNetworkId(session, this, networkId);
-    }
-
     public interface RegistryLookup<T> {
 
-        /**
-         * Implementations should return the network ID of the registered object, or -1 if it is not registered.
-         */
-        int toNetworkId(GeyserSession session, JavaRegistryKey<T> registry, T object);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
 
-        /**
-         * Implementations should return the object that is registered under the given network ID, or null if it is not registered.
-         */
-        @Nullable
-        T fromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, Key key);
 
-        /**
-         * Implementations should return the network ID that corresponds to the given registered key, or -1 if it is not registered.
-         */
-        int keyToNetworkId(GeyserSession session, JavaRegistryKey<T> registry, Key key);
-
-        /**
-         * Implementations should return the key that corresponds to the registered network ID, or null if it is not registered.
-         */
-        @Nullable
-        Key keyFromNetworkId(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, T object);
     }
 
     @Override
