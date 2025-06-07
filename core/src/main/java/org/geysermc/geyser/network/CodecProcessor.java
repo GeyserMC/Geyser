@@ -259,8 +259,6 @@ class CodecProcessor {
             .updateSerializer(CreatePhotoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(NpcRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PhotoInfoRequestPacket.class, ILLEGAL_SERIALIZER)
-            // Unused serverbound packets for featured servers, which is for some reason still occasionally sent
-            .updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER)
             // Illegal unused serverbound packets that are deprecated
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
@@ -276,7 +274,6 @@ class CodecProcessor {
             .updateSerializer(MapInfoRequestPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SettingsCommandPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER)
             // Illegal when serverbound due to Geyser specific setup
             .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748)
             .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748)
@@ -306,6 +303,11 @@ class CodecProcessor {
                 codecBuilder
                     .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
                     .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
+            }
+
+            if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
+                codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
+                codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
             }
 
             return codecBuilder.build();

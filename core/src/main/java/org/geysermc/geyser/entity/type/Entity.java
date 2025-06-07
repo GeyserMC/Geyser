@@ -401,12 +401,10 @@ public class Entity implements GeyserEntity {
     public void setFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
-        setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
-        setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-
+        setSneaking((xd & 0x02) == 0x02);
+        setSprinting((xd & 0x08) == 0x08);
         // Swimming is ignored here and instead we rely on the pose
         setGliding((xd & 0x80) == 0x80);
-
         setInvisible((xd & 0x20) == 0x20);
     }
 
@@ -424,6 +422,14 @@ public class Entity implements GeyserEntity {
      */
     protected void setGliding(boolean value) {
         setFlag(EntityFlag.GLIDING, value);
+    }
+
+    protected void setSprinting(boolean value) {
+        setFlag(EntityFlag.SPRINTING, value);
+    }
+
+    protected void setSneaking(boolean value) {
+        setFlag(EntityFlag.SNEAKING, value);
     }
 
     /**

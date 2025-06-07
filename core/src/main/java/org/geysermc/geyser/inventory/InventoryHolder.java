@@ -160,8 +160,10 @@ public final class InventoryHolder<T extends Inventory> {
     @Override
     public String toString() {
         return "InventoryHolder[" +
-            "session=" + session + ", " +
+            "session=" + session.bedrockUsername() + ", " +
             "inventory=" + inventory + ", " +
-            "translator=" + translator + ']';
+            "pending= " + pending + ", " +
+            "containerOpenAttempts=" + containerOpenAttempts + ", " +
+            "translator=" + translator.getClass().getSimpleName() + ']';
     }
 }
