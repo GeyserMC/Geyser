@@ -69,6 +69,12 @@ public class MessageTranslatorTest {
             "§e All participants will receive a reward\n" +
             "§e and the top 3 will get extra bonus prizes!");
 
+        // Escape curly braces in translatable strings (make MessageFormat ignore them)
+        messages.put("{\"translate\":\"tt{tt%stt}tt\",\"with\":[\"AA\"]}", "tt{ttAAtt}tt");
+        messages.put("{\"translate\":\"tt{'tt%stt'{tt\",\"with\":[\"AA\"]}", "tt{'ttAAtt'{tt");
+        messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
+        messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
+
         MessageTranslator.init();
     }
 
