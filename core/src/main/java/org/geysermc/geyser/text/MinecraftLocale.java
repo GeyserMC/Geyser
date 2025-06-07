@@ -47,15 +47,20 @@ public class MinecraftLocale {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
-    private static final Path LOCALE_FOLDER = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales");
+    // Check instance availability to avoid exception during testing
+    private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
+
+    private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
 
     static {
-        try {
-            // Create the locales folder
-            Files.createDirectories(LOCALE_FOLDER);
-            Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
-        } catch (IOException exception) {
-            throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
+        if (IN_INSTANCE) {
+            try {
+                // Create the locales folder
+                Files.createDirectories(LOCALE_FOLDER);
+                Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
+            } catch (IOException exception) {
+                throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
+            }
         }
     }
 
