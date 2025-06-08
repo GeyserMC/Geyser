@@ -40,10 +40,6 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
         String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        handleCommand(session, MessageTranslator.normalizeSpace(command).substring(1));
-    }
-
-    static void handleCommand(GeyserSession session, String command) {
-        session.executeCommand(command);
+        session.executeCommand(MessageTranslator.normalizeSpace(command).substring(1));
     }
 }
