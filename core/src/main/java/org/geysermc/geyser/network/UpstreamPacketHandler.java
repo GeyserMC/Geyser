@@ -52,6 +52,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
+import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
@@ -80,13 +81,20 @@ import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.OptionalInt;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
+
+    private static final int PACKET_SEND_DELAY = 4 * 50; // DELAY THE SEND OF PACKETS TO AVOID BURSTING SLOWER AND/OR HIGHER PING CLIENTS
+    private final Queue<ResourcePackChunkRequestPacket> chunkRequestQueue = new ConcurrentLinkedQueue<>();
+    private boolean sendingChunks = false;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
@@ -297,13 +305,33 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
+        chunkRequestQueue.add(packet);
+        if (isConsole()) {
+            if (!sendingChunks) {
+                sendingChunks = true;
+                processNextChunk();
+            }
+        } else {
+            processNextChunk();
+        }
+        return PacketSignal.HANDLED;
+    }
+
+    public void processNextChunk() {
+        ResourcePackChunkRequestPacket packet = chunkRequestQueue.poll();
+        if (packet == null) {
+            sendingChunks = false;
+            return;
+        }
+
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
 
         if (holder == null) {
             GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
                 session.bedrockUsername(), packet.getPackId());
+            sendingChunks = false;
             session.disconnect("disconnectionScreen.resourcePack");
-            return PacketSignal.HANDLED;
+            return;
         }
 
         ResourcePack pack = holder.pack();
@@ -316,7 +344,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             if (!resourcePackLoadEvent.value(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
                 session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
-                return PacketSignal.HANDLED;
+                sendingChunks = false;
+                return;
             }
         }
 
@@ -339,14 +368,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         data.setData(Unpooled.wrappedBuffer(packData));
 
-        session.sendUpstreamPacket(data);
+        if (isConsole()) {
+            // Also flushes packets
+            // Avoids bursting slower / delayed clients
+            session.sendUpstreamPacketImmediately(data);
+            GeyserImpl.getInstance().getScheduledThread().schedule(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
+        } else {
+            session.sendUpstreamPacket(data);
+        }
 
         // Check if it is the last chunk and send next pack in queue when available.
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
             sendPackDataInfo(packsToSend.pop());
         }
-
-        return PacketSignal.HANDLED;
     }
 
     private void sendPackDataInfo(String id) {
@@ -393,5 +427,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setType(ResourcePackType.RESOURCES);
 
         session.sendUpstreamPacket(data);
+    }
+
+    private boolean isConsole() {
+        BedrockPlatform platform = session.platform();
+        return platform == BedrockPlatform.PS4 || platform == BedrockPlatform.XBOX || platform == BedrockPlatform.NX;
     }
 }
