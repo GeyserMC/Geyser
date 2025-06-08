@@ -199,12 +199,12 @@ public class WebUtils {
             downloadLocation.toFile().setLastModified(System.currentTimeMillis());
             return downloadLocation;
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s! ".formatted(url));
+            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s".formatted(url));
         } catch (SocketTimeoutException | ConnectException e) {
-            logger.error("Unable to download pack from url %s due to network error! ( %s )".formatted(url, e.getMessage()));
+            logger.error("Unable to download pack from url %s due to network error ( %s )".formatted(url, e.toString()));
             logger.debug(e);
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to download and save remote resource pack from: %s ( %s )!".formatted(url, e.getMessage()));
+            throw new IllegalStateException("Unable to download and save remote resource pack from: %s ( %s )".formatted(url, e.toString()));
         }
         return null;
     }
