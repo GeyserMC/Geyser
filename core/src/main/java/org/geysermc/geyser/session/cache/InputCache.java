@@ -153,7 +153,8 @@ public final class InputCache {
                 case PERSIST_SNEAK -> {
                     // Ignoring start/stop sneaking while in scaffolding on purpose to ensure
                     // that we don't spam both cases for every block we went down
-                    if (session.getPlayerEntity().isInsideScaffolding()) {
+                    // Consoles would also send persist sneak; but don't send the descend_block flag
+                    if (inputMode == InputMode.TOUCH && session.getPlayerEntity().isInsideScaffolding()) {
                         return authInputData.contains(PlayerAuthInputData.DESCEND_BLOCK) &&
                             authInputData.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW);
                     }
