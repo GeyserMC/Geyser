@@ -86,7 +86,14 @@ final class ExceptionHandlers {
         registerExceptionHandler(NoPermissionException.class, ExceptionHandlers::handleNoPermission);
 
         registerExceptionHandler(NoSuchCommandException.class,
-            (ctx, e) -> ctx.sender().sendLocaleString("geyser.command.not_found"));
+            (ctx, e) -> {
+                // Let backend server receive & handle the command
+                if (CommandRegistry.STANDALONE_COMMAND_MANAGER && ctx.sender() instanceof GeyserSession session) {
+                    session.sendCommand(ctx.rawInput().input());
+                } else {
+                    ctx.sender().sendLocaleString("geyser.command.not_found");
+                }
+            });
 
         registerExceptionHandler(ArgumentParseException.class,
             (ctx, e) -> ctx.sender().sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage()));
@@ -103,7 +110,6 @@ final class ExceptionHandlers {
     }
 
     private static void handleNoPermission(CommandContext<GeyserCommandSource> context, NoPermissionException exception) {
-        // Just for Bedrock players that try to run commands they do not have the permissions for.
         GeyserCommandSource source = context.sender();
 
         // Let backend server receive & handle the command
