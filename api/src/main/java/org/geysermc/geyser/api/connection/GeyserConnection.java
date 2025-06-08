@@ -80,7 +80,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param command The command without the leading forward-slash
      */
-    void sendCommand(String command);
+    void executeCommand(String command);
 
     /**
      * @param javaId the Java entity ID to look up.
