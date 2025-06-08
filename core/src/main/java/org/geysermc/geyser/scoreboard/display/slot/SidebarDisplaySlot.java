@@ -49,6 +49,11 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             .thenComparing(ScoreReference::name, String.CASE_INSENSITIVE_ORDER);
 
     private List<SidebarDisplayScore> displayScores = new ArrayList<>(SCORE_DISPLAY_LIMIT);
+    /// A copy of displayScores which can be modified by the render0 method for its calculation of the scores to
+    /// display. This was done to not add locks to displayScores, as that list can be used by multiple threads because
+    /// of the setTeamFor method. Additionally, there is a brief period in render0 where scores are not present in the
+    /// list which could lead to bugs that are hard to reproduce.
+    private final List<SidebarDisplayScore> displayScoresCopy = new ArrayList<>(SCORE_DISPLAY_LIMIT);
 
     public SidebarDisplaySlot(GeyserSession session, Objective objective, ScoreboardPosition position) {
         super(session, objective, position);
@@ -56,8 +61,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
     @Override
     protected void render0(List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
-        // while one could argue that we may not have to do this fancy Java filter when there are fewer scores than the
-        // line limit, we would lose the correct order of the scores if we don't
+        // While one could argue that we may not have to do this fancy Java filter when there are fewer scores than the
+        // line limit, it is also responsible for making sure that the scores are in the correct order.
         var newDisplayScores =
             objective.getScores().values().stream()
                 .filter(score -> !score.hidden())
@@ -65,7 +70,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                 .limit(SCORE_DISPLAY_LIMIT)
                 .map(reference -> {
                     // pretty much an ArrayList#remove
-                    var iterator = this.displayScores.iterator();
+                    var iterator = displayScoresCopy.iterator();
                     while (iterator.hasNext()) {
                         var score = iterator.next();
                         if (score.name().equals(reference.name())) {
@@ -78,32 +83,42 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                     return new SidebarDisplayScore(this, objective.getScoreboard().nextId(), reference);
                 }).collect(Collectors.toList());
 
-        // in newDisplayScores we removed the items that were already present from displayScores,
-        // meaning that the items that remain are items that are no longer displayed
-        for (var score : this.displayScores) {
+        // Make sure that we set the displayScores as early as possible, because setTeamFor relies on these potential
+        // changes. And even if no scores were added or removed, the order could've changed.
+        displayScores = newDisplayScores;
+
+        // In newDisplayScores we removed the items that were already present from displayScoresCopy,
+        // meaning that the items that remain are items that are no longer displayed.
+        for (var score : displayScoresCopy) {
             removeScores.add(score.cachedInfo());
         }
 
-        // preserves the new order
-        this.displayScores = newDisplayScores;
+        // The newDisplayScores have to be copied over to displayScoresCopy for the next render.
+        for (int i = 0; i < newDisplayScores.size(); i++) {
+            if (i < displayScoresCopy.size()) {
+                displayScoresCopy.set(i, newDisplayScores.get(i));
+            } else {
+                displayScoresCopy.add(newDisplayScores.get(i));
+            }
+        }
 
         // fixes ordering issues with multiple entries with same score
-        if (!this.displayScores.isEmpty()) {
+        if (!displayScores.isEmpty()) {
             SidebarDisplayScore lastScore = null;
             int count = 0;
-            for (var score : this.displayScores) {
+            for (var score : displayScores) {
                 if (lastScore == null) {
                     lastScore = score;
                     continue;
                 }
 
                 if (score.score() == lastScore.score()) {
-                    // something to keep in mind is that Bedrock doesn't support some legacy color codes and adds some
-                    // codes as well, so if the line limit is every increased keep that in mind
+                    // Bedrock doesn't support some legacy color codes and adds some codes as well.
+                    // Keep this in mind if the line limit is ever increased.
                     if (count == 0) {
-                        lastScore.order(ChatColor.styleOrder(count++));
+                        lastScore.order(ChatColor.colorDisplayOrder(count++));
                     }
-                    score.order(ChatColor.styleOrder(count++));
+                    score.order(ChatColor.colorDisplayOrder(count++));
                 } else {
                     if (count == 0) {
                         lastScore.order(null);
@@ -121,7 +136,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
         boolean objectiveAdd = updateType == UpdateType.ADD;
         boolean objectiveUpdate = updateType == UpdateType.UPDATE;
 
-        for (var score : this.displayScores) {
+        for (var score : displayScores) {
             Team team = score.team();
             boolean add = objectiveAdd || objectiveUpdate;
             boolean exists = score.exists();
