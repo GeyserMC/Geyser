@@ -78,7 +78,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Sends a command as if the player had executed it.
      *
-     * @param command The command without the leading forward-slash
+     * @param command the command without the leading forward-slash
      */
     void executeCommand(String command);
 
