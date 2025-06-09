@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -40,6 +39,30 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
         String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        session.executeCommand(MessageTranslator.normalizeSpace(command).substring(1));
+        handleCommand(session, MessageTranslator.normalizeSpace(command).substring(1));
+    }
+
+    static void handleCommand(GeyserSession session, String command) {
+        if (MessageTranslator.isTooLong(command, session)) {
+            return;
+        }
+
+        if (CommandRegistry.STANDALONE_COMMAND_MANAGER) {
+            // try to handle the command within the standalone/viaproxy command manager
+            String[] args = command.split(" ");
+            if (args.length > 0) {
+                String root = args[0];
+
+                CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
+                if (registry.rootCommands().contains(root)) {
+                    registry.runCommand(session, command);
+                    // don't pass the command to the java server here
+                    // will pass it through later if the user lacks permission
+                    return;
+                }
+            }
+        }
+
+        session.sendCommand(command);
     }
 }

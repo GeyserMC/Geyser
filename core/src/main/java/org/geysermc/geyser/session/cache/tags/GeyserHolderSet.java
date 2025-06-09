@@ -37,7 +37,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.ToIntFunction;
 
 /**
