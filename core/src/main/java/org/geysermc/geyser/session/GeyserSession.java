@@ -1487,10 +1487,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Override
     public void executeCommand(String command) {
-        if (this.getGeyser().getPlatformType() == PlatformType.STANDALONE ||
-            this.getGeyser().getPlatformType() == PlatformType.VIAPROXY) {
-            // try to handle the command within the standalone/viaproxy command manager
+        if (MessageTranslator.isTooLong(command, this)) {
+            return;
+        }
 
+        if (CommandRegistry.STANDALONE_COMMAND_MANAGER) {
+            // try to handle the command within the standalone/viaproxy command manager
             String[] args = command.split(" ");
             if (args.length > 0) {
                 String root = args[0];
@@ -1498,13 +1500,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
                 if (registry.rootCommands().contains(root)) {
                     registry.runCommand(this, command);
-                    return; // don't pass the command to the java server
+                    // don't pass the command to the java server here
+                    // will pass it through later if the user lacks permission
+                    return;
                 }
             }
-        }
-
-        if (MessageTranslator.isTooLong(command, this)) {
-            return;
         }
 
         this.sendCommand(command);
