@@ -73,7 +73,8 @@ public enum InteractiveTag {
     GIVE_ITEM_TO_ALLAY("allay"),
     EQUIP_WOLF_ARMOR("equipwolfarmor"),
     REMOVE_WOLF_ARMOR("removewolfarmor"),
-    REPAIR_WOLF_ARMOR("repairwolfarmor");
+    REPAIR_WOLF_ARMOR("repairwolfarmor"),
+    HARNESS_HAPPY_GHAST("equipharness");
 
     /**
      * The full string that should be passed on to the client.

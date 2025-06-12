@@ -81,6 +81,7 @@ import org.geysermc.geyser.entity.type.living.TadpoleEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.animal.AxolotlEntity;
 import org.geysermc.geyser.entity.type.living.animal.BeeEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.FoxEntity;
@@ -215,6 +216,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<GlowSquidEntity> GLOW_SQUID;
     public static final EntityDefinition<GoatEntity> GOAT;
     public static final EntityDefinition<GuardianEntity> GUARDIAN;
+    public static final EntityDefinition<HappyGhastEntity> HAPPY_GHAST;
     public static final EntityDefinition<HoglinEntity> HOGLIN;
     public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
     public static final EntityDefinition<HorseEntity> HORSE;
@@ -988,6 +990,13 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.5f)
                     .addTranslator(MetadataTypes.FROG_VARIANT, FrogEntity::setVariant)
                     .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FrogEntity::setTongueTarget)
+                    .build();
+            HAPPY_GHAST = EntityDefinition.inherited(HappyGhastEntity::new, ageableEntityBase)
+                    .type(EntityType.HAPPY_GHAST)
+                    .heightAndWidth(4f)
+                    .properties(VanillaEntityProperties.HAPPY_GHAST)
+                    .addTranslator(null) // Is leash holder
+                    .addTranslator(MetadataTypes.BOOLEAN, HappyGhastEntity::setStaysStill)
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)

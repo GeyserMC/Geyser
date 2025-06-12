@@ -1691,6 +1691,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         // Allows Vibrant Visuals to appear in the settings menu
         startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        // Enables 2025 Content Drop 2 features
+        startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

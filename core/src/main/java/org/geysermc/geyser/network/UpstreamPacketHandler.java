@@ -242,6 +242,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
                 // Allows Vibrant Visuals to be toggled in the settings
                 stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+                // Enables 2025 Content Drop 2 features
+                stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
 
                 session.sendUpstreamPacket(stackPacket);
             }
