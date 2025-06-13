@@ -76,6 +76,7 @@ public class LoginEncryptionUtils {
             }
 
             IdentityData extraData = result.identityClaims().extraData;
+            // TODO!!! identity must be generated from extraData.minecraftId
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
             session.setCertChainData(List.of(jwt));
 

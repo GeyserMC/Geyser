@@ -1686,17 +1686,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Queue a packet to be sent to player.
      *
-     * @param packet the bedrock packet from the NukkitX protocol lib
+     * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
         upstream.sendPacket(packet);
     }
 
     /**
      * Send a packet immediately to the player.
      *
-     * @param packet the bedrock packet from the NukkitX protocol lib
+     * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
         upstream.sendPacketImmediately(packet);
