@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
@@ -82,6 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public final class ItemTranslator {
 
@@ -251,7 +253,7 @@ public final class ItemTranslator {
         Map<ItemAttributeModifiers.EquipmentSlotGroup, List<String>> slotsToModifiers = new HashMap<>();
         for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), language);
+            String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), entry.getDisplay(), language);
             if (loreEntry == null) {
                 continue; // invalid or failed
             }
@@ -282,7 +284,16 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(GeyserSession session, int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
+    private static String attributeToLore(GeyserSession session, int attribute, ItemAttributeModifiers.AttributeModifier modifier,
+                                          ItemAttributeModifiers.Display display, String language) {
+        if (display.getType() == ItemAttributeModifiers.DisplayType.HIDDEN) {
+            return null;
+        } else if (display.getType() == ItemAttributeModifiers.DisplayType.OVERRIDE) {
+            return MessageTranslator.convertMessage(Objects.requireNonNull(display.getComponent())
+                .colorIfAbsent(NamedTextColor.WHITE)
+                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE), language);
+        }
+
         double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
@@ -320,7 +331,7 @@ public final class ItemTranslator {
         Component attributeComponent = Component.text()
                 .resetStyle()
                 .color(baseModifier ? NamedTextColor.DARK_GREEN : amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
-                .append(Component.text(" " + operationTotal + " "), Component.translatable("attribute.name." + name))
+                .append(Component.text(operationTotal + " "), Component.translatable("attribute.name." + name))
                 .build();
 
         return MessageTranslator.convertMessage(attributeComponent, language);
