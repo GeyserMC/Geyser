@@ -1643,6 +1643,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
         startGamePacket.setScenarioId("");
+        startGamePacket.setOwnerId("");
 
         upstream.sendPacket(startGamePacket);
     }
