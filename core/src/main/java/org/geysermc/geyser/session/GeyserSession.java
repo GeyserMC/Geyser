@@ -689,6 +689,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
+    @Setter
+    private boolean allowVibrantVisuals = true;
+
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -1620,7 +1623,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         // Allows Vibrant Visuals to appear in the settings menu
-        startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        if (allowVibrantVisuals && !GameProtocol.is1_21_90orHigher(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        }
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1683,6 +1688,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
         upstream.sendPacket(packet);
     }
 

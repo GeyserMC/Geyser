@@ -208,6 +208,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
+        resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
@@ -241,7 +242,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
                 // Allows Vibrant Visuals to be toggled in the settings
-                stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+                if (session.isAllowVibrantVisuals() && !GameProtocol.is1_21_90orHigher(session)) {
+                    stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+                }
 
                 session.sendUpstreamPacket(stackPacket);
             }
