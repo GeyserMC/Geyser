@@ -633,8 +633,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             }
         }
 
-        Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
-        lookAt(session, target);
+        // As of 1.21.5, this is no longer a vanilla behaviour.
+        // Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
+        // lookAt(session, target);
 
         session.useItem(Hand.MAIN_HAND);
         return true;
