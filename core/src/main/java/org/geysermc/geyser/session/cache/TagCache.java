@@ -62,7 +62,7 @@ public final class TagCache {
         this.session = session;
     }
 
-    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 

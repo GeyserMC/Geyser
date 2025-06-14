@@ -173,6 +173,7 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -287,6 +288,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
     private final TagCache tagCache;
+    private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
     @Setter
@@ -312,7 +314,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
 
-    @Getter
     private final DialogManager dialogManager = new DialogManager(this);
 
     /**
@@ -736,6 +737,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache(this);
+        this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
@@ -1263,6 +1265,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             dialogManager.tick();
+            waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1693,6 +1696,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
         // Enables 2025 Content Drop 2 features
         startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+        // Enables the locator bar for clients below 1.21.90
+        startGamePacket.getExperiments().add(new ExperimentData("locator_bar", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

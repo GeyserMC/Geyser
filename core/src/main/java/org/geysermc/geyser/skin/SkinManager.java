@@ -84,6 +84,9 @@ public class SkinManager {
             }
         }
 
+        // Default to white when waypoint colour is unknown, which is the most visible
+        Color color = session.getWaypointCache().getWaypointColor(playerEntity.getUuid()).orElse(Color.WHITE);
+
         return buildEntryManually(
                 session,
                 playerEntity.getUuid(),
@@ -91,7 +94,8 @@ public class SkinManager {
                 playerEntity.getGeyserId(),
                 skin,
                 cape,
-                geometry
+                geometry,
+                color
         );
     }
 
@@ -101,7 +105,7 @@ public class SkinManager {
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
                                                             Skin skin,
                                                             Cape cape,
-                                                            SkinGeometry geometry) {
+                                                            SkinGeometry geometry, Color color) {
         SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry);
 
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
@@ -129,8 +133,7 @@ public class SkinManager {
         entry.setPlatformChatId("");
         entry.setTeacher(false);
         entry.setTrustedSkin(true);
-        // Without a color set, player list entries will not show up.
-        entry.setColor(Color.BLACK);
+        entry.setColor(color);
         return entry;
     }
 
@@ -138,6 +141,7 @@ public class SkinManager {
         Skin skin = skinData.skin();
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
+        Color color = session.getWaypointCache().getWaypointColor(entity.getUuid()).orElse(Color.WHITE);
 
         if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
             PlayerListPacket.Entry updatedEntry = buildEntryManually(
@@ -147,7 +151,8 @@ public class SkinManager {
                     entity.getGeyserId(),
                     skin,
                     cape,
-                    geometry
+                    geometry,
+                    color
             );
 
             PlayerListPacket playerAddPacket = new PlayerListPacket();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.session.cache.waypoint;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
-@Translator(packet = ClientboundUpdateTagsPacket.class)
-public class JavaUpdateTagsTranslator extends PacketTranslator<ClientboundUpdateTagsPacket> {
+import java.awt.Color;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.UUID;
+
+public class ChunkWaypoint extends GeyserWaypoint {
+
+    public ChunkWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
+        super(session, uuid, entityId, color);
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        session.getTagCache().loadPacket(packet);
+    public void setData(WaypointData data) {
+        ChunkWaypointData chunk = (ChunkWaypointData) data;
+        // Set position in centre of chunk
+        position = Vector3f.from(chunk.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunk.chunkZ() * 16.0F + 8.0F);
     }
 }

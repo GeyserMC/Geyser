@@ -103,6 +103,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      */
     private @Nullable ParrotEntity rightParrot;
 
+    /**
+     * Whether this player is currently listed.
+     */
+    private boolean listed = false;
+
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);

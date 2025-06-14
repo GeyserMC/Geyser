@@ -35,5 +35,6 @@ public class JavaTrackedWaypointTranslator extends PacketTranslator<ClientboundT
 
     @Override
     public void translate(GeyserSession session, ClientboundTrackedWaypointPacket packet) {
+        session.getWaypointCache().handlePacket(packet);
     }
 }

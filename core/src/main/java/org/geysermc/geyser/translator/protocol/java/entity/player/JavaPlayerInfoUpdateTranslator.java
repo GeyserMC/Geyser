@@ -89,6 +89,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     );
 
                     session.getEntityCache().addPlayerEntity(playerEntity);
+                    session.getWaypointCache().trackPlayer(playerEntity);
                 }
                 playerEntity.setUsername(name);
                 playerEntity.setTexturesProperty(texturesProperty);
@@ -117,6 +118,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 } else {
                     toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
                 }
+                entity.setListed(entry.isListed());
             }
 
             if (!toAdd.isEmpty()) {

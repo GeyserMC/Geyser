@@ -244,6 +244,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
                 // Enables 2025 Content Drop 2 features
                 stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+                // Enables the locator bar for clients below 1.21.90
+                stackPacket.getExperiments().add(new ExperimentData("locator_bar", true));
 
                 session.sendUpstreamPacket(stackPacket);
             }

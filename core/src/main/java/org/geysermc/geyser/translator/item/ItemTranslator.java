@@ -255,7 +255,7 @@ public final class ItemTranslator {
             // convert the modifier tag to a lore entry
             String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), entry.getDisplay(), language);
             if (loreEntry == null) {
-                continue; // invalid or failed
+                continue; // invalid, failed, or hidden
             }
 
             slotsToModifiers.computeIfAbsent(entry.getSlot(), s -> new ArrayList<>()).add(loreEntry);
