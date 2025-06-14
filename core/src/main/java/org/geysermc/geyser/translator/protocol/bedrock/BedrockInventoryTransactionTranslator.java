@@ -295,25 +295,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
-                        int sequence = session.getWorldCache().nextPredictionSequence();
-                        session.getWorldCache().markPositionInSequence(blockPos);
-                        ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
-                                packet.getBlockPosition(),
-                                Direction.VALUES[packet.getBlockFace()],
-                                Hand.MAIN_HAND,
-                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
-                                false,
-                                false,
-                                sequence);
-                        session.sendDownstreamGamePacket(blockPacket);
-
+                        boolean sendUseItemOn = true;
                         Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (item instanceof BoatItem || item == Items.LILY_PAD || item == Items.FROGSPAWN) {
                                 useItem(session, packet, blockState.javaId());
+                                sendUseItemOn = false;
                             } else if (item == Items.GLASS_BOTTLE) {
                                 Block block = blockState.block();
                                 if (!session.isSneaking() && block instanceof CauldronBlock && block != Blocks.WATER_CAULDRON) {
@@ -321,6 +310,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 useItem(session, packet, blockState.javaId());
+                                sendUseItemOn = false;
                             } else if (session.getItemMappings().getBuckets().contains(definition)) {
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (definition != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockDefinition()) {
@@ -329,11 +319,27 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         return;
                                     }
                                     session.setPlacedBucket(useItem(session, packet, blockState.javaId()));
+                                    sendUseItemOn = false;
                                 } else {
                                     session.setPlacedBucket(true);
                                 }
                             }
                         }
+
+                        if (sendUseItemOn) {
+                            // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
+                            int sequence = session.getWorldCache().nextPredictionSequence();
+                            ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                                packet.getBlockPosition(),
+                                Direction.VALUES[packet.getBlockFace()],
+                                Hand.MAIN_HAND,
+                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                false,
+                                false,
+                                sequence);
+                            session.sendDownstreamGamePacket(blockPacket);
+                        }
+                        session.getWorldCache().markPositionInSequence(blockPos);
 
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
