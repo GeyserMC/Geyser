@@ -327,7 +327,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         if (sendUseItemOn) {
-                            // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
                             int sequence = session.getWorldCache().nextPredictionSequence();
                             ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 packet.getBlockPosition(),
@@ -339,6 +338,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 sequence);
                             session.sendDownstreamGamePacket(blockPacket);
                         }
+                        // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
                         session.getWorldCache().markPositionInSequence(blockPos);
 
                         if (packet.getActions().isEmpty()) {
