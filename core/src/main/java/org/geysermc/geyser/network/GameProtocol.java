@@ -107,6 +107,10 @@ public final class GameProtocol {
         return session.protocolVersion() >= Bedrock_v800.CODEC.getProtocolVersion();
     }
 
+    public static boolean is1_21_80(GeyserSession session) {
+        return session.protocolVersion() == Bedrock_v800.CODEC.getProtocolVersion();
+    }
+
     /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.
      *
