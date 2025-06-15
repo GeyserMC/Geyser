@@ -139,7 +139,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
 
     @Override
     public boolean canBeLeashed() {
-        return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
+        return !getFlag(EntityFlag.ANGRY);
     }
 
     @NonNull

@@ -45,21 +45,34 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.type.living.MobEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -682,19 +695,68 @@ public class Entity implements GeyserEntity {
      * to ensure packet parity as well as functionality parity (such as sound effect responses).
      */
     public InteractionResult interact(Hand hand) {
+        Item itemInHand = session.getPlayerInventory().getItemInHand(hand).asItem();
+        if (itemInHand == Items.SHEARS) {
+            if (hasLeashesToDrop()) {
+                return InteractionResult.SUCCESS;
+            }
+
+            if (this instanceof MobEntity mob && mob.passengers.isEmpty() && !session.isSneaking() && canShearEquipment(mob)) {
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         if (isAlive() && this instanceof Leashable leashable) {
             if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD
+                && !(session.getEntityCache().getEntityByGeyserId(leashable.leashHolderBedrockId()) instanceof PlayerEntity)) {
                 // We shall leash
                 return InteractionResult.SUCCESS;
             }
         }
 
         return InteractionResult.PASS;
+    }
+
+    public boolean hasLeashesToDrop() {
+        BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
+        List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getEntityId())
+            .filter(entity -> {
+                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                return searchBB.checkIntersection(leashedBB);
+            }).map(Leashable.class::cast).toList();
+
+        boolean found = !leashedInRange.isEmpty();
+        if (this instanceof Leashable leashable && leashable.isLeashed()) {
+            found = true;
+        }
+
+        return found;
+    }
+
+    public boolean canShearEquipment(MobEntity mob) {
+        for (EquipmentSlot equipmentSlot : EquipmentSlot.values()) {
+            ItemStack equipment = mob.equipment.get(equipmentSlot);
+            if (equipment == null) continue;
+
+            Item item = Registries.JAVA_ITEMS.get(equipment.getId());
+            if (item == null) continue;
+
+            DataComponents components = item.gatherComponents(equipment.getDataComponentsPatch());
+            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null && equippable.canBeSheared()) {
+                if (!ItemUtils.hasEffect(session, equipment, EnchantmentComponent.PREVENT_ARMOR_CHANGE) || session.getGameMode() == GameMode.CREATIVE) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

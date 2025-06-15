@@ -57,6 +57,7 @@ public enum InteractiveTag {
     CREATE_MAP("createMap"),
     TAKE_PICTURE("takepicture"),
     SADDLE,
+    REMOVE_SADDLE("removesaddle"),
     MOUNT,
     BOOST,
     WRITE,
@@ -74,7 +75,8 @@ public enum InteractiveTag {
     EQUIP_WOLF_ARMOR("equipwolfarmor"),
     REMOVE_WOLF_ARMOR("removewolfarmor"),
     REPAIR_WOLF_ARMOR("repairwolfarmor"),
-    HARNESS_HAPPY_GHAST("equipharness");
+    EQUIP_HARNESS("equipharness"),
+    REMOVE_HARNESS("removeharness");
 
     /**
      * The full string that should be passed on to the client.

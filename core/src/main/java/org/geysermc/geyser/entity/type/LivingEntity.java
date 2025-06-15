@@ -73,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,6 +81,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class LivingEntity extends Entity {
+    protected EnumMap<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
+
     protected ItemData helmet = ItemData.AIR;
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
@@ -117,26 +120,32 @@ public class LivingEntity extends Entity {
     }
 
     public void setHelmet(ItemStack stack) {
+        this.equipment.put(EquipmentSlot.HELMET, stack);
         this.helmet = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setChestplate(ItemStack stack) {
+        this.equipment.put(EquipmentSlot.CHESTPLATE, stack);
         this.chestplate = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setLeggings(ItemStack stack) {
+        this.equipment.put(EquipmentSlot.LEGGINGS, stack);
         this.leggings = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setBoots(ItemStack stack) {
+        this.equipment.put(EquipmentSlot.BOOTS, stack);
         this.boots = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setBody(ItemStack stack) {
+        this.equipment.put(EquipmentSlot.BODY, stack);
         this.body = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setSaddle(@Nullable ItemStack stack) {
+        this.equipment.put(EquipmentSlot.SADDLE, stack);
         this.saddle = ItemTranslator.translateToBedrock(session, stack);
 
         boolean saddled = false;
@@ -153,11 +162,11 @@ public class LivingEntity extends Entity {
     }
 
     public void setHand(ItemStack stack) {
-        this.hand = ItemTranslator.translateToBedrock(session, stack);
+        this.equipment.put(EquipmentSlot.MAIN_HAND, stack);
     }
 
     public void setOffhand(ItemStack stack) {
-        this.offhand = ItemTranslator.translateToBedrock(session, stack);
+        this.equipment.put(EquipmentSlot.OFF_HAND, stack);
     }
 
     protected void updateSaddled(boolean saddled) {
@@ -172,9 +181,13 @@ public class LivingEntity extends Entity {
     }
 
     public void switchHands() {
-        ItemData offhand = this.offhand;
+        ItemStack javaOffhand = this.equipment.get(EquipmentSlot.OFF_HAND);
+        this.equipment.put(EquipmentSlot.OFF_HAND, this.equipment.get(EquipmentSlot.MAIN_HAND));
+        this.equipment.put(EquipmentSlot.MAIN_HAND, javaOffhand);
+
+        ItemData bedrockOffhand = this.offhand;
         this.offhand = this.hand;
-        this.hand = offhand;
+        this.hand = bedrockOffhand;
     }
 
     @Override

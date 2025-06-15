@@ -85,6 +85,6 @@ public abstract class TameableEntity extends AnimalEntity {
 
     @Override
     public boolean canBeLeashed() {
-        return isNotLeashed();
+        return true;
     }
 }

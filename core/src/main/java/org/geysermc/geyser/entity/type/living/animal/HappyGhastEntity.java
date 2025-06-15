@@ -37,6 +37,7 @@ import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
@@ -82,15 +83,15 @@ public class HappyGhastEntity extends AnimalEntity {
         } else {
             if (!itemInHand.isEmpty()) {
                 if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (!this.body.isValid()) {
+                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
                         // Harnesses the ghast
-                        return InteractiveTag.HARNESS_HAPPY_GHAST;
+                        return InteractiveTag.EQUIP_HARNESS;
                     }
                 }
                 // TODO: Handle shearing the harness off
             }
 
-            if (this.body.isValid() && !session.isSneaking()) {
+            if (this.equipment.get(EquipmentSlot.BODY) != null && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractiveTag.RIDE_HORSE;
             } else {
@@ -107,7 +108,7 @@ public class HappyGhastEntity extends AnimalEntity {
         } else {
             if (!itemInHand.isEmpty()) {
                 if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (!this.body.isValid()) {
+                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
                     }
@@ -115,7 +116,7 @@ public class HappyGhastEntity extends AnimalEntity {
                 // TODO: Handle shearing the harness off
             }
 
-            if (this.body.isValid() && !session.isSneaking()) {
+            if (this.equipment.get(EquipmentSlot.BODY) == null && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractionResult.SUCCESS;
             } else {

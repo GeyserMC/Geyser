@@ -136,7 +136,7 @@ public class MobEntity extends LivingEntity implements Leashable {
 
     @Override
     public boolean canBeLeashed() {
-        return isNotLeashed() && !isEnemy();
+        return !isEnemy();
     }
 
     @Override
