@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -39,9 +40,18 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
+import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Function;
+
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
+    }
+
+    @Override
+    public Component getName(GeyserItemStack stack) {
+        return getName(stack, translationKey(), super::getName);
     }
 
     @Override
@@ -81,5 +91,18 @@ public class PotionItem extends Item {
     @Override
     public boolean ignoreDamage() {
         return true;
+    }
+
+    public static Component getName(GeyserItemStack stack, String translationKey, Function<GeyserItemStack, Component> fallback) {
+        PotionContents contents = stack.getComponent(DataComponentTypes.POTION_CONTENTS);
+        return contents != null ? potionName(contents, translationKey + ".effect.") : fallback.apply(stack);
+    }
+
+    private static Component potionName(PotionContents contents, String baseTranslation) {
+        String name = contents.getCustomName() != null
+            ? contents.getCustomName()
+            : contents.getPotionId() == -1 ? "empty"
+            : Objects.requireNonNull(Potion.getByJavaId(contents.getPotionId())).getJavaIdentifier().toLowerCase(Locale.ROOT);
+        return Component.translatable(baseTranslation + name);
     }
 }

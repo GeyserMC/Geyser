@@ -415,6 +415,7 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
+    // TODO
     public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
         String customPotionName = contents.getCustomName();
         Potion potion = Potion.getByJavaId(contents.getPotionId());
