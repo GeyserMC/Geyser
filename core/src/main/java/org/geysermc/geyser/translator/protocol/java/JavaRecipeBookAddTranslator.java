@@ -310,6 +310,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             return ItemDescriptorWithCount.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(item);
+
+        // This is likely a modded java item or some item Geyser haven't mapped.
         if (mapping.getJavaItem().javaId() == Items.AIR_ID) {
             return ItemDescriptorWithCount.EMPTY;
         }
@@ -367,6 +369,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 continue;
             }
 
+            // As of 1.21.82, Bedrock will crash if we tried to send invalid descriptor.
             if (translated.contains(ItemDescriptorWithCount.EMPTY)) {
                 continue;
             }
