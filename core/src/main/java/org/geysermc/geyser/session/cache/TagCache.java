@@ -134,7 +134,7 @@ public final class TagCache {
      * Accessible via the {@link #isItem(HolderSet, Item)} method.
      * @return true if the specified network ID is in the given {@link HolderSet} set.
      */
-    private  <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
+    private <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
         if (holderSet == null) {
             return false;
         }
