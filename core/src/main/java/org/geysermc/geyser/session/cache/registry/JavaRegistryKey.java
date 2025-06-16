@@ -64,6 +64,13 @@ public record JavaRegistryKey<T>(Key registryKey, NetworkSerializer<T> networkSe
         return networkIdentifier.keyFromNetworkId(session, this, networkId);
     }
 
+    /**
+     * Converts an object in this registry to its respective registry key, by chaining {@link JavaRegistryKey#toNetworkId(GeyserSession, Object)} and {@link JavaRegistryKey#keyFromNetworkId(GeyserSession, int)}.
+     */
+    public Key keyFromObject(GeyserSession session, T object) {
+        return networkIdentifier.keyFromNetworkId(session, this, networkSerializer.toNetworkId(session, this, object));
+    }
+
     @FunctionalInterface
     public interface NetworkSerializer<T> {
 
