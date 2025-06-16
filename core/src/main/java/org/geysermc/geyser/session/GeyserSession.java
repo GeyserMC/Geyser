@@ -2188,7 +2188,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public int ping() {
         // Can otherwise cause issues if the player isn't logged in yet / already left
-        if (getUpstream().isInitialized() || getUpstream().isClosed()) {
+        if (!getUpstream().isInitialized() || getUpstream().isClosed()) {
             return 0;
         }
 
