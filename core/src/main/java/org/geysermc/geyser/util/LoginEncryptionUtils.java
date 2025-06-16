@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
+import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
@@ -76,9 +77,14 @@ public class LoginEncryptionUtils {
             }
 
             IdentityData extraData = result.identityClaims().extraData;
-            // TODO!!! identity must be generated from extraData.minecraftId
+            // TODO!!! identity won't persist
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
-            session.setCertChainData(List.of(jwt));
+            if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
+                session.setCertChainData(certificateChainPayload.getChain());
+            } else {
+                GeyserImpl.getInstance().getLogger().warning("Received new auth payload!");
+                session.setCertChainData(List.of());
+            }
 
             PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
 
