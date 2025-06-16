@@ -50,9 +50,9 @@
             "spawns_warm_variant_frogs"
         ]
     },
-    "snowy_slopes": {
-        "temperature": -0.3,
-        "downfall": 0.9,
+    "grove": {
+        "temperature": -0.2,
+        "downfall": 0.8,
         "redSporeDensity": 0.0,
         "blueSporeDensity": 0.0,
         "ashDensity": 0.0,
@@ -70,17 +70,17 @@
         "id": null,
         "tags": [
             "mountains",
+            "cold",
             "monster",
             "overworld",
-            "frozen",
+            "grove",
+            "spawns_cold_variant_farm_animals",
             "spawns_cold_variant_frogs",
             "spawns_snow_foxes",
-            "spawns_white_rabbits",
-            "snowy_slopes",
-            "spawns_cold_variant_farm_animals"
+            "spawns_white_rabbits"
         ]
     },
-    "jagged_peaks": {
+    "frozen_peaks": {
         "temperature": -0.7,
         "downfall": 0.9,
         "redSporeDensity": 0.0,
@@ -103,7 +103,7 @@
             "monster",
             "overworld",
             "frozen",
-            "jagged_peaks",
+            "frozen_peaks",
             "spawns_cold_variant_farm_animals",
             "spawns_cold_variant_frogs",
             "spawns_snow_foxes",
@@ -338,6 +338,32 @@
             "has_structure_trail_ruins"
         ]
     },
+    "meadow": {
+        "temperature": 0.3,
+        "downfall": 0.8,
+        "redSporeDensity": 0.0,
+        "blueSporeDensity": 0.0,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 166,
+            "r": 96,
+            "g": 183,
+            "b": 255
+        },
+        "rain": true,
+        "chunkGenData": null,
+        "id": null,
+        "tags": [
+            "mountains",
+            "monster",
+            "overworld",
+            "meadow",
+            "bee_habitat"
+        ]
+    },
     "jungle_mutated": {
         "temperature": 0.95,
         "downfall": 0.9,
@@ -363,6 +389,36 @@
             "mutated",
             "overworld_generation",
             "spawns_warm_variant_farm_animals"
+        ]
+    },
+    "jagged_peaks": {
+        "temperature": -0.7,
+        "downfall": 0.9,
+        "redSporeDensity": 0.0,
+        "blueSporeDensity": 0.0,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 166,
+            "r": 96,
+            "g": 183,
+            "b": 255
+        },
+        "rain": true,
+        "chunkGenData": null,
+        "id": null,
+        "tags": [
+            "mountains",
+            "monster",
+            "overworld",
+            "frozen",
+            "jagged_peaks",
+            "spawns_cold_variant_farm_animals",
+            "spawns_cold_variant_frogs",
+            "spawns_snow_foxes",
+            "spawns_white_rabbits"
         ]
     },
     "flower_forest": {
@@ -584,6 +640,32 @@
             "overworld",
             "spawns_jungle_mobs",
             "spawns_warm_variant_farm_animals"
+        ]
+    },
+    "lush_caves": {
+        "temperature": 0.9,
+        "downfall": 0.0,
+        "redSporeDensity": 0.0,
+        "blueSporeDensity": 0.0,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 166,
+            "r": 96,
+            "g": 183,
+            "b": 255
+        },
+        "rain": true,
+        "chunkGenData": null,
+        "id": null,
+        "tags": [
+            "caves",
+            "lush_caves",
+            "overworld",
+            "monster",
+            "spawns_tropical_fish_at_any_height"
         ]
     },
     "deep_frozen_ocean": {
@@ -834,33 +916,6 @@
             "spawns_cold_variant_farm_animals"
         ]
     },
-    "crimson_forest": {
-        "temperature": 2.0,
-        "downfall": 0.0,
-        "redSporeDensity": 0.25,
-        "blueSporeDensity": 0.0,
-        "ashDensity": 0.0,
-        "whiteAshDensity": 0.0,
-        "depth": 0.1,
-        "scale": 0.2,
-        "mapWaterColor": {
-            "a": 165,
-            "r": 144,
-            "g": 89,
-            "b": 87
-        },
-        "rain": false,
-        "chunkGenData": null,
-        "id": null,
-        "tags": [
-            "nether",
-            "netherwart_forest",
-            "crimson_forest",
-            "spawn_few_zombified_piglins",
-            "spawn_piglin",
-            "spawns_warm_variant_farm_animals"
-        ]
-    },
     "mesa": {
         "temperature": 2.0,
         "downfall": 0.0,
@@ -996,6 +1051,32 @@
             "taiga",
             "has_structure_trail_ruins",
             "spawns_cold_variant_farm_animals"
+        ]
+    },
+    "warped_forest": {
+        "temperature": 2.0,
+        "downfall": 0.0,
+        "redSporeDensity": 0.0,
+        "blueSporeDensity": 0.25,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 165,
+            "r": 144,
+            "g": 89,
+            "b": 87
+        },
+        "rain": false,
+        "chunkGenData": null,
+        "id": null,
+        "tags": [
+            "nether",
+            "netherwart_forest",
+            "warped_forest",
+            "spawn_endermen",
+            "spawns_warm_variant_farm_animals"
         ]
     },
     "mesa_plateau_stone": {
@@ -1385,32 +1466,6 @@
             "spawns_warm_variant_farm_animals"
         ]
     },
-    "meadow": {
-        "temperature": 0.3,
-        "downfall": 0.8,
-        "redSporeDensity": 0.0,
-        "blueSporeDensity": 0.0,
-        "ashDensity": 0.0,
-        "whiteAshDensity": 0.0,
-        "depth": 0.1,
-        "scale": 0.2,
-        "mapWaterColor": {
-            "a": 166,
-            "r": 96,
-            "g": 183,
-            "b": 255
-        },
-        "rain": true,
-        "chunkGenData": null,
-        "id": null,
-        "tags": [
-            "mountains",
-            "monster",
-            "overworld",
-            "meadow",
-            "bee_habitat"
-        ]
-    },
     "jungle_hills": {
         "temperature": 0.95,
         "downfall": 0.9,
@@ -1465,36 +1520,6 @@
             "forest",
             "taiga",
             "spawns_cold_variant_farm_animals"
-        ]
-    },
-    "frozen_peaks": {
-        "temperature": -0.7,
-        "downfall": 0.9,
-        "redSporeDensity": 0.0,
-        "blueSporeDensity": 0.0,
-        "ashDensity": 0.0,
-        "whiteAshDensity": 0.0,
-        "depth": 0.1,
-        "scale": 0.2,
-        "mapWaterColor": {
-            "a": 166,
-            "r": 96,
-            "g": 183,
-            "b": 255
-        },
-        "rain": true,
-        "chunkGenData": null,
-        "id": null,
-        "tags": [
-            "mountains",
-            "monster",
-            "overworld",
-            "frozen",
-            "frozen_peaks",
-            "spawns_cold_variant_farm_animals",
-            "spawns_cold_variant_frogs",
-            "spawns_snow_foxes",
-            "spawns_white_rabbits"
         ]
     },
     "taiga": {
@@ -1631,6 +1656,33 @@
             "monster",
             "overworld",
             "warm"
+        ]
+    },
+    "crimson_forest": {
+        "temperature": 2.0,
+        "downfall": 0.0,
+        "redSporeDensity": 0.25,
+        "blueSporeDensity": 0.0,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 165,
+            "r": 144,
+            "g": 89,
+            "b": 87
+        },
+        "rain": false,
+        "chunkGenData": null,
+        "id": null,
+        "tags": [
+            "nether",
+            "netherwart_forest",
+            "crimson_forest",
+            "spawn_few_zombified_piglins",
+            "spawn_piglin",
+            "spawns_warm_variant_farm_animals"
         ]
     },
     "ice_plains": {
@@ -1958,32 +2010,6 @@
             "spawns_cold_variant_frogs"
         ]
     },
-    "warped_forest": {
-        "temperature": 2.0,
-        "downfall": 0.0,
-        "redSporeDensity": 0.0,
-        "blueSporeDensity": 0.25,
-        "ashDensity": 0.0,
-        "whiteAshDensity": 0.0,
-        "depth": 0.1,
-        "scale": 0.2,
-        "mapWaterColor": {
-            "a": 165,
-            "r": 144,
-            "g": 89,
-            "b": 87
-        },
-        "rain": false,
-        "chunkGenData": null,
-        "id": null,
-        "tags": [
-            "nether",
-            "netherwart_forest",
-            "warped_forest",
-            "spawn_endermen",
-            "spawns_warm_variant_farm_animals"
-        ]
-    },
     "mesa_plateau_stone_mutated": {
         "temperature": 2.0,
         "downfall": 0.0,
@@ -2037,9 +2063,9 @@
             "spawns_without_patrols"
         ]
     },
-    "grove": {
-        "temperature": -0.2,
-        "downfall": 0.8,
+    "snowy_slopes": {
+        "temperature": -0.3,
+        "downfall": 0.9,
         "redSporeDensity": 0.0,
         "blueSporeDensity": 0.0,
         "ashDensity": 0.0,
@@ -2057,14 +2083,14 @@
         "id": null,
         "tags": [
             "mountains",
-            "cold",
             "monster",
             "overworld",
-            "grove",
-            "spawns_cold_variant_farm_animals",
+            "frozen",
             "spawns_cold_variant_frogs",
             "spawns_snow_foxes",
-            "spawns_white_rabbits"
+            "spawns_white_rabbits",
+            "snowy_slopes",
+            "spawns_cold_variant_farm_animals"
         ]
     },
     "warm_ocean": {
@@ -2310,32 +2336,6 @@
             "monster",
             "ocean",
             "overworld"
-        ]
-    },
-    "lush_caves": {
-        "temperature": 0.9,
-        "downfall": 0.0,
-        "redSporeDensity": 0.0,
-        "blueSporeDensity": 0.0,
-        "ashDensity": 0.0,
-        "whiteAshDensity": 0.0,
-        "depth": 0.1,
-        "scale": 0.2,
-        "mapWaterColor": {
-            "a": 166,
-            "r": 96,
-            "g": 183,
-            "b": 255
-        },
-        "rain": true,
-        "chunkGenData": null,
-        "id": null,
-        "tags": [
-            "caves",
-            "lush_caves",
-            "overworld",
-            "monster",
-            "spawns_tropical_fish_at_any_height"
         ]
     },
     "frozen_ocean": {
