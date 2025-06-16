@@ -310,6 +310,10 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             return ItemDescriptorWithCount.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(item);
+        if (mapping.getJavaItem().javaId() == Items.AIR_ID) {
+            return ItemDescriptorWithCount.EMPTY;
+        }
+
         return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); // Need to check count
     }
 
@@ -362,6 +366,11 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             if (translated == null) {
                 continue;
             }
+
+            if (translated.contains(ItemDescriptorWithCount.EMPTY)) {
+                continue;
+            }
+
             inputs.add(translated);
             if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
                 empty = false;
