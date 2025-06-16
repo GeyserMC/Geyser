@@ -1347,8 +1347,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
-        sendDownstreamGamePacket(new ServerboundUseItemPacket(
-            hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), playerEntity.getBedrockInteractRotation().getY(), playerEntity.getBedrockInteractRotation().getX()));
     }
 
     public void releaseItem() {
