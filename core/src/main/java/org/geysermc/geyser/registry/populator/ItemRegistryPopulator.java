@@ -47,6 +47,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -111,20 +112,6 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         // 1.21.5
-        //Map<Item, Item> itemFallbacks = new HashMap<>();
-        //itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
-        //itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
-        //itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
-        //itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
-        //itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
-        //itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
-        //itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
-        //itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
-        //itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
-        //itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
-        //itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
-
-        // 1.21.6
         Map<Item, Item> itemFallbacks = new HashMap<>();
         itemFallbacks.put(Items.BLACK_HARNESS, Items.SADDLE);
         itemFallbacks.put(Items.BLUE_HARNESS, Items.SADDLE);
@@ -149,6 +136,7 @@ public class ItemRegistryPopulator {
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5), (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
