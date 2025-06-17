@@ -91,7 +91,7 @@ tasks {
 }
 
 afterEvaluate {
-    val providedDependencies = getProvidedDependenciesForProject(project.name)
+    val providedDependencies = providedDependencies[project.name]!!
 
     // These are shaded, no need to JiJ them
     configurations["shadow"].dependencies.forEach {shadowed ->

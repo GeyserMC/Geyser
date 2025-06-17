@@ -43,13 +43,7 @@ platformRelocate("org.incendo")
 platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 
-exclude("com.google.*:.*")
-
-// Commodore includes Brigadier
-exclude("com.mojang:.*")
-
-// These dependencies are already present on the platform
-provided(libs.viaversion)
+//provided(libs.viaversion)
 
 tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.GeyserSpigotMain"
@@ -65,6 +59,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     // Needed because older Spigot builds do not provide the haproxy module - TODO check 1.16.5 spigot
     dependencies {
         exclude("io.netty", libs.netty.codec.haproxy)
+        exclude(dependency("com.google.*:.*"))
+        // Commodore includes Brigadier
+        exclude(dependency("com.mojang:.*"))
     }
 
     archiveBaseName.set("Geyser-Spigot")
@@ -73,7 +70,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 modrinth {
     uploadFile.set(tasks.getByPath("shadowJar"))
     gameVersions.addAll("1.16.5", "1.17", "1.17.1", "1.18", "1.18.1", "1.18.2", "1.19",
-        "1.19.1", "1.19.2", "1.19.3", "1.19.4", "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6")
+        "1.19.1", "1.19.2", "1.19.3", "1.19.4", "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
+        "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5")
     loaders.addAll("spigot", "paper")
 }
 
