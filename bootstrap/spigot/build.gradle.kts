@@ -43,7 +43,7 @@ platformRelocate("org.incendo")
 platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
 
-//provided(libs.viaversion)
+provided(libs.viaversion)
 
 tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.GeyserSpigotMain"
@@ -56,15 +56,15 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         attributes["paperweight-mappings-namespace"] = "mojang"
     }
 
-    // Needed because older Spigot builds do not provide the haproxy module - TODO check 1.16.5 spigot
+    archiveBaseName.set("Geyser-Spigot")
+
+    // Needed because older Spigot builds do not provide the haproxy module
     dependencies {
         exclude("io.netty", libs.netty.codec.haproxy)
         exclude(dependency("com.google.*:.*"))
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
     }
-
-    archiveBaseName.set("Geyser-Spigot")
 }
 
 modrinth {

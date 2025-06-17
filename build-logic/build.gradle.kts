@@ -3,7 +3,6 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
     gradlePluginPortal()
 
     maven("https://repo.opencollab.dev/maven-snapshots/")

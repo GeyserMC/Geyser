@@ -34,14 +34,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
-
-        // Exclude all Kyori dependencies except the legacy NBT serializer
-        exclude(dependency("net.kyori:adventure-api:.*"))
-        exclude(dependency("net.kyori:examination-api:.*"))
-        exclude(dependency("net.kyori:examination-string:.*"))
-        exclude(dependency("net.kyori:adventure-text-serializer-gson:.*"))
-        exclude(dependency("net.kyori:adventure-text-serializer-legacy:.*"))
-        exclude(dependency("net.kyori:adventure-nbt:.*"))
+        exclude(dependency("net.kyori:.*:.*"))
     }
 }
 
