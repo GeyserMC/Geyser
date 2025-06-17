@@ -91,9 +91,7 @@ public final class WaypointCache {
         untrack(waypoint);
 
         Optional<UUID> uuid = Optional.ofNullable(waypoint.uuid());
-        Optional<PlayerEntity> player = session.getEntityCache().getAllPlayerEntities().stream()
-            .filter(entity -> entity.getUuid().equals(waypoint.uuid()))
-            .findFirst();
+        Optional<PlayerEntity> player = uuid.flatMap(id -> Optional.ofNullable(session.getEntityCache().getPlayerEntity(id)));
         OptionalLong playerId = player.stream().mapToLong(PlayerEntity::getGeyserId).findFirst();
 
         GeyserWaypoint tracked = GeyserWaypoint.create(session, uuid, playerId, waypoint);
