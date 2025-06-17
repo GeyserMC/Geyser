@@ -479,6 +479,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
+            metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
+            metrics.addCustomChart(new Metrics.SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.getBedrock().isEnableProxyProtocol())));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {
