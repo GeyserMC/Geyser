@@ -147,8 +147,6 @@ public class ItemRegistryPopulator {
         itemFallbacks.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        //paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        //paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5), (item, mapping) -> mapping));
 
