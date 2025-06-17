@@ -51,7 +51,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
@@ -130,11 +129,10 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     @Override
-    public void setBody(ItemStack stack) {
+    public void setBody(GeyserItemStack stack) {
         super.setBody(stack);
         isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
-        // Not using ItemStack#getDataComponents as that wouldn't include default item components
-        repairableItems = GeyserItemStack.from(stack).getComponent(DataComponentTypes.REPAIRABLE);
+        repairableItems = stack.getComponent(DataComponentTypes.REPAIRABLE);
     }
 
     @Override

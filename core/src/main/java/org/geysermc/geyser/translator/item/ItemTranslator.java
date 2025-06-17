@@ -169,6 +169,22 @@ public final class ItemTranslator {
                 .build();
     }
 
+    @NonNull
+    public static ItemData translateToBedrock(GeyserSession session, @NonNull GeyserItemStack stack) {
+        if (stack.isEmpty()) {
+            return ItemData.AIR;
+        }
+
+        ItemMapping bedrockItem = session.getItemMappings().getMapping(stack.getJavaId());
+        if (bedrockItem == ItemMapping.AIR) {
+            session.getGeyser().getLogger().debug("ItemMapping returned air: " + stack);
+            return ItemData.AIR;
+        }
+
+        return translateToBedrock(session, stack.asItem(), bedrockItem, stack.getAmount(), stack.getComponents())
+                .build();
+    }
+
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
