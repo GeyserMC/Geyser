@@ -87,7 +87,7 @@ public class ChatColor {
         return string;
     }
 
-    public static String styleOrder(int index) {
+    public static String colorDisplayOrder(int index) {
         // https://bugs.mojang.com/browse/MCPE-41729
         // strikethrough and underlined do not exist on Bedrock
         return switch (index) {

@@ -694,6 +694,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private int stepTicks = 0;
 
+    @Setter
+    private boolean allowVibrantVisuals = true;
+
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -841,6 +844,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+        // Disable locator bar for now
+        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1317,7 +1323,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void switchPose(boolean value, EntityFlag flag, Pose pose) {
-        this.pose = value ? pose : Pose.STANDING;
+        this.pose = value ? pose : this.pose == pose ? Pose.STANDING : this.pose;
         playerEntity.setDimensionsFromPose(this.pose);
         playerEntity.setFlag(flag, value);
         playerEntity.updateBedrockMetadata();
@@ -1361,6 +1367,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
      */
     public void useItem(Hand hand) {
+        if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
         sendDownstreamGamePacket(new ServerboundUseItemPacket(
             hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
     }
@@ -1377,6 +1387,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking and sends a packet to the Java server.
      */
     private boolean attemptToBlock() {
+        // Don't try to block while in scaffolding
+        if (playerEntity.isInsideScaffolding()) {
+            return false;
+        }
+
         if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
             useItem(Hand.MAIN_HAND);
         } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {
@@ -1629,7 +1644,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         // Allows Vibrant Visuals to appear in the settings menu
-        startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        if (allowVibrantVisuals && !GameProtocol.is1_21_90orHigher(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        }
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1647,6 +1664,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
         startGamePacket.setScenarioId("");
+        startGamePacket.setOwnerId("");
 
         upstream.sendPacket(startGamePacket);
     }
@@ -1689,7 +1707,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Queue a packet to be sent to player.
      *
-     * @param packet the bedrock packet from the NukkitX protocol lib
+     * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
         upstream.sendPacket(packet);
@@ -1698,7 +1716,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Send a packet immediately to the player.
      *
-     * @param packet the bedrock packet from the NukkitX protocol lib
+     * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
         upstream.sendPacketImmediately(packet);
@@ -2196,6 +2214,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public int ping() {
+        // Can otherwise cause issues if the player isn't logged in yet / already left
+        if (!getUpstream().isInitialized() || getUpstream().isClosed()) {
+            return 0;
+        }
+
         RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
         return (int) Math.floor(rakSessionCodec.getPing());
     }

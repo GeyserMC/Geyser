@@ -70,8 +70,11 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
      */
     private final Map<UUID, OptionHolder> sessionPackOptionOverrides;
 
+    private final GeyserSession session;
+
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
+        this.session = session;
         this.packs = new Object2ObjectLinkedOpenHashMap<>(Registries.RESOURCE_PACKS.get());
         this.sessionPackOptionOverrides = new Object2ObjectOpenHashMap<>();
     }
@@ -158,6 +161,11 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     public boolean unregister(@NonNull UUID uuid) {
         sessionPackOptionOverrides.remove(uuid);
         return packs.remove(uuid) != null;
+    }
+
+    @Override
+    public void allowVibrantVisuals(boolean enabled) {
+        session.setAllowVibrantVisuals(enabled);
     }
 
     private void attemptRegisterOptions(@NonNull GeyserResourcePack pack, @Nullable ResourcePackOption<?>... options) {

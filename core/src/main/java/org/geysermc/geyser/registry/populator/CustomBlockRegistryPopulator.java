@@ -303,6 +303,7 @@ public class CustomBlockRegistryPopulator {
 
             BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+            BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
 
             // TODO register different collision types?
             BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())

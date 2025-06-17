@@ -73,17 +73,11 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     @Override
     protected GeyserResourcePack.@NonNull Builder createBuilder() {
         if (this.fallback == null) {
-            try {
-                ResourcePackLoader.downloadPack(url, false).whenComplete((pack, throwable) -> {
-                    if (throwable != null) {
-                        throw new IllegalArgumentException(throwable);
-                    } else if (pack != null) {
-                        this.fallback = pack;
-                    }
+            ResourcePackLoader.downloadPack(url, false)
+                .thenAccept(pack -> this.fallback = pack)
+                .exceptionally(throwable -> {
+                    throw new IllegalStateException(throwable.getCause());
                 }).join(); // Needed to ensure that we don't attempt to read a pack before downloading/checking it
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to download pack from the url %s (%s)!".formatted(url, e.getMessage()));
-            }
         }
 
         return ResourcePackLoader.readPack(this);

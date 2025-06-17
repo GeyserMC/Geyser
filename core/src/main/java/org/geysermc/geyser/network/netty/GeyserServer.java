@@ -38,9 +38,6 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.incubator.channel.uring.IOUring;
-import io.netty.incubator.channel.uring.IOUringDatagramChannel;
-import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -434,11 +431,12 @@ public final class GeyserServer {
     }
 
     private static Transport compatibleTransport() {
-        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
-                && IOUring.isAvailable()
-                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
-            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-        }
+        // FIXME supporting io_uring post 4.2 requires more changes
+//        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
+//                && IOUring.isAvailable()
+//                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
+//            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
+//        }
 
         if (isClassAvailable("io.netty.channel.epoll.Epoll") && Epoll.isAvailable()) {
             return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
