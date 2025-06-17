@@ -70,10 +70,10 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
         Inventory inventory = holder.inventory();
         int slot = packet.getSlot();
-        if (slot >= inventory.getSize()) {
+        if (slot < 0 || slot >= inventory.getSize()) {
             GeyserLogger logger = session.getGeyser().getLogger();
-            logger.warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
-                    + " that exceeds inventory size!");
+            logger.warning("Slot of ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
+                    + " is out of bounds! Was: " + slot + " for container: " + packet.getContainerId());
             if (logger.isDebug()) {
                 logger.debug(packet.toString());
                 logger.debug(inventory.toString());

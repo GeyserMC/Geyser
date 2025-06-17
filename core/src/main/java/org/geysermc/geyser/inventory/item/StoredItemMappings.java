@@ -46,7 +46,6 @@ public class StoredItemMappings {
     private final ItemMapping carrotOnAStick;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
-    private final ItemMapping egg;
     private final ItemMapping glassBottle;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
@@ -65,7 +64,6 @@ public class StoredItemMappings {
         this.carrotOnAStick = load(itemMappings, Items.CARROT_ON_A_STICK);
         this.compass = load(itemMappings, Items.COMPASS);
         this.crossbow = load(itemMappings, Items.CROSSBOW);
-        this.egg = load(itemMappings, Items.EGG);
         this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);

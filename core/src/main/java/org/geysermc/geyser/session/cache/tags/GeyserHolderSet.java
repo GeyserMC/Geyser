@@ -91,7 +91,8 @@ public final class GeyserHolderSet<T> {
      */
     public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
         // MCPL HolderSets don't have to support inline elements... for now (TODO CHECK ME)
-        return new GeyserHolderSet<>(registry, new Tag<>(registry, holderSet.getLocation()), holderSet.getHolders(), null);
+        Tag<T> tag = holderSet.getLocation() == null ? null : new Tag<>(registry, holderSet.getLocation());
+        return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null);
     }
 
     /**
