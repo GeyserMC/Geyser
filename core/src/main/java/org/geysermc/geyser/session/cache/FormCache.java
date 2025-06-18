@@ -64,6 +64,10 @@ public class FormCache {
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
 
+    public boolean hasFormOpen() {
+        return !forms.isEmpty();
+    }
+
     public int addForm(Form form) {
         int formId = formIdCounter.getAndIncrement();
         forms.put(formId, form);

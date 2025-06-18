@@ -169,7 +169,7 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
         registerBuiltInCommand(new PingCommand("ping", "geyser.commands.ping.desc", "geyser.command.ping"));
         registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
-        registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.options"));
+        registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
 
         if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));

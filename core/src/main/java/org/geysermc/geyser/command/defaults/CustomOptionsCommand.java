@@ -43,7 +43,8 @@ public class CustomOptionsCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserSession session = Objects.requireNonNull(context.sender().connection());
-        if (!session.openPauseScreenAdditions()) {
+        session.openPauseScreenAdditions();
+        if (!session.hasFormOpen()) {
             context.sender().sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.options.fail", session.locale()));
         }
     }

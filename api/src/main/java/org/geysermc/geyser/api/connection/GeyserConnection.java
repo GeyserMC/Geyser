@@ -66,6 +66,11 @@ public interface GeyserConnection extends Connection, CommandSource {
     int ping();
 
     /**
+     * @return {@code true} if the client currently has a form open.
+     */
+    boolean hasFormOpen();
+
+    /**
      * Closes the currently open form on the client.
      */
     void closeForm();
@@ -85,9 +90,9 @@ public interface GeyserConnection extends Connection, CommandSource {
      *     <li>If all of the above fails, no dialog is opened.</li>
      * </ul>
      *
-     * <p>This method returns {@code true} if a dialog was opened, and {@code false} otherwise.</p>
+     * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
      */
-    boolean openPauseScreenAdditions();
+    void openPauseScreenAdditions();
 
     /**
      * Tries to open the {@code minecraft:quick_actions} dialog tag. This method opens this tag the same way Java does, that is:
@@ -98,9 +103,9 @@ public interface GeyserConnection extends Connection, CommandSource {
      *     <li>If there are no dialogs in the tag, no dialog is opened.</li>
      * </ul>
      *
-     * <p>This method returns {@code true} if a dialog was opened, and {@code false} otherwise.</p>
+     * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
      */
-    boolean openQuickActions();
+    void openQuickActions();
 
     /**
      * @param javaId the Java entity ID to look up.

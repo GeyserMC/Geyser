@@ -1513,12 +1513,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public boolean openPauseScreenAdditions() {
+    public void openPauseScreenAdditions() {
         List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
         if (additions.isEmpty()) {
-            if (serverLinks.isEmpty()) {
-                return false;
-            } else {
+            if (!serverLinks.isEmpty()) {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
             }
         } else if (additions.size() == 1) {
@@ -1526,20 +1524,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } else {
             dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
         }
-        return true;
     }
 
     @Override
-    public boolean openQuickActions() {
+    public void openQuickActions() {
         List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
         if (quickActions.isEmpty()) {
-            return false;
+            return;
         } else if (quickActions.size() == 1) {
             dialogManager.openDialog(quickActions.get(0));
         } else {
             dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
         }
-        return true;
     }
 
     public void setClientRenderDistance(int clientRenderDistance) {
@@ -2284,6 +2280,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public int protocolVersion() {
         return upstream.getProtocolVersion();
+    }
+
+    @Override
+    public boolean hasFormOpen() {
+        return formCache.hasFormOpen();
     }
 
     @Override

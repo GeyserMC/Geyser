@@ -107,7 +107,7 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
         @Override
         public HandshakeIntent getHandshakeIntent() {
-            return HandshakeIntent.LOGIN;
+            return HandshakeIntent.STATUS;
         }
     }
 
