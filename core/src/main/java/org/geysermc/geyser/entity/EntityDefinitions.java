@@ -397,10 +397,6 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
-                    .type(EntityType.PAINTING)
-                    .addTranslator(MetadataTypes.PAINTING_VARIANT, PaintingEntity::setPaintingType)
-                    .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
@@ -527,8 +523,17 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, (tridentEntity, entityMetadata) -> tridentEntity.setFlag(EntityFlag.ENCHANTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
 
+            EntityDefinition<Entity> hangingEntityBase = EntityDefinition.inherited(null, entityBase)
+                .addTranslator(null) // Direction
+                .build();
+
+            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, hangingEntityBase)
+                .type(EntityType.PAINTING)
+                .addTranslator(MetadataTypes.PAINTING_VARIANT, PaintingEntity::setPaintingType)
+                .build();
+
             // Item frames are handled differently as they are blocks, not items, in Bedrock
-            ITEM_FRAME = EntityDefinition.<ItemFrameEntity>inherited(null, entityBase)
+            ITEM_FRAME = EntityDefinition.<ItemFrameEntity>inherited(null, hangingEntityBase)
                     .type(EntityType.ITEM_FRAME)
                     .addTranslator(MetadataTypes.ITEM_STACK, ItemFrameEntity::setItemInFrame)
                     .addTranslator(MetadataTypes.INT, ItemFrameEntity::setItemRotation)
