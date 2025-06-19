@@ -76,6 +76,8 @@ public final class InputCache {
             right = analogMovement.getX() < 0;
         }
 
+        boolean sneaking = isSneaking(bedrockInput);
+
         // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
             .withForward(up)
@@ -86,8 +88,18 @@ public final class InputCache {
             // using the "raw" values allows us sending key presses even with locked input
             // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
-            .withShift(session.isShouldSendSneak() || isSneaking(bedrockInput))
+            .withShift(session.isShouldSendSneak() || sneaking)
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
+
+        // TODO - test whether we can rely on the Java server setting sneaking for us.
+        // 1.21.6+ only sends the shifting state in the input packet, and removed the START/STOP sneak command packet sending
+        if (session.isSneaking() != sneaking) {
+            if (sneaking) {
+                session.startSneaking(true);
+            } else {
+                session.stopSneaking(true);
+            }
+        }
 
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);

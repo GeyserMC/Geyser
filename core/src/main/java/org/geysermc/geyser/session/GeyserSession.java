@@ -1283,20 +1283,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         worldTicks++;
     }
 
-    public void startSneaking() {
+    public void startSneaking(boolean updateMetaData) {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
         if (armAnimationTicks < 0) {
             attemptToBlock();
         }
 
-        setSneaking(true);
+        setSneaking(true, updateMetaData);
     }
 
-    public void stopSneaking() {
+    public void stopSneaking(boolean updateMetaData) {
         disableBlocking();
 
-        setSneaking(false);
+        setSneaking(false, updateMetaData);
     }
 
     public void setSpinAttack(boolean spinAttack) {
@@ -1307,7 +1307,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
     }
 
-    private void setSneaking(boolean sneaking) {
+    private void setSneaking(boolean sneaking, boolean update) {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
@@ -1317,7 +1317,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         collisionManager.updateScaffoldingFlags(false);
 
-        playerEntity.updateBedrockMetadata();
+        if (update) {
+            playerEntity.updateBedrockMetadata();
+        }
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
