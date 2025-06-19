@@ -92,9 +92,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
-    private static final int PACKET_SEND_DELAY = 4 * 50; // DELAY THE SEND OF PACKETS TO AVOID BURSTING SLOWER AND/OR HIGHER PING CLIENTS
+    // Avoid overloading consoles when downloading larger resource packs
+    private static final int PACKET_SEND_DELAY = 4 * 50;
     private final Queue<ResourcePackChunkRequestPacket> chunkRequestQueue = new ConcurrentLinkedQueue<>();
-    private boolean sendingChunks = false;
+    private boolean currentlySendingChunks = false;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
@@ -305,10 +306,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
+        // Resolve some console pack downloading issues.
+        // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
         if (isConsole()) {
-            if (!sendingChunks) {
-                sendingChunks = true;
+            if (!currentlySendingChunks) {
+                currentlySendingChunks = true;
                 processNextChunk();
             }
         } else {
@@ -320,7 +323,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public void processNextChunk() {
         ResourcePackChunkRequestPacket packet = chunkRequestQueue.poll();
         if (packet == null) {
-            sendingChunks = false;
+            currentlySendingChunks = false;
             return;
         }
 
@@ -329,7 +332,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (holder == null) {
             GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
                 session.bedrockUsername(), packet.getPackId());
-            sendingChunks = false;
+            currentlySendingChunks = false;
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
@@ -344,7 +347,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             if (!resourcePackLoadEvent.value(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
                 session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
-                sendingChunks = false;
+                currentlySendingChunks = false;
                 return;
             }
         }

@@ -36,6 +36,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
@@ -205,7 +206,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
                 header.uuid(), header.version().toString(), pack.codec().size(), pack.contentKey(),
-                subpackName(pack), header.uuid().toString(), false, false, false, subpackName(pack))
+                subpackName(pack), header.uuid().toString(), false, false, false, cdnUrl(pack))
             );
         }
 
@@ -228,5 +229,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private String subpackName(GeyserResourcePack pack) {
         return value(pack.uuid(), ResourcePackOption.Type.SUBPACK, "");
+    }
+
+    private String cdnUrl(GeyserResourcePack pack) {
+        if (pack.codec() instanceof UrlPackCodec urlPackCodec) {
+            return urlPackCodec.url();
+        }
+        return "";
     }
 }
