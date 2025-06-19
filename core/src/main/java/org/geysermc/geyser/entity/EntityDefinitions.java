@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
+import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
@@ -523,17 +524,17 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, (tridentEntity, entityMetadata) -> tridentEntity.setFlag(EntityFlag.ENCHANTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
 
-            EntityDefinition<Entity> hangingEntityBase = EntityDefinition.inherited(null, entityBase)
-                .addTranslator(null) // Direction
+            EntityDefinition<HangingEntity> hangingEntityBase = EntityDefinition.<HangingEntity>inherited(null, entityBase)
+                .addTranslator(MetadataTypes.DIRECTION, HangingEntity::setDirectionMetadata)
                 .build();
 
-            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, hangingEntityBase)
+            PAINTING = EntityDefinition.inherited(PaintingEntity::new, hangingEntityBase)
                 .type(EntityType.PAINTING)
                 .addTranslator(MetadataTypes.PAINTING_VARIANT, PaintingEntity::setPaintingType)
                 .build();
 
             // Item frames are handled differently as they are blocks, not items, in Bedrock
-            ITEM_FRAME = EntityDefinition.<ItemFrameEntity>inherited(null, hangingEntityBase)
+            ITEM_FRAME = EntityDefinition.inherited(ItemFrameEntity::new, hangingEntityBase)
                     .type(EntityType.ITEM_FRAME)
                     .addTranslator(MetadataTypes.ITEM_STACK, ItemFrameEntity::setItemInFrame)
                     .addTranslator(MetadataTypes.INT, ItemFrameEntity::setItemRotation)
