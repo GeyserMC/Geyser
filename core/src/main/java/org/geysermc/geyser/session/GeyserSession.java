@@ -422,6 +422,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean sneaking;
 
     /**
+     * Used to send a shift state for a tick to dismount from entitites
+     */
+    @Setter
+    private boolean shouldSendSneak;
+
+    /**
      * Stores the Java pose that the server and/or Geyser believes the player currently has.
      */
     @Setter

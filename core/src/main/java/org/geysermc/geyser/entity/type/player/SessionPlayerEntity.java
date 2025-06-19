@@ -225,6 +225,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (value) {
             session.startSneaking();
         } else {
+            session.setShouldSendSneak(false);
             session.stopSneaking();
         }
     }

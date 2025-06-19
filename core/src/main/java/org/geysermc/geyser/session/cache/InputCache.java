@@ -86,7 +86,7 @@ public final class InputCache {
             // using the "raw" values allows us sending key presses even with locked input
             // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
-            .withShift(isSneaking(bedrockInput))
+            .withShift(session.isShouldSendSneak() || isSneaking(bedrockInput))
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
