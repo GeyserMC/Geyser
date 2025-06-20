@@ -111,8 +111,11 @@ public class SkinManager {
         String xuid = "";
         GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
 
+        // Prefer looking up xuid using the session to catch linked players
         if (playerSession != null) {
             xuid = playerSession.getAuthData().xuid();
+        } else if (uuid.version() == 0) {
+            xuid = Long.toString(uuid.getLeastSignificantBits());
         }
 
         PlayerListPacket.Entry entry;

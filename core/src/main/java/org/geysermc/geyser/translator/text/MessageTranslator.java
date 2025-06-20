@@ -39,6 +39,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -57,6 +58,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class MessageTranslator {
@@ -366,11 +368,25 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender, @Nullable UUID senderUuid) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
+
+        if (senderUuid == null) {
+            textPacket.setXuid(session.getAuthData().xuid());
+        } else {
+            String xuid = "";
+            GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(senderUuid);
+
+            // Prefer looking up xuid using the session to catch linked players
+            if (playerSession != null) {
+                xuid = playerSession.getAuthData().xuid();
+            } else if (senderUuid.version() == 0) {
+                xuid = Long.toString(senderUuid.getLeastSignificantBits());
+            }
+            textPacket.setXuid(xuid);
+        }
         textPacket.setType(TextPacket.Type.CHAT);
 
         textPacket.setNeedsTranslation(false);
