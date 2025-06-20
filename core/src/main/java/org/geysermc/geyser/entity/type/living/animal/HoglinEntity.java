@@ -66,7 +66,7 @@ public class HoglinEntity extends AnimalEntity {
 
     @Override
     public boolean canBeLeashed() {
-        return isNotLeashed();
+        return true;
     }
 
     @Override

@@ -53,6 +53,7 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.session.cache.registry.RegistryUnit;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
+import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -87,6 +88,7 @@ public final class RegistryCache {
         register(JavaRegistries.TRIM_MATERIAL, TrimRecipe::readTrimMaterial);
         register(JavaRegistries.TRIM_PATTERN, TrimRecipe::readTrimPattern);
         register(JavaRegistries.DAMAGE_TYPE, RegistryReader.UNIT);
+        register(JavaRegistries.DIALOG, Dialog::readDialog);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
         register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));
@@ -135,7 +137,11 @@ public final class RegistryCache {
             // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
             RegistryLoader reader = READERS.get(registryKey);
             if (reader != null) {
-                reader.load(session, registries.get(registryKey), packet.getEntries());
+                try {
+                    reader.load(session, registries.get(registryKey), packet.getEntries());
+                } catch (Exception exception) {
+                    GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
+                }
             } else {
                 throw new IllegalStateException("Expected reader for registry " + registryKey);
             }
@@ -187,7 +193,7 @@ public final class RegistryCache {
                     // Registry readers should never return null, rather return a default value
                     throw new IllegalStateException("Registry reader returned null for an entry!");
                 }
-                builder.add(i, new RegistryEntryData<>(entry.getId(), cacheEntry));
+                builder.add(i, new RegistryEntryData<>(i, entry.getId(), cacheEntry));
             }
             registry.reset(builder);
         });

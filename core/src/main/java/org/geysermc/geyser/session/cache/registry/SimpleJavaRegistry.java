@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache.registry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 
@@ -43,6 +44,14 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     }
 
     @Override
+    public RegistryEntryData<T> entryById(@NonNegative int id) {
+        if (id < 0 || id >= this.values.size()) {
+            return null;
+        }
+        return this.values.get(id);
+    }
+
+    @Override
     public T byKey(Key key) {
         for (RegistryEntryData<T> entry : values) {
             if (entry.key().equals(key)) {
@@ -53,11 +62,13 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     }
 
     @Override
-    public RegistryEntryData<T> entryById(@NonNegative int id) {
-        if (id < 0 || id >= this.values.size()) {
-            return null;
+    public @Nullable RegistryEntryData<T> entryByKey(Key key) {
+        for (RegistryEntryData<T> entry : values) {
+            if (entry.key().equals(key)) {
+                return entry;
+            }
         }
-        return this.values.get(id);
+        return null;
     }
 
     @Override

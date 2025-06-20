@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.HandshakeIntent;
 import com.velocitypowered.api.network.ProtocolState;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
@@ -85,6 +86,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         }
 
         @Override
+        public Optional<String> getRawVirtualHost() {
+            return Optional.empty();
+        }
+
+        @Override
         public boolean isActive() {
             return false;
         }
@@ -97,6 +103,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         @Override
         public ProtocolState getProtocolState() {
             return ProtocolState.STATUS;
+        }
+
+        @Override
+        public HandshakeIntent getHandshakeIntent() {
+            return HandshakeIntent.STATUS;
         }
     }
 

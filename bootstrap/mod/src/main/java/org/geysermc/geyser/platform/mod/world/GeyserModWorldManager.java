@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -50,7 +49,6 @@ import java.util.function.Consumer;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
 
-    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
     private final MinecraftServer server;
 
     public GeyserModWorldManager(MinecraftServer server) {
@@ -62,7 +60,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         // If the protocol version of Geyser and the server are not the
         // same, fallback to the chunk cache. May be able to update this
         // in the future to use ViaVersion however, like Spigot does.
-        if (SharedConstants.getCurrentVersion().getProtocolVersion() != GameProtocol.getJavaProtocolVersion()) {
+        if (SharedConstants.getCurrentVersion().protocolVersion() != GameProtocol.getJavaProtocolVersion()) {
             return super.getBlockAt(session, x, y, z);
         }
 
@@ -96,7 +94,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     @Override
     public boolean hasOwnChunkCache() {
-        return SharedConstants.getCurrentVersion().getProtocolVersion() == GameProtocol.getJavaProtocolVersion();
+        return SharedConstants.getCurrentVersion().protocolVersion() == GameProtocol.getJavaProtocolVersion();
     }
 
     @Override

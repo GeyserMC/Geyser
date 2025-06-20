@@ -64,6 +64,10 @@ public class FormCache {
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
 
+    public boolean hasFormOpen() {
+        return !forms.isEmpty();
+    }
+
     public int addForm(Form form) {
         int formId = formIdCounter.getAndIncrement();
         forms.put(formId, form);
@@ -111,9 +115,7 @@ public class FormCache {
         }
 
         String responseData = response.getFormData();
-        //todo work on a proper solution in Cumulus, but that'd require all Floodgate instances to update as well and
-        // drops support for older Bedrock versions (because Cumulus isn't made to support multiple versions). That's
-        // why this hotfix exists.
+        // TODO drop once 1.21.70 is no longer supported
         if (form instanceof CustomForm customForm && GameProtocol.isTheOneVersionWithBrokenForms(session) && response.getCancelReason().isEmpty()) {
             // Labels are no longer included as a json null, so we have to manually add them for now.
             IntList labelIndexes = new IntArrayList();

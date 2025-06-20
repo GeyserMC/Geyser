@@ -88,7 +88,7 @@ import java.util.stream.IntStream;
 @FunctionalInterface
 public interface MinecraftHasher<Type> {
 
-    MinecraftHasher<Unit> UNIT = (unit, encoder) -> encoder.emptyMap();
+    MinecraftHasher<Unit> UNIT = unit();
 
     MinecraftHasher<Byte> BYTE = (b, encoder) -> encoder.number(b);
 
@@ -235,6 +235,13 @@ public interface MinecraftHasher<Type> {
         return mapBuilder(builder -> builder
             .accept("raw", this, Filterable::getRaw)
             .optionalNullable("filtered", this, Filterable::getOptional));
+    }
+
+    /**
+     * Creates a hasher that always encodes into an empty map.
+     */
+    static <Type> MinecraftHasher<Type> unit() {
+        return (value, encoder) -> encoder.emptyMap();
     }
 
     /**

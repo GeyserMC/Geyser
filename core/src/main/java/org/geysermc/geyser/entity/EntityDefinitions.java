@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
+import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
@@ -81,6 +82,7 @@ import org.geysermc.geyser.entity.type.living.TadpoleEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.animal.AxolotlEntity;
 import org.geysermc.geyser.entity.type.living.animal.BeeEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.FoxEntity;
@@ -215,6 +217,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<GlowSquidEntity> GLOW_SQUID;
     public static final EntityDefinition<GoatEntity> GOAT;
     public static final EntityDefinition<GuardianEntity> GUARDIAN;
+    public static final EntityDefinition<HappyGhastEntity> HAPPY_GHAST;
     public static final EntityDefinition<HoglinEntity> HOGLIN;
     public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
     public static final EntityDefinition<HorseEntity> HORSE;
@@ -395,10 +398,6 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
-                    .type(EntityType.PAINTING)
-                    .addTranslator(MetadataTypes.PAINTING_VARIANT, PaintingEntity::setPaintingType)
-                    .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
@@ -525,8 +524,17 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, (tridentEntity, entityMetadata) -> tridentEntity.setFlag(EntityFlag.ENCHANTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
 
+            EntityDefinition<HangingEntity> hangingEntityBase = EntityDefinition.<HangingEntity>inherited(null, entityBase)
+                .addTranslator(MetadataTypes.DIRECTION, HangingEntity::setDirectionMetadata)
+                .build();
+
+            PAINTING = EntityDefinition.inherited(PaintingEntity::new, hangingEntityBase)
+                .type(EntityType.PAINTING)
+                .addTranslator(MetadataTypes.PAINTING_VARIANT, PaintingEntity::setPaintingType)
+                .build();
+
             // Item frames are handled differently as they are blocks, not items, in Bedrock
-            ITEM_FRAME = EntityDefinition.<ItemFrameEntity>inherited(null, entityBase)
+            ITEM_FRAME = EntityDefinition.inherited(ItemFrameEntity::new, hangingEntityBase)
                     .type(EntityType.ITEM_FRAME)
                     .addTranslator(MetadataTypes.ITEM_STACK, ItemFrameEntity::setItemInFrame)
                     .addTranslator(MetadataTypes.INT, ItemFrameEntity::setItemRotation)
@@ -988,6 +996,13 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.5f)
                     .addTranslator(MetadataTypes.FROG_VARIANT, FrogEntity::setVariant)
                     .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FrogEntity::setTongueTarget)
+                    .build();
+            HAPPY_GHAST = EntityDefinition.inherited(HappyGhastEntity::new, ageableEntityBase)
+                    .type(EntityType.HAPPY_GHAST)
+                    .heightAndWidth(4f)
+                    .properties(VanillaEntityProperties.HAPPY_GHAST)
+                    .addTranslator(null) // Is leash holder
+                    .addTranslator(MetadataTypes.BOOLEAN, HappyGhastEntity::setStaysStill)
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)

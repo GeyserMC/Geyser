@@ -119,6 +119,7 @@ public final class Properties {
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 1);
     public static final IntegerProperty STABILITY_DISTANCE = IntegerProperty.create("distance", 0, 7);
     public static final IntegerProperty RESPAWN_ANCHOR_CHARGES = IntegerProperty.create("charges", 0, 4);
+    public static final IntegerProperty DRIED_GHAST_HYDRATION_LEVELS = IntegerProperty.create("hydration", 0, 3);
     public static final IntegerProperty ROTATION_16 = IntegerProperty.create("rotation", 0, 15);
     public static final BasicEnumProperty BED_PART = BasicEnumProperty.create("part", "head", "foot");
     public static final EnumProperty<ChestType> CHEST_TYPE = EnumProperty.create("type", ChestType.VALUES);

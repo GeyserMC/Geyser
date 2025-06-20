@@ -31,6 +31,7 @@ import lombok.Getter;
  * This enum stores each gamerule along with the value type and the default.
  * It is used to construct the list for the settings menu
  */
+// TODO gamerules with feature flags (e.g. minecart speed with minecart experiment)
 public enum GameRule {
     ANNOUNCEADVANCEMENTS("announceAdvancements", true), // JE only
     COMMANDBLOCKOUTPUT("commandBlockOutput", true),
@@ -66,7 +67,8 @@ public enum GameRule {
     SHOWDEATHMESSAGES("showDeathMessages", true),
     SPAWNRADIUS("spawnRadius", 10),
     SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", true), // JE only
-    UNIVERSALANGER("universalAnger", false); // JE only
+    UNIVERSALANGER("universalAnger", false),
+    LOCATORBAR("locatorBar", true);
 
     public static final GameRule[] VALUES = values();
 

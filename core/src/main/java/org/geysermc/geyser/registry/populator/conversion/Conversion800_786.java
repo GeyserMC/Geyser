@@ -27,32 +27,13 @@ package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
 
-import static org.geysermc.geyser.registry.populator.conversion.ConversionHelper.withName;
-import static org.geysermc.geyser.registry.populator.conversion.ConversionHelper.withoutStates;
-
-public class Conversion786_776 {
+public class Conversion800_786 {
 
     public static NbtMap remapBlock(NbtMap nbtMap) {
 
         final String name = nbtMap.getString("name");
-        if (name.equals("minecraft:bush")) {
-            return withName(nbtMap, "fern");
-        }
-
-        if (name.equals("minecraft:firefly_bush")) {
-            return withName(nbtMap, "deadbush");
-        }
-
-        if (name.equals("minecraft:tall_dry_grass") || name.equals("minecraft:short_dry_grass")) {
-            return withName(nbtMap, "short_grass");
-        }
-
-        if (name.equals("minecraft:cactus_flower")) {
-            return withName(nbtMap, "unknown");
-        }
-
-        if (name.equals("minecraft:leaf_litter") || name.equals("minecraft:wildflowers")) {
-            return withoutStates("unknown");
+        if (name.equals("minecraft:dried_ghast")) {
+            return ConversionHelper.withoutStates("unknown");
         }
 
         return nbtMap;

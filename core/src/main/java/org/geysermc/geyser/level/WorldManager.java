@@ -148,16 +148,6 @@ public abstract class WorldManager {
     public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
 
     /**
-     * Change the game mode of the given session
-     *
-     * @param session The session of the player to change the game mode of
-     * @param gameMode The game mode to change the player to
-     */
-    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendCommand("gamemode " + gameMode.name().toLowerCase(Locale.ROOT));
-    }
-
-    /**
      * Get the default game mode of the server
      *
      * @param session the player requesting the default game mode

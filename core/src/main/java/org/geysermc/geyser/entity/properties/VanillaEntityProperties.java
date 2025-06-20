@@ -61,6 +61,10 @@ public class VanillaEntityProperties {
         .addInt(CreakingEntity.CREAKING_SWAYING_TICKS, 0, 6)
         .build();
 
+    public static final GeyserEntityProperties HAPPY_GHAST = new GeyserEntityProperties.Builder()
+        .addBoolean("minecraft:can_move")
+        .build();
+
     public static final GeyserEntityProperties WOLF_SOUND_VARIANT = new GeyserEntityProperties.Builder()
         .addEnum("minecraft:sound_variant",
             "default",

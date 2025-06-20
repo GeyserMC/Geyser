@@ -56,7 +56,7 @@ public class ListRegistry<M> extends Registry<List<M>> {
      */
     @Nullable
     public M get(int index) {
-        if (index >= this.mappings.size()) {
+        if (index < 0 || index >= this.mappings.size()) {
             return null;
         }
 

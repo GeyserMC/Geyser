@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 
@@ -38,17 +39,22 @@ public interface JavaRegistry<T> {
     /**
      * Looks up a registry entry by its ID. The object can be null, or not present.
      */
-    T byId(@NonNegative int id);
-
-    /**
-     * Looks up a registry entry by its key. The object can be null, or not present.
-     */
-    T byKey(Key key);
+    @Nullable T byId(@NonNegative int id);
 
     /**
      * Looks up a registry entry by its ID, and returns it wrapped in {@link RegistryEntryData} so that its registered key is also known. The object can be null, or not present.
      */
-    RegistryEntryData<T> entryById(@NonNegative int id);
+    @Nullable RegistryEntryData<T> entryById(@NonNegative int id);
+
+    /**
+     * Looks up a registry entry by its key. The object can be null, or not present.
+     */
+    @Nullable T byKey(Key key);
+
+    /**
+     * Looks up a registry entry by its key, and returns it wrapped in {@link RegistryEntryData}. The object can be null, or not present.
+     */
+    @Nullable RegistryEntryData<T> entryByKey(Key key);
 
     /**
      * Reverse looks-up an object to return its network ID, or -1.
@@ -58,7 +64,7 @@ public interface JavaRegistry<T> {
     /**
      * Reverse looks-up an object to return it wrapped in {@link RegistryEntryData}, or null.
      */
-    RegistryEntryData<T> entryByValue(T value);
+    @Nullable RegistryEntryData<T> entryByValue(T value);
 
     /**
      * Resets the objects by these IDs.

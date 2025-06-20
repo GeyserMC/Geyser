@@ -50,7 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
@@ -189,14 +188,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> FROG_VARIANT = registry(JavaRegistries.FROG_VARIANT);
 
-    MinecraftHasher<PaintingVariant> DIRECT_PAINTING_VARIANT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("width", INT, PaintingVariant::width)
-        .accept("height", INT, PaintingVariant::height)
-        .accept("asset_id", KEY, PaintingVariant::assetId)
-        .optionalNullable("title", ComponentHasher.COMPONENT, PaintingVariant::title)
-        .optionalNullable("author", ComponentHasher.COMPONENT, PaintingVariant::author));
-
-    RegistryHasher<PaintingVariant> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT, DIRECT_PAINTING_VARIANT);
+    RegistryHasher<?> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT);
 
     RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
 
@@ -287,12 +279,22 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
         predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
 
+    MinecraftHasher<ItemAttributeModifiers.DisplayType> ATTRIBUTE_MODIFIER_DISPLAY_TYPE = MinecraftHasher.fromEnum();
+
+    MinecraftHasher<ItemAttributeModifiers.Display> ATTRIBUTE_MODIFIER_DISPLAY = ATTRIBUTE_MODIFIER_DISPLAY_TYPE.dispatch(ItemAttributeModifiers.Display::getType,
+        displayType -> switch (displayType) {
+            case DEFAULT, HIDDEN -> MapBuilder.unit();
+            case OVERRIDE -> builder -> builder
+                .accept("value", ComponentHasher.COMPONENT, ItemAttributeModifiers.Display::getComponent);
+        });
+
     MinecraftHasher<ItemAttributeModifiers.Entry> ATTRIBUTE_MODIFIER_ENTRY = MinecraftHasher.mapBuilder(builder -> builder
         .accept("type", RegistryHasher.ATTRIBUTE, ItemAttributeModifiers.Entry::getAttribute)
         .accept("id", KEY, entry -> entry.getModifier().getId())
         .accept("amount", DOUBLE, entry -> entry.getModifier().getAmount())
         .accept("operation", ATTRIBUTE_MODIFIER_OPERATION, entry -> entry.getModifier().getOperation())
-        .optional("slot", EQUIPMENT_SLOT_GROUP, ItemAttributeModifiers.Entry::getSlot, ItemAttributeModifiers.EquipmentSlotGroup.ANY));
+        .optional("slot", EQUIPMENT_SLOT_GROUP, ItemAttributeModifiers.Entry::getSlot, ItemAttributeModifiers.EquipmentSlotGroup.ANY)
+        .optionalPredicate("display", ATTRIBUTE_MODIFIER_DISPLAY, ItemAttributeModifiers.Entry::getDisplay, display -> display.getType() != ItemAttributeModifiers.DisplayType.DEFAULT));
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = MinecraftHasher.fromEnum();
 
@@ -349,12 +351,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
     /**
-     * Creates a hasher that uses the {@link JavaRegistryKey#keyFromNetworkId(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
+     * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
      *
      * @param registry the registry to create a hasher for.
      */
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::keyFromNetworkId);
+        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::key);
         return hasher::hash;
     }
 

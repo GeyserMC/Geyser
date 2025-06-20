@@ -29,6 +29,7 @@ import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundStartConfigurationPacket;
 
 @Translator(packet = ClientboundStartConfigurationPacket.class)
@@ -42,5 +43,7 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
             session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
             erosionHandler.close();
         }
+
+        ChunkUtils.sendEmptyChunks(session, session.getPlayerEntity().position().toInt(), session.getServerRenderDistance(), false);
     }
 }
