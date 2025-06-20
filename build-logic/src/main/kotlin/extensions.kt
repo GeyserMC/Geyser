@@ -42,9 +42,12 @@ fun Project.relocate(pattern: String) {
     }
 }
 
-fun Project.exclude(group: String) {
+// Excludes all dependencies from a module - except one
+fun Project.exclude(group: String, lib: Provider<MinimalExternalModuleDependency>) {
     tasks.named<ShadowJar>("shadowJar") {
-        exclude(group)
+        dependencies {
+            exclude { it.moduleGroup == group && it.moduleName != lib.get().module.name }
+        }
     }
 }
 
@@ -57,10 +60,6 @@ fun Project.platformRelocate(pattern: String, exclusion: String = "") {
 }
 
 val providedDependencies = mutableMapOf<String, MutableSet<String>>()
-
-fun getProvidedDependenciesForProject(projectName: String): MutableSet<String> {
-    return providedDependencies.getOrDefault(projectName, emptySet()).toMutableSet()
-}
 
 fun Project.provided(pattern: String, name: String, excludedOn: Int = 0b110) {
     providedDependencies.getOrPut(project.name) { mutableSetOf() }

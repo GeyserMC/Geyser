@@ -94,6 +94,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             System.setProperty("io.netty.allocator.type", "pooled");
         }
 
+        // MCPL determines the transport used for the Bedrock end as well
+        if (Boolean.getBoolean("Geyser.io_uring")) {
+            System.setProperty("Mcpl.io_uring", "true");
+        }
+
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         GeyserStandaloneLogger.setupStreams();
 

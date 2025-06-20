@@ -102,6 +102,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
         }
 
+        if (Boolean.getBoolean("bungee.io_uring")) {
+            System.setProperty("Mcpl.io_uring", "true");
+        }
+
         if (!this.loadConfig()) {
             return;
         }

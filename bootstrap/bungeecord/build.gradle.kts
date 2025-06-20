@@ -6,8 +6,6 @@ plugins {
 dependencies {
     api(projects.core)
 
-    compileOnly(libs.netty.transport.native.io.uring)
-
     implementation(libs.cloud.bungee)
     implementation(libs.adventure.text.serializer.bungeecord)
     compileOnlyApi(libs.bungeecord.proxy)
@@ -15,7 +13,6 @@ dependencies {
 
 platformRelocate("net.md_5.bungee.jni")
 platformRelocate("com.fasterxml.jackson")
-platformRelocate("io.netty.channel.kqueue") // This is not used because relocating breaks natives, but we must include it or else we get ClassDefNotFound
 platformRelocate("net.kyori")
 platformRelocate("org.incendo")
 platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
@@ -33,16 +30,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
-        exclude(dependency("io.netty.incubator:.*"))
-        exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
-        exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
-        exclude(dependency("io.netty:netty-handler:.*"))
-        exclude(dependency("io.netty:netty-common:.*"))
-        exclude(dependency("io.netty:netty-buffer:.*"))
-        exclude(dependency("io.netty:netty-resolver:.*"))
-        exclude(dependency("io.netty:netty-transport:.*"))
-        exclude(dependency("io.netty:netty-codec:.*"))
-        exclude(dependency("io.netty:netty-resolver-dns:.*"))
+        exclude(dependency("io.netty.*:.*"))
     }
 }
 
