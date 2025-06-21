@@ -48,7 +48,7 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
         if (message.startsWith("/")) {
             // Yes, Java actually allows whitespaces before commands and will still see those as valid
-            BedrockCommandRequestTranslator.handleCommand(session, message.substring(1));
+            session.sendCommand(message.substring(1));
             return;
         }
 
