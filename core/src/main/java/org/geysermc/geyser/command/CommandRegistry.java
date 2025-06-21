@@ -282,7 +282,7 @@ public class CommandRegistry implements EventRegistrar {
                 help.execute(source);
             } else if (STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
                 // If we are on an appropriate platform, forward the command to the backend
-                session.sendCommand(context.rawInput().input());
+                session.sendCommandPacket(context.rawInput().input());
             } else {
                 source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
             }

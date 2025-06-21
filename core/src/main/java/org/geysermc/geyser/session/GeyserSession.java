@@ -1483,7 +1483,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Sends a command to the Java server.
      */
-    public void sendCommand(String command) {
+    public void sendCommandPacket(String command) {
         sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
     }
 
@@ -1492,7 +1492,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * else, it sends the command to the server.
      */
     @Override
-    public void executeCommand(String command) {
+    public void sendCommand(String command) {
         if (MessageTranslator.isTooLong(command, this)) {
             return;
         }
@@ -1513,7 +1513,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
         }
 
-        this.sendCommand(command);
+        this.sendCommandPacket(command);
     }
 
     public void setClientRenderDistance(int clientRenderDistance) {
