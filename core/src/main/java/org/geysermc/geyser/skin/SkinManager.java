@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.awt.*;
 import java.io.IOException;
@@ -53,6 +54,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class SkinManager {
+
+    static final String GEOMETRY = new String(FileUtils.readAllBytes("bedrock/geometries/geo.json"), StandardCharsets.UTF_8);
 
     /**
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
@@ -108,8 +111,11 @@ public class SkinManager {
         String xuid = "";
         GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
 
+        // Prefer looking up xuid using the session to catch linked players
         if (playerSession != null) {
             xuid = playerSession.getAuthData().xuid();
+        } else if (uuid.version() == 0) {
+            xuid = Long.toString(uuid.getLeastSignificantBits());
         }
 
         PlayerListPacket.Entry entry;
@@ -171,7 +177,7 @@ public class SkinManager {
             .skinResourcePatch(geometry.geometryName())
             .skinData(ImageData.of(skin.skinData()))
             .capeData(ImageData.of(cape.capeData()))
-            .geometryData(geometry.geometryData())
+            .geometryData(geometry.geometryData().isBlank() ? GEOMETRY : geometry.geometryData())
             .premium(true)
             .capeId(cape.capeId())
             .fullSkinId(skinId)

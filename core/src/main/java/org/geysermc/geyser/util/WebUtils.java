@@ -33,8 +33,18 @@ import org.geysermc.geyser.GeyserLogger;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 public class WebUtils {
 
@@ -181,6 +192,27 @@ public class WebUtils {
                 Files.delete(downloadLocation);
                 throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!"
                         .formatted(url, downloadSize, size));
+            }
+
+            try {
+                boolean shouldDeleteEnclosing = false;
+                var originalZip = downloadLocation;
+                try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
+                    // This can (or should???) contain a zip
+                    if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
+                        // Unzip the pack, as that's what we're after
+                        downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
+                        Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+                        shouldDeleteEnclosing = true;
+                    }
+                } finally {
+                    if (shouldDeleteEnclosing) {
+                        // We don't need the original zip anymore
+                        Files.delete(originalZip);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Encountered exception while reading downloaded resource pack at url: %s".formatted(url), e);
             }
 
             try {

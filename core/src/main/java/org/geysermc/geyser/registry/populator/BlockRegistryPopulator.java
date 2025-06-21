@@ -46,6 +46,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -123,6 +124,7 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()), Conversion786_776::remapBlock)
                 .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected

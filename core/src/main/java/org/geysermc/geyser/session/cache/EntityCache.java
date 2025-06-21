@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,11 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import lombok.Getter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
@@ -136,10 +136,12 @@ public class EntityCache {
     }
 
     public void addPlayerEntity(PlayerEntity entity) {
-        // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
-        boolean exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
-        if (exists) {
-            return;
+        synchronized (playerEntities) {
+            // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
+            boolean exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
+            if (exists) {
+                return;
+            }
         }
 
         // notify scoreboard for new entity
@@ -148,21 +150,29 @@ public class EntityCache {
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {
-        return playerEntities.get(uuid);
+        synchronized (playerEntities) {
+            return playerEntities.get(uuid);
+        }
     }
 
     public List<PlayerEntity> getPlayersByName(String name) {
         var list = new ArrayList<PlayerEntity>();
-        for (PlayerEntity player : playerEntities.values()) {
-            if (name.equals(player.getUsername())) {
-                list.add(player);
+        synchronized (playerEntities) {
+            for (PlayerEntity player : playerEntities.values()) {
+                if (name.equals(player.getUsername())) {
+                    list.add(player);
+                }
             }
         }
         return list;
     }
 
     public PlayerEntity removePlayerEntity(UUID uuid) {
-        var player = playerEntities.remove(uuid);
+        PlayerEntity player;
+        synchronized (playerEntities) {
+            player = playerEntities.remove(uuid);
+        }
+
         if (player != null) {
             // notify scoreboard
             session.getWorldCache().getScoreboard().playerRemoved(player);
@@ -170,12 +180,20 @@ public class EntityCache {
         return player;
     }
 
-    public Collection<PlayerEntity> getAllPlayerEntities() {
-        return playerEntities.values();
+    /**
+     * Run a specific bit of code for each cached player entity.
+     * As usual with synchronized, try to minimize the amount of work you because you block the PlayerList collection.
+     */
+    public void forEachPlayerEntity(Consumer<PlayerEntity> player) {
+        synchronized (playerEntities) {
+            playerEntities.values().forEach(player);
+        }
     }
 
     public void removeAllPlayerEntities() {
-        playerEntities.clear();
+        synchronized (playerEntities) {
+            playerEntities.clear();
+        }
     }
 
     public void addBossBar(UUID uuid, BossBar bossBar) {

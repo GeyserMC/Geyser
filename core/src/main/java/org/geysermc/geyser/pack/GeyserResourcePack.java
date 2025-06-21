@@ -41,7 +41,7 @@ public record GeyserResourcePack(
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
-    public static final int CHUNK_SIZE = 102400;
+    public static final int CHUNK_SIZE = 1024 * 256;
 
     public static class Builder implements ResourcePack.Builder {
 

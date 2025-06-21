@@ -42,6 +42,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -215,6 +216,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     public void initialize() {
+        // Setup encryption early so we don't start if we can't auth
+        EncryptionUtils.getMojangPublicKey();
+
         long startupTime = System.currentTimeMillis();
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
@@ -479,6 +483,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
+            metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
+            metrics.addCustomChart(new Metrics.SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.getBedrock().isEnableProxyProtocol())));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {

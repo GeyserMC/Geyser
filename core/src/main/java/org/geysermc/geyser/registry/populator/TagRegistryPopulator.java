@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
 import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
@@ -73,7 +74,8 @@ public final class TagRegistryPopulator {
             ObjectIntPair.of("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()),
             ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()),
             // Not a typo, they're the same file
-            ObjectIntPair.of("1_21_70", Bedrock_v800.CODEC.getProtocolVersion())
+            ObjectIntPair.of("1_21_70", Bedrock_v800.CODEC.getProtocolVersion()),
+            ObjectIntPair.of("1_21_70", Bedrock_v818.CODEC.getProtocolVersion())
         );
         Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 
