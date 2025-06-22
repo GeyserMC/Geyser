@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.waypoint;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -72,6 +73,16 @@ public final class WaypointCache {
             // When the player becomes listed the right colour will already be used, this is always put in the colours map, no matter if the
             // player info existed or not
             waypoint.setPlayer(player);
+        } else {
+            // If we haven't received a waypoint for the player, we need to tell the client to hide them
+            // Bedrock likes to create their own waypoints for players in render distance, but Java doesn't do this, and we don't want this either, since it could
+            // lead to duplicate/wrong waypoints on the locator bar
+            // For example, if a Java server hides a player from the locator bar even when they're not sneaking, bedrock will still show them when in render
+            // distance
+            PlayerLocationPacket locationPacket = new PlayerLocationPacket();
+            locationPacket.setType(PlayerLocationPacket.Type.HIDE);
+            locationPacket.setTargetEntityId(player.getGeyserId());
+            session.sendUpstreamPacket(locationPacket);
         }
     }
 
@@ -102,6 +113,16 @@ public final class WaypointCache {
 
             tracked.track(waypoint.data());
             waypoints.put(waypointId(waypoint), tracked);
+        } else {
+            playerId.ifPresent(id -> {
+                // When tracked waypoint is null, the waypoint shouldn't show up on the locator bar (Java type is EMPTY)
+                // If this waypoint is linked to a player, tell the bedrock client to hide it
+                // If we don't do this bedrock will show the waypoint anyway when the player is in render distance (read comments above in trackPlayer)
+                PlayerLocationPacket locationPacket = new PlayerLocationPacket();
+                locationPacket.setType(PlayerLocationPacket.Type.HIDE);
+                locationPacket.setTargetEntityId(id);
+                session.sendUpstreamPacket(locationPacket);
+            });
         }
     }
 
