@@ -89,7 +89,6 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     );
 
                     session.getEntityCache().addPlayerEntity(playerEntity);
-                    session.getWaypointCache().trackPlayer(playerEntity);
                 }
                 playerEntity.setUsername(name);
                 playerEntity.setTexturesProperty(texturesProperty);
@@ -115,8 +114,10 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (entry.isListed()) {
                     PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
                     toAdd.add(playerListEntry);
+                    session.getWaypointCache().listPlayer(entity);
                 } else {
                     toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                    session.getWaypointCache().unlistPlayer(entity);
                 }
                 entity.setListed(entry.isListed());
             }

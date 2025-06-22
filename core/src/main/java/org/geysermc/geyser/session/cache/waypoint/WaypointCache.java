@@ -64,12 +64,12 @@ public final class WaypointCache {
         }
     }
 
-    public void trackPlayer(PlayerEntity player) {
+    public void listPlayer(PlayerEntity player) {
         GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
         if (waypoint != null) {
             // This will remove the fake player packet previously sent to the client,
             // and change the waypoint to use the player's entity ID instead.
-            // This is important because sometimes a waypoint is sent before player info, so a fake player packet is sent to the client
+            // This is important because sometimes a waypoint is sent before player info telling us to list the player, so a fake player packet is sent to the client
             // When the player becomes listed the right colour will already be used, this is always put in the colours map, no matter if the
             // player info existed or not
             waypoint.setPlayer(player);
@@ -83,6 +83,17 @@ public final class WaypointCache {
             locationPacket.setType(PlayerLocationPacket.Type.HIDE);
             locationPacket.setTargetEntityId(player.getGeyserId());
             session.sendUpstreamPacket(locationPacket);
+        }
+    }
+
+    public void unlistPlayer(PlayerEntity player) {
+        GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
+        if (waypoint != null) {
+            // This will remove the player packet previously sent to the client,
+            // and change the waypoint to use the player's entity ID instead.
+            // This is important because a player waypoint can still show even when a player becomes unlisted,
+            // so a fake player packet has to be sent to the client now
+            waypoint.setPlayer(null);
         }
     }
 

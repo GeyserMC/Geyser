@@ -87,6 +87,11 @@ public abstract class GeyserWaypoint {
             entityId = entity.getGeyserId();
             sendListPackets = false;
             sendLocationPacket(true);
+        } else if (entity == null) { // Previously had an attached player, and now that player is gone
+            entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            sendListPackets = true;
+            sendListPackets(PlayerListPacket.Action.ADD);
+            sendLocationPacket(true);
         }
     }
 
