@@ -87,10 +87,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        if (GameProtocol.is1_21_70orHigher(session)) {
-            // Without this flag you cant stand on boats
-            setFlag(EntityFlag.COLLIDABLE, true);
-        }
+        // Without this flag you cant stand on boats
+        setFlag(EntityFlag.COLLIDABLE, true);
     }
 
     @Override

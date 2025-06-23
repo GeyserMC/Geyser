@@ -236,6 +236,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             // Event must be fired after CommandRegistry has subscribed its listener.
             // Also, the subscription for the Permissions class is created when Geyser is initialized.
             cloud.fireRegisterPermissionsEvent();
+        } else {
+            // This isn't ideal - but geyserLogger#start won't ever finish, leading to a reloading deadlock
+            geyser.setReloading(false);
         }
 
         if (gui != null) {

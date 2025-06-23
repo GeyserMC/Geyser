@@ -70,7 +70,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -185,9 +184,6 @@ public class ItemRegistryPopulator {
 
             // Used for custom items
             int nextFreeBedrockId = 0;
-            // TODO yeet
-            List<ItemDefinition> componentItemData = new ObjectArrayList<>();
-
             Int2ObjectMap<ItemDefinition> registry = new Int2ObjectOpenHashMap<>();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -252,13 +248,7 @@ public class ItemRegistryPopulator {
                 }
             });
 
-            List<CreativeItemGroup> creativeItemGroups;
-            if (GameProtocol.isPreCreativeInventoryRewrite(palette.protocolVersion)) {
-                creativeItemGroups = new ArrayList<>();
-            } else {
-                creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
-            }
-
+            List<CreativeItemGroup> creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
@@ -511,9 +501,6 @@ public class ItemRegistryPopulator {
                                     .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
                             creativeItems.add(creativeItemData);
                         }
-
-                        // ComponentItemData - used to register some custom properties
-                        componentItemData.add(customMapping.itemDefinition());
                         customItemOptions.add(Pair.of(customItem.customItemOptions(), customMapping.itemDefinition()));
                         registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
@@ -578,7 +565,6 @@ public class ItemRegistryPopulator {
                 ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, ItemVersion.DATA_DRIVEN, true, registerFurnaceMinecart(furnaceMinecartId));
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.put(definition.getRuntimeId(), definition);
-                componentItemData.add(definition);
 
                 mappings.set(Items.FURNACE_MINECART.javaId(), ItemMapping.builder()
                         .javaItem(Items.FURNACE_MINECART)
@@ -609,7 +595,6 @@ public class ItemRegistryPopulator {
                     int customItemId = nextFreeBedrockId++;
                     NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                    componentItemData.add(registration.mapping().getBedrockDefinition());
                     ItemMapping mapping = registration.mapping();
                     Item javaItem = registration.javaItem();
                     while (javaItem.javaId() >= mappings.size()) {
@@ -672,7 +657,6 @@ public class ItemRegistryPopulator {
                     .creativeItems(creativeItems)
                     .creativeItemGroups(creativeItemGroups)
                     .itemDefinitions(registry)
-                    .componentItemData(componentItemData)
                     .storedItems(new StoredItemMappings(javaItemToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)

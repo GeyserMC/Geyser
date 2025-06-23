@@ -810,15 +810,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
-        if (GameProtocol.isPreCreativeInventoryRewrite(this.protocolVersion())) {
-            ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getComponentItemData());
-            upstream.sendPacket(componentPacket);
-        } else {
-            ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
-            upstream.sendPacket(componentPacket);
-        }
+        ItemComponentPacket componentPacket = new ItemComponentPacket();
+        componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
+        upstream.sendPacket(componentPacket);
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 

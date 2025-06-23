@@ -89,14 +89,6 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean isPreCreativeInventoryRewrite(int protocolVersion) {
-        return protocolVersion < 776;
-    }
-
-    public static boolean is1_21_70orHigher(GeyserSession session) {
-        return session.protocolVersion() >= Bedrock_v786.CODEC.getProtocolVersion();
-    }
-
     public static boolean isTheOneVersionWithBrokenForms(GeyserSession session) {
         return session.protocolVersion() == Bedrock_v786.CODEC.getProtocolVersion();
     }
