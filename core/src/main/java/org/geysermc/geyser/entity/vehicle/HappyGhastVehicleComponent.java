@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +25,45 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
+import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 
-public interface ClientVehicle {
-    VehicleComponent<?> getVehicleComponent();
+public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntity> {
 
-    // LivingEntity#getRiddenInput
-    Vector2f getAdjustedInput(Vector2f input);
+    @Setter
+    private float flyingSpeed;
 
-    // MojMap LivingEntity#getRiddenSpeed
-    float getVehicleSpeed();
-
-    // MojMap Mob#getControllingPassenger
-    boolean isClientControlled();
-
-    default boolean canWalkOnLava() {
-        return false;
+    public HappyGhastVehicleComponent(HappyGhastEntity vehicle, float stepHeight) {
+        super(vehicle, stepHeight);
     }
 
-    default boolean canClimb() {
-        return true;
+    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
+        Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
+        input = input.mul(0.98f); // ?
+
+        float x = input.getX();
+        float y = 0.0f;
+        float z = 0.0f;
+
+        float playerZ = input.getY();
+        if (playerZ != 0.0F) {
+            float i = Mth.cos(player.getXRot() * (float) (Math.PI / 180.0));
+            float j = -Mth.sin(player.getXRot() * (float) (Math.PI / 180.0));
+            if (playerZ < 0.0F) {
+                i *= -0.5F;
+                j *= -0.5F;
+            }
+
+            y = j;
+            z = i;
+        }
+
+        if (session.isJumping()) {
+            y += 0.5F;
+        }
+
+        return Vector3f.from((double) x, (double) y, (double)z).mul(3.9F * flyingSpeed);
     }
 }

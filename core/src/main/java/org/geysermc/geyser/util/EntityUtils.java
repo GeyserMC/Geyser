@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -221,6 +222,13 @@ public final class EntityUtils {
                         }
                     }
                 }
+                case HAPPY_GHAST -> {
+                    // TODO seat index matters here, likely
+                    // 0.0, 5.02001, 1.7 BDS
+                    xOffset = 0;
+                    yOffset = 3.4f;
+                    zOffset = 1.7f;
+                }
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
@@ -268,17 +276,30 @@ public final class EntityUtils {
     }
 
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
-        if (isRiding && mount instanceof BoatEntity) {
-            // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
+        if (isRiding) {
+            if (mount instanceof BoatEntity) {
+                // Head rotation is locked while riding in a boat
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
+            } else if (mount instanceof HappyGhastEntity) {
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, 8f);
+                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, 6f);
+
+                passenger.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+            }
         } else {
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
+            // TODO what are defaults here???
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, 8f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, 6f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
         }
     }
 

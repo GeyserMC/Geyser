@@ -27,9 +27,15 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,20 +49,30 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class HappyGhastEntity extends AnimalEntity {
+public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
+
+    private final HappyGhastVehicleComponent vehicleComponent = new HappyGhastVehicleComponent(this, 0.0f);
+    private boolean staysStill;
+    private float speed;
+
     public HappyGhastEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // BDS 1.21.90
         setFlag(EntityFlag.CAN_FLY, true);
-        setFlag(EntityFlag.TAMED, true);
         setFlag(EntityFlag.CAN_WALK, true);
+        setFlag(EntityFlag.TAMED, true);
+        setFlag(EntityFlag.BODY_ROTATION_ALWAYS_FOLLOWS_HEAD, true);
+        setFlag(EntityFlag.COLLIDABLE, true);
 
         setFlag(EntityFlag.WASD_AIR_CONTROLLED, true);
         setFlag(EntityFlag.DOES_SERVER_AUTH_ONLY_DISMOUNT, true);
 
-        // TODO: verify which flags are necessary
-
-        setAirSupply(100);
+        propertyManager.add("minecraft:can_move", true);
     }
 
     @Override
@@ -71,6 +87,7 @@ public class HappyGhastEntity extends AnimalEntity {
     }
 
     public void setStaysStill(BooleanEntityMetadata entityMetadata) {
+        staysStill = entityMetadata.getPrimitiveValue();
         propertyManager.add("minecraft:can_move", !entityMetadata.getPrimitiveValue());
         updateBedrockEntityProperties();
     }
@@ -123,5 +140,39 @@ public class HappyGhastEntity extends AnimalEntity {
                 return super.mobInteract(hand, itemInHand);
             }
         }
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return vehicleComponent;
+    }
+
+    @Override
+    public Vector2f getAdjustedInput(Vector2f input) {
+        // not used; calculations look a bit different for the happy ghast
+        return Vector2f.ZERO;
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return speed; // TODO this doesnt seem right?
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        // TODO proper check, just lazy
+        if (body == null) {
+            return false;
+        }
+        // TODO must have ai check
+        if (staysStill) {
+            return false;
+        }
+
+        return getFirstPassenger() instanceof SessionPlayerEntity;
+    }
+
+    private Entity getFirstPassenger() {
+        return passengers.isEmpty() ? null : passengers.get(0);
     }
 }
