@@ -26,6 +26,8 @@
 package org.geysermc.geyser.entity.vehicle;
 
 import it.unimi.dsi.fastutil.objects.ObjectDoublePair;
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -64,11 +66,15 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     private static final float MIN_VELOCITY = 0.003f;
 
     protected final T vehicle;
+    @Getter
     protected final BoundingBox boundingBox;
 
     protected float stepHeight;
+    @Getter @Setter
     protected float moveSpeed;
     protected double gravity;
+    @Getter @Setter
+    protected double waterMovementEfficiency;
     protected int effectLevitation;
     protected boolean effectSlowFalling;
     protected boolean effectWeaving;
@@ -78,6 +84,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         this.stepHeight = stepHeight;
         this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
+        this.waterMovementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
@@ -117,10 +124,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boundingBox.translate(vec);
     }
 
-    public BoundingBox getBoundingBox() {
-        return this.boundingBox;
-    }
-
     public void setEffect(Effect effect, int effectAmplifier) {
         switch (effect) {
             case LEVITATION -> effectLevitation = effectAmplifier + 1;
@@ -135,14 +138,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             case SLOW_FALLING -> effectSlowFalling = false;
             case WEAVING -> effectWeaving = false;
         }
-    }
-
-    public void setMoveSpeed(float moveSpeed) {
-        this.moveSpeed = moveSpeed;
-    }
-
-    public float getMoveSpeed() {
-        return moveSpeed;
     }
 
     public void setStepHeight(float stepHeight) {
@@ -208,6 +203,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
 
+        // Mojmap Entity#updateInWaterStateAndDoFluidPushing
         double waterHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.WATER, 0.014, min.getY());
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
@@ -373,6 +369,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return BlockUtils.getCollision(adjacentBlockId) instanceof SolidCollision;
     }
 
+    // Mojmap: LivingEntity#travelInFluid
     protected void waterMovement(VehicleContext ctx) {
         double gravity = getGravity();
         float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : 0.8f; // 0.8f: getBaseMovementSpeedMultiplier
@@ -380,6 +377,21 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boolean falling = vehicle.getMotion().getY() <= 0;
 
         // NOT IMPLEMENTED: depth strider and dolphins grace
+//        float g = 0.02f;
+//        float waterMovementEfficiencyMultiplier = (float) waterMovementEfficiency;
+//        if (!vehicle.isOnGround()) {
+//            // TODO test
+//            waterMovementEfficiencyMultiplier *= 0.5f;
+//        }
+//
+//        if (waterMovementEfficiencyMultiplier > 0.0F) {
+//            drag += (0.54600006F - drag) * waterMovementEfficiencyMultiplier;
+//            g += (this.getSpeed() - g) * waterMovementEfficiencyMultiplier;
+//        }
+
+//        if (this.hasEffect(MobEffects.DOLPHINS_GRACE)) {
+//            drag = 0.96F;
+//        }
 
         boolean horizontalCollision = travel(ctx, 0.02f);
 
@@ -570,6 +582,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
      *
      * @return true if there was a horizontal collision
      */
+    // Mojmap: LivingEntity#moveRelative
     protected boolean travel(VehicleContext ctx, float speed) {
         Vector3f motion = vehicle.getMotion();
 

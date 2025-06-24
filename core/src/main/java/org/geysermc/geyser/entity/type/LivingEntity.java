@@ -528,6 +528,11 @@ public class LivingEntity extends Entity {
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();
                 }
+                case WATER_MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
     }

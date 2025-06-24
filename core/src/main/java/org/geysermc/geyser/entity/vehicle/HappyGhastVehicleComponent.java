@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
+import it.unimi.dsi.fastutil.objects.ObjectDoublePair;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.level.block.Fluid;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 
 public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntity> {
 
@@ -37,6 +40,35 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
 
     public HappyGhastVehicleComponent(HappyGhastEntity vehicle, float stepHeight) {
         super(vehicle, stepHeight);
+        flyingSpeed = (float) AttributeType.Builtin.FLYING_SPEED.getDef();
+    }
+
+    /**
+     * Called every session tick while the player is mounted on the vehicle.
+     */
+    public void tickVehicle() {
+        if (!vehicle.isClientControlled()) {
+            return;
+        }
+
+        // LivingEntity#travelFlying
+        VehicleContext ctx = new VehicleContext();
+        ctx.loadSurroundingBlocks();
+
+        // TODO tickRidden here (deals with rotations)
+
+        // TODO verify that updateFluidMovement applies to happy ghasts
+        ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
+
+        // HappyGhast#travel
+        float speed = flyingSpeed * 5.0f / 3.0f;
+
+        // TODO implement LivingEntity#travelFlying cases
+//        switch (fluidHeight.left()) {
+//            default -> {
+//                throw new GoodLuckImplementingThisException();
+//            }
+//        }
     }
 
     protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
@@ -65,5 +97,8 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         }
 
         return Vector3f.from(x, y, z).mul(3.9F * flyingSpeed);
+    }
+
+    public class GoodLuckImplementingThisException extends RuntimeException {
     }
 }
