@@ -167,7 +167,7 @@ public final class EntityUtils {
     /**
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
-    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
+    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, int index, int passengers) {
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -180,7 +180,7 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case CAMEL -> {
                     zOffset = 0.5f;
-                    if (moreThanOneEntity) {
+                    if (passengers > 1) {
                         if (!rider) {
                             zOffset = -0.7f;
                         }
@@ -223,18 +223,18 @@ public final class EntityUtils {
                     }
                 }
                 case HAPPY_GHAST -> {
-                    // TODO seat index matters here, likely
                     // 0.0, 5.02001, 1.7 BDS
-                    xOffset = 0;
+                    int seatingIndex = Math.min(index, 4);
+                    xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
                     yOffset = 3.4f;
-                    zOffset = 1.7f;
+                    zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
                 }
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
             } else if (mount instanceof BoatEntity) {
                 // Without the X offset, more than one entity on a boat is stacked on top of each other
-                if (moreThanOneEntity) {
+                if (passengers > 1) {
                     xOffset = rider ? 0.2f : -0.6f;
                     if (passenger instanceof AnimalEntity) {
                         xOffset += 0.2f;

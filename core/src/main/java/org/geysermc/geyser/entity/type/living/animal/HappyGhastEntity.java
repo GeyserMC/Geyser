@@ -51,6 +51,9 @@ import java.util.UUID;
 
 public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
+    public static final float[] X_OFFSETS = {0.0F, -1.7F, 0.0F, 1.7F};
+    public static final float[] Z_OFFSETS = {1.7F, 0.0F, -1.7F, 0.0F};
+
     private final HappyGhastVehicleComponent vehicleComponent = new HappyGhastVehicleComponent(this, 0.0f);
     private boolean staysStill;
     private float speed;
