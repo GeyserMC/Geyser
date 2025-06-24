@@ -44,13 +44,13 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         input = input.mul(0.98f); // ?
 
         float x = input.getX();
-        float y = 0.0f;
-        float z = 0.0f;
+        float y = 0.0F;
+        float z = 0.0F;
 
         float playerZ = input.getY();
         if (playerZ != 0.0F) {
-            float i = Mth.cos(player.getXRot() * (float) (Math.PI / 180.0));
-            float j = -Mth.sin(player.getXRot() * (float) (Math.PI / 180.0));
+            float i = (float) Math.cos(vehicle.getSession().getPlayerEntity().getPitch() * (Math.PI / 180.0F));
+            float j = (float) -Math.sin(vehicle.getSession().getPlayerEntity().getPitch() * (Math.PI / 180.0F));
             if (playerZ < 0.0F) {
                 i *= -0.5F;
                 j *= -0.5F;
@@ -60,10 +60,10 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
             z = i;
         }
 
-        if (session.isJumping()) {
+        if (vehicle.getSession().getInputCache().wasJumping()) {
             y += 0.5F;
         }
 
-        return Vector3f.from((double) x, (double) y, (double)z).mul(3.9F * flyingSpeed);
+        return Vector3f.from(x, y, z).mul(3.9F * flyingSpeed);
     }
 }
