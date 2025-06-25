@@ -213,9 +213,6 @@ public class MapHasher<Type> {
     }
 
     public HashCode build() {
-        if (unhashed != null) {
-            System.out.println(unhashed);
-        }
         return encoder.map(map);
     }
 }

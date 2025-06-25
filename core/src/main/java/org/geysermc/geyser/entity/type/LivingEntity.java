@@ -41,7 +41,9 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -49,6 +51,7 @@ import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
@@ -510,7 +513,13 @@ public class LivingEntity extends Entity {
                     }
                 }
                 case ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-                case FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+                case FLYING_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof HappyGhastEntity ghast && ghast.getVehicleComponent() instanceof HappyGhastVehicleComponent component) {
+                        component.setFlyingSpeed(attributeData.getValue());
+                    }
+                }
                 case FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
                 case KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
                 case JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
@@ -519,8 +528,39 @@ public class LivingEntity extends Entity {
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();
                 }
+                case WATER_MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
+    }
+
+    protected boolean hasBodyArmor() {
+        return this.hasValidEquippableItemForSlot(EquipmentSlot.BODY);
+    }
+
+    private boolean hasValidEquippableItemForSlot(EquipmentSlot slot) {
+        // MojMap LivingEntity#hasItemInSlot
+        GeyserItemStack itemInSlot = equipment.get(slot);
+        if (itemInSlot != null) {
+            // MojMap LivingEntity#isEquippableInSlot
+            Equippable equippable = itemInSlot.getComponent(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                return slot == equippable.slot() &&
+                    canUseSlot(slot) &&
+                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            } else {
+                return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return true;
     }
 
     /**

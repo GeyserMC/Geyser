@@ -621,7 +621,7 @@ public class Entity implements GeyserEntity {
             Entity passenger = passengers.get(i);
             if (passenger != null) {
                 boolean rider = i == 0;
-                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
                 passenger.updateBedrockMetadata();
             }
         }
@@ -633,7 +633,7 @@ public class Entity implements GeyserEntity {
     protected void updateMountOffset() {
         if (vehicle != null) {
             boolean rider = vehicle.getPassengers().get(0) == this;
-            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
     }

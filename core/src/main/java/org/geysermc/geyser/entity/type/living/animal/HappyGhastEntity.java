@@ -27,36 +27,60 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.TrigMath;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
+import java.util.List;
 import java.util.UUID;
 
-public class HappyGhastEntity extends AnimalEntity {
+public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
+
+    public static final float[] X_OFFSETS = {0.0F, -1.7F, 0.0F, 1.7F};
+    public static final float[] Z_OFFSETS = {1.7F, 0.0F, -1.7F, 0.0F};
+
+    private final HappyGhastVehicleComponent vehicleComponent = new HappyGhastVehicleComponent(this, 0.0f);
+    private boolean staysStill;
+
     public HappyGhastEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // BDS 1.21.90
         setFlag(EntityFlag.CAN_FLY, true);
-        setFlag(EntityFlag.TAMED, true);
         setFlag(EntityFlag.CAN_WALK, true);
+        setFlag(EntityFlag.TAMED, true);
+        setFlag(EntityFlag.BODY_ROTATION_ALWAYS_FOLLOWS_HEAD, true);
+        setFlag(EntityFlag.COLLIDABLE, true);
 
         setFlag(EntityFlag.WASD_AIR_CONTROLLED, true);
         setFlag(EntityFlag.DOES_SERVER_AUTH_ONLY_DISMOUNT, true);
 
-        // TODO: verify which flags are necessary
-
-        setAirSupply(100);
+        propertyManager.add("minecraft:can_move", true);
     }
 
     @Override
@@ -71,6 +95,7 @@ public class HappyGhastEntity extends AnimalEntity {
     }
 
     public void setStaysStill(BooleanEntityMetadata entityMetadata) {
+        staysStill = entityMetadata.getPrimitiveValue();
         propertyManager.add("minecraft:can_move", !entityMetadata.getPrimitiveValue());
         updateBedrockEntityProperties();
     }
@@ -123,5 +148,66 @@ public class HappyGhastEntity extends AnimalEntity {
                 return super.mobInteract(hand, itemInHand);
             }
         }
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        float x = input.getX();
+        float y = 0.0f;
+        float z = 0.0f;
+
+        if (input.getY() != 0.0f) {
+            float pitch = session.getPlayerEntity().getPitch();
+            z = TrigMath.cos(pitch * TrigMath.DEG_TO_RAD);
+            y = -TrigMath.sin(pitch * TrigMath.DEG_TO_RAD);
+            if (input.getY() < 0.0f) {
+                z *= -0.5f;
+                y *= -0.5f;
+            }
+        }
+
+        if (session.getInputCache().wasJumping()) {
+            y += 0.5f;
+        }
+
+        return Vector3f.from(x, y, z).mul(3.9f * vehicleComponent.getFlyingSpeed());
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return 1; // TODO this doesnt seem right?
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        if (!hasBodyArmor() || getFlag(EntityFlag.NO_AI) || staysStill) {
+            return false;
+        }
+
+        return getFirstPassenger() instanceof SessionPlayerEntity;
+    }
+
+    private Entity getFirstPassenger() {
+        return passengers.isEmpty() ? null : passengers.get(0);
+    }
+
+    @Override
+    protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
+        super.updateAttribute(javaAttribute, newAttributes);
+        if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
+            if (type == AttributeType.Builtin.CAMERA_DISTANCE) {
+                vehicleComponent.setCameraDistance((float) AttributeUtils.calculateValue(javaAttribute));
+            }
+        }
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return slot != EquipmentSlot.BODY ? super.canUseSlot(slot) : this.isAlive() && !this.isBaby();
     }
 }

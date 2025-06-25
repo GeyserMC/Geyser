@@ -48,9 +48,12 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -64,6 +67,14 @@ public class JavaRegistries {
         Block::javaId, Block::javaIdentifier, key -> Optional.ofNullable(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get(key.asString())).orElse(-1));
     public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
         Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
+    public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
+        type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)), key -> {
+        try {
+            return EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)).ordinal();
+        } catch (IllegalArgumentException exception) {
+            return -1; // Non-existent entity type
+        }
+    });
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
@@ -94,6 +105,11 @@ public class JavaRegistries {
     }
 
     private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
+                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
+        return createHardcoded(key, registry.get(), networkSerializer, identifierMapper, idMapper);
+    }
+
+    private static <T> JavaRegistryKey<T> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
                                                           RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
         return create(key, new HardcodedLookup<>(registry, networkSerializer, identifierMapper, idMapper));
     }
@@ -130,7 +146,7 @@ public class JavaRegistries {
         int get(Key key);
     }
 
-    private record HardcodedLookup<T>(ListRegistry<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
+    private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
                                       RegistryIdMapper idMapper) implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override

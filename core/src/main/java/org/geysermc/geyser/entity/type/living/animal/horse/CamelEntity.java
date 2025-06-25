@@ -155,8 +155,9 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+    public Vector3f getRiddenInput(Vector2f input) {
+        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+        return Vector3f.from(input.getX(), 0.0, input.getY());
     }
 
     @Override
