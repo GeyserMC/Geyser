@@ -149,10 +149,6 @@ public class JavaRegistries {
     private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
                                       RegistryIdMapper idMapper) implements JavaRegistryKey.RegistryLookup<T> {
 
-        public HardcodedLookup {
-            System.out.println(registry);
-        }
-
         @Override
         public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
             return Optional.ofNullable(registry.get(networkId))

@@ -33,7 +33,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -201,14 +200,8 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         super.updateAttribute(javaAttribute, newAttributes);
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
-            switch (type) {
-                case FLYING_SPEED -> {
-                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
-                    vehicleComponent.setFlyingSpeed(attributeData.getValue());
-                }
-                case CAMERA_DISTANCE -> {
-                    vehicleComponent.setCameraDistance((float) AttributeUtils.calculateValue(javaAttribute));
-                }
+            if (type == AttributeType.Builtin.CAMERA_DISTANCE) {
+                vehicleComponent.setCameraDistance((float) AttributeUtils.calculateValue(javaAttribute));
             }
         }
     }
