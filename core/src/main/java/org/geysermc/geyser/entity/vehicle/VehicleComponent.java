@@ -68,6 +68,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected final T vehicle;
     @Getter
     protected final BoundingBox boundingBox;
+    protected Vector2f lastSentRotation; // (yaw, pitch)
 
     protected float stepHeight;
     @Getter @Setter
@@ -81,6 +82,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
+        this.lastSentRotation = Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
         this.stepHeight = stepHeight;
         this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
@@ -186,6 +188,13 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             }
             case EMPTY -> landMovement(ctx);
         }
+    }
+
+    protected void updateRotation() {
+        Vector2f rot = getRiddenRotation();
+        vehicle.setYaw(rot.getX());
+        vehicle.setHeadYaw(rot.getX());
+        vehicle.setPitch(rot.getY());
     }
 
     /**
@@ -337,11 +346,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     /**
-     * Java edition returns the zero vector if the length of the input vector is less than 0.0001
+     * Java edition returns the zero vector if the length of the input vector is less than 0.00001f
      */
     protected Vector3d javaNormalize(Vector3d vec) {
         double len = vec.length();
-        return len < 1.0E-4 ? Vector3d.ZERO : Vector3d.from(vec.getX() / len, vec.getY() / len, vec.getZ() / len);
+        // Used to be 1.0E-4
+        return len < 1.0E-5F ? Vector3d.ZERO : Vector3d.from(vec.getX() / len, vec.getY() / len, vec.getZ() / len);
     }
 
     protected float getWorldFluidHeight(Fluid fluidType, int blockId) {
@@ -595,9 +605,13 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 Math.abs(motion.getZ()) < MIN_VELOCITY ? 0 : motion.getZ()
         );
 
+        updateRotation();
+        Vector2f playerInput = vehicle.getSession().getPlayerEntity().getVehicleInput();
+        Vector3f riddenInput = vehicle.getRiddenInput(playerInput.mul(0.98f));
+
         // !isImmobile
         if (vehicle.isAlive()) {
-            motion = motion.add(getInputVelocity(ctx, speed));
+            motion = motion.add(getInputVector(ctx, speed, riddenInput));
         }
 
         Vector3f movementMultiplier = getBlockMovementMultiplier(ctx);
@@ -683,41 +697,30 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return false;
     }
 
-    /**
-     * Translates the player's input into velocity.
-     *
-     * @param ctx context
-     * @param speed multiplier for input
-     * @return velocity
-     */
-    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
-        Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
-        input = input.mul(0.98f);
-        input = vehicle.getAdjustedInput(input);
-        input = normalizeInput(input);
+    protected Vector3f getInputVector(VehicleContext ctx, float speed, Vector3f input) {
+        double lenSquared = input.lengthSquared();
+        if (lenSquared < 1.0E-7) {
+            return Vector3f.ZERO;
+        }
+
+        if (lenSquared > 1.0f) {
+            input = input.normalize();
+        }
         input = input.mul(speed);
 
-        // Match player rotation
-        float yaw = vehicle.getSession().getPlayerEntity().getYaw();
+        // Match vehicle rotation
+        float yaw = vehicle.getYaw();
         float sin = TrigMath.sin(yaw * TrigMath.DEG_TO_RAD);
         float cos = TrigMath.cos(yaw * TrigMath.DEG_TO_RAD);
-        return Vector3f.from(input.getX() * cos - input.getY() * sin, 0, input.getY() * cos + input.getX() * sin);
-    }
-
-    protected Vector2f normalizeInput(Vector2f input) {
-        float lenSquared = input.lengthSquared();
-        if (lenSquared < 1.0E-7) {
-            return Vector2f.ZERO;
-        } else if (lenSquared > 1.0) {
-            return input.normalize();
-        }
-        return input;
+        return Vector3f.from(input.getX() * cos - input.getZ() * sin, input.getY(), input.getZ() * cos + input.getX() * sin);
     }
 
     /**
      * Gets the rotation to use for the vehicle. This is based on the player's head rotation.
+     *
+     * @return (yaw, pitch)
      */
-    protected Vector2f getVehicleRotation() {
+    protected Vector2f getRiddenRotation() {
         LivingEntity player = vehicle.getSession().getPlayerEntity();
         return Vector2f.from(player.getYaw(), player.getPitch() * 0.5f);
     }
@@ -730,7 +733,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
      */
     protected void moveVehicle(Vector3d javaPos) {
         Vector3f bedrockPos = javaPos.toFloat();
-        Vector2f rotation = getVehicleRotation();
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.getGeyserId());
@@ -753,27 +755,25 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
         vehicle.setPosition(bedrockPos);
 
-        if (vehicle.getYaw() != rotation.getX()) {
+        if (vehicle.getYaw() != lastSentRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(rotation.getX());
-            vehicle.setYaw(rotation.getX());
+            moveEntityDeltaPacket.setYaw(vehicle.getYaw());
         }
-        if (vehicle.getPitch() != rotation.getY()) {
+        if (vehicle.getPitch() != lastSentRotation.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(rotation.getY());
-            vehicle.setPitch(rotation.getY());
+            moveEntityDeltaPacket.setPitch(vehicle.getPitch());
         }
-        if (vehicle.getHeadYaw() != rotation.getX()) { // Same as yaw
+        if (vehicle.getHeadYaw() != lastSentRotation.getX()) { // Same as yaw
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(rotation.getX());
-            vehicle.setHeadYaw(rotation.getX());
+            moveEntityDeltaPacket.setHeadYaw(vehicle.getYaw());
         }
+        lastSentRotation = Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
-        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, rotation.getX(), rotation.getY(), vehicle.isOnGround());
+        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw(), vehicle.getPitch(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
     }
 

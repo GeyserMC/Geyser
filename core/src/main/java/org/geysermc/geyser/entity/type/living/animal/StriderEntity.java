@@ -169,8 +169,8 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.UNIT_Y;
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.UNIT_Z;
     }
 
     @Override

@@ -26,12 +26,13 @@
 package org.geysermc.geyser.entity.vehicle;
 
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
 
 public interface ClientVehicle {
     VehicleComponent<?> getVehicleComponent();
 
     // LivingEntity#getRiddenInput
-    Vector2f getAdjustedInput(Vector2f input);
+    Vector3f getRiddenInput(Vector2f input);
 
     // MojMap LivingEntity#getRiddenSpeed
     float getVehicleSpeed();

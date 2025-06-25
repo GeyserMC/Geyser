@@ -128,8 +128,8 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.UNIT_Y;
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.UNIT_Z;
     }
 
     @Override

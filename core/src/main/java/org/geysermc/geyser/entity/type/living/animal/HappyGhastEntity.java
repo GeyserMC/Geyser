@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -56,7 +57,6 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     private final HappyGhastVehicleComponent vehicleComponent = new HappyGhastVehicleComponent(this, 0.0f);
     private boolean staysStill;
-    private float speed;
 
     public HappyGhastEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -151,14 +151,31 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        // not used; calculations look a bit different for the happy ghast
-        return Vector2f.ZERO;
+    public Vector3f getRiddenInput(Vector2f input) {
+        float x = input.getX();
+        float y = 0.0f;
+        float z = 0.0f;
+
+        if (input.getY() != 0.0f) {
+            float pitch = session.getPlayerEntity().getPitch();
+            z = TrigMath.cos(pitch * TrigMath.DEG_TO_RAD);
+            y = -TrigMath.sin(pitch * TrigMath.DEG_TO_RAD);
+            if (input.getY() < 0.0f) {
+                z *= -0.5f;
+                y *= -0.5f;
+            }
+        }
+
+        if (session.getInputCache().wasJumping()) {
+            y += 0.5f;
+        }
+
+        return Vector3f.from(x, y, z).mul(3.9f * vehicleComponent.getFlyingSpeed());
     }
 
     @Override
     public float getVehicleSpeed() {
-        return speed; // TODO this doesnt seem right?
+        return 1; // TODO this doesnt seem right?
     }
 
     @Override

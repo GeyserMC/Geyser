@@ -25,22 +25,33 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
-import it.unimi.dsi.fastutil.objects.ObjectDoublePair;
+import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.util.MathUtils;
 
 public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntity> {
 
-    @Setter
+    @Getter @Setter
     private float flyingSpeed;
 
     public HappyGhastVehicleComponent(HappyGhastEntity vehicle, float stepHeight) {
         super(vehicle, stepHeight);
-        flyingSpeed = (float) AttributeType.Builtin.FLYING_SPEED.getDef();
+        flyingSpeed = 0.05f; // Happy Ghast has different default
+    }
+
+    @Override
+    protected void updateRotation() {
+        float addYaw = MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.08f;
+        vehicle.setYaw(vehicle.getYaw() + addYaw);
     }
 
     /**
@@ -51,52 +62,41 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
             return;
         }
 
-        // LivingEntity#travelFlying
         VehicleContext ctx = new VehicleContext();
         ctx.loadSurroundingBlocks();
 
-        // TODO tickRidden here (deals with rotations)
-
-        // TODO verify that updateFluidMovement applies to happy ghasts
-        ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
-
-        // HappyGhast#travel
-        float speed = flyingSpeed * 5.0f / 3.0f;
-
-        // TODO implement LivingEntity#travelFlying cases
-//        switch (fluidHeight.left()) {
-//            default -> {
-//                throw new GoodLuckImplementingThisException();
-//            }
-//        }
+        // LivingEntity#travelFlying
+        Fluid fluid = checkForFluid(ctx);
+        float drag = switch (fluid) {
+            case WATER -> 0.8f;
+            case LAVA -> 0.5f;
+            case EMPTY -> 0.91f;
+        };
+        travel(ctx, flyingSpeed * 5.0f / 3.0f);
+        vehicle.setMotion(vehicle.getMotion().mul(drag));
     }
 
-    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
-        Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
-        input = input.mul(0.98f); // ?
+    private Fluid checkForFluid(VehicleContext ctx) {
+        Fluid result = Fluid.EMPTY;
 
-        float x = input.getX();
-        float y = 0.0F;
-        float z = 0.0F;
+        BoundingBox box = boundingBox.clone();
+        box.expand(-0.001);
 
-        float playerZ = input.getY();
-        if (playerZ != 0.0F) {
-            float i = (float) Math.cos(vehicle.getSession().getPlayerEntity().getPitch() * (Math.PI / 180.0F));
-            float j = (float) -Math.sin(vehicle.getSession().getPlayerEntity().getPitch() * (Math.PI / 180.0F));
-            if (playerZ < 0.0F) {
-                i *= -0.5F;
-                j *= -0.5F;
+        Vector3d min = box.getMin();
+        Vector3d max = box.getMax();
+
+        BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockState blockState = ctx.getBlock(iter);
+            if (blockState.is(Blocks.WATER)) {
+                return Fluid.WATER; // Water takes priority over lava
             }
-
-            y = j;
-            z = i;
+            if (blockState.is(Blocks.LAVA)) {
+                result = Fluid.LAVA;
+            }
         }
 
-        if (vehicle.getSession().getInputCache().wasJumping()) {
-            y += 0.5F;
-        }
-
-        return Vector3f.from(x, y, z).mul(3.9F * flyingSpeed);
+        return result;
     }
 
     public class GoodLuckImplementingThisException extends RuntimeException {
