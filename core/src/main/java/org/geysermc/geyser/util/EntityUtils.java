@@ -226,7 +226,6 @@ public final class EntityUtils {
                     }
                 }
                 case HAPPY_GHAST -> {
-                    // 0.0, 5.02001, 1.7 BDS
                     int seatingIndex = Math.min(index, 4);
                     xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
                     yOffset = 3.4f;
@@ -279,14 +278,12 @@ public final class EntityUtils {
     }
 
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
-        if (isRiding) {
-            if (mount instanceof BoatEntity) {
-                // Head rotation is locked while riding in a boat
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
-            }
+        if (isRiding && mount instanceof BoatEntity) {
+            // Head rotation is locked while riding in a boat
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);

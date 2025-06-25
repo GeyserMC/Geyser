@@ -516,9 +516,8 @@ public class LivingEntity extends Entity {
                 case FLYING_SPEED -> {
                     AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
                     newAttributes.add(attributeData);
-                    if (this instanceof HappyGhastEntity happyGhast &&
-                            happyGhast.getVehicleComponent() instanceof HappyGhastVehicleComponent vehicleComponent) {
-                        vehicleComponent.setFlyingSpeed(attributeData.getValue());
+                    if (this instanceof HappyGhastEntity ghast && ghast.getVehicleComponent() instanceof HappyGhastVehicleComponent component) {
+                        component.setFlyingSpeed(attributeData.getValue());
                     }
                 }
                 case FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));

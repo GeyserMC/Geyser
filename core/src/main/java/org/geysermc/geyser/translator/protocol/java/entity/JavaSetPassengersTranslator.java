@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -54,7 +54,6 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         int @NonNull [] passengerIds = packet.getPassengerIds();
         for (int i = 0; i < passengerIds.length; i++) {
             int passengerId = passengerIds[i];
-
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);
