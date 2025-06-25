@@ -67,6 +67,7 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * @return {@code true} if the client currently has a form open.
+     * @since 2.8.0
      */
     boolean hasFormOpen();
 
@@ -81,7 +82,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     int protocolVersion();
 
     /**
-     * Tries to open the {@code minecraft:pause_screen_additions} dialog tag. This method opens this tag the same way Java does, that is:
+     * Attempts to open the {@code minecraft:pause_screen_additions} dialog tag. This method opens this dialog the same way Java does, that is:
      *
      * <ul>
      *     <li>If there are multiple dialogs in the additions tag, the {@code minecraft:custom_options} dialog is opened to select a dialog.</li>
@@ -91,11 +92,12 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
+     * @since 2.8.0
      */
     void openPauseScreenAdditions();
 
     /**
-     * Tries to open the {@code minecraft:quick_actions} dialog tag. This method opens this tag the same way Java does, that is:
+     * Attempts to open the {@code minecraft:quick_actions} dialog tag. This method opens this dialog the same way Java does, that is:
      *
      * <ul>
      *     <li>If there are multiple dialogs in the actions tag, the {@code minecraft:quick_actions} dialog is opened to select a dialog.</li>
@@ -104,6 +106,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
+     * @since 2.8.0
      */
     void openQuickActions();
 
@@ -111,6 +114,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Sends a command as if the player had executed it.
      *
      * @param command the command without the leading forward-slash
+     * @since 2.8.0
      */
     void sendCommand(String command);
 
