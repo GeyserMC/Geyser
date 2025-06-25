@@ -867,6 +867,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+        // We disable the locator bar until we are certain that the server wants us to enable it
+        // See WaypointCache for details
+        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        
         upstream.sendPacket(gamerulePacket);
     }
 

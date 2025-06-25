@@ -175,4 +175,9 @@ public final class WaypointCache {
         addPacket.getEntries().add(entry);
         session.sendUpstreamPacket(addPacket);
     }
+
+    public void clear() {
+        waypoints.clear();
+        session.sendGameRule("locatorBar", false);
+    }
 }
