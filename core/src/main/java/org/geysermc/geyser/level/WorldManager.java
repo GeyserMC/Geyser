@@ -126,7 +126,7 @@ public abstract class WorldManager {
      * @param value The new value for the gamerule
      */
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendCommand("gamerule " + name + " " + value);
+        session.sendCommandPacket("gamerule " + name + " " + value);
     }
 
     /**
@@ -162,7 +162,7 @@ public abstract class WorldManager {
      * @param gameMode the new default game mode
      */
     public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendCommand("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
+        session.sendCommandPacket("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -172,7 +172,7 @@ public abstract class WorldManager {
      * @param difficulty The difficulty to change to
      */
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendCommand("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
+        session.sendCommandPacket("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
     }
 
     /**
