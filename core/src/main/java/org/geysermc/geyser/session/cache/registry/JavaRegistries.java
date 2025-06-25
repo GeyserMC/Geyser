@@ -68,8 +68,13 @@ public class JavaRegistries {
     public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
         Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
     public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
-        type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)),
-        key -> EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)).ordinal());
+        type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)), key -> {
+        try {
+            return EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)).ordinal();
+        } catch (IllegalArgumentException exception) {
+            return -1; // Non-existent entity type
+        }
+    });
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
