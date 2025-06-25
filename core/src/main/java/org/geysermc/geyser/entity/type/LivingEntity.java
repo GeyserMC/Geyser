@@ -51,6 +51,7 @@ import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
@@ -535,6 +536,32 @@ public class LivingEntity extends Entity {
                 }
             }
         }
+    }
+
+    protected boolean hasBodyArmor() {
+        return this.hasValidEquippableItemForSlot(EquipmentSlot.BODY);
+    }
+
+    private boolean hasValidEquippableItemForSlot(EquipmentSlot slot) {
+        // MojMap LivingEntity#hasItemInSlot
+        GeyserItemStack itemInSlot = equipment.get(slot);
+        if (itemInSlot != null) {
+            // MojMap LivingEntity#isEquippableInSlot
+            Equippable equippable = itemInSlot.getComponent(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                return slot == equippable.slot() &&
+                    canUseSlot(slot) &&
+                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            } else {
+                return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return true;
     }
 
     /**

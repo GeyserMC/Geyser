@@ -44,11 +44,14 @@ import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Locale;
 
@@ -283,23 +286,12 @@ public final class EntityUtils {
                 passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
                 passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
                 passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
-            } else if (mount instanceof HappyGhastEntity) {
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, 8f);
-                passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, 6f);
-
-                passenger.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
             }
         } else {
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
-            // TODO what are defaults here???
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, 8f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, 6f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
         }
     }
 
@@ -361,6 +353,15 @@ public final class EntityUtils {
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
         String typeName = type.name().toLowerCase(Locale.ROOT);
         return translatedEntityName("minecraft", typeName, session);
+    }
+
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityType entity) {
+        if (equippable.allowedEntities() == null) {
+            return true;
+        }
+
+        GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        return session.getTagCache().is(holderSet, entity);
     }
 
     private EntityUtils() {

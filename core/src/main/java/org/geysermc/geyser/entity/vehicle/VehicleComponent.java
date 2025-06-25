@@ -592,7 +592,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
      *
      * @return true if there was a horizontal collision
      */
-    // Mojmap: LivingEntity#moveRelative
+    // Mojmap: LivingEntity#moveRelative / LivingEntity#move
     protected boolean travel(VehicleContext ctx, float speed) {
         Vector3f motion = vehicle.getMotion();
 

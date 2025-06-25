@@ -30,8 +30,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -42,12 +44,16 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
+import java.util.List;
 import java.util.UUID;
 
 public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
@@ -180,12 +186,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public boolean isClientControlled() {
-        // TODO proper check, just lazy
-        if (body == null) {
-            return false;
-        }
-        // TODO must have ai check
-        if (staysStill) {
+        if (!hasBodyArmor() || getFlag(EntityFlag.NO_AI) || staysStill) {
             return false;
         }
 
@@ -194,5 +195,26 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     private Entity getFirstPassenger() {
         return passengers.isEmpty() ? null : passengers.get(0);
+    }
+
+    @Override
+    protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
+        super.updateAttribute(javaAttribute, newAttributes);
+        if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
+            switch (type) {
+                case FLYING_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
+                    vehicleComponent.setFlyingSpeed(attributeData.getValue());
+                }
+                case CAMERA_DISTANCE -> {
+                    vehicleComponent.setCameraDistance((float) AttributeUtils.calculateValue(javaAttribute));
+                }
+            }
+        }
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return slot != EquipmentSlot.BODY ? super.canUseSlot(slot) : this.isAlive() && !this.isBaby();
     }
 }

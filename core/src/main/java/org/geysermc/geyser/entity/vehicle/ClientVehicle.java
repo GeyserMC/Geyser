@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 public interface ClientVehicle {
     VehicleComponent<?> getVehicleComponent();
 
-    // LivingEntity#getRiddenInput
+    // MojMap LivingEntity#getRiddenInput
     Vector3f getRiddenInput(Vector2f input);
 
     // MojMap LivingEntity#getRiddenSpeed

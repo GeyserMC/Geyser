@@ -27,31 +27,57 @@ package org.geysermc.geyser.entity.vehicle;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
-import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 
+@Setter
+@Getter
 public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntity> {
 
-    @Getter @Setter
     private float flyingSpeed;
+    private float cameraDistance;
 
     public HappyGhastVehicleComponent(HappyGhastEntity vehicle, float stepHeight) {
         super(vehicle, stepHeight);
-        flyingSpeed = 0.05f; // Happy Ghast has different default
+        // Happy Ghast has different defaults
+        flyingSpeed = 0.05f;
+        moveSpeed = 0.05f;
+        cameraDistance = 8.0f;
     }
 
     @Override
     protected void updateRotation() {
         float addYaw = MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.08f;
         vehicle.setYaw(vehicle.getYaw() + addYaw);
+    }
+
+    @Override
+    public void onMount() {
+        super.onMount();
+        SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, cameraDistance);
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+    }
+
+    @Override
+    public void onDismount() {
+        super.onDismount();
+        SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, (float) AttributeType.Builtin.CAMERA_DISTANCE.getDef());
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
     /**
@@ -72,6 +98,7 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
             case LAVA -> 0.5f;
             case EMPTY -> 0.91f;
         };
+        // HappyGhast#travel
         travel(ctx, flyingSpeed * 5.0f / 3.0f);
         vehicle.setMotion(vehicle.getMotion().mul(drag));
     }
@@ -97,8 +124,5 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         }
 
         return result;
-    }
-
-    public class GoodLuckImplementingThisException extends RuntimeException {
     }
 }
