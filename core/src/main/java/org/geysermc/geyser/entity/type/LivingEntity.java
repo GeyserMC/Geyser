@@ -41,16 +41,17 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
@@ -63,9 +64,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
@@ -73,6 +72,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,6 +80,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class LivingEntity extends Entity {
+    protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
+
     protected ItemData helmet = ItemData.AIR;
     protected ItemData chestplate = ItemData.AIR;
     protected ItemData leggings = ItemData.AIR;
@@ -116,47 +118,51 @@ public class LivingEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setHelmet(ItemStack stack) {
+    public void setHelmet(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.HELMET, stack);
         this.helmet = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setChestplate(ItemStack stack) {
+    public void setChestplate(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.CHESTPLATE, stack);
         this.chestplate = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setLeggings(ItemStack stack) {
+    public void setLeggings(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.LEGGINGS, stack);
         this.leggings = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setBoots(ItemStack stack) {
+    public void setBoots(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.BOOTS, stack);
         this.boots = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setBody(ItemStack stack) {
+    public void setBody(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.BODY, stack);
         this.body = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setSaddle(@Nullable ItemStack stack) {
+    public void setSaddle(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.SADDLE, stack);
         this.saddle = ItemTranslator.translateToBedrock(session, stack);
 
         boolean saddled = false;
-        if (stack != null) {
-            Item item = Registries.JAVA_ITEMS.get(stack.getId());
-            if (item != null) {
-                DataComponents components = item.gatherComponents(stack.getDataComponentsPatch());
-                Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
-                saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
-            }
+        if (!stack.isEmpty()) {
+            Equippable equippable = stack.getComponent(DataComponentTypes.EQUIPPABLE);
+            saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
         }
 
         updateSaddled(saddled);
     }
 
-    public void setHand(ItemStack stack) {
+    public void setHand(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.MAIN_HAND, stack);
         this.hand = ItemTranslator.translateToBedrock(session, stack);
     }
 
-    public void setOffhand(ItemStack stack) {
+    public void setOffhand(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.OFF_HAND, stack);
         this.offhand = ItemTranslator.translateToBedrock(session, stack);
     }
 
@@ -172,9 +178,13 @@ public class LivingEntity extends Entity {
     }
 
     public void switchHands() {
-        ItemData offhand = this.offhand;
+        GeyserItemStack javaOffhand = this.equipment.get(EquipmentSlot.OFF_HAND);
+        this.equipment.put(EquipmentSlot.OFF_HAND, this.equipment.get(EquipmentSlot.MAIN_HAND));
+        this.equipment.put(EquipmentSlot.MAIN_HAND, javaOffhand);
+
+        ItemData bedrockOffhand = this.offhand;
         this.offhand = this.hand;
-        this.hand = offhand;
+        this.hand = bedrockOffhand;
     }
 
     @Override
@@ -503,7 +513,13 @@ public class LivingEntity extends Entity {
                     }
                 }
                 case ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-                case FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+                case FLYING_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof HappyGhastEntity ghast && ghast.getVehicleComponent() instanceof HappyGhastVehicleComponent component) {
+                        component.setFlyingSpeed(attributeData.getValue());
+                    }
+                }
                 case FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
                 case KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
                 case JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
@@ -512,8 +528,39 @@ public class LivingEntity extends Entity {
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();
                 }
+                case WATER_MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
+    }
+
+    protected boolean hasBodyArmor() {
+        return this.hasValidEquippableItemForSlot(EquipmentSlot.BODY);
+    }
+
+    private boolean hasValidEquippableItemForSlot(EquipmentSlot slot) {
+        // MojMap LivingEntity#hasItemInSlot
+        GeyserItemStack itemInSlot = equipment.get(slot);
+        if (itemInSlot != null) {
+            // MojMap LivingEntity#isEquippableInSlot
+            Equippable equippable = itemInSlot.getComponent(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                return slot == equippable.slot() &&
+                    canUseSlot(slot) &&
+                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            } else {
+                return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return true;
     }
 
     /**

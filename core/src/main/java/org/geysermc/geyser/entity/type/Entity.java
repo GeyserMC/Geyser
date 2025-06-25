@@ -45,7 +45,11 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.type.living.MobEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -617,7 +621,7 @@ public class Entity implements GeyserEntity {
             Entity passenger = passengers.get(i);
             if (passenger != null) {
                 boolean rider = i == 0;
-                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
                 passenger.updateBedrockMetadata();
             }
         }
@@ -629,7 +633,7 @@ public class Entity implements GeyserEntity {
     protected void updateMountOffset() {
         if (vehicle != null) {
             boolean rider = vehicle.getPassengers().get(0) == this;
-            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
     }
@@ -682,19 +686,46 @@ public class Entity implements GeyserEntity {
      * to ensure packet parity as well as functionality parity (such as sound effect responses).
      */
     public InteractionResult interact(Hand hand) {
-        if (isAlive() && this instanceof Leashable leashable) {
+        Item itemInHand = session.getPlayerInventory().getItemInHand(hand).asItem();
+        if (itemInHand == Items.SHEARS) {
+            if (hasLeashesToDrop()) {
+                return InteractionResult.SUCCESS;
+            }
+
+            if (this instanceof MobEntity mob && !session.isSneaking() && mob.canShearEquipment()) {
+                return InteractionResult.SUCCESS;
+            }
+        } else if (isAlive() && this instanceof Leashable leashable) {
             if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD
+                && !(session.getEntityCache().getEntityByGeyserId(leashable.leashHolderBedrockId()) instanceof PlayerEntity)) {
                 // We shall leash
                 return InteractionResult.SUCCESS;
             }
         }
 
         return InteractionResult.PASS;
+    }
+
+    public boolean hasLeashesToDrop() {
+        BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
+        List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getGeyserId())
+            .filter(entity -> {
+                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                return searchBB.checkIntersection(leashedBB);
+            }).map(Leashable.class::cast).toList();
+
+        boolean found = !leashedInRange.isEmpty();
+        if (this instanceof Leashable leashable && leashable.isLeashed()) {
+            found = true;
+        }
+
+        return found;
     }
 
     /**

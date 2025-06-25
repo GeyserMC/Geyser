@@ -145,6 +145,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // Get the first node, it should be a root node
         CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
 
+        List<String> knownCommands = new ArrayList<>();
+        List<String> restrictedCommands = new ArrayList<>();
         // Loop through the root nodes to get all commands
         for (int nodeIndex : rootNode.getChildIndices()) {
             CommandNode node = nodes[nodeIndex];
@@ -167,7 +169,16 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             String description = registry.description(name, session.locale());
             BedrockCommandInfo info = new BedrockCommandInfo(name, description, params);
             commands.computeIfAbsent(info, $ -> new HashSet<>()).add(name);
+
+            // Add the command to the command lists
+            knownCommands.add(name);
+            if (node.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
+                restrictedCommands.add(name);
+            }
         }
+
+        session.setKnownCommands(knownCommands);
+        session.setRestrictedCommands(restrictedCommands);
 
         var eventBus = session.getGeyser().eventBus();
 

@@ -26,14 +26,18 @@
 package org.geysermc.geyser.entity.vehicle;
 
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
 
 public interface ClientVehicle {
     VehicleComponent<?> getVehicleComponent();
 
-    Vector2f getAdjustedInput(Vector2f input);
+    // MojMap LivingEntity#getRiddenInput
+    Vector3f getRiddenInput(Vector2f input);
 
+    // MojMap LivingEntity#getRiddenSpeed
     float getVehicleSpeed();
 
+    // MojMap Mob#getControllingPassenger
     boolean isClientControlled();
 
     default boolean canWalkOnLava() {

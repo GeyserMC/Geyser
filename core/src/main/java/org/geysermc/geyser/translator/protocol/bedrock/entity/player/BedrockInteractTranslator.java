@@ -75,8 +75,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                session.sendDownstreamGamePacket(sneakPacket);
+                session.setShouldSendSneak(true);
 
                 // Reset steering to avoid these accidentally triggering session#isHandsBusy
                 session.setSteeringLeft(false);

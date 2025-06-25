@@ -120,7 +120,6 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -175,9 +174,14 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.dialog.BuiltInDialog;
+import org.geysermc.geyser.session.dialog.Dialog;
+import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -196,6 +200,7 @@ import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
+import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -284,6 +289,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
     private final TagCache tagCache;
+    private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
     @Setter
@@ -308,6 +314,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
+
+    private final DialogManager dialogManager = new DialogManager(this);
+
+    /**
+     * A list of links sent to us by the server in the server links packet.
+     */
+    @Setter
+    private List<ServerLink> serverLinks = List.of();
+
+    /**
+     * A list of commands known to the client. These are all the commands that have been sent to us by the server.
+     */
+    @Setter
+    private List<String> knownCommands = List.of();
+    /**
+     * A list of "restricted" commands known to the client. These are all the commands that have been sent to us by the server, and require some sort of elevated permissions.
+     */
+    @Setter
+    private List<String> restrictedCommands = List.of();
 
     /**
      * Whether the client is currently closing an inventory.
@@ -396,6 +421,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private String[] levels;
 
     private boolean sneaking;
+
+    /**
+     * Used to send a shift state for a tick to dismount from entitites
+     */
+    @Setter
+    private boolean shouldSendSneak;
 
     /**
      * Stores the Java pose that the server and/or Geyser believes the player currently has.
@@ -716,6 +747,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache(this);
+        this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
@@ -779,15 +811,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sentSpawnPacket = true;
         syncEntityProperties();
 
-        if (GameProtocol.isPreCreativeInventoryRewrite(this.protocolVersion())) {
-            ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getComponentItemData());
-            upstream.sendPacket(componentPacket);
-        } else {
-            ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
-            upstream.sendPacket(componentPacket);
-        }
+        ItemComponentPacket componentPacket = new ItemComponentPacket();
+        componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
+        upstream.sendPacket(componentPacket);
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -841,9 +867,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // Disable locator bar for now
-        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1244,6 +1267,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
             }
+
+            dialogManager.tick();
+            waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1252,20 +1278,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         worldTicks++;
     }
 
-    public void startSneaking() {
+    public void startSneaking(boolean updateMetaData) {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
         if (armAnimationTicks < 0) {
             attemptToBlock();
         }
 
-        setSneaking(true);
+        setSneaking(true, updateMetaData);
     }
 
-    public void stopSneaking() {
+    public void stopSneaking(boolean updateMetaData) {
         disableBlocking();
 
-        setSneaking(false);
+        setSneaking(false, updateMetaData);
     }
 
     public void setSpinAttack(boolean spinAttack) {
@@ -1276,7 +1302,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
     }
 
-    private void setSneaking(boolean sneaking) {
+    private void setSneaking(boolean sneaking, boolean update) {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
@@ -1286,7 +1312,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         collisionManager.updateScaffoldingFlags(false);
 
-        playerEntity.updateBedrockMetadata();
+        if (update) {
+            playerEntity.updateBedrockMetadata();
+        }
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
@@ -1516,6 +1544,32 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.sendCommandPacket(command);
     }
 
+    @Override
+    public void openPauseScreenAdditions() {
+        List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
+        if (additions.isEmpty()) {
+            if (!serverLinks.isEmpty()) {
+                dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
+            }
+        } else if (additions.size() == 1) {
+            dialogManager.openDialog(additions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
+        }
+    }
+
+    @Override
+    public void openQuickActions() {
+        List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
+        if (quickActions.isEmpty()) {
+            return;
+        } else if (quickActions.size() == 1) {
+            dialogManager.openDialog(quickActions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        }
+    }
+
     public void setClientRenderDistance(int clientRenderDistance) {
         boolean oldSquareToCircle = this.clientRenderDistance < this.serverRenderDistance;
         this.clientRenderDistance = clientRenderDistance;
@@ -1552,6 +1606,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull Form form) {
+        // First close any dialogs that are open. This won't execute the dialog's closing action.
+        dialogManager.close();
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public boolean sendDialogForm(@NonNull Form form) {
+        return doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
     }
@@ -1659,6 +1726,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Allows Vibrant Visuals to appear in the settings menu
         if (allowVibrantVisuals && !GameProtocol.is1_21_90orHigher(this)) {
             startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
+        }
+        // Enables 2025 Content Drop 2 features
+        if (GameProtocol.is1_21_80(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+            // Enables the locator bar for 1.21.80 clients
+            startGamePacket.getExperiments().add(new ExperimentData("locator_bar", true));
         }
 
         startGamePacket.setVanillaVersion("*");
@@ -1826,7 +1899,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Changes the daylight cycle gamerule on the client
-     * This is used in the login screen along-side normal usage
+     * This is used in login and configuration screens along-side normal usage
      *
      * @param doCycle If the cycle should continue
      */
@@ -2239,6 +2312,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public int protocolVersion() {
         return upstream.getProtocolVersion();
+    }
+
+    @Override
+    public boolean hasFormOpen() {
+        return formCache.hasFormOpen();
     }
 
     @Override

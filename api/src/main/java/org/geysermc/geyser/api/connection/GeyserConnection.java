@@ -66,6 +66,11 @@ public interface GeyserConnection extends Connection, CommandSource {
     int ping();
 
     /**
+     * @return {@code true} if the client currently has a form open.
+     */
+    boolean hasFormOpen();
+
+    /**
      * Closes the currently open form on the client.
      */
     void closeForm();
@@ -74,6 +79,33 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Gets the Bedrock protocol version of the player.
      */
     int protocolVersion();
+
+    /**
+     * Tries to open the {@code minecraft:pause_screen_additions} dialog tag. This method opens this tag the same way Java does, that is:
+     *
+     * <ul>
+     *     <li>If there are multiple dialogs in the additions tag, the {@code minecraft:custom_options} dialog is opened to select a dialog.</li>
+     *     <li>If there is one dialog in the additions tag, that dialog is opened.</li>
+     *     <li>If there are no dialogs in the tag, but there are server links sent to the client, the {@code minecraft:server_links} dialog is opened.</li>
+     *     <li>If all of the above fails, no dialog is opened.</li>
+     * </ul>
+     *
+     * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
+     */
+    void openPauseScreenAdditions();
+
+    /**
+     * Tries to open the {@code minecraft:quick_actions} dialog tag. This method opens this tag the same way Java does, that is:
+     *
+     * <ul>
+     *     <li>If there are multiple dialogs in the actions tag, the {@code minecraft:quick_actions} dialog is opened to select a dialog.</li>
+     *     <li>If there is one dialog in the actions tag, that dialog is opened.</li>
+     *     <li>If there are no dialogs in the tag, no dialog is opened.</li>
+     * </ul>
+     *
+     * <p>Use {@link GeyserConnection#hasFormOpen()} to check if a dialog was opened.</p>
+     */
+    void openQuickActions();
 
     /**
      * Sends a command as if the player had executed it.
