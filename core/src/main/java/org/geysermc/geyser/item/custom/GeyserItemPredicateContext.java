@@ -136,7 +136,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
     }
 
     public static ItemPredicateContext create(GeyserSession session, int stackSize, DataComponents components) {
-        Supplier<Identifier> dimension = Suppliers.memoize(() -> MinecraftKey.keyToIdentifier(JavaRegistries.DIMENSION_TYPE.keyFromObject(session, session.getDimensionType())));
+        Supplier<Identifier> dimension = Suppliers.memoize(() -> MinecraftKey.keyToIdentifier(JavaRegistries.DIMENSION_TYPE.key(session, session.getDimensionType())));
 
         Supplier<Integer> maxStackSize = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 64));
         Supplier<Integer> damage = Suppliers.memoize(() -> components.getOrDefault(DataComponentTypes.DAMAGE, 0));
@@ -159,7 +159,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
         Supplier<Identifier> trimMaterial = Suppliers.memoize(() -> {
             ArmorTrim trim = components.get(DataComponentTypes.TRIM);
             if (trim != null && !trim.material().isCustom()) {
-                return MinecraftKey.keyToIdentifier(JavaRegistries.TRIM_MATERIAL.keyFromNetworkId(session, trim.material().id()).key());
+                return MinecraftKey.keyToIdentifier(JavaRegistries.TRIM_MATERIAL.key(session, trim.material().id()).key());
             }
             return null;
         });
