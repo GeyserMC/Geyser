@@ -110,7 +110,7 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        // 1.21.5
+        // Fallbacks for 1.21.6 items (1.21.6 -> 1.21.5)
         Map<Item, Item> itemFallbacks = new HashMap<>();
         itemFallbacks.put(Items.BLACK_HARNESS, Items.SADDLE);
         itemFallbacks.put(Items.BLUE_HARNESS, Items.SADDLE);
@@ -132,7 +132,7 @@ public class ItemRegistryPopulator {
         itemFallbacks.put(Items.DRIED_GHAST, Items.PLAYER_HEAD);
         itemFallbacks.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
 
-        List<PaletteVersion> paletteVersions = new ArrayList<>(2);
+        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
         paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5), (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()));
