@@ -89,7 +89,7 @@ final class ExceptionHandlers {
             (ctx, e) -> {
                 // Let backend server receive & handle the command
                 if (CommandRegistry.STANDALONE_COMMAND_MANAGER && ctx.sender() instanceof GeyserSession session) {
-                    session.sendCommand(ctx.rawInput().input());
+                    session.sendCommandPacket(ctx.rawInput().input());
                 } else {
                     ctx.sender().sendLocaleString("geyser.command.not_found");
                 }
@@ -114,7 +114,7 @@ final class ExceptionHandlers {
 
         // Let backend server receive & handle the command
         if (CommandRegistry.STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
-            session.sendCommand(context.rawInput().input());
+            session.sendCommandPacket(context.rawInput().input());
             return;
         }
 

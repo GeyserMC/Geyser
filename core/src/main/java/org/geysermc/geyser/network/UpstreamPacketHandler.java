@@ -255,6 +255,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
                 }
 
+                if (GameProtocol.is1_21_80(session)) {
+                    // Support happy ghasts in .80
+                    stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+                    // Enables the locator bar for 1.21.80 clients
+                    stackPacket.getExperiments().add(new ExperimentData("locator_bar", true));
+                }
+
                 session.sendUpstreamPacket(stackPacket);
             }
             default -> session.disconnect("disconnectionScreen.resourcePack");

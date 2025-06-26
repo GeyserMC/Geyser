@@ -490,6 +490,13 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
+    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return null;
+        }
+        return convertMessage(session, componentFromNbtTag(nbtTag));
+    }
+
     public static Component componentFromNbtTag(Object nbtTag) {
         return componentFromNbtTag(nbtTag, Style.empty());
     }

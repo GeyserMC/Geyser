@@ -70,7 +70,7 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
     private static String getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
         Holder<Key> holder = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
         if (holder != null) {
-            Key chickenVariant = holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.keyFromNetworkId(session, id));
+            Key chickenVariant = holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id));
             for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
                 if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
                     return chickenVariant.asMinimalString().toLowerCase(Locale.ROOT);
