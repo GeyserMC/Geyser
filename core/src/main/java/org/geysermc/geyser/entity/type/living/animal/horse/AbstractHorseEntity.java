@@ -45,6 +45,7 @@ import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
@@ -284,6 +285,15 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else {
             // The client tests for saddle but it doesn't matter for us at this point.
             return InteractionResult.SUCCESS;
+        }
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        if (slot != EquipmentSlot.SADDLE) {
+            return super.canUseSlot(slot);
+        } else {
+            return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
         }
     }
 }

@@ -83,6 +83,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.setInventoryHolder(null);
             session.setPendingOrCurrentBedrockInventoryId(-1);
             session.setClosingInventory(false);
+
+            // Clear waypoints
+            session.getWaypointCache().clear();
         }
 
         session.setDimensionType(newDimension);

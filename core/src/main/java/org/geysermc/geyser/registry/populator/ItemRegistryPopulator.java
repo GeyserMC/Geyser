@@ -46,8 +46,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
-import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
@@ -76,7 +74,6 @@ import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -93,7 +90,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -126,23 +122,29 @@ public class ItemRegistryPopulator {
     public static void populate() {
         // 1.21.5
         Map<Item, Item> itemFallbacks = new HashMap<>();
-        itemFallbacks.put(Items.BUSH, Items.SHORT_GRASS);
-        itemFallbacks.put(Items.CACTUS_FLOWER, Items.BUBBLE_CORAL_FAN);
-        itemFallbacks.put(Items.FIREFLY_BUSH, Items.SHORT_GRASS);
-        itemFallbacks.put(Items.LEAF_LITTER, Items.PINK_PETALS);
-        itemFallbacks.put(Items.SHORT_DRY_GRASS, Items.DEAD_BUSH);
-        itemFallbacks.put(Items.TALL_DRY_GRASS, Items.TALL_GRASS);
-        itemFallbacks.put(Items.WILDFLOWERS, Items.PINK_PETALS);
-        itemFallbacks.put(Items.TEST_BLOCK, Items.STRUCTURE_BLOCK);
-        itemFallbacks.put(Items.TEST_INSTANCE_BLOCK, Items.JIGSAW);
-        itemFallbacks.put(Items.BLUE_EGG, Items.EGG);
-        itemFallbacks.put(Items.BROWN_EGG, Items.EGG);
+        itemFallbacks.put(Items.BLACK_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.BLUE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.BROWN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.RED_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.GREEN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.YELLOW_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.ORANGE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.MAGENTA_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIGHT_BLUE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIME_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.PINK_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.GRAY_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.CYAN_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.PURPLE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.LIGHT_GRAY_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.WHITE_HARNESS, Items.SADDLE);
+        itemFallbacks.put(Items.HAPPY_GHAST_SPAWN_EGG, Items.EGG);
+        itemFallbacks.put(Items.DRIED_GHAST, Items.PLAYER_HEAD);
+        itemFallbacks.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
 
-        List<PaletteVersion> paletteVersions = new ArrayList<>(5);
-        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
-        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(2);
+        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks, (item, mapping) -> mapping));
+        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5), (item, mapping) -> mapping));
         paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
@@ -189,9 +191,6 @@ public class ItemRegistryPopulator {
 
             // Used for custom items
             int nextFreeBedrockId = 0;
-            // TODO yeet
-            List<ItemDefinition> componentItemData = new ObjectArrayList<>();
-
             Int2ObjectMap<ItemDefinition> registry = new Int2ObjectOpenHashMap<>();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -256,13 +255,7 @@ public class ItemRegistryPopulator {
                 }
             });
 
-            List<CreativeItemGroup> creativeItemGroups;
-            if (GameProtocol.isPreCreativeInventoryRewrite(palette.protocolVersion)) {
-                creativeItemGroups = new ArrayList<>();
-            } else {
-                creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
-            }
-
+            List<CreativeItemGroup> creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
@@ -516,7 +509,6 @@ public class ItemRegistryPopulator {
                             }
 
                             // ComponentItemData - used to register some custom properties
-                            componentItemData.add(customMapping.itemDefinition());
                             customItemDefinitions.put(MinecraftKey.identifierToKey(customItem.model()), customMapping);
                             registry.put(customMapping.integerId(), customMapping.itemDefinition());
 
@@ -583,7 +575,6 @@ public class ItemRegistryPopulator {
                 ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, ItemVersion.DATA_DRIVEN, true, registerFurnaceMinecart(furnaceMinecartId));
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.put(definition.getRuntimeId(), definition);
-                componentItemData.add(definition);
 
                 mappings.set(Items.FURNACE_MINECART.javaId(), ItemMapping.builder()
                         .javaItem(Items.FURNACE_MINECART)
@@ -602,20 +593,20 @@ public class ItemRegistryPopulator {
                     .build(), creativeNetId.get(), 99)); // todo do not hardcode!
 
                 // Register any completely custom items given to us
-                // TODO broken as of right now
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
                 for (NonVanillaCustomItemDefinition customItem : nonVanillaCustomItems.values()) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
                         if (firstMappingsPass) {
                             GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping..."); // TODO validate this in API event and throw
                         }
+                        continue;
                     }
 
                     int customItemId = nextFreeBedrockId++;
                     try {
                         NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                        componentItemData.add(registration.mapping().getBedrockDefinition());
+
                         ItemMapping mapping = registration.mapping();
                         Item javaItem = registration.javaItem();
                         while (javaItem.javaId() >= mappings.size()) {
@@ -681,7 +672,6 @@ public class ItemRegistryPopulator {
                     .creativeItems(creativeItems)
                     .creativeItemGroups(creativeItemGroups)
                     .itemDefinitions(registry)
-                    .componentItemData(componentItemData)
                     .storedItems(new StoredItemMappings(javaItemToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)

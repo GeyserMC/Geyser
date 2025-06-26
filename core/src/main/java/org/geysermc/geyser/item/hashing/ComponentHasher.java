@@ -35,6 +35,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -96,9 +97,9 @@ public interface ComponentHasher {
             .optionalNullable("name", COMPONENT, event -> ((HoverEvent.ShowEntity) event.value()).name());
     });
 
-    // TODO shadow colours - needs kyori bump
     MapBuilder<Style> STYLE = builder ->  builder
         .optionalNullable("color", COLOR, Style::color)
+        .optionalNullable("shadow_color", MinecraftHasher.INT.cast(ShadowColor::value), Style::shadowColor)
         .optional("bold", DECORATION_STATE, style -> style.decoration(TextDecoration.BOLD), TextDecoration.State.NOT_SET)
         .optional("italic", DECORATION_STATE, style -> style.decoration(TextDecoration.ITALIC), TextDecoration.State.NOT_SET)
         .optional("underlined", DECORATION_STATE, style -> style.decoration(TextDecoration.UNDERLINED), TextDecoration.State.NOT_SET)

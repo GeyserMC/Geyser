@@ -35,10 +35,10 @@ public interface Leashable {
     long leashHolderBedrockId();
 
     default boolean canBeLeashed() {
-        return isNotLeashed();
+        return true;
     }
 
-    default boolean isNotLeashed() {
-        return leashHolderBedrockId() == -1L;
+    default boolean isLeashed() {
+        return leashHolderBedrockId() != -1L;
     }
 }

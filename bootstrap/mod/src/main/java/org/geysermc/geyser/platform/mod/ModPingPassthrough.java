@@ -25,22 +25,20 @@
 
 package org.geysermc.geyser.platform.mod;
 
+import com.mojang.serialization.JsonOps;
+import io.netty.channel.ChannelFutureListener;
 import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.Connection;
-import net.minecraft.network.PacketSendListener;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.status.ClientboundStatusResponsePacket;
 import net.minecraft.network.protocol.status.ServerStatus;
 import net.minecraft.network.protocol.status.ServerStatusPacketListener;
 import net.minecraft.network.protocol.status.ServerboundStatusRequestPacket;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerStatusPacketListenerImpl;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.ping.GeyserPingInfo;
@@ -51,9 +49,6 @@ import java.util.Objects;
 
 @AllArgsConstructor
 public class ModPingPassthrough implements IGeyserPingPassthrough {
-
-    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
-    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
 
     private final MinecraftServer server;
     private final GeyserLogger logger;
@@ -81,7 +76,7 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
         }
 
         return new GeyserPingInfo(
-            net.minecraft.network.chat.Component.Serializer.toJson(status.description(), RegistryAccess.EMPTY),
+            ComponentSerialization.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, server.registryAccess()), status.description()).getOrThrow().toString(),
             status.players().map(ServerStatus.Players::max).orElse(1),
             status.players().map(ServerStatus.Players::online).orElse(0)
         );
@@ -99,11 +94,11 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
         }
 
         @Override
-        public void send(@NonNull Packet<?> packet, @Nullable PacketSendListener packetSendListener, boolean bl) {
+        public void send(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl) {
             if (packet instanceof ClientboundStatusResponsePacket statusResponse) {
                 status = statusResponse.status();
             }
-            super.send(packet, packetSendListener, bl);
+            super.send(packet, channelFutureListener, bl);
         }
     }
 }

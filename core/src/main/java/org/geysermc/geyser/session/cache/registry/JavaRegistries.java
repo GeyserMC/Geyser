@@ -44,11 +44,18 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
@@ -56,8 +63,18 @@ import java.util.List;
 public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
-    public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS, Block::javaId, Block::javaIdentifier);
-    public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS, Item::javaId, Item::javaKey);
+    public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS,
+        Block::javaId, Block::javaIdentifier, key -> Optional.ofNullable(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get(key.asString())).orElse(-1));
+    public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
+        Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
+    public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
+        type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)), key -> {
+        try {
+            return EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)).ordinal();
+        } catch (IllegalArgumentException exception) {
+            return -1; // Non-existent entity type
+        }
+    });
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
@@ -70,6 +87,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material");
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern");
     public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
+    public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant");
@@ -80,23 +98,24 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant");
 
-    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.NetworkSerializer<T> networkSerializer, JavaRegistryKey.NetworkDeserializer<T> networkDeserializer,
-                                                 JavaRegistryKey.NetworkIdentifier<T> networkIdentifier) {
-        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), networkSerializer, networkDeserializer, networkIdentifier);
+    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup) {
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registryLookup);
         VALUES.add(registry);
         return registry;
     }
 
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer, RegistryIdentifierMapper<T> identifierMapper) {
-        return create(key, (session, $, object) -> networkSerializer.get(object),
-            (session, $, id) -> registry.get(id),
-            (session, $, id) -> identifierMapper.get(registry.get(id)));
+    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
+                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
+        return createHardcoded(key, registry.get(), networkSerializer, identifierMapper, idMapper);
+    }
+
+    private static <T> JavaRegistryKey<T> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
+                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
+        return create(key, new HardcodedLookup<>(registry, networkSerializer, identifierMapper, idMapper));
     }
 
     private static <T> JavaRegistryKey<T> create(String key) {
-        return create(key, (session, registry, object) -> session.getRegistryCache().registry(registry).byValue(object),
-            (session, registry, id) -> session.getRegistryCache().registry(registry).byId(id),
-            (session, registry, id) -> session.getRegistryCache().registry(registry).entryById(id).key());
+        return create(key, new RegistryCacheLookup<>());
     }
 
     @Nullable
@@ -119,5 +138,56 @@ public class JavaRegistries {
     interface RegistryIdentifierMapper<T> {
 
         Key get(T object);
+    }
+
+    @FunctionalInterface
+    interface RegistryIdMapper {
+
+        int get(Key key);
+    }
+
+    private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
+                                      RegistryIdMapper idMapper) implements JavaRegistryKey.RegistryLookup<T> {
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
+            return Optional.ofNullable(registry.get(networkId))
+                .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(identifierMapper.get(value)), value));
+        }
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+            int id = idMapper.get(key);
+            return Optional.ofNullable(registry.get(id)).map(value -> new RegistryEntryData<>(id, key, value));
+        }
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+            int id = networkMapper.get(object);
+            return Optional.ofNullable(registry.get(id))
+                .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(identifierMapper.get(value)), value));
+        }
+    }
+
+    private static class RegistryCacheLookup<T> implements JavaRegistryKey.RegistryLookup<T> {
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
+            return Optional.ofNullable(registry(session, registryKey).entryById(networkId));
+        }
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+            return Optional.ofNullable(registry(session, registryKey).entryByKey(key));
+        }
+
+        @Override
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+            return Optional.ofNullable(registry(session, registryKey).entryByValue(object));
+        }
+
+        private JavaRegistry<T> registry(GeyserSession session, JavaRegistryKey<T> key) {
+            return session.getRegistryCache().registry(key);
+        }
     }
 }
