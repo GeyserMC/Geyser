@@ -180,7 +180,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public float getVehicleSpeed() {
-        return 1; // TODO this doesnt seem right?
+        return 0.0f; // Not used
     }
 
     @Override

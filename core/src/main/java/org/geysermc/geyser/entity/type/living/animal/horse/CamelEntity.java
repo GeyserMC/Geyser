@@ -68,8 +68,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
 
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        boolean saddled = (xd & 0x04) == 0x04;
-        setFlag(EntityFlag.SADDLED, saddled);
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -98,7 +96,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
         }
 
         // Shows the dash meter
-        setFlag(EntityFlag.CAN_DASH, saddled);
+        // setFlag(EntityFlag.CAN_DASH, saddled);
     }
 
     @Override

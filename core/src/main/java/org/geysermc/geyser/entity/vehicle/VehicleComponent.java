@@ -68,7 +68,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected final T vehicle;
     @Getter
     protected final BoundingBox boundingBox;
-    protected Vector2f lastSentRotation; // (yaw, pitch)
 
     protected float stepHeight;
     @Getter @Setter
@@ -82,7 +81,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
-        this.lastSentRotation = Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
         this.stepHeight = stepHeight;
         this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
@@ -190,6 +188,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
     }
 
+    /**
+     * Update the rotation of the vehicle. Should be called once per tick, and before getInputVector.
+     */
     protected void updateRotation() {
         Vector2f rot = getRiddenRotation();
         vehicle.setYaw(rot.getX());
@@ -596,16 +597,15 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected boolean travel(VehicleContext ctx, float speed) {
         Vector3f motion = vehicle.getMotion();
 
-        // Java only does this client side
-        motion = motion.mul(0.98f);
-
         motion = Vector3f.from(
                 Math.abs(motion.getX()) < MIN_VELOCITY ? 0 : motion.getX(),
                 Math.abs(motion.getY()) < MIN_VELOCITY ? 0 : motion.getY(),
                 Math.abs(motion.getZ()) < MIN_VELOCITY ? 0 : motion.getZ()
         );
 
+        Vector3f lastRotation = vehicle.getBedrockRotation();
         updateRotation();
+
         Vector2f playerInput = vehicle.getSession().getPlayerEntity().getVehicleInput();
         Vector3f riddenInput = vehicle.getRiddenInput(playerInput.mul(0.98f));
 
@@ -666,7 +666,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         // Send the new position to the bedrock client and java server
-        moveVehicle(ctx.centerPos());
+        moveVehicle(ctx.centerPos(), lastRotation);
         vehicle.setMotion(motion);
 
         applyBlockCollisionEffects(ctx);
@@ -730,8 +730,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
      * <p>
      * This also updates the session's last vehicle move timestamp.
      * @param javaPos the new java position of the vehicle
+     * @param lastRotation the previous rotation of the vehicle (pitch, yaw, headYaw)
      */
-    protected void moveVehicle(Vector3d javaPos) {
+    protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
         Vector3f bedrockPos = javaPos.toFloat();
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
@@ -755,19 +756,18 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
         vehicle.setPosition(bedrockPos);
 
-        if (vehicle.getYaw() != lastSentRotation.getX()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(vehicle.getYaw());
-        }
-        if (vehicle.getPitch() != lastSentRotation.getY()) {
+        if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             moveEntityDeltaPacket.setPitch(vehicle.getPitch());
         }
-        if (vehicle.getHeadYaw() != lastSentRotation.getX()) { // Same as yaw
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(vehicle.getYaw());
+        if (vehicle.getYaw() != lastRotation.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            moveEntityDeltaPacket.setYaw(vehicle.getYaw());
         }
-        lastSentRotation = Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
+        if (vehicle.getHeadYaw() != lastRotation.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            moveEntityDeltaPacket.setHeadYaw(vehicle.getHeadYaw());
+        }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);

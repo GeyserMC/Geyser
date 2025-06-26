@@ -56,8 +56,9 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
 
     @Override
     protected void updateRotation() {
-        float addYaw = MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.08f;
-        vehicle.setYaw(vehicle.getYaw() + addYaw);
+        float yaw = vehicle.getYaw() + MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.08f;
+        vehicle.setYaw(yaw);
+        vehicle.setHeadYaw(yaw);
     }
 
     @Override
