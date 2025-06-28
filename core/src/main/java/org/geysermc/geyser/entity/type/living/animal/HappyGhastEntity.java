@@ -94,6 +94,19 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
         return 0.2375f;
     }
 
+    @Override
+    protected float getAdultSize() {
+        // Make collision slightly larger to stop bedrock client from clipping into it
+        // This value will not work at very large coordinates
+        return 1.001f;
+    }
+
+    @Override
+    public void setBaby(BooleanEntityMetadata entityMetadata) {
+        super.setBaby(entityMetadata);
+        setFlag(EntityFlag.COLLIDABLE, !entityMetadata.getPrimitiveValue());
+    }
+
     public void setStaysStill(BooleanEntityMetadata entityMetadata) {
         staysStill = entityMetadata.getPrimitiveValue();
         propertyManager.add("minecraft:can_move", !entityMetadata.getPrimitiveValue());
