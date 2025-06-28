@@ -104,6 +104,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     @Override
     public void setBaby(BooleanEntityMetadata entityMetadata) {
         super.setBaby(entityMetadata);
+        // Players can only stand on grown up happy ghasts
         setFlag(EntityFlag.COLLIDABLE, !entityMetadata.getPrimitiveValue());
     }
 
