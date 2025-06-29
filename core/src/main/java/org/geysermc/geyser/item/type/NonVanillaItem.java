@@ -30,7 +30,8 @@ import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ComponentCache;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -49,14 +50,19 @@ public class NonVanillaItem extends Item {
     @NonNull
     @UnmodifiableView
     @Override
-    public DataComponents gatherComponents(GeyserSession session, @Nullable DataComponents others) {
+    public DataComponents gatherComponents(ComponentCache componentCache, @Nullable DataComponents others) {
         if (resolvableComponents.isEmpty()) {
-            return super.gatherComponents(session, others);
+            return super.gatherComponents(componentCache, others);
         }
-        DataComponents resolvedAndOthers = session.getComponentCache().getResolvedComponents(this).clone();
+        DataComponents resolvedAndOthers = componentCache.getResolvedComponents(this).clone();
         if (others != null) {
             resolvedAndOthers.getDataComponents().putAll(others.getDataComponents());
         }
-        return super.gatherComponents(session, resolvedAndOthers);
+        return super.gatherComponents(componentCache, resolvedAndOthers);
+    }
+
+    @Override
+    public <T> @Nullable T getComponent(ComponentCache componentCache, @NonNull DataComponentType<T> type) {
+        return super.getComponent(componentCache, type);
     }
 }

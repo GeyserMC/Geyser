@@ -189,7 +189,7 @@ public final class ItemTranslator {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        DataComponents components = javaItem.gatherComponents(session, customComponents);
+        DataComponents components = javaItem.gatherComponents(session.getComponentCache(), customComponents);
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components

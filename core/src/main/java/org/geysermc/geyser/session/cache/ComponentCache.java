@@ -53,13 +53,20 @@ public class ComponentCache {
         resolvedComponents.clear();
         for (Item item : Registries.JAVA_ITEMS.get()) {
             if (item instanceof NonVanillaItem nonVanilla) {
+                System.out.println("item " + nonVanilla.javaKey() + " is a candidate to resolve components for");
                 List<ResolvableComponent<?>> toResolve = nonVanilla.resolvableComponents();
+                System.out.println("components to resolve: " + toResolve);
                 if (!toResolve.isEmpty()) {
+                    System.out.println("going to resolve");
                     DataComponents resolved = new DataComponents(new Object2ObjectOpenHashMap<>());
                     for (ResolvableComponent<?> component : toResolve) {
+                        System.out.println("resolving " + component);
                         component.resolve(session, resolved);
                     }
                     resolvedComponents.put(nonVanilla, resolved);
+                    System.out.println("put in map for " + nonVanilla.javaKey() + " " + resolved);
+                } else {
+                    System.out.println("no components to resolve");
                 }
             }
         }

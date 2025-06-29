@@ -44,6 +44,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -109,7 +110,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(GeyserSession session, @Nullable DataComponents others) {
+    public DataComponents gatherComponents(ComponentCache componentCache, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -130,7 +131,7 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+    public <T> T getComponent(ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
     }
 

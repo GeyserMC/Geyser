@@ -40,6 +40,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -57,7 +58,7 @@ import java.util.function.Supplier;
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); // session can be null because air is a vanilla item
 
-    private final GeyserSession session;
+    private final ComponentCache componentCache;
     private final int javaId;
     private int amount;
     private DataComponents components;
@@ -71,11 +72,11 @@ public class GeyserItemStack {
     private Item item;
 
     private GeyserItemStack(GeyserSession session, int javaId, int amount, DataComponents components) {
-        this(session, javaId, amount, components, 1, null);
+        this(session.getComponentCache(), javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(GeyserSession session, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
-        this.session = session;
+    private GeyserItemStack(ComponentCache componentCache, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
+        this.componentCache = componentCache;
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
@@ -124,7 +125,7 @@ public class GeyserItemStack {
      * @return the item's base data components and the "additional" ones that may exist.
      */
     public @Nullable DataComponents getAllComponents() {
-        return isEmpty() ? null : asItem().gatherComponents(session, components);
+        return isEmpty() ? null : asItem().gatherComponents(componentCache, components);
     }
 
     /**
@@ -167,7 +168,7 @@ public class GeyserItemStack {
             return components.get(type);
         }
 
-        return asItem().getComponent(type);
+        return asItem().getComponent(componentCache, type);
     }
 
     public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
@@ -287,6 +288,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(session, javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
+        return isEmpty() ? EMPTY : new GeyserItemStack(componentCache, javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
     }
 }
