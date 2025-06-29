@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
+import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
 
@@ -47,7 +48,7 @@ public interface Holders {
     }
 
     static Builder builder() {
-        return null; // TODO
+        return GeyserApi.api().provider(Holders.Builder.class);
     }
 
     interface Builder extends GenericBuilder<Holders> {
