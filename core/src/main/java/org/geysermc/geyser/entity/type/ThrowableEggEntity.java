@@ -61,7 +61,7 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
 
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
-        GeyserItemStack stack = GeyserItemStack.from(entityMetadata.getValue());
+        GeyserItemStack stack = GeyserItemStack.from(session, entityMetadata.getValue());
         propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, getVariantOrFallback(session, stack));
         updateBedrockEntityProperties();
         this.itemStack = stack;
