@@ -71,7 +71,7 @@ public class SkullBlock extends Block {
             return new ItemStack(pickItem(state).getId());
         }
 
-        GeyserItemStack itemStack = GeyserItemStack.of(pickItem(state).getId(), 1);
+        GeyserItemStack itemStack = GeyserItemStack.of(session, pickItem(state).getId(), 1);
         // This is a universal block entity behavior, but hardcode how it works for now.
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "minecraft:skull")

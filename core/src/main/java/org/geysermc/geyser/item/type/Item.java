@@ -109,7 +109,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable DataComponents others) {
+    public DataComponents gatherComponents(GeyserSession session, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -153,7 +153,7 @@ public class Item {
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        return GeyserItemStack.of(javaId, itemData.getCount());
+        return GeyserItemStack.of(session, javaId, itemData.getCount());
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {

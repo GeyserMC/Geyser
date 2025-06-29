@@ -406,7 +406,7 @@ public class InventoryUtils {
         for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
             if (recipe.isShaped()) {
                 GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
-                if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(output))) {
+                if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(session, output))) {
                     continue;
                 }
                 List<SlotDisplay> ingredients = shapedRecipe.ingredients();
@@ -433,7 +433,7 @@ public class InventoryUtils {
                 }
             } else {
                 GeyserShapelessRecipe data = (GeyserShapelessRecipe) recipe;
-                if (output != null && !acceptsAsInput(session, data.result(), GeyserItemStack.from(output))) {
+                if (output != null && !acceptsAsInput(session, data.result(), GeyserItemStack.from(session, output))) {
                     continue;
                 }
                 if (nonAirCount != data.ingredients().size()) {

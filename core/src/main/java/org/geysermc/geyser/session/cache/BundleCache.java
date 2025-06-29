@@ -284,7 +284,7 @@ public final class BundleCache {
         BundleData(GeyserSession session, List<ItemStack> contents) {
             this();
             for (ItemStack content : contents) {
-                GeyserItemStack itemStack = GeyserItemStack.from(content);
+                GeyserItemStack itemStack = GeyserItemStack.from(session, content);
                 // Check recursively
                 session.getBundleCache().initialize(itemStack);
                 this.contents.add(itemStack);

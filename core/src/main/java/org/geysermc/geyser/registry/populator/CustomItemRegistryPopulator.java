@@ -624,7 +624,8 @@ public class CustomItemRegistryPopulator {
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
         DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents());
         if (javaItem != null) {
-            return javaItem.gatherComponents(convertedComponents);
+            // session can be null here because javaItem will always be a vanilla item
+            return javaItem.gatherComponents(null, convertedComponents);
         }
         return convertedComponents;
     }

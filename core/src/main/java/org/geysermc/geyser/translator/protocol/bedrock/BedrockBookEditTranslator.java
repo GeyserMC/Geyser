@@ -131,7 +131,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             components.put(DataComponentTypes.WRITABLE_BOOK_CONTENT, new WritableBookContent(filterablePages));
 
             // Update local copy
-            session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(bookItem), session);
+            session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(session, bookItem), session);
             session.getPlayerInventoryHolder().updateInventory();
 
             String title;

@@ -76,7 +76,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
         if (container.getItem(1).getJavaId() != javaOutput.getId()) {
             // We don't know there is an output here, so we tell ourselves that there is
-            container.setItem(1, GeyserItemStack.from(javaOutput), session);
+            container.setItem(1, GeyserItemStack.from(session, javaOutput), session);
         }
 
         return translateRequest(session, container, request);

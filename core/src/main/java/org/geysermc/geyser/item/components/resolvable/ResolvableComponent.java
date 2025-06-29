@@ -23,42 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.util;
+package org.geysermc.geyser.item.components.resolvable;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.common.returnsreceiver.qual.This;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.util.List;
+public record ResolvableComponent<T>(DataComponentType<T> component, ResolvableComponentType<T> value) {
 
-public interface Holders {
-
-    static Holders of(Identifier identifier) {
-        return builder().with(identifier).build();
-    }
-
-    static Holders of(List<Identifier> identifiers) {
-        Builder builder = builder();
-        identifiers.forEach(builder::with);
-        return builder.build();
-    }
-
-    static Holders ofTag(Identifier tag) {
-        return builder().tag(tag).build();
-    }
-
-    static Builder builder() {
-        return null; // TODO
-    }
-
-    interface Builder extends GenericBuilder<Holders> {
-
-        @This
-        Builder with(@NonNull Identifier identifier);
-
-        @This
-        Builder tag(@NonNull Identifier tag);
-
-        @Override
-        Holders build();
+    public void resolve(GeyserSession session, DataComponents map) {
+        map.put(component, value.resolve(session));
     }
 }
