@@ -50,6 +50,7 @@ public class ComponentCache {
     }
 
     public void resolveComponents() {
+        System.out.println("starting component resolving");
         resolvedComponents.clear();
         for (Item item : Registries.JAVA_ITEMS.get()) {
             if (item instanceof NonVanillaItem nonVanilla) {
