@@ -288,8 +288,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public GeyserItemStack newItemStack(int count, DataComponents components) {
-        return GeyserItemStack.of(this.javaId, count, components);
+    public GeyserItemStack newItemStack(GeyserSession session, int count, DataComponents components) {
+        return GeyserItemStack.of(session, this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

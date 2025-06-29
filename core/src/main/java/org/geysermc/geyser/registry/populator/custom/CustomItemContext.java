@@ -101,7 +101,7 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @see ComponentConverters
      */
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition, Consumer<ResolvableComponent<?>> resolvableConsumer) {
-        DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents());
+        DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents(), resolvableConsumer);
         if (javaItem != null) {
             // session can be null here because javaItem will always be a vanilla item
             return javaItem.gatherComponents(null, convertedComponents);

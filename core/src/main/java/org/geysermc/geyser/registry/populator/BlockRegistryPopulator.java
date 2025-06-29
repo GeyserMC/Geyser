@@ -58,7 +58,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.populator.conversion.Conversion800_786;
-import org.geysermc.geyser.registry.populator.custom.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 

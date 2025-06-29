@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator.custom;
+package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
 import net.kyori.adventure.key.Key;
@@ -53,12 +53,11 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -74,8 +73,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class CustomItemRegistryPopulator {
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
@@ -417,7 +416,7 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * Repairable component should already have been validated for valid Java items in {@link CustomItemRegistryPopulator#checkComponents(CustomItemDefinition, Item)}.
+     * Repairable component should already have been validated for valid Java items in {@link CustomItemContext#checkComponents(CustomItemDefinition, Item, Consumer)}. TODO update javadocs
      *
      * <p>This method passes the Java identifiers straight to bedrock - which isn't perfect.</p>
      */

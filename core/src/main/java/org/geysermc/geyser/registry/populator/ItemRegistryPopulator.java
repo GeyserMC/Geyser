@@ -76,7 +76,6 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.populator.custom.CustomItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;

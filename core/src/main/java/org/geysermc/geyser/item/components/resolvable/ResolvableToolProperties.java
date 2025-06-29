@@ -23,29 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.item.components.resolvable;
 
-import com.google.gson.JsonElement;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
-import org.geysermc.geyser.item.custom.impl.ToolPropertiesImpl;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
-import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
-import org.geysermc.geyser.registry.mappings.util.NodeReader;
+import org.geysermc.geyser.impl.HoldersImpl;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
 import java.util.List;
 
-public class ToolPropertiesReader extends DataComponentReader<ToolProperties> {
+public record ResolvableToolProperties(ToolProperties properties) implements ResolvableComponentType<ToolData> {
 
-    public ToolPropertiesReader() {
-        super(ItemDataComponents.TOOL);
-    }
-
-    // TODO this can probably go
     @Override
-    protected ToolProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        return new ToolPropertiesImpl(List.of(), 0.0F, MappingsUtil.readOrDefault(element, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));
+    public ToolData resolve(GeyserSession session) {
+        List<ToolData.Rule> rules = properties.rules().stream()
+            .map(rule -> new ToolData.Rule(((HoldersImpl) rule.blocks()).toHolderSet(session, JavaRegistries.BLOCK), rule.speed(), null))
+            .toList();
+        return new ToolData(rules, properties.defaultMiningSpeed(), 0, properties.canDestroyBlocksInCreative());
     }
 }

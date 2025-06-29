@@ -60,7 +60,7 @@ import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateBuilderMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
-import org.geysermc.geyser.registry.populator.custom.CustomBlockRegistryPopulator;
+import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;

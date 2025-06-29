@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.components.resolvable;
 
 import org.geysermc.geyser.session.GeyserSession;
 
+// TODO maybe remove ResolvableComponent
 public interface ResolvableComponentType<T> {
 
     T resolve(GeyserSession session);

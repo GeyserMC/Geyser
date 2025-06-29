@@ -31,7 +31,9 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.registry.populator.custom.CustomItemRegistryPopulator;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableToolProperties;
+import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -47,6 +49,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 // Why is this coded so weirdly, you ask?
 // Why, it's because of two reasons!
@@ -63,15 +66,16 @@ import java.util.Map;
  * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
  * <ul>
  *     <li>The MCPL counterpart of the {@link ItemDataComponents#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
- *     Also see {@link org.geysermc.geyser.registry.populator.custom.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
+ *     Also see {@link CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
  *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent}) don't have converters registered, for obvious reasons.
  *     They're used directly in the custom item registry populator. Eventually, some may have converters introduced as Mojang introduces such components in Java.</li>
  * </ul>
  * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
 public class ComponentConverters {
-    private static final Map<DataComponent<?>, ComponentConverter<?>> converters = new HashMap<>();
+    private static final Map<DataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
+    // TODO maybe clean this up where possible, quick conversion for types that don't require casting possibly
     static {
         registerConverter(ItemDataComponents.CONSUMABLE, (itemMap, value) -> {
             Consumable.ItemUseAnimation convertedAnimation = switch (value.animation()) {
@@ -113,24 +117,31 @@ public class ComponentConverters {
 
         registerConverter(ItemDataComponents.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
 
-        registerConverter(ItemDataComponents.TOOL, (itemMap, value) -> itemMap.put(DataComponentTypes.TOOL,
-            new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative())));
+        registerConverter(ItemDataComponents.TOOL, (itemMap, value, consumer) -> {
+            itemMap.put(DataComponentTypes.TOOL,
+                new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative()));
+            consumer.accept(new ResolvableComponent<>(DataComponentTypes.TOOL, new ResolvableToolProperties(value)));
+        });
 
         registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
+        registerConverter(component, (itemMap, value, resolvableConsumer) -> converter.convertAndPut(itemMap, value));
+    }
+
+    private static <T> void registerConverter(DataComponent<T> component, ResolvableComponentConverter<T> converter) {
         converters.put(component, converter);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals) {
+    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals, Consumer<ResolvableComponent<?>> resolvableConsumer) {
         DataComponents converted = new DataComponents(new HashMap<>());
         for (DataComponent<?> component : customDefinitionPatch.keySet()) {
-            ComponentConverter converter = converters.get(component);
+            ResolvableComponentConverter converter = converters.get(component);
             if (converter != null) {
                 Object value = customDefinitionPatch.get(component);
-                converter.convertAndPut(converted, value);
+                converter.convert(converted, value, resolvableConsumer);
             }
         }
 
@@ -147,5 +158,11 @@ public class ComponentConverters {
     public interface ComponentConverter<T> {
 
         void convertAndPut(DataComponents itemMap, T value);
+    }
+
+    @FunctionalInterface
+    public interface ResolvableComponentConverter<T> {
+
+        void convert(DataComponents itemMap, T value, Consumer<ResolvableComponent<?>> resolvableConsumer);
     }
 }
