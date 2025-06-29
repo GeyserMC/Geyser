@@ -134,7 +134,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
 
-        providers.put(DataComponent.class, args -> dataComponentProvider((Identifier) args[1], (Predicate<?>) args[2], (Boolean) args[3]));
+        providers.put(DataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
 
         // item components
         providers.put(Consumable.Builder.class, args -> new ConsumableImpl.Builder());
