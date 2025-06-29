@@ -60,6 +60,7 @@ import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateBuilderMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
+import org.geysermc.geyser.registry.populator.custom.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -236,7 +237,7 @@ public class MappingsReader_v1 extends MappingsReader {
      *
      * @param identifier The Java identifier of the block
      * @param element The {@link JsonObject} containing the block mapping entry
-     * @return The {@link CustomBlockMapping} record to be read by {@link org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator}
+     * @return The {@link CustomBlockMapping} record to be read by {@link CustomBlockRegistryPopulator}
      * @throws InvalidCustomMappingsFileException If the JSON node is invalid
      */
     @Override

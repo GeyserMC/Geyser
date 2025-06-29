@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator;
+package org.geysermc.geyser.registry.populator.custom;
 
 import com.google.common.collect.Multimap;
 import net.kyori.adventure.key.Key;
@@ -56,6 +56,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.NonVanillaItem;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -140,23 +141,21 @@ public class CustomItemRegistryPopulator {
 
     public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
                                                              int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        DataComponents components = checkComponents(customItem, javaItem);
+        CustomItemContext context = CustomItemContext.createVanilla(javaItem, vanillaMapping, customItem, bedrockId, protocolVersion);
 
-        NbtMapBuilder bedrockComponents = createComponentNbt(javaItem.javaKey(), customItem, components,
-            Optional.of(vanillaMapping), bedrockId, protocolVersion);
+        NbtMapBuilder bedrockComponents = createComponentNbt(javaItem.javaKey(), context);
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, bedrockComponents.build());
 
         return new GeyserCustomMappingData(customItem, itemDefinition, bedrockId);
     }
 
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemDefinition customItem, int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        DataComponents components = checkComponents(customItem, null);
+        CustomItemContext context = CustomItemContext.createNonVanilla(customItem, bedrockId, protocolVersion);
 
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
-        NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), customItem, components,
-            Optional.empty(), bedrockId, protocolVersion);
+        NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
 
-        Item javaItem = new Item(customItem.identifier().toString(), Item.builder().components(components));
+        Item javaItem = new NonVanillaItem(customItem.identifier().toString(), Item.builder().components(context.components()), context.resolvableComponents());
         Items.register(javaItem, customItem.javaId());
 
         ItemMapping customMapping = ItemMapping.builder()
@@ -231,51 +230,18 @@ public class CustomItemRegistryPopulator {
         return null;
     }
 
-    /**
-     * Check for illegal combinations of item components that can be specified in the custom item API, and validated components that can't be checked in the API, e.g. components that reference items.
-     *
-     * <p>Note that, component validation is preferred to occur early in the API module. This method should primarily check for illegal <em>combinations</em> of item components.
-     * It is expected that the values of the components separately have already been validated when possible (for example, it is expected that stack size is in the range [1, 99]).</p>
-     *
-     * @param javaItem the vanilla item to patch components on to, can be null for non-vanilla custom items
-     * @return the custom data components patched on the vanilla item's components (if present), validated
-     */
-    private static DataComponents checkComponents(CustomItemDefinition definition, Item javaItem) throws InvalidItemComponentsException {
-        DataComponents components = patchDataComponents(javaItem, definition);
-        int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0);
-        int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
-
-        if (components.get(DataComponentTypes.EQUIPPABLE) != null && stackSize > 1) {
-            throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
-        } else if (stackSize > 1 && maxDamage > 0) {
-            throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
-        }
-
-        Repairable repairable = definition.components().get(ItemDataComponents.REPAIRABLE);
-        if (repairable != null) {
-            for (Identifier item : repairable.items()) {
-                if (Registries.JAVA_ITEM_IDENTIFIERS.get(item.toString()) == null) {
-                    throw new InvalidItemComponentsException("Unknown repair item " + item + " in minecraft:repairable component");
-                }
-            }
-        }
-
-        return components;
-    }
-
-    private static NbtMapBuilder createComponentNbt(Key itemIdentifier, CustomItemDefinition customItemDefinition, DataComponents components,
-                                                    Optional<GeyserMappingItem> vanillaMapping, int customItemId, int protocolVersion) {
+    private static NbtMapBuilder createComponentNbt(Key itemIdentifier, CustomItemContext context) {
         NbtMapBuilder builder = NbtMap.builder()
-            .putString("name", customItemDefinition.bedrockIdentifier().toString())
-            .putInt("id", customItemId);
+            .putString("name", context.definition().bedrockIdentifier().toString())
+            .putInt("id", context.customItemId());
 
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(customItemDefinition, components, itemProperties, componentBuilder);
+        setupBasicItemInfo(context.definition(), context.components(), itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
-        Integer attackDamage = customItemDefinition.components().get(GeyserDataComponent.ATTACK_DAMAGE);
+        Integer attackDamage = context.definition().components().get(GeyserDataComponent.ATTACK_DAMAGE);
         if (attackDamage != null) {
             itemProperties.putInt("damage", attackDamage);
             componentBuilder.putCompound("minecraft:damage", NbtMap.builder()
@@ -283,27 +249,27 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        ToolData toolData = components.get(DataComponentTypes.TOOL);
+        ToolData toolData = context.components().get(DataComponentTypes.TOOL);
         boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        // Using API component here because MCPL one is just an ID holder set
-        Repairable repairable = customItemDefinition.components().get(ItemDataComponents.REPAIRABLE);
+        // Using API component here because MCPL one is just an ID holder set TODO
+        Repairable repairable = context.definition().components().get(ItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             computeRepairableProperties(repairable, componentBuilder);
         }
 
-        Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+        Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
         if (equippable != null) {
-            computeArmorProperties(equippable, customItemDefinition.bedrockOptions().protectionValue(), componentBuilder);
+            computeArmorProperties(equippable, context.definition().bedrockOptions().protectionValue(), componentBuilder);
         }
 
-        Integer enchantmentValue = components.get(DataComponentTypes.ENCHANTABLE);
+        Integer enchantmentValue = context.components().get(DataComponentTypes.ENCHANTABLE);
         if (enchantmentValue != null) {
             computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
 
-        Boolean glint = components.get(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+        Boolean glint = context.components().get(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
         if (glint != null) {
             itemProperties.putBoolean("foil", glint);
             componentBuilder.putCompound("minecraft:glint", NbtMap.builder()
@@ -311,18 +277,18 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        Consumable consumable = components.get(DataComponentTypes.CONSUMABLE);
+        Consumable consumable = context.components().get(DataComponentTypes.CONSUMABLE);
         if (consumable != null) {
-            FoodProperties foodProperties = components.get(DataComponentTypes.FOOD);
+            FoodProperties foodProperties = context.components().get(DataComponentTypes.FOOD);
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         }
 
-        UseCooldown useCooldown = components.get(DataComponentTypes.USE_COOLDOWN);
+        UseCooldown useCooldown = context.components().get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, itemIdentifier, componentBuilder);
         }
 
-        BlockPlacer blockPlacer = vanillaMapping.map(mapping -> {
+        BlockPlacer blockPlacer = context.vanillaMapping().map(mapping -> {
             String bedrockIdentifier = mapping.getBedrockIdentifier();
             if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
                 return BlockPlacer.builder().block(Identifier.of("fire")).build();
@@ -330,23 +296,23 @@ public class CustomItemRegistryPopulator {
                 return BlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
             }
             return null;
-        }).orElse(customItemDefinition.components().get(GeyserDataComponent.BLOCK_PLACER));
+        }).orElse(context.definition().components().get(GeyserDataComponent.BLOCK_PLACER));
 
         if (blockPlacer != null) {
             computeBlockItemProperties(blockPlacer, componentBuilder);
         }
 
-        Chargeable chargeable = vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+        Chargeable chargeable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
             case "minecraft:bow" -> Chargeable.builder().maxDrawDuration(1.0F).ammunition(Identifier.of("arrow")).build();
             case "minecraft:crossbow" -> Chargeable.builder().chargeOnDraw(true).ammunition(Identifier.of("arrow")).build();
             default -> null;
-        }).orElse(customItemDefinition.components().get(GeyserDataComponent.CHARGEABLE));
+        }).orElse(context.definition().components().get(GeyserDataComponent.CHARGEABLE));
 
         if (chargeable != null) {
             computeChargeableProperties(itemProperties, componentBuilder, chargeable);
         }
 
-        vanillaMapping.ifPresent(mapping -> {
+        context.vanillaMapping().ifPresent(mapping -> {
             if (mapping.isEntityPlacer()) {
                 computeEntityPlacerProperties(componentBuilder);
             }
@@ -611,23 +577,6 @@ public class CustomItemRegistryPopulator {
             }
         }
         return false;
-    }
-
-    /**
-     * Converts the API components to MCPL ones using the converters in {@link ComponentConverters}, and applies these on top of the default item components.
-     *
-     * <p>Note that not every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
-     *
-     * @param javaItem can be null for non-vanilla custom items
-     * @see ComponentConverters
-     */
-    private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition) {
-        DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents());
-        if (javaItem != null) {
-            // session can be null here because javaItem will always be a vanilla item
-            return javaItem.gatherComponents(null, convertedComponents);
-        }
-        return convertedComponents;
     }
 
     @SuppressWarnings("unchecked")
