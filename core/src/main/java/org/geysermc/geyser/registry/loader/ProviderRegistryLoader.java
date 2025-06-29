@@ -142,6 +142,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(FoodProperties.Builder.class, args -> new FoodPropertiesImpl.Builder());
         providers.put(Repairable.Builder.class, args -> new RepairableImpl.Builder());
         providers.put(ToolProperties.Builder.class, args -> new ToolPropertiesImpl.Builder());
+        providers.put(ToolProperties.Rule.Builder.class, args -> new ToolPropertiesImpl.RuleImpl.Builder());
         providers.put(UseCooldown.Builder.class, args -> new UseCooldownImpl.Builder());
 
         // geyser components

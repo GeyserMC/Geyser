@@ -73,7 +73,7 @@ public record ChargeableImpl(
         @Override
         public Chargeable build() {
             Objects.requireNonNull(ammunition, "ammunition cannot be null");
-            return new ChargeableImpl(maxDrawDuration, chargeOnDraw, ammunition);
+            return new ChargeableImpl(maxDrawDuration, chargeOnDraw, List.copyOf(ammunition));
         }
     }
 }

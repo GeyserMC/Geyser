@@ -25,14 +25,44 @@
 
 package org.geysermc.geyser.item.custom.impl;
 
+import org.checkerframework.checker.index.qual.Positive;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
+import org.geysermc.geyser.api.util.Holders;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public record ToolPropertiesImpl(
+    List<@NonNull Rule> rules,
+    float defaultMiningSpeed,
     boolean canDestroyBlocksInCreative
 ) implements ToolProperties {
 
     public static class Builder implements ToolProperties.Builder {
+        private final List<Rule> rules = new ArrayList<>();
+        private float defaultMiningSpeed;
         private boolean destroyBlocksInCreative = true;
+
+        @Override
+        public ToolProperties.Builder rule(@NonNull Rule rule) {
+            Objects.requireNonNull(rule, "rule cannot be null");
+            if (this.rules.contains(rule)) {
+                throw new IllegalArgumentException("duplicate rule " + rule);
+            }
+            this.rules.add(rule);
+            return this;
+        }
+
+        @Override
+        public ToolProperties.Builder defaultMiningSpeed(float defaultMiningSpeed) {
+            if (defaultMiningSpeed <= 0.0F) {
+                throw new IllegalArgumentException("default mining speed must be above 0");
+            }
+            this.defaultMiningSpeed = defaultMiningSpeed;
+            return this;
+        }
 
         @Override
         public ToolProperties.Builder canDestroyBlocksInCreative(boolean destroyBlocksInCreative) {
@@ -42,7 +72,40 @@ public record ToolPropertiesImpl(
 
         @Override
         public ToolProperties build() {
-            return new ToolPropertiesImpl(destroyBlocksInCreative);
+            return new ToolPropertiesImpl(rules, defaultMiningSpeed, destroyBlocksInCreative);
+        }
+    }
+
+    public record RuleImpl(Holders blocks, float speed) implements Rule {
+
+        public static class Builder implements Rule.Builder {
+            private Holders holders;
+            private float speed;
+
+            @Override
+            public Rule.Builder block(@NonNull Holders holders) {
+                Objects.requireNonNull(holders, "holders cannot be null");
+                this.holders = holders;
+                return this;
+            }
+
+            @Override
+            public Rule.Builder speed(@Positive float speed) {
+                if (speed <= 0.0F) {
+                    throw new IllegalArgumentException("speed must be above 0");
+                }
+                this.speed = speed;
+                return this;
+            }
+
+            @Override
+            public Rule build() {
+                Objects.requireNonNull(holders, "holders cannot be null");
+                if (speed <= 0.0F) {
+                    throw new IllegalArgumentException("speed must be above 0");
+                }
+                return new RuleImpl(holders, speed);
+            }
         }
     }
 }

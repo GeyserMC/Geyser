@@ -25,15 +25,24 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
+import org.checkerframework.checker.index.qual.Positive;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
+import org.geysermc.geyser.api.util.Holders;
+
+import java.util.List;
 
 /**
  * The tool properties component can be used to mark
  * if the item can destroy blocks when used in creative mode.
  */
 public interface ToolProperties {
+
+    List<@NonNull Rule> rules();
+
+    float defaultMiningSpeed();
 
     /**
      * Whether this item can destroy blocks when trying to break them in
@@ -57,7 +66,7 @@ public interface ToolProperties {
      *
      * @param canDestroyBlocksInCreative determines if the item will break blocks in creative mode
      * @return a tool properties component
-     */
+     */ // TODO??
     static ToolProperties of(boolean canDestroyBlocksInCreative) {
         return builder().canDestroyBlocksInCreative(canDestroyBlocksInCreative).build();
     }
@@ -66,6 +75,12 @@ public interface ToolProperties {
      * Builder for the tool properties component.
      */
     interface Builder extends GenericBuilder<ToolProperties> {
+
+        @This
+        Builder rule(@NonNull Rule rule);
+
+        @This
+        Builder defaultMiningSpeed(@Positive float defaultMiningSpeed);
 
         /**
          * Sets whether this item can destroy blocks when trying to break them in
@@ -85,5 +100,28 @@ public interface ToolProperties {
          */
         @Override
         ToolProperties build();
+    }
+
+    interface Rule {
+
+        @NonNull Holders blocks();
+
+        float speed();
+
+        static Builder builder() { // TODO shorthand?
+            return GeyserApi.api().provider(Rule.Builder.class);
+        }
+
+        interface Builder extends GenericBuilder<Rule> {
+
+            @This
+            Builder block(@NonNull Holders holders);
+
+            @This
+            Builder speed(@Positive float speed);
+
+            @Override
+            Rule build();
+        }
     }
 }
