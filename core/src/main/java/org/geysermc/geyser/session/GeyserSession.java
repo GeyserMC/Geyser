@@ -1393,8 +1393,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void setFishingRodCast(boolean cast) {
         this.hasFishingRodCast = cast;
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(this, playerInventoryHolder.inventory(),
-            playerInventoryHolder.inventory().getOffsetForHotbar(playerInventoryHolder.inventory().getHeldItemSlot()));
+        int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
+        this.playerInventoryHolder.updateSlot(slot);
     }
 
     /**

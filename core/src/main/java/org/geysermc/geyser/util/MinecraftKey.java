@@ -40,14 +40,21 @@ public final class MinecraftKey {
         return Key.key(s);
     }
 
-    public static Key identifierToKey(@Nullable Identifier identifier) {
+    /**
+     * To prevent constant warnings from invalid regex.
+     */
+    public static Key key(@Subst("empty") String namespace, @Subst("empty") String value) {
+        return Key.key(namespace, value);
+    }
+
+    public static @Nullable Key identifierToKey(@Nullable Identifier identifier) {
         if (identifier == null) {
             return null;
         }
-        return identifier instanceof IdentifierImpl impl ? impl.identifier() : Key.key(identifier.namespace(), identifier.path());
+        return identifier instanceof IdentifierImpl impl ? impl.identifier() : key(identifier.namespace(), identifier.path());
     }
 
-    public static Identifier keyToIdentifier(@Nullable Key key) {
+    public static @Nullable Identifier keyToIdentifier(@Nullable Key key) {
         if (key == null) {
             return null;
         }

@@ -27,8 +27,21 @@ package org.geysermc.geyser.impl;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.util.MinecraftKey;
+
+import java.util.Objects;
 
 public record IdentifierImpl(Key identifier) implements Identifier {
+
+    public static IdentifierImpl of(String namespace, String value) throws IllegalArgumentException {
+        Objects.requireNonNull(namespace, "namespace cannot be null!");
+        Objects.requireNonNull(value, "value cannot be null!");
+        try {
+            return new IdentifierImpl(MinecraftKey.key(namespace, value));
+        } catch (Throwable e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
 
     @Override
     public String namespace() {

@@ -25,125 +25,44 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.function.Predicate;
 
 /**
- * Data components are used to indicate item behaviour of custom items. It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
+ * Data components are used to indicate item behaviour of custom items.
+ * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
  *
+ * @see ItemDataComponents
  * @see GeyserDataComponent
  * @see CustomItemDefinition#components()
  */
-public final class DataComponent<T> {
-    /**
-     * Marks the item as consumable. Of this component, only {@code consume_seconds} and {@code animation} properties are translated. Consume effects are done server side,
-     * and consume sounds and particles aren't possible.
-     *
-     * <p>Note that due to a bug on Bedrock, not all consume animations appear perfectly. See {@link Consumable.Animation}</p>
-     *
-     * @see Consumable
-     */
-    public static final DataComponent<Consumable> CONSUMABLE = create("consumable");
-    /**
-     * Marks the item as equippable. Of this component, only the {@code slot} property is translated. Other properties are done server-side, are done differently on Bedrock (e.g. {@code asset_id} is done via attachables),
-     * or are not possible on Bedrock at all (e.g. {@code camera_overlay}).
-     *
-     * <p>Note that on Bedrock, equippables can't have a stack size above 1.</p>
-     *
-     * @see Equippable
-     */
-    public static final DataComponent<Equippable> EQUIPPABLE = create("equippable");
-    /**
-     * Food properties of the item. All properties properly translate over to Bedrock.
-     *
-     * @see FoodProperties
-     */
-    public static final DataComponent<FoodProperties> FOOD = create("food");
-    /**
-     * Max damage value of the item. Must be at or above 0. Items with a max damage value above 0 can't have a stack size above 1.
-     */
-    public static final DataComponent<Integer> MAX_DAMAGE = create("max_damage", i -> i >= 0);
-    /**
-     * Max stack size of the item. Must be between 1 and 99. Items with a max stack size value above 1 can't have a max damage value above 0.
-     */
-    public static final DataComponent<Integer> MAX_STACK_SIZE = create("max_stack_size", i -> i >= 1 && i <= 99); // Reverse lambda
-    /**
-     * Marks the item to have a use cooldown. To properly function, the item must be able to be used: it must be consumable or have some other kind of use logic.
-     *
-     * <p>The cooldown group can be {@code null}, in this case the identifier of the vanilla item (in case of vanilla custom items),
-     * or the item itself (in case of non-vanilla custom items) will be used.</p>
-     *
-     * @see UseCooldown
-     */
-    public static final DataComponent<UseCooldown> USE_COOLDOWN = create("use_cooldown");
-    /**
-     * Marks the item to be enchantable. Must be at or above 0.
-     *
-     * <p>This component does not translate over perfectly, due to the way enchantments work on Bedrock. The component will be mapped to the {@code minecraft:enchantable} bedrock component with {@code slot=all}.
-     * This should, but does not guarantee, allow for compatibility with vanilla enchantments. Non-vanilla enchantments are unlikely to work.</p>
-     */
-    public static final DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
-    /**
-     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option.
-     *
-     * <p>Like other components, when not set this will fall back to the default value.</p>
-     *
-     * @see ToolProperties
-     */
-    public static final DataComponent<ToolProperties> TOOL = create("tool");
-    /**
-     * Marks which items can be used to repair the item.
-     *
-     * @see Repairable
-     */
-    public static final DataComponent<Repairable> REPAIRABLE = create("repairable");
-    /**
-     * Overrides the item's enchantment glint.
-     */
-    public static final DataComponent<Boolean> ENCHANTMENT_GLINT_OVERRIDE = create("enchantment_glint_override");
+public interface DataComponent<T> {
 
-    private final Identifier identifier;
-    private final Predicate<T> validator;
-    private final boolean vanilla;
+    /**
+     * The identifier of the data component.
+     *
+     * @return the identifier
+     */
+    @NonNull
+    Identifier identifier();
 
-    private DataComponent(Identifier identifier, Predicate<T> validator, boolean vanilla) {
-        this.identifier = identifier;
-        this.validator = validator;
-        this.vanilla = vanilla;
-    }
+    /**
+     * The predicate used to validate the component.
+     *
+     * @return the validator
+     */
+    @NonNull
+    Predicate<T> validator();
 
-    private static <T> DataComponent<T> create(String name) {
-        return new DataComponent<>(Identifier.of(name), t -> true, true);
-    }
-
-    private static <T> DataComponent<T> create(String name, Predicate<T> validator) {
-        return new DataComponent<>(Identifier.of(name), validator, true);
-    }
-
-    static <T> DataComponent<T> createGeyser(String name) {
-        return new DataComponent<>(Identifier.of("geyser", name), t -> true, false);
-    }
-
-    static <T> DataComponent<T> createGeyser(String name, Predicate<T> validator) {
-        return new DataComponent<>(Identifier.of("geyser", name), validator, false);
-    }
-
-    public Identifier identifier() {
-        return identifier;
-    }
-
-    public boolean vanilla() {
-        return vanilla;
-    }
-
-    public boolean validate(T value) {
-        return validator.test(value);
-    }
-
-    @Override
-    public String toString() {
-        return "data component " + identifier.toString() + (vanilla ? "" : " (not vanilla)");
-    }
+    /**
+     * Whether the component exists in vanilla Minecraft.
+     *
+     * @return whether this component is vanilla
+     */
+    boolean vanilla();
 }

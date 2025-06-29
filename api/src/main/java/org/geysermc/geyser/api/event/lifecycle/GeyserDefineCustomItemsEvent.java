@@ -41,29 +41,34 @@ import java.util.Map;
 /**
  * Called on Geyser's startup when looking for custom items. Custom items must be registered through this event.
  * <p>
- * This event will not be called if the "add non-Bedrock items" setting is disabled in the Geyser config.
+ * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
  */
 public interface GeyserDefineCustomItemsEvent extends Event {
 
     /**
-     * A multimap of all the already registered (using the deprecated method) custom items indexed by the item's extended java item's identifier.
+     * A multimap of all the already registered custom items indexed by the item's extended java item's identifier.
+     * The map returned here will only contain items registered with the deprecated
+     * {@link GeyserDefineCustomItemsEvent#register(String, CustomItemData)} method.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
+     * @deprecated replaced with {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      */
     @Deprecated
     @NonNull
     Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
-     * A multimap of all the already registered custom item definitions indexed by the item's extended java item's identifier.
+     * A multimap of all the already registered custom item definitions
+     * indexed by the identifier of the Java item which the item is based on.
      */
     @NonNull
     Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
 
     /**
-     * A list of the already registered (using the deprecated method) non-vanilla custom items.
+     * A list of the already registered non-vanilla custom items.
+     * The map returned here will only contain items registered with the deprecated
+     * {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemData)} method.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
+     * @deprecated replaced with {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
     @Deprecated
     @NonNull

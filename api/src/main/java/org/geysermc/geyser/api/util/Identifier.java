@@ -25,15 +25,54 @@
 
 package org.geysermc.geyser.api.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
+/**
+ * An identifying object for representing unique objects.
+ * This identifier consists of two parts:
+ * <ul>
+ *     <li>
+ *         a namespace, which is usually a name identifying your work
+ *     </li>
+ *     <li>
+ *         a path, which holds a value.
+ *     </li>
+ * </ul>
+ *
+ * Examples of identifiers:
+ * <ul>
+ *     <li>{@code minecraft:fox}</li>
+ *     <li>{@code geysermc:one_fun_example}</li>
+ * </ul>
+ *
+ * If this identifier is referencing anything not in the
+ * vanilla Minecraft game, the namespace cannot be "minecraft".
+ * Further, paths cannot contain colons ({@code :}).
+ */
 public interface Identifier {
+
+    /**
+     * The namespace for Minecraft.
+     */
     String DEFAULT_NAMESPACE = "minecraft";
 
-    static Identifier of(String namespace, String path) {
+    /**
+     * Attempts to create a new identifier from a namespace and path.
+     * 
+     * @return the identifier for this namespace and path
+     * @throws IllegalArgumentException if either namespace or path are invalid.
+     */
+    static Identifier of(@NonNull String namespace, @NonNull String path) {
         return GeyserApi.api().provider(Identifier.class, namespace, path);
     }
 
+    /**
+     * Attempts to create a new identifier from a string representation.
+     *
+     * @return the identifier for this namespace and path
+     * @throws IllegalArgumentException if either the namespace or path are invalid
+     */
     static Identifier of(String identifier) {
         String[] split = identifier.split(":");
         String namespace;
@@ -50,10 +89,19 @@ public interface Identifier {
         return of(namespace, path);
     }
 
+    /**
+     * Returns the namespace of this identifier.
+     */
     String namespace();
 
+    /**
+     * Returns the path of this identifier.
+     */
     String path();
-    
+
+    /**
+     * Checks whether this identifier is using the "minecraft" namespace.
+     */
     default boolean vanilla() {
         return namespace().equals(DEFAULT_NAMESPACE);
     }

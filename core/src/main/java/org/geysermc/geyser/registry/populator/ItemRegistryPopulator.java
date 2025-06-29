@@ -166,7 +166,7 @@ public class ItemRegistryPopulator {
             throw new AssertionError("Unable to load Bedrock item components", e);
         }
 
-        boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
+        boolean customItemsAllowed = bootstrap.getGeyserConfig().isAddNonBedrockItems();
 
         Multimap<Identifier, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
@@ -608,7 +608,6 @@ public class ItemRegistryPopulator {
                     int customItemId = nextFreeBedrockId++;
                     try {
                         NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
-
 
                         ItemMapping mapping = registration.mapping();
                         Item javaItem = registration.javaItem();

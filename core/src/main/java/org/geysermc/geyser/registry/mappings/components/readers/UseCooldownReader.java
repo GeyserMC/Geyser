@@ -27,9 +27,10 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.UseCooldown;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.custom.impl.UseCooldownImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
@@ -38,7 +39,7 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 public class UseCooldownReader extends DataComponentReader<UseCooldown> {
 
     public UseCooldownReader() {
-        super(DataComponent.USE_COOLDOWN);
+        super(ItemDataComponents.USE_COOLDOWN);
     }
 
     @Override
@@ -46,6 +47,6 @@ public class UseCooldownReader extends DataComponentReader<UseCooldown> {
         float seconds = MappingsUtil.readOrThrow(element, "seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), context);
         Identifier cooldownGroup = MappingsUtil.readOrDefault(element, "cooldown_group", NodeReader.IDENTIFIER, null, context);
 
-        return new UseCooldown(seconds, cooldownGroup);
+        return new UseCooldownImpl(seconds, cooldownGroup);
     }
 }

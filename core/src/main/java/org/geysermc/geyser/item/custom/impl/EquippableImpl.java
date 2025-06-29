@@ -23,18 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate;
+package org.geysermc.geyser.item.custom.impl;
 
-/**
- * Represents all possible strategies for evaluating multiple predicates.
- */
-public enum PredicateStrategy {
-    /**
-     * Require all predicates to pass
-     */
-    AND,
-    /**
-     * Require only one of the predicates to pass
-     */
-    OR
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
+
+import java.util.Objects;
+
+public record EquippableImpl(
+    EquipmentSlot slot
+) implements Equippable {
+
+    public static class Builder implements Equippable.Builder {
+        private EquipmentSlot slot;
+
+        @Override
+        public Equippable.Builder slot(@NonNull EquipmentSlot slot) {
+            Objects.requireNonNull(slot, "slot cannot be null");
+            this.slot = slot;
+            return this;
+        }
+
+        @Override
+        public Equippable build() {
+            Objects.requireNonNull(slot, "slot cannot be null");
+            return new EquippableImpl(slot);
+        }
+    }
 }

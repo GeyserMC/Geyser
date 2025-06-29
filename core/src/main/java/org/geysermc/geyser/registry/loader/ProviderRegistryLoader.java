@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -43,23 +42,41 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.event.GeyserEventRegistrar;
+import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
-import org.geysermc.geyser.event.GeyserEventRegistrar;
-import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
+import org.geysermc.geyser.item.custom.impl.BlockPlacerImpl;
+import org.geysermc.geyser.item.custom.impl.ChargeableImpl;
+import org.geysermc.geyser.item.custom.impl.ConsumableImpl;
+import org.geysermc.geyser.item.custom.impl.DataComponentImpl;
+import org.geysermc.geyser.item.custom.impl.EquippableImpl;
+import org.geysermc.geyser.item.custom.impl.FoodPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.RepairableImpl;
+import org.geysermc.geyser.item.custom.impl.ToolPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.UseCooldownImpl;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
@@ -75,6 +92,7 @@ import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Registers the provider data from the provider.
@@ -84,7 +102,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
         // misc
-        providers.put(Identifier.class, args -> new IdentifierImpl(Key.key((String) args[0], (String) args[1])));
+        providers.put(Identifier.class, args -> IdentifierImpl.of((String) args[0], (String) args[1]));
         // commands
         providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
 
@@ -116,10 +134,28 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
 
+        providers.put(DataComponent.class, args -> dataComponentProvider((Identifier) args[1], (Predicate<?>) args[2], (Boolean) args[3]));
+
+        // item components
+        providers.put(Consumable.Builder.class, args -> new ConsumableImpl.Builder());
+        providers.put(Equippable.Builder.class, args -> new EquippableImpl.Builder());
+        providers.put(FoodProperties.Builder.class, args -> new FoodPropertiesImpl.Builder());
+        providers.put(Repairable.Builder.class, args -> new RepairableImpl.Builder());
+        providers.put(ToolProperties.Builder.class, args -> new ToolPropertiesImpl.Builder());
+        providers.put(UseCooldown.Builder.class, args -> new UseCooldownImpl.Builder());
+
+        // geyser components
+        providers.put(Chargeable.Builder.class, args -> new ChargeableImpl.Builder());
+        providers.put(BlockPlacer.Builder.class, args -> new BlockPlacerImpl.Builder());
+
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
         return providers;
+    }
+
+    public <T> DataComponentImpl<T> dataComponentProvider(Identifier identifier, Predicate<T> predicate, boolean vanilla) {
+        return new DataComponentImpl<>(identifier, predicate, vanilla);
     }
 }

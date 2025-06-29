@@ -28,9 +28,7 @@ package org.geysermc.geyser.registry.mappings.versions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -45,7 +43,6 @@ import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
-import org.geysermc.geyser.util.MinecraftKey;
 
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -119,7 +116,7 @@ public class MappingsReader_v2 extends MappingsReader {
 
     @Override
     public CustomItemDefinition readItemMappingEntry(Identifier parentModel, JsonElement element) throws InvalidCustomMappingsFileException {
-        Identifier bedrockIdentifier = MappingsUtil.readOrThrow(element, "bedrock_identifier", NodeReader.IDENTIFIER, "item definition");
+        Identifier bedrockIdentifier = MappingsUtil.readOrThrow(element, "bedrock_identifier", NodeReader.GEYSER_IDENTIFIER, "item definition");
         // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
@@ -129,9 +126,6 @@ public class MappingsReader_v2 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("reading item model", "no model present", context);
         }
 
-        if (bedrockIdentifier.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-            bedrockIdentifier = Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, bedrockIdentifier.path()); // Use geyser_custom namespace when no namespace or the minecraft namespace was given
-        }
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, model);
 
         MappingsUtil.readIfPresent(element, "display_name", builder::displayName, NodeReader.NON_EMPTY_STRING, context);

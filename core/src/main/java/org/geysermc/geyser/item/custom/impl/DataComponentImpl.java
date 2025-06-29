@@ -23,16 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.item.custom.impl;
 
-public record Equippable(EquipmentSlot slot) {
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.util.Identifier;
 
-    public enum EquipmentSlot {
-        HEAD,
-        CHEST,
-        LEGS,
-        FEET,
-        BODY,
-        SADDLE
+import java.util.function.Predicate;
+
+public record DataComponentImpl<T>(
+    Identifier identifier,
+    Predicate<T> validator,
+    boolean vanilla
+) implements DataComponent<T> {
+
+    public boolean validate(T value) {
+        return this.validator.test(value);
     }
+
 }
+

@@ -27,8 +27,9 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.ToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
+import org.geysermc.geyser.item.custom.impl.ToolPropertiesImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
@@ -37,11 +38,11 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 public class ToolPropertiesReader extends DataComponentReader<ToolProperties> {
 
     public ToolPropertiesReader() {
-        super(DataComponent.TOOL);
+        super(ItemDataComponents.TOOL);
     }
 
     @Override
     protected ToolProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        return new ToolProperties(MappingsUtil.readOrDefault(element, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));
+        return new ToolPropertiesImpl(MappingsUtil.readOrDefault(element, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));
     }
 }

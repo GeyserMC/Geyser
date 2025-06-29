@@ -29,7 +29,7 @@ import com.google.gson.JsonElement;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.readers.BooleanComponentReader;
@@ -67,12 +67,12 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("consumable"), new ConsumableReader());
         READERS.put(MinecraftKey.key("equippable"), new EquippableReader());
         READERS.put(MinecraftKey.key("food"), new FoodPropertiesReader());
-        READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(DataComponent.MAX_DAMAGE, 0));
-        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(DataComponent.MAX_STACK_SIZE, 1, 99));
+        READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(ItemDataComponents.MAX_DAMAGE, 0));
+        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(ItemDataComponents.MAX_STACK_SIZE, 1, 99));
         READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
         READERS.put(MinecraftKey.key("enchantable"), new EnchantableReader());
         READERS.put(MinecraftKey.key("tool"), new ToolPropertiesReader());
         READERS.put(MinecraftKey.key("repairable"), new RepairableReader());
-        READERS.put(MinecraftKey.key("enchantment_glint_override"), new BooleanComponentReader(DataComponent.ENCHANTMENT_GLINT_OVERRIDE));
+        READERS.put(MinecraftKey.key("enchantment_glint_override"), new BooleanComponentReader(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE));
     }
 }

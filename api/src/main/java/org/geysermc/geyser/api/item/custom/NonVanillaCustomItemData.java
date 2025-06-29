@@ -32,13 +32,13 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
-import org.geysermc.geyser.api.item.custom.v2.component.FoodProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -203,39 +203,39 @@ public interface NonVanillaCustomItemData extends CustomItemData {
                 .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
                 .protectionValue(protectionValue())
             )
-            .component(DataComponent.MAX_STACK_SIZE, stackSize())
-            .component(DataComponent.MAX_DAMAGE, maxDamage())
+            .component(ItemDataComponents.MAX_STACK_SIZE, stackSize())
+            .component(ItemDataComponents.MAX_DAMAGE, maxDamage())
             .component(GeyserDataComponent.ATTACK_DAMAGE, attackDamage())
             .translationString(translationString());
 
         if (isHat()) {
-            definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.HEAD));
+            definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD).build());
         } else if (armorType() != null) {
             switch (armorType()) {
-                case "helmet" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.HEAD));
-                case "chestplate" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.CHEST));
-                case "leggings" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.LEGS));
-                case "boots" -> definition.component(DataComponent.EQUIPPABLE, new Equippable(Equippable.EquipmentSlot.FEET));
+                case "helmet" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD));
+                case "chestplate" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.CHEST));
+                case "leggings" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.LEGS));
+                case "boots" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.of(Equippable.EquipmentSlot.FEET));
             }
         }
 
         if (isEdible()) {
-            definition.component(DataComponent.CONSUMABLE, new Consumable(1.6F, Consumable.Animation.EAT)); // Default values
+            definition.component(ItemDataComponents.CONSUMABLE, Consumable.builder().consumeSeconds(1.6F).animation(Consumable.Animation.EAT)); // Default values
             if (canAlwaysEat()) {
-                definition.component(DataComponent.FOOD, new FoodProperties(0, 0, true));
+                definition.component(ItemDataComponents.FOOD, FoodProperties.builder().canAlwaysEat(true));
             }
         }
 
         if (isChargeable() && toolType() != null) {
             if (toolType().equals("bow")) {
-                definition.component(GeyserDataComponent.CHARGEABLE, new Chargeable(1.0F, true, Identifier.of("arrow")));
+                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
             } else {
-                definition.component(GeyserDataComponent.CHARGEABLE, new Chargeable(0.0F, false, Identifier.of("arrow")));
+                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().ammunition(Identifier.of("arrow")));
             }
         }
 
         if (block() != null) {
-            definition.component(GeyserDataComponent.BLOCK_PLACER, new BlockPlacer(Identifier.of(block()), false));
+            definition.component(GeyserDataComponent.BLOCK_PLACER, BlockPlacer.builder().block(Identifier.of(block())));
         }
 
         return definition;

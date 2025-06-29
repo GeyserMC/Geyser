@@ -28,8 +28,10 @@ package org.geysermc.geyser.item.custom;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
@@ -60,18 +62,18 @@ import java.util.Map;
  *
  * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
  * <ul>
- *     <li>The MCPL counterpart of the {@link DataComponent#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
+ *     <li>The MCPL counterpart of the {@link ItemDataComponents#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
  *     Also see {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
- *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent}) don't have converters registered, for obvious reasons.
+ *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent}) don't have converters registered, for obvious reasons.
  *     They're used directly in the custom item registry populator. Eventually, some may have converters introduced as Mojang introduces such components in Java.</li>
  * </ul>
- * For both of these cases proper accommodations have been made in the {@link org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator}.
+ * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ComponentConverter<?>> converters = new HashMap<>();
 
     static {
-        registerConverter(DataComponent.CONSUMABLE, (itemMap, value) -> {
+        registerConverter(ItemDataComponents.CONSUMABLE, (itemMap, value) -> {
             Consumable.ItemUseAnimation convertedAnimation = switch (value.animation()) {
                 case NONE -> Consumable.ItemUseAnimation.NONE;
                 case EAT -> Consumable.ItemUseAnimation.EAT;
@@ -87,7 +89,7 @@ public class ComponentConverters {
                 true, List.of()));
         });
 
-        registerConverter(DataComponent.EQUIPPABLE, (itemMap, value) -> {
+        registerConverter(ItemDataComponents.EQUIPPABLE, (itemMap, value) -> {
             EquipmentSlot convertedSlot = switch (value.slot()) {
                 case HEAD -> EquipmentSlot.HELMET;
                 case CHEST -> EquipmentSlot.CHESTPLATE;
@@ -100,21 +102,21 @@ public class ComponentConverters {
                 null, null, null, false, false, false, false, false, null));
         });
 
-        registerConverter(DataComponent.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
+        registerConverter(ItemDataComponents.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
             new FoodProperties(value.nutrition(), value.saturation(), value.canAlwaysEat())));
 
-        registerConverter(DataComponent.MAX_DAMAGE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_DAMAGE, value));
-        registerConverter(DataComponent.MAX_STACK_SIZE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_STACK_SIZE, value));
+        registerConverter(ItemDataComponents.MAX_DAMAGE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_DAMAGE, value));
+        registerConverter(ItemDataComponents.MAX_STACK_SIZE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_STACK_SIZE, value));
 
-        registerConverter(DataComponent.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
+        registerConverter(ItemDataComponents.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
 
-        registerConverter(DataComponent.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
+        registerConverter(ItemDataComponents.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
 
-        registerConverter(DataComponent.TOOL, (itemMap, value) -> itemMap.put(DataComponentTypes.TOOL,
+        registerConverter(ItemDataComponents.TOOL, (itemMap, value) -> itemMap.put(DataComponentTypes.TOOL,
             new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative())));
 
-        registerConverter(DataComponent.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));
+        registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {

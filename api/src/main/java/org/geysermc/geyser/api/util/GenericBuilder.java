@@ -23,17 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.util.Identifier;
+/**
+ * An interface for builders.
+ *
+ * @param <T> the type of the object built
+ */
+public interface GenericBuilder<T> {
 
-public record UseCooldown(@Positive float seconds, @Nullable Identifier cooldownGroup) {
-    
-    public UseCooldown {
-        if (seconds <= 0.0F) {
-            throw new IllegalArgumentException("Cooldown seconds must be above 0");
-        }
-    }
+    /**
+     * Builds the object from the builder
+     * @return the object
+     */
+    T build();
 }

@@ -26,15 +26,19 @@
 package org.geysermc.geyser.api.item.custom.v2;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.GenericBuilder;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This is used to define a custom item and its properties for a specific Java item and item model definition combination.
@@ -59,11 +63,15 @@ public interface CustomItemDefinition {
 
     /**
      * The Bedrock identifier for this custom item. It cannot be in the {@code minecraft} namespace.
+     *
+     * @return the Bedrock item identifier
      */
     @NonNull Identifier bedrockIdentifier();
 
     /**
      * The display name of the item. If none is set, the display name is taken from the item's Bedrock identifier.
+     *
+     * @return the display name shown to Bedrock clients
      */
     @NonNull String displayName();
 
@@ -71,6 +79,8 @@ public interface CustomItemDefinition {
      * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition must have at least one predicate.
      *
      * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
+     *
+     * @return the identifier of the Java item model
      */
     @NonNull Identifier model();
 
@@ -82,6 +92,8 @@ public interface CustomItemDefinition {
      *
      * <p>{@code my_datapack:my_custom_item} => {@code my_datapack.my_custom_item}</p>
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
+     *
+     * @return the icon shown to Bedrock players
      */
     default @NonNull String icon() {
         String setIcon = bedrockOptions().icon();
@@ -103,7 +115,7 @@ public interface CustomItemDefinition {
     /**
      * The predicate strategy to be used. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
      */
-    PredicateStrategy predicateStrategy();
+    @NonNull PredicateStrategy predicateStrategy();
 
     /**
      * The priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
@@ -121,16 +133,16 @@ public interface CustomItemDefinition {
      * <p>Currently, the following components are (somewhat) supported:</p>
      *
      * <ul>
-     *     <li>{@code minecraft:consumable} ({@link DataComponent#CONSUMABLE})</li>
-     *     <li>{@code minecraft:equippable} ({@link DataComponent#EQUIPPABLE})</li>
-     *     <li>{@code minecraft:food} ({@link DataComponent#FOOD})</li>
-     *     <li>{@code minecraft:max_damage} ({@link DataComponent#MAX_DAMAGE})</li>
-     *     <li>{@code minecraft:max_stack_size} ({@link DataComponent#MAX_STACK_SIZE})</li>
-     *     <li>{@code minecraft:use_cooldown} ({@link DataComponent#USE_COOLDOWN})</li>
-     *     <li>{@code minecraft:enchantable} ({@link DataComponent#ENCHANTABLE})</li>
-     *     <li>{@code minecraft:tool} ({@link DataComponent#TOOL})</li>
-     *     <li>{@code minecraft:repairable} ({@link DataComponent#REPAIRABLE})</li>
-     *     <li>{@code minecraft:enchantment_glint_override} ({@link DataComponent#ENCHANTMENT_GLINT_OVERRIDE})</li>
+     *     <li>{@code minecraft:consumable} ({@link ItemDataComponents#CONSUMABLE})</li>
+     *     <li>{@code minecraft:equippable} ({@link ItemDataComponents#EQUIPPABLE})</li>
+     *     <li>{@code minecraft:food} ({@link ItemDataComponents#FOOD})</li>
+     *     <li>{@code minecraft:max_damage} ({@link ItemDataComponents#MAX_DAMAGE})</li>
+     *     <li>{@code minecraft:max_stack_size} ({@link ItemDataComponents#MAX_STACK_SIZE})</li>
+     *     <li>{@code minecraft:use_cooldown} ({@link ItemDataComponents#USE_COOLDOWN})</li>
+     *     <li>{@code minecraft:enchantable} ({@link ItemDataComponents#ENCHANTABLE})</li>
+     *     <li>{@code minecraft:tool} ({@link ItemDataComponents#TOOL})</li>
+     *     <li>{@code minecraft:repairable} ({@link ItemDataComponents#REPAIRABLE})</li>
+     *     <li>{@code minecraft:enchantment_glint_override} ({@link ItemDataComponents#ENCHANTMENT_GLINT_OVERRIDE})</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.</p>
@@ -148,33 +160,131 @@ public interface CustomItemDefinition {
      */
     @NonNull List<Identifier> removedComponents();
 
-    static Builder builder(Identifier bedrockIdentifier, Identifier itemModel) {
+    /**
+     * Creates a builder for the custom item definition.
+     *
+     * @param bedrockIdentifier the Bedrock item identifier
+     * @param itemModel the Java item model identifier
+     * @return a new builder
+     */
+    static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier, itemModel);
     }
 
-    interface Builder {
+    /**
+     * The builder for the custom item definition.
+     */
+    interface Builder extends GenericBuilder<CustomItemDefinition> {
 
+        /**
+         * Sets the display name, as shown to the Bedrock client.
+         * When not set, the display name will be derived from the Bedrock item identifier.
+         *
+         * @param displayName the display name to show for Bedrock clients.
+         * @return this builder
+         */
+        @This
         Builder displayName(@NonNull String displayName);
 
+        /**
+         * Sets the priority of this definition, used for definition matching.
+         * @see CustomItemDefinition#priority()
+         *
+         * @param priority the priority
+         * @return this builder
+         */
+        @This
         Builder priority(int priority);
 
+        /**
+         * Sets the Bedrock item options for this definition.
+         * Those determine the icon seen on Bedrock edition, whether the item
+         * can be placed in the offhand slot, and other options.
+         *
+         * @see CustomItemBedrockOptions
+         * @param options the bedrock item options
+         * @return this builder
+         */
+        @This
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
+        /**
+         * Adds a predicate that must match for Geyser to use this item definition.
+         * See {@link CustomItemDefinition#predicates()} for details.
+         *
+         * @param predicate a predicate that must match for this item to be used
+         * @return this builder
+         */
+        @This
         Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate);
 
+        /**
+         * Sets the predicate strategy that should be used for item definition matching.
+         *
+         * @param strategy the predicate strategy to use
+         * @return this builder
+         */
+        @This
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
+        /**
+         * Sets data components that determine the item behavior. These are assumed to also be
+         * present server-side on the Java server. See {@link CustomItemDefinition#components()}
+         * for more information.
+         *
+         * @param component the type of the component - found in {@link ItemDataComponents}
+         * @param value the value of the component
+         * @return this builder
+         * @param <T> the value held by the component
+         */
+        @This
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
-        Builder removeComponent(Identifier component);
+        /**
+         * Convenience method for {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
+         *
+         * @param component the type of the component - found in {@link ItemDataComponents}
+         * @param builder the builder of the component
+         * @return this builder
+         * @param <T> the value held by the component
+         */
+        @This
+        default <T> Builder component(@NonNull DataComponent<T> component, @NonNull GenericBuilder<T> builder) {
+            return component(component, builder.build());
+        }
 
-        default Builder removeComponent(DataComponent<?> component) {
+        /**
+         * Indicates a removed item component that will not be present on the custom item despite
+         * existing on the vanilla item. This must match server-side behavior, otherwise, issues
+         * will occur. See {@link CustomItemDefinition#removedComponents()} for more information.
+         *
+         * @param component the identifier of the vanilla base component to remove
+         * @return this builder
+         */
+        @This
+        Builder removeComponent(@NonNull Identifier component);
+
+        /**
+         * Convenience method for {@link CustomItemDefinition.Builder#removeComponent(Identifier)}.
+         *
+         * @param component the component type to remove
+         * @return this builder
+         */
+        @This
+        default Builder removeComponent(@NonNull DataComponent<?> component) {
+            Objects.requireNonNull(component);
             if (!component.vanilla()) {
                 throw new IllegalArgumentException("Cannot remove non-vanilla component");
             }
             return removeComponent(component.identifier());
         }
 
+        /**
+         * Creates the custom item definition.
+         *
+         * @return the new custom item definition
+         */
+        @Override
         CustomItemDefinition build();
     }
 }

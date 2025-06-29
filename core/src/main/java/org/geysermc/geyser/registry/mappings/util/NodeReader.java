@@ -26,8 +26,9 @@
 package org.geysermc.geyser.registry.mappings.util;
 
 import com.google.gson.JsonPrimitive;
-import org.geysermc.geyser.api.item.custom.v2.component.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.Equippable;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -89,6 +90,15 @@ public interface NodeReader<T> {
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
     NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::of);
+
+    NodeReader<Identifier> GEYSER_IDENTIFIER = NON_EMPTY_STRING.validate(s -> !s.startsWith("minecraft:"), "namespace cannot be minecraft")
+        .andThen(Identifier::of)
+        .andThen(identifier -> {
+            if (identifier.namespace().equals(Identifier.DEFAULT_NAMESPACE)) {
+                return Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, identifier.path());
+            }
+            return identifier;
+        });
 
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
 

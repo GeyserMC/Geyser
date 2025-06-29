@@ -23,9 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.item.custom.impl;
 
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
 
-public record Repairable(Identifier... items) {
+public record ToolPropertiesImpl(
+    boolean canDestroyBlocksInCreative
+) implements ToolProperties {
+
+    public static class Builder implements ToolProperties.Builder {
+        private boolean destroyBlocksInCreative = true;
+
+        @Override
+        public ToolProperties.Builder canDestroyBlocksInCreative(boolean destroyBlocksInCreative) {
+            this.destroyBlocksInCreative = destroyBlocksInCreative;
+            return this;
+        }
+
+        @Override
+        public ToolProperties build() {
+            return new ToolPropertiesImpl(destroyBlocksInCreative);
+        }
+    }
 }

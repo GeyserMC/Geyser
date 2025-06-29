@@ -23,17 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.item.custom.impl;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.geysermc.geyser.api.util.Identifier;
+import org.checkerframework.checker.index.qual.Positive;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
 
-// TODO projectile component
-public record Chargeable(@NonNegative float maxDrawDuration, boolean chargeOnDraw, Identifier... ammunition) {
+import java.util.Objects;
 
-    public Chargeable {
-        if (maxDrawDuration < 0.0F) {
-            throw new IllegalArgumentException("Max draw duration must be at or above 0");
+public record ConsumableImpl(
+    float consumeSeconds,
+    @NonNull Animation animation
+) implements Consumable {
+
+    public static class Builder implements Consumable.Builder {
+        private float consumeSeconds = 1.6F;
+        private Animation animation = Animation.EAT;
+
+        @Override
+        public Builder consumeSeconds(@Positive float consumeSeconds) {
+            if (consumeSeconds <= 0.0F) {
+                throw new IllegalArgumentException("consume seconds must be above 0");
+            }
+            this.consumeSeconds = consumeSeconds;
+            return this;
+        }
+
+        @Override
+        public Builder animation(@NonNull Animation animation) {
+            Objects.requireNonNull(animation, "animation cannot be null");
+            this.animation = animation;
+            return this;
+        }
+
+        @Override
+        public Consumable build() {
+            return new ConsumableImpl(consumeSeconds, animation);
         }
     }
 }

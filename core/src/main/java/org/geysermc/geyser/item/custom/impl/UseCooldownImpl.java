@@ -23,7 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.item.custom.impl;
 
-public record ToolProperties(boolean canDestroyBlocksInCreative) {
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
+import org.geysermc.geyser.api.util.Identifier;
+
+public record UseCooldownImpl(
+    float seconds,
+    @Nullable Identifier cooldownGroup
+) implements UseCooldown {
+
+    public static class Builder implements UseCooldown.Builder {
+        private Identifier cooldownGroup;
+        private float seconds;
+
+        @Override
+        public Builder cooldownGroup(@Nullable Identifier cooldownGroup) {
+            this.cooldownGroup = cooldownGroup;
+            return this;
+        }
+
+        @Override
+        public Builder seconds(float seconds) {
+            this.seconds = seconds;
+            return this;
+        }
+
+        @Override
+        public UseCooldown build() {
+            return new UseCooldownImpl(seconds, cooldownGroup);
+        }
+    }
 }

@@ -112,7 +112,7 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         }
 
         @Override
-        public CustomItemDefinition.Builder removeComponent(Identifier component) {
+        public CustomItemDefinition.Builder removeComponent(@NonNull Identifier component) {
             throw new UnsupportedOperationException("Removing default item components is not supported for non-vanilla items");
         }
 

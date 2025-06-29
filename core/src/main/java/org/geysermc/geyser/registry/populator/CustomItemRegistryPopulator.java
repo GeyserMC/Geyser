@@ -40,11 +40,11 @@ import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -71,10 +71,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -253,7 +251,7 @@ public class CustomItemRegistryPopulator {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
         }
 
-        Repairable repairable = definition.components().get(DataComponent.REPAIRABLE);
+        Repairable repairable = definition.components().get(ItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             for (Identifier item : repairable.items()) {
                 if (Registries.JAVA_ITEM_IDENTIFIERS.get(item.toString()) == null) {
@@ -290,7 +288,7 @@ public class CustomItemRegistryPopulator {
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
         // Using API component here because MCPL one is just an ID holder set
-        Repairable repairable = customItemDefinition.components().get(DataComponent.REPAIRABLE);
+        Repairable repairable = customItemDefinition.components().get(ItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             computeRepairableProperties(repairable, componentBuilder);
         }
@@ -327,9 +325,9 @@ public class CustomItemRegistryPopulator {
         BlockPlacer blockPlacer = vanillaMapping.map(mapping -> {
             String bedrockIdentifier = mapping.getBedrockIdentifier();
             if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
-                return new BlockPlacer(Identifier.of("fire"), false);
+                return BlockPlacer.builder().block(Identifier.of("fire")).build();
             } else if (mapping.getFirstBlockRuntimeId() != null) {
-                return new BlockPlacer(Identifier.of(mapping.getBedrockIdentifier()), false);
+                return BlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
             }
             return null;
         }).orElse(customItemDefinition.components().get(GeyserDataComponent.BLOCK_PLACER));
@@ -339,8 +337,8 @@ public class CustomItemRegistryPopulator {
         }
 
         Chargeable chargeable = vanillaMapping.map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
-            case "minecraft:bow" -> new Chargeable(1.0F, false, Identifier.of("arrow"));
-            case "minecraft:crossbow" -> new Chargeable(0.0F, true, Identifier.of("arrow"));
+            case "minecraft:bow" -> Chargeable.builder().maxDrawDuration(1.0F).ammunition(Identifier.of("arrow")).build();
+            case "minecraft:crossbow" -> Chargeable.builder().chargeOnDraw(true).ammunition(Identifier.of("arrow")).build();
             default -> null;
         }).orElse(customItemDefinition.components().get(GeyserDataComponent.CHARGEABLE));
 
@@ -458,7 +456,7 @@ public class CustomItemRegistryPopulator {
      * <p>This method passes the Java identifiers straight to bedrock - which isn't perfect.</p>
      */
     private static void computeRepairableProperties(Repairable repairable, NbtMapBuilder componentBuilder) {
-        List<NbtMap> items = Arrays.stream(repairable.items())
+        List<NbtMap> items = repairable.items().stream()
             .map(identifier -> NbtMap.builder()
                 .putString("name", identifier.toString())
                 .build()).toList();
@@ -532,7 +530,7 @@ public class CustomItemRegistryPopulator {
         }
 
         componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
-            .putList("ammunition", NbtType.COMPOUND, Arrays.stream(chargeable.ammunition())
+            .putList("ammunition", NbtType.COMPOUND, chargeable.ammunition().stream()
                 .map(ammunition ->
                     NbtMap.builder()
                         .putCompound("item", NbtMap.builder()

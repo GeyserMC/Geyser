@@ -32,15 +32,17 @@ import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.custom.impl.DataComponentImpl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @EqualsAndHashCode
@@ -89,6 +91,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     }
 
     @Override
+    @NonNull
     public PredicateStrategy predicateStrategy() {
         return predicateStrategy;
     }
@@ -125,7 +128,9 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private PredicateStrategy predicateStrategy = PredicateStrategy.AND;
 
-        public Builder(Identifier bedrockIdentifier, Identifier model) {
+        public Builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier model) {
+            Objects.requireNonNull(bedrockIdentifier, "bedrockIdentifier cannot be null");
+            Objects.requireNonNull(model, "model cannot be null");
             this.bedrockIdentifier = bedrockIdentifier;
             this.displayName = bedrockIdentifier.toString();
             this.model = model;
@@ -133,6 +138,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
 
         @Override
         public CustomItemDefinition.Builder displayName(@NonNull String displayName) {
+            Objects.requireNonNull(displayName, "displayName cannot be null");
             this.displayName = displayName;
             return this;
         }
@@ -145,27 +151,36 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
 
         @Override
         public CustomItemDefinition.Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options) {
+            Objects.requireNonNull(options, "options cannot be null");
             this.bedrockOptions = options.build();
             return this;
         }
 
         @Override
         public CustomItemDefinition.Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate) {
+            Objects.requireNonNull(predicate, "predicate cannot be null");
             predicates.add(predicate);
             return this;
         }
 
         @Override
         public CustomItemDefinition.Builder predicateStrategy(@NonNull PredicateStrategy strategy) {
+            Objects.requireNonNull(strategy, "strategy cannot be null");
             predicateStrategy = strategy;
             return this;
         }
 
         @Override
         public <T> CustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
+            Objects.requireNonNull(component, "component cannot be null");
+            Objects.requireNonNull(value, "value cannot be null");
+            if (!(component instanceof DataComponentImpl<T> dataComponent)) {
+                throw new IllegalArgumentException("Cannot use custom implementations of the DataComponent<T> interface! Found: " + component.getClass().getSimpleName());
+            }
+
             if (!component.vanilla() && !(this instanceof GeyserNonVanillaCustomItemDefinition.Builder)) {
                 throw new IllegalArgumentException("That component cannot be used for vanilla items");
-            } else if (!component.validate(value)) {
+            } else if (!dataComponent.validate(value)) {
                 throw new IllegalArgumentException("Value " + value + " is invalid for " + component);
             }
             components.put(component, value);
@@ -173,7 +188,8 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         }
 
         @Override
-        public CustomItemDefinition.Builder removeComponent(Identifier component) {
+        public CustomItemDefinition.Builder removeComponent(@NonNull Identifier component) {
+            Objects.requireNonNull(component, "component cannot be null");
             removedComponents.add(component);
             return this;
         }

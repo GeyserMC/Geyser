@@ -35,7 +35,7 @@ import java.util.function.Predicate;
 /**
  * A predicate for a {@link MinecraftPredicateContext}.
  *
- * <p>Right now this is used to determine if a {@link CustomItemDefinition} should be used. While this does
+ * <p>This is used to determine if a {@link CustomItemDefinition} should be used. While this does
  * allow you to define your own predicates with custom checks, it is recommended to use commonly defined predicates and predicate creators when possible,
  * since these support conflict detection among other benefits. See {@link CustomItemDefinition#predicates()}.</p>
  *
