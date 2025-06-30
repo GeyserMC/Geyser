@@ -5533,7 +5533,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAEabWluZWNyYWZ0Om1pc2MvcHVtcGtpbmJsdXIAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAEabWluZWNyYWZ0Om1pc2MvcHVtcGtpbmJsdXIAAQABAACSCg==",
       "minecraft:item_model": "BxhtaW5lY3JhZnQ6Y2FydmVkX3B1bXBraW4=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHmJsb2NrLm1pbmVjcmFmdC5jYXJ2ZWRfcHVtcGtpbgA=",
       "minecraft:lore": "CAA=",
@@ -12869,7 +12869,7 @@
       "minecraft:attribute_modifiers": "DQA=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAeHBgEQbWluZWNyYWZ0OnNhZGRsZQABABptaW5lY3JhZnQ6Y2FuX2VxdWlwX3NhZGRsZQEBAQEBvw0=",
+      "minecraft:equippable": "HAeHBgEQbWluZWNyYWZ0OnNhZGRsZQABABptaW5lY3JhZnQ6Y2FuX2VxdWlwX3NhZGRsZQEBAQEBwA0=",
       "minecraft:item_model": "BxBtaW5lY3JhZnQ6c2FkZGxl",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAFWl0ZW0ubWluZWNyYWZ0LnNhZGRsZQA=",
       "minecraft:lore": "CAA=",
@@ -13291,7 +13291,7 @@
       "minecraft:break_sound": "R7EG",
       "minecraft:damage": "AwA=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANGARBtaW5lY3JhZnQ6ZWx5dHJhAAABAQAAAJEK",
+      "minecraft:equippable": "HANGARBtaW5lY3JhZnQ6ZWx5dHJhAAABAQAAAJIK",
       "minecraft:glider": "Hg==",
       "minecraft:item_model": "BxBtaW5lY3JhZnQ6ZWx5dHJh",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAFWl0ZW0ubWluZWNyYWZ0LmVseXRyYQA=",
@@ -13698,7 +13698,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARMARZtaW5lY3JhZnQ6dHVydGxlX3NjdXRlAAABAQEAAJEK",
+      "minecraft:equippable": "HARMARZtaW5lY3JhZnQ6dHVydGxlX3NjdXRlAAABAQEAAJIK",
       "minecraft:item_model": "BxdtaW5lY3JhZnQ6dHVydGxlX2hlbG1ldA==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGl0ZW0ubWluZWNyYWZ0LnR1cnRsZV9oZWxtZXQA",
       "minecraft:lore": "CAA=",
@@ -13747,7 +13747,7 @@
     "key": "minecraft:wolf_armor",
     "components": {
       "minecraft:attribute_modifiers": "DQIAFG1pbmVjcmFmdDphcm1vci5ib2R5QCYAAAAAAAAACQABFG1pbmVjcmFmdDphcm1vci5ib2R5AAAAAAAAAAAACQA=",
-      "minecraft:break_sound": "R90M",
+      "minecraft:break_sound": "R94M",
       "minecraft:damage": "AwA=",
       "minecraft:enchantments": "CgA=",
       "minecraft:equippable": "HAZNARltaW5lY3JhZnQ6YXJtYWRpbGxvX3NjdXRlAAECjwEBAQEAAU4=",
@@ -14907,7 +14907,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACRCg==",
+      "minecraft:equippable": "HARKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACSCg==",
       "minecraft:item_model": "BxhtaW5lY3JhZnQ6bGVhdGhlcl9oZWxtZXQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHWl0ZW0ubWluZWNyYWZ0LmxlYXRoZXJfaGVsbWV0AA==",
       "minecraft:lore": "CAA=",
@@ -14928,7 +14928,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACRCg==",
+      "minecraft:equippable": "HANKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACSCg==",
       "minecraft:item_model": "BxxtaW5lY3JhZnQ6bGVhdGhlcl9jaGVzdHBsYXRl",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAIWl0ZW0ubWluZWNyYWZ0LmxlYXRoZXJfY2hlc3RwbGF0ZQA=",
       "minecraft:lore": "CAA=",
@@ -14949,7 +14949,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACRCg==",
+      "minecraft:equippable": "HAJKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACSCg==",
       "minecraft:item_model": "BxptaW5lY3JhZnQ6bGVhdGhlcl9sZWdnaW5ncw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAH2l0ZW0ubWluZWNyYWZ0LmxlYXRoZXJfbGVnZ2luZ3MA",
       "minecraft:lore": "CAA=",
@@ -14970,7 +14970,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACRCg==",
+      "minecraft:equippable": "HAFKARFtaW5lY3JhZnQ6bGVhdGhlcgAAAQEBAACSCg==",
       "minecraft:item_model": "BxdtaW5lY3JhZnQ6bGVhdGhlcl9ib290cw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGl0ZW0ubWluZWNyYWZ0LmxlYXRoZXJfYm9vdHMA",
       "minecraft:lore": "CAA=",
@@ -14991,7 +14991,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gww=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAREARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJEK",
+      "minecraft:equippable": "HAREARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJIK",
       "minecraft:item_model": "BxptaW5lY3JhZnQ6Y2hhaW5tYWlsX2hlbG1ldA==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAH2l0ZW0ubWluZWNyYWZ0LmNoYWlubWFpbF9oZWxtZXQA",
       "minecraft:lore": "CAA=",
@@ -15012,7 +15012,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gww=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJEK",
+      "minecraft:equippable": "HANEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJIK",
       "minecraft:item_model": "Bx5taW5lY3JhZnQ6Y2hhaW5tYWlsX2NoZXN0cGxhdGU=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAI2l0ZW0ubWluZWNyYWZ0LmNoYWlubWFpbF9jaGVzdHBsYXRlAA==",
       "minecraft:lore": "CAA=",
@@ -15033,7 +15033,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gww=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJEK",
+      "minecraft:equippable": "HAJEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJIK",
       "minecraft:item_model": "BxxtaW5lY3JhZnQ6Y2hhaW5tYWlsX2xlZ2dpbmdz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAIWl0ZW0ubWluZWNyYWZ0LmNoYWlubWFpbF9sZWdnaW5ncwA=",
       "minecraft:lore": "CAA=",
@@ -15054,7 +15054,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gww=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJEK",
+      "minecraft:equippable": "HAFEARNtaW5lY3JhZnQ6Y2hhaW5tYWlsAAABAQEAAJIK",
       "minecraft:item_model": "BxltaW5lY3JhZnQ6Y2hhaW5tYWlsX2Jvb3Rz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHml0ZW0ubWluZWNyYWZ0LmNoYWlubWFpbF9ib290cwA=",
       "minecraft:lore": "CAA=",
@@ -15075,7 +15075,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACRCg==",
+      "minecraft:equippable": "HARJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACSCg==",
       "minecraft:item_model": "BxVtaW5lY3JhZnQ6aXJvbl9oZWxtZXQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAGml0ZW0ubWluZWNyYWZ0Lmlyb25faGVsbWV0AA==",
       "minecraft:lore": "CAA=",
@@ -15096,7 +15096,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACRCg==",
+      "minecraft:equippable": "HANJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACSCg==",
       "minecraft:item_model": "BxltaW5lY3JhZnQ6aXJvbl9jaGVzdHBsYXRl",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHml0ZW0ubWluZWNyYWZ0Lmlyb25fY2hlc3RwbGF0ZQA=",
       "minecraft:lore": "CAA=",
@@ -15117,7 +15117,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACRCg==",
+      "minecraft:equippable": "HAJJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACSCg==",
       "minecraft:item_model": "BxdtaW5lY3JhZnQ6aXJvbl9sZWdnaW5ncw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGl0ZW0ubWluZWNyYWZ0Lmlyb25fbGVnZ2luZ3MA",
       "minecraft:lore": "CAA=",
@@ -15138,7 +15138,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACRCg==",
+      "minecraft:equippable": "HAFJAQ5taW5lY3JhZnQ6aXJvbgAAAQEBAACSCg==",
       "minecraft:item_model": "BxRtaW5lY3JhZnQ6aXJvbl9ib290cw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAGWl0ZW0ubWluZWNyYWZ0Lmlyb25fYm9vdHMA",
       "minecraft:lore": "CAA=",
@@ -15159,7 +15159,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwo=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HARFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxhtaW5lY3JhZnQ6ZGlhbW9uZF9oZWxtZXQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHWl0ZW0ubWluZWNyYWZ0LmRpYW1vbmRfaGVsbWV0AA==",
       "minecraft:lore": "CAA=",
@@ -15180,7 +15180,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwo=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HANFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxxtaW5lY3JhZnQ6ZGlhbW9uZF9jaGVzdHBsYXRl",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAIWl0ZW0ubWluZWNyYWZ0LmRpYW1vbmRfY2hlc3RwbGF0ZQA=",
       "minecraft:lore": "CAA=",
@@ -15201,7 +15201,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwo=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HAJFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxptaW5lY3JhZnQ6ZGlhbW9uZF9sZWdnaW5ncw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAH2l0ZW0ubWluZWNyYWZ0LmRpYW1vbmRfbGVnZ2luZ3MA",
       "minecraft:lore": "CAA=",
@@ -15222,7 +15222,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gwo=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HAFFARFtaW5lY3JhZnQ6ZGlhbW9uZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxdtaW5lY3JhZnQ6ZGlhbW9uZF9ib290cw==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGl0ZW0ubWluZWNyYWZ0LmRpYW1vbmRfYm9vdHMA",
       "minecraft:lore": "CAA=",
@@ -15243,7 +15243,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gxk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HARIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxdtaW5lY3JhZnQ6Z29sZGVuX2hlbG1ldA==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGl0ZW0ubWluZWNyYWZ0LmdvbGRlbl9oZWxtZXQA",
       "minecraft:lore": "CAA=",
@@ -15264,7 +15264,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gxk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HANIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxttaW5lY3JhZnQ6Z29sZGVuX2NoZXN0cGxhdGU=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAIGl0ZW0ubWluZWNyYWZ0LmdvbGRlbl9jaGVzdHBsYXRlAA==",
       "minecraft:lore": "CAA=",
@@ -15285,7 +15285,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gxk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HAJIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxltaW5lY3JhZnQ6Z29sZGVuX2xlZ2dpbmdz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHml0ZW0ubWluZWNyYWZ0LmdvbGRlbl9sZWdnaW5ncwA=",
       "minecraft:lore": "CAA=",
@@ -15306,7 +15306,7 @@
       "minecraft:damage": "AwA=",
       "minecraft:enchantable": "Gxk=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACRCg==",
+      "minecraft:equippable": "HAFIAQ5taW5lY3JhZnQ6Z29sZAAAAQEBAACSCg==",
       "minecraft:item_model": "BxZtaW5lY3JhZnQ6Z29sZGVuX2Jvb3Rz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAG2l0ZW0ubWluZWNyYWZ0LmdvbGRlbl9ib290cwA=",
       "minecraft:lore": "CAA=",
@@ -15328,7 +15328,7 @@
       "minecraft:damage_resistant": "GBFtaW5lY3JhZnQ6aXNfZmlyZQ==",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJEK",
+      "minecraft:equippable": "HARLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJIK",
       "minecraft:item_model": "BxptaW5lY3JhZnQ6bmV0aGVyaXRlX2hlbG1ldA==",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAH2l0ZW0ubWluZWNyYWZ0Lm5ldGhlcml0ZV9oZWxtZXQA",
       "minecraft:lore": "CAA=",
@@ -15350,7 +15350,7 @@
       "minecraft:damage_resistant": "GBFtaW5lY3JhZnQ6aXNfZmlyZQ==",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HANLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJEK",
+      "minecraft:equippable": "HANLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJIK",
       "minecraft:item_model": "Bx5taW5lY3JhZnQ6bmV0aGVyaXRlX2NoZXN0cGxhdGU=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAI2l0ZW0ubWluZWNyYWZ0Lm5ldGhlcml0ZV9jaGVzdHBsYXRlAA==",
       "minecraft:lore": "CAA=",
@@ -15372,7 +15372,7 @@
       "minecraft:damage_resistant": "GBFtaW5lY3JhZnQ6aXNfZmlyZQ==",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAJLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJEK",
+      "minecraft:equippable": "HAJLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJIK",
       "minecraft:item_model": "BxxtaW5lY3JhZnQ6bmV0aGVyaXRlX2xlZ2dpbmdz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAIWl0ZW0ubWluZWNyYWZ0Lm5ldGhlcml0ZV9sZWdnaW5ncwA=",
       "minecraft:lore": "CAA=",
@@ -15394,7 +15394,7 @@
       "minecraft:damage_resistant": "GBFtaW5lY3JhZnQ6aXNfZmlyZQ==",
       "minecraft:enchantable": "Gw8=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAFLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJEK",
+      "minecraft:equippable": "HAFLARNtaW5lY3JhZnQ6bmV0aGVyaXRlAAABAQEAAJIK",
       "minecraft:item_model": "BxltaW5lY3JhZnQ6bmV0aGVyaXRlX2Jvb3Rz",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHml0ZW0ubWluZWNyYWZ0Lm5ldGhlcml0ZV9ib290cwA=",
       "minecraft:lore": "CAA=",
@@ -19451,7 +19451,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxhtaW5lY3JhZnQ6c2tlbGV0b25fc2t1bGw=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHmJsb2NrLm1pbmVjcmFmdC5za2VsZXRvbl9za3VsbAA=",
       "minecraft:lore": "CAA=",
@@ -19468,7 +19468,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "Bx9taW5lY3JhZnQ6d2l0aGVyX3NrZWxldG9uX3NrdWxs",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAJWJsb2NrLm1pbmVjcmFmdC53aXRoZXJfc2tlbGV0b25fc2t1bGwA",
       "minecraft:lore": "CAA=",
@@ -19485,7 +19485,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxVtaW5lY3JhZnQ6cGxheWVyX2hlYWQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAG2Jsb2NrLm1pbmVjcmFmdC5wbGF5ZXJfaGVhZAA=",
       "minecraft:lore": "CAA=",
@@ -19502,7 +19502,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxVtaW5lY3JhZnQ6em9tYmllX2hlYWQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAG2Jsb2NrLm1pbmVjcmFmdC56b21iaWVfaGVhZAA=",
       "minecraft:lore": "CAA=",
@@ -19519,7 +19519,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxZtaW5lY3JhZnQ6Y3JlZXBlcl9oZWFk",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHGJsb2NrLm1pbmVjcmFmdC5jcmVlcGVyX2hlYWQA",
       "minecraft:lore": "CAA=",
@@ -19536,7 +19536,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxVtaW5lY3JhZnQ6ZHJhZ29uX2hlYWQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAG2Jsb2NrLm1pbmVjcmFmdC5kcmFnb25faGVhZAA=",
       "minecraft:lore": "CAA=",
@@ -19553,7 +19553,7 @@
       "minecraft:attribute_modifiers": "DQEhJm1pbmVjcmFmdDp3YXlwb2ludF90cmFuc21pdF9yYW5nZV9oaWRlv/AAAAAAAAACBwE=",
       "minecraft:break_sound": "R7EG",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HARHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HARHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxVtaW5lY3JhZnQ6cGlnbGluX2hlYWQ=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAG2Jsb2NrLm1pbmVjcmFmdC5waWdsaW5faGVhZAA=",
       "minecraft:lore": "CAA=",
@@ -20470,11 +20470,11 @@
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
       "minecraft:banner_patterns": "PwA=",
-      "minecraft:blocks_attacks": "IT6AAAA/gAAAAUK0AAAAAAAAAD+AAABAQAAAP4AAAD+AAAABGW1pbmVjcmFmdDpieXBhc3Nlc19zaGllbGQBkgoBkwo=",
-      "minecraft:break_sound": "R5MK",
+      "minecraft:blocks_attacks": "IT6AAAA/gAAAAUK0AAAAAAAAAD+AAABAQAAAP4AAAD+AAAABGW1pbmVjcmFmdDpieXBhc3Nlc19zaGllbGQBkwoBlAo=",
+      "minecraft:break_sound": "R5QK",
       "minecraft:damage": "AwA=",
       "minecraft:enchantments": "CgA=",
-      "minecraft:equippable": "HAVHAAAAAQABAACRCg==",
+      "minecraft:equippable": "HAVHAAAAAQABAACSCg==",
       "minecraft:item_model": "BxBtaW5lY3JhZnQ6c2hpZWxk",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAFWl0ZW0ubWluZWNyYWZ0LnNoaWVsZAA=",
       "minecraft:lore": "CAA=",
@@ -20691,6 +20691,23 @@
   },
   {
     "id": 1256,
+    "key": "minecraft:music_disc_lava_chicken",
+    "components": {
+      "minecraft:attribute_modifiers": "DQA=",
+      "minecraft:break_sound": "R7EG",
+      "minecraft:enchantments": "CgA=",
+      "minecraft:item_model": "ByFtaW5lY3JhZnQ6bXVzaWNfZGlzY19sYXZhX2NoaWNrZW4=",
+      "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAJml0ZW0ubWluZWNyYWZ0Lm11c2ljX2Rpc2NfbGF2YV9jaGlja2VuAA==",
+      "minecraft:jukebox_playable": "NwAWbWluZWNyYWZ0OmxhdmFfY2hpY2tlbg==",
+      "minecraft:lore": "CAA=",
+      "minecraft:max_stack_size": "AQE=",
+      "minecraft:rarity": "CQI=",
+      "minecraft:repair_cost": "EAA=",
+      "minecraft:tooltip_display": "DwAA"
+    }
+  },
+  {
+    "id": 1257,
     "key": "minecraft:music_disc_mall",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20707,7 +20724,7 @@
     }
   },
   {
-    "id": 1257,
+    "id": 1258,
     "key": "minecraft:music_disc_mellohi",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20724,7 +20741,7 @@
     }
   },
   {
-    "id": 1258,
+    "id": 1259,
     "key": "minecraft:music_disc_stal",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20741,7 +20758,7 @@
     }
   },
   {
-    "id": 1259,
+    "id": 1260,
     "key": "minecraft:music_disc_strad",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20758,7 +20775,7 @@
     }
   },
   {
-    "id": 1260,
+    "id": 1261,
     "key": "minecraft:music_disc_ward",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20775,7 +20792,7 @@
     }
   },
   {
-    "id": 1261,
+    "id": 1262,
     "key": "minecraft:music_disc_11",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20792,7 +20809,7 @@
     }
   },
   {
-    "id": 1262,
+    "id": 1263,
     "key": "minecraft:music_disc_wait",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20809,7 +20826,7 @@
     }
   },
   {
-    "id": 1263,
+    "id": 1264,
     "key": "minecraft:music_disc_otherside",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20826,7 +20843,7 @@
     }
   },
   {
-    "id": 1264,
+    "id": 1265,
     "key": "minecraft:music_disc_relic",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20843,7 +20860,7 @@
     }
   },
   {
-    "id": 1265,
+    "id": 1266,
     "key": "minecraft:music_disc_5",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20860,7 +20877,7 @@
     }
   },
   {
-    "id": 1266,
+    "id": 1267,
     "key": "minecraft:music_disc_pigstep",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20877,7 +20894,7 @@
     }
   },
   {
-    "id": 1267,
+    "id": 1268,
     "key": "minecraft:music_disc_precipice",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20894,7 +20911,7 @@
     }
   },
   {
-    "id": 1268,
+    "id": 1269,
     "key": "minecraft:music_disc_tears",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20911,7 +20928,7 @@
     }
   },
   {
-    "id": 1269,
+    "id": 1270,
     "key": "minecraft:disc_fragment_5",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20927,7 +20944,7 @@
     }
   },
   {
-    "id": 1270,
+    "id": 1271,
     "key": "minecraft:trident",
     "components": {
       "minecraft:attribute_modifiers": "DQICHG1pbmVjcmFmdDpiYXNlX2F0dGFja19kYW1hZ2VAIAAAAAAAAAABAAQbbWluZWNyYWZ0OmJhc2VfYXR0YWNrX3NwZWVkwAczM0AAAAAAAQA=",
@@ -20948,7 +20965,7 @@
     }
   },
   {
-    "id": 1271,
+    "id": 1272,
     "key": "minecraft:nautilus_shell",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20964,7 +20981,7 @@
     }
   },
   {
-    "id": 1272,
+    "id": 1273,
     "key": "minecraft:heart_of_the_sea",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -20980,7 +20997,7 @@
     }
   },
   {
-    "id": 1273,
+    "id": 1274,
     "key": "minecraft:crossbow",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21000,7 +21017,7 @@
     }
   },
   {
-    "id": 1274,
+    "id": 1275,
     "key": "minecraft:suspicious_stew",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21020,7 +21037,7 @@
     }
   },
   {
-    "id": 1275,
+    "id": 1276,
     "key": "minecraft:loom",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21036,7 +21053,7 @@
     }
   },
   {
-    "id": 1276,
+    "id": 1277,
     "key": "minecraft:flower_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21053,7 +21070,7 @@
     }
   },
   {
-    "id": 1277,
+    "id": 1278,
     "key": "minecraft:creeper_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21070,7 +21087,7 @@
     }
   },
   {
-    "id": 1278,
+    "id": 1279,
     "key": "minecraft:skull_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21087,7 +21104,7 @@
     }
   },
   {
-    "id": 1279,
+    "id": 1280,
     "key": "minecraft:mojang_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21104,7 +21121,7 @@
     }
   },
   {
-    "id": 1280,
+    "id": 1281,
     "key": "minecraft:globe_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21121,7 +21138,7 @@
     }
   },
   {
-    "id": 1281,
+    "id": 1282,
     "key": "minecraft:piglin_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21138,7 +21155,7 @@
     }
   },
   {
-    "id": 1282,
+    "id": 1283,
     "key": "minecraft:flow_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21155,7 +21172,7 @@
     }
   },
   {
-    "id": 1283,
+    "id": 1284,
     "key": "minecraft:guster_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21172,7 +21189,7 @@
     }
   },
   {
-    "id": 1284,
+    "id": 1285,
     "key": "minecraft:field_masoned_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21189,7 +21206,7 @@
     }
   },
   {
-    "id": 1285,
+    "id": 1286,
     "key": "minecraft:bordure_indented_banner_pattern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21206,7 +21223,7 @@
     }
   },
   {
-    "id": 1286,
+    "id": 1287,
     "key": "minecraft:goat_horn",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21223,7 +21240,7 @@
     }
   },
   {
-    "id": 1287,
+    "id": 1288,
     "key": "minecraft:composter",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21239,7 +21256,7 @@
     }
   },
   {
-    "id": 1288,
+    "id": 1289,
     "key": "minecraft:barrel",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21256,7 +21273,7 @@
     }
   },
   {
-    "id": 1289,
+    "id": 1290,
     "key": "minecraft:smoker",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21273,7 +21290,7 @@
     }
   },
   {
-    "id": 1290,
+    "id": 1291,
     "key": "minecraft:blast_furnace",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21290,7 +21307,7 @@
     }
   },
   {
-    "id": 1291,
+    "id": 1292,
     "key": "minecraft:cartography_table",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21306,7 +21323,7 @@
     }
   },
   {
-    "id": 1292,
+    "id": 1293,
     "key": "minecraft:fletching_table",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21322,7 +21339,7 @@
     }
   },
   {
-    "id": 1293,
+    "id": 1294,
     "key": "minecraft:grindstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21338,7 +21355,7 @@
     }
   },
   {
-    "id": 1294,
+    "id": 1295,
     "key": "minecraft:smithing_table",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21354,7 +21371,7 @@
     }
   },
   {
-    "id": 1295,
+    "id": 1296,
     "key": "minecraft:stonecutter",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21370,7 +21387,7 @@
     }
   },
   {
-    "id": 1296,
+    "id": 1297,
     "key": "minecraft:bell",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21386,7 +21403,7 @@
     }
   },
   {
-    "id": 1297,
+    "id": 1298,
     "key": "minecraft:lantern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21402,7 +21419,7 @@
     }
   },
   {
-    "id": 1298,
+    "id": 1299,
     "key": "minecraft:soul_lantern",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21418,7 +21435,7 @@
     }
   },
   {
-    "id": 1299,
+    "id": 1300,
     "key": "minecraft:sweet_berries",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21436,7 +21453,7 @@
     }
   },
   {
-    "id": 1300,
+    "id": 1301,
     "key": "minecraft:glow_berries",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21454,7 +21471,7 @@
     }
   },
   {
-    "id": 1301,
+    "id": 1302,
     "key": "minecraft:campfire",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21471,7 +21488,7 @@
     }
   },
   {
-    "id": 1302,
+    "id": 1303,
     "key": "minecraft:soul_campfire",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21488,7 +21505,7 @@
     }
   },
   {
-    "id": 1303,
+    "id": 1304,
     "key": "minecraft:shroomlight",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21504,7 +21521,7 @@
     }
   },
   {
-    "id": 1304,
+    "id": 1305,
     "key": "minecraft:honeycomb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21520,7 +21537,7 @@
     }
   },
   {
-    "id": 1305,
+    "id": 1306,
     "key": "minecraft:bee_nest",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21538,7 +21555,7 @@
     }
   },
   {
-    "id": 1306,
+    "id": 1307,
     "key": "minecraft:beehive",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21556,7 +21573,7 @@
     }
   },
   {
-    "id": 1307,
+    "id": 1308,
     "key": "minecraft:honey_bottle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21575,7 +21592,7 @@
     }
   },
   {
-    "id": 1308,
+    "id": 1309,
     "key": "minecraft:honeycomb_block",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21591,7 +21608,7 @@
     }
   },
   {
-    "id": 1309,
+    "id": 1310,
     "key": "minecraft:lodestone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21607,7 +21624,7 @@
     }
   },
   {
-    "id": 1310,
+    "id": 1311,
     "key": "minecraft:crying_obsidian",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21623,7 +21640,7 @@
     }
   },
   {
-    "id": 1311,
+    "id": 1312,
     "key": "minecraft:blackstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21639,7 +21656,7 @@
     }
   },
   {
-    "id": 1312,
+    "id": 1313,
     "key": "minecraft:blackstone_slab",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21655,7 +21672,7 @@
     }
   },
   {
-    "id": 1313,
+    "id": 1314,
     "key": "minecraft:blackstone_stairs",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21671,7 +21688,7 @@
     }
   },
   {
-    "id": 1314,
+    "id": 1315,
     "key": "minecraft:gilded_blackstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21687,7 +21704,7 @@
     }
   },
   {
-    "id": 1315,
+    "id": 1316,
     "key": "minecraft:polished_blackstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21703,7 +21720,7 @@
     }
   },
   {
-    "id": 1316,
+    "id": 1317,
     "key": "minecraft:polished_blackstone_slab",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21719,7 +21736,7 @@
     }
   },
   {
-    "id": 1317,
+    "id": 1318,
     "key": "minecraft:polished_blackstone_stairs",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21735,7 +21752,7 @@
     }
   },
   {
-    "id": 1318,
+    "id": 1319,
     "key": "minecraft:chiseled_polished_blackstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21751,7 +21768,7 @@
     }
   },
   {
-    "id": 1319,
+    "id": 1320,
     "key": "minecraft:polished_blackstone_bricks",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21767,7 +21784,7 @@
     }
   },
   {
-    "id": 1320,
+    "id": 1321,
     "key": "minecraft:polished_blackstone_brick_slab",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21783,7 +21800,7 @@
     }
   },
   {
-    "id": 1321,
+    "id": 1322,
     "key": "minecraft:polished_blackstone_brick_stairs",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21799,7 +21816,7 @@
     }
   },
   {
-    "id": 1322,
+    "id": 1323,
     "key": "minecraft:cracked_polished_blackstone_bricks",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21815,7 +21832,7 @@
     }
   },
   {
-    "id": 1323,
+    "id": 1324,
     "key": "minecraft:respawn_anchor",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21831,7 +21848,7 @@
     }
   },
   {
-    "id": 1324,
+    "id": 1325,
     "key": "minecraft:candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21847,7 +21864,7 @@
     }
   },
   {
-    "id": 1325,
+    "id": 1326,
     "key": "minecraft:white_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21863,7 +21880,7 @@
     }
   },
   {
-    "id": 1326,
+    "id": 1327,
     "key": "minecraft:orange_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21879,7 +21896,7 @@
     }
   },
   {
-    "id": 1327,
+    "id": 1328,
     "key": "minecraft:magenta_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21895,7 +21912,7 @@
     }
   },
   {
-    "id": 1328,
+    "id": 1329,
     "key": "minecraft:light_blue_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21911,7 +21928,7 @@
     }
   },
   {
-    "id": 1329,
+    "id": 1330,
     "key": "minecraft:yellow_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21927,7 +21944,7 @@
     }
   },
   {
-    "id": 1330,
+    "id": 1331,
     "key": "minecraft:lime_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21943,7 +21960,7 @@
     }
   },
   {
-    "id": 1331,
+    "id": 1332,
     "key": "minecraft:pink_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21959,7 +21976,7 @@
     }
   },
   {
-    "id": 1332,
+    "id": 1333,
     "key": "minecraft:gray_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21975,7 +21992,7 @@
     }
   },
   {
-    "id": 1333,
+    "id": 1334,
     "key": "minecraft:light_gray_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -21991,7 +22008,7 @@
     }
   },
   {
-    "id": 1334,
+    "id": 1335,
     "key": "minecraft:cyan_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22007,7 +22024,7 @@
     }
   },
   {
-    "id": 1335,
+    "id": 1336,
     "key": "minecraft:purple_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22023,7 +22040,7 @@
     }
   },
   {
-    "id": 1336,
+    "id": 1337,
     "key": "minecraft:blue_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22039,7 +22056,7 @@
     }
   },
   {
-    "id": 1337,
+    "id": 1338,
     "key": "minecraft:brown_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22055,7 +22072,7 @@
     }
   },
   {
-    "id": 1338,
+    "id": 1339,
     "key": "minecraft:green_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22071,7 +22088,7 @@
     }
   },
   {
-    "id": 1339,
+    "id": 1340,
     "key": "minecraft:red_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22087,7 +22104,7 @@
     }
   },
   {
-    "id": 1340,
+    "id": 1341,
     "key": "minecraft:black_candle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22103,7 +22120,7 @@
     }
   },
   {
-    "id": 1341,
+    "id": 1342,
     "key": "minecraft:small_amethyst_bud",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22119,7 +22136,7 @@
     }
   },
   {
-    "id": 1342,
+    "id": 1343,
     "key": "minecraft:medium_amethyst_bud",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22135,7 +22152,7 @@
     }
   },
   {
-    "id": 1343,
+    "id": 1344,
     "key": "minecraft:large_amethyst_bud",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22151,7 +22168,7 @@
     }
   },
   {
-    "id": 1344,
+    "id": 1345,
     "key": "minecraft:amethyst_cluster",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22167,7 +22184,7 @@
     }
   },
   {
-    "id": 1345,
+    "id": 1346,
     "key": "minecraft:pointed_dripstone",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22183,7 +22200,7 @@
     }
   },
   {
-    "id": 1346,
+    "id": 1347,
     "key": "minecraft:ochre_froglight",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22199,7 +22216,7 @@
     }
   },
   {
-    "id": 1347,
+    "id": 1348,
     "key": "minecraft:verdant_froglight",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22215,7 +22232,7 @@
     }
   },
   {
-    "id": 1348,
+    "id": 1349,
     "key": "minecraft:pearlescent_froglight",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22231,7 +22248,7 @@
     }
   },
   {
-    "id": 1349,
+    "id": 1350,
     "key": "minecraft:frogspawn",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22247,7 +22264,7 @@
     }
   },
   {
-    "id": 1350,
+    "id": 1351,
     "key": "minecraft:echo_shard",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22263,7 +22280,7 @@
     }
   },
   {
-    "id": 1351,
+    "id": 1352,
     "key": "minecraft:brush",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22281,7 +22298,7 @@
     }
   },
   {
-    "id": 1352,
+    "id": 1353,
     "key": "minecraft:netherite_upgrade_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22297,7 +22314,7 @@
     }
   },
   {
-    "id": 1353,
+    "id": 1354,
     "key": "minecraft:sentry_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22313,7 +22330,7 @@
     }
   },
   {
-    "id": 1354,
+    "id": 1355,
     "key": "minecraft:dune_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22329,7 +22346,7 @@
     }
   },
   {
-    "id": 1355,
+    "id": 1356,
     "key": "minecraft:coast_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22345,7 +22362,7 @@
     }
   },
   {
-    "id": 1356,
+    "id": 1357,
     "key": "minecraft:wild_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22361,7 +22378,7 @@
     }
   },
   {
-    "id": 1357,
+    "id": 1358,
     "key": "minecraft:ward_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22377,7 +22394,7 @@
     }
   },
   {
-    "id": 1358,
+    "id": 1359,
     "key": "minecraft:eye_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22393,7 +22410,7 @@
     }
   },
   {
-    "id": 1359,
+    "id": 1360,
     "key": "minecraft:vex_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22409,7 +22426,7 @@
     }
   },
   {
-    "id": 1360,
+    "id": 1361,
     "key": "minecraft:tide_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22425,7 +22442,7 @@
     }
   },
   {
-    "id": 1361,
+    "id": 1362,
     "key": "minecraft:snout_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22441,7 +22458,7 @@
     }
   },
   {
-    "id": 1362,
+    "id": 1363,
     "key": "minecraft:rib_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22457,7 +22474,7 @@
     }
   },
   {
-    "id": 1363,
+    "id": 1364,
     "key": "minecraft:spire_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22473,7 +22490,7 @@
     }
   },
   {
-    "id": 1364,
+    "id": 1365,
     "key": "minecraft:wayfinder_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22489,7 +22506,7 @@
     }
   },
   {
-    "id": 1365,
+    "id": 1366,
     "key": "minecraft:shaper_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22505,7 +22522,7 @@
     }
   },
   {
-    "id": 1366,
+    "id": 1367,
     "key": "minecraft:silence_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22521,7 +22538,7 @@
     }
   },
   {
-    "id": 1367,
+    "id": 1368,
     "key": "minecraft:raiser_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22537,7 +22554,7 @@
     }
   },
   {
-    "id": 1368,
+    "id": 1369,
     "key": "minecraft:host_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22553,7 +22570,7 @@
     }
   },
   {
-    "id": 1369,
+    "id": 1370,
     "key": "minecraft:flow_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22569,7 +22586,7 @@
     }
   },
   {
-    "id": 1370,
+    "id": 1371,
     "key": "minecraft:bolt_armor_trim_smithing_template",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22585,7 +22602,7 @@
     }
   },
   {
-    "id": 1371,
+    "id": 1372,
     "key": "minecraft:angler_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22601,7 +22618,7 @@
     }
   },
   {
-    "id": 1372,
+    "id": 1373,
     "key": "minecraft:archer_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22617,7 +22634,7 @@
     }
   },
   {
-    "id": 1373,
+    "id": 1374,
     "key": "minecraft:arms_up_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22633,7 +22650,7 @@
     }
   },
   {
-    "id": 1374,
+    "id": 1375,
     "key": "minecraft:blade_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22649,7 +22666,7 @@
     }
   },
   {
-    "id": 1375,
+    "id": 1376,
     "key": "minecraft:brewer_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22665,7 +22682,7 @@
     }
   },
   {
-    "id": 1376,
+    "id": 1377,
     "key": "minecraft:burn_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22681,7 +22698,7 @@
     }
   },
   {
-    "id": 1377,
+    "id": 1378,
     "key": "minecraft:danger_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22697,7 +22714,7 @@
     }
   },
   {
-    "id": 1378,
+    "id": 1379,
     "key": "minecraft:explorer_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22713,7 +22730,7 @@
     }
   },
   {
-    "id": 1379,
+    "id": 1380,
     "key": "minecraft:flow_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22729,7 +22746,7 @@
     }
   },
   {
-    "id": 1380,
+    "id": 1381,
     "key": "minecraft:friend_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22745,7 +22762,7 @@
     }
   },
   {
-    "id": 1381,
+    "id": 1382,
     "key": "minecraft:guster_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22761,7 +22778,7 @@
     }
   },
   {
-    "id": 1382,
+    "id": 1383,
     "key": "minecraft:heart_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22777,7 +22794,7 @@
     }
   },
   {
-    "id": 1383,
+    "id": 1384,
     "key": "minecraft:heartbreak_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22793,7 +22810,7 @@
     }
   },
   {
-    "id": 1384,
+    "id": 1385,
     "key": "minecraft:howl_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22809,7 +22826,7 @@
     }
   },
   {
-    "id": 1385,
+    "id": 1386,
     "key": "minecraft:miner_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22825,7 +22842,7 @@
     }
   },
   {
-    "id": 1386,
+    "id": 1387,
     "key": "minecraft:mourner_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22841,7 +22858,7 @@
     }
   },
   {
-    "id": 1387,
+    "id": 1388,
     "key": "minecraft:plenty_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22857,7 +22874,7 @@
     }
   },
   {
-    "id": 1388,
+    "id": 1389,
     "key": "minecraft:prize_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22873,7 +22890,7 @@
     }
   },
   {
-    "id": 1389,
+    "id": 1390,
     "key": "minecraft:scrape_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22889,7 +22906,7 @@
     }
   },
   {
-    "id": 1390,
+    "id": 1391,
     "key": "minecraft:sheaf_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22905,7 +22922,7 @@
     }
   },
   {
-    "id": 1391,
+    "id": 1392,
     "key": "minecraft:shelter_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22921,7 +22938,7 @@
     }
   },
   {
-    "id": 1392,
+    "id": 1393,
     "key": "minecraft:skull_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22937,7 +22954,7 @@
     }
   },
   {
-    "id": 1393,
+    "id": 1394,
     "key": "minecraft:snort_pottery_sherd",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22953,7 +22970,7 @@
     }
   },
   {
-    "id": 1394,
+    "id": 1395,
     "key": "minecraft:copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22969,7 +22986,7 @@
     }
   },
   {
-    "id": 1395,
+    "id": 1396,
     "key": "minecraft:exposed_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -22985,7 +23002,7 @@
     }
   },
   {
-    "id": 1396,
+    "id": 1397,
     "key": "minecraft:weathered_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23001,7 +23018,7 @@
     }
   },
   {
-    "id": 1397,
+    "id": 1398,
     "key": "minecraft:oxidized_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23017,7 +23034,7 @@
     }
   },
   {
-    "id": 1398,
+    "id": 1399,
     "key": "minecraft:waxed_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23033,7 +23050,7 @@
     }
   },
   {
-    "id": 1399,
+    "id": 1400,
     "key": "minecraft:waxed_exposed_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23049,7 +23066,7 @@
     }
   },
   {
-    "id": 1400,
+    "id": 1401,
     "key": "minecraft:waxed_weathered_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23065,7 +23082,7 @@
     }
   },
   {
-    "id": 1401,
+    "id": 1402,
     "key": "minecraft:waxed_oxidized_copper_grate",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23081,7 +23098,7 @@
     }
   },
   {
-    "id": 1402,
+    "id": 1403,
     "key": "minecraft:copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23097,7 +23114,7 @@
     }
   },
   {
-    "id": 1403,
+    "id": 1404,
     "key": "minecraft:exposed_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23113,7 +23130,7 @@
     }
   },
   {
-    "id": 1404,
+    "id": 1405,
     "key": "minecraft:weathered_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23129,7 +23146,7 @@
     }
   },
   {
-    "id": 1405,
+    "id": 1406,
     "key": "minecraft:oxidized_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23145,7 +23162,7 @@
     }
   },
   {
-    "id": 1406,
+    "id": 1407,
     "key": "minecraft:waxed_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23161,7 +23178,7 @@
     }
   },
   {
-    "id": 1407,
+    "id": 1408,
     "key": "minecraft:waxed_exposed_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23177,7 +23194,7 @@
     }
   },
   {
-    "id": 1408,
+    "id": 1409,
     "key": "minecraft:waxed_weathered_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23193,7 +23210,7 @@
     }
   },
   {
-    "id": 1409,
+    "id": 1410,
     "key": "minecraft:waxed_oxidized_copper_bulb",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23209,7 +23226,7 @@
     }
   },
   {
-    "id": 1410,
+    "id": 1411,
     "key": "minecraft:trial_spawner",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23225,7 +23242,7 @@
     }
   },
   {
-    "id": 1411,
+    "id": 1412,
     "key": "minecraft:trial_key",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23241,7 +23258,7 @@
     }
   },
   {
-    "id": 1412,
+    "id": 1413,
     "key": "minecraft:ominous_trial_key",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23257,7 +23274,7 @@
     }
   },
   {
-    "id": 1413,
+    "id": 1414,
     "key": "minecraft:vault",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
@@ -23273,12 +23290,12 @@
     }
   },
   {
-    "id": 1414,
+    "id": 1415,
     "key": "minecraft:ominous_bottle",
     "components": {
       "minecraft:attribute_modifiers": "DQA=",
       "minecraft:break_sound": "R7EG",
-      "minecraft:consumable": "FT/MzM0C5gQAAQSzCA==",
+      "minecraft:consumable": "FT/MzM0C5gQAAQS0CA==",
       "minecraft:enchantments": "CgA=",
       "minecraft:item_model": "BxhtaW5lY3JhZnQ6b21pbm91c19ib3R0bGU=",
       "minecraft:item_name": "BgoIAAl0cmFuc2xhdGUAHWl0ZW0ubWluZWNyYWZ0Lm9taW5vdXNfYm90dGxlAA==",
