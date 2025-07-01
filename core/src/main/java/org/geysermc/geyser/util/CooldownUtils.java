@@ -26,7 +26,6 @@
 package org.geysermc.geyser.util;
 
 import lombok.Getter;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
@@ -73,13 +72,16 @@ public class CooldownUtils {
 
         session.getWorldCache().markTitleTimesAsIncorrect();
 
-        // Needs to be sent or no subtitle packet is recognized by the client
-        titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.TITLE);
-        titlePacket.setText(" ");
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
+        // Actionbars don't need an empty title
+        if (sessionPreference == CooldownType.TITLE) {
+            // Needs to be sent or no subtitle packet is recognized by the client
+            titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.TITLE);
+            titlePacket.setText(" ");
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
+            session.sendUpstreamPacket(titlePacket);
+        }
         session.setLastHitTime(System.currentTimeMillis());
         long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
         computeCooldown(session, sessionPreference, lastHitTime);

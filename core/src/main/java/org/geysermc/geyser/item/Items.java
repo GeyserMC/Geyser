@@ -1322,6 +1322,7 @@ public final class Items {
     public static final Item MUSIC_DISC_CREATOR = register(new Item("music_disc_creator", builder()));
     public static final Item MUSIC_DISC_CREATOR_MUSIC_BOX = register(new Item("music_disc_creator_music_box", builder()));
     public static final Item MUSIC_DISC_FAR = register(new Item("music_disc_far", builder()));
+    public static final Item MUSIC_DISC_LAVA_CHICKEN = register(new Item("music_disc_lava_chicken", builder()));
     public static final Item MUSIC_DISC_MALL = register(new Item("music_disc_mall", builder()));
     public static final Item MUSIC_DISC_MELLOHI = register(new Item("music_disc_mellohi", builder()));
     public static final Item MUSIC_DISC_STAL = register(new Item("music_disc_stal", builder()));
