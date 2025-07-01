@@ -145,16 +145,17 @@ public interface CustomItemDefinition {
      *     <li>{@code minecraft:enchantment_glint_override} ({@link ItemDataComponents#ENCHANTMENT_GLINT_OVERRIDE})</li>
      * </ul>
      *
-     * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.</p>
+     * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.
+     * Components that are added here cannot be removed in {@link CustomItemDefinition#removedComponents()}.</p>
      *
-     * @see DataComponent
+     * @see ItemDataComponents
      * @see CustomItemDefinition#removedComponents()
      */
     @NonNull DataComponentMap components();
 
     /**
      * A list of removed default item data components. These are components that are present on the vanilla base item, but not on the custom item. Like with custom added
-     * components, it is expected that this <em>always</em> matches the removed components on the server.
+     * components, it is expected that this <em>always</em> matches the removed components on the server. Removed components cannot be present in the added components in {@link CustomItemDefinition#components()}.
      *
      * @see CustomItemDefinition#components()
      */
@@ -232,8 +233,12 @@ public interface CustomItemDefinition {
          * present server-side on the Java server. See {@link CustomItemDefinition#components()}
          * for more information.
          *
+         * <p>Added data components cannot be removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)},
+         * and this method will throw when a component is added that was removed using the aforementioned method.</p>
+         *
          * @param component the type of the component - found in {@link ItemDataComponents}
          * @param value the value of the component
+         * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder
          * @param <T> the value held by the component
          */
@@ -245,8 +250,10 @@ public interface CustomItemDefinition {
          *
          * @param component the type of the component - found in {@link ItemDataComponents}
          * @param builder the builder of the component
+         * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder
          * @param <T> the value held by the component
+         * @see CustomItemDefinition.Builder#component(DataComponent, Object)
          */
         @This
         default <T> Builder component(@NonNull DataComponent<T> component, @NonNull GenericBuilder<T> builder) {
@@ -258,7 +265,11 @@ public interface CustomItemDefinition {
          * existing on the vanilla item. This must match server-side behavior, otherwise, issues
          * will occur. See {@link CustomItemDefinition#removedComponents()} for more information.
          *
+         * <p>Removed data components cannot be added again using {@link CustomItemDefinition.Builder#component(DataComponent, Object)},
+         * and this method will throw when a component is removed that was added using the aforementioned method.</p>
+         *
          * @param component the identifier of the vanilla base component to remove
+         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
          * @return this builder
          */
         @This
@@ -268,6 +279,7 @@ public interface CustomItemDefinition {
          * Convenience method for {@link CustomItemDefinition.Builder#removeComponent(Identifier)}.
          *
          * @param component the component type to remove
+         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
          * @return this builder
          */
         @This

@@ -29,6 +29,11 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+/**
+ * A resolvable component is a component that was specified in a {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}, and was supposed to be mapped to its MCPL equivalent before registering
+ * the item, but was unable to because it needed registry access. As such, an instance of this interface was created, added to the list of the {@link org.geysermc.geyser.item.type.NonVanillaItem}'s resolvable components,
+ * and will be resolved by {@link org.geysermc.geyser.session.cache.ComponentCache} whenever the session finishes the configuration phase.
+ */
 public interface ResolvableComponent<T> {
 
     DataComponentType<T> type();

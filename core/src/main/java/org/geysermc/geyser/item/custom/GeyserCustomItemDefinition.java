@@ -176,6 +176,8 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
             Objects.requireNonNull(value, "value cannot be null");
             if (!(component instanceof DataComponentImpl<T> dataComponent)) {
                 throw new IllegalArgumentException("Cannot use custom implementations of the DataComponent<T> interface! Found: " + component.getClass().getSimpleName());
+            } else if (removedComponents.contains(component.identifier())) {
+                throw new IllegalArgumentException("Tried to add earlier removed component " + component.identifier());
             }
 
             if (!component.vanilla() && !(this instanceof GeyserNonVanillaCustomItemDefinition.Builder)) {
@@ -190,6 +192,9 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         @Override
         public CustomItemDefinition.Builder removeComponent(@NonNull Identifier component) {
             Objects.requireNonNull(component, "component cannot be null");
+            if (components.keySet().stream().map(DataComponent::identifier).anyMatch(identifier -> identifier.equals(component))) {
+                throw new IllegalArgumentException("Tried to remove earlier added component " + component);
+            }
             removedComponents.add(component);
             return this;
         }

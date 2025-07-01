@@ -28,14 +28,10 @@ package org.geysermc.geyser.registry.populator.custom;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -45,14 +41,44 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * Contains various context properties regarding a custom item definition.
+ *
+ * @param definition the custom item definition itself
+ * @param components the full component map of the custom item definition. For vanilla-item overrides, this is the component patch applied on top of the vanilla item's default components. For non-vanilla items, this is the default components that were set in the API.
+ * @param resolvableComponents for non-vanilla custom items, any components that should be resolved once the session has finished the configuration phase
+ * @param vanillaMapping for vanilla-item overrides, the vanilla bedrock mapping of the item
+ * @param customItemId the bedrock ID of the item
+ * @param protocolVersion the bedrock protocol version
+ */
 public record CustomItemContext(CustomItemDefinition definition, DataComponents components, List<ResolvableComponent<?>> resolvableComponents,
                                 Optional<GeyserMappingItem> vanillaMapping, int customItemId, int protocolVersion) {
 
+    /**
+     * Creates a CustomItemContext for a vanilla-item override. This patches the component patch of the {@code CustomItemDefinition} onto the default components of the {@code javaItem}
+     *
+     * @param javaItem the vanilla Java item
+     * @param vanillaMapping the mapping of the vanilla Java item
+     * @param customItem the custom item definition
+     * @param customItemId the bedrock ID of the item
+     * @param protocolVersion the bedrock protocol version
+     * @return the created context
+     * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
+     */
     public static CustomItemContext createVanilla(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
                                                   int customItemId, int protocolVersion) throws InvalidItemComponentsException {
         return new CustomItemContext(customItem, checkComponents(customItem, javaItem, resolvable -> {}), List.of(), Optional.of(vanillaMapping), customItemId, protocolVersion);
     }
 
+    /**
+     * Creates a CustomItemContext for a non-vanilla custom item.
+     *
+     * @param customItem the non-vanilla custom item definition
+     * @param customItemId the bedrock ID of the item
+     * @param protocolVersion the bedrock protocol version
+     * @return the created context
+     * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
+     */
     public static CustomItemContext createNonVanilla(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion) throws InvalidItemComponentsException {
         List<ResolvableComponent<?>> resolvableComponents = new ArrayList<>();
         DataComponents components = checkComponents(customItem, null, resolvableComponents::add);
@@ -79,16 +105,6 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
         }
 
-        // TODO
-        Repairable repairable = definition.components().get(ItemDataComponents.REPAIRABLE);
-        if (repairable != null) {
-            for (Identifier item : repairable.items()) {
-                if (Registries.JAVA_ITEM_IDENTIFIERS.get(item.toString()) == null) {
-                    throw new InvalidItemComponentsException("Unknown repair item " + item + " in minecraft:repairable component");
-                }
-            }
-        }
-
         return components;
     }
 
@@ -100,10 +116,10 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @param javaItem can be null for non-vanilla custom items
      * @see ComponentConverters
      */
-    private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition, Consumer<ResolvableComponent<?>> resolvableConsumer) {
+    private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
         DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents(), resolvableConsumer);
         if (javaItem != null) {
-            // session can be null here because javaItem will always be a vanilla item
+            // componentCache can be null here because javaItem will always be a vanilla item
             return javaItem.gatherComponents(null, convertedComponents);
         }
         return convertedComponents;

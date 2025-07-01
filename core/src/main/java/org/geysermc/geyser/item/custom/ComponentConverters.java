@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableToolProperties;
+import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
@@ -135,9 +136,12 @@ public class ComponentConverters {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals, Consumer<ResolvableComponent<?>> resolvableConsumer) {
+    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
         DataComponents converted = new DataComponents(new HashMap<>());
         for (DataComponent<?> component : customDefinitionPatch.keySet()) {
+            if (customDefinitionRemovals.contains(component.identifier())) {
+                throw new InvalidItemComponentsException("Component " + component.identifier() + " was present both in the components to add and the components to remove");
+            }
             ResolvableComponentConverter converter = converters.get(component);
             if (converter != null) {
                 Object value = customDefinitionPatch.get(component);

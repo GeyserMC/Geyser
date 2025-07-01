@@ -101,8 +101,8 @@ public interface ItemDataComponents {
     DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
 
     /**
-     * This component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option.
-     *
+     * For vanilla-item overrides, this component is only used for the {@link ToolProperties#canDestroyBlocksInCreative()} option.
+     * For non-vanilla custom items, this component also stores the tool's rules and default mining speed, to correctly calculate block breaking speed.
      *
      * @see ToolProperties
      */

@@ -31,34 +31,85 @@ import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
 
+/**
+ * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag. What these identifiers represent, depends on the context
+ * in which to Holders object is used.
+ */
 public interface Holders {
 
+    /**
+     * Creates a Holders object consisting of a single identifier.
+     *
+     * @param identifier the identifier the Holders object consists of
+     * @return a new Holders object
+     */
     static Holders of(Identifier identifier) {
         return builder().with(identifier).build();
     }
 
+    /**
+     * Creates a Holders object consisting of a list of identifiers.
+     *
+     * @param identifiers the identifiers the Holders object consists of
+     * @return a new Holders object
+     */
     static Holders of(List<Identifier> identifiers) {
         Builder builder = builder();
         identifiers.forEach(builder::with);
         return builder.build();
     }
 
+    /**
+     * Creates a Holders object consisting of a tag
+     *
+     * @param tag the tag the Holders object consists of
+     * @return a new Holders object
+     */
     static Holders ofTag(Identifier tag) {
         return builder().tag(tag).build();
     }
 
+    /**
+     * Creates a builder for a Holders object.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Holders.Builder.class);
     }
 
+    /**
+     * Builder for the Holders object
+     */
     interface Builder extends GenericBuilder<Holders> {
 
+        /**
+         * Adds a new identifier to the Holders object. This will throw when a tag has been set, since a Holders object can
+         * consist of either a tag, or a list of identifiers, not both.
+         *
+         * @param identifier the identifier to add to the Holders object
+         * @throws IllegalArgumentException when a tag has been set
+         * @return this builder
+         */
         @This
         Builder with(@NonNull Identifier identifier);
 
+        /**
+         * Sets the tag of the Holders object. A Holders object can only consist of one tag. This will throw when at least one identifier has been
+         * added, since a Holders object can consist of either a tag, or a list of identifiers, not both.
+         *
+         * @param tag the tag to set
+         * @throws IllegalArgumentException when at least one identifier has already been added
+         * @return this builder
+         */
         @This
         Builder tag(@NonNull Identifier tag);
 
+        /**
+         * Creates the Holders object.
+         *
+         * @return the new Holders object
+         */
         @Override
         Holders build();
     }

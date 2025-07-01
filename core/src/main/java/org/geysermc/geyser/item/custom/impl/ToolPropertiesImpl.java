@@ -83,9 +83,9 @@ public record ToolPropertiesImpl(
             private float speed;
 
             @Override
-            public Rule.Builder block(@NonNull Holders holders) {
-                Objects.requireNonNull(holders, "holders cannot be null");
-                this.holders = holders;
+            public Rule.Builder blocks(@NonNull Holders blocks) {
+                Objects.requireNonNull(blocks, "holders cannot be null");
+                this.holders = blocks;
                 return this;
             }
 
