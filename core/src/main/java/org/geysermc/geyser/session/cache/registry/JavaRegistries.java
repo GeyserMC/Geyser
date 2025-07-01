@@ -64,15 +64,17 @@ public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
     public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS,
-        Block::javaId, Block::javaIdentifier, key -> Optional.ofNullable(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get(key.asString())).orElse(-1));
+        Block::javaId, Block::javaIdentifier, key -> BlockRegistries.JAVA_BLOCKS.get().stream()
+            .filter(block -> block.javaIdentifier().equals(key))
+            .findFirst());
     public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
-        Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
+        Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())));
     public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
         type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)), key -> {
         try {
-            return EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)).ordinal();
+            return Optional.of(EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)));
         } catch (IllegalArgumentException exception) {
-            return -1; // Non-existent entity type
+            return Optional.empty(); // Non-existent entity type
         }
     });
 
@@ -105,13 +107,13 @@ public class JavaRegistries {
     }
 
     private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
-                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
-        return createHardcoded(key, registry.get(), networkSerializer, identifierMapper, idMapper);
+                                                          RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
+        return createHardcoded(key, registry.get(), networkSerializer, objectIdentifierMapper, identifierObjectMapper);
     }
 
     private static <T> JavaRegistryKey<T> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
-                                                          RegistryIdentifierMapper<T> identifierMapper, RegistryIdMapper idMapper) {
-        return create(key, new HardcodedLookup<>(registry, networkSerializer, identifierMapper, idMapper));
+                                                          RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
+        return create(key, new HardcodedLookup<>(registry, networkSerializer, objectIdentifierMapper, identifierObjectMapper));
     }
 
     private static <T> JavaRegistryKey<T> create(String key) {
@@ -135,37 +137,37 @@ public class JavaRegistries {
     }
 
     @FunctionalInterface
-    interface RegistryIdentifierMapper<T> {
+    interface RegistryObjectIdentifierMapper<T> {
 
         Key get(T object);
     }
 
     @FunctionalInterface
-    interface RegistryIdMapper {
+    interface RegistryIdentifierObjectMapper<T> {
 
-        int get(Key key);
+        Optional<T> get(Key key);
     }
 
-    private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryIdentifierMapper<T> identifierMapper,
-                                      RegistryIdMapper idMapper) implements JavaRegistryKey.RegistryLookup<T> {
+    private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryObjectIdentifierMapper<T> objectIdentifierMapper,
+                                      RegistryIdentifierObjectMapper<T> identifierObjectMapper) implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override
         public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
             return Optional.ofNullable(registry.get(networkId))
-                .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(identifierMapper.get(value)), value));
+                .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
         }
 
         @Override
         public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
-            int id = idMapper.get(key);
-            return Optional.ofNullable(registry.get(id)).map(value -> new RegistryEntryData<>(id, key, value));
+            Optional<T> object = identifierObjectMapper.get(key);
+            return object.map(value -> new RegistryEntryData<>(networkMapper.get(value), key, value));
         }
 
         @Override
         public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
             int id = networkMapper.get(object);
             return Optional.ofNullable(registry.get(id))
-                .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(identifierMapper.get(value)), value));
+                .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
         }
     }
 
