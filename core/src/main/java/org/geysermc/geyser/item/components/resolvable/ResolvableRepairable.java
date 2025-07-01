@@ -23,30 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.custom.impl;
+package org.geysermc.geyser.item.components.resolvable;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
-import org.geysermc.geyser.api.util.Holders;
+import org.geysermc.geyser.impl.HoldersImpl;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
-import java.util.Objects;
+public record ResolvableRepairable(Repairable repairable) implements ResolvableComponent<HolderSet> {
 
-public record RepairableImpl(@NonNull Holders items) implements Repairable {
+    @Override
+    public DataComponentType<HolderSet> type() {
+        return DataComponentTypes.REPAIRABLE;
+    }
 
-    public static class Builder implements Repairable.Builder {
-        private Holders items;
-
-        @Override
-        public Builder items(@NonNull Holders items) {
-            Objects.requireNonNull(items, "items cannot be null");
-            this.items = items;
-            return this;
-        }
-
-        @Override
-        public Repairable build() {
-            Objects.requireNonNull(items, "items cannot be null");
-            return new RepairableImpl(items);
-        }
+    @Override
+    public HolderSet resolve(GeyserSession session) {
+        return ((HoldersImpl) repairable.items()).toHolderSet(session, JavaRegistries.ITEM);
     }
 }

@@ -51,6 +51,7 @@ import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
+import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
@@ -74,7 +75,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class CustomItemRegistryPopulator {
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
@@ -416,12 +416,14 @@ public class CustomItemRegistryPopulator {
     }
 
     /**
-     * Repairable component should already have been validated for valid Java items in {@link CustomItemContext#checkComponents(CustomItemDefinition, Item, Consumer)}.
-     *
-     * <p>This method passes the Java identifiers straight to bedrock - which isn't perfect.</p>
+     * This method passes the Java identifiers straight to bedrock - which isn't perfect. Also doesn't work with holder sets that use a tag.
      */
     private static void computeRepairableProperties(Repairable repairable, NbtMapBuilder componentBuilder) {
-        List<NbtMap> items = repairable.items().stream()
+        List<Identifier> identifiers = ((HoldersImpl) repairable.items()).identifiers();
+        if (identifiers == null) {
+            return;
+        }
+        List<NbtMap> items = identifiers.stream()
             .map(identifier -> NbtMap.builder()
                 .putString("name", identifier.toString())
                 .build()).toList();

@@ -33,6 +33,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
  * A resolvable component is a component that was specified in a {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}, and was supposed to be mapped to its MCPL equivalent before registering
  * the item, but was unable to because it needed registry access. As such, an instance of this interface was created, added to the list of the {@link org.geysermc.geyser.item.type.NonVanillaItem}'s resolvable components,
  * and will be resolved by {@link org.geysermc.geyser.session.cache.ComponentCache} whenever the session finishes the configuration phase.
+ *
+ * <p>Resolvable components aren't needed for vanilla-item overrides, because there Geyser receives the component patch in MCPL format from the server as well.</p>
  */
 public interface ResolvableComponent<T> {
 

@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.item.custom;
 
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableRepairable;
 import org.geysermc.geyser.item.components.resolvable.ResolvableToolProperties;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
@@ -64,10 +63,8 @@ import java.util.function.Consumer;
 /**
  * This class is used to convert components from the API module to MCPL ones.
  *
- * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there are 2 exceptions:
+ * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there is one exception:
  * <ul>
- *     <li>The MCPL counterpart of the {@link ItemDataComponents#REPAIRABLE} component is just an ID holder set, which can't be used in the custom item registry populator.
- *     Also see {@link CustomItemRegistryPopulator#computeRepairableProperties(Repairable, NbtMapBuilder)}.</li>
  *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent}) don't have converters registered, for obvious reasons.
  *     They're used directly in the custom item registry populator. Eventually, some may have converters introduced as Mojang introduces such components in Java.</li>
  * </ul>
@@ -122,6 +119,12 @@ public class ComponentConverters {
             itemMap.put(DataComponentTypes.TOOL,
                 new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative()));
             consumer.accept(new ResolvableToolProperties(value));
+        });
+
+        registerConverter(ItemDataComponents.REPAIRABLE, (itemMap, value, consumer) -> {
+            // Can't convert to MCPL HolderSet here, and custom item registry populator will just use the identifiers of the Holders
+            // and pass them to bedrock, if possible. This won't be perfect of course, since identifiers don't have to match bedrock ones
+            consumer.accept(new ResolvableRepairable(value));
         });
 
         registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));

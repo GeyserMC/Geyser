@@ -29,10 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
-import org.geysermc.geyser.api.util.Identifier;
-
-import java.util.Arrays;
-import java.util.List;
+import org.geysermc.geyser.api.util.Holders;
 
 /**
  * The repairable component determines which other items can be used
@@ -41,12 +38,11 @@ import java.util.List;
 public interface Repairable {
 
     /**
-     * The Bedrock identifiers of the items
-     * that can be used to repair this item.
+     * The {@link Holders} of item identifiers that can be used to repair the item.
      *
-     * @return the identifiers
+     * @return the {@link Holders} of item identifiers
      */
-    List<@NonNull Identifier> items();
+    @NonNull Holders items();
 
     /**
      * Creates a builder for the repairable component.
@@ -60,14 +56,12 @@ public interface Repairable {
     /**
      * Creates a repairable component.
      *
-     * @param items the identifiers of the items that
+     * @param items the {@link Holders} of the items that
      *      can repair the item
      * @return the repairable component
      */
-    static Repairable of(Identifier... items) {
-        Repairable.Builder builder = builder();
-        Arrays.stream(items).forEach(builder::item);
-        return builder.build();
+    static Repairable of(Holders items) {
+        return Repairable.builder().items(items).build();
     }
 
     /**
@@ -76,15 +70,14 @@ public interface Repairable {
     interface Builder extends GenericBuilder<Repairable> {
 
         /**
-         * Adds an item that can be used to repair the item.
-         * This will throw when trying to add an item that was already added.
+         * Sets the {@link Holders} of item identifiers that can be used to repair the item.
          *
-         * @param item the Bedrock item identifier that can be used to repair the item
+         * @param items the {@link Holders} of item identifiers that can be used to repair the item
          * @see Repairable#items()
          * @return this builder
          */
         @This
-        Builder item(@NonNull Identifier item);
+        Builder items(@NonNull Holders items);
 
         /**
          * Creates the repairable component.
