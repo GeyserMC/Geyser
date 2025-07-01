@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.custom.impl.RepairableImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -48,10 +49,15 @@ public class RepairableReader extends DataComponentReader<Repairable> {
     protected Repairable readDataComponent(@NonNull JsonElement node, String... context) throws InvalidCustomMappingsFileException {
         try {
             Identifier item = MappingsUtil.readOrThrow(node, "items", NodeReader.IDENTIFIER, context);
-            return Repairable.of(item);
+            return new RepairableImpl(Holders.of(item));
         } catch (InvalidCustomMappingsFileException exception) {
-            List<Identifier> items = MappingsUtil.readArrayOrThrow(node, "items", NodeReader.IDENTIFIER, context);
-            return new RepairableImpl(items);
+            try {
+                List<Identifier> items = MappingsUtil.readArrayOrThrow(node, "items", NodeReader.IDENTIFIER, context);
+                return new RepairableImpl(Holders.of(items));
+            } catch (InvalidCustomMappingsFileException anotherException) {
+                Identifier tag = MappingsUtil.readOrThrow(node, "items", NodeReader.TAG, context);
+                return new RepairableImpl(Holders.ofTag(tag));
+            }
         }
     }
 }

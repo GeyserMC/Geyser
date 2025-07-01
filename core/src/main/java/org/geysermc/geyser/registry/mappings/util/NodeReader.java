@@ -100,6 +100,13 @@ public interface NodeReader<T> {
             return identifier;
         });
 
+    NodeReader<Identifier> TAG = NON_EMPTY_STRING.andThen(s -> {
+        if (s.startsWith("#")) {
+            return s.replaceFirst("#", "");
+        }
+        throw new InvalidCustomMappingsFileException("tag must start with a #");
+    }).andThen(Identifier::of);
+
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
 
     NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
