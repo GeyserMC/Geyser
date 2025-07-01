@@ -45,10 +45,12 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -56,6 +58,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -131,6 +134,16 @@ public class CustomItemRegistryPopulator {
                 nonVanillaCustomItems.put(definition.identifier(), definition);
             }
         });
+
+        NonVanillaCustomItemDefinition test = NonVanillaCustomItemDefinition.builder(Identifier.of("geyser", "test"), Registries.JAVA_ITEMS.get().size())
+            .component(ItemDataComponents.TOOL, ToolProperties.builder()
+                .rule(ToolProperties.Rule.builder()
+                    .block(Holders.of(Identifier.of("cobweb")))
+                    .speed(15.0F)
+                    .build())
+                .build())
+            .build();
+        nonVanillaCustomItems.put(test.identifier(), test);
 
         int customItemCount = customItems.size() + nonVanillaCustomItems.size();
         if (customItemCount > 0) {

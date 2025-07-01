@@ -64,7 +64,11 @@ public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
     public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS,
-        Block::javaId, Block::javaIdentifier, key -> Optional.ofNullable(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get(key.asString())).orElse(-1));
+        Block::javaId, Block::javaIdentifier, key -> BlockRegistries.JAVA_BLOCKS.get().stream()
+            .filter(block -> block.javaIdentifier().equals(key))
+            .map(Block::javaId)
+            .findFirst()
+            .orElse(-1));
     public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
         Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())).map(Item::javaId).orElse(-1));
     public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
