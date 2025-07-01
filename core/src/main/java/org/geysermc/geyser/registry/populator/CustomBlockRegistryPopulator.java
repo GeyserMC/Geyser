@@ -188,7 +188,7 @@ public class CustomBlockRegistryPopulator {
         }
 
         for(Map.Entry<String, CustomBlockState> entry : BLOCK_STATE_OVERRIDES_QUEUE.entrySet()) {
-            int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
+            int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
             if (id == -1) {
                 GeyserImpl.getInstance().getLogger().warning("Custom block state override for Java Identifier: " +
                         entry.getKey() + " could not be registered as it is not a valid block state.");
@@ -212,7 +212,7 @@ public class CustomBlockRegistryPopulator {
                 CUSTOM_BLOCK_ITEM_OVERRIDES.put(block.javaIdentifier(), block.data());
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
-                int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
+                int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
                 blockStateOverrides.put(id, customBlockState.state());
                 BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
                 if (extendedCollisionBox != null) {
@@ -302,7 +302,7 @@ public class CustomBlockRegistryPopulator {
             block.setJavaId(javaBlockState.stateGroupId());
 
             BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
-            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
             BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
 
             // TODO register different collision types?

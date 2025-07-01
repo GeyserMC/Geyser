@@ -421,7 +421,7 @@ public final class BlockRegistryPopulator {
             javaRuntimeId++;
             String javaId = javaBlockState.toString().intern();
 
-            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
         }
 
         BLOCKS_NBT = blocksNbt;
@@ -441,7 +441,7 @@ public final class BlockRegistryPopulator {
     private static BitSet toBlockStateSet(ArrayNode node) {
         BitSet blockStateSet = new BitSet(node.size());
         for (JsonNode javaIdentifier : node) {
-            blockStateSet.set(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
+            blockStateSet.set(BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
         }
         return blockStateSet;
     }
