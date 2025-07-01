@@ -41,17 +41,21 @@ public class NonVanillaItem extends Item {
     @Getter
     @Accessors(fluent = true)
     private final List<ResolvableComponent<?>> resolvableComponents;
+    private final List<? extends DataComponentType<?>> resolvableComponentTypes;
 
     public NonVanillaItem(String javaIdentifier, Builder builder, List<ResolvableComponent<?>> resolvableComponents) {
         super(javaIdentifier, builder);
         this.resolvableComponents = resolvableComponents;
+        this.resolvableComponentTypes = resolvableComponents.stream()
+            .map(ResolvableComponent::type)
+            .toList();
     }
 
     @NonNull
     @UnmodifiableView
     @Override
-    public DataComponents gatherComponents(ComponentCache componentCache, @Nullable DataComponents others) {
-        if (resolvableComponents.isEmpty()) {
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
+        if (componentCache == null || resolvableComponents.isEmpty()) {
             return super.gatherComponents(componentCache, others);
         }
         DataComponents resolvedAndOthers = componentCache.getResolvedComponents(this).clone();
@@ -62,7 +66,10 @@ public class NonVanillaItem extends Item {
     }
 
     @Override
-    public <T> @Nullable T getComponent(ComponentCache componentCache, @NonNull DataComponentType<T> type) {
+    public <T> @Nullable T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
+        if (componentCache != null && resolvableComponentTypes.contains(type)) {
+            return componentCache.getResolvedComponents(this).get(type);
+        }
         return super.getComponent(componentCache, type);
     }
 }

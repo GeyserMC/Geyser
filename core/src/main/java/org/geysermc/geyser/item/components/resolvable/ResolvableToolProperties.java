@@ -29,11 +29,18 @@ import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
 import java.util.List;
 
-public record ResolvableToolProperties(ToolProperties properties) implements ResolvableComponentType<ToolData> {
+public record ResolvableToolProperties(ToolProperties properties) implements ResolvableComponent<ToolData> {
+
+    @Override
+    public DataComponentType<ToolData> type() {
+        return DataComponentTypes.TOOL;
+    }
 
     @Override
     public ToolData resolve(GeyserSession session) {

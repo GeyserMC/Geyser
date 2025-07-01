@@ -71,8 +71,8 @@ public class GeyserItemStack {
     @EqualsAndHashCode.Exclude
     private Item item;
 
-    private GeyserItemStack(GeyserSession session, int javaId, int amount, DataComponents components) {
-        this(session.getComponentCache(), javaId, amount, components, 1, null);
+    private GeyserItemStack(@Nullable GeyserSession session, int javaId, int amount, DataComponents components) {
+        this(session == null ? null : session.getComponentCache(), javaId, amount, components, 1, null);
     }
 
     private GeyserItemStack(ComponentCache componentCache, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
@@ -84,19 +84,19 @@ public class GeyserItemStack {
         this.bundleData = bundleData;
     }
 
-    public static @NonNull GeyserItemStack of(GeyserSession session, int javaId, int amount) {
+    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount) {
         return of(session, javaId, amount, null);
     }
 
-    public static @NonNull GeyserItemStack of(GeyserSession session, int javaId, int amount, @Nullable DataComponents components) {
+    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount, @Nullable DataComponents components) {
         return new GeyserItemStack(session, javaId, amount, components);
     }
 
-    public static @NonNull GeyserItemStack from(GeyserSession session, @Nullable ItemStack itemStack) {
+    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @Nullable ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(session, itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentsPatch());
     }
 
-    public static @NonNull GeyserItemStack from(GeyserSession session, @NonNull SlotDisplay slotDisplay) {
+    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @NonNull SlotDisplay slotDisplay) {
         if (slotDisplay instanceof EmptySlotDisplay) {
             return GeyserItemStack.EMPTY;
         }

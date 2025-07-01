@@ -29,9 +29,13 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public record ResolvableComponent<T>(DataComponentType<T> component, ResolvableComponentType<T> value) {
+public interface ResolvableComponent<T> {
 
-    public void resolve(GeyserSession session, DataComponents map) {
-        map.put(component, value.resolve(session));
+    DataComponentType<T> type();
+
+    T resolve(GeyserSession session);
+
+    default void resolve(GeyserSession session, DataComponents map) {
+        map.put(type(), resolve(session));
     }
 }

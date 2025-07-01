@@ -120,7 +120,7 @@ public class ComponentConverters {
         registerConverter(ItemDataComponents.TOOL, (itemMap, value, consumer) -> {
             itemMap.put(DataComponentTypes.TOOL,
                 new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative()));
-            consumer.accept(new ResolvableComponent<>(DataComponentTypes.TOOL, new ResolvableToolProperties(value)));
+            consumer.accept(new ResolvableToolProperties(value));
         });
 
         registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));

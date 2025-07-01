@@ -110,7 +110,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(ComponentCache componentCache, @Nullable DataComponents others) {
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -131,7 +131,7 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(ComponentCache componentCache, @NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
     }
 
