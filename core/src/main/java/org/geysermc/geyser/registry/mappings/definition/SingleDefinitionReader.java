@@ -40,6 +40,9 @@ import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -65,12 +68,20 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
     }
 
     public static void readDefinitionBase(CustomItemDefinition.Builder builder, JsonElement data, String context) throws InvalidCustomMappingsFileException {
-        // TODO JSON text component
-        MappingsUtil.readIfPresent(data, "display_name", builder::displayName, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readIfPresent(data, "priority", builder::priority, NodeReader.INT, context);
 
-        // Mappings util methods used above already threw a properly formatted error if the element is not a JSON object
+        // Mappings util method used above already threw a properly formatted error if the element is not a JSON object
         JsonObject definition = data.getAsJsonObject();
+
+        JsonElement displayName = definition.get("display_name");
+        if (displayName != null) {
+            try {
+                builder.displayName(MessageTranslator.convertMessage(DefaultComponentSerializer.get().deserializeFromTree(displayName), GeyserLocale.getDefaultLocale()));
+            } catch (Exception exception) {
+                throw new InvalidCustomMappingsFileException("reading display name", "error while reading: " + exception.getMessage(), context);
+            }
+        }
+
         readPredicates(builder, definition, context);
         readBedrockOptions(builder, definition, context);
         readComponents(builder, definition, context);
