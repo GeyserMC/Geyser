@@ -46,7 +46,7 @@ public class LegacyDefinitionReader implements ItemDefinitionReader {
         // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
-        int customModelData = MappingsUtil.readOrThrow(data, "custom_moel_data", NodeReader.INT, context);
+        int customModelData = MappingsUtil.readOrThrow(data, "custom_model_data", NodeReader.INT, context);
 
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, vanillaItem);
         builder.predicate(ItemRangeDispatchPredicate.CUSTOM_MODEL_DATA.create(new CustomModelDataFloat(customModelData, 0)));

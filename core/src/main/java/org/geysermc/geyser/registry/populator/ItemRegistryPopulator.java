@@ -769,7 +769,7 @@ public class ItemRegistryPopulator {
             if (first.equals(second)) {
                 // If equal, return 0
                 return 0;
-            } else if (first.model().equals(second.model())) {
+            } else if (!first.model().equals(second.model())) {
                 // If models differ, compare by bedrock identifier, which should always be unique
                 return first.bedrockIdentifier().toString().compareTo(second.bedrockIdentifier().toString());
             }
@@ -779,8 +779,8 @@ public class ItemRegistryPopulator {
                 return second.priority() - first.priority();
             }
 
-            if (first.predicates().isEmpty() || second.predicates().isEmpty()) {
-                // If either one has no predicates, there's no need to check for range dispatch predicates.
+            if (first.predicates().isEmpty() ^ second.predicates().isEmpty()) {
+                // If one has no predicates, and the other has at least one, there's no need to check for range dispatch predicates.
                 // Prefer the one with the most amount of predicates
                 return second.predicates().size() - first.predicates().size();
             }
