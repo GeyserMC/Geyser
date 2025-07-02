@@ -55,64 +55,38 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
         Identifier model = MappingsUtil.readOrDefault(data, "model", NodeReader.IDENTIFIER, parentModel, context);
-
         if (model == null) {
             throw new InvalidCustomMappingsFileException("reading item model", "no model present", context);
         }
 
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, model);
+        readDefinitionBase(builder, data, context);
+        consumer.accept(vanillaItem, builder.build());
+    }
 
+    public static void readDefinitionBase(CustomItemDefinition.Builder builder, JsonElement data, String context) throws InvalidCustomMappingsFileException {
         // TODO JSON text component
         MappingsUtil.readIfPresent(data, "display_name", builder::displayName, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readIfPresent(data, "priority", builder::priority, NodeReader.INT, context);
 
         // Mappings util methods used above already threw a properly formatted error if the element is not a JSON object
-        readPredicates(builder, data.getAsJsonObject().get("predicate"), context);
-        MappingsUtil.readIfPresent(data, "predicate_strategy", builder::predicateStrategy, NodeReader.PREDICATE_STRATEGY, context);
-
-        builder.bedrockOptions(readBedrockOptions(data.getAsJsonObject().get("bedrock_options"), context));
-
-        JsonElement componentsElement = data.getAsJsonObject().get("components");
-        if (componentsElement != null) {
-            if (componentsElement instanceof JsonObject components) {
-                for (Map.Entry<String, JsonElement> entry : components.entrySet()) {
-                    DataComponentReaders.readDataComponent(builder, entry.getKey(), entry.getValue(), context);
-                }
-            } else {
-                throw new InvalidCustomMappingsFileException("reading components", "components key must be an object", context);
-            }
-        }
-
-        consumer.accept(vanillaItem, builder.build());
+        JsonObject definition = data.getAsJsonObject();
+        readPredicates(builder, definition, context);
+        readBedrockOptions(builder, definition, context);
+        readComponents(builder, definition, context);
     }
 
-    private CustomItemBedrockOptions.Builder readBedrockOptions(JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
-        CustomItemBedrockOptions.Builder builder = CustomItemBedrockOptions.builder();
-        if (element == null) {
-            return builder;
-        }
-
-        String[] context = {"bedrock options", baseContext};
-        MappingsUtil.readIfPresent(element, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readIfPresent(element, "allow_offhand", builder::allowOffhand, NodeReader.BOOLEAN, context);
-        MappingsUtil.readIfPresent(element, "display_handheld", builder::displayHandheld, NodeReader.BOOLEAN, context);
-        MappingsUtil.readIfPresent(element, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
-        MappingsUtil.readIfPresent(element, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
-        MappingsUtil.readIfPresent(element, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readArrayIfPresent(element, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
-
-        return builder;
-    }
-
-    private void readPredicates(CustomItemDefinition.Builder builder, JsonElement element, String context) throws InvalidCustomMappingsFileException {
-        if (element == null) {
+    private static void readPredicates(CustomItemDefinition.Builder builder, JsonObject definition, String context) throws InvalidCustomMappingsFileException {
+        MappingsUtil.readIfPresent(definition, "predicate_strategy", builder::predicateStrategy, NodeReader.PREDICATE_STRATEGY, context);
+        JsonElement predicates = definition.get("predicate");
+        if (predicates == null) {
             return;
         }
 
-        if (element.isJsonObject()) {
-            readPredicate(builder, element, context);
-        } else if (element.isJsonArray()) {
-            for (JsonElement predicate : element.getAsJsonArray()) {
+        if (predicates.isJsonObject()) {
+            readPredicate(builder, predicates, context);
+        } else if (predicates.isJsonArray()) {
+            for (JsonElement predicate : predicates.getAsJsonArray()) {
                 readPredicate(builder, predicate, context);
             }
         } else {
@@ -120,7 +94,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
         }
     }
 
-    private void readPredicate(CustomItemDefinition.Builder builder, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
+    private static void readPredicate(CustomItemDefinition.Builder builder, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
         String type = MappingsUtil.readOrThrow(element, "type", NodeReader.NON_EMPTY_STRING, "predicate", baseContext);
         String[] context = {type + " predicate", baseContext};
 
@@ -144,6 +118,38 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
                 builder.predicate(rangeDispatchProperty.read(element, context));
             }
             default -> throw new InvalidCustomMappingsFileException("reading predicate", "unknown predicate type " + type, context);
+        }
+    }
+
+    private static void readBedrockOptions(CustomItemDefinition.Builder definitionBuilder, JsonObject definition, String baseContext) throws InvalidCustomMappingsFileException {
+        CustomItemBedrockOptions.Builder builder = CustomItemBedrockOptions.builder();
+        JsonElement bedrockOptions = definition.get("bedrock_options");
+        if (bedrockOptions == null) {
+            return;
+        }
+
+        String[] context = {"bedrock options", baseContext};
+        MappingsUtil.readIfPresent(bedrockOptions, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "allow_offhand", builder::allowOffhand, NodeReader.BOOLEAN, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "display_handheld", builder::displayHandheld, NodeReader.BOOLEAN, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
+        MappingsUtil.readArrayIfPresent(bedrockOptions, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
+
+        definitionBuilder.bedrockOptions(builder);
+    }
+
+    private static void readComponents(CustomItemDefinition.Builder builder, JsonObject definition, String context) throws InvalidCustomMappingsFileException {
+        JsonElement componentsElement = definition.get("components");
+        if (componentsElement != null) {
+            if (componentsElement instanceof JsonObject components) {
+                for (Map.Entry<String, JsonElement> entry : components.entrySet()) {
+                    DataComponentReaders.readDataComponent(builder, entry.getKey(), entry.getValue(), context);
+                }
+            } else {
+                throw new InvalidCustomMappingsFileException("reading components", "components key must be an object", context);
+            }
         }
     }
 }
