@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.definition.ItemDefinitionReaders;
 import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
@@ -108,6 +109,8 @@ public interface NodeReader<T> {
     }).andThen(Identifier::of);
 
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
+
+    NodeReader<ItemDefinitionReaders> ITEM_DEFINITION_READER = ofEnum(ItemDefinitionReaders.class);
 
     NodeReader<PredicateStrategy> PREDICATE_STRATEGY = ofEnum(PredicateStrategy.class);
 

@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
+import org.geysermc.geyser.registry.mappings.definition.ItemDefinitionReaders;
 import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
@@ -64,10 +65,12 @@ public class MappingsReader_v2 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(definition -> {
                         try {
-                            readItemDefinitionEntry(definition, Identifier.of(entry.getKey()), null, consumer);
+                            Identifier vanillaItem = Identifier.of(entry.getKey());
+                            ItemDefinitionReaders.readDefinition(definition, vanillaItem, null, consumer,
+                                "item definition(s) for vanilla Java item " + vanillaItem);
                         } catch (InvalidCustomMappingsFileException exception) {
                             GeyserImpl.getInstance().getLogger().error(
-                                "Error reading definition for item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                                "Error reading definition(s) for vanilla Java item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
                         }
                     });
                 } else {
@@ -81,139 +84,17 @@ public class MappingsReader_v2 extends MappingsReader {
     public void readBlockMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
         JsonElement blocks = mappingsRoot.get("blocks");
         if (blocks != null) {
-            throw new UnsupportedOperationException("Unimplemented; use the v1 format of block mappings");
-        }
-    }
-
-    private void readItemDefinitionEntry(JsonElement data, Identifier itemIdentifier, Identifier model,
-                                         BiConsumer<Identifier, CustomItemDefinition> definitionConsumer) throws InvalidCustomMappingsFileException {
-        String context = "item definition(s) for Java item " + itemIdentifier;
-
-        String type = MappingsUtil.readOrDefault(data, "type", NodeReader.NON_EMPTY_STRING, "definition", context);
-        if (type.equals("group")) {
-            // Read model of group if it's present, or default to the model of the parent group, if that's present
-            // If the parent group model is not present (or there is no parent group), and this group also doesn't have a model, then it is expected the definitions supply their model themselves
-            Identifier groupModel = MappingsUtil.readOrDefault(data, "model", NodeReader.IDENTIFIER, model, context);
-
-            // The method above should have already thrown a properly formatted error if data is not a JSON object
-            JsonElement definitions = data.getAsJsonObject().get("definitions");
-
-            if (definitions == null || !definitions.isJsonArray()) {
-                throw new InvalidCustomMappingsFileException("reading item definitions in group", "group has no definitions key, or it wasn't an array", context);
-            } else {
-                for (JsonElement definition : definitions.getAsJsonArray()) {
-                    // Recursively read all the entries in the group - they can be more groups or definitions
-                    readItemDefinitionEntry(definition, itemIdentifier, groupModel, definitionConsumer);
-                }
-            }
-        } else if (type.equals("definition")) {
-            CustomItemDefinition customItemDefinition = readItemMappingEntry(model, data);
-            definitionConsumer.accept(itemIdentifier, customItemDefinition);
-        } else {
-            throw new InvalidCustomMappingsFileException("reading item definition", "unknown definition type " + type, context);
+            throw new UnsupportedOperationException("Unimplemented; use the v1 format for block mappings");
         }
     }
 
     @Override
-    public CustomItemDefinition readItemMappingEntry(Identifier parentModel, JsonElement element) throws InvalidCustomMappingsFileException {
-        Identifier bedrockIdentifier = MappingsUtil.readOrThrow(element, "bedrock_identifier", NodeReader.GEYSER_IDENTIFIER, "item definition");
-        // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
-        String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
-
-        Identifier model = MappingsUtil.readOrDefault(element, "model", NodeReader.IDENTIFIER, parentModel, context);
-
-        if (model == null) {
-            throw new InvalidCustomMappingsFileException("reading item model", "no model present", context);
-        }
-
-        CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, model);
-
-        MappingsUtil.readIfPresent(element, "display_name", builder::displayName, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readIfPresent(element, "priority", builder::priority, NodeReader.INT, context);
-
-        // Mappings util methods used above already threw a properly formatted error if the element is not a JSON object
-        readPredicates(builder, element.getAsJsonObject().get("predicate"), context);
-        MappingsUtil.readIfPresent(element, "predicate_strategy", builder::predicateStrategy, NodeReader.PREDICATE_STRATEGY, context);
-
-        builder.bedrockOptions(readBedrockOptions(element.getAsJsonObject().get("bedrock_options"), context));
-
-        JsonElement componentsElement = element.getAsJsonObject().get("components");
-        if (componentsElement != null) {
-            if (componentsElement instanceof JsonObject components) {
-                for (Map.Entry<String, JsonElement> entry : components.entrySet()) {
-                    DataComponentReaders.readDataComponent(builder, entry.getKey(), entry.getValue(), context);
-                }
-            } else {
-                throw new InvalidCustomMappingsFileException("reading components", "components key must be an object", context);
-            }
-        }
-
-        return builder.build();
-    }
-
-    private CustomItemBedrockOptions.Builder readBedrockOptions(JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
-        CustomItemBedrockOptions.Builder builder = CustomItemBedrockOptions.builder();
-        if (element == null) {
-            return builder;
-        }
-
-        String[] context = {"bedrock options", baseContext};
-        MappingsUtil.readIfPresent(element, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readIfPresent(element, "allow_offhand", builder::allowOffhand, NodeReader.BOOLEAN, context);
-        MappingsUtil.readIfPresent(element, "display_handheld", builder::displayHandheld, NodeReader.BOOLEAN, context);
-        MappingsUtil.readIfPresent(element, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
-        MappingsUtil.readIfPresent(element, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
-        MappingsUtil.readIfPresent(element, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
-        MappingsUtil.readArrayIfPresent(element, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
-
-        return builder;
-    }
-
-    private void readPredicates(CustomItemDefinition.Builder builder, JsonElement element, String context) throws InvalidCustomMappingsFileException {
-        if (element == null) {
-            return;
-        }
-
-        if (element.isJsonObject()) {
-            readPredicate(builder, element, context);
-        } else if (element.isJsonArray()) {
-            for (JsonElement predicate : element.getAsJsonArray()) {
-                readPredicate(builder, predicate, context);
-            }
-        } else {
-            throw new InvalidCustomMappingsFileException("reading predicates", "expected predicate key to be a list of predicates or a predicate", context);
-        }
-    }
-
-    private void readPredicate(CustomItemDefinition.Builder builder, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
-        String type = MappingsUtil.readOrThrow(element, "type", NodeReader.NON_EMPTY_STRING, "predicate", baseContext);
-        String[] context = {type + " predicate", baseContext};
-
-        switch (type) {
-            case "condition" -> {
-                ItemConditionProperty conditionProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_CONDITION_PROPERTY, context);
-                boolean expected = MappingsUtil.readOrDefault(element, "expected", NodeReader.BOOLEAN, true, context);
-                MinecraftPredicate<? super ItemPredicateContext> predicate = conditionProperty.read(element, context);
-
-                if (!expected) {
-                    predicate = predicate.negate();
-                }
-                builder.predicate(predicate);
-            }
-            case "match" -> {
-                ItemMatchProperty matchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_MATCH_PROPERTY, context);
-                builder.predicate(matchProperty.read(element, context));
-            }
-            case "range_dispatch" -> {
-                ItemRangeDispatchProperty rangeDispatchProperty = MappingsUtil.readOrThrow(element, "property", NodeReader.ITEM_RANGE_DISPATCH_PROPERTY, context);
-                builder.predicate(rangeDispatchProperty.read(element, context));
-            }
-            default -> throw new InvalidCustomMappingsFileException("reading predicate", "unknown predicate type " + type, context);
-        }
+    public CustomItemDefinition readItemMappingEntry(Identifier parentModel, JsonElement element) {
+        throw new UnsupportedOperationException("Replaced by ItemDefinitionReaders enum");
     }
 
     @Override
     public CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement node) throws InvalidCustomMappingsFileException {
-        throw new InvalidCustomMappingsFileException("Unimplemented; use the v1 format of block mappings");
+        throw new InvalidCustomMappingsFileException("Unimplemented; use the v1 format for block mappings");
     }
 }
