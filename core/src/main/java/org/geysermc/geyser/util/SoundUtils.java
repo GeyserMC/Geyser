@@ -148,7 +148,7 @@ public final class SoundUtils {
             soundPacket.setExtraData(soundMapping.extraData() + (int) (Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.extraData() == -1) {
             if (!soundMapping.identifier().equals(":")) {
-                int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.identifier(), Block.JAVA_AIR_ID);
+                int javaId = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.identifier(), Block.JAVA_AIR_ID);
                 soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(javaId));
             } else {
                 session.getGeyser().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + soundMapping);

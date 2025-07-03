@@ -279,7 +279,7 @@ public class MappingsReader_v1 extends MappingsReader {
             .creativeCategory(creativeCategory)
             .creativeGroup(creativeGroup);
 
-        if (BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
+        if (BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
             CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(object, identifier, name);
             CustomBlockData blockData = customBlockDataBuilder
@@ -294,7 +294,7 @@ public class MappingsReader_v1 extends MappingsReader {
             // Load components for specific Java block states
             for (Map.Entry<String, JsonElement> overrideEntry : stateOverrides.entrySet()) {
                 String state = identifier + "[" + overrideEntry.getKey() + "]";
-                if (!BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(state)) {
+                if (!BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().containsKey(state)) {
                     throw new InvalidCustomMappingsFileException("Unknown Java block state: " + state + " for state_overrides.");
                 }
                 componentsMap.put(state, createCustomBlockComponentsMapping(overrideEntry.getValue(), state, name));
@@ -306,7 +306,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (!onlyOverrideStates) {
             // Create components for any remaining Java block states
-            BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().keySet()
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().keySet()
                 .stream()
                 .filter(s -> s.startsWith(identifier + "["))
                 .filter(Predicate.not(componentsMap::containsKey))
@@ -379,7 +379,7 @@ public class MappingsReader_v1 extends MappingsReader {
      */
     private CustomBlockComponentsMapping createCustomBlockComponentsMapping(JsonElement element, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
-        int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
+        int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
         BoxComponent boxComponent = createBoxComponent(id);
         BoxComponent extendedBoxComponent = createExtendedBoxComponent(id);
         CustomBlockComponents.Builder builder = new GeyserCustomBlockComponents.Builder()

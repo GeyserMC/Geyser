@@ -49,7 +49,8 @@ public final class GameProtocol {
      * release of the game that Geyser supports.
      */
     public static final BedrockCodec DEFAULT_BEDROCK_CODEC = CodecProcessor.processCodec(Bedrock_v818.CODEC.toBuilder()
-        .minecraftVersion("1.21.90")
+        .minecraftVersion("1.21.93")
+        .protocolVersion(819) // we love unannounced proto bumps
         .build());
 
     /**
@@ -70,6 +71,9 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(CodecProcessor.processCodec(Bedrock_v800.CODEC.toBuilder()
             .minecraftVersion("1.21.80 - 1.21.84")
             .build()));
+        SUPPORTED_BEDROCK_CODECS.add((CodecProcessor.processCodec(Bedrock_v818.CODEC.toBuilder()
+            .minecraftVersion("1.21.90 - 1.21.92")
+            .build())));
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
