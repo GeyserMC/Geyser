@@ -295,6 +295,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
+                        // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
+                        int sequence = session.getWorldCache().nextPredictionSequence();
+                        ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                                packet.getBlockPosition(),
+                                Direction.VALUES[packet.getBlockFace()],
+                                Hand.MAIN_HAND,
+                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                false,
+                                false,
+                                sequence);
+                        session.sendDownstreamGamePacket(blockPacket);
+                        session.getWorldCache().markPositionInSequence(blockPos);
+
                         Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
@@ -321,19 +334,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                         }
-
-                        // Storing the block position allows inconsistencies in block place checking from post-1.19 - pre-1.20.5 to be resolved.
-                        int sequence = session.getWorldCache().nextPredictionSequence();
-                        ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
-                                packet.getBlockPosition(),
-                                Direction.VALUES[packet.getBlockFace()],
-                                Hand.MAIN_HAND,
-                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
-                                false,
-                                false,
-                                sequence);
-                        session.sendDownstreamGamePacket(blockPacket);
-                        session.getWorldCache().markPositionInSequence(blockPos);
 
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
