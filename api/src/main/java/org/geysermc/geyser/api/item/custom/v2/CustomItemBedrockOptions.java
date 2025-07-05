@@ -27,8 +27,8 @@ package org.geysermc.geyser.api.item.custom.v2;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -56,7 +56,7 @@ public interface CustomItemBedrockOptions {
     boolean allowOffhand();
 
     /**
-     * If the item should be displayed as handheld, like a tool.
+     * If the item should be displayed as handheld, like a tool. Defaults to false.
      *
      * @return true if the item should be displayed as handheld, false otherwise
      */
@@ -81,7 +81,9 @@ public interface CustomItemBedrockOptions {
     CreativeCategory creativeCategory();
 
     /**
-     * Gets the item's creative group.
+     * The item's creative group.
+     *
+     * <p>A list of creative groups available in vanilla can be found <a href="https://wiki.bedrock.dev/documentation/menu-categories#list-of-vanilla-groups">here</a>.</p>
      *
      * @return the item's creative group
      */
@@ -89,36 +91,112 @@ public interface CustomItemBedrockOptions {
     String creativeGroup();
 
     /**
-     * Gets the item's set of tags that can be used in Molang.
+     * Gets the item's set of bedrock tags that can be used in Molang.
      * Equivalent to "tag:some_tag"
      *
-     * @return the item's tags, if they exist
+     * @return the item's set of bedrock tags, can be empty
      */
     @NonNull
     Set<Identifier> tags();
 
+    /**
+     * Creates a new builder for custom item bedrock options.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
+    /**
+     * Builder for custom item bedrock options.
+     */
     interface Builder {
 
+        /**
+         * Sets the item's icon.
+         *
+         * @param icon the item's icon
+         * @see CustomItemBedrockOptions#icon()
+         * @return this builder
+         */
+        @This
         Builder icon(@Nullable String icon);
 
+        /**
+         * Sets if the item is allowed to be put into the offhand.
+         *
+         * @param allowOffhand if the item is allowed to be put into the offhand slot
+         * @see CustomItemBedrockOptions#allowOffhand()
+         * @return this builder
+         */
+        @This
         Builder allowOffhand(boolean allowOffhand);
 
+        /**
+         * Sets if the item should be displayed as handheld, like a tool.
+         *
+         * @param displayHandheld if the item should be displayed as handheld
+         * @see CustomItemBedrockOptions#displayHandheld()
+         * @return this builder
+         */
+        @This
         Builder displayHandheld(boolean displayHandheld);
 
+        /**
+         * Sets the item's protection value.
+         *
+         * @param protectionValue the item's protection value
+         * @see CustomItemBedrockOptions#protectionValue()
+         * @return this builder
+         */
+        @This
         Builder protectionValue(int protectionValue);
 
+        /**
+         * Sets the item's creative category.
+         *
+         * @param creativeCategory the item's creative category
+         * @see CustomItemBedrockOptions#creativeCategory()
+         * @return this builder
+         */
+        @This
         Builder creativeCategory(CreativeCategory creativeCategory);
 
+        /**
+         * Sets the item's creative group.
+         *
+         * @param creativeGroup the item's creative group
+         * @see CustomItemBedrockOptions#creativeGroup()
+         * @return this builder
+         */
+        @This
         Builder creativeGroup(@Nullable String creativeGroup);
 
+        /**
+         * Adds a tag to the set of bedrock tags this item has, for use in Molang.
+         *
+         * @param tag the tag to be added
+         * @see CustomItemBedrockOptions#tags()
+         * @return this builder
+         */
+        @This
         Builder tag(Identifier tag);
 
+        /**
+         * Sets the item's set of bedrock tags, for use in Molang. Pass {@code null} to clear all tags.
+         *
+         * @param tags the tags to be set, or {@code null} to clear all tags
+         * @return this builder
+         */
+        @This
         Builder tags(@Nullable Set<Identifier> tags);
 
+        /**
+         * Creates the custom item bedrock options.
+         *
+         * @return the new instance of bedrock options
+         */
         CustomItemBedrockOptions build();
     }
 }

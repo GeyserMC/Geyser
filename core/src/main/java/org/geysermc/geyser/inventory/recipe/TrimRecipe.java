@@ -105,7 +105,6 @@ public final class TrimRecipe {
     private static Map<ProvidesTrimMaterial, Item> materialProviders() {
         if (trimMaterialProviders.isEmpty()) {
             for (Item item : Registries.JAVA_ITEMS.get()) {
-                // Will throw on non-vanilla items
                 ProvidesTrimMaterial provider = item.getComponent(null, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
                 if (provider != null) {
                     trimMaterialProviders.put(provider, item);

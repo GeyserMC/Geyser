@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.item.custom.v2;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
@@ -68,29 +69,36 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     @Nullable String translationString();
 
     /**
-     * Predicates are currently not supported for non-vanilla custom item definitions.
-     *
-     * <p>Trying to use predicates will result in an error.</p>
-     */
-    @Override
-    @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
-
-    /**
-     * Predicates are currently not supported for non-vanilla custom item definitions.
+     * Predicates are currently not supported for use with non-vanilla custom item definitions.
      *
      * <p>Trying to use predicates will result in an error.</p>
      */
     @Override
     @NonNull
-    PredicateStrategy predicateStrategy();
+    default List<MinecraftPredicate<? super ItemPredicateContext>> predicates() {
+        throw new UnsupportedOperationException("Predicates are currently not supported for use with non-vanilla custom item definitions");
+    }
 
     /**
-     * Predicates are currently not supported for non-vanilla custom item definitions.
+     * Predicates are currently not supported for use with non-vanilla custom item definitions.
      *
      * <p>Trying to use predicates will result in an error.</p>
      */
     @Override
-    int priority();
+    @NonNull
+    default PredicateStrategy predicateStrategy() {
+        throw new UnsupportedOperationException("Predicates are currently not supported for use with non-vanilla custom item definitions");
+    }
+
+    /**
+     * Predicates are currently not supported for use with non-vanilla custom item definitions.
+     *
+     * <p>Trying to use predicates will result in an error.</p>
+     */
+    @Override
+    default int priority() {
+        throw new UnsupportedOperationException("Predicates are currently not supported for use with non-vanilla custom item definitions");
+    }
 
     /**
      * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link GeyserDataComponent} can
@@ -101,6 +109,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      *
      * @see CustomItemDefinition#components()
      * @see GeyserDataComponent
+     * @return the item's default data components
      */
     @Override
     @NonNull DataComponentMap components();
@@ -116,17 +125,22 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     interface Builder extends CustomItemDefinition.Builder {
 
         @Override
+        @This
         Builder displayName(@NonNull String displayName);
 
         @Override
+        @This
         Builder priority(int priority);
 
         @Override
+        @This
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
         @Override
+        @This
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
+        @This
         Builder translationString(@Nullable String translationString);
 
         @Override

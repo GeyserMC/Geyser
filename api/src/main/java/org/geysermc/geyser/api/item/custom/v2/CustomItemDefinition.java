@@ -31,9 +31,13 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
 import org.geysermc.geyser.api.util.GenericBuilder;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -51,7 +55,7 @@ import java.util.Objects;
  *
  * <ol>
  *     <li>First by checking their priority values, higher priority values going first.</li>
- *     <li>Then by checking if they both have a similar {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate} predicate, the one with the highest (or lowest, when both are negated) threshold going first.</li>
+ *     <li>Then by checking if they both have a similar {@link ItemRangeDispatchPredicate} predicate, the one with the highest (or lowest, when both are negated) threshold going first.</li>
  *     <li>Lastly by the amount of predicates, from most to least.</li>
  * </ol>
  *
@@ -95,10 +99,7 @@ public interface CustomItemDefinition {
      *
      * @return the icon shown to Bedrock players
      */
-    default @NonNull String icon() {
-        String setIcon = bedrockOptions().icon();
-        return setIcon == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : setIcon;
-    }
+    @NonNull String icon();
 
     /**
      * The predicates that have to match for this item definition to be used. These predicates can access properties similar to the Java item model predicates.
@@ -106,8 +107,8 @@ public interface CustomItemDefinition {
      * <p>When adding predicates, avoid chaining many predicates that use an OR expression - instead, set the {@link PredicateStrategy} of the definition to
      * {@link PredicateStrategy#OR}.</p>
      *
-     * <p>It is recommended to use built-in predicates created from classes such as {@link org.geysermc.geyser.api.predicate.MatchPredicate}, {@link org.geysermc.geyser.api.predicate.item.ItemMatchPredicate},
-     * {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate}, and {@link org.geysermc.geyser.api.predicate.item.ItemConditionPredicate} when possible. These predicates
+     * <p>It is recommended to use built-in predicates created from classes such as {@link MatchPredicate}, {@link ItemMatchPredicate},
+     * {@link ItemRangeDispatchPredicate}, and {@link ItemConditionPredicate} when possible. These predicates
      * have built in conflict detection, value caching, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover, and is generally more performant.</p>
      */
     @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
@@ -150,6 +151,7 @@ public interface CustomItemDefinition {
      *
      * @see ItemDataComponents
      * @see CustomItemDefinition#removedComponents()
+     * @return the item's data component patch
      */
     @NonNull DataComponentMap components();
 
@@ -158,6 +160,7 @@ public interface CustomItemDefinition {
      * components, it is expected that this <em>always</em> matches the removed components on the server. Removed components cannot be present in the added components in {@link CustomItemDefinition#components()}.
      *
      * @see CustomItemDefinition#components()
+     * @return a list of removed default item data components
      */
     @NonNull List<Identifier> removedComponents();
 
@@ -238,9 +241,9 @@ public interface CustomItemDefinition {
          *
          * @param component the type of the component, found in {@link ItemDataComponents}
          * @param value the value of the component
+         * @param <T> the value held by the component
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder
-         * @param <T> the value held by the component
          */
         @This
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
@@ -250,10 +253,10 @@ public interface CustomItemDefinition {
          *
          * @param component the type of the component - found in {@link ItemDataComponents}
          * @param builder the builder of the component
-         * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
-         * @return this builder
          * @param <T> the value held by the component
+         * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @see CustomItemDefinition.Builder#component(DataComponent, Object)
+         * @return this builder
          */
         @This
         default <T> Builder component(@NonNull DataComponent<T> component, @NonNull GenericBuilder<T> builder) {

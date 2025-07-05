@@ -23,12 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.exception;
+package org.geysermc.geyser.api.item.custom.v2;
+
+import java.io.Serial;
 
 /**
  * Thrown when there was an error registering the custom item definition. The exception message will have details as to what went wrong.
  */
 public class CustomItemDefinitionRegisterException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public CustomItemDefinitionRegisterException(String message) {
         super(message);

@@ -36,7 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
@@ -96,11 +96,11 @@ public class CustomItemRegistryPopulator {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
-            String error = validate(identifier, item, customItems, items);
-            if (error == null) {
+            try {
+                validate(identifier, item, customItems, items);
                 customItems.get(identifier).add(item);
-            } else {
-                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + error);
+            } catch (CustomItemDefinitionRegisterException exception) {
+                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + exception.getMessage());
             }
         });
 
@@ -108,11 +108,11 @@ public class CustomItemRegistryPopulator {
 
             @Override
             public void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
-                String error = validate(identifier, definition, customItems, items);
-                if (error == null) {
+                try {
+                    validate(identifier, definition, customItems, items);
                     customItems.get(identifier).add(definition);
-                } else {
-                    throw new CustomItemDefinitionRegisterException("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + error);
+                } catch (CustomItemDefinitionRegisterException registerException) {
+                    throw new CustomItemDefinitionRegisterException("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + registerException.getMessage());
                 }
             }
 
@@ -169,64 +169,57 @@ public class CustomItemRegistryPopulator {
         return new NonVanillaItemRegistration(javaItem, customMapping);
     }
 
-    /**
-     * @return null if there are no errors with the registration, and an error message if there are
-     */
-    private static String validate(Identifier vanillaIdentifier, CustomItemDefinition item, Multimap<Identifier, CustomItemDefinition> registered, Map<String, GeyserMappingItem> mappings) {
+    private static void validate(Identifier vanillaIdentifier, CustomItemDefinition item, Multimap<Identifier, CustomItemDefinition> registered,
+                                 Map<String, GeyserMappingItem> mappings) throws CustomItemDefinitionRegisterException {
         if (!mappings.containsKey(vanillaIdentifier.toString())) {
-            return "unknown Java item " + vanillaIdentifier;
+            throw new CustomItemDefinitionRegisterException("unknown Java item " + vanillaIdentifier);
         }
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.vanilla()) {
-            return "custom item bedrock identifier namespace can't be minecraft";
+            throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
         } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
-            return "custom item definition model can't equal vanilla item identifier without a predicate";
+            throw new CustomItemDefinitionRegisterException("custom item definition model can't equal vanilla item identifier without a predicate");
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
             if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
-                return "conflicts with another custom item definition with the same bedrock identifier";
+                throw new CustomItemDefinitionRegisterException("conflicts with another custom item definition with the same bedrock identifier");
             }
-            String error = checkPredicate(entry, vanillaIdentifier, item);
-            if (error != null) {
-                return "conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + error;
+            try {
+                checkPredicate(entry, vanillaIdentifier, item);
+            } catch (CustomItemDefinitionRegisterException exception) {
+                throw new CustomItemDefinitionRegisterException("conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + exception.getMessage());
             }
         }
-
-        return null;
     }
 
-    /**
-     * @return an error message if there was a conflict, or null otherwise
-     */
-    private static String checkPredicate(Map.Entry<Identifier, CustomItemDefinition> existing, Identifier vanillaIdentifier, CustomItemDefinition newItem) {
+    private static void checkPredicate(Map.Entry<Identifier, CustomItemDefinition> existing, Identifier vanillaIdentifier,
+                                       CustomItemDefinition newItem) throws CustomItemDefinitionRegisterException {
         // If the definitions are for different Java items or models then it doesn't matter
         if (!vanillaIdentifier.equals(existing.getKey()) || !newItem.model().equals(existing.getValue().model())) {
-            return null;
+            return;
         }
         // If they both don't have predicates they conflict
         if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
-            return "both entries don't have predicates, one must have a predicate";
+            throw new CustomItemDefinitionRegisterException("both entries don't have predicates, one must have a predicate");
         }
 
         // If their amount of predicates is equal, and the new definition contains all the existing predicates, then they also conflict
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
 
-            // This only works for common predicates that are backed using record classes in the API module!!
-            // Custom predicates defined by API users (not by JSON mappings, those only use common predicates) will not work with conflict detection here!
             for (MinecraftPredicate<?> predicate : existing.getValue().predicates()) {
+                // This .contains() only works for common predicates that are backed using record classes in the API module!! This is because those properly work with .equals()
+                // Custom predicates defined by API users (not by JSON mappings, those only use common predicates) will not work with conflict detection here!
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
                     break;
                 }
             }
             if (equal) {
-                return "both entries have the same predicates";
+                throw new CustomItemDefinitionRegisterException("both entries have the same predicates");
             }
         }
-
-        return null;
     }
 
     private static NbtMapBuilder createComponentNbt(Key itemIdentifier, CustomItemContext context) {

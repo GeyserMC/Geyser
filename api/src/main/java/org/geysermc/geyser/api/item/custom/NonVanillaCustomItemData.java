@@ -29,21 +29,8 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.util.CreativeCategory;
-import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
@@ -184,61 +171,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
-    }
-
-    @Override
-    default CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
-        throw new UnsupportedOperationException("Use toDefinition()");
-    }
-
-    default NonVanillaCustomItemDefinition.Builder toDefinition() {
-        NonVanillaCustomItemDefinition.Builder definition = NonVanillaCustomItemDefinition.builder(Identifier.of(identifier()), javaId())
-            .displayName(displayName())
-            .bedrockOptions(CustomItemBedrockOptions.builder()
-                .icon(icon())
-                .allowOffhand(allowOffhand())
-                .displayHandheld(displayHandheld())
-                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
-                .creativeGroup(creativeGroup())
-                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
-                .protectionValue(protectionValue())
-            )
-            .component(ItemDataComponents.MAX_STACK_SIZE, stackSize())
-            .component(ItemDataComponents.MAX_DAMAGE, maxDamage())
-            .component(GeyserDataComponent.ATTACK_DAMAGE, attackDamage())
-            .translationString(translationString());
-
-        if (isHat()) {
-            definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD).build());
-        } else if (armorType() != null) {
-            switch (armorType()) {
-                case "helmet" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD));
-                case "chestplate" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.CHEST));
-                case "leggings" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.LEGS));
-                case "boots" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.of(Equippable.EquipmentSlot.FEET));
-            }
-        }
-
-        if (isEdible()) {
-            definition.component(ItemDataComponents.CONSUMABLE, Consumable.builder().consumeSeconds(1.6F).animation(Consumable.Animation.EAT)); // Default values
-            if (canAlwaysEat()) {
-                definition.component(ItemDataComponents.FOOD, FoodProperties.builder().canAlwaysEat(true));
-            }
-        }
-
-        if (isChargeable() && toolType() != null) {
-            if (toolType().equals("bow")) {
-                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
-            } else {
-                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().ammunition(Identifier.of("arrow")));
-            }
-        }
-
-        if (block() != null) {
-            definition.component(GeyserDataComponent.BLOCK_PLACER, BlockPlacer.builder().block(Identifier.of(block())));
-        }
-
-        return definition;
     }
 
     interface Builder extends CustomItemData.Builder {

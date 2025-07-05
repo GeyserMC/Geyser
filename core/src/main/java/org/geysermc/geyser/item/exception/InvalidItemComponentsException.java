@@ -25,7 +25,12 @@
 
 package org.geysermc.geyser.item.exception;
 
+import java.io.Serial;
+
 public class InvalidItemComponentsException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public InvalidItemComponentsException(String message) {
         super(message);

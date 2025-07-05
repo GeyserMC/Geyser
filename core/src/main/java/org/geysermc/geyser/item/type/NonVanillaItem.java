@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -40,10 +41,12 @@ import java.util.List;
 public class NonVanillaItem extends Item {
     @Getter
     @Accessors(fluent = true)
+    @NonNull
     private final List<ResolvableComponent<?>> resolvableComponents;
+    @NonNull
     private final List<? extends DataComponentType<?>> resolvableComponentTypes;
 
-    public NonVanillaItem(String javaIdentifier, Builder builder, List<ResolvableComponent<?>> resolvableComponents) {
+    public NonVanillaItem(String javaIdentifier, Builder builder, @NonNull List<ResolvableComponent<?>> resolvableComponents) {
         super(javaIdentifier, builder);
         this.resolvableComponents = resolvableComponents;
         this.resolvableComponentTypes = resolvableComponents.stream()
@@ -55,8 +58,11 @@ public class NonVanillaItem extends Item {
     @UnmodifiableView
     @Override
     public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
-        if (componentCache == null || resolvableComponents.isEmpty()) {
+        if (resolvableComponents.isEmpty()) {
             return super.gatherComponents(componentCache, others);
+        } else if (componentCache == null) {
+            GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for non-vanilla item because componentCache is null");
+            return super.gatherComponents(null, others);
         }
         DataComponents resolvedAndOthers = componentCache.getResolvedComponents(this).clone();
         if (others != null) {
@@ -67,7 +73,11 @@ public class NonVanillaItem extends Item {
 
     @Override
     public <T> @Nullable T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
-        if (componentCache != null && resolvableComponentTypes.contains(type)) {
+        if (resolvableComponentTypes.contains(type)) {
+            if (componentCache == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for non-vanilla item because componentCache is null");
+                return super.getComponent(null, type);
+            }
             return componentCache.getResolvedComponents(this).get(type);
         }
         return super.getComponent(componentCache, type);

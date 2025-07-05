@@ -29,12 +29,14 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
-import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.GeyserCustomItemData;
+import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -44,8 +46,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCustomItemsEvent {
+    @Deprecated
     private final Multimap<String, CustomItemData> deprecatedCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
     private final Multimap<Identifier, CustomItemDefinition> customItems;
+    @Deprecated
     private final List<NonVanillaCustomItemData> deprecatedNonVanillaCustomItems = new ArrayList<>();
     private final Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems;
 
@@ -81,7 +85,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
         try {
             Identifier vanillaItemIdentifier = Identifier.of(identifier);
-            register(vanillaItemIdentifier, customItemData.toDefinition(vanillaItemIdentifier).build());
+            register(vanillaItemIdentifier, ((GeyserCustomItemData) customItemData).toDefinition(vanillaItemIdentifier).build());
             deprecatedCustomItems.put(identifier, customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {
@@ -90,9 +94,10 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     }
 
     @Override
+    @Deprecated
     public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
         try {
-            register(customItemData.toDefinition().build());
+            register(((GeyserNonVanillaCustomItemData) customItemData).toDefinition().build());
             deprecatedNonVanillaCustomItems.add(customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {

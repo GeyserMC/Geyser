@@ -27,7 +27,7 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
-import org.geysermc.geyser.api.exception.CustomItemDefinitionRegisterException;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -86,10 +86,10 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
      * based on NBT data. This method should not be used anymore, {@link CustomItemDefinition}s are preferred now and this method will convert {@link CustomItemData} to {@link CustomItemDefinition} internally.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      * @param identifier the base (java) item
      * @param customItemData the custom item data to register
      * @return if the item was registered
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      */
     @Deprecated
     boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
@@ -108,9 +108,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * Registers a custom item with no base item. This is used for mods.
      * This method should not be used anymore, {@link NonVanillaCustomItemDefinition}s are preferred now and this method will convert {@link NonVanillaCustomItemData} to {@link NonVanillaCustomItemDefinition} internally.
      *
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
      * @param customItemData the custom item data to register
      * @return if the item was registered
+     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
      */
     @Deprecated
     boolean register(@NonNull NonVanillaCustomItemData customItemData);
