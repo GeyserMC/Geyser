@@ -49,6 +49,8 @@ final class BedrockMovePlayer {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
+        // We need to save player interact rotation value, as this rotation is used for Touch device and indicate where the player is touching.
+        // This is needed so that we can interact with where player actually touch on the screen on Bedrock and not just from the center of the screen.
         entity.setBedrockInteractRotation(packet.getInteractRotation());
 
         // Ignore movement packets until Bedrock's position matches the teleported position
