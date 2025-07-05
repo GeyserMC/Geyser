@@ -43,7 +43,6 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -128,7 +127,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(jukeboxSong.description(), session.locale())));
+            textPacket.setParameters(Collections.singletonList(jukeboxSong.description()));
             session.sendUpstreamPacket(textPacket);
             return;
         }
