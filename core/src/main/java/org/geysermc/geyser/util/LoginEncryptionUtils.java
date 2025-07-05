@@ -71,14 +71,25 @@ public class LoginEncryptionUtils {
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
 
-            if (!result.signed() && !session.getGeyser().getConfig().isEnableProxyConnections()) {
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-                return;
-            }
+            // if (!result.signed() && !session.getGeyser().getConfig().isEnableProxyConnections()) {
+            //     session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+            //     return;
+            // }
 
             IdentityData extraData = result.identityClaims().extraData;
             // TODO!!! identity won't persist
-            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
+            // Provide fallback XUID when Xbox authentication is disabled
+            String xuid = extraData.xuid;
+            if (xuid == null || xuid.isEmpty()) {
+                // Generate a fallback XUID for offline mode using a small, safe number
+                // Use a simple hash of the username to ensure it fits within int range
+                String username = extraData.displayName;
+                int hash = username.hashCode();
+                // Ensure positive and within int range (max int is 2147483647)
+                // Use a smaller range to avoid any potential issues
+                xuid = String.valueOf(Math.abs(hash) % 10000000);
+            }
+            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid));
             if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
                 session.setCertChainData(certificateChainPayload.getChain());
             } else {

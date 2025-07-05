@@ -139,7 +139,13 @@ public class GeyserSessionAdapter extends SessionAdapter {
         if (uuid == null) {
             // Set what our UUID *probably* is going to be
             if (session.remoteServer().authType() == AuthType.FLOODGATE) {
-                uuid = new UUID(0, Long.parseLong(session.xuid()));
+                String xuid = session.xuid();
+                if (xuid == null || xuid.isEmpty()) {
+                    // Fallback for empty XUID in offline mode
+                    uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + session.getProtocol().getProfile().getName()).getBytes(StandardCharsets.UTF_8));
+                } else {
+                    uuid = new UUID(0, Long.parseLong(xuid));
+                }
             } else {
                 uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + session.getProtocol().getProfile().getName()).getBytes(StandardCharsets.UTF_8));
             }
