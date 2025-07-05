@@ -40,7 +40,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import java.util.List;
 
 /**
- * Defines an entirely custom item, introduced by mods and therefore not based on a vanilla item and its properties.
+ * Defines a custom item introduced by mods and therefore not based on a vanilla item and its properties.
  *
  * <p>A definition will be used when an item is received with the ID of the definition. Predicate matching, as is possible
  * right now with vanilla custom item definitions, is currently not implemented, so only one definition can be created for each

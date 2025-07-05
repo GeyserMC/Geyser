@@ -103,27 +103,27 @@ public interface CustomItemDefinition {
     /**
      * The predicates that have to match for this item definition to be used. These predicates can access properties similar to the Java item model predicates.
      *
-     * <p>When adding predicates, prevent chaining many predicates that use an OR expression - instead, set the {@link PredicateStrategy} of the definition to
+     * <p>When adding predicates, avoid chaining many predicates that use an OR expression - instead, set the {@link PredicateStrategy} of the definition to
      * {@link PredicateStrategy#OR}.</p>
      *
      * <p>It is recommended to use built-in predicates created from classes such as {@link org.geysermc.geyser.api.predicate.MatchPredicate}, {@link org.geysermc.geyser.api.predicate.item.ItemMatchPredicate},
      * {@link org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate}, and {@link org.geysermc.geyser.api.predicate.item.ItemConditionPredicate} when possible. These predicates
-     * work with conflict detection, value caching, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover, and makes Geyser a bit more performant.</p>
+     * have built in conflict detection, value caching, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover, and is generally more performant.</p>
      */
     @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
-     * The predicate strategy to be used. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
+     * The predicate strategy used when evaluating predicates. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
      */
     @NonNull PredicateStrategy predicateStrategy();
 
     /**
-     * The priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
+     * @return the priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
      */
     int priority();
 
     /**
-     * The item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
+     * @return the item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
      */
     @NonNull CustomItemBedrockOptions bedrockOptions();
 
@@ -236,7 +236,7 @@ public interface CustomItemDefinition {
          * <p>Added data components cannot be removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)},
          * and this method will throw when a component is added that was removed using the aforementioned method.</p>
          *
-         * @param component the type of the component - found in {@link ItemDataComponents}
+         * @param component the type of the component, found in {@link ItemDataComponents}
          * @param value the value of the component
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder

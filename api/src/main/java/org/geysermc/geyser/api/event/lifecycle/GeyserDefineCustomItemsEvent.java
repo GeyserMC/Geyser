@@ -50,7 +50,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * The map returned here will only contain items registered with the deprecated
      * {@link GeyserDefineCustomItemsEvent#register(String, CustomItemData)} method.
      *
-     * @deprecated replaced with {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
+     * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      */
     @Deprecated
     @NonNull
@@ -68,14 +68,14 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * The map returned here will only contain items registered with the deprecated
      * {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemData)} method.
      *
-     * @deprecated replaced with {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
+     * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
     @Deprecated
     @NonNull
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**
-     * A multimap of all the already registered non-vanilla custom items indexed by the item's extended java item's identifier.
+     * A multimap of all the already registered non-vanilla custom item definitions indexed by the non-vanilla Java item identifier these are mapped to.
      *
      * <p>This multimap will, at the moment, always have one entry per key.</p>
      */
@@ -95,7 +95,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
     boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
 
     /**
-     * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
+     * Registers a Bedrock custom item definition based on a Java item. This is used to register items with custom textures and properties
      * based on NBT data.
      *
      * @param identifier of the Java edition base item
@@ -116,9 +116,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
     boolean register(@NonNull NonVanillaCustomItemData customItemData);
 
     /**
-     * Registers a custom item with no base item. This is used for mods.
+     * Registers a custom item with no base Java edition item. This is used for non-vanilla items added by mods.
      *
-     * @param customItemDefinition  the custom item definition to register
+     * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      */
     void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
