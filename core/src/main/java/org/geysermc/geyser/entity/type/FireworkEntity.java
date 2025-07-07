@@ -69,7 +69,7 @@ public class FireworkEntity extends Entity {
     }
 
     public void setPlayerGliding(EntityMetadata<OptionalInt, ?> entityMetadata) {
-        session.getAttachedFireworkRockets().remove(this.getGeyserId());
+        session.getAttachedFireworkRockets().remove(this.geyserId);
 
         OptionalInt optional = entityMetadata.getValue();
         if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
@@ -94,7 +94,7 @@ public class FireworkEntity extends Entity {
 
     @Override
     public void despawnEntity() {
-        session.getAttachedFireworkRockets().remove(this.getGeyserId());
+        session.getAttachedFireworkRockets().remove(this.geyserId);
         // We have to ensure that these fireworks is attached to entity and this is the only one that is attached to the player.
         // Else player will stop boosting even if the fireworks is not attached to them or there is a fireworks that is boosting them
         // and not just this one.
