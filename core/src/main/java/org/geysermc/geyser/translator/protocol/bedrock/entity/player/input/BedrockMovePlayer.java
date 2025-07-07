@@ -108,6 +108,7 @@ final class BedrockMovePlayer {
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
