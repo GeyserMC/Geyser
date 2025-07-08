@@ -235,6 +235,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -593,6 +594,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private int lastAirHitTick;
+
+    /**
+     * Keep track of fireworks rockets that are attached to the player.
+     * Used to keep track of attached fireworks rocket and improve fireworks rocket boosting parity.
+     */
+    private final List<Long> attachedFireworkRockets = new CopyOnWriteArrayList<>();
 
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.

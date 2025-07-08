@@ -26,7 +26,9 @@
 package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.MovementEffectType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.MovementEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
@@ -40,6 +42,8 @@ import java.util.OptionalInt;
 import java.util.UUID;
 
 public class FireworkEntity extends Entity {
+
+    private boolean attachedToSession;
 
     public FireworkEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -65,27 +69,49 @@ public class FireworkEntity extends Entity {
     }
 
     public void setPlayerGliding(EntityMetadata<OptionalInt, ?> entityMetadata) {
+        session.getAttachedFireworkRockets().remove(this.geyserId);
+
         OptionalInt optional = entityMetadata.getValue();
-        // Checks if the firework has an entity ID (used when a player is gliding)
-        // and checks to make sure the player that is gliding is the one getting sent the packet
-        // or else every player near the gliding player will boost too.
         if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
-            // TODO Firework rocket boosting is client side. Sending this boost is no longer needed
-            // Good luck to whoever is going to try implementing cancelling firework rocket boosting :)
-//            PlayerEntity entity = session.getPlayerEntity();
-//            float yaw = entity.getYaw();
-//            float pitch = entity.getPitch();
-//            // Uses math from NukkitX
-//            entity.setMotion(Vector3f.from(
-//                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
-//                    -Math.sin(Math.toRadians(pitch)) * 2,
-//                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
-//            // Need to update the EntityMotionPacket or else the player won't boost
-//            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-//            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-//            entityMotionPacket.setMotion(entity.getMotion());
-//
-//            session.sendUpstreamPacket(entityMotionPacket);
+            // If we don't send this, the bedrock client will always stop boosting after 20 ticks
+            // However this is not the case for Java as the player will stop boosting after entity despawn.
+            // So we let player boost "infinitely" and then only stop them when the entity despawn.
+            // Also doing this allow player to boost simply by having a fireworks rocket attached to them
+            // and not necessary have to use a rocket (as some plugin do this to boost player)
+            sendElytraBoost(Integer.MAX_VALUE);
+            this.attachedToSession = true;
+
+            // We need to keep track of the fireworks rockets.
+            session.getAttachedFireworkRockets().add(this.getGeyserId());
+        } else {
+            // Also ensure player stop boosting in cases like metadata changes.
+            if (this.attachedToSession && session.getAttachedFireworkRockets().isEmpty()) {
+                sendElytraBoost(0);
+                this.attachedToSession = false;
+            }
         }
+    }
+
+    @Override
+    public void despawnEntity() {
+        session.getAttachedFireworkRockets().remove(this.geyserId);
+        // We have to ensure that these fireworks is attached to entity and this is the only one that is attached to the player.
+        // Else player will stop boosting even if the fireworks is not attached to them or there is a fireworks that is boosting them
+        // and not just this one.
+        if (this.attachedToSession && session.getAttachedFireworkRockets().isEmpty()) {
+            // Since we send an effect packet for player to boost "infinitely", we have to stop them when the entity despawn.
+            sendElytraBoost(0);
+            this.attachedToSession = false;
+        }
+
+        super.despawnEntity();
+    }
+
+    private void sendElytraBoost(int duration) {
+        MovementEffectPacket movementEffect = new MovementEffectPacket();
+        movementEffect.setDuration(duration);
+        movementEffect.setEffectType(MovementEffectType.GLIDE_BOOST);
+        movementEffect.setEntityRuntimeId(session.getPlayerEntity().getGeyserId());
+        session.sendUpstreamPacket(movementEffect);
     }
 }
