@@ -205,10 +205,6 @@ public class ItemFrameEntity extends HangingEntity {
             return;
         }
 
-        if (invisible) {
-            // Or else this breaks if there is already an item frame here (ex: we already send item frame update).
-            removeItemFrame();
-        }
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
@@ -216,17 +212,16 @@ public class ItemFrameEntity extends HangingEntity {
         updateBlockPacket.setDefinition(blockDefinition);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        if (!invisible) { // This is a hack, player won't be able to see the item frame without the NETWORK flags.
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        }
-
         if (invisible) {
+            removeItemFrame(); // Or else this breaks if there is already an item frame here (ex: we already send item frame update).
             // We have to send this a bit late... or else it won't work.
             session.scheduleInEventLoop(() -> {
                 session.sendUpstreamPacket(updateBlockPacket);
                 sendBlockEntityData();
             }, 50L, TimeUnit.MILLISECONDS);
         } else {
+            // This is a hack, player won't be able to see the item frame without the NETWORK flags, so only send it when the item frame is visible.
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);
             sendBlockEntityData();
         }
