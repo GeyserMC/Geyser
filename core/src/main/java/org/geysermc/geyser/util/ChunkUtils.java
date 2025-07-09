@@ -33,7 +33,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -46,7 +46,7 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.GeyserLocale;import java.util.Map;
 
 @UtilityClass
 public class ChunkUtils {
@@ -142,9 +142,11 @@ public class ChunkUtils {
      * Updates a block, but client-side only.
      */
     public static void updateBlockClientSide(GeyserSession session, BlockState blockState, Vector3i position) {
+        fixInvisibleItemFrame(session);
+
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
-        if (itemFrameEntity != null) {
+        if (itemFrameEntity != null && !itemFrameEntity.getFlag(EntityFlag.INVISIBLE)) {
             if (blockState.is(Blocks.AIR)) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(true);
                 // Still update the chunk cache with the new block if updateBlock is called
@@ -154,6 +156,15 @@ public class ChunkUtils {
         }
 
         blockState.block().updateBlock(session, blockState, position);
+    }
+
+    public static void fixInvisibleItemFrame(GeyserSession session) {
+        // To ensure that invisible item frame won't break when a block update....
+        for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
+            if (entry.getValue().getFlag(EntityFlag.INVISIBLE)) {
+                entry.getValue().updateBlock(true);
+            }
+        }
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {

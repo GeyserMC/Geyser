@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.ChunkUtils;import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
@@ -71,6 +71,9 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                     // What am I to expect - as of Bedrock 1.18
                     session.getFormCache().resendAllForms();
+
+                    // Workaround for invisible item frame won't work before player initialized.
+                    ChunkUtils.fixInvisibleItemFrame(session);
 
                     GeyserImpl.getInstance().eventBus().fire(new SessionJoinEvent(session));
                     session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);

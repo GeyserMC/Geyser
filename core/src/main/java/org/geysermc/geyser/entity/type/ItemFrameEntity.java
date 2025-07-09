@@ -31,6 +31,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
@@ -47,6 +48,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Item frames are an entity in Java but a block entity in Bedrock.
@@ -156,15 +158,7 @@ public class ItemFrameEntity extends HangingEntity {
 
     @Override
     public void despawnEntity() {
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.sendUpstreamPacket(updateBlockPacket);
-
+        removeItemFrame();
         session.getItemFrameCache().remove(bedrockPosition, this);
 
         valid = false;
@@ -193,17 +187,53 @@ public class ItemFrameEntity extends HangingEntity {
             // Don't send a block update packet - nothing changed
             return;
         }
+        boolean invisible = this.getFlag(EntityFlag.INVISIBLE);
+        if (!session.getUpstream().isInitialized() && invisible) { // This won't work well pre initialized.
+            return;
+        }
+
+        if (invisible) {
+            // Or else this breaks if there is already an item frame here (ex: we already send item frame update).
+            removeItemFrame();
+        }
+
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setDefinition(blockDefinition);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.sendUpstreamPacket(updateBlockPacket);
+        if (!invisible) { // This is a hack, player won't be able to see the item frame without the NETWORK flags.
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+        }
 
+        if (invisible) {
+            // We have to send this a bit late... or else it won't work.
+            session.scheduleInEventLoop(() -> {
+                session.sendUpstreamPacket(updateBlockPacket);
+                sendBlockEntityData();
+            }, 50L, TimeUnit.MILLISECONDS);
+        } else {
+            session.sendUpstreamPacket(updateBlockPacket);
+            sendBlockEntityData();
+        }
+
+        changed = false;
+    }
+
+    @Override
+    protected void setInvisible(boolean value) {
+        updateBlock(value != this.getFlag(EntityFlag.INVISIBLE));
+        super.setInvisible(value);
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        return InventoryUtils.isEmpty(heldItem) && session.getPlayerInventory().getItemInHand(hand).isEmpty() ? InteractionResult.PASS : InteractionResult.SUCCESS;
+    }
+
+    private void sendBlockEntityData() {
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(bedrockPosition);
+        blockEntityDataPacket.setBlockPosition(this.bedrockPosition);
         if (cachedTag != null) {
             blockEntityDataPacket.setData(cachedTag);
         } else {
@@ -211,13 +241,15 @@ public class ItemFrameEntity extends HangingEntity {
         }
 
         session.sendUpstreamPacket(blockEntityDataPacket);
-
-        changed = false;
     }
 
-    @Override
-    public InteractionResult interact(Hand hand) {
-        return InventoryUtils.isEmpty(heldItem) && session.getPlayerInventory().getItemInHand(hand).isEmpty() ? InteractionResult.PASS : InteractionResult.SUCCESS;
+    private void removeItemFrame() {
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(bedrockPosition);
+        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
+        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateBlockPacket);
     }
 
     private BlockDefinition buildBlockDefinition(Direction direction) {
