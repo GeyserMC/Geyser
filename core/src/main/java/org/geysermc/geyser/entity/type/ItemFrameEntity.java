@@ -80,6 +80,10 @@ public class ItemFrameEntity extends HangingEntity {
      * Determines if this entity needs to be updated on the client end.
      */
     private boolean changed = true;
+    /**
+     * Determines if we need to update the block or not.
+     */
+    private boolean definitionChanged = true;
 
     public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -107,6 +111,7 @@ public class ItemFrameEntity extends HangingEntity {
     public void setDirection(Direction direction) {
         blockDefinition = buildBlockDefinition(direction);
         changed = true;
+        definitionChanged = true;
     }
 
     public void setItemInFrame(EntityMetadata<ItemStack, ?> entityMetadata) {
@@ -187,6 +192,14 @@ public class ItemFrameEntity extends HangingEntity {
             // Don't send a block update packet - nothing changed
             return;
         }
+
+        // Don't bother sending a block update if the definition doesn't change.
+        if (!definitionChanged && !force) {
+            sendBlockEntityData();
+            return;
+        }
+        definitionChanged = false;
+
         boolean invisible = this.getFlag(EntityFlag.INVISIBLE);
         if (!session.getUpstream().isInitialized() && invisible) { // This won't work well pre initialized.
             return;
@@ -202,6 +215,7 @@ public class ItemFrameEntity extends HangingEntity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setDefinition(blockDefinition);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         if (!invisible) { // This is a hack, player won't be able to see the item frame without the NETWORK flags.
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         }
