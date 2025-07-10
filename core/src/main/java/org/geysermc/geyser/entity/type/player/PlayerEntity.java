@@ -435,12 +435,9 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
+                // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
+                updateRotation(this.yaw, 0, this.onGround);
             }
-        }
-
-        // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
-        if (getFlag(EntityFlag.CRAWLING)) {
-            updateRotation(this.yaw, 0, this.onGround);
         }
     }
 
