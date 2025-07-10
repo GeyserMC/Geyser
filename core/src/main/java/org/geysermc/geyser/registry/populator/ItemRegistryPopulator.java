@@ -618,7 +618,7 @@ public class ItemRegistryPopulator {
                             .bedrockDefinition(fireworkRocketDefinition)
                             .bedrockData(0)
                             .bedrockBlockDefinition(null)
-                            .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
+                            .customItemOptions(Collections.emptyList())
                             .build());
 
                     // We have to replace all the real firework rocket in the creative menu with our fake fireworks rocket.
