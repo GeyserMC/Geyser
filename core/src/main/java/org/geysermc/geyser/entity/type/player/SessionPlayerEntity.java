@@ -125,6 +125,14 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+
+        // This allows player to be slowly push towards the closet space when stuck inside block instead of instantly moved out.
+        setFlag(EntityFlag.PUSH_TOWARDS_CLOSEST_SPACE, true);
+    }
+
+    @Override
     protected void setClientSideSilent() {
         // Do nothing, since we want the session player to hear their own footstep sounds for example.
     }
