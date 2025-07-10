@@ -179,6 +179,8 @@ public class ItemRegistryPopulator {
             CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);
         }
 
+        ItemDefinition oldFireworkDefinition = null;
+
         // We can reduce some operations as Java information is the same across all palette versions
         boolean firstMappingsPass = true;
 
@@ -218,6 +220,10 @@ public class ItemRegistryPopulator {
                 ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), entry.isComponentBased(), components);
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
+
+                if (definition.getIdentifier().contains("firework_rocket")) {
+                    oldFireworkDefinition = definition;
+                }
             }
 
             Object2ObjectMap<String, BlockDefinition> bedrockBlockIdOverrides = new Object2ObjectOpenHashMap<>();
@@ -578,14 +584,14 @@ public class ItemRegistryPopulator {
             if (customItemsAllowed) {
                 // Add furnace minecart
                 int furnaceMinecartId = nextFreeBedrockId++;
-                ItemDefinition definition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, ItemVersion.DATA_DRIVEN, true, registerFurnaceMinecart(furnaceMinecartId));
-                definitions.put("geysermc:furnace_minecart", definition);
-                registry.put(definition.getRuntimeId(), definition);
+                ItemDefinition furnaceMinecartDefinition = new SimpleItemDefinition("geysermc:furnace_minecart", furnaceMinecartId, ItemVersion.DATA_DRIVEN, true, registerFurnaceMinecart(furnaceMinecartId));
+                definitions.put("geysermc:furnace_minecart", furnaceMinecartDefinition);
+                registry.put(furnaceMinecartDefinition.getRuntimeId(), furnaceMinecartDefinition);
 
                 mappings.set(Items.FURNACE_MINECART.javaId(), ItemMapping.builder()
                         .javaItem(Items.FURNACE_MINECART)
                         .bedrockIdentifier("geysermc:furnace_minecart")
-                        .bedrockDefinition(definition)
+                        .bedrockDefinition(furnaceMinecartDefinition)
                         .bedrockData(0)
                         .bedrockBlockDefinition(null)
                         .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
@@ -594,9 +600,43 @@ public class ItemRegistryPopulator {
                 creativeItems.add(new CreativeItemData(ItemData.builder()
                     .usingNetId(true)
                     .netId(creativeNetId.incrementAndGet())
-                    .definition(definition)
+                    .definition(furnaceMinecartDefinition)
                     .count(1)
                     .build(), creativeNetId.get(), 99)); // todo do not hardcode!
+
+                // Register a custom fireworks item to workaround client-sided boosting.
+                if (oldFireworkDefinition != null) {
+                    int fireworkRocketId = nextFreeBedrockId++;
+                    ItemDefinition fireworkRocketDefinition = new SimpleItemDefinition("geysermc:firework_rocket", fireworkRocketId, ItemVersion.DATA_DRIVEN, true, registerFireworkRocket(fireworkRocketId));
+                    // definitions.put("geysermc:firework_rocket", fireworkRocketDefinition);
+                    registry.put(fireworkRocketDefinition.getRuntimeId(), fireworkRocketDefinition);
+                    definitions.put(oldFireworkDefinition.getIdentifier(), fireworkRocketDefinition);
+
+                    mappings.set(Items.FIREWORK_ROCKET.javaId(), ItemMapping.builder()
+                            .javaItem(Items.FIREWORK_ROCKET)
+                            .bedrockIdentifier("geysermc:firework_rocket")
+                            .bedrockDefinition(fireworkRocketDefinition)
+                            .bedrockData(0)
+                            .bedrockBlockDefinition(null)
+                            .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
+                            .build());
+
+                    // We have to replace all the real firework rocket in the creative menu with our fake fireworks rocket.
+                    for (int i = 0; i < creativeItems.size(); i++) {
+                        CreativeItemData data = creativeItems.get(i);
+                        if (data.getItem().getDefinition().getRuntimeId() != oldFireworkDefinition.getRuntimeId()) {
+                            continue;
+                        }
+
+                        creativeItems.set(i, new CreativeItemData(ItemData.builder()
+                                .usingNetId(true)
+                                .netId(data.getItem().getNetId())
+                                .definition(fireworkRocketDefinition)
+                                .tag(data.getItem().getTag())
+                                .count(data.getItem().getCount())
+                                .build(), data.getNetId(), data.getGroupId()));
+                    }
+                }
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -686,6 +726,33 @@ public class ItemRegistryPopulator {
 
             firstMappingsPass = false;
         }
+    }
+
+    private static NbtMap registerFireworkRocket(int nextFreeBedrockId) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", "geysermc:firework_rocket").putInt("id", nextFreeBedrockId);
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+        NbtMap iconMap = NbtMap.builder()
+                .putCompound("textures", NbtMap.builder()
+                        .putString("default", "fireworks")
+                        .build())
+                .build();
+        itemProperties.putCompound("minecraft:icon", iconMap);
+        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.fireworks.name").build());
+
+        // We always want to allow offhand usage when we can - matches Java Edition
+        itemProperties.putBoolean("allow_off_hand", true);
+        itemProperties.putBoolean("hand_equipped", false);
+        itemProperties.putInt("max_stack_size", 64);
+        itemProperties.putString("creative_group", "itemGroup.name.firework");
+        itemProperties.putInt("creative_category", 4); // 4 - "Items"
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+        return builder.build();
     }
 
     private static NbtMap registerFurnaceMinecart(int nextFreeBedrockId) {
