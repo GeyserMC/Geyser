@@ -216,6 +216,15 @@ public class ItemRegistryPopulator {
                 }
 
                 ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), entry.isComponentBased(), components);
+
+                // Some item on Bedrock Edition have a different stack size, so we're changing that through the component.
+                if (definition.getIdentifier().equals("minecraft:cake")) {
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fixItemCountForCake(definition));
+                } else if (definition.getIdentifier().equals("minecraft:armor_stand")) {
+                    // You have to change the item version to data driven for armor stand else this won't work.
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fixItemCountForArmorStand(definition));
+                }
+
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
             }
@@ -720,6 +729,43 @@ public class ItemRegistryPopulator {
         itemProperties.putInt("max_stack_size", 1);
         itemProperties.putString("creative_group", "itemGroup.name.minecart");
         itemProperties.putInt("creative_category", 4); // 4 - "Items"
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+        return builder.build();
+    }
+
+    private static NbtMap fixItemCountForArmorStand(ItemDefinition definition) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+        itemProperties.putInt("max_stack_size", 16);
+
+        // Add back the icon and name since this is data driven.
+        NbtMap iconMap = NbtMap.builder()
+                .putCompound("textures", NbtMap.builder()
+                        .putString("default", "armor_stand")
+                        .build())
+                .build();
+        itemProperties.putCompound("minecraft:icon", iconMap);
+        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.armor_stand.name").build());
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+        return builder.build();
+    }
+
+    private static NbtMap fixItemCountForCake(ItemDefinition definition) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+        itemProperties.putInt("max_stack_size", 1);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
