@@ -121,6 +121,7 @@ import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -236,6 +237,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -1554,10 +1556,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull String clientConnectionAddress() {
-        if (clientData == null) {
-            return "";
-        }
-        return clientData.getServerAddress();
+        return Optional.ofNullable(clientData).orElseThrow().getServerAddress();
     }
 
     @Override
@@ -1566,7 +1565,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         Objects.requireNonNull(skinData, "skinData must not be null!");
 
         PlayerEntity entity = this.entityCache.getPlayerEntity(player);
-        Objects.requireNonNull(entity, "player not found!");
+        if (entity == null) {
+            return;
+        }
 
         SkinManager.sendSkinPacket(this, entity, skinData);
     }
