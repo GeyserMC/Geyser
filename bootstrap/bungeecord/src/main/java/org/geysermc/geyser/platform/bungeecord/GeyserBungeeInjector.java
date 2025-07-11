@@ -116,7 +116,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 listenerInfo.isPingPassthrough(),
                 listenerInfo.getQueryPort(),
                 listenerInfo.isQueryEnabled(),
-                bootstrap.config().java().useProxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
+                bootstrap.config().java().useHaproxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
         );
 
         // The field that stores all listeners in BungeeCord

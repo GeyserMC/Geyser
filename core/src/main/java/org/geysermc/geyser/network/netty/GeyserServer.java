@@ -129,7 +129,7 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", geyser.config().advanced().listenCount()) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
@@ -141,7 +141,7 @@ public final class GeyserServer {
             this.listenCount = 1;
         }
 
-        if (this.geyser.config().bedrock().enableProxyProtocol()) {
+        if (this.geyser.config().bedrock().useHaproxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
                     .expiration(30 + 1, TimeUnit.MINUTES)
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();
@@ -171,7 +171,7 @@ public final class GeyserServer {
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
         // Add proxy handler
-        boolean isProxyProtocol = this.geyser.config().bedrock().enableProxyProtocol();
+        boolean isProxyProtocol = this.geyser.config().bedrock().useHaproxyProtocol();
         if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
@@ -248,7 +248,7 @@ public final class GeyserServer {
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
         List<String> allowedProxyIPs = geyser.config().bedrock().proxyProtocolWhitelistedIps();
-        if (geyser.config().bedrock().enableProxyProtocol() && !allowedProxyIPs.isEmpty()) {
+        if (geyser.config().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
             for (CIDRMatcher matcher : getWhitelistedIPsMatchers()) {
                 if (matcher.matches(inetSocketAddress.getAddress())) {
@@ -265,7 +265,7 @@ public final class GeyserServer {
 
         String ip;
         if (geyser.config().logPlayerIpAddresses()) {
-            if (geyser.config().bedrock().enableProxyProtocol()) {
+            if (geyser.config().bedrock().useHaproxyProtocol()) {
                 ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
             } else {
                 ip = inetSocketAddress.toString();
@@ -294,7 +294,7 @@ public final class GeyserServer {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip;
             if (geyser.config().logPlayerIpAddresses()) {
-                if (geyser.config().bedrock().enableProxyProtocol()) {
+                if (geyser.config().bedrock().useHaproxyProtocol()) {
                     ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
                 } else {
                     ip = inetSocketAddress.toString();
