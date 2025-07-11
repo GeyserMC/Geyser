@@ -68,6 +68,7 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -80,6 +81,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -608,18 +611,19 @@ public class ItemRegistryPopulator {
                 if (oldFireworkDefinition != null) {
                     int fireworkRocketId = nextFreeBedrockId++;
                     ItemDefinition fireworkRocketDefinition = new SimpleItemDefinition("geysermc:firework_rocket", fireworkRocketId, ItemVersion.DATA_DRIVEN, true, registerFireworkRocket(fireworkRocketId));
-                    // definitions.put("geysermc:firework_rocket", fireworkRocketDefinition);
                     registry.put(fireworkRocketDefinition.getRuntimeId(), fireworkRocketDefinition);
                     definitions.put(oldFireworkDefinition.getIdentifier(), fireworkRocketDefinition);
 
-                    mappings.set(Items.FIREWORK_ROCKET.javaId(), ItemMapping.builder()
+                    ItemMapping mapping = ItemMapping.builder()
                             .javaItem(Items.FIREWORK_ROCKET)
                             .bedrockIdentifier("geysermc:firework_rocket")
                             .bedrockDefinition(fireworkRocketDefinition)
                             .bedrockData(0)
                             .bedrockBlockDefinition(null)
                             .customItemOptions(Collections.emptyList())
-                            .build());
+                            .build();
+
+                    mappings.set(Items.FIREWORK_ROCKET.javaId(), mapping);
 
                     // We have to replace all the real firework rocket in the creative menu with our fake fireworks rocket.
                     for (int i = 0; i < creativeItems.size(); i++) {
@@ -628,11 +632,22 @@ public class ItemRegistryPopulator {
                             continue;
                         }
 
+                        // Since the fireworks tag is now useless due to this is being a custom item, we have to translate it to lore ourselves.
+                        NbtMap tag = null;
+                        if (data.getItem().getTag() != null) {
+                            final DataComponents components = new DataComponents(new HashMap<>());
+                            Items.FIREWORK_ROCKET.translateNbtToJava(null, data.getItem().getTag(), components, mapping);
+                            final BedrockItemBuilder builder = new BedrockItemBuilder();
+                            Items.FIREWORK_ROCKET.translateComponentsToBedrock(null, components, TooltipOptions.ALL_SHOWN, builder);
+
+                            tag = builder.build();
+                        }
+
                         creativeItems.set(i, new CreativeItemData(ItemData.builder()
                                 .usingNetId(true)
                                 .netId(data.getItem().getNetId())
                                 .definition(fireworkRocketDefinition)
-                                .tag(data.getItem().getTag())
+                                .tag(tag)
                                 .count(data.getItem().getCount())
                                 .build(), data.getNetId(), data.getGroupId()));
                     }

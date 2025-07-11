@@ -25,11 +25,18 @@
 
 package org.geysermc.geyser.item.hashing.data;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 // Ordered and named by Java ID
+@RequiredArgsConstructor
+@Getter
 public enum FireworkExplosionShape {
-    SMALL_BALL,
-    LARGE_BALL,
-    STAR,
-    CREEPER,
-    BURST
+    SMALL_BALL("Small ball"),
+    LARGE_BALL("Large Ball"),
+    STAR("Star-shaped"),
+    CREEPER("Creeper-shaped"),
+    BURST("Burst");
+
+    private final String bedrockName;
 }
