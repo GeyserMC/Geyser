@@ -120,6 +120,7 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -174,11 +175,11 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
-import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
@@ -235,10 +236,10 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1037,7 +1038,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.cookies = loginEvent.cookies();
-        this.remoteServer = loginEvent.remoteServer();
+        // Don't allow changing the remote server when it's not up to us
+        // Just imagine the chaos of using an integrated world manager for an external server :)
+        this.remoteServer = this.geyser.platformType() == PlatformType.STANDALONE ? loginEvent.remoteServer() : remoteServer;
 
         // Start ticking
         tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
