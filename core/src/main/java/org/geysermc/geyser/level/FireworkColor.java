@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,38 +25,34 @@
 
 package org.geysermc.geyser.level;
 
-import lombok.Getter;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public enum FireworkColor {
-    BLACK(1973019, "Black"),
-    RED(11743532, "Red"),
-    GREEN(3887386, "Green"),
-    BROWN(5320730, "Brown"),
-    BLUE(2437522, "Blue"),
-    PURPLE(8073150, "Purple"),
-    CYAN(2651799, "Cyan"),
-    LIGHT_GRAY(11250603, "Silver"),
-    GRAY(4408131, "Gray"),
-    PINK(14188952, "Pink"),
-    LIME(4312372, "Lime"),
-    YELLOW(14602026, "Yellow"),
-    LIGHT_BLUE(6719955, "Light Blue"),
-    MAGENTA(12801229, "Magenta"),
-    ORANGE(15435844, "Orange"),
-    WHITE(15790320, "White");
+    BLACK(1973019),
+    RED(11743532),
+    GREEN(3887386),
+    BROWN(5320730),
+    BLUE(2437522),
+    PURPLE(8073150),
+    CYAN(2651799),
+    LIGHT_GRAY(11250603),
+    GRAY(4408131),
+    PINK(14188952),
+    LIME(4312372),
+    YELLOW(14602026),
+    LIGHT_BLUE(6719955),
+    MAGENTA(12801229),
+    ORANGE(15435844),
+    WHITE(15790320);
 
     private static final FireworkColor[] VALUES = values();
 
     private final TextColor color;
-    @Getter
-    private final String bedrockName;
 
-    FireworkColor(int rgbValue, String bedrockName) {
+    FireworkColor(int rgbValue) {
         this.color = TextColor.color(rgbValue);
-        this.bedrockName = bedrockName;
     }
 
     private static HSVLike toHSV(int rgbValue) {
