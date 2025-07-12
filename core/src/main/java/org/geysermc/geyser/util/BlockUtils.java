@@ -39,7 +39,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 public final class BlockUtils {
 
     /**
-     * Returns the total mining progress added by mining the block in a single tick
+     * Returns the total mining progress added (in %) by mining the block in a single tick
      * @return the mining progress added by this tick.
      */
     public static float getBlockMiningProgressPerTick(GeyserSession session, Block block, GeyserItemStack itemInHand) {
@@ -52,7 +52,11 @@ public final class BlockUtils {
         return getPlayerDestroySpeed(session, block, itemInHand) / destroySpeed / speedMultiplier;
     }
 
-    private static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
+    public static double getTotalTimeLeft(float ticks) {
+        return Math.ceil(1 / ticks);
+    }
+
+    public static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
         return !block.requiresCorrectToolForDrops() || isCorrectItemForDrops(session, block, stack);
     }
 
