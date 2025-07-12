@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import it.unimi.dsi.fastutil.Pair;
+import com.google.common.collect.SortedSetMultimap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -56,18 +57,21 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -80,15 +84,21 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -167,13 +177,10 @@ public class ItemRegistryPopulator {
             throw new AssertionError("Unable to load Bedrock item components", e);
         }
 
-        boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
+        boolean customItemsAllowed = bootstrap.getGeyserConfig().isAddNonBedrockItems();
 
-        // List values here is important compared to HashSet - we need to preserve the order of what's given to us
-        // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
-        // of the list first, then ascends.
-        Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
-        List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
+        Multimap<Identifier, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
+        Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
 
         if (customItemsAllowed) {
             CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);
@@ -277,7 +284,7 @@ public class ItemRegistryPopulator {
             javaOnlyItems.addAll(palette.javaOnlyItems().keySet());
 
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
-            Set<String> registeredItemNames = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
+            Set<Identifier> registeredCustomItems = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(entry.getKey());
@@ -488,47 +495,50 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
-                Collection<CustomItemData> customItemsToLoad = customItems.get(javaItem.javaIdentifier());
+                SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
+                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(Identifier.of(javaItem.javaIdentifier()));
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
-                    customItemOptions = new ObjectArrayList<>(customItemsToLoad.size());
+                    customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
 
-                    for (CustomItemData customItem : customItemsToLoad) {
+                    for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : Constants.GEYSER_CUSTOM_NAMESPACE + ":" + customItem.name();
-                        if (!registeredItemNames.add(customItemName)) {
+                        Identifier customItemIdentifier = customItem.bedrockIdentifier(); // TODO don't forget to check if this works for non vanilla too, it probably does
+                        if (!registeredCustomItems.add(customItemIdentifier)) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
+                                GeyserImpl.getInstance().getLogger().error("Custom item '" + customItemIdentifier + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
 
-                        GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                                customItemName, javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion
-                        );
+                        try {
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion);
 
-                        if (customItem.creativeCategory().isPresent()) {
-                            CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
+                            if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
+                                CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())
                                     .blockDefinition(null)
                                     .count(1)
-                                    .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
-                            creativeItems.add(creativeItemData);
+                                    .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
+                                creativeItems.add(creativeItemData);
+                            }
+
+                            // ComponentItemData - used to register some custom properties
+                            customItemDefinitions.put(MinecraftKey.identifierToKey(customItem.model()), customMapping);
+                            registry.put(customMapping.integerId(), customMapping.itemDefinition());
+
+                            customIdMappings.put(customMapping.integerId(), customItemIdentifier.toString());
+                        } catch (InvalidItemComponentsException exception) {
+                            if (firstMappingsPass) {
+                                GeyserImpl.getInstance().getLogger().error("Not registering custom item (bedrock identifier=" + customItem.bedrockIdentifier() + ")!", exception);
+                            }
                         }
-                        customItemOptions.add(Pair.of(customItem.customItemOptions(), customMapping.itemDefinition()));
-                        registry.put(customMapping.integerId(), customMapping.itemDefinition());
-
-                        customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
-
-                    // Important for later to find the best match and accurately replicate Java behavior
-                    Collections.reverse(customItemOptions);
                 } else {
-                    customItemOptions = Collections.emptyList();
+                    customItemDefinitions = null;
                 }
-                mappingBuilder.customItemOptions(customItemOptions);
+                mappingBuilder.customItemDefinitions(customItemDefinitions);
 
                 ItemMapping mapping = mappingBuilder.build();
 
@@ -555,7 +565,7 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lightBlock)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemOptions(Collections.emptyList())
+                    .customItemDefinitions(null)
                     .build();
                 lightBlocks.put(lightBlock.getRuntimeId(), lightBlockEntry);
             }
@@ -572,7 +582,7 @@ public class ItemRegistryPopulator {
                     .bedrockDefinition(lodestoneCompass)
                     .bedrockData(0)
                     .bedrockBlockDefinition(null)
-                    .customItemOptions(Collections.emptyList())
+                    .customItemDefinitions(null)
                     .build();
 
             if (customItemsAllowed) {
@@ -588,7 +598,7 @@ public class ItemRegistryPopulator {
                         .bedrockDefinition(definition)
                         .bedrockData(0)
                         .bedrockBlockDefinition(null)
-                        .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
+                        .customItemDefinitions(null) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(new CreativeItemData(ItemData.builder()
@@ -600,34 +610,41 @@ public class ItemRegistryPopulator {
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
-                for (NonVanillaCustomItemData customItem : nonVanillaCustomItems) {
+                for (NonVanillaCustomItemDefinition customItem : nonVanillaCustomItems.values()) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
                         if (firstMappingsPass) {
-                            GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping...");
+                            // TODO saying again so i don't forget
+                            // TODO and again...
+                            // TODO eclipse fix this.
+                            GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping..."); // TODO validate this in API event and throw
                         }
                         continue;
                     }
 
                     int customItemId = nextFreeBedrockId++;
-                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                    try {
+                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
-                    ItemMapping mapping = registration.mapping();
-                    Item javaItem = registration.javaItem();
-                    while (javaItem.javaId() >= mappings.size()) {
-                        // Fill with empty to get to the correct size
-                        mappings.add(ItemMapping.AIR);
-                    }
-                    mappings.set(javaItem.javaId(), mapping);
-                    registry.put(customItemId, mapping.getBedrockDefinition());
+                        ItemMapping mapping = registration.mapping();
+                        Item javaItem = registration.javaItem();
+                        while (javaItem.javaId() >= mappings.size()) {
+                            // Fill with empty to get to the correct size
+                            mappings.add(ItemMapping.AIR);
+                        }
+                        mappings.set(javaItem.javaId(), mapping);
+                        registry.put(customItemId, mapping.getBedrockDefinition());
 
-                    if (customItem.creativeCategory().isPresent()) {
-                        CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
-                            .definition(registration.mapping().getBedrockDefinition())
-                            .netId(creativeNetId.incrementAndGet())
-                            .count(1)
-                            .build(), creativeNetId.get(), customItem.creativeCategory().getAsInt());
+                        if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
+                            CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
+                                .definition(registration.mapping().getBedrockDefinition())
+                                .netId(creativeNetId.incrementAndGet())
+                                .count(1)
+                                .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
 
-                        creativeItems.add(creativeItemData);
+                            creativeItems.add(creativeItemData);
+                        }
+                    } catch (InvalidItemComponentsException exception) {
+                        GeyserImpl.getInstance().getLogger().error("Not registering non-vanilla custom item (identifier=" + customItem.identifier() + ")!", exception);
                     }
                 }
             }
@@ -724,5 +741,123 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         return builder.build();
+    }
+
+    /**
+     * Compares custom item definitions based on their predicates:
+     *
+     * <ol>
+     *     <li>First by checking their priority values, higher priority values going first.</li>
+     *     <li>Then by checking if they both have a similar range dispatch predicate, the one with the highest threshold going first.</li>
+     *     <li>Lastly by the amount of predicates, from most to least.</li>
+     * </ol>
+     *
+     * <p>If two definitions are the same, 0 is returned. If the model of two definitions differs, they are compared using their bedrock identifier, since
+     * predicates won't matter there. If two definitions have the same model, same priority, same amount of predicates and no range dispatch preference, they are compared
+     * using their bedrock identifier.</p>
+     *
+     * <p>As such, it is important that bedrock identifiers are always unique when using this comparator. This comparator can regard 2 definitions as equal if their
+     * bedrock identifier is equal.</p>
+     *
+     * <p>Please note! The range dispatch predicate sorting only works when two definitions both only have one range dispatch predicate, both of which have the same properties
+     * (property, index, normalised, negated). If there's a more complicated setup with e.g. multiple range dispatch predicates, priority values should be used to ensure
+     * proper sorting.</p>
+     */
+    private static class CustomItemDefinitionComparator implements Comparator<GeyserCustomMappingData> {
+
+        @Override
+        public int compare(GeyserCustomMappingData firstData, GeyserCustomMappingData secondData) {
+            // Important to remember when reading through this code: returning a positive number means the second definition will be checked before the first.
+            // Returning a negative number means the first definition will be checked before the second.
+            // Returning zero means the definitions are equal.
+
+            CustomItemDefinition first = firstData.definition();
+            CustomItemDefinition second = secondData.definition();
+            if (first.equals(second)) {
+                // If equal, return 0
+                return 0;
+            } else if (!first.model().equals(second.model())) {
+                // If models differ, compare by bedrock identifier, which should always be unique
+                return first.bedrockIdentifier().toString().compareTo(second.bedrockIdentifier().toString());
+            }
+
+            if (first.priority() != second.priority()) {
+                // If priority differs, prefer the higher priority value
+                return second.priority() - first.priority();
+            }
+
+            if (first.predicates().isEmpty() ^ second.predicates().isEmpty()) {
+                // If one has no predicates, and the other has at least one, there's no need to check for range dispatch predicates.
+                // Prefer the one with the most amount of predicates
+                return second.predicates().size() - first.predicates().size();
+            }
+
+            // Loop through the predicates of the first definition and look for a range dispatch predicate
+            for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
+                RangeDispatchPredicate rangeDispatch = RangeDispatchPredicate.fromPredicate(predicate);
+                if (rangeDispatch != null) {
+                    // Look for a similar predicate in the other definition's predicates
+                    Optional<RangeDispatchPredicate> other = second.predicates().stream()
+                        .map(RangeDispatchPredicate::fromPredicate)
+                        .filter(otherPredicate -> otherPredicate != null
+                            && otherPredicate.property == rangeDispatch.property
+                            && otherPredicate.index == rangeDispatch.index
+                            && otherPredicate.normalised == rangeDispatch.normalised
+                            && otherPredicate.negated == rangeDispatch.negated)
+                        .findFirst();
+
+                    if (other.isPresent()) {
+                        // If a similar predicate was found, check if they're negated
+                        // If they are, prefer the one with the lowest threshold
+                        // If they aren't, prefer the one with the highest threshold
+                        return (int) (rangeDispatch.negated ? rangeDispatch.threshold - other.get().threshold : other.get().threshold - rangeDispatch.threshold);
+                    }
+                }
+            }
+
+            if (first.predicates().size() == second.predicates().size()) {
+                // If there's no preferred range predicate order and they both have the same amount of predicates, compare by bedrock identifier
+                return first.bedrockIdentifier().toString().compareTo(second.bedrockIdentifier().toString());
+            }
+
+            // Prefer the one with the most amount of predicates
+            return second.predicates().size() - first.predicates().size();
+        }
+    }
+
+    private record RangeDispatchPredicate(int property, double threshold, int index, boolean normalised, boolean negated) {
+
+        private static RangeDispatchPredicate fromPredicate(MinecraftPredicate<? super ItemPredicateContext> predicate) {
+            // Yep, we're using reflection here. I'm not a fan of it either.
+            // Here's the problem: predicates can be dynamically defined by extensions, but we still want a way of somewhat sorting range dispatch predicates
+            // and checking for predicate conflicts. So, there are a number of internal, package-private classes in the API module for commonly used predicates,
+            // which are also all the predicates used by JSON-mappings.
+            // These package-private predicate implementations are records, meaning they work with .equals checks and thus with conflict detection.
+            //
+            // However, to sort range dispatch predicates here, we need to access their components, such as their property, threshold, etc.
+            // We can't do that, since the classes are package-private in the API. So, we have to use reflection.
+            // If you have any better idea as to how to create a class that can be accessed by the API and by the core module, but not by extensions, do suggest it!
+            if (!predicate.getClass().getName().equals("org.geysermc.geyser.api.predicate.item.RangeDispatchPredicate")) {
+                return null;
+            }
+
+            RecordComponent[] components = predicate.getClass().getRecordComponents();
+            try {
+                int property = ((Enum<?>) tryGetComponent(components[0], predicate)).ordinal();
+                double threshold = (double) tryGetComponent(components[1], predicate);
+                int index = (int) tryGetComponent(components[2], predicate);
+                boolean normalised = (boolean) tryGetComponent(components[3], predicate);
+                boolean negated = (boolean) tryGetComponent(components[4], predicate);
+                return new RangeDispatchPredicate(property, threshold, index, normalised, negated);
+            } catch (InvocationTargetException | IllegalAccessException exception) {
+                throw new RuntimeException("Failed to execute reflection hacks to get range dispatch predicate properties!", exception);
+            }
+        }
+
+        private static Object tryGetComponent(RecordComponent component, Object record) throws InvocationTargetException, IllegalAccessException {
+            Method getter = component.getAccessor();
+            getter.trySetAccessible();
+            return getter.invoke(record);
+        }
     }
 }
