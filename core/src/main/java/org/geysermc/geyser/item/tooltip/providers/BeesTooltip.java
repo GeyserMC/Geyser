@@ -23,15 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tooltip;
+package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BeehiveOccupant;
 
+import java.util.List;
 import java.util.function.Consumer;
 
-@FunctionalInterface
-public interface ComponentTooltipProvider<T> {
+public class BeesTooltip implements ComponentTooltipProvider<List<BeehiveOccupant>> {
+    private static final Component MAX_BEES = Component.text(3);
 
-    void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull T component);
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BeehiveOccupant> component) {
+        adder.accept(Component.translatable("container.beehive.bees", Component.text(component.size()), MAX_BEES).color(NamedTextColor.GRAY));
+    }
 }

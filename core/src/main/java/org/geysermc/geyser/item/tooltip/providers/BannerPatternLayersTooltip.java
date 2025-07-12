@@ -26,9 +26,13 @@
 package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 
 import java.util.List;
@@ -40,6 +44,11 @@ public class BannerPatternLayersTooltip implements ComponentTooltipProvider<List
     public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BannerPatternLayer> component) {
         for (int i = 0; i < Math.min(6, component.size()); i++) {
             BannerPatternLayer layer = component.get(i);
+            BannerPattern pattern = JavaRegistries.BANNER_PATTERN.value(context.session(), layer.getPattern());
+            DyeColor color = DyeColor.getById(layer.getColorId());
+            if (pattern != null && color != null) {
+                adder.accept(Component.translatable(pattern.translationKey() + "." + color.getJavaIdentifier()).color(NamedTextColor.GRAY));
+            }
         }
     }
 }

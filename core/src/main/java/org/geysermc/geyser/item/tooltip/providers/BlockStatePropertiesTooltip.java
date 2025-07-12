@@ -23,15 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tooltip;
+package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 
 import java.util.function.Consumer;
 
-@FunctionalInterface
-public interface ComponentTooltipProvider<T> {
+public class BlockStatePropertiesTooltip implements ComponentTooltipProvider<BlockStateProperties> {
+    private static final Component MAX_HONEY_LEVEL = Component.text(5);
 
-    void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull T component);
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull BlockStateProperties component) {
+        String honeyLevel = component.getProperties().get("honey_level");
+        if (honeyLevel != null) {
+            try {
+                int level = Integer.parseInt(honeyLevel);
+                adder.accept(Component.translatable("container.beehive.honey", Component.text(level), MAX_HONEY_LEVEL).color(NamedTextColor.GRAY));
+            } catch (NumberFormatException ignored) {}
+        }
+    }
 }

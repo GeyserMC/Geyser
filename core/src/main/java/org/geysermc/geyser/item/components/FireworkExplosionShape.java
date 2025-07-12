@@ -23,7 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.hashing.data;
+package org.geysermc.geyser.item.components;
+
+import net.kyori.adventure.text.Component;
+
+import java.util.Locale;
 
 // Ordered and named by Java ID
 public enum FireworkExplosionShape {
@@ -31,5 +35,9 @@ public enum FireworkExplosionShape {
     LARGE_BALL,
     STAR,
     CREEPER,
-    BURST
+    BURST;
+
+    public Component displayName() {
+        return Component.translatable("item.minecraft.firework_star.shape." + name().toLowerCase(Locale.ROOT));
+    }
 }

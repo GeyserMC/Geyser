@@ -103,7 +103,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
 
         int i = 0;
         for (int color : oldColors) {
-            colors[i++] = FireworkColor.fromJavaRGB(color);
+            colors[i++] = FireworkColor.bedrockIdFromJavaRGB(color);
         }
 
         newExplosionData.putByteArray("FireworkColor", colors);
@@ -113,7 +113,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
 
         i = 0;
         for (int color : oldColors) {
-            colors[i++] = FireworkColor.fromJavaRGB(color);
+            colors[i++] = FireworkColor.bedrockIdFromJavaRGB(color);
         }
 
         newExplosionData.putByteArray("FireworkFade", colors);

@@ -56,7 +56,7 @@ public class TooltipProviders {
     }
 
     static {
-
+        // TODO charged projectiles (requires recursive)
     }
 
     @Nullable

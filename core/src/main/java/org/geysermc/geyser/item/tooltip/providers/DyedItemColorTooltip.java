@@ -23,15 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tooltip;
+package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
-@FunctionalInterface
-public interface ComponentTooltipProvider<T> {
+public class DyedItemColorTooltip implements ComponentTooltipProvider<Integer> {
 
-    void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull T component);
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull Integer component) {
+        if (context.advanced()) {
+            adder.accept(Component.translatable("item.color", Component.text(String.format(Locale.ROOT, "#%06X", component)).color(NamedTextColor.GRAY)));
+        } else {
+            adder.accept(Component.translatable("item.dyed").style(style -> style.color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC)));
+        }
+    }
 }
