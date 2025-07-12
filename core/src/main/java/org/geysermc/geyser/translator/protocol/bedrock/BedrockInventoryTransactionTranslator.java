@@ -633,67 +633,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             }
         }
 
-        Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
-        lookAt(session, target);
-
         session.useItem(Hand.MAIN_HAND);
         return true;
-    }
-
-    /**
-     * Determine the rotation necessary to activate this transaction.
-     * <p>
-     * The position between the intended click position and the player can be determined with two triangles.
-     * First, we compute the difference of the X and Z coordinates:
-     * <p>
-     * Player position (0, 0)
-     * |
-     * |
-     * |
-     * |_____________ Intended target (-3, 2)
-     * <p>
-     * We then use the Pythagorean Theorem to find the direct line (hypotenuse) on the XZ plane. Finding the angle of the
-     * triangle from there, closest to the player, gives us our yaw rotation value
-     * Then doing the same using the new XZ distance and Y difference, we can find the direct line of sight from the
-     * player to the intended target, and the pitch rotation value. We can then send the necessary packets to update
-     * the player's rotation.
-     *
-     * @param session the Geyser Session
-     * @param target the position to look at
-     */
-    private void lookAt(GeyserSession session, Vector3f target) {
-        // Use the bounding box's position since we need the player's position seen by the Java server
-        Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-        float xDiff = (float) (target.getX() - playerPosition.getX());
-        float yDiff = (float) (target.getY() - (playerPosition.getY() + session.getEyeHeight()));
-        float zDiff = (float) (target.getZ() - playerPosition.getZ());
-
-        // First triangle on the XZ plane
-        float yaw = (float) -Math.toDegrees(Math.atan2(xDiff, zDiff));
-        // Second triangle on the Y axis using the hypotenuse of the first triangle as a side
-        double xzHypot = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
-        float pitch = (float) -Math.toDegrees(Math.atan2(yDiff, xzHypot));
-
-        SessionPlayerEntity entity = session.getPlayerEntity();
-        ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), session.getInputCache().lastHorizontalCollision(),
-            playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
-        // This matches Java edition behavior
-        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), session.getInputCache().lastHorizontalCollision(),
-            playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
-        session.sendDownstreamGamePacket(movementPacket);
-
-        if (session.getLookBackScheduledFuture() != null) {
-            session.getLookBackScheduledFuture().cancel(false);
-        }
-        if (Math.abs(entity.getYaw() - yaw) > 1f || Math.abs(entity.getPitch() - pitch) > 1f) {
-            session.setLookBackScheduledFuture(session.scheduleInEventLoop(() -> {
-                Vector3d newPlayerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-                if (!newPlayerPosition.equals(playerPosition) || entity.getYaw() != returnPacket.getYaw() || entity.getPitch() != returnPacket.getPitch()) {
-                    // The player moved/rotated so there is no need to change their rotation back
-                    return;
-                }
-                session.sendDownstreamGamePacket(returnPacket);
-            }, 150, TimeUnit.MILLISECONDS));
-        }
     }
 }

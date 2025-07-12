@@ -110,6 +110,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     private Vector3f lastTickEndVelocity = Vector3f.ZERO;
 
     /**
+     * The client claimed interact rotation, intended for touch (pocket) user.
+     */
+    @Getter @Setter
+    private Vector2f bedrockInteractRotation = Vector2f.ZERO;
+
+    /**
      * Determines if our position is currently out-of-sync with the Java server
      * due to our workaround for the void floor
      * <p>
