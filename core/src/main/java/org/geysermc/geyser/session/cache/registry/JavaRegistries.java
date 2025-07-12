@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnim
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.BedrockBannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
@@ -100,29 +101,33 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant");
 
-    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup) {
-        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registryLookup);
+    private static <T, MCPL> JavaRegistryKey<T, MCPL> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup, JavaRegistryKey.HolderMapper<MCPL, T> mapper) {
+        JavaRegistryKey<T, MCPL> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registryLookup, mapper);
         VALUES.add(registry);
         return registry;
     }
 
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
+    private static <T> JavaRegistryKey<T, ?> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
                                                           RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
         return createHardcoded(key, registry.get(), networkSerializer, objectIdentifierMapper, identifierObjectMapper);
     }
 
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
+    private static <T> JavaRegistryKey<T, ?> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
                                                           RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
-        return create(key, new HardcodedLookup<>(registry, networkSerializer, objectIdentifierMapper, identifierObjectMapper));
+        return create(key, new HardcodedLookup<>(registry, networkSerializer, objectIdentifierMapper, identifierObjectMapper), null);
     }
 
-    private static <T> JavaRegistryKey<T> create(String key) {
-        return create(key, new RegistryCacheLookup<>());
+    private static <T, MCPL> JavaRegistryKey<T, MCPL> create(String key, JavaRegistryKey.HolderMapper<MCPL, T> mapper) {
+        return create(key, new RegistryCacheLookup<>(), mapper);
+    }
+
+    private static <T> JavaRegistryKey<T, ?> create(String key) {
+        return create(key, null);
     }
 
     @Nullable
-    public static JavaRegistryKey<?> fromKey(Key registryKey) {
-        for (JavaRegistryKey<?> registry : VALUES) {
+    public static JavaRegistryKey<?, ?> fromKey(Key registryKey) {
+        for (JavaRegistryKey<?, ?> registry : VALUES) {
             if (registry.registryKey().equals(registryKey)) {
                 return registry;
             }

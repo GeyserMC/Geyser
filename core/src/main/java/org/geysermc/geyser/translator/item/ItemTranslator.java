@@ -208,7 +208,7 @@ public final class ItemTranslator {
         }
 
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {
+        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
             // only add if attribute modifiers do not indicate to hide them
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }

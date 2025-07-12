@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.Optional;
 
@@ -43,9 +44,11 @@ import java.util.Optional;
  *
  * @param registryKey the registry key, as it appears on Java.
  * @param lookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
+ * @param holderMapper a function that maps the MCPL counterpart of an object in this registry to its Geyser counterpart. Can be null.
  * @param <T> the object type this registry holds.
+ * @param <MCPL> the MCPL counterpart of the type this registry holds. Can be {@code ?} when {@code holderMapper} is null.
  */
-public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
+public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup, @Nullable HolderMapper<MCPL, T> holderMapper) {
 
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
@@ -89,6 +92,15 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
         return entry(session, key).map(RegistryEntryData::data).orElse(null);
     }
 
+    public @Nullable T value(GeyserSession session, Holder<MCPL> holder) {
+        if (holder.isId()) {
+            return value(session, holder.id());
+        } else if (holderMapper == null) {
+            throw new IllegalArgumentException("Tried to map a custom MCPL holder for a registry that does not have a holder mapper (" + this + ")");
+        }
+        return holderMapper.map(holder.custom());
+    }
+
     private Optional<RegistryEntryData<T>> entry(GeyserSession session, T object) {
         return lookup.entry(session, this, object);
     }
@@ -111,6 +123,12 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
         Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, Key key);
 
         Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, T object);
+    }
+
+    @FunctionalInterface
+    public interface HolderMapper<MCPL, T> {
+
+        T map(MCPL mcpl);
     }
 
     @Override

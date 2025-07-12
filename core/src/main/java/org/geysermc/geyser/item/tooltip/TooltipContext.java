@@ -23,34 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.inventory.item;
+package org.geysermc.geyser.item.tooltip;
 
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 
-public record BannerPattern(BedrockBannerPattern bedrockPattern, String translationKey) {
-
-    public static BannerPattern read(RegistryEntryContext context) {
-        String translationKey = context.data().getString("translation_key");
-        // getByJavaIdentifier defaults to BASE
-        return new BannerPattern(BedrockBannerPattern.getByJavaIdentifier(context.id()), translationKey);
-    }
-
-    public static BannerPattern fromBedrockPattern(GeyserSession session, BedrockBannerPattern bedrockPattern) {
-        if (bedrockPattern == null) {
-            return null;
-        }
-
-        for (BannerPattern javaPattern : session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).values()) {
-            if (javaPattern.bedrockPattern == bedrockPattern) {
-                return javaPattern;
-            }
-        }
-        return null;
-    }
-
-    public static int findNetworkId(GeyserSession session, BedrockBannerPattern bedrockPattern) {
-        return JavaRegistries.BANNER_PATTERN.networkId(session, fromBedrockPattern(session, bedrockPattern));
-    }
+public record TooltipContext(GeyserSession session, boolean advanced, boolean creative) {
 }

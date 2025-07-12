@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnim
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.BedrockBannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.enchantment.Enchantment;
@@ -81,7 +82,7 @@ public final class RegistryCache {
         register(JavaRegistries.DIMENSION_TYPE, JavaDimension::read);
         register(JavaRegistries.BIOME, BiomeTranslator::loadServerBiome);
         register(JavaRegistries.ENCHANTMENT, Enchantment::read);
-        register(JavaRegistries.BANNER_PATTERN, context -> BannerPattern.getByJavaIdentifier(context.id()));
+        register(JavaRegistries.BANNER_PATTERN, BannerPattern::read);
         register(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
         register(JavaRegistries.JUKEBOX_SONG, JukeboxSong::read);
         register(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));

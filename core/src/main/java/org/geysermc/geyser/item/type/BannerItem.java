@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.BedrockBannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
@@ -61,19 +62,19 @@ public class BannerItem extends BlockItem {
      * ominous banners that we set instead. This variable is used to detect Java ominous banner patterns, and apply
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
-    private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
+    private static final List<Pair<BedrockBannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
 
     static {
         // Construct what an ominous banner is supposed to look like
         OMINOUS_BANNER_PATTERN = List.of(
-                Pair.of(BannerPattern.RHOMBUS, DyeColor.CYAN),
-                Pair.of(BannerPattern.STRIPE_BOTTOM, DyeColor.LIGHT_GRAY),
-                Pair.of(BannerPattern.STRIPE_CENTER, DyeColor.GRAY),
-                Pair.of(BannerPattern.BORDER, DyeColor.LIGHT_GRAY),
-                Pair.of(BannerPattern.STRIPE_MIDDLE, DyeColor.BLACK),
-                Pair.of(BannerPattern.HALF_HORIZONTAL, DyeColor.LIGHT_GRAY),
-                Pair.of(BannerPattern.CIRCLE, DyeColor.LIGHT_GRAY),
-                Pair.of(BannerPattern.BORDER, DyeColor.BLACK)
+                Pair.of(BedrockBannerPattern.RHOMBUS, DyeColor.CYAN),
+                Pair.of(BedrockBannerPattern.STRIPE_BOTTOM, DyeColor.LIGHT_GRAY),
+                Pair.of(BedrockBannerPattern.STRIPE_CENTER, DyeColor.GRAY),
+                Pair.of(BedrockBannerPattern.BORDER, DyeColor.LIGHT_GRAY),
+                Pair.of(BedrockBannerPattern.STRIPE_MIDDLE, DyeColor.BLACK),
+                Pair.of(BedrockBannerPattern.HALF_HORIZONTAL, DyeColor.LIGHT_GRAY),
+                Pair.of(BedrockBannerPattern.CIRCLE, DyeColor.LIGHT_GRAY),
+                Pair.of(BedrockBannerPattern.BORDER, DyeColor.BLACK)
         );
     }
 
@@ -83,13 +84,13 @@ public class BannerItem extends BlockItem {
         }
         for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
             BannerPatternLayer patternLayer = patternLayers.get(i);
-            Pair<BannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
+            Pair<BedrockBannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
             if (patternLayer.getColorId() != pair.right().ordinal() ||
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(patternLayer.getPattern().id());
-            if (bannerPattern != pair.left()) {
+            BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.value(session, patternLayer.getPattern().id());
+            if (bannerPattern == null || bannerPattern.bedrockPattern() != pair.left()) {
                 return false;
             }
         }
@@ -104,13 +105,13 @@ public class BannerItem extends BlockItem {
         }
         for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
             NbtMap patternLayer = blockEntityPatterns.get(i);
-            Pair<BannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
+            Pair<BedrockBannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
             DyeColor color = DyeColor.getByJavaIdentifier(patternLayer.getString("color"));
             if (color != pair.right()) {
                 return false;
             }
             Key id = MinecraftKey.key(patternLayer.getString("pattern")); // Ouch
-            BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(id);
+            BedrockBannerPattern bannerPattern = BedrockBannerPattern.getByJavaIdentifier(id);
             if (bannerPattern != pair.left()) {
                 return false;
             }
@@ -147,12 +148,14 @@ public class BannerItem extends BlockItem {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
                 patternLayer.getPattern().ifId(id -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(id);
-                    NbtMap tag = NbtMap.builder()
-                            .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                    BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.value(session, id);
+                    if (bannerPattern != null) {
+                        NbtMap tag = NbtMap.builder()
+                            .putString("Pattern", bannerPattern.bedrockPattern().getBedrockIdentifier())
                             .putInt("Color", 15 - patternLayer.getColorId())
                             .build();
-                    patternList.add(tag);
+                        patternList.add(tag);
+                    }
                 });
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
@@ -167,7 +170,7 @@ public class BannerItem extends BlockItem {
      */
     private static NbtMap getBedrockBannerPattern(NbtMap pattern) {
         // ViaVersion 1.20.4 -> 1.20.5 can send without the namespace
-        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(MinecraftKey.key(pattern.getString("pattern")));
+        BedrockBannerPattern bannerPattern = BedrockBannerPattern.getByJavaIdentifier(MinecraftKey.key(pattern.getString("pattern")));
         DyeColor dyeColor = DyeColor.getByJavaIdentifier(pattern.getString("color"));
         if (bannerPattern == null || dyeColor == null) {
             return null;
@@ -187,13 +190,10 @@ public class BannerItem extends BlockItem {
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
         JavaRegistry<BannerPattern> registry = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN);
-        BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
+        BedrockBannerPattern bedrockPattern = BedrockBannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {
-            int id = registry.byValue(bannerPattern);
-            if (id != -1) {
-                return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
-            }
+            return new BannerPatternLayer(Holder.ofId(BannerPattern.findNetworkId(session, bedrockPattern)), dyeColor.ordinal());
         }
         return null;
     }
@@ -221,8 +221,7 @@ public class BannerItem extends BlockItem {
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
             for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
                 var pair = OMINOUS_BANNER_PATTERN.get(i);
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byValue(pair.left())),
-                        pair.right().ordinal()));
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(BannerPattern.findNetworkId(session, pair.left())), pair.right().ordinal()));
             }
 
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);
