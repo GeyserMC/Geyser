@@ -70,6 +70,11 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
                         latencyPacket.setFromServer(true);
                         latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                        session.getLatencyPingCache().add(() -> {
+                            if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
+                                InventoryUtils.openPendingInventory(session);
+                            }
+                        });
                         session.sendUpstreamPacket(latencyPacket);
                         GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
                     }, 150, TimeUnit.MILLISECONDS);
