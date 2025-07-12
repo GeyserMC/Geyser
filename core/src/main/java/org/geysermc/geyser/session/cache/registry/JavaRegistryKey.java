@@ -48,7 +48,7 @@ import java.util.Optional;
  * @param <T> the object type this registry holds.
  * @param <MCPL> the MCPL counterpart of the type this registry holds. Can be {@code ?} when {@code holderMapper} is null.
  */
-public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup, @Nullable HolderMapper<MCPL, T> holderMapper) {
+public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup, @Nullable HolderMapper<T, MCPL> holderMapper) {
 
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
@@ -98,7 +98,7 @@ public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup
         } else if (holderMapper == null) {
             throw new IllegalArgumentException("Tried to map a custom MCPL holder for a registry that does not have a holder mapper (" + this + ")");
         }
-        return holderMapper.map(holder.custom());
+        return holderMapper.map(session, this, holder.custom());
     }
 
     private Optional<RegistryEntryData<T>> entry(GeyserSession session, T object) {
@@ -118,17 +118,17 @@ public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup
      */
     public interface RegistryLookup<T> {
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, int networkId);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, int networkId);
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, Key key);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, Key key);
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registry, T object);
+        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, T object);
     }
 
     @FunctionalInterface
-    public interface HolderMapper<MCPL, T> {
+    public interface HolderMapper<T, MCPL> {
 
-        T map(MCPL mcpl);
+        T map(GeyserSession session, JavaRegistryKey<T, MCPL> registry, MCPL mcpl);
     }
 
     @Override

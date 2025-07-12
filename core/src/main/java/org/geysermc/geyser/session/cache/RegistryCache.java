@@ -39,7 +39,6 @@ import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnim
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
-import org.geysermc.geyser.inventory.item.BedrockBannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.enchantment.Enchantment;
@@ -74,8 +73,8 @@ import java.util.Map;
  * Crafted as of 1.20.5 for easy "add new registry" functionality in the future.
  */
 public final class RegistryCache {
-    private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
-    private static final Map<JavaRegistryKey<?>, RegistryLoader<?>> READERS = new HashMap<>();
+    private static final Map<JavaRegistryKey<?, ?>, Map<Key, NbtMap>> DEFAULTS;
+    private static final Map<JavaRegistryKey<?, ?>, RegistryLoader<?>> READERS = new HashMap<>();
 
     static {
         register(JavaRegistries.CHAT_TYPE, ChatDecoration::readChatType);
@@ -102,7 +101,7 @@ public final class RegistryCache {
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
-        Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
+        Map<JavaRegistryKey<?, ?>, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
         READERS.forEach((key, $) -> {
             List<NbtMap> rawValues = tag.getCompound(key.registryKey().asString()).getList("value", NbtType.COMPOUND);
@@ -119,12 +118,12 @@ public final class RegistryCache {
     }
 
     private final GeyserSession session;
-    private final Reference2ObjectMap<JavaRegistryKey<?>, JavaRegistry<?>> registries;
+    private final Reference2ObjectMap<JavaRegistryKey<?, ?>, JavaRegistry<?>> registries;
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
         this.registries = new Reference2ObjectOpenHashMap<>(READERS.size());
-        for (JavaRegistryKey<?> registry : READERS.keySet()) {
+        for (JavaRegistryKey<?, ?> registry : READERS.keySet()) {
             registries.put(registry, new SimpleJavaRegistry<>());
         }
     }
@@ -133,7 +132,7 @@ public final class RegistryCache {
      * Loads a registry in, if we are tracking it.
      */
     public void load(ClientboundRegistryDataPacket packet) {
-        JavaRegistryKey<?> registryKey = JavaRegistries.fromKey(packet.getRegistry());
+        JavaRegistryKey<?, ?> registryKey = JavaRegistries.fromKey(packet.getRegistry());
         if (registryKey != null) {
             // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
             RegistryLoader reader = READERS.get(registryKey);
@@ -151,7 +150,7 @@ public final class RegistryCache {
         }
     }
 
-    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
+    public <T> JavaRegistry<T> registry(JavaRegistryKey<T, ?> registryKey) {
         if (!registries.containsKey(registryKey)) {
             throw new IllegalArgumentException("The given registry is not data-driven");
         }
@@ -163,7 +162,7 @@ public final class RegistryCache {
      * @param reader converts the RegistryEntry NBT into an object. Should never return null, rather return a default value!
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(JavaRegistryKey<T> registryKey, RegistryReader<T> reader) {
+    private static <T> void register(JavaRegistryKey<T, ?> registryKey, RegistryReader<T> reader) {
         register(registryKey, (session, registry, entries) -> {
             Map<Key, NbtMap> localRegistry = null;
 
@@ -200,7 +199,7 @@ public final class RegistryCache {
         });
     }
 
-    private static <T> void register(JavaRegistryKey<T> registryKey, RegistryLoader<T> reader) {
+    private static <T> void register(JavaRegistryKey<T, ?> registryKey, RegistryLoader<T> reader) {
         READERS.put(registryKey, reader);
     }
 
