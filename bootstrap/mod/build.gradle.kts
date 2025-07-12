@@ -22,6 +22,7 @@ dependencies {
     compileOnly(libs.mixin)
     compileOnly(libs.mixinextras)
     compileOnly(libs.asm)
+    compileOnlyApi(libs.viaversion)
 
     // Only here to suppress "unknown enum constant EnvType.CLIENT" warnings. DO NOT USE!
     compileOnly(libs.fabric.loader)

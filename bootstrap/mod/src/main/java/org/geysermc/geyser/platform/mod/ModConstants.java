@@ -44,11 +44,11 @@ public class ModConstants {
 
     static {
         WorldVersion worldVersion = DetectedVersion.tryDetectVersion();
-        List<String> potentialMethods = List.of("name", "getName", "comp_4024", "method_48019");
+        List<String> potentialNameMethods = List.of("name", "getName", "comp_4024", "method_48019");
 
         Method nameMethod = null;
 
-        for (String methodName : potentialMethods) {
+        for (String methodName : potentialNameMethods) {
             try {
                 nameMethod = worldVersion.getClass().getMethod(methodName);
                 break;
