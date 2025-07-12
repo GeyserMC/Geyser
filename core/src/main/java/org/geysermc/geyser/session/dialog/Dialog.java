@@ -45,7 +45,6 @@ import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,10 +178,6 @@ public abstract class Dialog {
         }
 
         throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!");
-    }
-
-    public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
-        return JavaRegistries.DIALOG.value(session, holder);
     }
 
     public static Dialog getDialogFromKey(GeyserSession session, Key key) {

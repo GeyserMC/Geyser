@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory.item;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -37,7 +38,10 @@ public record BannerPattern(BedrockBannerPattern bedrockPattern, String translat
         return new BannerPattern(BedrockBannerPattern.getByJavaIdentifier(context.id()), translationKey);
     }
 
-    public static BannerPattern fromBedrockPattern(GeyserSession session, BedrockBannerPattern bedrockPattern) {
+    /**
+     * @return the corresponding registered {@link BannerPattern} for the given {@link BedrockBannerPattern}, or null if none exists
+     */
+    public static BannerPattern fromBedrockPattern(GeyserSession session, @Nullable BedrockBannerPattern bedrockPattern) {
         if (bedrockPattern == null) {
             return null;
         }

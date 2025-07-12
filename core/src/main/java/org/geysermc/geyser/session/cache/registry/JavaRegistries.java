@@ -57,6 +57,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,13 +182,13 @@ public class JavaRegistries {
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, Key key) {
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, @NotNull Key key) {
             Optional<T> object = identifierObjectMapper.get(key);
             return object.map(value -> new RegistryEntryData<>(networkMapper.get(value), key, value));
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, T object) {
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, @NotNull T object) {
             int id = networkMapper.get(object);
             return Optional.ofNullable(registry.get(id))
                 .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
@@ -202,12 +203,12 @@ public class JavaRegistries {
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, Key key) {
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, @NotNull Key key) {
             return Optional.ofNullable(registry(session, registryKey).entryByKey(key));
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, T object) {
+        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, @NotNull T object) {
             return Optional.ofNullable(registry(session, registryKey).entryByValue(object));
         }
 
