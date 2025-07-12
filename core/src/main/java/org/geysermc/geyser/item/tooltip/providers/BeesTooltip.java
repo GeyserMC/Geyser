@@ -39,7 +39,7 @@ public class BeesTooltip implements ComponentTooltipProvider<List<BeehiveOccupan
     private static final Component MAX_BEES = Component.text(3);
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BeehiveOccupant> component) {
-        adder.accept(Component.translatable("container.beehive.bees", Component.text(component.size()), MAX_BEES).color(NamedTextColor.GRAY));
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BeehiveOccupant> bees) {
+        adder.accept(Component.translatable("container.beehive.bees", Component.text(bees.size()), MAX_BEES).color(NamedTextColor.GRAY));
     }
 }

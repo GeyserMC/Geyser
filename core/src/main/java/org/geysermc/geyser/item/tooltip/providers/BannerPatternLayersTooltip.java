@@ -41,9 +41,9 @@ import java.util.function.Consumer;
 public class BannerPatternLayersTooltip implements ComponentTooltipProvider<List<BannerPatternLayer>> {
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BannerPatternLayer> component) {
-        for (int i = 0; i < Math.min(6, component.size()); i++) {
-            BannerPatternLayer layer = component.get(i);
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BannerPatternLayer> patterns) {
+        for (int i = 0; i < Math.min(6, patterns.size()); i++) {
+            BannerPatternLayer layer = patterns.get(i);
             BannerPattern pattern = JavaRegistries.BANNER_PATTERN.value(context.session(), layer.getPattern());
             DyeColor color = DyeColor.getById(layer.getColorId());
             if (pattern != null && color != null) {

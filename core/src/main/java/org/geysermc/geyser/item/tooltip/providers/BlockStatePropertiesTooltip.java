@@ -38,8 +38,8 @@ public class BlockStatePropertiesTooltip implements ComponentTooltipProvider<Blo
     private static final Component MAX_HONEY_LEVEL = Component.text(5);
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull BlockStateProperties component) {
-        String honeyLevel = component.getProperties().get("honey_level");
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull BlockStateProperties state) {
+        String honeyLevel = state.getProperties().get("honey_level");
         if (honeyLevel != null) {
             try {
                 int level = Integer.parseInt(honeyLevel);

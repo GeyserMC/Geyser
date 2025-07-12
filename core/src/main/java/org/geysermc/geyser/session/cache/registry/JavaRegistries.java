@@ -95,8 +95,7 @@ public class JavaRegistries {
 
     public static final JavaRegistryKey<BannerPattern, BannerPatternLayer.BannerPattern> BANNER_PATTERN = create("banner_pattern",
         pattern -> new BannerPattern(BedrockBannerPattern.BASE, pattern.getTranslationKey()));
-    public static final JavaRegistryKey<GeyserInstrument, InstrumentComponent.Instrument> INSTRUMENT = create("instrument",
-        (session, registry, instrument) -> GeyserInstrument.fromInstrument(session, instrument));
+    public static final JavaRegistryKey<GeyserInstrument, InstrumentComponent.Instrument> INSTRUMENT = create("instrument", GeyserInstrument::fromInstrument);
     public static final JavaRegistryKey<JukeboxSong, JukeboxPlayable.JukeboxSong> JUKEBOX_SONG = create("jukebox_song",
         (session, registry, song) -> new JukeboxSong(song.soundEvent().getName(), MessageTranslator.convertMessage(session, song.description())));
 

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.item;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
@@ -40,16 +41,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.Locale;
 
-/**
- * @param description in Bedrock format
- */
-public record GeyserInstrument(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) {
+public record GeyserInstrument(String soundEvent, float range, Component description, @Nullable BedrockInstrument bedrockInstrument) {
 
     public static GeyserInstrument read(RegistryEntryContext context) {
         NbtMap data = context.data();
         String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
-        String description = MessageTranslator.deserializeDescriptionForTooltip(context.session(), data);
+        Component description = MessageTranslator.componentFromNbtTag(data.get("description"));
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
         return new GeyserInstrument(soundEvent, range, description, bedrockInstrument);
     }
@@ -92,13 +90,12 @@ public record GeyserInstrument(String soundEvent, float range, String descriptio
         throw new IllegalStateException("InstrumentComponent must have either a location or a holder");
     }
 
-    public static GeyserInstrument fromInstrument(GeyserSession session, InstrumentComponent.Instrument instrument) {
+    public static GeyserInstrument fromInstrument(InstrumentComponent.Instrument instrument) {
         BedrockInstrument bedrock = null;
         if (instrument.soundEvent() instanceof BuiltinSound) {
             bedrock = BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.soundEvent().getName()));
         }
-        return new GeyserInstrument(instrument.soundEvent().getName(), instrument.range(),
-            MessageTranslator.convertMessage(session, instrument.description()), bedrock);
+        return new GeyserInstrument(instrument.soundEvent().getName(), instrument.range(), instrument.description(), bedrock);
     }
 
     /**

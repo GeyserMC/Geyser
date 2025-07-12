@@ -42,19 +42,22 @@ public class FireworkExplosionTooltip implements ComponentTooltipProvider<Firewo
     private static final Component CUSTOM_COLOR = Component.translatable("item.minecraft.firework_star.custom_color");
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, Fireworks.@NonNull FireworkExplosion component) {
-        adder.accept(FireworkExplosionShape.values()[component.getShapeId()].displayName().color(NamedTextColor.GRAY));
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, Fireworks.@NonNull FireworkExplosion explosion) {
+        adder.accept(FireworkExplosionShape.values()[explosion.getShapeId()].displayName().color(NamedTextColor.GRAY));
+        addDetails(explosion, adder);
+    }
 
-        if (component.getColors().length > 0) {
-            adder.accept(writeColors(Component.translatable(), component.getColors()).color(NamedTextColor.GRAY));
+    public static void addDetails(Fireworks.FireworkExplosion explosion, Consumer<Component> adder) {
+        if (explosion.getColors().length > 0) {
+            adder.accept(writeColors(Component.translatable(), explosion.getColors()).color(NamedTextColor.GRAY));
         }
-        if (component.getFadeColors().length > 0) {
-            adder.accept(writeColors(Component.translatable().key("item.minecraft.firework_star.fade_to"), component.getFadeColors()).color(NamedTextColor.GRAY));
+        if (explosion.getFadeColors().length > 0) {
+            adder.accept(writeColors(Component.translatable().key("item.minecraft.firework_star.fade_to"), explosion.getFadeColors()).color(NamedTextColor.GRAY));
         }
-        if (component.isHasTrail()) {
+        if (explosion.isHasTrail()) {
             adder.accept(Component.translatable("item.minecraft.firework_star.trail").color(NamedTextColor.GRAY));
         }
-        if (component.isHasTwinkle()) {
+        if (explosion.isHasTwinkle()) {
             adder.accept(Component.translatable("item.minecraft.firework_star.flicker").color(NamedTextColor.GRAY));
         }
     }
