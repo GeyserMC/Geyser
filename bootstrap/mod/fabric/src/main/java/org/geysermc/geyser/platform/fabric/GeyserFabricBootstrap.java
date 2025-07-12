@@ -31,8 +31,13 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -45,6 +50,13 @@ import org.geysermc.geyser.platform.mod.command.ModCommandSource;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -82,11 +94,75 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         this.onGeyserInitialize();
 
-        if (ModConstants.isModernVersion()) {
+        // 758 is the protocol for 1.18.2
+        if (ModConstants.CURRENT_PROTOCOL >= 758) {
+            Function<ServerPlayer, CommandSourceStack> stackCreator = player -> {
+                if (ModConstants.CURRENT_PROTOCOL >= 768) {
+                    return player.createCommandSourceStack();
+                } else {
+                    try {
+                        // Older version support time
+
+                        List<String> positionFields = List.of("position", "field_22467");
+
+                        Field positionField = null;
+
+                        for (String methodName : positionFields) {
+                            try {
+                                positionField = Entity.class.getDeclaredField(methodName);
+                                positionField.setAccessible(true);
+                                break;
+                            } catch (NoSuchFieldException ignored) {}
+                        }
+
+                        if (positionField == null) {
+                            throw new RuntimeException("Unable to get position from ServerPlayer.");
+                        }
+
+                        List<String> levelMethods = List.of("getLevel", "method_14220", "serverLevel", "method_51469");
+
+                        Method levelMethod = null;
+
+                        for (String methodName : levelMethods) {
+                            try {
+                                levelMethod = player.getClass().getMethod(methodName);
+                                break;
+                            } catch (NoSuchMethodException ignored) {}
+                        }
+
+                        if (levelMethod == null) {
+                            throw new RuntimeException("Unable to get level from ServerPlayer.");
+                        }
+
+                        List<String> serverFields = List.of("server", "field_13995");
+
+                        Field serverField = null;
+
+                        for (String methodName : serverFields) {
+                            try {
+                                serverField = player.getClass().getDeclaredField(methodName);
+                                serverField.setAccessible(true);
+                                break;
+                            } catch (NoSuchFieldException ignored) {}
+                        }
+
+                        if (serverField == null) {
+                            throw new RuntimeException("Unable to get server from ServerPlayer.");
+                        }
+
+                        // Double casting as in older versions, player is instance of CommandSource, but not in modern versions
+                        //noinspection RedundantCast
+                        return new CommandSourceStack((CommandSource) (Object) player, (Vec3) positionField.get(player), player.getRotationVector(), (ServerLevel) levelMethod.invoke(player), player.getPermissionLevel(), player.getName().getString(), player.getDisplayName(), (MinecraftServer) serverField.get(player), player);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
             var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
-                ServerPlayer::createCommandSourceStack,
+                stackCreator,
                 () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
                 ModCommandSource::new
             );
