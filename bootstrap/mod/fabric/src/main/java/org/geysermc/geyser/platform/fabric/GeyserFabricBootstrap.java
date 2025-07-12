@@ -37,8 +37,10 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
+import org.geysermc.geyser.platform.mod.ModConstants;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -73,22 +75,32 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+        // ServerPlayer#createCommandSourceStack isn't on all versions
+        if (ModConstants.isModernVersion()) {
+            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+        }
 
         this.onGeyserInitialize();
 
-        var sourceConverter = CommandSourceConverter.layered(
+        if (ModConstants.isModernVersion()) {
+            var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
                 ServerPlayer::createCommandSourceStack,
                 () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
                 ModCommandSource::new
-        );
-        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
+            );
+            CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
                 ExecutionCoordinator.simpleCoordinator(),
                 sourceConverter
-        );
-        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
+            );
+
+            this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
+        } else { // Fallback to a standalone command manager
+            CommandManager<GeyserCommandSource> cloud = new StandaloneCloudCommandManager(GeyserImpl.getInstance());
+
+            this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
+        }
     }
 
     @Override

@@ -21,6 +21,7 @@ dependencies {
     api(projects.core)
     compileOnly(libs.mixin)
     compileOnly(libs.mixinextras)
+    compileOnly(libs.asm)
 
     // Only here to suppress "unknown enum constant EnvType.CLIENT" warnings. DO NOT USE!
     compileOnly(libs.fabric.loader)

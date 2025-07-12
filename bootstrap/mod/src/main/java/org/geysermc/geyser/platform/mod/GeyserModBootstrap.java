@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.mod;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.minecraft.SharedConstants;
 import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -54,7 +55,6 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public abstract class GeyserModBootstrap implements GeyserBootstrap {
-
     @Getter
     private static GeyserModBootstrap instance;
 
@@ -85,6 +85,15 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         }
         this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        if (!ModConstants.isModernVersion() && !this.platform.testViaPresent(this)) {
+            this.geyserLogger.error("-------------------------------------------------------------------------");
+            this.geyserLogger.error("The current server version is not supported unless ViaVersion is present!");
+            this.geyserLogger.error("Geyser will not start unless you add ViaVersion!");
+            this.geyserLogger.error("-------------------------------------------------------------------------");
+            return;
+        }
+
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
     }
 
@@ -104,7 +113,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
+        if (geyserConfig.isLegacyPingPassthrough() || !ModConstants.isModernVersion()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);
@@ -115,12 +124,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = new GeyserModWorldManager(server);
+        this.geyserWorldManager = ModConstants.isModernVersion() ? new GeyserModWorldManager(server) : null;
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
-        this.geyserInjector = new GeyserModInjector(server, this.platform);
-        if (isServer()) {
+        this.geyserInjector = ModConstants.isModernVersion() ? new GeyserModInjector(server, this.platform) : null;
+        if (isServer() && this.geyserInjector != null) {
             this.geyserInjector.initializeLocalChannel(this);
         }
     }
@@ -166,7 +175,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public WorldManager getWorldManager() {
-        return geyserWorldManager;
+        return geyserWorldManager == null ? DEFAULT_CHUNK_MANAGER : geyserWorldManager;
     }
 
     @Override
@@ -181,7 +190,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public String getMinecraftServerVersion() {
-        return this.server.getServerVersion();
+        return ModConstants.CURRENT_VERSION;
     }
 
     @SuppressWarnings("ConstantConditions") // Certain IDEA installations think that ip cannot be null
@@ -194,12 +203,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public SocketAddress getSocketAddress() {
-        return this.geyserInjector.getServerSocketAddress();
+        return this.geyserInjector == null ? null : this.geyserInjector.getServerSocketAddress();
     }
 
     @Override
     public int getServerPort() {
-        if (isServer()) {
+        if (isServer() && ModConstants.isModernVersion()) {
             return ((GeyserServerPortGetter) server).geyser$getServerPort();
         } else {
             // Set in the IntegratedServerMixin
