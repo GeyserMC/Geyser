@@ -30,7 +30,7 @@ import java.io.Serial;
 /**
  * Thrown when there was an error registering the custom item definition. The exception message will have details as to what went wrong.
  */
-public class CustomItemDefinitionRegisterException extends Exception {
+public class CustomItemDefinitionRegisterException extends RuntimeException {
 
     @Serial
     private static final long serialVersionUID = 1L;

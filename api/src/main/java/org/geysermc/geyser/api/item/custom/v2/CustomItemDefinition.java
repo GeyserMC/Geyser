@@ -47,7 +47,8 @@ import java.util.Objects;
 /**
  * This is used to define a custom item and its properties for a specific Java item and item model definition combination.
  *
- * <p>A custom item definition will be used for all item stacks that match the Java item and item model this item is for.
+ * <p>A custom Bedrock item definition will be used when translating any item stack that matches the vanilla Java item this definition is registered for,
+ * and the item model this item definition has specified.
  * Additionally, predicates can be added that allow fine-grained control as to when to use this custom item. These predicates are similar
  * to the predicates available in Java item model definitions.</p>
  *
@@ -84,7 +85,7 @@ public interface CustomItemDefinition {
      *
      * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
      *
-     * @return the identifier of the Java item model
+     * @return the identifier of the Java item model used to match this definition
      */
     @NonNull Identifier model();
 

@@ -161,7 +161,7 @@ public interface CustomItemBedrockOptions {
          * @return this builder
          */
         @This
-        Builder creativeCategory(CreativeCategory creativeCategory);
+        Builder creativeCategory(@NonNull CreativeCategory creativeCategory);
 
         /**
          * Sets the item's creative group.
@@ -181,7 +181,7 @@ public interface CustomItemBedrockOptions {
          * @return this builder
          */
         @This
-        Builder tag(Identifier tag);
+        Builder tag(@NonNull Identifier tag);
 
         /**
          * Sets the item's set of bedrock tags, for use in Molang. Pass {@code null} to clear all tags.

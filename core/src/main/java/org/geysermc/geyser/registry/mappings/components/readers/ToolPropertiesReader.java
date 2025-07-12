@@ -43,7 +43,6 @@ public class ToolPropertiesReader extends DataComponentReader<ToolProperties> {
         super(ItemDataComponents.TOOL);
     }
 
-    // TODO this can probably go
     @Override
     protected ToolProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         return new ToolPropertiesImpl(List.of(), 0.0F, MappingsUtil.readOrDefault(element, "can_destroy_blocks_in_creative", NodeReader.BOOLEAN, true, context));

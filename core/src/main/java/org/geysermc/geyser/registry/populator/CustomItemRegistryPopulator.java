@@ -107,7 +107,7 @@ public class CustomItemRegistryPopulator {
         GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
 
             @Override
-            public void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
+            public void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition definition) {
                 try {
                     validate(identifier, definition, customItems, items);
                     customItems.get(identifier).add(definition);
@@ -117,7 +117,7 @@ public class CustomItemRegistryPopulator {
             }
 
             @Override
-            public void register(@NonNull NonVanillaCustomItemDefinition definition) throws CustomItemDefinitionRegisterException {
+            public void register(@NonNull NonVanillaCustomItemDefinition definition) {
                 if (definition.identifier().vanilla()) {
                     throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ") is attempting to masquerade as a vanilla Minecraft item!");
                 } else if (definition.bedrockIdentifier().vanilla()) {
@@ -257,7 +257,7 @@ public class CustomItemRegistryPopulator {
         }
 
         Integer enchantmentValue = context.components().get(DataComponentTypes.ENCHANTABLE);
-        if (enchantmentValue != null) {
+        if (enchantmentValue != null && enchantmentValue > 0) {
             computeEnchantableProperties(enchantmentValue, itemProperties, componentBuilder);
         }
 

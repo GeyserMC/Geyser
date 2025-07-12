@@ -96,13 +96,13 @@ public interface GeyserDefineCustomItemsEvent extends Event {
 
     /**
      * Registers a Bedrock custom item definition based on a Java item. This is used to register items with custom textures and properties
-     * based on NBT data.
+     * created using item data component patches.
      *
      * @param identifier of the Java edition base item
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      */
-    void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
+    void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition);
 
     /**
      * Registers a custom item with no base item. This is used for mods.
@@ -121,5 +121,5 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      */
-    void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition) throws CustomItemDefinitionRegisterException;
+    void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition);
 }

@@ -27,10 +27,10 @@ package org.geysermc.geyser.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -73,7 +73,8 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        public Builder creativeCategory(CreativeCategory creativeCategory) {
+        public Builder creativeCategory(@NotNull CreativeCategory creativeCategory) {
+            Objects.requireNonNull(creativeCategory, "creativeCategory cannot be null");
             this.creativeCategory = creativeCategory;
             return this;
         }
@@ -85,7 +86,8 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        public CustomItemBedrockOptions.Builder tag(Identifier tag) {
+        public CustomItemBedrockOptions.Builder tag(@NotNull Identifier tag) {
+            Objects.requireNonNull(tag, "tag cannot be null");
             this.tags.add(tag);
             return this;
         }

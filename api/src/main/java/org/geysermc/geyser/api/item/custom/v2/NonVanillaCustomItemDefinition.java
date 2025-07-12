@@ -52,12 +52,12 @@ import java.util.List;
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     /**
-     * The java identifier for this item.
+     * The item's Java identifier.
      */
     @NonNull Identifier identifier();
 
     /**
-     * The java item network ID of the item.
+     * The item's Java network ID.
      *
      * <p>In mods, you can get this by using the {@code getId} method on the item {@code Registry} (Mojmap): {@code BuiltInRegistries.ITEM.getId(<item>)}</p>
      */
@@ -124,18 +124,30 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     interface Builder extends CustomItemDefinition.Builder {
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         @This
         Builder displayName(@NonNull String displayName);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         @This
         Builder priority(int priority);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         @This
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         @This
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
@@ -143,6 +155,11 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
         @This
         Builder translationString(@Nullable String translationString);
 
+        /**
+         * Creates the non-vanilla custom item definition.
+         *
+         * @return the new non-vanilla custom item definition
+         */
         @Override
         NonVanillaCustomItemDefinition build();
     }

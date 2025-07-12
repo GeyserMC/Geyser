@@ -83,9 +83,10 @@ import java.util.stream.Collectors;
 /**
  * A class responsible for reading custom item and block mappings from a JSON file
  */
-@Deprecated
 public class MappingsReader_v1 extends MappingsReader {
+
     @Override
+    @Deprecated
     public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         this.readItemMappingsV1(file, mappingsRoot, consumer);
     }
@@ -103,6 +104,7 @@ public class MappingsReader_v1 extends MappingsReader {
         this.readBlockMappingsV1(file, mappingsRoot, consumer);
     }
 
+    @Deprecated
     public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         JsonObject itemsNode = mappingsRoot.getAsJsonObject("items");
 
@@ -148,6 +150,7 @@ public class MappingsReader_v1 extends MappingsReader {
         }
     }
 
+    @Deprecated
     private CustomItemOptions readItemCustomItemOptions(JsonObject node) {
         CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
 
@@ -175,6 +178,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     @Override
+    @Deprecated
     public CustomItemDefinition readItemMappingEntry(Identifier identifier, JsonElement element) throws InvalidCustomMappingsFileException {
         if (element == null || !element.isJsonObject()) {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
