@@ -26,9 +26,31 @@
 package org.geysermc.geyser.item.tooltip;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.item.tooltip.providers.ArmorTrimTooltip;
+import org.geysermc.geyser.item.tooltip.providers.BannerPatternLayersTooltip;
+import org.geysermc.geyser.item.tooltip.providers.BeesTooltip;
+import org.geysermc.geyser.item.tooltip.providers.BlockStatePropertiesTooltip;
+import org.geysermc.geyser.item.tooltip.providers.ChargedProjectilesTooltip;
+import org.geysermc.geyser.item.tooltip.providers.ContainerContentsTooltip;
+import org.geysermc.geyser.item.tooltip.providers.ContainerLootTooltip;
+import org.geysermc.geyser.item.tooltip.providers.DyedItemColorTooltip;
+import org.geysermc.geyser.item.tooltip.providers.FireworkExplosionTooltip;
+import org.geysermc.geyser.item.tooltip.providers.FireworksTooltip;
+import org.geysermc.geyser.item.tooltip.providers.InstrumentTooltip;
+import org.geysermc.geyser.item.tooltip.providers.ItemEnchantmentsTooltip;
+import org.geysermc.geyser.item.tooltip.providers.JukeboxPlayableTooltip;
+import org.geysermc.geyser.item.tooltip.providers.LoreTooltip;
+import org.geysermc.geyser.item.tooltip.providers.MapTooltip;
+import org.geysermc.geyser.item.tooltip.providers.OminousBottleTooltip;
+import org.geysermc.geyser.item.tooltip.providers.PotDecorationsTooltip;
+import org.geysermc.geyser.item.tooltip.providers.PotionContentsTooltip;
+import org.geysermc.geyser.item.tooltip.providers.SuspiciousStewTooltip;
+import org.geysermc.geyser.item.tooltip.providers.TropicalFishPatternTooltip;
+import org.geysermc.geyser.item.tooltip.providers.WrittenBookTooltip;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.Map;
@@ -56,7 +78,28 @@ public class TooltipProviders {
     }
 
     static {
-        // TODO charged projectiles (requires recursive)
+        register(DataComponentTypes.TROPICAL_FISH_PATTERN, new TropicalFishPatternTooltip());
+        register(DataComponentTypes.INSTRUMENT, new InstrumentTooltip());
+        register(DataComponentTypes.MAP_ID, new MapTooltip());
+        register(DataComponentTypes.BEES, new BeesTooltip());
+        register(DataComponentTypes.CONTAINER_LOOT, new ContainerLootTooltip());
+        register(DataComponentTypes.CONTAINER, new ContainerContentsTooltip());
+        register(DataComponentTypes.BANNER_PATTERNS, new BannerPatternLayersTooltip());
+        register(DataComponentTypes.POT_DECORATIONS, new PotDecorationsTooltip());
+        register(DataComponentTypes.WRITTEN_BOOK_CONTENT, new WrittenBookTooltip());
+        register(DataComponentTypes.CHARGED_PROJECTILES, new ChargedProjectilesTooltip());
+        register(DataComponentTypes.FIREWORKS, new FireworksTooltip());
+        register(DataComponentTypes.FIREWORK_EXPLOSION, new FireworkExplosionTooltip());
+        register(DataComponentTypes.POTION_CONTENTS, new PotionContentsTooltip());
+        register(DataComponentTypes.JUKEBOX_PLAYABLE, new JukeboxPlayableTooltip());
+        register(DataComponentTypes.TRIM, new ArmorTrimTooltip());
+        register(DataComponentTypes.STORED_ENCHANTMENTS, new ItemEnchantmentsTooltip());
+        register(DataComponentTypes.ENCHANTMENTS, new ItemEnchantmentsTooltip());
+        register(DataComponentTypes.DYED_COLOR, new DyedItemColorTooltip());
+        register(DataComponentTypes.LORE, new LoreTooltip());
+        register(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER, new OminousBottleTooltip());
+        register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, new SuspiciousStewTooltip());
+        register(DataComponentTypes.BLOCK_STATE, new BlockStatePropertiesTooltip());
     }
 
     @Nullable
@@ -71,25 +114,50 @@ public class TooltipProviders {
 
     // TODO tooltips for default components?
     public static void addNameTooltips(TooltipContext context, DataComponents componentPatch, Consumer<String> adder) {
-        // TODO what's more efficient? looping over components or looping over providers?
-        for (DataComponentType<?> component : NAME_PROVIDERS.keySet()) {
-            tryAddTooltip(context, componentPatch, component, adder, TooltipProviders::getNameTooltipProvider);
-        }
+        // TODO
     }
 
-    public static void addTooltips(TooltipContext context, DataComponents componentPatch, Consumer<String> adder) {
-        for (DataComponentType<?> component : NAME_PROVIDERS.keySet()) {
-            tryAddTooltip(context, componentPatch, component, adder, TooltipProviders::getTooltipProvider);
-        }
+    public static void addTooltips(TooltipContext context, Consumer<Component> adder) {
+        tryAddTooltip(context, DataComponentTypes.TROPICAL_FISH_PATTERN, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.INSTRUMENT, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.MAP_ID, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.BEES, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.CONTAINER_LOOT, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.CONTAINER, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.BANNER_PATTERNS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.POT_DECORATIONS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.WRITTEN_BOOK_CONTENT, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.CHARGED_PROJECTILES, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.FIREWORKS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.FIREWORK_EXPLOSION, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.POTION_CONTENTS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.JUKEBOX_PLAYABLE, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.TRIM, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.STORED_ENCHANTMENTS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.ENCHANTMENTS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.DYED_COLOR, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.LORE, adder, TooltipProviders::getTooltipProvider);
+        // TODO attribute
+        // TODO unbreakable
+
+        tryAddTooltip(context, DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, adder, TooltipProviders::getTooltipProvider);
+        tryAddTooltip(context, DataComponentTypes.BLOCK_STATE, adder, TooltipProviders::getTooltipProvider);
+        // TODO spawner
+        // TODO can break/can place
+        // TODO advanced
+        // TODO op warning
     }
 
-    private static <T> void tryAddTooltip(TooltipContext context, DataComponents componentPatch, DataComponentType<T> component, Consumer<String> adder,
+    private static <T> void tryAddTooltip(TooltipContext context, DataComponentType<T> component, Consumer<Component> adder,
                                           Function<DataComponentType<T>, ComponentTooltipProvider<T>> providerGetter) {
-        T value = componentPatch.get(component);
-        if (value != null) {
-            ComponentTooltipProvider<T> provider = providerGetter.apply(component);
-            if (provider != null) {
-                provider.addTooltip(context, tooltip -> adder.accept(MessageTranslator.convertMessage(tooltip, context.session().locale())), value);
+        if (context.options().showInTooltip(component)) {
+            T value = context.components().get(component);
+            if (value != null) {
+                ComponentTooltipProvider<T> provider = providerGetter.apply(component);
+                if (provider != null) {
+                    provider.addTooltip(context, adder, value);
+                }
             }
         }
     }
