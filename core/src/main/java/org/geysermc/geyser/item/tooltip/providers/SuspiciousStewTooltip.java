@@ -32,15 +32,25 @@ import org.geysermc.geyser.item.tooltip.TooltipContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class OminousBottleTooltip implements ComponentTooltipProvider<Integer> {
+public class SuspiciousStewTooltip implements ComponentTooltipProvider<List<SuspiciousStewEffect>> {
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull Integer amplifier) {
-        PotionContentsTooltip.addTooltip(List.of(
-            new MobEffectInstance(Effect.BAD_OMEN, new MobEffectDetails(amplifier, 120000, false, false, true, null))), 1.0F, adder);
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<SuspiciousStewEffect> effects) {
+        if (context.creative()) {
+            List<MobEffectInstance> mobEffects = new ArrayList<>();
+
+            for (SuspiciousStewEffect effect : effects) {
+                mobEffects.add(new MobEffectInstance(Effect.values()[effect.getMobEffectId()],
+                    new MobEffectDetails(0, effect.getDuration(), false, false, false, null)));
+            }
+
+            PotionContentsTooltip.addTooltip(mobEffects, 1.0F, adder);
+        }
     }
 }

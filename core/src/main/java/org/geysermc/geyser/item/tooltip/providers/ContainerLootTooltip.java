@@ -27,20 +27,17 @@ package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 
-import java.util.List;
 import java.util.function.Consumer;
 
-public class OminousBottleTooltip implements ComponentTooltipProvider<Integer> {
+public class ContainerLootTooltip implements ComponentTooltipProvider<NbtMap> {
+    private static final Component TOOLTIP = Component.translatable("item.container.loot_table.unknown");
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull Integer amplifier) {
-        PotionContentsTooltip.addTooltip(List.of(
-            new MobEffectInstance(Effect.BAD_OMEN, new MobEffectDetails(amplifier, 120000, false, false, true, null))), 1.0F, adder);
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull NbtMap component) {
+        adder.accept(TOOLTIP);
     }
 }

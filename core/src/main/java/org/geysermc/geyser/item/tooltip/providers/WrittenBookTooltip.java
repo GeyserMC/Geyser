@@ -26,21 +26,21 @@
 package org.geysermc.geyser.item.tooltip.providers;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 
-import java.util.List;
 import java.util.function.Consumer;
 
-public class OminousBottleTooltip implements ComponentTooltipProvider<Integer> {
+public class WrittenBookTooltip implements ComponentTooltipProvider<WrittenBookContent> {
 
     @Override
-    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull Integer amplifier) {
-        PotionContentsTooltip.addTooltip(List.of(
-            new MobEffectInstance(Effect.BAD_OMEN, new MobEffectDetails(amplifier, 120000, false, false, true, null))), 1.0F, adder);
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull WrittenBookContent book) {
+        if (!book.getAuthor().trim().isEmpty()) {
+            adder.accept(Component.translatable("book.byAuthor", Component.text(book.getAuthor())).color(NamedTextColor.GRAY));
+        }
+        adder.accept(Component.translatable("book.generation." + book.getGeneration()).color(NamedTextColor.GRAY));
     }
 }
