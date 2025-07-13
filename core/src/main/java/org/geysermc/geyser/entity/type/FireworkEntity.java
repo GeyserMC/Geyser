@@ -113,6 +113,7 @@ public class FireworkEntity extends Entity {
         movementEffect.setDuration(duration);
         movementEffect.setEffectType(MovementEffectType.GLIDE_BOOST);
         movementEffect.setEntityRuntimeId(session.getPlayerEntity().getGeyserId());
+        movementEffect.setTick(session.getClientTicks());
         session.sendUpstreamPacket(movementEffect);
     }
 }
