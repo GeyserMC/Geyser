@@ -246,8 +246,7 @@ public class Item {
 
         BedrockEnchantment bedrockEnchantment = enchantment.bedrockEnchantment();
         if (bedrockEnchantment == null) {
-            String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
-            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            // Java only
             return null;
         }
 
@@ -255,12 +254,6 @@ public class Item {
                 .putShort("id", (short) bedrockEnchantment.ordinal())
                 .putShort("lvl", (short) level)
                 .build();
-    }
-
-    private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
-        String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
-
-        builder.getOrCreateLore().add(0, ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {

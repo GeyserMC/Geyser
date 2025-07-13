@@ -101,7 +101,7 @@ public record GeyserInstrument(String soundEvent, float range, Component descrip
     /**
      * Each vanilla instrument on Bedrock, ordered in their network IDs.
      */
-    enum BedrockInstrument {
+    public enum BedrockInstrument {
         PONDER,
         SING,
         SEEK,

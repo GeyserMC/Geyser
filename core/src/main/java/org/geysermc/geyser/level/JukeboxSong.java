@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
 
 public record JukeboxSong(String soundEvent, Component description) {
 
@@ -38,5 +39,9 @@ public record JukeboxSong(String soundEvent, Component description) {
         String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.id());
         Component description = MessageTranslator.componentFromNbtTag(data.get("description"));
         return new JukeboxSong(soundEvent, description);
+    }
+
+    public static JukeboxSong fromJukeboxPlayableSong(JukeboxPlayable.JukeboxSong song) {
+        return new JukeboxSong(song.soundEvent().getName(), song.description());
     }
 }

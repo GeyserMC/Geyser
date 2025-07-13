@@ -69,7 +69,7 @@ public final class TagCache {
         this.tags.clear();
 
         for (Key registryKey : allTags.keySet()) {
-            JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
+            JavaRegistryKey<?, ?> registry = JavaRegistries.fromKey(registryKey);
             if (registry == null) {
                 logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
                 continue;
@@ -98,7 +98,7 @@ public final class TagCache {
         }
     }
 
-    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry, boolean sort) {
+    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?, ?> registry, boolean sort) {
         for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
             int[] value = tag.getValue();
             if (sort) {
@@ -142,7 +142,7 @@ public final class TagCache {
      * Accessible via the {@link #isItem(HolderSet, Item)} method.
      * @return true if the specified network ID is in the given {@link HolderSet} set.
      */
-    private  <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
+    private  <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T, ?> registry, int id) {
         if (holderSet == null) {
             return false;
         }
@@ -180,7 +180,7 @@ public final class TagCache {
     /**
      * Maps a raw array of network IDs to their respective objects.
      */
-    public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
+    public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T, ?> registry) {
         return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
     }
 

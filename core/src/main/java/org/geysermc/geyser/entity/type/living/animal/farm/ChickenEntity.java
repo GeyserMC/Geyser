@@ -50,7 +50,7 @@ public class ChickenEntity extends TemperatureVariantAnimal {
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.CHICKEN_VARIANT;
     }
 }

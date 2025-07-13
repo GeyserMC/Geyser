@@ -89,6 +89,6 @@ public class PotionContentsTooltip implements ComponentTooltipProvider<PotionCon
         if (potion.getPotionId() == -1) { // No built-in potion
             return potion.getCustomEffects();
         }
-        return ; // TODO built in effects where?
+        return List.of(); // TODO built in effects where?
     }
 }

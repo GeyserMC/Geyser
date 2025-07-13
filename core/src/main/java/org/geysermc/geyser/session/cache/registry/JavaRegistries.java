@@ -48,12 +48,10 @@ import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
@@ -96,12 +94,11 @@ public class JavaRegistries {
     public static final JavaRegistryKey<BannerPattern, BannerPatternLayer.BannerPattern> BANNER_PATTERN = create("banner_pattern",
         pattern -> new BannerPattern(BedrockBannerPattern.BASE, pattern.getTranslationKey()));
     public static final JavaRegistryKey<GeyserInstrument, InstrumentComponent.Instrument> INSTRUMENT = create("instrument", GeyserInstrument::fromInstrument);
-    public static final JavaRegistryKey<JukeboxSong, JukeboxPlayable.JukeboxSong> JUKEBOX_SONG = create("jukebox_song",
-        (session, registry, song) -> new JukeboxSong(song.soundEvent().getName(), MessageTranslator.convertMessage(session, song.description())));
+    public static final JavaRegistryKey<JukeboxSong, JukeboxPlayable.JukeboxSong> JUKEBOX_SONG = create("jukebox_song", JukeboxSong::fromJukeboxPlayableSong);
 
     public static final JavaRegistryKey<PaintingType, PaintingVariant> PAINTING_VARIANT = create("painting_variant", variant -> PaintingType.KEBAB); // Fallback variant for paintings on Java
-    public static final JavaRegistryKey<TrimMaterial, ArmorTrim.TrimMaterial> TRIM_MATERIAL = create("trim_material", material -> new TrimMaterial()); // TODO
-    public static final JavaRegistryKey<TrimPattern, ArmorTrim.TrimPattern> TRIM_PATTERN = create("trim_pattern", pattern -> new TrimPattern()); // TODO
+    public static final JavaRegistryKey<TrimMaterial, /*ArmorTrim.TrimMaterial*/?> TRIM_MATERIAL = create("trim_material"/*, material -> new TrimMaterial()*/); // TODO
+    public static final JavaRegistryKey<TrimPattern, /*ArmorTrim.TrimPattern*/?> TRIM_PATTERN = create("trim_pattern"/*, pattern -> new TrimPattern()*/); // TODO
     public static final JavaRegistryKey<RegistryUnit, ?> DAMAGE_TYPE = create("damage_type");
     public static final JavaRegistryKey<Dialog, NbtMap> DIALOG = create("dialog",
         (session, registry, map) -> Dialog.readDialogFromNbt(session, map, dialog -> registry.networkId(session, dialog)));
