@@ -46,6 +46,8 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.geyser.item.tooltip.TooltipProviders;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.level.block.type.Block;
@@ -190,6 +192,7 @@ public final class ItemTranslator {
 
         // Populates default components that aren't sent over the network
         DataComponents components = javaItem.gatherComponents(customComponents);
+        // TODO remove this, is in context now
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
@@ -206,6 +209,9 @@ public final class ItemTranslator {
 
             nbtBuilder.setCustomName(customName);
         }
+
+        TooltipProviders.addTooltips(TooltipContext.create(session, javaItem, components),
+            line -> nbtBuilder.getOrCreateLore().add(MessageTranslator.convertMessage(session, line)));
 
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {

@@ -27,8 +27,10 @@ package org.geysermc.geyser.item.tooltip;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.item.tooltip.providers.ArmorTrimTooltip;
+import org.geysermc.geyser.item.tooltip.providers.AttributeModifiersTooltip;
 import org.geysermc.geyser.item.tooltip.providers.BannerPatternLayersTooltip;
 import org.geysermc.geyser.item.tooltip.providers.BeesTooltip;
 import org.geysermc.geyser.item.tooltip.providers.BlockStatePropertiesTooltip;
@@ -58,6 +60,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TooltipProviders {
+    private static final Component UNBREAKABLE = Component.translatable("item.unbreakable").color(NamedTextColor.BLUE);
+
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> NAME_PROVIDERS = new Reference2ObjectOpenHashMap<>();
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> PROVIDERS = new Reference2ObjectOpenHashMap<>();
 
@@ -100,6 +104,7 @@ public class TooltipProviders {
         register(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER, new OminousBottleTooltip());
         register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, new SuspiciousStewTooltip());
         register(DataComponentTypes.BLOCK_STATE, new BlockStatePropertiesTooltip());
+        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, new AttributeModifiersTooltip());
     }
 
     @Nullable
@@ -137,15 +142,21 @@ public class TooltipProviders {
         tryAddTooltip(context, DataComponentTypes.ENCHANTMENTS, adder, TooltipProviders::getTooltipProvider);
         tryAddTooltip(context, DataComponentTypes.DYED_COLOR, adder, TooltipProviders::getTooltipProvider);
         tryAddTooltip(context, DataComponentTypes.LORE, adder, TooltipProviders::getTooltipProvider);
-        // TODO attribute
-        // TODO unbreakable
+        tryAddTooltip(context, DataComponentTypes.ATTRIBUTE_MODIFIERS, adder, TooltipProviders::getTooltipProvider);
+        if (context.components().get(DataComponentTypes.UNBREAKABLE) != null && context.options().showInTooltip(DataComponentTypes.UNBREAKABLE)) {
+            adder.accept(UNBREAKABLE);
+        }
 
         tryAddTooltip(context, DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER, adder, TooltipProviders::getTooltipProvider);
         tryAddTooltip(context, DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, adder, TooltipProviders::getTooltipProvider);
         tryAddTooltip(context, DataComponentTypes.BLOCK_STATE, adder, TooltipProviders::getTooltipProvider);
         // TODO spawner
         // TODO can break/can place
-        // TODO advanced
+
+        if (context.advanced()) {
+            addAdvancedTooltips(context, adder);
+        }
+
         // TODO op warning
     }
 
@@ -159,6 +170,21 @@ public class TooltipProviders {
                     provider.addTooltip(context, adder, value);
                 }
             }
+        }
+    }
+
+    private static void addAdvancedTooltips(TooltipContext context, Consumer<Component> adder) {
+        int maxDamage = context.components().getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
+        int damage = context.components().getOrDefault(DataComponentTypes.DAMAGE, 0);
+        if (maxDamage > 0 && damage > 0 && context.options().showInTooltip(DataComponentTypes.DAMAGE)) {
+            adder.accept(Component.translatable("item.durability", Component.text(maxDamage - damage), Component.text(maxDamage)));
+        }
+
+        adder.accept(Component.text(context.item().javaKey().asString()).color(NamedTextColor.DARK_GRAY));
+
+        int components = context.components().getDataComponents().size();
+        if (components > 0) {
+            adder.accept(Component.translatable("item.components", Component.text(components)).color(NamedTextColor.DARK_GRAY));
         }
     }
 }

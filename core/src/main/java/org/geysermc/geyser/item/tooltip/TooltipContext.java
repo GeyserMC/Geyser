@@ -26,17 +26,23 @@
 package org.geysermc.geyser.item.tooltip;
 
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public record TooltipContext(GeyserSession session, boolean advanced, boolean creative, DataComponents components,
+public record TooltipContext(GeyserSession session, boolean advanced, boolean creative, Item item, DataComponents components,
                              TooltipOptions options) {
 
-    public TooltipContext withComponents(DataComponents components) {
-        return new TooltipContext(session, advanced, creative, components, options);
+    public TooltipContext withItemComponents(Item item, DataComponents components) {
+        return new TooltipContext(session, advanced, creative, item, components, options);
     }
 
     public TooltipContext withFlags(boolean advanced, boolean creative) {
-        return new TooltipContext(session, advanced, creative, components, options);
+        return new TooltipContext(session, advanced, creative, item, components, options);
+    }
+
+    public static TooltipContext create(GeyserSession session, Item item, DataComponents components) {
+        return new TooltipContext(session, session.isAdvancedTooltips(), session.getGameMode() == GameMode.CREATIVE, item, components, TooltipOptions.fromComponents(components));
     }
 }

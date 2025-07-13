@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
 import org.geysermc.geyser.item.tooltip.TooltipProviders;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public class ChargedProjectilesTooltip implements ComponentTooltipProvider<List<
         }
 
         // TODO default components?
-        TooltipProviders.addTooltips(context.withComponents(stack.getDataComponentsPatch()).withFlags(false, false),
+        TooltipProviders.addTooltips(context.withItemComponents(Registries.JAVA_ITEMS.get(stack.getId()), stack.getDataComponentsPatch()).withFlags(false, false),
             tooltip -> adder.accept(Component.space().append(tooltip).color(NamedTextColor.GRAY)));
     }
 }
