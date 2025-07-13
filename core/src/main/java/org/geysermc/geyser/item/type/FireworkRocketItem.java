@@ -52,6 +52,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
+        // TODO can this be removed? does this have any client side functionality other than tooltip?
         Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
         if (fireworks == null) {
             return;

@@ -25,24 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-import java.util.List;
-
 public class TropicalFishBucketItem extends Item {
-    private static final Style LORE_STYLE = Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC);
 
     public TropicalFishBucketItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
@@ -55,48 +45,5 @@ public class TropicalFishBucketItem extends Item {
         // Prevent name from appearing as "Bucket of"
         builder.putByte("AppendCustomName", (byte) 1);
         builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
-
-        // Add Java's client side lore tag
-        Integer pattern = components.get(DataComponentTypes.TROPICAL_FISH_PATTERN);
-        Integer baseColor = components.get(DataComponentTypes.TROPICAL_FISH_BASE_COLOR);
-        Integer patternColor = components.get(DataComponentTypes.TROPICAL_FISH_PATTERN_COLOR);
-
-        // The pattern component decides whether to show the tooltip of all 3 components, as of Java 1.21.5
-        if ((pattern != null || (baseColor != null && patternColor != null)) && tooltip.showInTooltip(DataComponentTypes.TROPICAL_FISH_PATTERN)) {
-            //TODO test this for 1.21.5
-            int packedVariant = getPackedVariant(pattern, baseColor, patternColor);
-            List<String> lore = builder.getOrCreateLore();
-
-            int predefinedVariantId = TropicalFishEntity.getPredefinedId(packedVariant);
-            if (predefinedVariantId != -1) {
-                Component line = Component.translatable("entity.minecraft.tropical_fish.predefined." + predefinedVariantId, LORE_STYLE);
-                lore.add(0, MessageTranslator.convertMessage(line, session.locale()));
-            } else {
-                Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishEntity.getVariantName(packedVariant), LORE_STYLE);
-                lore.add(0, MessageTranslator.convertMessage(typeTooltip, session.locale()));
-
-                if (baseColor != null && patternColor != null) {
-                    Component colorTooltip = Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(baseColor.byteValue()), LORE_STYLE);
-                    if (!baseColor.equals(patternColor)) {
-                        colorTooltip = colorTooltip.append(Component.text(", ", LORE_STYLE))
-                            .append(Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(patternColor.byteValue()), LORE_STYLE));
-                    }
-                    lore.add(1, MessageTranslator.convertMessage(colorTooltip, session.locale()));
-                }
-            }
-        }
-    }
-
-    private static int getPackedVariant(Integer pattern, Integer baseColor, Integer patternColor) {
-        if (pattern == null) {
-            pattern = 0;
-        }
-        if (baseColor == null) {
-            baseColor = 0;
-        }
-        if (patternColor == null) {
-            patternColor = 0;
-        }
-        return TropicalFishEntity.getPackedVariant(pattern, baseColor, patternColor);
     }
 }

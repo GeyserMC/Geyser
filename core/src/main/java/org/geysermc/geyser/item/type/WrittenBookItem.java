@@ -68,6 +68,7 @@ public class WrittenBookItem extends Item {
         }
         builder.putList("pages", NbtType.COMPOUND, bedrockPages);
 
+        // TODO can this go?
         builder.putString("title", bookContent.getTitle().getRaw())
                 .putString("author", bookContent.getAuthor())
                 .putInt("generation", bookContent.getGeneration());

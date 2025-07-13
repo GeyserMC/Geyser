@@ -64,19 +64,6 @@ public class GoatHornItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, tooltip, builder);
-
-        InstrumentComponent component = components.get(DataComponentTypes.INSTRUMENT);
-        if (component != null && tooltip.showInTooltip(DataComponentTypes.INSTRUMENT)) {
-            GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
-            if (instrument.bedrockInstrument() == null) {
-                builder.getOrCreateLore().add(instrument.description());
-            }
-        }
-    }
-
-    @Override
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
 

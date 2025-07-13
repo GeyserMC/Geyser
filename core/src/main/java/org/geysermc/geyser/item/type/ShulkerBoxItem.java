@@ -53,7 +53,7 @@ public class ShulkerBoxItem extends BlockItem {
         super(builder, block, otherBlocks);
     }
 
-    @Override
+    /*@Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
@@ -117,5 +117,5 @@ public class ShulkerBoxItem extends BlockItem {
             itemsList.add(boxItemNbt.build());
         }
         builder.putList("Items", NbtType.COMPOUND, itemsList);
-    }
+    }*/ // TODO can this be removed? is it just for the tooltip?
 }
