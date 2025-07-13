@@ -23,10 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tooltip;
+package org.geysermc.geyser.item.tooltip.providers;
 
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
 
-public record TooltipContext(GeyserSession session, boolean advanced, boolean creative, DataComponents components) {
+import java.util.function.Consumer;
+
+public class OminousBottleTooltip implements ComponentTooltipProvider<Integer> {
+
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull Integer component) {
+        // TODO
+    }
 }
