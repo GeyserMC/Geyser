@@ -28,6 +28,9 @@ package org.geysermc.geyser.api.network.message;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 /**
  * Represents a message that can be sent over the network.
  * @since 2.8.2
@@ -63,6 +66,29 @@ public interface Message<T extends MessageBuffer> {
          */
         static <T extends MessageBuffer> PacketWrapped<T> of(@NonNull Object packet) {
             return GeyserApi.api().provider(PacketWrapped.class, packet);
+        }
+
+        /**
+         * Creates a new packet message from the given packet object and direction.
+         *
+         * @param packetSupplier a supplier that provides the packet object to create the message from
+         * @return a new packet message
+         */
+        @NonNull
+        static <T extends MessageBuffer> MessageFactory<T> of(@NonNull Supplier<Object> packetSupplier) {
+            return buffer -> of(packetSupplier.get());
+        }
+
+        /**
+         * Creates a new packet message from the given substitutor and packet supplier.
+         *
+         * @param substitutor a function that applies to the buffer to get the packet object
+         * @param packetSupplier a function that provides the packet object
+         * @return a new packet message factory
+         */
+        @NonNull
+        static <T extends MessageBuffer, V> MessageFactory<T> of(@NonNull Function<T, V> substitutor, @NonNull Function<V, Object> packetSupplier) {
+            return buffer -> of(packetSupplier.apply(substitutor.apply(buffer)));
         }
     }
 
