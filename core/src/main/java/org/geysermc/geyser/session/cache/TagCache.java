@@ -114,11 +114,19 @@ public final class TagCache {
     }
 
     /**
+     * @return true if the given tag is present and contains the given Java ID
+     */
+    public boolean is(Tag<?> tag, int id) {
+        return contains(getRaw(tag), id);
+    }
+
+    /**
      * @return true if the item tag is present and contains this item stack's Java ID.
      */
     public boolean is(Tag<Item> tag, GeyserItemStack itemStack) {
         return is(tag, itemStack.asItem());
     }
+
 
     /**
      * @return true if the specified network ID is in the given holder set.
