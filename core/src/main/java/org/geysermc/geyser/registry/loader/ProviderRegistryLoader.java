@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -39,6 +40,7 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
@@ -57,12 +59,15 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserJavaBlockState;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
+import org.geysermc.geyser.network.message.BedrockPacketMessage;
+import org.geysermc.geyser.network.message.JavaPacketMessage;
 import org.geysermc.geyser.pack.option.GeyserPriorityOption;
 import org.geysermc.geyser.pack.option.GeyserSubpackOption;
 import org.geysermc.geyser.pack.option.GeyserUrlFallbackOption;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -103,6 +108,21 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
+
+        // network api
+        providers.put(Message.PacketWrapped.class, args -> {
+            if (args.length < 1) {
+                throw new IllegalArgumentException("Message.PacketWrapped requires at least one argument, got " + args.length);
+            }
+
+            if (args[0] instanceof BedrockPacket bedrockPacket) {
+                return new BedrockPacketMessage(bedrockPacket);
+            } else if (args[0] instanceof MinecraftPacket javaPacket) {
+                return new JavaPacketMessage(javaPacket);
+            } else {
+                throw new IllegalArgumentException("Unsupported packet type: " + args[0].getClass().getName());
+            }
+        });
 
         return providers;
     }

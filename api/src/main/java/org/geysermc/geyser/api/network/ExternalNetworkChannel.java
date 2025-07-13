@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.api.network;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.Objects;
+
+/**
+ * Represents a network channel not associated with any specific extension.
+ * <p>
+ * This can be used for external communication channels, like mods or plugins.
+ * @since 2.8.2
+ */
+public class ExternalNetworkChannel implements NetworkChannel {
+    private final String key;
+    private final String channel;
+
+    protected ExternalNetworkChannel(@NonNull String key, @NonNull String channel) {
+        this.key = key;
+        this.channel = channel;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NonNull
+    public String key() {
+        return this.key;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NonNull
+    public String channel() {
+        return this.channel;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isPacket() {
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || !NetworkChannel.class.isAssignableFrom(o.getClass())) return false;
+        NetworkChannel that = (NetworkChannel) o;
+        return Objects.equals(this.key(), that.key()) && Objects.equals(this.channel(), that.channel());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.key(), this.channel());
+    }
+
+    @Override
+    public String toString() {
+        return "ExternalNetworkChannel{" +
+                "key='" + this.key + '\'' +
+                ", channel='" + this.channel + '\'' +
+                '}';
+    }
+}

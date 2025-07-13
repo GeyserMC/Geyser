@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.network.NetworkManager;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -117,6 +118,15 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.8.0
      */
     void sendCommand(String command);
+
+    /**
+     * Gets the {@link NetworkManager} used for handling
+     * network channels and sending messages.
+     *
+     * @return the network manager
+     */
+    @NonNull
+    NetworkManager networkManager();
 
     /**
      * @param javaId the Java entity ID to look up.

@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.api.network;
+
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.Objects;
+
+/**
+ * Represents a network channel associated with a packet.
+ * <p>
+ * This channel is used for communication of packets between the server and client.
+ * @since 2.8.2
+ */
+public class PacketChannel extends ExternalNetworkChannel {
+    private static final String PACKET_CHANNEL_KEY = "packet";
+
+    private final int packetId;
+    private final Class<?> packetType;
+
+    protected PacketChannel(@NonNull String key, @NonNegative int packetId, @NonNull Class<?> packetType) {
+        super(PACKET_CHANNEL_KEY, key);
+
+        this.packetId = packetId;
+        this.packetType = packetType;
+    }
+
+    /**
+     * Gets the packet ID associated with this channel.
+     *
+     * @return the packet ID
+     */
+    @NonNegative
+    public int packetId() {
+        return this.packetId;
+    }
+
+    /**
+     * Gets the type of the packet associated with this channel.
+     *
+     * @return the class of the packet type
+     */
+    @NonNull
+    public Class<?> packetType() {
+        return this.packetType;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isPacket() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PacketChannel that = (PacketChannel) o;
+        return this.packetId == that.packetId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), this.packetId);
+    }
+}
