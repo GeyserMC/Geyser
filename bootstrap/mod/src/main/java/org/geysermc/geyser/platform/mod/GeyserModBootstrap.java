@@ -223,6 +223,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.platform.testFloodgatePluginPresent(this);
     }
 
+    @Override
+    public boolean isStandaloneCommandManager() {
+        return !ModConstants.isModernVersion();
+    }
+
     @Nullable
     @Override
     public InputStream getResourceOrNull(String resource) {

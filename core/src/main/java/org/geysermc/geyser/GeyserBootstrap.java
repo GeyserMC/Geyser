@@ -189,4 +189,11 @@ public interface GeyserBootstrap {
      * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
      */
     boolean testFloodgatePluginPresent();
+
+    /**
+     * Determines if we should handle commands in a standalone way
+     */
+    default boolean isStandaloneCommandManager() {
+        return false;
+    }
 }

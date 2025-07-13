@@ -94,69 +94,69 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         this.onGeyserInitialize();
 
-        // 758 is the protocol for 1.18.2
-        if (ModConstants.CURRENT_PROTOCOL >= 758) {
+        if (ModConstants.isModernVersion()) {
             Function<ServerPlayer, CommandSourceStack> stackCreator = player -> {
-                if (ModConstants.CURRENT_PROTOCOL >= 768) {
-                    return player.createCommandSourceStack();
-                } else {
-                    try {
-                        // Older version support time
-
-                        List<String> positionFields = List.of("position", "field_22467");
-
-                        Field positionField = null;
-
-                        for (String methodName : positionFields) {
-                            try {
-                                positionField = Entity.class.getDeclaredField(methodName);
-                                positionField.setAccessible(true);
-                                break;
-                            } catch (NoSuchFieldException ignored) {}
-                        }
-
-                        if (positionField == null) {
-                            throw new RuntimeException("Unable to get position from ServerPlayer.");
-                        }
-
-                        List<String> levelMethods = List.of("getLevel", "method_14220", "serverLevel", "method_51469");
-
-                        Method levelMethod = null;
-
-                        for (String methodName : levelMethods) {
-                            try {
-                                levelMethod = player.getClass().getMethod(methodName);
-                                break;
-                            } catch (NoSuchMethodException ignored) {}
-                        }
-
-                        if (levelMethod == null) {
-                            throw new RuntimeException("Unable to get level from ServerPlayer.");
-                        }
-
-                        List<String> serverFields = List.of("server", "field_13995");
-
-                        Field serverField = null;
-
-                        for (String methodName : serverFields) {
-                            try {
-                                serverField = player.getClass().getDeclaredField(methodName);
-                                serverField.setAccessible(true);
-                                break;
-                            } catch (NoSuchFieldException ignored) {}
-                        }
-
-                        if (serverField == null) {
-                            throw new RuntimeException("Unable to get server from ServerPlayer.");
-                        }
-
-                        // Double casting as in older versions, player is instance of CommandSource, but not in modern versions
-                        //noinspection RedundantCast
-                        return new CommandSourceStack((CommandSource) (Object) player, (Vec3) positionField.get(player), player.getRotationVector(), (ServerLevel) levelMethod.invoke(player), player.getPermissionLevel(), player.getName().getString(), player.getDisplayName(), (MinecraftServer) serverField.get(player), player);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                return player.createCommandSourceStack();
+//                if (ModConstants.CURRENT_PROTOCOL >= 768) {
+//                    return player.createCommandSourceStack();
+//                } else {
+//                    try {
+//                        // Older version support time
+//
+//                        List<String> positionFields = List.of("position", "field_22467");
+//
+//                        Field positionField = null;
+//
+//                        for (String methodName : positionFields) {
+//                            try {
+//                                positionField = Entity.class.getDeclaredField(methodName);
+//                                positionField.setAccessible(true);
+//                                break;
+//                            } catch (NoSuchFieldException ignored) {}
+//                        }
+//
+//                        if (positionField == null) {
+//                            throw new RuntimeException("Unable to get position from ServerPlayer.");
+//                        }
+//
+//                        List<String> levelMethods = List.of("getLevel", "method_14220", "serverLevel", "method_51469");
+//
+//                        Method levelMethod = null;
+//
+//                        for (String methodName : levelMethods) {
+//                            try {
+//                                levelMethod = player.getClass().getMethod(methodName);
+//                                break;
+//                            } catch (NoSuchMethodException ignored) {}
+//                        }
+//
+//                        if (levelMethod == null) {
+//                            throw new RuntimeException("Unable to get level from ServerPlayer.");
+//                        }
+//
+//                        List<String> serverFields = List.of("server", "field_13995");
+//
+//                        Field serverField = null;
+//
+//                        for (String methodName : serverFields) {
+//                            try {
+//                                serverField = player.getClass().getDeclaredField(methodName);
+//                                serverField.setAccessible(true);
+//                                break;
+//                            } catch (NoSuchFieldException ignored) {}
+//                        }
+//
+//                        if (serverField == null) {
+//                            throw new RuntimeException("Unable to get server from ServerPlayer.");
+//                        }
+//
+//                        // Double casting as in older versions, player is instance of CommandSource, but not in modern versions
+//                        //noinspection RedundantCast
+//                        return new CommandSourceStack((CommandSource) (Object) player, (Vec3) positionField.get(player), player.getRotationVector(), (ServerLevel) levelMethod.invoke(player), player.getPermissionLevel(), player.getName().getString(), player.getDisplayName(), (MinecraftServer) serverField.get(player), player);
+//                    } catch (IllegalAccessException | InvocationTargetException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
             };
 
             var sourceConverter = CommandSourceConverter.layered(
