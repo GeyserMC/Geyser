@@ -78,7 +78,7 @@ public class FireworkEntity extends Entity {
             // So we let player boost for a really long time and then only stop them when the entity despawn.
             // Also doing this allow player to boost simply by having a fireworks rocket attached to them
             // and not necessary have to use a rocket (as some plugin do this to boost player)
-            // You can't really send Integer.MAX_VALUE since Bedrock client doesn't seem to like way too large number very much.
+            // You can't really send Integer.MAX_VALUE since Bedrock client doesn't seem to like way too large number very much (as of 1.21.73).
             sendElytraBoost(1000000);
             this.attachedToSession = true;
 
