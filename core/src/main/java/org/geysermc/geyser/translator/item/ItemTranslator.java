@@ -172,7 +172,7 @@ public final class ItemTranslator {
         }
 
         TooltipProviders.addTooltips(TooltipContext.create(session, javaItem, components),
-            line -> nbtBuilder.getOrCreateLore().add(MessageTranslator.convertMessage(session, line)));
+            line -> nbtBuilder.getOrCreateLore().add(MessageTranslator.convertMessageForTooltip(line, session.locale())));
 
         // Add enchantment override. We can't remove it - enchantments would stop showing - but we can add it.
         if (components.getOrDefault(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false) && !GLINT_PRESENT.contains(javaItem)) {
