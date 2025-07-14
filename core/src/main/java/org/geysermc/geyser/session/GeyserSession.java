@@ -77,6 +77,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -148,6 +149,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
@@ -185,6 +187,7 @@ import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -208,6 +211,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -229,6 +233,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -842,6 +847,33 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
         cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
         upstream.sendPacket(cameraPresetsPacket);
+
+        // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves
+        // so the item data can show up in the creative menu. Also doing it here so that we know what locale player choose and translate it properly.
+        for (int i = 0; i < this.itemMappings.getCreativeItems().size(); i++) {
+            CreativeItemData data = this.itemMappings.getCreativeItems().get(i);
+            if (!data.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
+                continue;
+            }
+
+            NbtMap tag = null;
+            if (data.getItem().getTag() != null) {
+                final DataComponents components = new DataComponents(new HashMap<>());
+                Items.FIREWORK_ROCKET.translateNbtToJava(this, data.getItem().getTag(), components, this.getItemMappings().getMapping(Items.FIREWORK_ROCKET));
+                final BedrockItemBuilder builder = new BedrockItemBuilder();
+                Items.FIREWORK_ROCKET.translateComponentsToBedrock(this, components, TooltipOptions.ALL_SHOWN, builder);
+
+                tag = builder.build();
+            }
+
+            this.itemMappings.getCreativeItems().set(i, new CreativeItemData(ItemData.builder()
+                .usingNetId(true)
+                .netId(data.getItem().getNetId())
+                .definition(data.getItem().getDefinition())
+                .tag(tag)
+                .count(data.getItem().getCount())
+                .build(), data.getNetId(), data.getGroupId()));
+        }
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());

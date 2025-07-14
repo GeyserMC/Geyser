@@ -221,15 +221,16 @@ public class ItemRegistryPopulator {
                 ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), entry.isComponentBased(), components);
 
                 // Some item on Bedrock Edition have a different stack size, so we're changing that through the component.
+                // This resolve https://github.com/GeyserMC/Geyser/issues/5612 and https://github.com/GeyserMC/Geyser/issues/4905
                 if (definition.getIdentifier().equals("minecraft:cake")) {
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fixItemCountForCake(definition));
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fromItemDefinitionToDataDriven(definition, 1, null, null));
                 } else if (definition.getIdentifier().equals("minecraft:armor_stand")) {
                     // You have to change the item version to data driven for armor stand else this won't work.
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fixItemCountForArmorStand(definition));
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 16, "armor_stand", "item.armor_stand.name"));
                 } else if (definition.getIdentifier().equals("minecraft:firework_rocket")) {
                     // For fireworks rocket, we purposely make this item data driven so now bedrock won't do client-sided boosting
-                    // and now we can control fireworks boost ourselves!
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, rebuildFireworksRocketNbt(definition));
+                    // and now we can control fireworks boost ourselves! This resolve https://github.com/GeyserMC/Geyser/issues/5409
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 64, "fireworks", "item.fireworks.name"));
                 }
 
                 definitions.put(entry.getName(), definition);
@@ -279,32 +280,6 @@ public class ItemRegistryPopulator {
                     noBlockDefinitions.add(item.getDefinition().getIdentifier());
                 }
             });
-
-            // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves.
-            for (int i = 0; i < creativeItems.size(); i++) {
-                CreativeItemData data = creativeItems.get(i);
-                if (!data.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
-                    continue;
-                }
-
-                NbtMap tag = null;
-                if (data.getItem().getTag() != null) {
-                    final DataComponents components = new DataComponents(new HashMap<>());
-                    Items.FIREWORK_ROCKET.translateNbtToJava(null, data.getItem().getTag(), components, null);
-                    final BedrockItemBuilder builder = new BedrockItemBuilder();
-                    Items.FIREWORK_ROCKET.translateComponentsToBedrock(null, components, TooltipOptions.ALL_SHOWN, builder);
-
-                    tag = builder.build();
-                }
-
-                creativeItems.set(i, new CreativeItemData(ItemData.builder()
-                        .usingNetId(true)
-                        .netId(data.getItem().getNetId())
-                        .definition(data.getItem().getDefinition())
-                        .tag(tag)
-                        .count(data.getItem().getCount())
-                        .build(), data.getNetId(), data.getGroupId()));
-            }
 
             List<CreativeItemGroup> creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
@@ -768,62 +743,29 @@ public class ItemRegistryPopulator {
         return builder.build();
     }
 
-    private static NbtMap rebuildFireworksRocketNbt(ItemDefinition definition) {
+    private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
 
         NbtMapBuilder itemProperties = NbtMap.builder();
 
         NbtMapBuilder componentBuilder = NbtMap.builder();
-        NbtMap iconMap = NbtMap.builder()
+
+        if (texture != null) {
+            NbtMap iconMap = NbtMap.builder()
                 .putCompound("textures", NbtMap.builder()
-                        .putString("default", "fireworks")
-                        .build())
+                    .putString("default", texture)
+                    .build())
                 .build();
-        itemProperties.putCompound("minecraft:icon", iconMap);
-        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.fireworks.name").build());
+            itemProperties.putCompound("minecraft:icon", iconMap);
+        }
+
+        if (displayName != null) {
+            componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", displayName).build());
+        }
 
         itemProperties.putBoolean("allow_off_hand", true);
-        itemProperties.putInt("max_stack_size", 64);
-
-        componentBuilder.putCompound("item_properties", itemProperties.build());
-        builder.putCompound("components", componentBuilder.build());
-        return builder.build();
-    }
-
-    private static NbtMap fixItemCountForArmorStand(ItemDefinition definition) {
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
-
-        NbtMapBuilder itemProperties = NbtMap.builder();
-
-        NbtMapBuilder componentBuilder = NbtMap.builder();
-        itemProperties.putInt("max_stack_size", 16);
-
-        // Add back the icon and name since this is data driven.
-        NbtMap iconMap = NbtMap.builder()
-                .putCompound("textures", NbtMap.builder()
-                        .putString("default", "armor_stand")
-                        .build())
-                .build();
-        itemProperties.putCompound("minecraft:icon", iconMap);
-        itemProperties.putBoolean("allow_off_hand", true);
-        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.armor_stand.name").build());
-
-        componentBuilder.putCompound("item_properties", itemProperties.build());
-        builder.putCompound("components", componentBuilder.build());
-        return builder.build();
-    }
-
-    private static NbtMap fixItemCountForCake(ItemDefinition definition) {
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
-
-        NbtMapBuilder itemProperties = NbtMap.builder();
-
-        NbtMapBuilder componentBuilder = NbtMap.builder();
-        itemProperties.putInt("max_stack_size", 1);
-        itemProperties.putBoolean("allow_off_hand", true);
+        itemProperties.putInt("max_stack_size", maxStackSize);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());

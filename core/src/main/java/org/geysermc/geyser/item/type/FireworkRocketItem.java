@@ -28,7 +28,6 @@ package org.geysermc.geyser.item.type;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -38,8 +37,6 @@ import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -56,11 +53,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@Nullable GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        if (session != null) {
-            super.translateComponentsToBedrock(session, components, tooltip, builder);
-        }
-
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
         if (fireworks == null) {
             return;
@@ -87,7 +80,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
             return;
         }
 
-        final String locale = session == null ? GeyserLocale.getDefaultLocale() : session.locale();
+        final String locale = session.locale();
 
         // Then we translate everything into lore since the explosion tag and everything is not visible anymore due to this being a data driven item.
         List<String> lore = builder.getOrCreateLore();
@@ -127,10 +120,8 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     }
 
     @Override
-    public void translateNbtToJava(@Nullable GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @Nullable ItemMapping mapping) {
-        if (session != null && mapping != null) {
-            super.translateNbtToJava(session, bedrockTag, components, mapping);
-        }
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(session, bedrockTag, components, mapping);
 
         NbtMap fireworksTag = bedrockTag.getCompound("Fireworks");
         if (!fireworksTag.isEmpty()) {
