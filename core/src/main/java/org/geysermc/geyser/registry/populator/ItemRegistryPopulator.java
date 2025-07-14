@@ -52,6 +52,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemCategory;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -276,7 +277,11 @@ public class ItemRegistryPopulator {
                 }
             });
 
-            List<CreativeItemGroup> creativeItemGroups = CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems);
+            List<CreativeItemGroup> creativeItemGroups = new ObjectArrayList<>();
+            Map<String, Integer> creativeGroupIds = new Object2IntOpenHashMap<>();
+            Map<CreativeItemCategory, Integer> lastCreativeGroupIds = new Object2IntOpenHashMap<>();
+            CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems, creativeItemGroups, creativeGroupIds, lastCreativeGroupIds);
+
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
@@ -459,18 +464,26 @@ public class ItemRegistryPopulator {
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
 
+                                            CreativeItemCategory category = customBlockData.creativeCategory() == null ? CreativeItemCategory.UNDEFINED :
+                                                CreativeItemCategory.values()[customBlockData.creativeCategory().ordinal()];
+
                                             CreativeItemData newData = new CreativeItemData(itemData.getItem().toBuilder()
                                                 .definition(definition)
                                                 .blockDefinition(bedrockBlock)
                                                 .netId(itemData.getNetId())
                                                 .count(1)
-                                                .build(), itemData.getNetId(), 0);
+                                                .build(), itemData.getNetId(), getCreativeIndex(
+                                                    customBlockData.creativeGroup(),
+                                                    category,
+                                                    creativeGroupIds,
+                                                    lastCreativeGroupIds, creativeItemGroups)
+                                                );
 
                                             creativeItems.set(j, newData);
                                         } else {
                                             CreativeItemData creativeItemData = new CreativeItemData(itemData.getItem().toBuilder()
                                                 .blockDefinition(bedrockBlock)
-                                                .build(), itemData.getNetId(), 0);
+                                                .build(), itemData.getNetId(), itemData.getGroupId());
 
                                             creativeItems.set(j, creativeItemData);
                                         }
@@ -525,7 +538,13 @@ public class ItemRegistryPopulator {
                                     .definition(customMapping.itemDefinition())
                                     .blockDefinition(null)
                                     .count(1)
-                                    .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
+                                    .build(), creativeNetId.get(), getCreativeIndex(
+                                        customItem.bedrockOptions().creativeGroup(),
+                                        CreativeItemCategory.values()[customItem.bedrockOptions().creativeCategory().id()],
+                                        creativeGroupIds,
+                                        lastCreativeGroupIds,
+                                        creativeItemGroups)
+                                    );
                                 creativeItems.add(creativeItemData);
                             }
 
@@ -611,7 +630,7 @@ public class ItemRegistryPopulator {
                     .netId(creativeNetId.incrementAndGet())
                     .definition(definition)
                     .count(1)
-                    .build(), creativeNetId.get(), 99)); // todo do not hardcode!
+                    .build(), creativeNetId.get(), getCreativeIndex("itemGroup.name.minecart", CreativeItemCategory.ITEMS, creativeGroupIds, lastCreativeGroupIds, creativeItemGroups)));
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -644,7 +663,12 @@ public class ItemRegistryPopulator {
                                 .definition(registration.mapping().getBedrockDefinition())
                                 .netId(creativeNetId.incrementAndGet())
                                 .count(1)
-                                .build(), creativeNetId.get(), customItem.bedrockOptions().creativeCategory().id());
+                                .build(), creativeNetId.get(),
+                                getCreativeIndex(customItem.bedrockOptions().creativeGroup(),
+                                    CreativeItemCategory.values()[customItem.bedrockOptions().creativeCategory().id()],
+                                    creativeGroupIds,lastCreativeGroupIds,
+                                    creativeItemGroups)
+                        );
 
                             creativeItems.add(creativeItemData);
                         }
@@ -679,12 +703,20 @@ public class ItemRegistryPopulator {
                     GeyserBedrockBlock bedrockBlock = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlock.defaultBlockState(), null);
 
                     if (bedrockBlock != null && customBlock.includedInCreativeInventory()) {
+                        CreativeItemCategory category = customBlock.creativeCategory() == null ? CreativeItemCategory.UNDEFINED :
+                            CreativeItemCategory.values()[customBlock.creativeCategory().ordinal()];
+
                         CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
                             .definition(definition)
                             .blockDefinition(bedrockBlock)
                             .netId(creativeNetId.incrementAndGet())
                             .count(1)
-                            .build(), creativeNetId.get(), customBlock.creativeCategory().id());
+                            .build(), creativeNetId.get(), getCreativeIndex(
+                                customBlock.creativeGroup(),
+                                category,
+                                creativeGroupIds,
+                                lastCreativeGroupIds, creativeItemGroups)
+                            );
                         creativeItems.add(creativeItemData);
                     }
                 }
@@ -746,6 +778,34 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         return builder.build();
+    }
+
+    public static int getCreativeIndex(String creativeGroup, CreativeItemCategory creativeItemCategory, Map<String, Integer> groupIndexes, Map<CreativeItemCategory, Integer> fallBacks, List<CreativeItemGroup> creativeItemGroups) {
+        if (fallBacks.isEmpty()) {
+            // Not post rewrite, this index won't be used either way
+            return 0;
+        }
+
+        if (creativeGroup != null) {
+            if (groupIndexes.containsKey(creativeGroup)) {
+                return groupIndexes.get(creativeGroup);
+            }
+        }
+
+        if (creativeItemCategory != null) {
+            if (fallBacks.containsKey(creativeItemCategory)) {
+                return fallBacks.get(creativeItemCategory);
+            }
+
+            // Must "register" this category first
+            // Sending a creative item group with no items in it crashes the client. Fun.
+            creativeItemGroups.add(new CreativeItemGroup(creativeItemCategory, "", ItemData.AIR));
+            fallBacks.put(creativeItemCategory, creativeItemGroups.size() - 1);
+
+            return fallBacks.get(creativeItemCategory);
+        }
+
+        return fallBacks.get(CreativeItemCategory.UNDEFINED);
     }
 
     /**
