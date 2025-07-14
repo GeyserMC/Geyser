@@ -26,14 +26,17 @@
 package org.geysermc.geyser.api.predicate.context.item;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 
 /**
- * Item context. Used for predicates in {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}s.
+ * Item context. Used for predicates in {@link CustomItemDefinition}s.
  */
+@ApiStatus.NonExtendable
 public interface ItemPredicateContext extends MinecraftPredicateContext {
 
     /**
@@ -74,8 +77,7 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
     /**
      * @return the identifier of the item's trim material.
      */
-    @Nullable
-    Identifier trimMaterial();
+    @Nullable Identifier trimMaterial();
 
     /**
      * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component.
@@ -97,8 +99,7 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
      * @param index the string index.
      * @return a string of the item's custom model data. Returns null if index is out of range.
      */
-    @Nullable
-    String customModelDataString(int index);
+    @Nullable String customModelDataString(int index);
 
     /**
      * @param index the float index.

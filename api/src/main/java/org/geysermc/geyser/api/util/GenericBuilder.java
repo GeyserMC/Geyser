@@ -25,11 +25,14 @@
 
 package org.geysermc.geyser.api.util;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * An interface for builders.
  *
  * @param <T> the type of the object built
  */
+@ApiStatus.Internal
 public interface GenericBuilder<T> {
 
     /**

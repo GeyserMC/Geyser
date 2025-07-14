@@ -155,10 +155,10 @@ public class GeyserCustomItemData implements CustomItemData {
 
         CustomItemOptions options = customItemOptions();
         if (options.customModelData().isPresent()) {
-            definition.predicate(ItemRangeDispatchPredicate.LEGACY_CUSTOM_MODEL_DATA.create(options.customModelData().getAsInt()));
+            definition.predicate(ItemRangeDispatchPredicate.legacyCustomModelData(options.customModelData().getAsInt()));
         }
         if (options.damagePredicate().isPresent()) {
-            definition.predicate(ItemRangeDispatchPredicate.DAMAGE.create(options.damagePredicate().getAsInt()));
+            definition.predicate(ItemRangeDispatchPredicate.damage(options.damagePredicate().getAsInt()));
         }
         if (options.unbreakable() != TriState.NOT_SET) {
             if (options.unbreakable() == TriState.TRUE) {

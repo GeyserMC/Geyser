@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.custom.impl;
 
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.GeyserCoreProvided;
 
 import java.util.function.Predicate;
 
@@ -34,7 +35,7 @@ public record DataComponentImpl<T>(
     Identifier identifier,
     Predicate<T> validator,
     boolean vanilla
-) implements DataComponent<T> {
+) implements DataComponent<T>, GeyserCoreProvided {
 
     public boolean validate(T value) {
         return this.validator.test(value);

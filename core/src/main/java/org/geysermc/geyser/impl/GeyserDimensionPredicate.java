@@ -23,49 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.impl;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.util.GeyserProvided;
+import org.geysermc.geyser.api.predicate.DimensionPredicate;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
-import org.jetbrains.annotations.ApiStatus;
 
-import java.util.function.Predicate;
+import java.util.Objects;
 
-/**
- * Data components are used to indicate item behaviour of custom items.
- * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
- *
- * @see ItemDataComponents
- * @see GeyserDataComponent
- * @see CustomItemDefinition#components()
- */
-@ApiStatus.NonExtendable
-public interface DataComponent<T> extends GeyserProvided {
+public record GeyserDimensionPredicate(@NonNull Identifier dimension, boolean negated) implements DimensionPredicate, GeyserCoreProvided {
 
-    /**
-     * The identifier of the data component.
-     *
-     * @return the identifier
-     */
-    @NonNull
-    Identifier identifier();
+    public GeyserDimensionPredicate {
+        Objects.requireNonNull(dimension, "dimension cannot be null");
+    }
 
-    /**
-     * The predicate used to validate the component.
-     *
-     * @return the validator
-     */
-    @NonNull
-    Predicate<T> validator();
+    @Override
+    public boolean test(MinecraftPredicateContext context) {
+        return negated != Objects.equals(context.dimension(), dimension);
+    }
 
-    /**
-     * Whether the component exists in vanilla Minecraft.
-     *
-     * @return whether this component is vanilla
-     */
-    boolean vanilla();
+    @Override
+    public @NonNull MinecraftPredicate<MinecraftPredicateContext> negate() {
+        return new GeyserDimensionPredicate(dimension, !negated);
+    }
 }

@@ -71,6 +71,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.impl.predicates.GeyserRangeDispatchPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
@@ -87,9 +88,6 @@ import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -859,23 +857,23 @@ public class ItemRegistryPopulator {
 
             // Loop through the predicates of the first definition and look for a range dispatch predicate
             for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
-                RangeDispatchPredicate rangeDispatch = RangeDispatchPredicate.fromPredicate(predicate);
-                if (rangeDispatch != null) {
+                if (predicate instanceof GeyserRangeDispatchPredicate rangeDispatch) {
                     // Look for a similar predicate in the other definition's predicates
-                    Optional<RangeDispatchPredicate> other = second.predicates().stream()
-                        .map(RangeDispatchPredicate::fromPredicate)
-                        .filter(otherPredicate -> otherPredicate != null
-                            && otherPredicate.property == rangeDispatch.property
-                            && otherPredicate.index == rangeDispatch.index
-                            && otherPredicate.normalised == rangeDispatch.normalised
-                            && otherPredicate.negated == rangeDispatch.negated)
+                    Optional<GeyserRangeDispatchPredicate> other = second.predicates().stream()
+                        .filter(GeyserRangeDispatchPredicate.class::isInstance)
+                        .map(GeyserRangeDispatchPredicate.class::cast)
+                        .filter(otherPredicate ->
+                            otherPredicate.rangeProperty() == rangeDispatch.rangeProperty()
+                            && otherPredicate.index() == rangeDispatch.index()
+                            && otherPredicate.normalised() == rangeDispatch.normalised()
+                            && otherPredicate.negated() == rangeDispatch.negated())
                         .findFirst();
 
                     if (other.isPresent()) {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        return (int) (rangeDispatch.negated ? rangeDispatch.threshold - other.get().threshold : other.get().threshold - rangeDispatch.threshold);
+                        return (int) (rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold());
                     }
                 }
             }
@@ -887,42 +885,6 @@ public class ItemRegistryPopulator {
 
             // Prefer the one with the most amount of predicates
             return second.predicates().size() - first.predicates().size();
-        }
-    }
-
-    private record RangeDispatchPredicate(int property, double threshold, int index, boolean normalised, boolean negated) {
-
-        private static RangeDispatchPredicate fromPredicate(MinecraftPredicate<? super ItemPredicateContext> predicate) {
-            // Yep, we're using reflection here. I'm not a fan of it either.
-            // Here's the problem: predicates can be dynamically defined by extensions, but we still want a way of somewhat sorting range dispatch predicates
-            // and checking for predicate conflicts. So, there are a number of internal, package-private classes in the API module for commonly used predicates,
-            // which are also all the predicates used by JSON-mappings.
-            // These package-private predicate implementations are records, meaning they work with .equals checks and thus with conflict detection.
-            //
-            // However, to sort range dispatch predicates here, we need to access their components, such as their property, threshold, etc.
-            // We can't do that, since the classes are package-private in the API. So, we have to use reflection.
-            // If you have any better idea as to how to create a class that can be accessed by the API and by the core module, but not by extensions, do suggest it!
-            if (!predicate.getClass().getName().equals("org.geysermc.geyser.api.predicate.item.RangeDispatchPredicate")) {
-                return null;
-            }
-
-            RecordComponent[] components = predicate.getClass().getRecordComponents();
-            try {
-                int property = ((Enum<?>) tryGetComponent(components[0], predicate)).ordinal();
-                double threshold = (double) tryGetComponent(components[1], predicate);
-                int index = (int) tryGetComponent(components[2], predicate);
-                boolean normalised = (boolean) tryGetComponent(components[3], predicate);
-                boolean negated = (boolean) tryGetComponent(components[4], predicate);
-                return new RangeDispatchPredicate(property, threshold, index, normalised, negated);
-            } catch (InvocationTargetException | IllegalAccessException exception) {
-                throw new RuntimeException("Failed to execute reflection hacks to get range dispatch predicate properties!", exception);
-            }
-        }
-
-        private static Object tryGetComponent(RecordComponent component, Object record) throws InvocationTargetException, IllegalAccessException {
-            Method getter = component.getAccessor();
-            getter.trySetAccessible();
-            return getter.invoke(record);
         }
     }
 }

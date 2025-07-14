@@ -27,10 +27,11 @@ package org.geysermc.geyser.item.custom;
 
 import com.google.common.base.Suppliers;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.GeyserChargedProjectile;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -182,7 +183,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
 
     private static ChargedProjectile stackToProjectile(ItemStack stack) {
         return stack.getId() == Items.FIREWORK_ROCKET.javaId()
-            ? new ChargedProjectile(ChargedProjectile.ChargeType.ROCKET, stack.getAmount())
-            : new ChargedProjectile(ChargedProjectile.ChargeType.ARROW, stack.getAmount());
+            ? new GeyserChargedProjectile(ChargedProjectile.ChargeType.ROCKET, stack.getAmount())
+            : new GeyserChargedProjectile(ChargedProjectile.ChargeType.ARROW, stack.getAmount());
     }
 }

@@ -28,26 +28,14 @@ package org.geysermc.geyser.registry.mappings.versions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReaders;
 import org.geysermc.geyser.registry.mappings.definition.ItemDefinitionReaders;
-import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
-import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
-import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
-import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
-import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class MappingsReader_v2 extends MappingsReader {

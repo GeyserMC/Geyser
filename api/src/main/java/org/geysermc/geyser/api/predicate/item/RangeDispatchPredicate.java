@@ -25,74 +25,62 @@
 
 package org.geysermc.geyser.api.predicate.item;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.GeyserProvided;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+/**
+ * Represents a predicate that tests if a specific property is above a specific threshold.
+ * These can be created using the factories in the {@link ItemRangeDispatchPredicate} interface.
+ *
+ * @see ItemRangeDispatchPredicate
+ */
+@ApiStatus.NonExtendable
+public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
-// Be careful when changing things in this record, reflection is used elsewhere (ItemRegistryPopulator in core Geyser) to access some properties.
-record RangeDispatchPredicate(Property property, double threshold, int index, boolean normalised, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
+    /**
+     * @see Property
+     * @return the property type to check against
+     */
+    @NonNull Property property();
 
-    RangeDispatchPredicate(Property property, double threshold, boolean normalised) {
-        this(property, threshold, 0, normalised, false);
-    }
+    /**
+     * @return the threshold above which this predicate is true
+     */
+    double threshold();
 
-    RangeDispatchPredicate(Property property, double threshold, int index) {
-        this(property, threshold, index, false, false);
-    }
+    /**
+     * Only used for {@link Property#CUSTOM_MODEL_DATA}.
+     * If this predicate is any other property, this method will return 0.
+     *
+     * @return the index
+     */
+    @NonNegative int index();
 
-    RangeDispatchPredicate(Property property, double threshold) {
-        this(property, threshold, 0, false, false);
-    }
+    /**
+     * Some predicates, such as {@link Property#DAMAGE} and {@link Property#COUNT},
+     * can be normalised against their maximum properties. If the property is
+     * not one of the two listed, this will always return false.
+     *
+     * @return whether this predicate is normalised
+     */
+    boolean normalised();
 
-    @Override
-    public boolean test(ItemPredicateContext context) {
-        Number value = property.getter.apply(context, this);
-        if (normalised) {
-            if (value == null || property.maxGetter == null) {
-                return false;
-            }
-            Number max = property.maxGetter.apply(context);
-            if (max == null || value.doubleValue() == 0.0) {
-                return false;
-            }
-            value = value.doubleValue() / max.doubleValue();
-        }
+    /**
+     * @return whether this predicate is negated
+     */
+    boolean negated();
 
-        return negated ? value.doubleValue() < threshold : value.doubleValue() >= threshold;
-    }
-
-    @Override
-    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
-        return new RangeDispatchPredicate(property, threshold, index, normalised, !negated);
-    }
-
+    /**
+     * The different properties available to check the range of
+     */
     enum Property {
-        BUNDLE_FULLNESS(ItemPredicateContext::bundleFullness),
-        DAMAGE(ItemPredicateContext::damage, ItemPredicateContext::maxDamage),
-        COUNT(ItemPredicateContext::count, ItemPredicateContext::maxStackSize),
-        CUSTOM_MODEL_DATA((context, predicate) -> context.customModelDataFloat(predicate.index));
-
-        private final BiFunction<ItemPredicateContext, RangeDispatchPredicate, Number> getter;
-        private final Function<ItemPredicateContext, Number> maxGetter;
-
-        Property(BiFunction<ItemPredicateContext, RangeDispatchPredicate, Number> getter, Function<ItemPredicateContext, Number> maxGetter) {
-            this.getter = getter;
-            this.maxGetter = maxGetter;
-        }
-
-        Property(BiFunction<ItemPredicateContext, RangeDispatchPredicate, Number> getter) {
-            this(getter, null);
-        }
-
-        Property(Function<ItemPredicateContext, Number> getter, Function<ItemPredicateContext, Number> maxGetter) {
-            this((context, rangeDispatchPredicate) -> getter.apply(context), maxGetter);
-        }
-
-        Property(Function<ItemPredicateContext, Number> getter) {
-            this((context, rangeDispatchPredicate) -> getter.apply(context), null);
-        }
+        BUNDLE_FULLNESS,
+        DAMAGE,
+        COUNT,
+        CUSTOM_MODEL_DATA
     }
 }

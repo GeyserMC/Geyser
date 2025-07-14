@@ -25,36 +25,53 @@
 
 package org.geysermc.geyser.api.predicate.item;
 
-import org.geysermc.geyser.api.predicate.PredicateCreator;
-import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.predicate.MatchPredicate;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Contains creators for often-used "match" predicates, that match for a value in {@link ItemPredicateContext}.
+ * Contains factories for often-used "match" predicates, that match for a value in {@link ItemPredicateContext}.
  *
- * <p>Predicates created through these creators support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
+ * <p>Predicates created through these factories support conflict detection when used with custom items.
+ * It is as such preferred to use these over custom defined predicates when possible.</p>
  */
-public interface ItemMatchPredicate {
+@ApiStatus.NonExtendable
+public interface ItemMatchPredicate extends MatchPredicate {
 
     /**
-     * Matches for the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
+     * Creates a predicate matching the item's charged projectile. Usually used with crossbows, but checks any item with the {@code minecraft:charged_projectiles} component.
      *
      * @see ItemPredicateContext#chargedProjectiles()
+     * @see ChargeTypePredicate
      */
-    PredicateCreator<ItemPredicateContext, ChargedProjectile.ChargeType> CHARGE_TYPE = type -> new ChargeTypePredicate(type, false);
+    static MinecraftPredicate<ItemPredicateContext> chargeType(ChargedProjectile.@NonNull ChargeType type) {
+        return GeyserApi.api().provider(ChargeTypePredicate.class, type);
+    }
 
     /**
-     * Matches the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
+     * Creates a predicate matching the item's trim material identifier. Works for any item with the {@code minecraft:trim} component.
      *
      * @see ItemPredicateContext#trimMaterial()
+     * @see TrimMaterialPredicate
      */
-    PredicateCreator<ItemPredicateContext, Identifier> TRIM_MATERIAL = material -> new TrimMaterialPredicate(material, false);
+    static MinecraftPredicate<ItemPredicateContext> trimMaterial(@NonNull Identifier material) {
+        return GeyserApi.api().provider(TrimMaterialPredicate.class, material);
+    }
 
     /**
-     * Matches a string of the item's custom model data strings.
+     * Creates a predicate matching a string of the item's custom model data strings.
      *
      * @see ItemPredicateContext#customModelDataString(int)
+     * @see CustomModelDataPredicate.StringPredicate
      */
-    PredicateCreator<ItemPredicateContext, CustomModelDataString> CUSTOM_MODEL_DATA = data -> new CustomModelDataPredicate.StringPredicate(data.value(), data.index(), false);
+    static MinecraftPredicate<ItemPredicateContext> customModelData(@NonNegative int index, @Nullable String string) {
+        return GeyserApi.api().provider(CustomModelDataPredicate.StringPredicate.class, string, index);
+    }
 }

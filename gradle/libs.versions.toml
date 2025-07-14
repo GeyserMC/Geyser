@@ -19,6 +19,7 @@ adventure = "4.21.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
 checkerframework = "3.19.0"
+jetbrains-annotations = "24.0.0"
 log4j = "2.20.0"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
@@ -125,6 +126,7 @@ adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all",
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }

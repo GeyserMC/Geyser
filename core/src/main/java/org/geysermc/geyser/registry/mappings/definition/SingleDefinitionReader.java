@@ -53,7 +53,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
     @Override
     public void readDefinition(JsonElement data, Identifier vanillaItem, Identifier parentModel,
                                BiConsumer<Identifier, CustomItemDefinition> consumer) throws InvalidCustomMappingsFileException {
-        Identifier bedrockIdentifier = MappingsUtil.readOrThrow(data, "bedrock_identifier", NodeReader.GEYSER_IDENTIFIER, "single item definition");
+        Identifier bedrockIdentifier = ItemDefinitionReader.readBedrockIdentifier(data, "single item definition");
         // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 

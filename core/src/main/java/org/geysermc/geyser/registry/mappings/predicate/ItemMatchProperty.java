@@ -28,21 +28,19 @@ package org.geysermc.geyser.registry.mappings.predicate;
 import com.google.gson.JsonElement;
 import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.predicate.PredicateCreator;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
-import org.geysermc.geyser.api.predicate.item.CustomModelDataString;
 import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 public enum ItemMatchProperty implements PredicateReader<ItemPredicateContext> {
-    CHARGE_TYPE(ItemMatchPredicate.CHARGE_TYPE, NodeReader.CHARGE_TYPE),
-    TRIM_MATERIAL(ItemMatchPredicate.TRIM_MATERIAL, NodeReader.IDENTIFIER),
-    CONTEXT_DIMENSION(MatchPredicate.CONTEXT_DIMENSION, NodeReader.IDENTIFIER),
+    CHARGE_TYPE(ItemMatchPredicate::chargeType, NodeReader.CHARGE_TYPE),
+    TRIM_MATERIAL(ItemMatchPredicate::trimMaterial, NodeReader.IDENTIFIER),
+    CONTEXT_DIMENSION((element, context) -> MatchPredicate.dimension(readValue(element, NodeReader.IDENTIFIER, context))),
     CUSTOM_MODEL_DATA((element, context) -> {
         int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
-        return ItemMatchPredicate.CUSTOM_MODEL_DATA.create(new CustomModelDataString(readValue(element, NodeReader.STRING, context), index));
+        return ItemMatchPredicate.customModelData(index, readValue(element, NodeReader.STRING, context));
     });
 
     private final PredicateReader<? super ItemPredicateContext> reader;

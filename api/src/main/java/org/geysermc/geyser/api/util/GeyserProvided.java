@@ -23,49 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.util.GeyserProvided;
-import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.function.Predicate;
-
 /**
- * Data components are used to indicate item behaviour of custom items.
- * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
- *
- * @see ItemDataComponents
- * @see GeyserDataComponent
- * @see CustomItemDefinition#components()
+ * Is used to mark interfaces and classes that should not be implemented / extended by developers,
+ * and are instead provided by Geyser. Attempting to pass a custom implementation for classes extending
+ * this interface will result in exceptions.
  */
 @ApiStatus.NonExtendable
-public interface DataComponent<T> extends GeyserProvided {
-
-    /**
-     * The identifier of the data component.
-     *
-     * @return the identifier
-     */
-    @NonNull
-    Identifier identifier();
-
-    /**
-     * The predicate used to validate the component.
-     *
-     * @return the validator
-     */
-    @NonNull
-    Predicate<T> validator();
-
-    /**
-     * Whether the component exists in vanilla Minecraft.
-     *
-     * @return whether this component is vanilla
-     */
-    boolean vanilla();
+public interface GeyserProvided {
 }

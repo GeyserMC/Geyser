@@ -23,7 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate.item;
+package org.geysermc.geyser.item.components;
 
-public record CustomModelDataFloat(float value, int index) {
+import org.checkerframework.checker.index.qual.Positive;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+
+import java.util.Objects;
+
+public record GeyserChargedProjectile(
+    ChargedProjectile.@NonNull ChargeType type,
+    @Positive int count
+) implements ChargedProjectile {
+
+    public GeyserChargedProjectile {
+        Objects.requireNonNull(type, "type");
+        //noinspection ConstantValue - must validate api users' input
+        if (count < 1) throw new IllegalArgumentException("count cannot be zero or negative");
+    }
 }

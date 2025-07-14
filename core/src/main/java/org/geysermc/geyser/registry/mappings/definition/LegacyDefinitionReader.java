@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry.mappings.definition;
 
 import com.google.gson.JsonElement;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.predicate.item.CustomModelDataFloat;
 import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -41,15 +40,14 @@ public class LegacyDefinitionReader implements ItemDefinitionReader {
     @Override
     public void readDefinition(JsonElement data, Identifier vanillaItem, Identifier parentModel,
                                BiConsumer<Identifier, CustomItemDefinition> consumer) throws InvalidCustomMappingsFileException {
-        // TODO ehh code duplication...
-        Identifier bedrockIdentifier = MappingsUtil.readOrThrow(data, "bedrock_identifier", NodeReader.GEYSER_IDENTIFIER, "single item definition");
+        Identifier bedrockIdentifier = ItemDefinitionReader.readBedrockIdentifier(data, "legacy item definition");
         // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
         int customModelData = MappingsUtil.readOrThrow(data, "custom_model_data", NodeReader.INT, context);
 
         CustomItemDefinition.Builder builder = CustomItemDefinition.builder(bedrockIdentifier, vanillaItem);
-        builder.predicate(ItemRangeDispatchPredicate.CUSTOM_MODEL_DATA.create(new CustomModelDataFloat(customModelData, 0)));
+        builder.predicate(ItemRangeDispatchPredicate.legacyCustomModelData(customModelData));
         SingleDefinitionReader.readDefinitionBase(builder, data, context);
         consumer.accept(vanillaItem, builder.build());
     }

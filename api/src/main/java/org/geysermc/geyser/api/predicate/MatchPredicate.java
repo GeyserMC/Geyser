@@ -25,20 +25,25 @@
 
 package org.geysermc.geyser.api.predicate;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Contains creators for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
+ * Contains factories for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
  *
- * <p>Predicates created through these creators support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
+ * <p>Predicates created through these factories support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
  */
 public interface MatchPredicate {
 
     /**
-     * Matches the dimension identifier the Bedrock session player is currently in.
+     * Creates a predicate matching the dimension identifier the Bedrock session player is currently in.
      *
      * @see MinecraftPredicateContext#dimension()
+     * @see DimensionPredicate
      */
-    PredicateCreator<MinecraftPredicateContext, Identifier> CONTEXT_DIMENSION = dimension -> new DimensionPredicate(dimension, false);
+    static MinecraftPredicate<MinecraftPredicateContext> dimension(@NonNull Identifier dimension) {
+        return GeyserApi.api().provider(DimensionPredicate.class, dimension, false);
+    }
 }

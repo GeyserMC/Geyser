@@ -28,22 +28,23 @@ package org.geysermc.geyser.api.predicate.item;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.GeyserProvided;
 import org.geysermc.geyser.api.util.Identifier;
-
-import java.util.Objects;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Use {@link ItemMatchPredicate#TRIM_MATERIAL}.
+ * @see ItemMatchPredicate#trimMaterial(Identifier)
  */
-record TrimMaterialPredicate(Identifier trimMaterial, boolean negated) implements MinecraftPredicate<ItemPredicateContext> {
+@ApiStatus.NonExtendable
+public interface TrimMaterialPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
-    @Override
-    public boolean test(ItemPredicateContext context) {
-        return negated != Objects.equals(context.trimMaterial(), trimMaterial);
-    }
+    /**
+     * @return the identifier of the trim material to check for
+     */
+    @NonNull Identifier trimMaterial();
 
-    @Override
-    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
-        return new TrimMaterialPredicate(trimMaterial, !negated);
-    }
+    /**
+     * @return whether this predicate is negated
+     */
+    boolean negated();
 }

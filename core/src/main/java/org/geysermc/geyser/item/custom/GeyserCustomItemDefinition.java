@@ -37,7 +37,9 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.util.GeyserProvided;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.GeyserCoreProvided;
 import org.geysermc.geyser.item.custom.impl.DataComponentImpl;
 
 import java.util.ArrayList;
@@ -169,6 +171,11 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         @Override
         public CustomItemDefinition.Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate) {
             Objects.requireNonNull(predicate, "predicate cannot be null");
+
+            if (predicate instanceof GeyserProvided && !(predicate instanceof GeyserCoreProvided)) {
+                throw new IllegalArgumentException("found custom implementation (%s) of Geyser-provided predicate! Use the predicate creators provided in the api instead.".formatted(predicate.getClass().getSimpleName()));
+            }
+
             predicates.add(predicate);
             return this;
         }

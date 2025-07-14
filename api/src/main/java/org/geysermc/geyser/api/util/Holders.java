@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.util;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import java.util.List;
  * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag. What these identifiers represent, depends on the context
  * in which to Holders object is used.
  */
+@ApiStatus.NonExtendable
 public interface Holders {
 
     /**

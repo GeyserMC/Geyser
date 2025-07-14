@@ -25,16 +25,21 @@
 
 package org.geysermc.geyser.api.predicate.item;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.predicate.PredicateCreator;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Contains often-used predicates and predicate creators for simple conditions in {@link ItemPredicateContext}.
+ * Contains often-used predicates and predicate factories for simple conditions for {@link ItemPredicateContext}.
  *
- * <p>Predicates created through these creators support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
+ * <p>Predicates created through factories here support conflict detection when used with custom items.
+ * It is as such preferred to use these over custom defined predicates when possible.</p>
  */
+@ApiStatus.NonExtendable
 public interface ItemConditionPredicate {
 
     /**
@@ -77,16 +82,22 @@ public interface ItemConditionPredicate {
     MinecraftPredicate<ItemPredicateContext> FISHING_ROD_CAST = ItemPredicateContext::hasFishingRodCast;
 
     /**
-     * Checks for one of the item's custom model data flags.
+     * Creates a predicate checking for one of the item's custom model data flags.
      *
      * @see ItemPredicateContext#customModelDataFlag(int)
+     * @see CustomModelDataPredicate.FlagPredicate
      */
-    PredicateCreator<ItemPredicateContext, Integer> CUSTOM_MODEL_DATA = index -> new CustomModelDataPredicate.FlagPredicate(index, false);
+    static MinecraftPredicate<ItemPredicateContext> customModelData(@NonNegative int index) {
+        return GeyserApi.api().provider(CustomModelDataPredicate.FlagPredicate.class, index);
+    }
 
     /**
-     * Returns true if the item stack has a component with the specified identifier.
+     * Creates a predicate checking if the item stack has a component with the specified identifier.
      *
      * @see ItemPredicateContext#components()
+     * @see HasComponentPredicate
      */
-    PredicateCreator<ItemPredicateContext, Identifier> HAS_COMPONENT = component -> new HasComponentPredicate(component, false);
+    static MinecraftPredicate<ItemPredicateContext> hasComponent(@NonNull Identifier component) {
+        return GeyserApi.api().provider(HasComponentPredicate.class, component);
+    }
 }

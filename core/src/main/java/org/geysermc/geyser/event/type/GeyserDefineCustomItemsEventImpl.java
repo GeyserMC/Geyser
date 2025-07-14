@@ -29,15 +29,14 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,7 +75,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
     }
 
     @Override
-    public @NotNull Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions() {
+    public @NonNull Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions() {
         return Collections.unmodifiableMap(nonVanillaCustomItems.asMap());
     }
 

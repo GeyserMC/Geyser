@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.api.predicate.context;
 
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Generic Minecraft context. Used in {@link org.geysermc.geyser.api.predicate.MinecraftPredicate}s.
+ * Generic Minecraft context. Used in {@link MinecraftPredicate}s.
  */
 public interface MinecraftPredicateContext {
 

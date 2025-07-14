@@ -23,49 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.item.custom.v2.component;
+package org.geysermc.geyser.item.custom.impl.predicates;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.util.GeyserProvided;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Identifier;
-import org.jetbrains.annotations.ApiStatus;
+import org.geysermc.geyser.impl.GeyserCoreProvided;
 
-import java.util.function.Predicate;
+import java.util.Objects;
 
-/**
- * Data components are used to indicate item behaviour of custom items.
- * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
- *
- * @see ItemDataComponents
- * @see GeyserDataComponent
- * @see CustomItemDefinition#components()
- */
-@ApiStatus.NonExtendable
-public interface DataComponent<T> extends GeyserProvided {
+public record GeyserTrimMaterialPredicate(@NonNull Identifier trimMaterial, boolean negated) implements TrimMaterialPredicate, GeyserCoreProvided {
 
-    /**
-     * The identifier of the data component.
-     *
-     * @return the identifier
-     */
-    @NonNull
-    Identifier identifier();
+    public GeyserTrimMaterialPredicate {
+        Objects.requireNonNull(trimMaterial, "trim material cannot be null");
+    }
 
-    /**
-     * The predicate used to validate the component.
-     *
-     * @return the validator
-     */
-    @NonNull
-    Predicate<T> validator();
+    @Override
+    public boolean test(ItemPredicateContext context) {
+        return negated != Objects.equals(context.trimMaterial(), trimMaterial);
+    }
 
-    /**
-     * Whether the component exists in vanilla Minecraft.
-     *
-     * @return whether this component is vanilla
-     */
-    boolean vanilla();
+    @Override
+    public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
+        return new GeyserTrimMaterialPredicate(trimMaterial, !negated);
+    }
 }
