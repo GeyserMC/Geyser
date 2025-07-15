@@ -73,7 +73,6 @@ import java.util.function.Consumer;
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
-    // TODO maybe clean this up where possible, quick conversion for types that don't require casting possibly
     static {
         registerConverter(ItemDataComponents.CONSUMABLE, (itemMap, value) -> {
             Consumable.ItemUseAnimation convertedAnimation = switch (value.animation()) {
@@ -107,13 +106,13 @@ public class ComponentConverters {
         registerConverter(ItemDataComponents.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
             new FoodProperties(value.nutrition(), value.saturation(), value.canAlwaysEat())));
 
-        registerConverter(ItemDataComponents.MAX_DAMAGE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_DAMAGE, value));
-        registerConverter(ItemDataComponents.MAX_STACK_SIZE, (itemMap, value) -> itemMap.put(DataComponentTypes.MAX_STACK_SIZE, value));
+        registerConverter(ItemDataComponents.MAX_DAMAGE, DataComponentTypes.MAX_DAMAGE);
+        registerConverter(ItemDataComponents.MAX_STACK_SIZE, DataComponentTypes.MAX_STACK_SIZE);
 
         registerConverter(ItemDataComponents.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
 
-        registerConverter(ItemDataComponents.ENCHANTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTABLE, value));
+        registerConverter(ItemDataComponents.ENCHANTABLE, DataComponentTypes.ENCHANTABLE);
 
         registerConverter(ItemDataComponents.TOOL, (itemMap, value, consumer) -> {
             itemMap.put(DataComponentTypes.TOOL,
@@ -127,7 +126,11 @@ public class ComponentConverters {
             consumer.accept(new ResolvableRepairable(value));
         });
 
-        registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, (itemMap, value) -> itemMap.put(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value));
+        registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+    }
+
+    private static <T> void registerConverter(DataComponent<T> component, DataComponentType<T> converted) {
+        registerConverter(component, (itemMap, value) -> itemMap.put(converted, value));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
