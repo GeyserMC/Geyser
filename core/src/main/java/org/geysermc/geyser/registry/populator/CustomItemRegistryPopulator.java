@@ -124,9 +124,13 @@ public class CustomItemRegistryPopulator {
                     throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ")' bedrock identifier's namespace is minecraft!");
                 } else if (definition.javaId() < items.size()) {
                     throw new CustomItemDefinitionRegisterException("Non-vanilla custom item definition (identifier=" + definition.identifier() + ") is attempting to overwrite a vanilla Minecraft item! (item network ID taken)");
-                } else if (nonVanillaCustomItems.containsKey(definition.identifier())) {
-                    // Until predicates are a thing, then predicate conflict detection should be used like with vanilla items
-                    throw new CustomItemDefinitionRegisterException("A non-vanilla custom item definition (identifier=" + definition.identifier() + ") is already registered!");
+                }
+
+                for (NonVanillaCustomItemDefinition existing : nonVanillaCustomItems.values()) {
+                    if (existing.identifier().equals(definition.identifier()) || existing.javaId() == definition.javaId()) {
+                        // Until predicates are a thing, then predicate conflict detection should be used like with vanilla items
+                        throw new CustomItemDefinitionRegisterException("A non-vanilla custom item definition (identifier=" + definition.identifier() + ", network ID=" + definition.javaId() + ") is already registered!");
+                    }
                 }
                 nonVanillaCustomItems.put(definition.identifier(), definition);
             }

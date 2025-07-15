@@ -634,13 +634,8 @@ public class ItemRegistryPopulator {
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
                 for (NonVanillaCustomItemDefinition customItem : nonVanillaCustomItems.values()) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
-                        if (firstMappingsPass) {
-                            // TODO saying again so i don't forget
-                            // TODO and again...
-                            // TODO eclipse fix this.
-                            GeyserImpl.getInstance().getLogger().error("Custom item java id " + customItem.javaId() + " already exists and was registered again! Skipping..."); // TODO validate this in API event and throw
-                        }
-                        continue;
+                        // This should never happen since we validate for this in the CustomItemRegistryPopulator
+                        throw new IllegalStateException("Custom item java id " + customItem.javaId() + " already exists and was registered again!");
                     }
 
                     int customItemId = nextFreeBedrockId++;
