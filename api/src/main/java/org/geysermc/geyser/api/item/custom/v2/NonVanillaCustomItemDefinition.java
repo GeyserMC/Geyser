@@ -64,7 +64,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     @NonNegative int javaId();
 
     /**
-     * The item's translation string. TODO document
+     * The item's Java translation string. When present, Geyser will translate this string using its loaded locales and send it to the bedrock client as the item's name.
      */
     @Nullable String translationString();
 
@@ -152,6 +152,12 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
         @This
         <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
 
+        /**
+         * Sets the Java translation string of the item.
+         *
+         * @param translationString the Java translation string of the item
+         * @return this builder
+         */
         @This
         Builder translationString(@Nullable String translationString);
 
