@@ -58,7 +58,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
 
     /**
      * A multimap of all the already registered custom item definitions
-     * indexed by the identifier of the Java item which the item is based on.
+     * indexed by the {@link Identifier} of the Java item which the item is based on.
      */
     @NonNull
     Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
@@ -75,7 +75,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**
-     * A multimap of all the already registered non-vanilla custom item definitions indexed by the non-vanilla Java item identifier these are mapped to.
+     * A multimap of all the already registered non-vanilla custom item definitions indexed by the non-vanilla Java item {@link Identifier} these are mapped to.
      *
      * <p>This multimap will, at the moment, always have one entry per key.</p>
      */

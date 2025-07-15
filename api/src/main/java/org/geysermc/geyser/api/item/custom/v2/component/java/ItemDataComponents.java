@@ -95,7 +95,8 @@ public interface ItemDataComponents {
     /**
      * Marks the item to be enchantable. Must be at or above 0.
      *
-     * <p>This component does not translate over perfectly, due to the way enchantments work on Bedrock. The component will be mapped to the {@code minecraft:enchantable} bedrock component with {@code slot=all}.
+     * <p>This component does not translate over perfectly, due to the way enchantments work on Bedrock. The component will be mapped to the {@code minecraft:enchantable} bedrock component with {@code slot=all},
+     * and an enchantable value of what this component was set to.
      * This should, but does not guarantee, allow for compatibility with vanilla enchantments. Non-vanilla enchantments are unlikely to work.</p>
      */
     DataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
