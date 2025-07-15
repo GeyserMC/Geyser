@@ -74,6 +74,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
@@ -273,11 +274,19 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        Consumable consumable = context.components().get(DataComponentTypes.CONSUMABLE);
-        if (consumable != null) {
-            FoodProperties foodProperties = context.components().get(DataComponentTypes.FOOD);
-            computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
-        }
+        Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
+            .or(() -> context.vanillaMapping().flatMap(mapping -> {
+                // If there is no consumable component, and the vanilla item is a trident, manually add a consumable component
+                // with a spear animation and a really high consume duration, to get the trident animation in 3rd-person working
+                if (mapping.getBedrockIdentifier().equals("minecraft:trident")) {
+                    return Optional.of(new Consumable(1000.0F, Consumable.ItemUseAnimation.SPEAR, null, false, List.of()));
+                }
+                return Optional.empty();
+            }))
+            .ifPresent(consumable -> {
+                FoodProperties foodProperties = context.components().get(DataComponentTypes.FOOD);
+                computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
+            });
 
         UseCooldown useCooldown = context.components().get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
