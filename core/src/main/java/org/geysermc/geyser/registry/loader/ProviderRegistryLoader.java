@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
@@ -75,7 +76,8 @@ import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
-import org.geysermc.geyser.item.components.GeyserChargedProjectile;
+import org.geysermc.geyser.item.custom.impl.ThrowableComponentImpl;
+import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
@@ -166,6 +168,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // geyser components
         providers.put(Chargeable.Builder.class, args -> new ChargeableImpl.Builder());
         providers.put(BlockPlacer.Builder.class, args -> new BlockPlacerImpl.Builder());
+        providers.put(ThrowableComponent.Builder.class, args -> new ThrowableComponentImpl.Builder());
 
         // predicates
         providers.put(DimensionPredicate.class, args -> new GeyserDimensionPredicate((Identifier) args[0], false));

@@ -43,6 +43,7 @@ import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
@@ -50,6 +51,7 @@ import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.Unit;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -91,6 +93,8 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
     );
+    // This value has found to be closest to Java's item use speed modifier, after painstakingly comparing closely
+    private static final float ITEM_USE_SPEED_MODIFIER = 0.44F;
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
@@ -250,7 +254,7 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        // Using API component here because MCPL one is just an ID holder set TODO
+        // Using API component here because MCPL one is just an ID holder set, and we can't get identifiers from that
         Repairable repairable = context.definition().components().get(ItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             computeRepairableProperties(repairable, componentBuilder);
@@ -317,15 +321,29 @@ public class CustomItemRegistryPopulator {
             computeChargeableProperties(itemProperties, componentBuilder, chargeable);
         }
 
-        context.vanillaMapping().ifPresent(mapping -> {
-            if (mapping.isEntityPlacer()) {
-                computeEntityPlacerProperties(componentBuilder);
-            }
+        ThrowableComponent throwable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye",
+                 "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> ThrowableComponent.of(true);
+            default -> null;
+        }).orElse(context.definition().components().get(GeyserDataComponent.THROWABLE));
 
-            switch (mapping.getBedrockIdentifier()) {
-                case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> computeThrowableProperties(componentBuilder);
+        if (throwable != null) {
+            computeThrowableProperties(componentBuilder, throwable);
+        } else if (context.definition().components().get(GeyserDataComponent.PROJECTILE) != null) {
+            // Is already called in computeThrowableProperties, which is why this is an else if statement
+            computeProjectileProperties(componentBuilder);
+        }
+
+        Unit entityPlacer = context.vanillaMapping().map(mapping -> {
+            if (mapping.isEntityPlacer()) {
+                return Unit.INSTANCE;
             }
-        });
+            return null;
+        }).orElse(context.definition().components().get(GeyserDataComponent.ENTITY_PLACER));
+
+        if (entityPlacer != null) {
+            computeEntityPlacerProperties(componentBuilder);
+        }
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -485,15 +503,12 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {
-        // TODO check the magic values, especially for movement modifier and use duration
-        //      also maybe fix the animations
-
-        // setting high use_duration prevents the consume animation from playing
+        // setting high use_duration to slow down the player
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", 0.35F)
-            .putFloat("use_duration", 100.0F)
+            .putFloat("movement_modifier", ITEM_USE_SPEED_MODIFIER)
+            .putFloat("use_duration", 1000.0F)
             .build());
 
         if (chargeable.chargeOnDraw()) {
@@ -544,7 +559,7 @@ public class CustomItemRegistryPopulator {
             .build());
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", 0.35F)
+            .putFloat("movement_modifier", ITEM_USE_SPEED_MODIFIER)
             .putFloat("use_duration", consumable.consumeSeconds())
             .build());
     }
@@ -559,11 +574,15 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
+    private static void computeThrowableProperties(NbtMapBuilder componentBuilder, ThrowableComponent throwable) {
         // allows item to be thrown when holding down right click (individual presses are required w/o this component)
-        componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+        componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", throwable.doSwingAnimation()).build());
 
-        // this must be set to something for the swing animation to play
+        // Required for the swing animation to play correctly
+        computeProjectileProperties(componentBuilder);
+    }
+
+    private static void computeProjectileProperties(NbtMapBuilder componentBuilder) {
         // it is okay that the projectile here does not match the actual one since we control what entity actually spawns
         componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
     }

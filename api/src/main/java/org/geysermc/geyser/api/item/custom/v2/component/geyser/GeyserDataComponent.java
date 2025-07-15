@@ -29,6 +29,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.Unit;
 
 import java.util.function.Predicate;
 
@@ -60,8 +61,32 @@ public interface GeyserDataComponent {
 
     /**
      * Indicates which block the item should place and whether it should replace the original item for that block.
+     *
+     * @see BlockPlacer
      */
     DataComponent<BlockPlacer> BLOCK_PLACER = createGeyser("block_placer");
+
+    /**
+     * Marks the item as throwable, meaning it can be thrown continuously by holding down the use button, and also
+     * allows specifying if the client should display a swing animation when the item is thrown.
+     *
+     * @see ThrowableComponent
+     */
+    DataComponent<ThrowableComponent> THROWABLE = createGeyser("throwable");
+
+    /**
+     * Marks the item as a projectile, meaning it can be used as ammunition in the chargeable component.
+     *
+     * @see Chargeable#ammunition()
+     */
+    DataComponent<Unit> PROJECTILE = createGeyser("projectile");
+
+    /**
+     * Marks the item as an entity placer, meaning it can place entities, e.g. a boat or minecart item.
+     *
+     * <p>All items placing entities should be marked with this component to prevent client-side desyncs.</p>
+     */
+    DataComponent<Unit> ENTITY_PLACER = createGeyser("entity_placer");
 
     private static <T> DataComponent<T> createGeyser(String id) {
         return createGeyser(id, t -> true);

@@ -23,22 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.components;
+package org.geysermc.geyser.item.custom.impl;
 
-import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
+import org.checkerframework.common.returnsreceiver.qual.This;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
 
-import java.util.Objects;
+public record ThrowableComponentImpl(boolean doSwingAnimation) implements ThrowableComponent {
 
-public record GeyserChargedProjectile(
-    ChargedProjectile.@NonNull ChargeType type,
-    @Positive int count
-) implements ChargedProjectile {
+    public static class Builder implements ThrowableComponent.Builder {
+        private boolean doSwingAnimation = true;
 
-    public GeyserChargedProjectile {
-        Objects.requireNonNull(type, "type");
-        //noinspection ConstantValue - must validate api users' input
-        if (count < 1) throw new IllegalArgumentException("count cannot be zero or negative");
+        @Override
+        public ThrowableComponent.@This Builder doSwingAnimation(boolean doSwingAnimation) {
+            this.doSwingAnimation = doSwingAnimation;
+            return this;
+        }
+
+        @Override
+        public ThrowableComponent build() {
+            return new ThrowableComponentImpl(doSwingAnimation);
+        }
     }
 }

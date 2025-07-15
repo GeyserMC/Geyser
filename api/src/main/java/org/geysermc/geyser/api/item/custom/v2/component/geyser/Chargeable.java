@@ -34,8 +34,6 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 
-// TODO projectile component (?)
-
 /**
  * The chargeable component allows creating crossbows
  * or bows. This includes the draw duration, whether the item
@@ -63,6 +61,9 @@ public interface Chargeable {
      * The identifiers of the Bedrock items that can be
      * used as ammunition by this bow.
      * For example, this can contain {@code minecraft:arrow} to allow arrows to be shot.
+     *
+     * <p>Items listed <em>must</em> have a {@code minecraft:projectile} component on bedrock to work.
+     * Non-vanilla custom items can mark an item as a projectile and add this component by specifying the {@link GeyserDataComponent#PROJECTILE} component.</p>
      *
      * @return all valid ammunition items
      */
