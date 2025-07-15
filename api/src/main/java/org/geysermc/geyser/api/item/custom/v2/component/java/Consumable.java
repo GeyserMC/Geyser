@@ -74,11 +74,13 @@ public interface Consumable {
     }
 
     /**
-     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation. The {@code toot_horn} animation doesn't exist on bedrock, and is therefore not listed here.
+     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation. The {@code toot_horn} animation does not exist on bedrock, and is therefore not listed here.
+     *
+     * <p>Bedrock behaviour is accurate as of version 1.21.94.</p>
      */
     enum Animation {
         /**
-         * Does nothing in 1st person, appears as eating in 3rd person.
+         * Does nothing in 1st person, appears as drinking in 3rd person.
          */
         NONE,
         /**
@@ -86,15 +88,15 @@ public interface Consumable {
          */
         EAT,
         /**
-         * Appears to look correctly.
+         * Appears to look correctly (same as eating, but without consume particles).
          */
         DRINK,
         /**
-         * Does nothing in 1st person, eating in 3rd person.
+         * Does nothing in 1st person, drinking in 3rd person.
          */
         BLOCK,
         /**
-         * Does nothing in 1st person, eating in 3rd person.
+         * Does nothing in 1st person, drinking in 3rd person.
          */
         BOW,
         /**
@@ -102,7 +104,7 @@ public interface Consumable {
          */
         SPEAR,
         /**
-         * Does nothing in 1st person, eating in 3rd person.
+         * Does nothing in 1st person, drinking in 3rd person.
          */
         CROSSBOW,
         /**
