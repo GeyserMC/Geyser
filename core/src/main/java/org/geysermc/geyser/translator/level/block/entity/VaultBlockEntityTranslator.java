@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -37,13 +37,13 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.util.TriConsumer;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
@@ -52,6 +52,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @BlockEntity(type = BlockEntityType.VAULT)
@@ -131,20 +132,14 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
     // The goal is to just translate the basics so clients know what potion is roughly present, and that any enchantment even exists.
     private static final Map<String, TriConsumer<GeyserSession, NbtMap, DataComponents>> DATA_COMPONENT_DECODERS = Map.of(
             "minecraft:potion_contents", (session, tag, components) -> {
-                String potionId = tag.getString("potion");
-                Potion potion = Potion.getByJavaIdentifier(potionId);
-                components.put(DataComponentTypes.POTION_CONTENTS, potion.toComponent());
+                // Can only translate built-in potions, potions with custom colours don't work
+                Optional.ofNullable(tag.getString("potion")).map(Potion::getByJavaIdentifier)
+                    .ifPresent(potion -> components.put(DataComponentTypes.POTION_CONTENTS, potion.toComponent()));
             },
             "minecraft:enchantments", (session, tag, components) -> { // Enchanted books already have glint. Translating them doesn't matter.
-                NbtMap levels = tag.getCompound("levels");
-                List<Enchantment> enchantmentRegistry = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values();
-                Int2ObjectMap<Integer> enchantments = new Int2ObjectOpenHashMap<>(levels.size());
-                for (Map.Entry<String, Object> entry : levels.entrySet()) {
-                    for (int i = 0; i < enchantmentRegistry.size(); i++) {
-                        if (enchantmentRegistry.get(i).identifier().equals(entry.getKey())) {
-                            enchantments.put(i, (Integer) entry.getValue());
-                        }
-                    }
+                Int2IntMap enchantments = new Int2IntOpenHashMap(tag.size());
+                for (Map.Entry<String, Object> entry : tag.entrySet()) {
+                    enchantments.put(JavaRegistries.ENCHANTMENT.networkId(session, MinecraftKey.key(entry.getKey())), (int) entry.getValue());
                 }
                 components.put(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(enchantments));
             });
