@@ -481,21 +481,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = this.position().toInt();
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
-        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
-            return true;
-        }
-
-        if (state.block() instanceof TrapDoorBlock) {
-            if (!state.getValue(Properties.OPEN)) {
-                return false;
-            } else {
-                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, pos.down());
-                return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
-            }
-        }
-        return false;
+        return super.isOnClimbableBlock();
     }
 
     public boolean canStartGliding() {

@@ -227,33 +227,38 @@ final class BedrockMovePlayer {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
 
-        // If player is inside a vehicle or player or the player itself CAN'T be push then don't do any kind of pushing.
+        // If player is inside a vehicle or the player itself CAN'T be push then don't push them.
         if (entity.getVehicle() == null && entity.isPushable(session)) {
             // TODO: Is looping through every entities a good idea?
-            for (Entity entity1 : session.getEntityCache().getEntities().values()) {
-                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, entity1.getBoundingBoxWidth(), entity1.getBoundingBoxHeight(), entity1.getBoundingBoxWidth());
-                entityBoundingBox.translate(entity1 instanceof PlayerEntity playerEntity ? playerEntity.position().toDouble() : entity1.getPosition().toDouble());
+            for (Entity other : session.getEntityCache().getEntities().values()) {
+                if (other == entity)  {
+                    return;
+                }
+
+                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
+                entityBoundingBox.translate(other.position().toDouble());
 
                 // If this entity can't collide with the player or isn't near the player or is the player itself, continue.
-                if (entity1 == entity || !entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox()) || !entity1.isPushable(session)) {
+                if (!entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox()) || !other.isPushable(session)) {
                     continue;
                 }
 
-                float d = entity.getPosition().getX() - entity1.getPosition().getX();
-                float e = entity.getPosition().getZ() - entity1.getPosition().getZ();
-                float f = MathUtils.absMax(d, e);
+                // According to Entity#push line 1563 (Mojmap).
+                float xDistance = entity.getPosition().getX() - other.getPosition().getX();
+                float zDistance = entity.getPosition().getZ() - other.getPosition().getZ();
+                float f = MathUtils.absMax(xDistance, zDistance);
 
-                Vector3f vector3f = Vector3f.from(d, 0, e);
+                Vector3f pushVelocity = Vector3f.from(xDistance, 0, zDistance);
                 if (f >= 0.01f) {
                     f = (float) GenericMath.sqrt(f);
                     float g = Math.min(1 / f, 1);
 
-                    vector3f = vector3f.div(f);
-                    vector3f = vector3f.mul(g);
-                    vector3f = vector3f.mul(0.05F);
+                    pushVelocity = pushVelocity.div(f);
+                    pushVelocity = pushVelocity.mul(g);
+                    pushVelocity = pushVelocity.mul(0.05F);
 
                     // The push motion should be relative to the current motion, we don't want player to fly by sending y vel 0.
-                    entity.setMotion(entity.getMotion().add(vector3f));
+                    entity.setMotion(entity.getMotion().add(pushVelocity));
 
                     SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                     motionPacket.setRuntimeEntityId(entity.getGeyserId());

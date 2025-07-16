@@ -52,6 +52,11 @@ public class TNTEntity extends Entity implements Tickable {
         super.moveAbsolute(position.add(Vector3f.from(0, definition.offset(), 0)), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
+    @Override
+    public Vector3f position() {
+        return this.position.down(definition.offset());
+    }
+
     public void setFuseLength(IntEntityMetadata entityMetadata) {
         currentTick = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.IGNITED, true);

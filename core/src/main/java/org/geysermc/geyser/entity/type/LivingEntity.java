@@ -284,7 +284,7 @@ public class LivingEntity extends Entity {
     }
 
     public boolean isOnClimbableBlock() {
-        Vector3i blockPos = this.position.toInt();
+        Vector3i blockPos = this.position().toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, blockPos);
         if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
             return true;
