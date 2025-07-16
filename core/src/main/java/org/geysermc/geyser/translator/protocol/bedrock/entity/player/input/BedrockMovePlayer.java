@@ -227,8 +227,8 @@ final class BedrockMovePlayer {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
 
-        // If player is inside a vehicle or player doesn't have gravity or the player itself CAN'T be push then don't do any kind of pushing.
-        if (entity.getFlag(EntityFlag.HAS_GRAVITY) && entity.isPushable(session) && entity.getVehicle() == null) {
+        // If player is inside a vehicle or player or the player itself CAN'T be push then don't do any kind of pushing.
+        if (entity.getVehicle() == null && entity.isPushable(session)) {
             // TODO: Is looping through every entities a good idea?
             for (Entity entity1 : session.getEntityCache().getEntities().values()) {
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, entity1.getBoundingBoxWidth(), entity1.getBoundingBoxHeight(), entity1.getBoundingBoxWidth());
