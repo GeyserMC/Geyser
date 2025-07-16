@@ -26,9 +26,13 @@
 package org.geysermc.geyser.item.tooltip;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import net.kyori.adventure.key.InvalidKeyException;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.item.tooltip.providers.ArmorTrimTooltip;
 import org.geysermc.geyser.item.tooltip.providers.AttributeModifiersTooltip;
 import org.geysermc.geyser.item.tooltip.providers.BannerPatternLayersTooltip;
@@ -51,10 +55,14 @@ import org.geysermc.geyser.item.tooltip.providers.PotionContentsTooltip;
 import org.geysermc.geyser.item.tooltip.providers.SuspiciousStewTooltip;
 import org.geysermc.geyser.item.tooltip.providers.TropicalFishPatternTooltip;
 import org.geysermc.geyser.item.tooltip.providers.WrittenBookTooltip;
+import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.item.type.SpawnEggItem;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -64,6 +72,15 @@ public class TooltipProviders {
 
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> NAME_PROVIDERS = new Reference2ObjectOpenHashMap<>();
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> PROVIDERS = new Reference2ObjectOpenHashMap<>();
+
+    private static final List<Key> DANGEROUS_BLOCK_ENTITIES = List.of(MinecraftKey.key("command_block"), MinecraftKey.key("lectern"), MinecraftKey.key("sign"),
+                                                                        MinecraftKey.key("hanging_sign"), MinecraftKey.key("mob_spawner"), MinecraftKey.key("trial_spawner"));
+    private static final List<Key> DANGEROUS_ENTITIES = List.of(MinecraftKey.key("falling_block"), MinecraftKey.key("command_block_minecart"), MinecraftKey.key("spawner_minecart"));
+    private static final List<Component> DANGEROUS_NBT_WARNING = List.of(
+        Component.translatable("item.op_warning.line1").color(NamedTextColor.RED).decorate(TextDecoration.BOLD),
+        Component.translatable("item.op_warning.line2").color(NamedTextColor.RED),
+        Component.translatable("item.op_warning.line3").color(NamedTextColor.RED)
+    );
 
     private static <T> void register(DataComponentType<T> component, ComponentTooltipProvider<T> provider) {
         internalRegister(PROVIDERS, component, provider);
@@ -157,7 +174,9 @@ public class TooltipProviders {
             addAdvancedTooltips(context, adder);
         }
 
-        // TODO op warning
+        if (shouldAddOpWarning(context)) {
+            DANGEROUS_NBT_WARNING.forEach(adder);
+        }
     }
 
     private static <T> void tryAddTooltip(TooltipContext context, DataComponentType<T> component, Consumer<Component> adder,
@@ -186,5 +205,21 @@ public class TooltipProviders {
         if (components > 0) {
             adder.accept(Component.translatable("item.components", Component.text(components)).color(NamedTextColor.DARK_GRAY));
         }
+    }
+
+    private static boolean shouldAddOpWarning(TooltipContext context) {
+        NbtMap entityData = null;
+        if (context.item() instanceof BlockItem) {
+            entityData = context.components().get(DataComponentTypes.BLOCK_ENTITY_DATA);
+        } else if (context.item() instanceof SpawnEggItem) {
+            entityData = context.components().get(DataComponentTypes.ENTITY_DATA);
+        }
+        if (entityData != null) {
+            try {
+                Key entityId = MinecraftKey.key(entityData.getString("id"));
+                return DANGEROUS_BLOCK_ENTITIES.contains(entityId) || DANGEROUS_ENTITIES.contains(entityId);
+            } catch (InvalidKeyException ignored) {}
+        }
+        return false;
     }
 }
