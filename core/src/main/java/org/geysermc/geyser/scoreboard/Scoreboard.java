@@ -41,6 +41,7 @@ import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
 import org.geysermc.geyser.scoreboard.display.slot.PlayerlistDisplaySlot;
 import org.geysermc.geyser.scoreboard.display.slot.SidebarDisplaySlot;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
@@ -173,7 +174,8 @@ public final class Scoreboard {
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
-        TeamColor color
+        TeamColor color,
+        CollisionRule collisionRule
     ) {
         Team team = teams.get(teamName);
         if (team != null) {
@@ -183,7 +185,7 @@ public final class Scoreboard {
             return;
         }
 
-        team = new Team(this, teamName, players, name, prefix, suffix, visibility, color);
+        team = new Team(this, teamName, players, name, prefix, suffix, visibility, color, collisionRule);
         teams.put(teamName, team);
 
         // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)

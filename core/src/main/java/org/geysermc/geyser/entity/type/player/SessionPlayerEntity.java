@@ -476,11 +476,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         return velocity + 0.1F * session.getEffectCache().getJumpPower();
     }
 
+    @Override
     public boolean isOnClimbableBlock() {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
+        Vector3i pos = this.position().toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
         if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
             return true;

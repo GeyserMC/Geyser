@@ -25,15 +25,22 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -218,6 +225,42 @@ final class BedrockMovePlayer {
         }
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+        }
+
+        // If player is inside a vehicle or player doesn't have gravity or the player itself CAN'T be push then don't do any kind of pushing.
+        if (entity.getFlag(EntityFlag.HAS_GRAVITY) && entity.isPushable(session) && entity.getVehicle() == null) {
+            // TODO: Is looping through every entities a good idea?
+            for (Entity entity1 : session.getEntityCache().getEntities().values()) {
+                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, entity1.getBoundingBoxWidth(), entity1.getBoundingBoxHeight(), entity1.getBoundingBoxWidth());
+                entityBoundingBox.translate(entity1 instanceof PlayerEntity playerEntity ? playerEntity.position().toDouble() : entity1.getPosition().toDouble());
+
+                // If this entity can't collide with the player or isn't near the player or is the player itself, continue.
+                if (entity1 == entity || !entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox()) || !entity1.isPushable(session)) {
+                    continue;
+                }
+
+                float d = entity.getPosition().getX() - entity1.getPosition().getX();
+                float e = entity.getPosition().getZ() - entity1.getPosition().getZ();
+                float f = MathUtils.absMax(d, e);
+
+                Vector3f vector3f = Vector3f.from(d, 0, e);
+                if (f >= 0.01f) {
+                    f = (float) GenericMath.sqrt(f);
+                    float g = Math.min(1 / f, 1);
+
+                    vector3f = vector3f.div(f);
+                    vector3f = vector3f.mul(g);
+                    vector3f = vector3f.mul(0.05F);
+
+                    // The push motion should be relative to the current motion, we don't want player to fly by sending y vel 0.
+                    entity.setMotion(entity.getMotion().add(vector3f));
+
+                    SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                    motionPacket.setRuntimeEntityId(entity.getGeyserId());
+                    motionPacket.setMotion(entity.getMotion());
+                    session.sendUpstreamPacket(motionPacket);
+                }
+            }
         }
     }
 

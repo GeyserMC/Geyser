@@ -46,9 +46,14 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -276,6 +281,29 @@ public class LivingEntity extends Entity {
         } else {
             return null;
         }
+    }
+
+    public boolean isOnClimbableBlock() {
+        Vector3i blockPos = this.position.toInt();
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, blockPos);
+        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
+            return true;
+        }
+
+        if (state.block() instanceof TrapDoorBlock) {
+            if (!state.getValue(Properties.OPEN)) {
+                return false;
+            } else {
+                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, blockPos.down());
+                return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isPushable(GeyserSession session) {
+        return this.getFlag(EntityFlag.HAS_GRAVITY) && this.isAlive() && !this.isOnClimbableBlock();
     }
 
     protected boolean hasShield(boolean offhand) {

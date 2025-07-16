@@ -413,6 +413,16 @@ public class Entity implements GeyserEntity {
     }
 
     /**
+     * Ensure that collision is possible if this entity is a player. Should be overridden for players as their team
+     * might change the status of this.
+     * @param session the Bedrock client session
+     * @return if this entity can collide with the session's player
+     */
+    public boolean isPushable(GeyserSession session) {
+        return false;
+    }
+
+    /**
      * Set a boolean - whether the entity is invisible or visible
      *
      * @param value true if the entity is invisible

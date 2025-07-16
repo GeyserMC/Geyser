@@ -29,6 +29,23 @@ public class MathUtils {
     public static final double SQRT_OF_TWO = Math.sqrt(2);
 
     /**
+     * Find the absolute value of 2 number and find what the larger number is.
+     *
+     * @param d The first value
+     * @param e The second value
+     * @return The absolute value of the number that is larger when it's absolute.
+     */
+    public static float absMax(float d, float e) {
+        if (d < 0.0) {
+            d = -d;
+        }
+        if (e < 0.0) {
+            e = -e;
+        }
+        return Math.max(d, e);
+    }
+
+    /**
      * Wrap the given float degrees to be between -180.0 and 180.0.
      * 
      * @param degrees The degrees value to wrap
