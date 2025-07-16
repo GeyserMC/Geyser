@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 
@@ -49,10 +50,13 @@ import java.util.List;
  *
  * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserDataComponent}.</p>
  */
+@ApiStatus.NonExtendable
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     /**
      * The item's Java identifier.
+     *
+     * @return the item's Java identifier
      */
     @NonNull Identifier identifier();
 
@@ -60,11 +64,15 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * The item's Java network ID.
      *
      * <p>In mods, you can get this by using the {@code getId} method on the item {@code Registry} (Mojmap): {@code BuiltInRegistries.ITEM.getId(<item>)}</p>
+     *
+     * @return the item's Java network ID
      */
     @NonNegative int javaId();
 
     /**
      * The item's Java translation string. When present, Geyser will translate this string using its loaded locales and send it to the bedrock client as the item's name.
+     *
+     * @return the item's Java translation string
      */
     @Nullable String translationString();
 
@@ -72,6 +80,8 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * Predicates are currently not supported for use with non-vanilla custom item definitions.
      *
      * <p>Trying to use predicates will result in an error.</p>
+     *
+     * @throws UnsupportedOperationException always, since predicate usage is not supported
      */
     @Override
     @NonNull
@@ -83,6 +93,8 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * Predicates are currently not supported for use with non-vanilla custom item definitions.
      *
      * <p>Trying to use predicates will result in an error.</p>
+     *
+     * @throws UnsupportedOperationException always, since predicate usage is not supported
      */
     @Override
     @NonNull
@@ -94,6 +106,8 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * Predicates are currently not supported for use with non-vanilla custom item definitions.
      *
      * <p>Trying to use predicates will result in an error.</p>
+     *
+     * @throws UnsupportedOperationException always, since predicate usage is not supported
      */
     @Override
     default int priority() {
@@ -114,14 +128,37 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     @Override
     @NonNull DataComponentMap components();
 
+    /**
+     * Creates a builder for a non-vanilla custom item definition, using the {@code javaIdentifier} as {@code bedrockIdentifier}.
+     *
+     * @param javaIdentifier the item's Java identifier
+     * @param javaId the item's Java network ID
+     * @see NonVanillaCustomItemDefinition#identifier()
+     * @see NonVanillaCustomItemDefinition#javaId()
+     * @return a new builder
+     */
     static Builder builder(@NonNull Identifier javaIdentifier, int javaId) {
         return builder(javaIdentifier, javaIdentifier, javaId);
     }
 
+    /**
+     * Creates a new builder for a non-vanilla custom item definition.
+     *
+     * @param javaIdentifier the item's Java identifier
+     * @param bedrockIdentifier the item's bedrock identifier
+     * @param javaId the item's Java network ID
+     * @see NonVanillaCustomItemDefinition#identifier()
+     * @see NonVanillaCustomItemDefinition#bedrockIdentifier()
+     * @see NonVanillaCustomItemDefinition#javaId()
+     * @return a new builder
+     */
     static Builder builder(@NonNull Identifier javaIdentifier, @NonNull Identifier bedrockIdentifier, int javaId) {
         return GeyserApi.api().provider(Builder.class, javaIdentifier, bedrockIdentifier, javaId);
     }
 
+    /**
+     * Builder for non-vanilla custom item definitions.
+     */
     interface Builder extends CustomItemDefinition.Builder {
 
         /**

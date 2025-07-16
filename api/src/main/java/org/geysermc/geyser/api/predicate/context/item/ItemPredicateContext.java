@@ -40,70 +40,70 @@ import java.util.List;
 public interface ItemPredicateContext extends MinecraftPredicateContext {
 
     /**
-     * @return the stack size.
+     * @return the stack size
      */
     int count();
 
     /**
-     * @return the max stack size.
+     * @return the max stack size
      */
     int maxStackSize();
 
     /**
-     * @return the value of the {@code minecraft:damage} component. 0 if not present.
+     * @return the value of the {@code minecraft:damage} component. 0 if not present
      */
     int damage();
 
     /**
-     * @return the value of the {@code minecraft:max_damage} component. 0 if not present.
+     * @return the value of the {@code minecraft:max_damage} component. 0 if not present
      */
     int maxDamage();
 
     /**
-     * @return if the session player is holding a fishing rod cast.
+     * @return if the session player is holding a fishing rod cast
      */
     boolean hasFishingRodCast();
 
     /**
-     * @return true if the {@code minecraft:unbreakable} component is present.
+     * @return true if the {@code minecraft:unbreakable} component is present
      */
     boolean unbreakable();
 
     /**
-     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component. 0 if not present.
+     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component. 0 if not present
      */
     int bundleFullness();
 
     /**
-     * @return the identifier of the item's trim material.
+     * @return the identifier of the item's trim material, or null if no trim is present
      */
     @Nullable Identifier trimMaterial();
 
     /**
-     * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component.
+     * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component
      */
     List<ChargedProjectile> chargedProjectiles();
 
     /**
-     * @return a list of all the components present on the item. Includes default components.
+     * @return a list of all the components present on the item. Includes default components
      */
     List<Identifier> components();
 
     /**
-     * @param index the flag index.
-     * @return a flag of the item's custom model data. Defaults to false.
+     * @param index the flag index
+     * @return a flag of the item's custom model data. Defaults to false
      */
     boolean customModelDataFlag(int index);
 
     /**
-     * @param index the string index.
-     * @return a string of the item's custom model data. Returns null if index is out of range.
+     * @param index the string index
+     * @return a string of the item's custom model data. Returns null if index is out of range
      */
     @Nullable String customModelDataString(int index);
 
     /**
-     * @param index the float index.
-     * @return a float of the item's custom model data. Defaults to 0.0.
+     * @param index the float index
+     * @return a float of the item's custom model data. Defaults to 0.0
      */
     float customModelDataFloat(int index);
 }

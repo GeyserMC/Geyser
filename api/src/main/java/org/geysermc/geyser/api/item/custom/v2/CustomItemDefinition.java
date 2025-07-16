@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.predicate.item.ItemMatchPredicate;
 import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
 import org.geysermc.geyser.api.util.GenericBuilder;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.Objects;
@@ -64,6 +65,7 @@ import java.util.Objects;
  * the range dispatch predicate sorting only works when 2 definitions only have 1 range dispatch predicate that is similar enough. With more complicated predicate checks,
  * it is recommended to make use of priority values, to ensure the intended order.</p>
  */
+@ApiStatus.NonExtendable
 public interface CustomItemDefinition {
 
     /**
@@ -170,6 +172,8 @@ public interface CustomItemDefinition {
      *
      * @param bedrockIdentifier the Bedrock item identifier
      * @param itemModel the Java item model identifier
+     * @see CustomItemDefinition#bedrockIdentifier()
+     * @see CustomItemDefinition#model()
      * @return a new builder
      */
     static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier itemModel) {

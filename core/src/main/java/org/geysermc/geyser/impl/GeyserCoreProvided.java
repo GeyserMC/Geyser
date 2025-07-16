@@ -25,5 +25,30 @@
 
 package org.geysermc.geyser.impl;
 
+import org.geysermc.geyser.api.util.GeyserProvided;
+
+/**
+ * A marker interface to make sure implementations of {@link GeyserProvided} are actually our implementations. Implement as follows:
+ *
+ * <pre>
+ *     {@code
+ *     public interface MyGeyserApi extends GeyserProvided {}
+ *
+ *     public class MyGeyserApiImpl implements MyGeyserApi, GeyserCoreProvided {}
+ *     }
+ * </pre>
+ *
+ * <p>Then, verify an implementation of {@code MyGeyserApi} is our implementation:</p>
+ *
+ * <pre>
+ *     {@code
+ *     if (object instanceof GeyserProvided && !(object instanceof GeyserCoreProvided)) {
+ *         throw new IllegalArgumentException("found custom implementation (%s) of Geyser-provided API interface!".formatted(object.getClass().getSimpleName()));
+ *     }
+ *     }
+ * </pre>
+ *
+ * <p>The error message given should contain clear details on what the developer should be doing instead.</p>
+ */
 public interface GeyserCoreProvided {
 }
