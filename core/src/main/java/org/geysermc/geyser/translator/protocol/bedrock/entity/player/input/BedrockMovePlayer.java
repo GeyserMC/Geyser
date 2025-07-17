@@ -229,10 +229,10 @@ final class BedrockMovePlayer {
 
         // If the player is riding a vehicle or if the player itself cannot be pushed, then don't push.
         if (entity.getVehicle() == null && entity.isPushable(session)) {
-            // TODO: Is looping through every entities a good idea?
+            boolean affectedByPushMotion = false;
             for (Entity other : session.getEntityCache().getEntities().values()) {
                 if (other == entity)  {
-                    return;
+                    continue;
                 }
 
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
@@ -243,28 +243,31 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
-                // According to Entity#push line 1563 (Mojmap).
+                // 1.21.7 entity pushing logic.
                 float xDistance = entity.getPosition().getX() - other.getPosition().getX();
                 float zDistance = entity.getPosition().getZ() - other.getPosition().getZ();
-                float f = MathUtils.absMax(xDistance, zDistance);
+                float largestDistance = MathUtils.absMax(xDistance, zDistance);
 
                 Vector3f pushVelocity = Vector3f.from(xDistance, 0, zDistance);
-                if (f >= 0.01f) {
-                    f = (float) GenericMath.sqrt(f);
-                    float g = Math.min(1 / f, 1);
+                if (largestDistance >= 0.01F) {
+                    largestDistance = (float) GenericMath.sqrt(largestDistance);
+                    pushVelocity = pushVelocity.div(largestDistance);
+                    float d3 = Math.min(1 / largestDistance, 1);
 
-                    pushVelocity = pushVelocity.div(f);
-                    pushVelocity = pushVelocity.mul(g);
+                    pushVelocity = pushVelocity.mul(d3);
                     pushVelocity = pushVelocity.mul(0.05F);
 
                     // The push motion should be relative to the current motion, we don't want player to fly by sending y vel 0.
                     entity.setMotion(entity.getMotion().add(pushVelocity));
-
-                    SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-                    motionPacket.setRuntimeEntityId(entity.getGeyserId());
-                    motionPacket.setMotion(entity.getMotion());
-                    session.sendUpstreamPacket(motionPacket);
+                    affectedByPushMotion = true;
                 }
+            }
+
+            if (affectedByPushMotion) {
+                SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                motionPacket.setRuntimeEntityId(entity.getGeyserId());
+                motionPacket.setMotion(entity.getMotion());
+                session.sendUpstreamPacket(motionPacket);
             }
         }
     }
