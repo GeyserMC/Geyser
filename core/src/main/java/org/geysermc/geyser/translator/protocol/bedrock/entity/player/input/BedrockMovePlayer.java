@@ -267,6 +267,8 @@ final class BedrockMovePlayer {
                 SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                 motionPacket.setRuntimeEntityId(entity.getGeyserId());
                 motionPacket.setMotion(entity.getMotion());
+                // This is really important, or else player going to have weird motion without this tick id.
+                motionPacket.setTick(packet.getTick());
                 session.sendUpstreamPacket(motionPacket);
             }
         }
