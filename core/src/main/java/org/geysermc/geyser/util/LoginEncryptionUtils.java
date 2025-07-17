@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
+import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
+import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
@@ -58,14 +60,14 @@ public class LoginEncryptionUtils {
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
-        encryptConnectionWithCert(session, loginPacket.getExtra(), loginPacket.getChain());
+        encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, String clientData, List<String> certChainData) {
+    private static void encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt) {
         try {
             GeyserImpl geyser = session.getGeyser();
 
-            ChainValidationResult result = EncryptionUtils.validateChain(certChainData);
+            ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
 
@@ -75,19 +77,25 @@ public class LoginEncryptionUtils {
             }
 
             IdentityData extraData = result.identityClaims().extraData;
-            session.setAuthenticationData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
-            session.setCertChainData(certChainData);
+            // TODO!!! identity won't persist
+            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
+            if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
+                session.setCertChainData(certificateChainPayload.getChain());
+            } else {
+                GeyserImpl.getInstance().getLogger().warning("Received new auth payload!");
+                session.setCertChainData(List.of());
+            }
 
             PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
 
-            byte[] clientDataPayload = EncryptionUtils.verifyClientData(clientData, identityPublicKey);
+            byte[] clientDataPayload = EncryptionUtils.verifyClientData(jwt, identityPublicKey);
             if (clientDataPayload == null) {
                 throw new IllegalStateException("Client data isn't signed by the given chain data");
             }
 
             JsonNode clientDataJson = JSON_MAPPER.readTree(clientDataPayload);
             BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
-            data.setOriginalString(clientData);
+            data.setOriginalString(jwt);
             session.setClientData(data);
 
             try {

@@ -32,8 +32,10 @@ provided("io.netty", "netty-buffer")
 provided("io.netty", "netty-resolver")
 provided("io.netty", "netty-transport")
 provided("io.netty", "netty-codec")
+provided("io.netty", "netty-codec-base")
 provided("io.netty", "netty-resolver-dns")
 provided("io.netty", "netty-resolver-dns-native-macos")
+provided("io.netty", "netty-resolver-dns-classes-macos")
 provided("org.ow2.asm", "asm")
 
 // cloud-fabric/cloud-neoforge jij's all cloud depends already
@@ -103,10 +105,10 @@ afterEvaluate {
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
         if (!providedDependencies.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
             and !providedDependencies.contains("${dep.moduleVersion.id.group}:.*")) {
-            //println("Including dependency via JiJ: ${dep.id}")
+            println("Including dependency via JiJ: ${dep.id}")
             dependencies.add("include", dep.moduleVersion.id.toString())
         } else {
-            //println("Not including ${dep.id} for ${project.name}!")
+            println("Not including ${dep.id} for ${project.name}!")
         }
     }
 }

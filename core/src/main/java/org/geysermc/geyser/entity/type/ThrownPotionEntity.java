@@ -31,10 +31,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -73,7 +72,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = Registries.JAVA_ITEMS.get().get(itemStack.getId()) == Items.LINGERING_POTION;
+                boolean isLingering = definition.entityType() == EntityType.LINGERING_POTION;
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

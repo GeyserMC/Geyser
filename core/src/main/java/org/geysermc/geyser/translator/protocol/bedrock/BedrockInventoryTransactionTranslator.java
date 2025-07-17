@@ -33,6 +33,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
@@ -54,6 +55,7 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
 import org.geysermc.geyser.item.type.Item;
@@ -62,13 +64,13 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
 import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.FakeHeadProvider;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -78,15 +80,14 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.SoundUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -132,7 +133,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             PlayerInventory inventory = session.getPlayerInventory();
                             int hotbarSlot = inventory.getOffsetForHotbar(containerAction.getSlot());
                             Click clickType = dropAll ? Click.DROP_ALL : Click.DROP_ONE;
-                            Int2ObjectMap<ItemStack> changedItem;
+                            Int2ObjectMap<HashedStack> changedItem;
                             if (dropAll) {
                                 inventory.setItem(hotbarSlot, GeyserItemStack.EMPTY, session);
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, null);
@@ -142,11 +143,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 itemStack.sub(1);
-                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
-                                    inventory.getCursor().getItemStack(), changedItem);
+                                    DataComponentHashers.hashStack(session, inventory.getCursor().getItemStack()), changedItem);
                             session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }
@@ -279,8 +280,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Block place checks end - client is good to go
                          */
 
+                        BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
+
+                        // Buttons on Java Edition cannot be interacted with when they are powered
+                        if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
+                            return;
+                        }
+
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
-                            BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
                             if (blockState.is(Blocks.WATER) && blockState.getValue(Properties.LEVEL) == 0) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
                                 useItem(session, packet, blockState.javaId());
@@ -304,7 +311,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
-                            BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (item instanceof BoatItem || item == Items.LILY_PAD || item == Items.FROGSPAWN) {
                                 useItem(session, packet, blockState.javaId());
@@ -357,7 +363,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     }
                     case 1 -> {
                         if (isIncorrectHeldItem(session, packet)) {
-                            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+                            session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
                         }
 
@@ -383,11 +389,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (session.getPlayerInventory().getItemInHand().asItem() == Items.GOAT_HORN) {
                                 // Temporary workaround while we don't have full item/block use tracking.
                                 if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
-                                    Holder<Instrument> holder = session.getPlayerInventory()
+                                    InstrumentComponent component = session.getPlayerInventory()
                                         .getItemInHand()
                                         .getComponent(DataComponentTypes.INSTRUMENT);
-                                    if (holder != null) {
-                                        GeyserInstrument instrument = GeyserInstrument.fromHolder(session, holder);
+                                    if (component != null) {
+                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
                                         if (instrument.bedrockInstrument() != null) {
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
@@ -441,6 +447,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
+                    session.getPlayerEntity().setFlag(EntityFlag.USING_ITEM, false);
                     session.releaseItem();
                     session.getBundleCache().markRelease();
                 }
@@ -454,6 +461,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 switch (packet.getActionType()) {
                     case 0 -> processEntityInteraction(session, packet, entity); // Interact
                     case 1 -> { // Attack
+                        if (session.isHandsBusy()) {
+                            // See Minecraft#startAttack and LocalPlayer#isHandsBusy
+                            return;
+                        }
+
                         int entityId;
                         if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
@@ -569,7 +581,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         session.sendUpstreamPacket(updateWaterPacket);
 
         // Reset the item in hand to prevent "missing" blocks
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getHeldItemSlot()); // TODO test
+        session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getHeldItemSlot()); // TODO test
     }
 
     private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
@@ -588,9 +600,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
         // Update the player's inventory to remove any items added by the client itself
-        Inventory playerInventory = session.getPlayerInventory();
+        PlayerInventory playerInventory = session.getPlayerInventory();
         int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, heldItemSlot);
+        session.getPlayerInventoryHolder().updateSlot(heldItemSlot);
         GeyserItemStack itemStack = playerInventory.getItem(heldItemSlot);
         if (itemStack.getAmount() > 1) {
             if (itemStack.asItem() == Items.BUCKET || itemStack.asItem() == Items.GLASS_BOTTLE) {
@@ -603,7 +615,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         slot = playerInventory.getOffsetForHotbar(slot);
                     }
                     if (playerInventory.getItem(slot).isEmpty()) {
-                        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, slot);
+                        session.getPlayerInventoryHolder().updateSlot(slot);
                         break;
                     }
                 }

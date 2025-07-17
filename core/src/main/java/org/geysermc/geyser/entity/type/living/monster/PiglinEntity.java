@@ -42,7 +42,6 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.UUID;
 
@@ -71,9 +70,9 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     @Override
-    public void setHand(ItemStack stack) {
+    public void setHand(GeyserItemStack stack) {
         ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
-        boolean toCrossbow = stack != null && stack.getId() == crossbow.getJavaItem().javaId();
+        boolean toCrossbow = stack != null && stack.asItem() == crossbow.getJavaItem();
 
         if (toCrossbow ^ this.hand.getDefinition() == crossbow.getBedrockDefinition()) { // If switching to/from crossbow
             dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));

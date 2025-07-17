@@ -5,19 +5,18 @@ cumulus = "1.1.2"
 erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
-fastutil = "8.5.2"
-netty = "4.1.107.Final"
-netty-io-uring = "0.0.25.Final-SNAPSHOT"
+fastutil = "8.5.15-SNAPSHOT"
+netty = "4.2.1.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta6-20250212.131009-3"
-protocol-common = "3.0.0.Beta6-20250212.131009-3"
-protocol-codec = "3.0.0.Beta6-20250212.131009-3"
+protocol-connection = "3.0.0.Beta7-20250705.103024-11"
+protocol-common = "3.0.0.Beta7-20250705.103024-11"
+protocol-codec = "3.0.0.Beta7-20250705.103024-11"
 raknet = "1.0.0.CR3-20250218.160705-18"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.4-20250218.175633-22"
-adventure = "4.14.0"
+mcprotocollib = "1.21.7-20250712.190650-3"
+adventure = "4.21.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
 checkerframework = "3.19.0"
@@ -28,29 +27,29 @@ folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
 adapters = "1.16-SNAPSHOT"
 cloud = "2.0.0-rc.2"
-cloud-minecraft = "2.0.0-beta.9"
-cloud-minecraft-modded = "2.0.0-beta.10"
+cloud-minecraft = "2.0.0-beta.11"
+cloud-minecraft-modded = "2.0.0-beta.12"
 commodore = "2.2"
 bungeecord = "1.21-R0.1-20250215.224541-54"
-velocity = "3.3.0-SNAPSHOT"
+velocity = "3.4.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
-fabric-loader = "0.16.9"
-fabric-api = "0.109.1+1.21.4"
-fabric-permissions-api = "0.3.3"
-neoforge-minecraft = "21.4.0-beta"
+fabric-loader = "0.16.14"
+fabric-api = "0.128.1+1.21.7"
+fabric-permissions-api = "0.4.0-SNAPSHOT"
+neoforge-minecraft = "21.7.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.4"
+minecraft = "1.21.7"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.4"
+runpaperversion = "1.21.7"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "3.1.3"
 shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.9-SNAPSHOT"
+architectury-loom = "1.10-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
 blossom = "2.1.0"
@@ -75,12 +74,14 @@ jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-datab
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
 jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
 
-fastutil-int-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-int-maps", version.ref = "fastutil" }
-fastutil-int-long-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-long-maps", version.ref = "fastutil" }
-fastutil-int-byte-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-byte-maps", version.ref = "fastutil" }
-fastutil-int-boolean-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-boolean-maps", version.ref = "fastutil" }
-fastutil-object-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-int-maps", version.ref = "fastutil" }
-fastutil-object-object-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-object-maps", version.ref = "fastutil" }
+fastutil-int-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-int-maps", version.ref = "fastutil" }
+fastutil-int-long-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-long-maps", version.ref = "fastutil" }
+fastutil-int-byte-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-byte-maps", version.ref = "fastutil" }
+fastutil-int-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-boolean-maps", version.ref = "fastutil" }
+fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
+fastutil-object-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-object-maps", version.ref = "fastutil" }
+fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
+fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
 
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
@@ -93,11 +94,13 @@ netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", versio
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
-netty-transport-native-io_uring = { group = "io.netty.incubator", name = "netty-incubator-transport-native-io_uring", version.ref = "netty-io-uring" }
+netty-transport-native-io_uring = { group = "io.netty", name = "netty-transport-native-io_uring", version.ref = "netty" }
 
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
+log4j-iostreams = { group = "org.apache.logging.log4j", name = "log4j-iostreams", version.ref = "log4j" }
+log4j-jul = { group = "org.apache.logging.log4j", name = "log4j-jul", version.ref = "log4j" }
 
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
@@ -164,9 +167,9 @@ runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
 runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
-jackson = ["jackson-annotations", "jackson-databind", "jackson-dataformat-yaml"]
-fastutil = ["fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps"]
-adventure = ["adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain"]
-log4j = ["log4j-api", "log4j-core", "log4j-slf4j2-impl"]
-jline = ["jline-terminal", "jline-terminal-jna", "jline-reader"]
-protocol = ["protocol-common", "protocol-codec", "protocol-connection"]
+jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps" ]
+adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
+log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
+jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
+protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]

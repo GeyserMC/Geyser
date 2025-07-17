@@ -45,6 +45,7 @@ import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
@@ -79,12 +80,17 @@ public class AbstractHorseEntity extends AnimalEntity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
+    @Override
+    public void updateSaddled(boolean saddled) {
+        // Shows the jump meter
+        setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
+        super.updateSaddled(saddled);
+    }
+
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         boolean tamed = (xd & 0x02) == 0x02;
-        boolean saddled = (xd & 0x04) == 0x04;
         setFlag(EntityFlag.TAMED, tamed);
-        setFlag(EntityFlag.SADDLED, saddled);
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -114,9 +120,6 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         // Set container type if tamed
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
-
-        // Shows the jump meter
-        setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
     }
 
     @Override
@@ -282,6 +285,15 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else {
             // The client tests for saddle but it doesn't matter for us at this point.
             return InteractionResult.SUCCESS;
+        }
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        if (slot != EquipmentSlot.SADDLE) {
+            return super.canUseSlot(slot);
+        } else {
+            return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
         }
     }
 }

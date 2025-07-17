@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -81,6 +82,7 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -181,7 +183,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     /**
      * Determines if we're currently reloading. Replaces per-bootstrap reload checks
      */
-    private volatile boolean isReloading;
+    @Setter
+    private boolean isReloading;
 
     /**
      * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
@@ -225,6 +228,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     public void initialize() {
+        // Setup encryption early so we don't start if we can't auth
+        EncryptionUtils.getMojangPublicKey();
+
         long startupTime = System.currentTimeMillis();
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
@@ -485,6 +491,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
+            metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
+            metrics.addCustomChart(new Metrics.SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.getBedrock().isEnableProxyProtocol())));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {
@@ -681,9 +689,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(skinUploader, BedrockSkinUploader::close);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
-        if (Registries.RESOURCE_PACKS.loaded()) {
-            Registries.RESOURCE_PACKS.get().clear();
-        }
+        ResourcePackLoader.clear();
 
         this.setEnabled(false);
     }

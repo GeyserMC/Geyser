@@ -84,7 +84,8 @@ public enum PaintingType {
     PASSAGE("passage", 4, 2),
     POND("pond", 3, 4),
     SUNFLOWERS("sunflowers", 3, 3),
-    TIDES("tides", 3, 3);
+    TIDES("tides", 3, 3),
+    DENNIS("dennis", 3, 3);
 
     private static final PaintingType[] VALUES = values();
     private final String bedrockName;
@@ -93,11 +94,11 @@ public enum PaintingType {
 
     public static PaintingType getByName(Key key) {
         if (!key.namespace().equals("minecraft")) {
-            return null;
+            return KEBAB;
         }
         for (PaintingType paintingName : VALUES) {
             if (paintingName.name().toLowerCase(Locale.ROOT).equals(key.value())) return paintingName;
         }
-        return null;
+        return KEBAB; // We use kebab as default. Yummy!
     }
 }

@@ -37,7 +37,6 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.MinecartStep;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveMinecartPacket;
@@ -65,17 +64,14 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
+        // Optional block state -> "0" is air, aka none
+        // Sets whether the custom block should be enabled
+        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() != 0 ? 1 : 0));
         dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }
 
     public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, entityMetadata.getPrimitiveValue());
-    }
-
-    public void setShowCustomBlock(BooleanEntityMetadata entityMetadata) {
-        // If the custom block should be enabled
-        // Needs a byte based off of Java's boolean
-        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
     @Override

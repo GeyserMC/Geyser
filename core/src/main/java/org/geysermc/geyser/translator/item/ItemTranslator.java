@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
@@ -43,8 +44,10 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -80,6 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public final class ItemTranslator {
 
@@ -165,37 +169,51 @@ public final class ItemTranslator {
                 .build();
     }
 
+    @NonNull
+    public static ItemData translateToBedrock(GeyserSession session, @NonNull GeyserItemStack stack) {
+        if (stack.isEmpty()) {
+            return ItemData.AIR;
+        }
+
+        ItemMapping bedrockItem = session.getItemMappings().getMapping(stack.getJavaId());
+        if (bedrockItem == ItemMapping.AIR) {
+            session.getGeyser().getLogger().debug("ItemMapping returned air: " + stack);
+            return ItemData.AIR;
+        }
+
+        return translateToBedrock(session, stack.asItem(), bedrockItem, stack.getAmount(), stack.getComponents())
+                .build();
+    }
+
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents customComponents) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
         DataComponents components = javaItem.gatherComponents(customComponents);
+        TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
-        javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
+        javaItem.translateComponentsToBedrock(session, components, tooltip, nbtBuilder);
 
-        Rarity rarity = Rarity.fromId(components.get(DataComponentTypes.RARITY));
+        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-            // Make custom effect information visible
-            // Ignore when item have "hide_additional_tooltip" component
-            if (potionContents != null && components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) == null) {
-                customName += getPotionEffectInfo(potionContents, session.locale());
+            // Make custom effect information visible when shown in tooltip
+            if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
+                customName += getPotionEffectInfo(potionContents, session.locale()); // TODO should this be done with lore instead?
             }
 
             nbtBuilder.setCustomName(customName);
         }
 
-        boolean hideTooltips = components.get(DataComponentTypes.HIDE_TOOLTIP) != null;
-
         ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
+        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {
             // only add if attribute modifiers do not indicate to hide them
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
-        if (session.isAdvancedTooltips() && !hideTooltips) {
+        if (session.isAdvancedTooltips() && !TooltipOptions.hideTooltip(components)) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
@@ -251,9 +269,9 @@ public final class ItemTranslator {
         Map<ItemAttributeModifiers.EquipmentSlotGroup, List<String>> slotsToModifiers = new HashMap<>();
         for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), language);
+            String loreEntry = attributeToLore(session, entry.getAttribute(), entry.getModifier(), entry.getDisplay(), language);
             if (loreEntry == null) {
-                continue; // invalid or failed
+                continue; // invalid, failed, or hidden
             }
 
             slotsToModifiers.computeIfAbsent(entry.getSlot(), s -> new ArrayList<>()).add(loreEntry);
@@ -282,7 +300,16 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(GeyserSession session, int attribute, ItemAttributeModifiers.AttributeModifier modifier, String language) {
+    private static String attributeToLore(GeyserSession session, int attribute, ItemAttributeModifiers.AttributeModifier modifier,
+                                          ItemAttributeModifiers.Display display, String language) {
+        if (display.getType() == ItemAttributeModifiers.DisplayType.HIDDEN) {
+            return null;
+        } else if (display.getType() == ItemAttributeModifiers.DisplayType.OVERRIDE) {
+            return MessageTranslator.convertMessage(Objects.requireNonNull(display.getComponent())
+                .colorIfAbsent(NamedTextColor.WHITE)
+                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE), language);
+        }
+
         double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
@@ -320,7 +347,7 @@ public final class ItemTranslator {
         Component attributeComponent = Component.text()
                 .resetStyle()
                 .color(baseModifier ? NamedTextColor.DARK_GREEN : amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
-                .append(Component.text(" " + operationTotal + " "), Component.translatable("attribute.name." + name))
+                .append(Component.text(operationTotal + " "), Component.translatable("attribute.name." + name))
                 .build();
 
         return MessageTranslator.convertMessage(attributeComponent, language);
@@ -388,7 +415,7 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean hideAdditionalTooltip, String language) {
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
         String customPotionName = contents.getCustomName();
         Potion potion = Potion.getByJavaId(contents.getPotionId());
 
@@ -398,22 +425,10 @@ public final class ItemTranslator {
                 Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
                 language);
         }
-        if (!hideAdditionalTooltip && !contents.getCustomEffects().isEmpty()) {
+        if (!contents.getCustomEffects().isEmpty()) {
             // Make a name when has custom effects
-            String potionName;
-            if (potion != null) {
-                potionName = potion.toString().toLowerCase(Locale.ROOT);
-                if (potionName.startsWith("strong_")) {
-                    potionName = potionName.substring(6);
-                } else if (potionName.startsWith("long_")) {
-                    potionName = potionName.substring(4);
-                }
-            } else {
-                potionName = "empty";
-            }
-            return MessageTranslator.convertMessage(
-                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName),
-                language);
+            String potionName = potion == null ? "empty" : potion.toString().toLowerCase(Locale.ROOT);
+            return MessageTranslator.convertMessage(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName), language);
         }
         return null;
     }
@@ -535,21 +550,31 @@ public final class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping, char translationColor, boolean customNameOnly, boolean includeAll) {
+    public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping,
+                                       char translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
+            // If the tooltip is hidden entirely, return an empty custom name
+            if (TooltipOptions.hideTooltip(components)) {
+                return ""; // TODO test this
+            }
+
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
+
             if (!customNameOnly) {
-                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-                if (potionContents != null) {
-                    String potionName = getPotionName(potionContents, mapping, components.get(DataComponentTypes.HIDE_ADDITIONAL_TOOLTIP) != null, session.locale());
-                    if (potionName != null) {
-                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                if (mapping.getJavaItem() instanceof PotionItem) {
+                    PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
+                    if (potionContents != null) {
+                        String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
+                        if (potionName != null) {
+                            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                        }
                     }
                 }
+
                 if (includeAll) {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
@@ -557,6 +582,7 @@ public final class ItemTranslator {
                         return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();
                     }
                 }
+
                 customName = components.get(DataComponentTypes.ITEM_NAME);
                 if (customName != null) {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition

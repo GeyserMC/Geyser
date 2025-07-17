@@ -68,7 +68,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
         }
 
         String addedData;
-        // The provider is always present, also when Floodgate is not used
+        // The provider is always present, even when Floodgate is not used
         FloodgateProvider provider = geyser.getFloodgateProvider();
         try {
             addedData = provider.onClientIntention(session);

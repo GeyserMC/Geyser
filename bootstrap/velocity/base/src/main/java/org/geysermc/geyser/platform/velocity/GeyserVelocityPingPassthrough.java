@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.HandshakeIntent;
 import com.velocitypowered.api.network.ProtocolState;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
@@ -33,7 +34,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -60,7 +61,7 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
             throw new RuntimeException(e);
         }
         return new GeyserPingInfo(
-                LegacyComponentSerializer.legacy('§').serialize(event.getPing().getDescriptionComponent()),
+                GsonComponentSerializer.gson().serialize(event.getPing().getDescriptionComponent()),
                 event.getPing().getPlayers().map(ServerPing.Players::getMax).orElse(1),
                 event.getPing().getPlayers().map(ServerPing.Players::getOnline).orElse(0)
         );
@@ -85,6 +86,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         }
 
         @Override
+        public Optional<String> getRawVirtualHost() {
+            return Optional.empty();
+        }
+
+        @Override
         public boolean isActive() {
             return false;
         }
@@ -97,6 +103,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         @Override
         public ProtocolState getProtocolState() {
             return ProtocolState.STATUS;
+        }
+
+        @Override
+        public HandshakeIntent getHandshakeIntent() {
+            return HandshakeIntent.STATUS;
         }
     }
 

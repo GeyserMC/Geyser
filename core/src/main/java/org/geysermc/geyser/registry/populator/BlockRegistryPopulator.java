@@ -42,9 +42,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
-import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
-import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
+import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
+import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -57,6 +57,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.populator.conversion.Conversion800_786;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
@@ -116,42 +117,10 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), Conversion766_748::remapBlock)
-                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), tag -> tag) // TODO: Finish me
-                .put(ObjectIntPair.of("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()), tag -> {
-                    final String name = tag.getString("name");
-                    if (name.equals("minecraft:creaking_heart") && tag.getCompound("states").containsKey("active")) {
-                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
-                        builder.remove("active");
-                        builder.putString("creaking_heart_state", "awake");
-                        NbtMap states = builder.build();
-                        return tag.toBuilder().putCompound("states", states).build();
-                    }
-                    if ((name.endsWith("_door") || name.endsWith("fence_gate")) && tag.getCompound("states").containsKey("direction")) {
-                        NbtMapBuilder builder = tag.getCompound("states").toBuilder();
-                        Integer directionCardinality = (Integer) builder.remove("direction");
-                        switch (directionCardinality) {
-                            case 0:
-                                builder.putString("minecraft:cardinal_direction", "south");
-                                break;
-                            case 1:
-                                builder.putString("minecraft:cardinal_direction", "west");
-                                break;
-                            case 2:
-                                builder.putString( "minecraft:cardinal_direction" , "north");
-                                break;
-                            case 3:
-                                builder.putString("minecraft:cardinal_direction", "east");
-                                break;
-                            default:
-                                throw new AssertionError("Invalid direction: " + directionCardinality);
-                        }
-                        NbtMap states = builder.build();
-                        return tag.toBuilder().putCompound("states", states).build();
-                    }
-                    return tag;
-                })
-                .build();
+                .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), Conversion800_786::remapBlock)
+                .put(ObjectIntPair.of("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), tag -> tag)
+            .build();
 
         // We can keep this strong as nothing should be garbage collected
         // Safe to intern since Cloudburst NBT is immutable
@@ -452,7 +421,7 @@ public final class BlockRegistryPopulator {
             javaRuntimeId++;
             String javaId = javaBlockState.toString().intern();
 
-            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
         }
 
         BLOCKS_NBT = blocksNbt;
@@ -472,7 +441,7 @@ public final class BlockRegistryPopulator {
     private static BitSet toBlockStateSet(ArrayNode node) {
         BitSet blockStateSet = new BitSet(node.size());
         for (JsonNode javaIdentifier : node) {
-            blockStateSet.set(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
+            blockStateSet.set(BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
         }
         return blockStateSet;
     }

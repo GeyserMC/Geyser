@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.ScoreComponent;
@@ -41,10 +39,12 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
@@ -55,6 +55,11 @@ import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -72,6 +77,7 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
+    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {
         // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
@@ -192,20 +198,47 @@ public class MessageTranslator {
                 lastFormatReset = next == 'r';
             }
 
-            return finalLegacy.toString();
+            String finalLegacyString = finalLegacy.toString();
+
+            // Remove duplicate resets and trailing resets
+            finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
+            if (finalLegacyString.endsWith(RESET)) {
+                finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
+            }
+
+            // If the message contains \n then go through and re-set the color after each by caching the last color
+            // Bedrock is dumb and resets the color after a newline
+            if (finalLegacyString.contains("\n")) {
+                StringBuilder output = new StringBuilder();
+
+                StringBuilder lastColors = new StringBuilder();
+                for (int i = 0; i < finalLegacyString.length(); i++) {
+                    char c = finalLegacyString.charAt(i);
+
+                    output.append(c);
+
+                    if (c == ChatColor.ESCAPE) {
+                        char newColor = finalLegacyString.charAt(i + 1);
+                        if (newColor == 'r') {
+                            lastColors = new StringBuilder();
+                        } else {
+                            lastColors.append(ChatColor.ESCAPE).append(newColor);
+                        }
+                    } else if (c == '\n' && !lastColors.isEmpty()) {
+                        output.append(lastColors);
+                    }
+                }
+
+                return output.toString();
+            } else {
+                return finalLegacyString;
+            }
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
 
             return "";
         }
-    }
-
-    /**
-     * Convenience method for locale getting.
-     */
-    public static String convertJsonMessage(GeyserSession session, String message) {
-        return convertJsonMessage(message, session.locale());
     }
 
     public static String convertJsonMessage(String message, String locale) {
@@ -335,16 +368,30 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender, @Nullable UUID senderUuid) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
+
+        if (senderUuid == null) {
+            textPacket.setXuid(session.getAuthData().xuid());
+        } else {
+            String xuid = "";
+            GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(senderUuid);
+
+            // Prefer looking up xuid using the session to catch linked players
+            if (playerSession != null) {
+                xuid = playerSession.getAuthData().xuid();
+            } else if (senderUuid.version() == 0) {
+                xuid = Long.toString(senderUuid.getLeastSignificantBits());
+            }
+            textPacket.setXuid(xuid);
+        }
         textPacket.setType(TextPacket.Type.CHAT);
 
         textPacket.setNeedsTranslation(false);
 
-        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().chatTypes()::byId);
+        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages
@@ -443,8 +490,24 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
+    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return null;
+        }
+        return convertMessage(session, componentFromNbtTag(nbtTag));
+    }
+
     public static Component componentFromNbtTag(Object nbtTag) {
         return componentFromNbtTag(nbtTag, Style.empty());
+    }
+
+    public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
+        var components = componentsFromNbtList(nbtTag, Style.empty());
+        List<String> messages = new ArrayList<>();
+        for (Component component : components) {
+            messages.add(convertMessageRaw(component, session.locale()));
+        }
+        return messages;
     }
 
     private static Component componentFromNbtTag(Object nbtTag, Style style) {
@@ -454,13 +517,13 @@ public class MessageTranslator {
             return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
         } else if (nbtTag instanceof NbtMap map) {
             Component component = null;
-            String text = map.getString("text", null);
+            String text = map.getString("text", map.getString("", null));
             if (text != null) {
                 component = Component.text(text);
             } else {
                 String translateKey = map.getString("translate", null);
                 if (translateKey != null) {
-                    String fallback = map.getString("fallback", "");
+                    String fallback = map.getString("fallback", null);
                     List<Component> args = new ArrayList<>();
 
                     Object with = map.get("with");

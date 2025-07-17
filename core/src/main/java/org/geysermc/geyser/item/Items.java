@@ -270,9 +270,13 @@ public final class Items {
     public static final Item COBWEB = register(new BlockItem(builder(), Blocks.COBWEB));
     public static final Item SHORT_GRASS = register(new BlockItem(builder(), Blocks.SHORT_GRASS));
     public static final Item FERN = register(new BlockItem(builder(), Blocks.FERN));
+    public static final Item BUSH = register(new BlockItem(builder(), Blocks.BUSH));
     public static final Item AZALEA = register(new BlockItem(builder(), Blocks.AZALEA));
     public static final Item FLOWERING_AZALEA = register(new BlockItem(builder(), Blocks.FLOWERING_AZALEA));
     public static final Item DEAD_BUSH = register(new BlockItem(builder(), Blocks.DEAD_BUSH));
+    public static final Item FIREFLY_BUSH = register(new BlockItem(builder(), Blocks.FIREFLY_BUSH));
+    public static final Item SHORT_DRY_GRASS = register(new BlockItem(builder(), Blocks.SHORT_DRY_GRASS));
+    public static final Item TALL_DRY_GRASS = register(new BlockItem(builder(), Blocks.TALL_DRY_GRASS));
     public static final Item SEAGRASS = register(new BlockItem(builder(), Blocks.SEAGRASS));
     public static final Item SEA_PICKLE = register(new BlockItem(builder(), Blocks.SEA_PICKLE));
     public static final Item WHITE_WOOL = register(new BlockItem(builder(), Blocks.WHITE_WOOL));
@@ -321,6 +325,8 @@ public final class Items {
     public static final Item SUGAR_CANE = register(new BlockItem(builder(), Blocks.SUGAR_CANE));
     public static final Item KELP = register(new BlockItem(builder(), Blocks.KELP));
     public static final Item PINK_PETALS = register(new BlockItem(builder(), Blocks.PINK_PETALS));
+    public static final Item WILDFLOWERS = register(new BlockItem(builder(), Blocks.WILDFLOWERS));
+    public static final Item LEAF_LITTER = register(new BlockItem(builder(), Blocks.LEAF_LITTER));
     public static final Item MOSS_CARPET = register(new BlockItem(builder(), Blocks.MOSS_CARPET));
     public static final Item MOSS_BLOCK = register(new BlockItem(builder(), Blocks.MOSS_BLOCK));
     public static final Item PALE_MOSS_CARPET = register(new BlockItem(builder(), Blocks.PALE_MOSS_CARPET));
@@ -389,6 +395,7 @@ public final class Items {
     public static final Item ICE = register(new BlockItem(builder(), Blocks.ICE));
     public static final Item SNOW_BLOCK = register(new BlockItem(builder(), Blocks.SNOW_BLOCK));
     public static final Item CACTUS = register(new BlockItem(builder(), Blocks.CACTUS));
+    public static final Item CACTUS_FLOWER = register(new BlockItem(builder(), Blocks.CACTUS_FLOWER));
     public static final Item CLAY = register(new BlockItem(builder(), Blocks.CLAY));
     public static final Item JUKEBOX = register(new BlockItem(builder(), Blocks.JUKEBOX));
     public static final Item OAK_FENCE = register(new BlockItem(builder(), Blocks.OAK_FENCE));
@@ -678,6 +685,7 @@ public final class Items {
     public static final Item BLACK_CONCRETE_POWDER = register(new BlockItem(builder(), Blocks.BLACK_CONCRETE_POWDER));
     public static final Item TURTLE_EGG = register(new BlockItem(builder(), Blocks.TURTLE_EGG));
     public static final Item SNIFFER_EGG = register(new BlockItem(builder(), Blocks.SNIFFER_EGG));
+    public static final Item DRIED_GHAST = register(new BlockItem(builder(), Blocks.DRIED_GHAST));
     public static final Item DEAD_TUBE_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_TUBE_CORAL_BLOCK));
     public static final Item DEAD_BRAIN_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_BRAIN_CORAL_BLOCK));
     public static final Item DEAD_BUBBLE_CORAL_BLOCK = register(new BlockItem(builder(), Blocks.DEAD_BUBBLE_CORAL_BLOCK));
@@ -860,6 +868,22 @@ public final class Items {
     public static final Item RAIL = register(new BlockItem(builder(), Blocks.RAIL));
     public static final Item ACTIVATOR_RAIL = register(new BlockItem(builder(), Blocks.ACTIVATOR_RAIL));
     public static final Item SADDLE = register(new Item("saddle", builder()));
+    public static final Item WHITE_HARNESS = register(new Item("white_harness", builder()));
+    public static final Item ORANGE_HARNESS = register(new Item("orange_harness", builder()));
+    public static final Item MAGENTA_HARNESS = register(new Item("magenta_harness", builder()));
+    public static final Item LIGHT_BLUE_HARNESS = register(new Item("light_blue_harness", builder()));
+    public static final Item YELLOW_HARNESS = register(new Item("yellow_harness", builder()));
+    public static final Item LIME_HARNESS = register(new Item("lime_harness", builder()));
+    public static final Item PINK_HARNESS = register(new Item("pink_harness", builder()));
+    public static final Item GRAY_HARNESS = register(new Item("gray_harness", builder()));
+    public static final Item LIGHT_GRAY_HARNESS = register(new Item("light_gray_harness", builder()));
+    public static final Item CYAN_HARNESS = register(new Item("cyan_harness", builder()));
+    public static final Item PURPLE_HARNESS = register(new Item("purple_harness", builder()));
+    public static final Item BLUE_HARNESS = register(new Item("blue_harness", builder()));
+    public static final Item BROWN_HARNESS = register(new Item("brown_harness", builder()));
+    public static final Item GREEN_HARNESS = register(new Item("green_harness", builder()));
+    public static final Item RED_HARNESS = register(new Item("red_harness", builder()));
+    public static final Item BLACK_HARNESS = register(new Item("black_harness", builder()));
     public static final Item MINECART = register(new Item("minecart", builder()));
     public static final Item CHEST_MINECART = register(new Item("chest_minecart", builder()));
     public static final Item FURNACE_MINECART = register(new Item("furnace_minecart", builder()));
@@ -891,6 +915,8 @@ public final class Items {
     public static final Item BAMBOO_CHEST_RAFT = register(new BoatItem("bamboo_chest_raft", builder()));
     public static final Item STRUCTURE_BLOCK = register(new BlockItem(builder(), Blocks.STRUCTURE_BLOCK));
     public static final Item JIGSAW = register(new BlockItem(builder(), Blocks.JIGSAW));
+    public static final Item TEST_BLOCK = register(new BlockItem(builder(), Blocks.TEST_BLOCK));
+    public static final Item TEST_INSTANCE_BLOCK = register(new BlockItem(builder(), Blocks.TEST_INSTANCE_BLOCK));
     public static final Item TURTLE_HELMET = register(new ArmorItem("turtle_helmet", builder()));
     public static final Item TURTLE_SCUTE = register(new Item("turtle_scute", builder()));
     public static final Item ARMADILLO_SCUTE = register(new Item("armadillo_scute", builder()));
@@ -1027,6 +1053,8 @@ public final class Items {
     public static final Item BOOK = register(new Item("book", builder()));
     public static final Item SLIME_BALL = register(new Item("slime_ball", builder()));
     public static final Item EGG = register(new Item("egg", builder()));
+    public static final Item BLUE_EGG = register(new Item("blue_egg", builder()));
+    public static final Item BROWN_EGG = register(new Item("brown_egg", builder()));
     public static final Item COMPASS = register(new CompassItem("compass", builder()));
     public static final Item RECOVERY_COMPASS = register(new Item("recovery_compass", builder()));
     public static final Item BUNDLE = register(new Item("bundle", builder()));
@@ -1120,7 +1148,7 @@ public final class Items {
     public static final Item BLAZE_POWDER = register(new Item("blaze_powder", builder()));
     public static final Item MAGMA_CREAM = register(new Item("magma_cream", builder()));
     public static final Item BREWING_STAND = register(new BlockItem(builder(), Blocks.BREWING_STAND));
-    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.LAVA_CAULDRON, Blocks.WATER_CAULDRON));
+    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON));
     public static final Item ENDER_EYE = register(new Item("ender_eye", builder()));
     public static final Item GLISTERING_MELON_SLICE = register(new Item("glistering_melon_slice", builder()));
     public static final Item ARMADILLO_SPAWN_EGG = register(new SpawnEggItem("armadillo_spawn_egg", builder()));
@@ -1149,6 +1177,7 @@ public final class Items {
     public static final Item FOX_SPAWN_EGG = register(new SpawnEggItem("fox_spawn_egg", builder()));
     public static final Item FROG_SPAWN_EGG = register(new SpawnEggItem("frog_spawn_egg", builder()));
     public static final Item GHAST_SPAWN_EGG = register(new SpawnEggItem("ghast_spawn_egg", builder()));
+    public static final Item HAPPY_GHAST_SPAWN_EGG = register(new SpawnEggItem("happy_ghast_spawn_egg", builder()));
     public static final Item GLOW_SQUID_SPAWN_EGG = register(new SpawnEggItem("glow_squid_spawn_egg", builder()));
     public static final Item GOAT_SPAWN_EGG = register(new SpawnEggItem("goat_spawn_egg", builder()));
     public static final Item GUARDIAN_SPAWN_EGG = register(new SpawnEggItem("guardian_spawn_egg", builder()));
@@ -1210,7 +1239,7 @@ public final class Items {
     public static final Item WRITABLE_BOOK = register(new WritableBookItem("writable_book", builder()));
     public static final Item WRITTEN_BOOK = register(new WrittenBookItem("written_book", builder()));
     public static final Item BREEZE_ROD = register(new Item("breeze_rod", builder()));
-    public static final Item MACE = register(new Item("mace", builder()));
+    public static final Item MACE = register(new Item("mace", builder().attackDamage(6.0)));
     public static final Item ITEM_FRAME = register(new Item("item_frame", builder()));
     public static final Item GLOW_ITEM_FRAME = register(new Item("glow_item_frame", builder()));
     public static final Item FLOWER_POT = register(new BlockItem(builder(), Blocks.FLOWER_POT));
@@ -1293,6 +1322,7 @@ public final class Items {
     public static final Item MUSIC_DISC_CREATOR = register(new Item("music_disc_creator", builder()));
     public static final Item MUSIC_DISC_CREATOR_MUSIC_BOX = register(new Item("music_disc_creator_music_box", builder()));
     public static final Item MUSIC_DISC_FAR = register(new Item("music_disc_far", builder()));
+    public static final Item MUSIC_DISC_LAVA_CHICKEN = register(new Item("music_disc_lava_chicken", builder()));
     public static final Item MUSIC_DISC_MALL = register(new Item("music_disc_mall", builder()));
     public static final Item MUSIC_DISC_MELLOHI = register(new Item("music_disc_mellohi", builder()));
     public static final Item MUSIC_DISC_STAL = register(new Item("music_disc_stal", builder()));
@@ -1305,6 +1335,7 @@ public final class Items {
     public static final Item MUSIC_DISC_5 = register(new Item("music_disc_5", builder()));
     public static final Item MUSIC_DISC_PIGSTEP = register(new Item("music_disc_pigstep", builder()));
     public static final Item MUSIC_DISC_PRECIPICE = register(new Item("music_disc_precipice", builder()));
+    public static final Item MUSIC_DISC_TEARS = register(new Item("music_disc_tears", builder()));
     public static final Item DISC_FRAGMENT_5 = register(new Item("disc_fragment_5", builder()));
     public static final Item TRIDENT = register(new Item("trident", builder().attackDamage(9.0)));
     public static final Item NAUTILUS_SHELL = register(new Item("nautilus_shell", builder()));

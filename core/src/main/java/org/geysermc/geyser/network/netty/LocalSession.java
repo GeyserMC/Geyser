@@ -46,6 +46,7 @@ import org.geysermc.mcprotocollib.network.helper.NettyHelper;
 import org.geysermc.mcprotocollib.network.netty.MinecraftChannelInitializer;
 import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
 import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -62,7 +63,7 @@ public final class LocalSession extends ClientNetworkSession {
     private final SocketAddress spoofedRemoteAddress;
     private final GeyserSession session;
 
-    public LocalSession(@Nullable GeyserSession session, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, Executor packetHandlerExecutor) {
+    public LocalSession(@Nullable GeyserSession session, SocketAddress targetAddress, String clientIp, MinecraftProtocol protocol, Executor packetHandlerExecutor) {
         super(targetAddress, protocol, packetHandlerExecutor, null, null);
         this.spoofedRemoteAddress = new InetSocketAddress(clientIp, 0);
         this.session = session;

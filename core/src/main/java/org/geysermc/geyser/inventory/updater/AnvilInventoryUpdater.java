@@ -41,6 +41,7 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -59,7 +60,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private static final int MAX_LEVEL_COST = 40;
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
@@ -81,7 +82,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
@@ -150,7 +151,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return 0;
     }
 
-    private void updateTargetSlot(InventoryTranslator translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
+    private void updateTargetSlot(InventoryTranslator<?> translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
@@ -374,7 +375,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
-                Enchantment enchantment = session.getRegistryCache().enchantments().byId(entry.getKey());
+                Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
                 if (enchantment == null) {
                     GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
                     continue;

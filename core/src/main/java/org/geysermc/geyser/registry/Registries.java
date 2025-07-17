@@ -31,13 +31,14 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
@@ -98,8 +99,14 @@ public final class Registries {
 
     /**
      * A registry holding a NbtMap of all the known biomes.
+     * Remove once 1.21.80 is lowest supported version - replaced by {@link Registries#BIOMES}
      */
     public static final SimpleDeferredRegistry<NbtMap> BIOMES_NBT = SimpleDeferredRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
+
+    /**
+     * A registry holding biome data for all known biomes.
+     */
+    public static final SimpleDeferredRegistry<BiomeDefinitions> BIOMES = SimpleDeferredRegistry.create("bedrock/stripped_biome_definitions.json", RegistryLoaders.BIOME_LOADER);
 
     /**
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
@@ -166,9 +173,9 @@ public final class Registries {
     //public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
+     * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<UUID, ResourcePack> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
@@ -200,12 +207,12 @@ public final class Registries {
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();
+        BIOMES.load();
         BIOME_IDENTIFIERS.load();
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later
         //RECIPES.load();
-        RESOURCE_PACKS.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();

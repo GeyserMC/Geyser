@@ -36,6 +36,8 @@ import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
+import io.netty.buffer.AdaptiveByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -96,7 +98,10 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
+        // TODO remove when this isn't an issue anymore
+        boolean adaptiveAllocatorUsed = System.getProperty("io.netty.allocator.type") == null && ByteBufAllocator.DEFAULT instanceof AdaptiveByteBufAllocator;
+
+        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion()) || adaptiveAllocatorUsed) {
             geyserLogger.error("      / \\");
             geyserLogger.error("     /   \\");
             geyserLogger.error("    /  |  \\");

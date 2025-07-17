@@ -28,10 +28,12 @@ package org.geysermc.geyser.command;
 import io.leangen.geantyref.GenericTypeReflector;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.exception.ArgumentParseException;
 import org.incendo.cloud.exception.CommandExecutionException;
 import org.incendo.cloud.exception.InvalidCommandSenderException;
@@ -71,36 +73,51 @@ final class ExceptionHandlers {
         controller.clearHandlers();
 
         registerExceptionHandler(InvalidSyntaxException.class,
-            (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax()));
+            (ctx, e) -> ctx.sender().sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax()));
 
-        registerExceptionHandler(InvalidCommandSenderException.class, (src, e) -> {
+        registerExceptionHandler(InvalidCommandSenderException.class, (ctx, e) -> {
             // We currently don't use cloud sender type requirements anywhere.
             // This can be implemented better in the future if necessary.
             Type type = e.requiredSenderTypes().iterator().next(); // just grab the first
             String typeString = GenericTypeReflector.getTypeName(type);
-            src.sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), typeString);
+            ctx.sender().sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), typeString);
         });
 
         registerExceptionHandler(NoPermissionException.class, ExceptionHandlers::handleNoPermission);
 
         registerExceptionHandler(NoSuchCommandException.class,
-            (src, e) -> src.sendLocaleString("geyser.command.not_found"));
+            (ctx, e) -> {
+                // Let backend server receive & handle the command
+                if (CommandRegistry.STANDALONE_COMMAND_MANAGER && ctx.sender() instanceof GeyserSession session) {
+                    session.sendCommandPacket(ctx.rawInput().input());
+                } else {
+                    ctx.sender().sendLocaleString("geyser.command.not_found");
+                }
+            });
 
         registerExceptionHandler(ArgumentParseException.class,
-            (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage()));
+            (ctx, e) -> ctx.sender().sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage()));
 
         registerExceptionHandler(CommandExecutionException.class,
-            (src, e) -> handleUnexpectedThrowable(src, e.getCause()));
+            (ctx, e) -> handleUnexpectedThrowable(ctx.sender(), e.getCause()));
 
         registerExceptionHandler(Throwable.class,
-            (src, e) -> handleUnexpectedThrowable(src, e.getCause()));
+            (ctx, e) -> handleUnexpectedThrowable(ctx.sender(), e.getCause()));
     }
 
-    private <E extends Throwable> void registerExceptionHandler(Class<E> type, BiConsumer<GeyserCommandSource, E> handler) {
-        controller.registerHandler(type, context -> handler.accept(context.context().sender(), context.exception()));
+    private <E extends Throwable> void registerExceptionHandler(Class<E> type, BiConsumer<CommandContext<GeyserCommandSource>, E> handler) {
+        controller.registerHandler(type, context -> handler.accept(context.context(), context.exception()));
     }
 
-    private static void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
+    private static void handleNoPermission(CommandContext<GeyserCommandSource> context, NoPermissionException exception) {
+        GeyserCommandSource source = context.sender();
+
+        // Let backend server receive & handle the command
+        if (CommandRegistry.STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
+            session.sendCommandPacket(context.rawInput().input());
+            return;
+        }
+
         // custom handling if the source can't use the command because of additional requirements
         if (exception.permissionResult() instanceof GeyserPermission.Result result) {
             if (result.meta() == GeyserPermission.Result.Meta.NOT_BEDROCK) {

@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -39,15 +38,19 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -55,60 +58,21 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
-    /**
-     * A map of Bedrock patterns to Java index. Used to request for a specific banner pattern.
-     */
-    private static final Object2IntMap<String> PATTERN_TO_INDEX = new Object2IntOpenHashMap<>();
+public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
 
-    static {
-        // Added from left-to-right then up-to-down in the order Java presents it
-        int index = 0;
-        PATTERN_TO_INDEX.put("bl", index++);
-        PATTERN_TO_INDEX.put("br", index++);
-        PATTERN_TO_INDEX.put("tl", index++);
-        PATTERN_TO_INDEX.put("tr", index++);
-        PATTERN_TO_INDEX.put("bs", index++);
-        PATTERN_TO_INDEX.put("ts", index++);
-        PATTERN_TO_INDEX.put("ls", index++);
-        PATTERN_TO_INDEX.put("rs", index++);
-        PATTERN_TO_INDEX.put("cs", index++);
-        PATTERN_TO_INDEX.put("ms", index++);
-        PATTERN_TO_INDEX.put("drs", index++);
-        PATTERN_TO_INDEX.put("dls", index++);
-        PATTERN_TO_INDEX.put("ss", index++);
-        PATTERN_TO_INDEX.put("cr", index++);
-        PATTERN_TO_INDEX.put("sc", index++);
-        PATTERN_TO_INDEX.put("bt", index++);
-        PATTERN_TO_INDEX.put("tt", index++);
-        PATTERN_TO_INDEX.put("bts", index++);
-        PATTERN_TO_INDEX.put("tts", index++);
-        PATTERN_TO_INDEX.put("ld", index++);
-        PATTERN_TO_INDEX.put("rd", index++);
-        PATTERN_TO_INDEX.put("lud", index++);
-        PATTERN_TO_INDEX.put("rud", index++);
-        PATTERN_TO_INDEX.put("mc", index++);
-        PATTERN_TO_INDEX.put("mr", index++);
-        PATTERN_TO_INDEX.put("vh", index++);
-        PATTERN_TO_INDEX.put("hh", index++);
-        PATTERN_TO_INDEX.put("vhr", index++);
-        PATTERN_TO_INDEX.put("hhb", index++);
-        PATTERN_TO_INDEX.put("bo", index++);
-        PATTERN_TO_INDEX.put("gra", index++);
-        PATTERN_TO_INDEX.put("gru", index);
-    }
+    private static final Tag<BannerPattern> NO_ITEMS_REQUIRED = new Tag<>(JavaRegistries.BANNER_PATTERN, Key.key("no_item_required"));
 
     public LoomInventoryTranslator() {
         super(4, Blocks.LOOM, ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Container container, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         if (javaDestinationSlot != 1) {
             return false;
         }
-        GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
+        GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : container.getItem(javaSourceSlot);
         if (itemStack.isEmpty()) {
             return false;
         }
@@ -118,13 +82,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Container container) {
         // If the LOOM_MATERIAL slot is empty, we are crafting a pattern that does not come from an item
-        return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
+        return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && container.getItem(2).isEmpty();
     }
 
     @Override
-    public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateSpecialRequest(GeyserSession session, Container container, ItemStackRequest request) {
         ItemStackRequestAction headerData = request.getActions()[0];
         ItemStackRequestAction data = request.getActions()[1];
         if (!(headerData instanceof CraftLoomAction)) {
@@ -136,8 +100,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
         String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
-        // Get the Java index of this pattern
-        int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);
+        BannerPattern requestedPattern = BannerPattern.getByBedrockIdentifier(bedrockPattern);
+        if (requestedPattern == null) {
+            GeyserImpl.getInstance().getLogger().warning("Unknown Bedrock pattern id: " + bedrockPattern);
+            return rejectRequest(request);
+        }
+
+        int index = session.getTagCache().get(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
         if (index == -1) {
             return rejectRequest(request);
         }
@@ -150,10 +119,10 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         // Java's formula: 4 * row + col
         // And the Java loom window has a fixed row/width of four
         // So... Number / 4 = row (so we don't have to bother there), and number % 4 is our column, which leads us back to our index. :)
-        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), index);
+        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), index);
         session.sendDownstreamGamePacket(packet);
 
-        GeyserItemStack inputCopy = inventory.getItem(0).copy(1);
+        GeyserItemStack inputCopy = container.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
         BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
         if (bannerPatternLayer != null) {
@@ -163,9 +132,9 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
 
         // Set the new item as the output
-        inventory.setItem(3, inputCopy, session);
+        container.setItem(3, inputCopy, session);
 
-        return translateRequest(session, inventory, request);
+        return translateRequest(session, container, request);
     }
 
     @Override
@@ -180,13 +149,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.LOOM_INPUT, 9);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.LOOM_DYE, 10);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.LOOM_MATERIAL, 11);
             case 3 -> new BedrockContainerSlot(ContainerSlotType.LOOM_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -210,7 +179,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public @Nullable ContainerType closeContainerType(Inventory inventory) {
+    public @Nullable ContainerType closeContainerType(Container container) {
         return null;
     }
 }

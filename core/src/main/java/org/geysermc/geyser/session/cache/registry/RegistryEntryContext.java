@@ -41,8 +41,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
  */
 public record RegistryEntryContext(RegistryEntry entry, Object2IntMap<Key> keyIdMap, GeyserSession session) {
 
+    // TODO: not a fan of this. With JavaRegistryKey#key now being a thing, I'd rather have that always used, so that registry readers won't have to worry
+    // about using the right method. This would require pre-populating all data-driven registries with default (probably null) values before actually decoding the data from the registy packet.
+    // This could also be helpful in the feature when a data-driven registry reader needs to use an element from another data-driven registry
     public int getNetworkId(Key registryKey) {
-        return keyIdMap.getOrDefault(registryKey, 0);
+        return keyIdMap.getOrDefault(registryKey, -1);
     }
 
     public Key id() {

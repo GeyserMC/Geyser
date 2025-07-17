@@ -51,7 +51,7 @@ import java.util.Map;
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
- * Only tags from suitable registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
+ * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
@@ -62,7 +62,7 @@ public final class TagCache {
         this.session = session;
     }
 
-    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 
@@ -70,8 +70,8 @@ public final class TagCache {
 
         for (Key registryKey : allTags.keySet()) {
             JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
-            if (registry == null || !registry.shouldStoreTags()) {
-                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries, or was not suitable to load tags)");
+            if (registry == null) {
+                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
                 continue;
             }
 
@@ -110,7 +110,7 @@ public final class TagCache {
     }
 
     public <T> boolean is(Tag<T> tag, T object) {
-        return contains(getRaw(tag), tag.registry().toNetworkId(session, object));
+        return contains(getRaw(tag), tag.registry().networkId(session, object));
     }
 
     /**
@@ -127,7 +127,7 @@ public final class TagCache {
         if (holderSet == null || object == null) {
             return false;
         }
-        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
+        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
     }
 
     /**
@@ -173,7 +173,7 @@ public final class TagCache {
      * Maps a raw array of network IDs to their respective objects.
      */
     public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
-        return Arrays.stream(array).mapToObj(i -> registry.fromNetworkId(session, i)).toList();
+        return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
     }
 
     private static boolean contains(int[] array, int i) {

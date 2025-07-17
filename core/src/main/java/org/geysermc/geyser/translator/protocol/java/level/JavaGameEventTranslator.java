@@ -59,23 +59,23 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             // However, it seems most server software (at least Spigot and Paper) did not go along with this
             // As a result many developers use these packets for the opposite of what their names implies
             // Behavior last verified with Java 1.19.4 and Bedrock 1.19.71
-            case START_RAIN:
+            case START_RAINING:
                 session.updateRain(0);
                 break;
-            case STOP_RAIN:
+            case STOP_RAINING:
                 session.updateRain(1);
                 break;
-            case RAIN_STRENGTH:
+            case RAIN_LEVEL_CHANGE:
                 // This is the rain strength on LevelEventType.START_RAINING, but can be any value on LevelEventType.STOP_RAINING
                 float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
                 session.updateRain(rainStrength);
                 break;
-            case THUNDER_STRENGTH:
+            case THUNDER_LEVEL_CHANGE:
                 // See above, same process
                 float thunderStrength = ((ThunderStrengthValue) packet.getValue()).getStrength();
                 session.updateThunder(thunderStrength);
                 break;
-            case CHANGE_GAMEMODE:
+            case CHANGE_GAME_MODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
@@ -100,7 +100,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());
                 break;
-            case ENTER_CREDITS:
+            case WIN_GAME:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
                         ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
@@ -114,7 +114,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     }
                 }
                 break;
-            case AFFECTED_BY_ELDER_GUARDIAN:
+            case GUARDIAN_ELDER_EFFECT:
                 // note: There is a ElderGuardianEffectValue that determines if a sound should be made or not,
                 // but that doesn't seem to be controllable on Bedrock Edition
                 EntityEventPacket eventPacket = new EntityEventPacket();
@@ -123,18 +123,18 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 eventPacket.setRuntimeEntityId(entity.getGeyserId());
                 session.sendUpstreamPacket(eventPacket);
                 break;
-            case ENABLE_RESPAWN_SCREEN:
+            case IMMEDIATE_RESPAWN:
                 GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
                 gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn",
                         packet.getValue() == RespawnScreenValue.IMMEDIATE_RESPAWN));
                 session.sendUpstreamPacket(gamerulePacket);
                 break;
-            case INVALID_BED:
+            case NO_RESPAWN_BLOCK_AVAILABLE:
                 // Not sent as a proper message? Odd.
                 session.sendMessage(MinecraftLocale.getLocaleString("block.minecraft.spawn.not_valid",
                         session.locale()));
                 break;
-            case ARROW_HIT_PLAYER:
+            case PLAY_ARROW_HIT_SOUND:
                 PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();
                 arrowSoundPacket.setSound("random.orb");
                 arrowSoundPacket.setPitch(0.5f);
@@ -143,9 +143,9 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:
-                // DEMO_MESSAGE             - for JE game demo
+                // DEMO_EVENT               - for JE game demo
                 // LEVEL_CHUNKS_LOAD_START  - ???
-                // PUFFERFISH_STING_SOUND   - doesn't exist on bedrock
+                // PUFFER_FISH_STING        - doesn't exist on bedrock
                 break;
         }
     }

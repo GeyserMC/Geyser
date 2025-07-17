@@ -35,7 +35,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 
 import java.util.UUID;
@@ -54,9 +54,10 @@ public class AreaEffectCloudEntity extends Entity {
 
         // This disabled client side shrink of the cloud
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 3.0f);
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
+        //noinspection deprecation - still needed for these to show up
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
@@ -72,7 +73,7 @@ public class AreaEffectCloudEntity extends Entity {
         Registries.PARTICLES.map(particle.getType(), p -> p.levelEventType() instanceof ParticleType particleType ? particleType : null).ifPresent(type ->
                 dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type));
 
-        if (particle.getData() instanceof EntityEffectParticleData effectParticleData) {
+        if (particle.getData() instanceof ColorParticleData effectParticleData) {
             dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, effectParticleData.getColor());
         }
     }
