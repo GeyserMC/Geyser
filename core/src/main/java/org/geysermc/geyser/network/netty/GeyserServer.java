@@ -219,7 +219,10 @@ public final class GeyserServer {
         playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
 
-        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
+        int rakPacketLimit = positivePropOrDefault(
+            "Geyser.RakPacketLimit",
+            this.geyser.getConfig().getBedrock().isEnableProxyProtocol() ? 0 : DEFAULT_PACKET_LIMIT
+        );
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
 
         int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
