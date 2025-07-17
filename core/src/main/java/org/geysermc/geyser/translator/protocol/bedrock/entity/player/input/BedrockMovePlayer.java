@@ -227,7 +227,7 @@ final class BedrockMovePlayer {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
 
-        // If player is inside a vehicle or the player itself CAN'T be push then don't push them.
+        // If the player is riding a vehicle or if the player itself cannot be pushed, then don't push.
         if (entity.getVehicle() == null && entity.isPushable(session)) {
             // TODO: Is looping through every entities a good idea?
             for (Entity other : session.getEntityCache().getEntities().values()) {
