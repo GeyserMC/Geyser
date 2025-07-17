@@ -644,12 +644,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long worldTicks;
 
     /**
-     * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
-     */
-    @Setter
-    private ScheduledFuture<?> lookBackScheduledFuture = null;
-
-    /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
      */
     @Setter

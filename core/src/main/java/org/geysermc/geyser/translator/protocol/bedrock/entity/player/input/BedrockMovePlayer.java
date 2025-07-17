@@ -83,13 +83,6 @@ final class BedrockMovePlayer {
         boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
-        if (session.getLookBackScheduledFuture() != null) {
-            // Resend the rotation if it was changed by Geyser
-            rotationChanged |= !session.getLookBackScheduledFuture().isDone();
-            session.getLookBackScheduledFuture().cancel(false);
-            session.setLookBackScheduledFuture(null);
-        }
-
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
