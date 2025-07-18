@@ -1313,6 +1313,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setGliding(boolean gliding) {
+        if (gliding != playerEntity.getFlag(EntityFlag.GLIDING)) {
+            // Locking jump input when player start gliding so that player won't be able to stop gliding midair.
+            UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
+            packet.setLockComponentData(gliding ? 64 : 0); // 64 is corresponding to jump input.
+            packet.setServerPosition(playerEntity.getPosition());
+            this.sendUpstreamPacket(packet);
+        }
+
         switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
     }
 
