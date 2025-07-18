@@ -1391,9 +1391,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setCanFly(boolean canFly) {
         this.canFly = canFly;
 
-        // We need to ensure the jump input is locked after player switch can fly status.
-        if (!canFly && !this.jumpInputLocked && playerEntity.getFlag(EntityFlag.GLIDING)) {
-            setJumpLocks(true);
+        // We need to ensure the jump input is locked/unlocked after player switch can fly status.
+        if (playerEntity.getFlag(EntityFlag.GLIDING)) {
+            setJumpLocks(!canFly);
         }
     }
 
@@ -1409,6 +1409,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void setJumpLocks(boolean lock) {
+        if (this.jumpInputLocked == lock) {
+            return;
+        }
+
         // Locking jump input when player start gliding so that player won't be able to stop gliding midair.
         UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
         packet.setLockComponentData(lock ? 64 : 0); // 64 is corresponding to jump input.
