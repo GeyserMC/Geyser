@@ -541,6 +541,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean isUsingExperimentalMinecartLogic = false;
 
     /**
+     * Whether the jump input is locked on the player side or not.
+     */
+    private boolean jumpInputLocked;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */
@@ -1313,12 +1318,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setGliding(boolean gliding) {
-        if (gliding != playerEntity.getFlag(EntityFlag.GLIDING)) {
-            // Locking jump input when player start gliding so that player won't be able to stop gliding midair.
-            UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
-            packet.setLockComponentData(gliding ? 64 : 0); // 64 is corresponding to jump input.
-            packet.setServerPosition(playerEntity.getPosition());
-            this.sendUpstreamPacket(packet);
+        // Only locks the input if the gliding status actually changes and player can't fly or the jump input is currently locked.
+        if (gliding != playerEntity.getFlag(EntityFlag.GLIDING) && (!this.canFly || this.jumpInputLocked && !gliding)) {
+            setJumpLocks(gliding);
         }
 
         switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
@@ -1386,6 +1388,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
     }
 
+    public void setCanFly(boolean canFly) {
+        this.canFly = canFly;
+
+        // We need to ensure the jump input is locked after player switch can fly status.
+        if (!canFly && !this.jumpInputLocked && playerEntity.getFlag(EntityFlag.GLIDING)) {
+            setJumpLocks(true);
+        }
+    }
+
     public void setGameMode(GameMode newGamemode) {
         boolean currentlySpectator = this.gameMode == GameMode.SPECTATOR;
         this.gameMode = newGamemode;
@@ -1395,6 +1406,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setClientData(BedrockClientData data) {
         this.clientData = data;
         this.inputCache.setInputMode(org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
+    private void setJumpLocks(boolean lock) {
+        // Locking jump input when player start gliding so that player won't be able to stop gliding midair.
+        UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
+        packet.setLockComponentData(lock ? 64 : 0); // 64 is corresponding to jump input.
+        packet.setServerPosition(playerEntity.getPosition());
+        this.sendUpstreamPacket(packet);
+
+        this.jumpInputLocked = lock;
     }
 
     /**
