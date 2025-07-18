@@ -33,6 +33,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -47,7 +48,7 @@ import java.util.UUID;
 public class ThrowableEggEntity extends ThrowableItemEntity {
 
     // Used for egg break particles
-    private GeyserItemStack itemStack;
+    private GeyserItemStack itemStack = GeyserItemStack.of(Items.EGG.javaId(), 1);
 
     public ThrowableEggEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);

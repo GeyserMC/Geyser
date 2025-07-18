@@ -110,6 +110,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     private Vector3f lastTickEndVelocity = Vector3f.ZERO;
 
     /**
+     * The client claimed interact rotation, intended for touch (pocket) user.
+     */
+    @Getter @Setter
+    private Vector2f bedrockInteractRotation = Vector2f.ZERO;
+
+    /**
      * Determines if our position is currently out-of-sync with the Java server
      * due to our workaround for the void floor
      * <p>
@@ -122,6 +128,14 @@ public class SessionPlayerEntity extends PlayerEntity {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
 
         valid = true;
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+
+        // This allows player to be slowly push towards the closet space when stuck inside block instead of instantly moved out.
+        setFlag(EntityFlag.PUSH_TOWARDS_CLOSEST_SPACE, true);
     }
 
     @Override
