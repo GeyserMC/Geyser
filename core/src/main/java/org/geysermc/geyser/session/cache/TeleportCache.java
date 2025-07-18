@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.cloudburstmc.math.vector.Vector3d;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.math.vector.Vector3f;
 
 /**
  * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
@@ -42,24 +42,40 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class TeleportCache {
 
-    private static final double ERROR_X_AND_Z = 0.1;
-    private static final double ERROR_Y = 0.1;
+    private static final float ERROR_X_AND_Z = 0.1f;
+    private static final float ERROR_Y = 0.1f;
 
     /**
      * How many move packets the teleport can be unconfirmed for before it gets resent to the client
      */
     private static final int RESEND_THRESHOLD = 20; // Make it one full second with auth input
 
-    private final double x, y, z;
+    private final Vector3f position;
+    private final Vector3f velocity;
     private final float pitch, yaw;
     private final int teleportConfirmId;
+    private final TeleportType teleportType;
 
     private int unconfirmedFor = 0;
 
-    public boolean canConfirm(Vector3d position) {
-        return (Math.abs(this.x - position.getX()) < ERROR_X_AND_Z &&
-                Math.abs(this.y - position.getY()) < ERROR_Y &&
-                Math.abs(this.z - position.getZ()) < ERROR_X_AND_Z);
+    public boolean canConfirm(Vector3f position, Vector3f motion) {
+        final float distanceX = Math.abs(this.position.getX() - position.getX());
+        final float distanceY = Math.abs(this.position.getY() - position.getY());
+        final float distanceZ = Math.abs(this.position.getZ() - position.getZ());
+
+        float maxErrorX = ERROR_X_AND_Z;
+        float maxErrorZ = ERROR_X_AND_Z;
+        float maxErrorY = ERROR_Y;
+
+        if (teleportType == TeleportType.KEEP_VELOCITY) {
+            // This is a bit hacky yes, would be nice if player tell us if they accept the teleport or not when keep velocity.
+            // TODO: Maybe workaround this by using NetworkStackLatency?
+            maxErrorX += Math.max(Math.abs(motion.getX()), Math.max(Math.abs(velocity.getX()), Math.abs(motion.getX() - velocity.getX())));
+            maxErrorY += Math.max(Math.abs(motion.getY()), Math.max(Math.abs(velocity.getY()), Math.abs(motion.getY() - velocity.getY())));
+            maxErrorZ += Math.max(Math.abs(motion.getZ()), Math.max(Math.abs(velocity.getZ()), Math.abs(motion.getZ() - velocity.getZ())));
+        }
+
+        return distanceX < maxErrorX && distanceY < maxErrorY && distanceZ < maxErrorZ;
     }
 
     public void incrementUnconfirmedFor() {
@@ -72,5 +88,9 @@ public class TeleportCache {
 
     public boolean shouldResend() {
         return unconfirmedFor >= RESEND_THRESHOLD;
+    }
+
+    public enum TeleportType {
+        NORMAL, KEEP_VELOCITY;
     }
 }

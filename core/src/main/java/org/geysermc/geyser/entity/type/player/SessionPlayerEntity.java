@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -460,13 +461,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
 
         this.setPositionManual(newPosition);
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(newPosition);
-        movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-        session.sendUpstreamPacketImmediately(movePlayerPacket);
+
+        // Use input locks to keep motion (look at JavaPlayerPositionTranslator for more detailed explanation).
+        UpdateClientInputLocksPacket inputLocksPacket = new UpdateClientInputLocksPacket();
+        inputLocksPacket.setLockComponentData(0); // Don't actually lock anything.
+        inputLocksPacket.setServerPosition(newPosition);
+        session.sendUpstreamPacket(inputLocksPacket);
     }
 
     /**

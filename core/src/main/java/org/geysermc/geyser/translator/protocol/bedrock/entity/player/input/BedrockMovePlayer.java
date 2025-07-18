@@ -55,11 +55,11 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0), packet.getDelta());
             return;
         }
 
-        boolean actualPositionChanged = !entity.getPosition().equals(packet.getPosition());
+        boolean actualPositionChanged = entity.getPosition().distanceSquared(packet.getPosition()) > 4e-8;
 
         if (actualPositionChanged) {
             // Send book update before the player moves

@@ -1783,12 +1783,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return itemNetId.getAndIncrement();
     }
 
-    public void confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3f position, Vector3f motion) {
         if (unconfirmedTeleport == null) {
             return;
         }
 
-        if (unconfirmedTeleport.canConfirm(position)) {
+        if (unconfirmedTeleport.canConfirm(position, motion)) {
             unconfirmedTeleport = null;
             return;
         }
@@ -1798,7 +1798,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (unconfirmedTeleport.shouldResend()) {
             unconfirmedTeleport.resetUnconfirmedFor();
             geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
-            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
+            getPlayerEntity().moveAbsolute(unconfirmedTeleport.getPosition(),
                 unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
         }
     }
