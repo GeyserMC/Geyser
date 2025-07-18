@@ -25,15 +25,22 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -108,6 +115,7 @@ final class BedrockMovePlayer {
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
@@ -217,6 +225,52 @@ final class BedrockMovePlayer {
         }
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+        }
+
+        // If the player is riding a vehicle or if the player itself cannot be pushed, then don't push.
+        if (entity.getVehicle() == null && entity.isPushable(session)) {
+            boolean affectedByPushMotion = false;
+            for (Entity other : session.getEntityCache().getEntities().values()) {
+                if (other == entity)  {
+                    continue;
+                }
+
+                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
+                entityBoundingBox.translate(other.position().toDouble());
+
+                // If this entity can't collide with the player or isn't near the player or is the player itself, continue.
+                if (!entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox()) || !other.isPushable(session)) {
+                    continue;
+                }
+
+                // 1.21.7 entity pushing logic.
+                float xDistance = entity.getPosition().getX() - other.getPosition().getX();
+                float zDistance = entity.getPosition().getZ() - other.getPosition().getZ();
+                float largestDistance = MathUtils.absMax(xDistance, zDistance);
+
+                Vector3f pushVelocity = Vector3f.from(xDistance, 0, zDistance);
+                if (largestDistance >= 0.01F) {
+                    largestDistance = (float) GenericMath.sqrt(largestDistance);
+                    pushVelocity = pushVelocity.div(largestDistance);
+                    float d3 = Math.min(1 / largestDistance, 1);
+
+                    pushVelocity = pushVelocity.mul(d3);
+                    pushVelocity = pushVelocity.mul(0.05F);
+
+                    // The push motion should be relative to the current motion, we don't want player to fly by sending y vel 0.
+                    entity.setMotion(entity.getMotion().add(pushVelocity));
+                    affectedByPushMotion = true;
+                }
+            }
+
+            if (affectedByPushMotion) {
+                SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                motionPacket.setRuntimeEntityId(entity.getGeyserId());
+                motionPacket.setMotion(entity.getMotion());
+                // This is really important, or else player going to have weird motion without this tick id.
+                motionPacket.setTick(packet.getTick());
+                session.sendUpstreamPacket(motionPacket);
+            }
         }
     }
 

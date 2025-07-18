@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -68,9 +69,12 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         SoundUtils.playSound(session, packet.getExplosionSound(), vector, 4.0f, pitch);
 
         if (packet.getPlayerKnockback() != null) {
+            SessionPlayerEntity entity = session.getPlayerEntity();
+            entity.setMotion(entity.getMotion().add(packet.getPlayerKnockback().toFloat()));
+
             SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-            motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-            motionPacket.setMotion(packet.getPlayerKnockback().toFloat());
+            motionPacket.setRuntimeEntityId(entity.getGeyserId());
+            motionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(motionPacket);
         }
     }

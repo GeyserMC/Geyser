@@ -125,6 +125,14 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+
+        // This allows player to be slowly push towards the closet space when stuck inside block instead of instantly moved out.
+        setFlag(EntityFlag.PUSH_TOWARDS_CLOSEST_SPACE, true);
+    }
+
+    @Override
     protected void setClientSideSilent() {
         // Do nothing, since we want the session player to hear their own footstep sounds for example.
     }
@@ -468,25 +476,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         return velocity + 0.1F * session.getEffectCache().getJumpPower();
     }
 
+    @Override
     public boolean isOnClimbableBlock() {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
-        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
-            return true;
-        }
-
-        if (state.block() instanceof TrapDoorBlock) {
-            if (!state.getValue(Properties.OPEN)) {
-                return false;
-            } else {
-                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, pos.down());
-                return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
-            }
-        }
-        return false;
+        return super.isOnClimbableBlock();
     }
 
     public boolean canStartGliding() {
