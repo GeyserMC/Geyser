@@ -70,9 +70,9 @@ public class TeleportCache {
         if (teleportType == TeleportType.KEEP_VELOCITY) {
             // This is a bit hacky yes, would be nice if player tell us if they accept the teleport or not when keep velocity.
             // TODO: Maybe workaround this by using NetworkStackLatency?
-            maxErrorX += Math.max(Math.abs(motion.getX()), Math.max(Math.abs(velocity.getX()), Math.abs(motion.getX() - velocity.getX())));
-            maxErrorY += Math.max(Math.abs(motion.getY()), Math.max(Math.abs(velocity.getY()), Math.abs(motion.getY() - velocity.getY())));
-            maxErrorZ += Math.max(Math.abs(motion.getZ()), Math.max(Math.abs(velocity.getZ()), Math.abs(motion.getZ() - velocity.getZ())));
+            maxErrorX += Math.abs(motion.getX()) + Math.abs(velocity.getX());
+            maxErrorY += Math.abs(motion.getY()) + Math.abs(velocity.getY());
+            maxErrorZ += Math.abs(motion.getZ()) + Math.abs(velocity.getZ());
         }
 
         return distanceX < maxErrorX && distanceY < maxErrorY && distanceZ < maxErrorZ;
