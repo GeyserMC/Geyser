@@ -48,7 +48,6 @@ import java.util.Collection;
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
 public final class CustomItemTranslator {
-    private static final Key FALLBACK_MODEL = MinecraftKey.key("air");
 
     @Nullable
     public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
@@ -61,7 +60,10 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        Key itemModel = components.getOrDefault(DataComponentTypes.ITEM_MODEL, FALLBACK_MODEL);
+        Key itemModel = components.get(DataComponentTypes.ITEM_MODEL);
+        if (itemModel == null) {
+            return null;
+        }
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
         if (customItems.isEmpty()) {
             return null;
@@ -79,11 +81,16 @@ public final class CustomItemTranslator {
 
             for (MinecraftPredicate<? super ItemPredicateContext> predicate : customMapping.definition().predicates()) {
                 boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicate.test(context));
-                if (!value) {
+                if (value) {
+                    if (needsOnlyOneMatch) {
+                        return customMapping.itemDefinition();
+                    }
+                } else {
                     allMatch = false;
-                    break;
-                } else if (needsOnlyOneMatch) {
-                    break;
+                    // If we need everything to match, that is no longer possible, so break
+                    if (!needsOnlyOneMatch) {
+                        break;
+                    }
                 }
             }
             if (allMatch) {

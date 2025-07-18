@@ -514,7 +514,7 @@ public class ItemRegistryPopulator {
                     for (CustomItemDefinition customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        Identifier customItemIdentifier = customItem.bedrockIdentifier(); // TODO don't forget to check if this works for non vanilla too, it probably does
+                        Identifier customItemIdentifier = customItem.bedrockIdentifier();
                         if (!registeredCustomItems.add(customItemIdentifier)) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Custom item '" + customItemIdentifier + "' already exists and was registered again! Skipping...");
