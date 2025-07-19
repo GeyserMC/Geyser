@@ -52,6 +52,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -293,6 +294,23 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             return null;
         }
         return bedPosition;
+    }
+
+    @Override
+    public boolean isPushable(GeyserSession session) {
+        boolean canCollide = super.isPushable(session);
+        if (this instanceof SessionPlayerEntity) { // This is the session player, don't check for team collision rule.
+            return canCollide;
+        }
+
+        Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
+        if (team == null) return true;
+        return switch (team.collisionRule()) {
+            case NEVER -> false;
+            case PUSH_OWN_TEAM -> canCollide && team.hasEntity(session.getPlayerEntity().getUsername());
+            case PUSH_OTHER_TEAMS -> canCollide && !team.hasEntity(session.getPlayerEntity().getUsername());
+            default -> canCollide;
+        };
     }
 
     public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {

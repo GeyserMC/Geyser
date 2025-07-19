@@ -125,6 +125,12 @@ public class ItemEntity extends ThrowableEntity {
     }
 
     @Override
+    public Vector3f position() {
+        float offset = definition.offset();
+        return this.position.down(waterLevel.join() == 0 ? -offset : offset);
+    }
+
+    @Override
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY) && !isOnGround() && !isInWater()) {
             // Gravity can change if the item is in water/lava, but
