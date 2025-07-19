@@ -627,6 +627,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private boolean flying = false;
 
+    private boolean noClip = false;
+
     @Setter
     private boolean instabuild = false;
 
@@ -1369,6 +1371,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         playerEntity.updateBedrockMetadata();
     }
 
+    public void setNoClip(boolean noClip) {
+        if (this.noClip == noClip) {
+            return;
+        }
+
+        this.noClip = noClip;
+        this.sendAdventureSettings();
+    }
+
     public void setFlying(boolean flying) {
         this.flying = flying;
 
@@ -1943,7 +1954,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();
-
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
@@ -1989,6 +1999,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (gameMode == GameMode.CREATIVE) {
             // Needed so the client doesn't attempt to take away items
             abilities.add(Ability.INSTABUILD);
+        }
+
+        if (noClip) {
+            abilities.add(Ability.NO_CLIP);
         }
 
         if (commandPermission == CommandPermission.GAME_DIRECTORS) {
