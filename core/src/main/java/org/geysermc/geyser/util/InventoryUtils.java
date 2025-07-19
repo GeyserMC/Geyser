@@ -151,6 +151,11 @@ public class InventoryUtils {
                 NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
                 latencyPacket.setFromServer(true);
                 latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
+                holder.session().getLatencyPingCache().add(() -> {
+                    if (holder.session().getPendingOrCurrentBedrockInventoryId() != -1) {
+                        InventoryUtils.openPendingInventory(holder.session());
+                    }
+                });
                 holder.session().sendUpstreamPacket(latencyPacket);
 
                 GeyserImpl.getInstance().getLogger().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
