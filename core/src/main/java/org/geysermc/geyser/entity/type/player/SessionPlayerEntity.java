@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -199,6 +200,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
 
         session.sendUpstreamPacket(movePlayerPacket);
+
+        // We're just setting rotation, player shouldn't lose motion, send motion packet to account for that.
+        SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+        entityMotionPacket.setRuntimeEntityId(geyserId);
+        entityMotionPacket.setMotion(motion);
+        session.sendUpstreamPacket(entityMotionPacket);
     }
 
     /**
