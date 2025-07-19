@@ -320,7 +320,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
                                     return;
                                 }
-                                useItem(session, packet, blockState.javaId(), false);
+                                useItem(session, packet, blockState.javaId(), true);
                             } else if (session.getItemMappings().getBuckets().contains(definition)) {
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (definition != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockDefinition()) {
