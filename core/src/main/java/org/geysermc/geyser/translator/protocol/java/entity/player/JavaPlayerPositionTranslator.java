@@ -121,13 +121,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         Vector3f teleportDestination = position.toFloat();
 
         Vector3f deltaMovement = packet.getDeltaMovement().toFloat().add(
-            packet.getRelatives().contains(PositionElement.DELTA_X) ? entity.getLastTickEndVelocity().getX() : 0,
-            packet.getRelatives().contains(PositionElement.DELTA_Y) ? entity.getLastTickEndVelocity().getY() : 0,
-            packet.getRelatives().contains(PositionElement.DELTA_Z) ? entity.getLastTickEndVelocity().getZ() : 0
+            packet.getRelatives().contains(PositionElement.DELTA_X) ? entity.getMotion().getX() : 0,
+            packet.getRelatives().contains(PositionElement.DELTA_Y) ? entity.getMotion().getY() : 0,
+            packet.getRelatives().contains(PositionElement.DELTA_Z) ? entity.getMotion().getZ() : 0
         );
-
-        entity.setPosition(teleportDestination);
-        entity.setOnGround(false);
 
         TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
         if (deltaMovement.distanceSquared(Vector3f.ZERO) <= 1.0E-8F) { // Do normal teleport if the delta movement is just 0.
@@ -137,7 +134,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             entity.setMotion(deltaMovement);
 
-            // Our motion got reset by the head rotation, fix that.
+            // Our motion got reset by the teleport but there deltaMovement is not 0 so send a motion packet to fix that.
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
             entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
             entityMotionPacket.setMotion(entity.getMotion());

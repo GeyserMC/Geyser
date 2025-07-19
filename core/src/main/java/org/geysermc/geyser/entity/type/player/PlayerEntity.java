@@ -207,7 +207,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
 
         if (teleported) {
-            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         }
 
         session.sendUpstreamPacket(movePlayerPacket);
@@ -235,14 +235,13 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
             if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
-                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
             }
         }
         session.sendUpstreamPacket(movePlayerPacket);
