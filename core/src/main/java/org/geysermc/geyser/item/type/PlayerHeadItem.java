@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
@@ -40,6 +42,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 public class PlayerHeadItem extends BlockItem {
     public PlayerHeadItem(Builder builder, Block block, Block... otherBlocks) {
         super(builder, block, otherBlocks);
+    }
+
+    @Override
+    public Component getName(GeyserItemStack stack) {
+        GameProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
+        return profile != null && profile.getName() != null
+            ? Component.translatable(translationKey() + ".named", profile.getName())
+            : super.getName(stack);
     }
 
     @Override
