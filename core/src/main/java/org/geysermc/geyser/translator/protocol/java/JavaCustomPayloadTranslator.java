@@ -40,6 +40,13 @@ import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.java.ServerReceiveNetworkMessageEvent;
+import org.geysermc.geyser.api.network.MessageDirection;
+import org.geysermc.geyser.api.network.NetworkChannel;
+import org.geysermc.geyser.api.network.message.Message;
+import org.geysermc.geyser.api.network.message.MessageBuffer;
+import org.geysermc.geyser.network.GeyserNetworkManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -142,6 +149,20 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 toSend.setPayload(packetData);
 
                 session.sendUpstreamPacket(toSend);
+            });
+        } else {
+            session.ensureInEventLoop(() -> {
+                GeyserNetworkManager networkManager = session.getNetworkManager();
+                NetworkChannel networkChannel = NetworkChannel.of(packet.getChannel().namespace(), packet.getChannel().value());
+                if (!networkManager.getRegisteredChannels().contains(networkChannel)) {
+                    logger.debug("Received a custom payload for an unregistered channel: " + networkChannel.channel());
+                    return;
+                }
+
+                Message<MessageBuffer> message = networkManager.createMessage(networkChannel, packet.getData());
+
+                EventBus<?> eventBus = session.getGeyser().getEventBus();
+                eventBus.fire(new ServerReceiveNetworkMessageEvent(session, networkChannel, message, MessageDirection.CLIENTBOUND));
             });
         }
     }
