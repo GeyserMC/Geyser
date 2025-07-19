@@ -149,6 +149,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -1390,14 +1391,27 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     * Same as useItem but always default to useTouchRotation false.
      */
     public void useItem(Hand hand) {
+        useItem(hand, false);
+    }
+
+    /**
+     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     */
+    public void useItem(Hand hand, boolean useTouchRotation) {
         if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
             return;
         }
 
-        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), playerEntity.getBedrockInteractRotation().getY(), playerEntity.getBedrockInteractRotation().getX()));
+        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
+            yaw = playerEntity.getBedrockInteractRotation().getY();
+            pitch = playerEntity.getBedrockInteractRotation().getX();
+        }
+
+        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), yaw, pitch));
     }
 
     public void releaseItem() {
