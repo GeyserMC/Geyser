@@ -31,10 +31,8 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -128,31 +126,22 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             packet.getRelatives().contains(PositionElement.DELTA_Z) ? entity.getLastTickEndVelocity().getZ() : 0
         );
 
-        // Check if the delta movement isn't 0 and is not the same as the one player currently already has.
-        if (deltaMovement.distanceSquared(entity.getLastTickEndVelocity()) > 1.0E-6) {
+        entity.setPosition(teleportDestination);
+        entity.setOnGround(false);
+
+        TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
+        if (deltaMovement.distanceSquared(Vector3f.ZERO) <= 1.0E-8F) { // Do normal teleport if the delta movement is just 0.
+            entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+        } else {
+            entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+
             entity.setMotion(deltaMovement);
 
+            // Our motion got reset by the head rotation, fix that.
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
             entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
             entityMotionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(entityMotionPacket);
-        }
-
-        TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
-        if (deltaMovement.distanceSquared(Vector3f.ZERO) <= 1.0E-6F) { // Do normal teleport if the delta movement is just 0.
-            entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
-        } else {
-            entity.setPosition(teleportDestination);
-            entity.setYaw(newYaw);
-            entity.setHeadYaw(newYaw);
-            entity.setPitch(newPitch);
-            entity.setOnGround(false);
-
-            // Here comes the funny thing, we can use input locks packet to teleport player without affecting motion.
-            UpdateClientInputLocksPacket inputLocksPacket = new UpdateClientInputLocksPacket();
-            inputLocksPacket.setLockComponentData(0); // Don't actually lock anything.
-            inputLocksPacket.setServerPosition(entity.getPosition());
-            session.sendUpstreamPacket(inputLocksPacket);
 
             type = TeleportCache.TeleportType.KEEP_VELOCITY;
         }

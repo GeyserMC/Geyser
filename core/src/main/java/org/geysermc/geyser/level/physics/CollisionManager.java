@@ -34,7 +34,7 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -220,15 +220,12 @@ public class CollisionManager {
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
-        // Gravity might need to be reset...
-        entity.updateBedrockMetadata(); // TODO may not be necessary
 
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(entity.getPosition());
-        movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        session.sendUpstreamPacket(movePlayerPacket);
+        // This does the job and won't interrupt velocity + rotation.
+        UpdateClientInputLocksPacket inputLocksPacket = new UpdateClientInputLocksPacket();
+        inputLocksPacket.setLockComponentData(0); // Don't actually lock anything.
+        inputLocksPacket.setServerPosition(entity.getPosition());
+        session.sendUpstreamPacket(inputLocksPacket);
     }
 
     public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {

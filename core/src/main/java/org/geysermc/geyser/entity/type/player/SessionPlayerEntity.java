@@ -462,7 +462,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
         this.setPositionManual(newPosition);
 
-        // Use input locks to keep motion (look at JavaPlayerPositionTranslator for more detailed explanation).
+        // Use input locks to keep motion, you could also send a teleport and a velocity packet but that interrupt your rotation.
         UpdateClientInputLocksPacket inputLocksPacket = new UpdateClientInputLocksPacket();
         inputLocksPacket.setLockComponentData(0); // Don't actually lock anything.
         inputLocksPacket.setServerPosition(newPosition);
