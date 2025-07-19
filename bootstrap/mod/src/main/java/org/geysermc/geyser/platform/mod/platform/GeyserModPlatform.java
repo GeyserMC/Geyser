@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -80,6 +81,13 @@ public interface GeyserModPlatform {
      * @return {@code true} if the Floodgate plugin is present on the mod platform, {@code false} otherwise
      */
     boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap);
+
+    /**
+     * Tests if the ViaVersion plugin is present on the mod platform.
+     *
+     * @return {@code true} if the ViaVersion plugin is present on the mod platform, {@code false} otherwise
+     */
+    boolean testViaPresent(@NonNull GeyserModBootstrap bootstrap);
 
     /**
      * Resolves a resource from the mod jar.
