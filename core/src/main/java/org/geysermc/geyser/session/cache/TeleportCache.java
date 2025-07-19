@@ -58,24 +58,12 @@ public class TeleportCache {
 
     private int unconfirmedFor = 0;
 
-    public boolean canConfirm(Vector3f position, Vector3f motion) {
+    public boolean canConfirm(Vector3f position) {
         final float distanceX = Math.abs(this.position.getX() - position.getX());
         final float distanceY = Math.abs(this.position.getY() - position.getY());
         final float distanceZ = Math.abs(this.position.getZ() - position.getZ());
 
-        float maxErrorX = ERROR_X_AND_Z;
-        float maxErrorZ = ERROR_X_AND_Z;
-        float maxErrorY = ERROR_Y;
-
-        if (teleportType == TeleportType.KEEP_VELOCITY) {
-            // This is a bit hacky yes, would be nice if player tell us if they accept the teleport or not when keep velocity.
-            // TODO: Maybe workaround this by using NetworkStackLatency?
-            maxErrorX += Math.abs(motion.getX()) + Math.abs(velocity.getX());
-            maxErrorY += Math.abs(motion.getY()) + Math.abs(velocity.getY());
-            maxErrorZ += Math.abs(motion.getZ()) + Math.abs(velocity.getZ());
-        }
-
-        return distanceX < maxErrorX && distanceY < maxErrorY && distanceZ < maxErrorZ;
+        return distanceX < ERROR_X_AND_Z && distanceY < ERROR_Y && distanceZ < ERROR_X_AND_Z;
     }
 
     public void incrementUnconfirmedFor() {

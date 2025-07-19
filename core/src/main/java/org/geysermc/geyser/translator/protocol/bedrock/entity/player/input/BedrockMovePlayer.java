@@ -55,7 +55,7 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0), packet.getDelta());
+            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }
 
