@@ -104,6 +104,12 @@ final class BedrockMovePlayer {
             isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
 
+        // Even though we already prevent this by sending no clip, we should still always set isOnGround to false when player is near em
+        // Since there could be a small chance player receive the no clip ability packet really, really late.
+        if (Math.abs((session.getBedrockDimension().minY() - 40) - packet.getPosition().getY() - EntityDefinitions.PLAYER.offset()) < 5) {
+            isOnGround = false;
+        }
+
         entity.setLastTickEndVelocity(packet.getDelta());
         entity.setMotion(packet.getDelta());
 
