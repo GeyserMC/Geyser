@@ -118,6 +118,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
         Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
         float lastPlayerPitch = entity.getPitch();
+        float lastPlayerYaw = entity.getYaw();
         Vector3f teleportDestination = position.toFloat();
 
         Vector3f deltaMovement = packet.getDeltaMovement().toFloat().add(
@@ -125,6 +126,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             packet.getRelatives().contains(PositionElement.DELTA_Y) ? entity.getMotion().getY() : 0,
             packet.getRelatives().contains(PositionElement.DELTA_Z) ? entity.getMotion().getZ() : 0
         );
+
+        if (packet.getRelatives().contains(PositionElement.ROTATE_DELTA)) {
+            deltaMovement = MathUtils.xYRot(deltaMovement, (lastPlayerPitch - newPitch) * 0.017453292519943295F, (lastPlayerYaw - newYaw) * 0.017453292519943295F);
+        }
 
         TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
         if (deltaMovement.distanceSquared(Vector3f.ZERO) <= 1.0E-8F) { // Do normal teleport if the delta movement is just 0.
@@ -144,7 +149,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         }
 
         // Bedrock ignores teleports that are extremely close to the player's original position and orientation, so check if we need to cache the teleport
-        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5) {
+        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5 && Math.abs(newYaw - lastPlayerYaw) < 5) {
             session.setUnconfirmedTeleport(null);
         } else {
             session.setUnconfirmedTeleport(new TeleportCache(teleportDestination, deltaMovement, newPitch, newYaw, teleportId, type));
