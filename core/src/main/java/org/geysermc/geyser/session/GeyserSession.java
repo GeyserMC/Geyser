@@ -59,7 +59,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
-import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
@@ -153,6 +152,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.BedrockServerSession;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -736,7 +736,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
-        this.upstream = new UpstreamSession(bedrockServerSession, this);
+        this.upstream = new UpstreamSession(bedrockServerSession);
         this.tickEventLoop = tickEventLoop;
 
         this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
