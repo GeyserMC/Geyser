@@ -41,8 +41,7 @@ public class BedrockServerSession extends org.cloudburstmc.protocol.bedrock.Bedr
 
     @Override
     protected void onPacket(BedrockPacketWrapper wrapper) {
-        BedrockPacket packet = wrapper.getPacket();
-        var ev = new SessionReceiveBedrockPacket(packet, session);
+        var ev = new SessionReceiveBedrockPacket(wrapper.getPacket(), session);
         session.getGeyser().eventBus().fire(ev);
         if(ev.isCancelled()){
             return;
