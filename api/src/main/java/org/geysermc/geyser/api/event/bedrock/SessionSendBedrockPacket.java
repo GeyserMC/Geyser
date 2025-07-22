@@ -23,24 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.event.type;
+package org.geysermc.geyser.api.event.bedrock;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.geysermc.event.Event;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.event.Cancellable;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+
 
 @Getter
-public class SessionSendBedrockPacket implements Event {
-    private final BedrockPacket bedrockPacket;
-    private final GeyserSession session;
-    @Setter
-    private boolean cancel = false;
+public class SessionSendBedrockPacket extends ConnectionEvent implements Cancellable {
 
-    public SessionSendBedrockPacket(@NonNull BedrockPacket bedrockPacket, @NonNull GeyserSession session) {
+    private final BedrockPacket bedrockPacket;
+    @Setter
+    private boolean cancelled;
+
+
+    public SessionSendBedrockPacket(@NonNull BedrockPacket bedrockPacket, @NonNull GeyserConnection connection) {
+        super(connection);
         this.bedrockPacket = bedrockPacket;
-        this.session = session;
     }
 }

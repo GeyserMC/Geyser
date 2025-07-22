@@ -23,30 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.api.event.bedrock;
 
-import org.cloudburstmc.protocol.bedrock.BedrockPeer;
-import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
+import lombok.Getter;
+import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.geysermc.geyser.api.event.bedrock.SessionReceiveBedrockPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.event.Cancellable;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
-public class BedrockServerSession extends org.cloudburstmc.protocol.bedrock.BedrockServerSession {
+@Getter
+public class SessionReceiveBedrockPacket extends ConnectionEvent implements Cancellable {
 
-    public GeyserSession session;
+    private final BedrockPacket bedrockPacket;
+    @Setter
+    private boolean cancelled;
 
-    public BedrockServerSession(BedrockPeer peer, int subClientId) {
-        super(peer, subClientId);
-    }
 
-    @Override
-    protected void onPacket(BedrockPacketWrapper wrapper) {
-        BedrockPacket packet = wrapper.getPacket();
-        var ev = new SessionReceiveBedrockPacket(packet, session);
-        session.getGeyser().eventBus().fire(ev);
-        if(ev.isCancelled()){
-            return;
-        }
-        super.onPacket(wrapper);
+    public SessionReceiveBedrockPacket(@NonNull BedrockPacket bedrockPacket, @NonNull GeyserConnection connection) {
+        super(connection);
+        this.bedrockPacket = bedrockPacket;
     }
 }

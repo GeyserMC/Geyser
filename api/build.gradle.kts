@@ -2,12 +2,15 @@ plugins {
     // Allow blossom to mark sources root of templates
     idea
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
     alias(libs.plugins.blossom)
 }
 
 dependencies {
     api(libs.base.api)
     api(libs.math)
+    api(libs.bundles.protocol)
+
 }
 
 version = property("version")!!

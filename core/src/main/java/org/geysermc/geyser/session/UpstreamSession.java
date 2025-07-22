@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.event.type.SessionSendBedrockPacket;
+import org.geysermc.geyser.api.event.bedrock.SessionSendBedrockPacket;
 import org.geysermc.geyser.network.GeyserBedrockPeer;
 
 import java.net.InetSocketAddress;
@@ -52,7 +52,7 @@ public class UpstreamSession {
         if (!isClosed()) {
             var ev = new SessionSendBedrockPacket(packet, this.geyserSession);
             GeyserImpl.getInstance().eventBus().fire(ev);
-            if(ev.isCancel()){
+            if(ev.isCancelled()){
                 return;
             }
             session.sendPacket(packet);
