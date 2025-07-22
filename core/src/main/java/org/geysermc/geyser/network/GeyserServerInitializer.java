@@ -52,7 +52,18 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     }
 
     @Override
+    @Deprecated
     public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
+        try {
+            throw new IllegalArgumentException("initSession not BedrockServerSession");
+        } catch (Throwable e) {
+            // Error must be caught or it will be swallowed
+            this.geyser.getLogger().error("Error occurred while initializing player!", e);
+            bedrockServerSession.disconnect(e.getMessage());
+        }
+    }
+
+    public void initSession(org.geysermc.geyser.network.BedrockServerSession bedrockServerSession) {
         try {
             if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
                 InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());
@@ -68,6 +79,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
             channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
 
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
+            bedrockServerSession.session = session;
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
@@ -77,6 +89,19 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
     @Override
     protected BedrockPeer createPeer(Channel channel) {
-        return new GeyserBedrockPeer(channel, this::createSession);
+        return new GeyserBedrockPeer(channel, this::createSessionFinal);
+    }
+
+
+    protected final org.geysermc.geyser.network.BedrockServerSession createSessionFinal(BedrockPeer peer, int subClientId) {
+        org.geysermc.geyser.network.BedrockServerSession session = this.createSession0(peer, subClientId);
+        this.initSession(session);
+        return session;
+    }
+
+
+    @Override
+    public org.geysermc.geyser.network.BedrockServerSession createSession0(BedrockPeer peer, int subClientId) {
+        return new org.geysermc.geyser.network.BedrockServerSession(peer, subClientId);
     }
 }

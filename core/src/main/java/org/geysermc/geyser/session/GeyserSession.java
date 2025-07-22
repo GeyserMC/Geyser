@@ -736,7 +736,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
-        this.upstream = new UpstreamSession(bedrockServerSession);
+        this.upstream = new UpstreamSession(bedrockServerSession, this);
         this.tickEventLoop = tickEventLoop;
 
         this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
