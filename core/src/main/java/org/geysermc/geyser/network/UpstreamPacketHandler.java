@@ -60,11 +60,11 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
@@ -344,21 +344,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return;
         }
 
-        ResourcePack pack = holder.pack();
-        ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        PackCodec codec = pack.codec();
-
+        PackCodec codec = holder.codec();
         // If a remote pack ends up here, that usually implies that a client was not able to download the pack
-        if (codec instanceof UrlPackCodec urlPackCodec) {
-            ResourcePackLoader.testRemotePack(session, urlPackCodec, packet.getPackId(), packet.getPackVersion());
-
-            if (!resourcePackLoadEvent.value(pack.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
+        if (codec instanceof GeyserUrlPackCodec urlPackCodec) {
+            ResourcePackLoader.testRemotePack(session, urlPackCodec, holder);
+            if (!resourcePackLoadEvent.value(holder.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
                 session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
                 currentlySendingChunks = false;
                 return;
             }
         }
 
+        ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         data.setChunkIndex(packet.getChunkIndex());
         data.setProgress((long) packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE);
         data.setPackVersion(packet.getPackVersion());

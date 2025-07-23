@@ -50,6 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -223,7 +224,9 @@ public class WebUtils {
                                 con.getHeaderField("ETag"),
                                 String.valueOf(con.getLastModified()),
                                 downloadLocation.getFileName().toString()
-                        ));
+                        ),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
                 packMetadata.toFile().setLastModified(System.currentTimeMillis());
             } catch (IOException e) {
                 Files.delete(packMetadata);
