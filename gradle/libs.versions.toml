@@ -132,6 +132,7 @@ minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
+velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
