@@ -52,12 +52,14 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -208,6 +210,13 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         BedrockMovePlayer.translate(session, packet);
+
+        // Even though this might not match Java 100% since there are cases where player might not send the auth input packets
+        // It's the best way to do it since most modern anticheat will expect this to be in sync with player movement packet.
+        // This should not be moved to GeyserSession "tick" function either because it will have extremely inconsistency behaviour if we did.
+        if (session.isSpawned()) {
+            session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
+        }
 
         // Only set steering values when the vehicle is a boat and when the client is actually in it
         if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
