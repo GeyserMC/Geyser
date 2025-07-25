@@ -1399,7 +1399,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
-        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        float yaw = playerEntity.getJavaYaw(), pitch = playerEntity.getPitch();
         if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
             yaw = playerEntity.getBedrockInteractRotation().getY();
             pitch = playerEntity.getBedrockInteractRotation().getX();
