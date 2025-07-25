@@ -108,8 +108,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                             attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                             session.sendUpstreamPacket(attributesPacket);
                         } else {
-                            sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
-                            session.setSprinting(true);
+                            if (!session.isSprinting()) {
+                                sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
+                                session.setSprinting(true);
+                            }
                         }
                     }
                 }
