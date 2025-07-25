@@ -24,8 +24,8 @@ provided("io.netty", "netty-transport-native-epoll")
 provided("io.netty", "netty-transport-native-unix-common")
 provided("io.netty", "netty-transport-classes-kqueue")
 provided("io.netty", "netty-transport-native-kqueue")
-provided("io.netty.incubator", "netty-incubator-transport-native-io_uring")
-provided("io.netty.incubator", "netty-incubator-transport-classes-io_uring")
+provided("io.netty", "netty-transport-native-io_uring")
+provided("io.netty", "netty-transport-classes-io_uring")
 provided("io.netty", "netty-handler")
 provided("io.netty", "netty-common")
 provided("io.netty", "netty-buffer")
@@ -33,9 +33,6 @@ provided("io.netty", "netty-resolver")
 provided("io.netty", "netty-transport")
 provided("io.netty", "netty-codec")
 provided("io.netty", "netty-codec-base")
-provided("io.netty", "netty-resolver-dns")
-provided("io.netty", "netty-resolver-dns-native-macos")
-provided("io.netty", "netty-resolver-dns-classes-macos")
 provided("org.ow2.asm", "asm")
 
 // cloud-fabric/cloud-neoforge jij's all cloud depends already
@@ -93,7 +90,7 @@ tasks {
 }
 
 afterEvaluate {
-    val providedDependencies = getProvidedDependenciesForProject(project.name)
+    val providedDependencies = providedDependencies[project.name]!!
 
     // These are shaded, no need to JiJ them
     configurations["shadow"].dependencies.forEach {shadowed ->

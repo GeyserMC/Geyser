@@ -30,14 +30,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDatagramChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.uring.IoUring;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -64,13 +60,13 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
@@ -90,7 +86,8 @@ public final class GeyserServer {
      */
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
-    private static final Transport TRANSPORT = compatibleTransport();
+    // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
+    private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
 
     /**
      * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
@@ -124,8 +121,8 @@ public final class GeyserServer {
         this.geyser = geyser;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
-        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
-        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
+        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
+        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
 
         this.bootstrap = this.createBootstrap();
         // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
@@ -201,16 +198,18 @@ public final class GeyserServer {
         }
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     private ServerBootstrap createBootstrap() {
         if (this.geyser.getConfig().isDebugMode()) {
-            this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
-            if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {
+            this.geyser.getLogger().debug("Transport type: " + TRANSPORT.method().name());
+            if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
                 if (System.getProperties().contains("disableNativeEventLoop")) {
                     this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
                 } else {
                     // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
                     this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
                     this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
+                    this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
                 }
             }
         }
@@ -229,7 +228,7 @@ public final class GeyserServer {
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
         return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
+                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
@@ -427,40 +426,6 @@ public final class GeyserServer {
                 "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
             );
             return defaultValue;
-        }
-    }
-
-    private static Transport compatibleTransport() {
-        // FIXME supporting io_uring post 4.2 requires more changes
-//        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
-//                && IOUring.isAvailable()
-//                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
-//            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-//        }
-
-        if (isClassAvailable("io.netty.channel.epoll.Epoll") && Epoll.isAvailable()) {
-            return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
-        }
-
-        if (isClassAvailable("io.netty.channel.kqueue.KQueue") && KQueue.isAvailable()) {
-            return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
-        }
-
-        return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
-    }
-
-    private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
-    }
-
-    /**
-     * Used so implementations can opt to remove these dependencies if so desired
-     */
-    private static boolean isClassAvailable(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
         }
     }
 }
