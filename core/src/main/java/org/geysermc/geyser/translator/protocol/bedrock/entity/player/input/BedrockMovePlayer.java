@@ -28,9 +28,13 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -96,18 +100,43 @@ final class BedrockMovePlayer {
 
         // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
-        if (hasVehicle) {
+        if (hasVehicle || session.isNoClip()) {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
             // If the player is riding a vehicle or is in spectator mode, onGround is always set to false for the player
+            // Also do this if player have no clip ability since they shouldn't be able to collide with anything.
             isOnGround = false;
         } else {
             isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
 
-        // Even though we already prevent this by sending no clip, we should still always set isOnGround to false when player is near em
-        // Since there could be a small chance player receive the no clip ability packet really, really late.
-        if (Math.abs((session.getBedrockDimension().minY() - 40) - packet.getPosition().getY() - EntityDefinitions.PLAYER.offset()) < 5) {
-            isOnGround = false;
+        // Resolve https://github.com/GeyserMC/Geyser/issues/3521, no void floor on java so player not supposed to collide with anything.
+        // Therefore, we're fixing this by allowing player to no clip to clip through the floor, not only this fixed the issue but
+        // player y velocity should match java perfectly, much better than teleport player right down :)
+        // Shouldn't mess with anything because beyond this point there is nothing to collide and not even entities since they're prob dead.
+        if (packet.getPosition().getY() - EntityDefinitions.PLAYER.offset() < session.getBedrockDimension().minY() - 5) {
+            // Ensuring that we still can collide with collidable entity that are also in the void (eg: boat, shulker)
+            boolean possibleOnGround = false;
+
+            BoundingBox boundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
+
+            // Extend down by y velocity subtract by 2 so that we are a "little" ahead and can send no clip in time before player hit the entity.
+            boundingBox.extend(0, packet.getDelta().getY() - 2, 0);
+
+            for (Entity other : session.getEntityCache().getEntities().values()) {
+                if (!other.getFlag(EntityFlag.COLLIDABLE)) {
+                    continue;
+                }
+
+                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
+                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? entity.getDefinition().offset() : 0).toDouble());
+
+                if (entityBoundingBox.checkIntersection(boundingBox)) {
+                    possibleOnGround = true;
+                    break;
+                }
+            }
+
+            session.setNoClip(!possibleOnGround);
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
@@ -141,14 +170,6 @@ final class BedrockMovePlayer {
                     CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
                     if (result != null) { // A null return value cancels the packet
                         Vector3d position = result.correctedMovement();
-
-                        // Resolve https://github.com/GeyserMC/Geyser/issues/3521, no void floor on java so player not supposed to collide with anything.
-                        // Therefore, we're fixing this by allowing player to no clip to clip through the floor, not only this fixed the issue but
-                        // player y velocity should match java perfectly, much better than teleport player right down :)
-                        // Shouldn't mess with anything because beyond this point there is nothing to collide and not even entities since they're prob dead.
-                        if (position.getY() < session.getBedrockDimension().minY() - 5) {
-                            session.setNoClip(true);
-                        }
 
                         Packet movePacket;
                         if (rotationChanged) {
