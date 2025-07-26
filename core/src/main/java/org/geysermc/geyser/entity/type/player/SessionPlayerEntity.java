@@ -236,15 +236,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setSprinting(boolean value) {
-        super.setSprinting(value);
-
-        // Since we're using the sprinting value here to decide whether to send a sprinting packet
-        // Don't make it so that it can be changed by the flag, only by START_SPRINT and STOP_SPRINT that the player sent.
-        // session.setSprinting(value);
-    }
-
-    @Override
     protected void setGliding(boolean value) {
         session.setGliding(value);
     }

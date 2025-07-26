@@ -437,6 +437,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Pose pose = Pose.STANDING;
 
+    /**
+     * This is used to keep track of player sprinting and should only change by START_SPRINT and STOP_SPRINT sent by the player, not from flag update.
+     */
     @Setter
     private boolean sprinting;
 
