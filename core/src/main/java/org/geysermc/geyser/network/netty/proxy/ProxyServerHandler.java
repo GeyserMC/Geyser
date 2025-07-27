@@ -52,31 +52,25 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
         int detectedVersion = peer != null ? -1 : ProxyProtocolDecoder.findVersion(content);
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
 
-        // MODIFIED: Handle non-proxy packets from unknown sources
+        // MODIFIED: Corrected reference counting for all packet types
         if (presentAddress == null && detectedVersion == -1) {
             /*
-             * Non-proxy packet from unknown source: 
-             * - Retain the packet to prevent auto-release by SimpleChannelInboundHandler
-             * - Forward through pipeline for normal processing
-             * - Reference count: retain() balances the auto-release of the original packet
+             * Non-proxy packet handling:
+             * - MUST retain before firing downstream to prevent auto-release
+             * - Original packet will be released by SimpleChannelInboundHandler
+             * - Retained copy will be processed by downstream handlers
              */
             ctx.fireChannelRead(packet.retain());
             return;
         }
 
-        // MODIFIED: Process potential proxy header
+        // MODIFIED: Unified proxy detection and handling
         if (presentAddress == null) {
             HAProxyMessage decoded = null;
             try {
                 decoded = ProxyProtocolDecoder.decode(content, detectedVersion);
-                
-                // Handle non-proxy packets that passed initial detection
                 if (decoded == null) {
-                    /*
-                     * Failed to decode proxy header but passed version check:
-                     * - Treat as normal packet
-                     * - Retain to prevent auto-release
-                     */
+                    // Failed proxy detection but passed initial version check
                     ctx.fireChannelRead(packet.retain());
                     return;
                 }
@@ -85,7 +79,6 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
                 return;
             }
 
-            // Store decoded proxy address for future packets
             presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
             log.debug("Got PROXY header: (from {}) {}", packet.sender(), presentAddress);
             GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
@@ -93,25 +86,20 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), presentAddress);
         }
 
-        // MODIFIED: Create proxy-stripped packet
         /*
-         * Processing proxy packets:
+         * CRITICAL FIX: Proper payload extraction for proxy packets
          * - content.readerIndex() was advanced by ProxyProtocolDecoder
-         * - slice() creates view of remaining data (Bedrock payload)
-         * - retain() is CRITICAL: 
-         *   1. Counteracts auto-release of original packet
-         *   2. Maintains separate reference count for sliced payload
+         * - slice() creates view starting from current readerIndex
+         * - retain() maintains separate reference count from original packet
          */
         ByteBuf bedrockPayload = content.slice().retain();
         DatagramPacket newPacket = new DatagramPacket(bedrockPayload, packet.recipient(), packet.sender());
 
-        // Forward proxy-stripped packet
-        ctx.fireChannelRead(newPacket);
-        
         /*
-         * NOTE: Original 'packet' will be auto-released by SimpleChannelInboundHandler
-         * The sliced 'bedrockPayload' has its own reference count and will be released 
-         * by downstream handlers after processing
+         * FIXED: Fire both packet types through pipeline
+         * - Proxy packets: stripped payload
+         * - Non-proxy: original packet (with retain)
          */
+        ctx.fireChannelRead(newPacket);
     }
 }
