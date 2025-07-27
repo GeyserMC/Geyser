@@ -52,20 +52,31 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
         int detectedVersion = peer != null ? -1 : ProxyProtocolDecoder.findVersion(content);
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
 
+        // MODIFIED: Handle non-proxy packets from unknown sources
         if (presentAddress == null && detectedVersion == -1) {
-            // We haven't received a header from given address before and we couldn't detect a
-            // PROXY header, ignore.
-            // Also retain and fire the channel read in case a handler down the line processes the packet without a PROXY header
+            /*
+             * Non-proxy packet from unknown source: 
+             * - Retain the packet to prevent auto-release by SimpleChannelInboundHandler
+             * - Forward through pipeline for normal processing
+             * - Reference count: retain() balances the auto-release of the original packet
+             */
             ctx.fireChannelRead(packet.retain());
             return;
         }
 
+        // MODIFIED: Process potential proxy header
         if (presentAddress == null) {
-            final HAProxyMessage decoded;
+            HAProxyMessage decoded = null;
             try {
-                if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
-                    // PROXY header was not present in the packet, ignore.
-                    // Also retain and fire the channel read in case a handler down the line processes the packet without a PROXY header
+                decoded = ProxyProtocolDecoder.decode(content, detectedVersion);
+                
+                // Handle non-proxy packets that passed initial detection
+                if (decoded == null) {
+                    /*
+                     * Failed to decode proxy header but passed version check:
+                     * - Treat as normal packet
+                     * - Retain to prevent auto-release
+                     */
                     ctx.fireChannelRead(packet.retain());
                     return;
                 }
@@ -74,6 +85,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
                 return;
             }
 
+            // Store decoded proxy address for future packets
             presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
             log.debug("Got PROXY header: (from {}) {}", packet.sender(), presentAddress);
             GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
@@ -81,21 +93,25 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), presentAddress);
         }
 
-        // --- MODIFICATION START ---
-        // Create a new DatagramPacket that contains only the Minecraft Bedrock payload,
-        // by slicing the content ByteBuf from its current readerIndex.
-        // The readerIndex of 'content' has already been advanced by ProxyProtocolDecoder.decode().
-        // This ensures the next handlers (like ZlibCompression and BedrockCodec) receive a ByteBuf
-        // with its readerIndex at 0, representing the start of the actual Bedrock packet.
-        ByteBuf bedrockPayload = content.slice().retain(); // Slice and retain the new ByteBuf
+        // MODIFIED: Create proxy-stripped packet
+        /*
+         * Processing proxy packets:
+         * - content.readerIndex() was advanced by ProxyProtocolDecoder
+         * - slice() creates view of remaining data (Bedrock payload)
+         * - retain() is CRITICAL: 
+         *   1. Counteracts auto-release of original packet
+         *   2. Maintains separate reference count for sliced payload
+         */
+        ByteBuf bedrockPayload = content.slice().retain();
         DatagramPacket newPacket = new DatagramPacket(bedrockPayload, packet.recipient(), packet.sender());
 
-        // Fire the new DatagramPacket to the next handlers
+        // Forward proxy-stripped packet
         ctx.fireChannelRead(newPacket);
-
-        // Release the original packet as its content is now represented by newPacket
-        // The original packet's content (ByteBuf content) should be released as it was retained earlier.
-        packet.release();
-        // --- MODIFICATION END ---
+        
+        /*
+         * NOTE: Original 'packet' will be auto-released by SimpleChannelInboundHandler
+         * The sliced 'bedrockPayload' has its own reference count and will be released 
+         * by downstream handlers after processing
+         */
     }
 }
