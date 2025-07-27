@@ -41,11 +41,6 @@ repositories {
         mavenContent { snapshotsOnly() }
     }
 
-    // BungeeCord
-    maven("https://oss.sonatype.org/content/repositories/snapshots") {
-        mavenContent { snapshotsOnly() }
-    }
-
     // NeoForge
     maven("https://maven.neoforged.net/releases") {
         mavenContent { releasesOnly() }
@@ -62,8 +57,13 @@ repositories {
         name = "viaversion"
     }
 
+    // BungeeCord
+//    maven("https://oss.sonatype.org/content/repositories/snapshots") {
+//        mavenContent { snapshotsOnly() }
+//    }
+
     // For Adventure snapshots
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    //maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
     // Jitpack for e.g. MCPL
     maven("https://jitpack.io") {

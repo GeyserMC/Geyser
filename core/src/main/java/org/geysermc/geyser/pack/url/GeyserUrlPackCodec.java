@@ -127,7 +127,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                 // Update to new url pack codec (same url, updated fallback), and keep content key
                 GeyserResourcePack pack = updatedPack.withCodec(new GeyserUrlPackCodec(url, backingPathCodec));
                 // Keep the pack options that were previously set
-                Registries.RESOURCE_PACKS.get().put(holder.uuid(), holder.withPack(pack));
+                Registries.RESOURCE_PACKS.get().put(updatedPack.uuid(), holder.withPack(pack));
 
             })
             .exceptionally(throwable -> {
