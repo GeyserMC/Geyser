@@ -116,6 +116,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
 
     /**
+     * The player y rotation but not wrapped between -180.0 and 180.0.
+     */
+    @Getter @Setter
+    private float javaYaw;
+
+    /**
      * Determines if our position is currently out-of-sync with the Java server
      * due to our workaround for the void floor
      * <p>
@@ -146,6 +152,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void spawnEntity() {
         // Already logged in
+    }
+
+    @Override
+    public void setYaw(float yaw) {
+        super.setYaw(yaw);
+        this.javaYaw = yaw;
     }
 
     @Override
@@ -221,12 +233,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
             super.setFlags(entityMetadata);
         }
-    }
-
-    @Override
-    protected void setSprinting(boolean value) {
-        super.setSprinting(value);
-        session.setSprinting(value);
     }
 
     @Override
