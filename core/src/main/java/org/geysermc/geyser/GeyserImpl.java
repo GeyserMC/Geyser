@@ -41,7 +41,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
@@ -111,7 +110,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -792,11 +790,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
-        ArrayList<MinecraftVersion> versions = new ArrayList<>();
-        for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
-            versions.add(new MinecraftVersionImpl(codec.getMinecraftVersion(), codec.getProtocolVersion()));
-        }
-        return Collections.unmodifiableList(versions);
+        return Collections.unmodifiableList(GameProtocol.SUPPORTED_BEDROCK_VERSIONS);
     }
 
     @Override
