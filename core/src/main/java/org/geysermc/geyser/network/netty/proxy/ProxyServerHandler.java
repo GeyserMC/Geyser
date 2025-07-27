@@ -55,6 +55,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
         if (presentAddress == null && detectedVersion == -1) {
             // We haven't received a header from given address before and we couldn't detect a
             // PROXY header, ignore.
+            // Also retain and fire the channel read in case a handler down the line processes the packet without a PROXY header
+            ctx.fireChannelRead(packet.retain());
             return;
         }
 
@@ -63,6 +65,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             try {
                 if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
                     // PROXY header was not present in the packet, ignore.
+                    // Also retain and fire the channel read in case a handler down the line processes the packet without a PROXY header
+                    ctx.fireChannelRead(packet.retain());
                     return;
                 }
             } catch (HAProxyProtocolException e) {
@@ -77,6 +81,21 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), presentAddress);
         }
 
-        ctx.fireChannelRead(packet.retain());
+        // --- MODIFICATION START ---
+        // Create a new DatagramPacket that contains only the Minecraft Bedrock payload,
+        // by slicing the content ByteBuf from its current readerIndex.
+        // The readerIndex of 'content' has already been advanced by ProxyProtocolDecoder.decode().
+        // This ensures the next handlers (like ZlibCompression and BedrockCodec) receive a ByteBuf
+        // with its readerIndex at 0, representing the start of the actual Bedrock packet.
+        ByteBuf bedrockPayload = content.slice().retain(); // Slice and retain the new ByteBuf
+        DatagramPacket newPacket = new DatagramPacket(bedrockPayload, packet.recipient(), packet.sender());
+
+        // Fire the new DatagramPacket to the next handlers
+        ctx.fireChannelRead(newPacket);
+
+        // Release the original packet as its content is now represented by newPacket
+        // The original packet's content (ByteBuf content) should be released as it was retained earlier.
+        packet.release();
+        // --- MODIFICATION END ---
     }
 }
