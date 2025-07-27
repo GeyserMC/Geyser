@@ -160,7 +160,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "1.21.8");
     }
 
     /**
@@ -178,7 +178,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+        return "1.21.8";
     }
 
     /**
