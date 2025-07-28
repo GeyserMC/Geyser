@@ -93,7 +93,7 @@ public class SkinManager {
         return buildEntryManually(
                 session,
                 playerEntity.getUuid(),
-                playerEntity.getUsername(),
+                playerEntity.getTabListDisplayName(),
                 playerEntity.getGeyserId(),
                 skin,
                 cape,

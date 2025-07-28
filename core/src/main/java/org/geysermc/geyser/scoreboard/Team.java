@@ -26,16 +26,23 @@
 package org.geysermc.geyser.scoreboard;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.util.HashSet;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class Team {
     public static final long LAST_UPDATE_DEFAULT = -1;
@@ -95,6 +102,13 @@ public final class Team {
                 }
                 return this;
             });
+
+            var playerEntities = session().getEntityCache().getPlayersByName(name);
+            if (playerEntities != null) {
+                for (var player : playerEntities) {
+                    player.updateTabListDisplayName(player.getTabListDisplayNameComponent());
+                }
+            }
         }
 
         if (added.isEmpty()) {
@@ -113,6 +127,13 @@ public final class Team {
                 removed.add(name);
             }
             scoreboard.getPlayerToTeam().remove(name, this);
+
+            var playerEntities = session().getEntityCache().getPlayersByName(name);
+            if (playerEntities != null) {
+                for (var player : playerEntities) {
+                    player.updateTabListDisplayName(player.getTabListDisplayNameComponent());
+                }
+            }
         }
         removeRemovedEntities(removed);
     }
@@ -130,6 +151,19 @@ public final class Team {
         }
         // also add reset because setting the color does not reset the formatting, unlike Java
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
+    }
+
+    public String formatTabDisplay(String username, boolean spectator) {
+        String chatColor = ChatColor.chatColorFor(color);
+        if (ChatColor.RESET.equals(chatColor)) {
+            chatColor = "";
+        }
+
+        if (spectator && !ChatColor.ITALIC.equals(chatColor)) {
+            chatColor += ChatColor.ITALIC;
+        }
+        // also add reset because setting the color does not reset the formatting, unlike Java
+        return chatColor + prefix + ChatColor.RESET + chatColor + username + ChatColor.RESET + chatColor + suffix;
     }
 
     public boolean isVisibleFor(String entity) {
@@ -180,14 +214,14 @@ public final class Team {
             || !this.suffix.equals(oldSuffix)
             || color != oldColor) {
             markChanged();
-            updateEntities();
+            updateEntities(true);
             return;
         }
 
         if (isVisibleFor(playerName()) != oldVisible) {
             // if just the visibility changed, we only have to update the entities.
             // We don't have to mark it as changed
-            updateEntities();
+            updateEntities(false);
         }
     }
 
@@ -208,6 +242,13 @@ public final class Team {
         for (String name : entities()) {
             // 1.19.3 Mojmap Scoreboard#removePlayerTeam(PlayerTeam)
             scoreboard.getPlayerToTeam().remove(name);
+
+            var playerEntities = session().getEntityCache().getPlayersByName(name);
+            if (playerEntities != null) {
+                for (var player : playerEntities) {
+                    player.updateTabListDisplayName(player.getTabListDisplayNameComponent());
+                }
+            }
         }
 
         if (entities().contains(playerName())) {
@@ -220,10 +261,22 @@ public final class Team {
         }
     }
 
-    private void updateEntities() {
+    private void updateEntities(boolean updatePlayerList) {
+        List<PlayerListPacket.Entry> entries = updatePlayerList ? new ArrayList<>() : null;
         for (Entity entity : managedEntities) {
             entity.updateNametag(this);
             entity.updateBedrockMetadata();
+
+            if (updatePlayerList) {
+                if (entity instanceof PlayerEntity player) {
+                    player.updateTabListDisplayName(player.getTabListDisplayNameComponent());
+                    entries.add(SkinManager.buildCachedEntry(session(), player));
+                }
+            }
+        }
+
+        if (entries != null && !entries.isEmpty()) {
+            PlayerListUtils.batchSendPlayerList(session(), entries, PlayerListPacket.Action.ADD);
         }
     }
 

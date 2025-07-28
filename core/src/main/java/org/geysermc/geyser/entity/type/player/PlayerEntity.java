@@ -28,6 +28,9 @@ package org.geysermc.geyser.entity.type.player;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -52,13 +55,17 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 import java.util.Collections;
 import java.util.List;
@@ -103,6 +110,21 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
     private @Nullable ParrotEntity rightParrot;
+
+    /**
+     * The gamemode as it's sent in the player info packet
+     */
+    private GameMode gameMode;
+
+    /**
+     * The tab list display name
+     */
+    private @NonNull String tabListDisplayName;
+
+    /**
+     * The tablist display name component as sent by the Java server
+     */
+    private @Nullable Component tabListDisplayNameComponent;
 
     /**
      * Whether this player is currently listed.
@@ -477,6 +499,29 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return getUuid();
+    }
+
+    public void updateTabListDisplayName(@Nullable Component component) {
+        if (component != null) {
+            this.tabListDisplayNameComponent = component;
+            if (gameMode == GameMode.SPECTATOR) {
+                component = component.style(Style.style(TextDecoration.ITALIC));
+            }
+            this.tabListDisplayName = MessageTranslator.convertMessageRaw(component, session.locale());
+            return;
+        }
+
+        this.tabListDisplayNameComponent = null;
+        Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(getUsername());
+        if (playerTeam == null) {
+            String name = username;
+            if (gameMode == GameMode.SPECTATOR) {
+                name = ChatColor.ITALIC + name;
+            }
+            this.tabListDisplayName = name;
+        } else {
+            this.tabListDisplayName = playerTeam.formatTabDisplay(username, gameMode == GameMode.SPECTATOR);
+        }
     }
 
     @Override
