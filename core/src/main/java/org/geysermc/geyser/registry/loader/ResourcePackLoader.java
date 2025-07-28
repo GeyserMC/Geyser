@@ -271,9 +271,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
             CACHED_FAILED_PACKS.put(codec.url(), codec);
             GeyserImpl.getInstance().getLogger().warning(
-                "Bedrock client (%s, playing on %s) was not able to download the resource pack at %s. Checking for changes now:"
+                "Bedrock client (%s, playing on %s) was not able to download the resource pack at %s!"
                     .formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), codec.url())
             );
+
+            if (!Registries.RESOURCE_PACKS.get().containsKey(holder.uuid())) {
+                GeyserImpl.getInstance().getLogger().warning("Skipping remote resource pack check as pack is not present in global resource pack registry.");
+                return;
+            }
 
             codec.testForChanges(holder);
         }
