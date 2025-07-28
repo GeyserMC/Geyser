@@ -111,6 +111,11 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
             geyserLogger.error("/_____________\\");
         }
 
+        // Only use io_uring when velocity does as well
+        if (Boolean.getBoolean("velocity.enable-iouring-transport")) {
+            System.setProperty("Mcpl.io_uring", "true");
+        }
+
         if (!loadConfig()) {
             return;
         }
