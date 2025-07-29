@@ -89,6 +89,7 @@ import java.util.concurrent.TimeUnit;
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
+    private boolean receivedLoginPacket = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
@@ -188,8 +189,20 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        if (receivedLoginPacket) {
+            GeyserImpl.getInstance().getLogger().warning("Received duplicate login packet from " + session.name());
+            session.disconnect("Received duplicate login packet!");
+            return PacketSignal.HANDLED;
+        }
+        receivedLoginPacket = true;
+
         if (!networkSettingsRequested) {
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", GameProtocol.getAllSupportedBedrockVersions()));
+            return PacketSignal.HANDLED;
+        }
+
+        if (!geyser.getSessionManager().addPendingSession(session)) {
+            session.disconnect("Too many connections are originating from this location!");
             return PacketSignal.HANDLED;
         }
 
@@ -204,14 +217,17 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        if (GeyserImpl.getInstance().connectionByXuid(session.xuid()) != null) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.name()));
+            return PacketSignal.HANDLED;
+        }
+
         // Fire SessionInitializeEvent here as we now know the client data
         geyser.eventBus().fire(new SessionInitializeEvent(session));
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
-
-        geyser.getSessionManager().addPendingSession(session);
 
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session);
         this.geyser.eventBus().fire(this.resourcePackLoadEvent);
