@@ -1150,6 +1150,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Forcibly closes the upstream session
+     */
+    public void closeUpstream() {
+        if (!upstream.isClosed()) {
+            upstream.getPeer().getChannel().close();
+        }
+    }
+
+    /**
      * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
      */
     public void ensureInEventLoop(Runnable runnable) {
