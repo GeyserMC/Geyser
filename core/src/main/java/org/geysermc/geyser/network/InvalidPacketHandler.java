@@ -53,7 +53,7 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
             // Kick users that cause exceptions
             logger.warning("Exception caught in session of " + session.bedrockUsername() + ": " + rootCause.getMessage());
             session.disconnect("An internal error occurred!");
-            session.closeUpstream();
+            session.forciblyCloseUpstream();
             return;
         }
 
@@ -63,6 +63,6 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
             cause.printStackTrace();
         }
         session.disconnect("Invalid packet received!");
-        session.closeUpstream();
+        session.forciblyCloseUpstream();
     }
 }

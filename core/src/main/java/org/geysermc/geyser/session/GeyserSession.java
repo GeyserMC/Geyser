@@ -1152,10 +1152,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Forcibly closes the upstream session
      */
-    public void closeUpstream() {
-        if (!upstream.isClosed()) {
-            upstream.getPeer().getChannel().close();
-        }
+    public void forciblyCloseUpstream() {
+        upstream.forciblyClose();
     }
 
     /**
