@@ -34,9 +34,7 @@ import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.haproxy.HAProxyProtocolException;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
 
 import java.net.InetSocketAddress;
 
@@ -47,22 +45,19 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
-        ByteBuf content = packet.content();
-        GeyserBedrockPeer peer = (GeyserBedrockPeer) ctx.pipeline().get(BedrockPeer.NAME);
-        int detectedVersion = peer != null ? -1 : ProxyProtocolDecoder.findVersion(content);
+        ByteBuf content = packet.content().copy();
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
 
-        if (presentAddress == null && detectedVersion == -1) {
-            // We haven't received a header from given address before and we couldn't detect a
-            // PROXY header, ignore.
-            return;
-        }
-
         if (presentAddress == null) {
+            // --- First packet processing logic (trust the header once) ---
+            int detectedVersion = ProxyProtocolDecoder.findVersion(content);
+            if (detectedVersion == -1) {
+                return;
+            }
+
             final HAProxyMessage decoded;
             try {
                 if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
-                    // PROXY header was not present in the packet, ignore.
                     return;
                 }
             } catch (HAProxyProtocolException e) {
@@ -71,29 +66,30 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             }
 
             presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
-            log.debug("Got PROXY header: (from {}) {}", packet.sender(), presentAddress);
+            log.debug("Got PROXY header: (from {}) {}. Caching session.", packet.sender(), presentAddress);
             GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
         } else {
-            log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), presentAddress);
-        }
-        if (!bypassProxyProtocol) {
-            // Attempt to consume Proxy Protocol v2 header before passing down
-            ByteBuf content = packet.content();
-            if (isProxyProtocolV2(content)) {
+            // --- Subsequent packet processing logic ---
+            int detectedVersion = ProxyProtocolDecoder.findVersion(content);
+            if (detectedVersion != -1) {
+                // If a subsequent packet also contains a header, only strip it without using its content
                 try {
-                    int headerLength = getProxyProtocolV2Length(content);
-                    if (content.readableBytes() >= headerLength) {
-                        content.skipBytes(headerLength); // consume header
-                    } else {
-                        // Not enough bytes to skip header; drop or ignore
-                        return; // ignore malformed packet
+                    if (ProxyProtocolDecoder.decode(content, detectedVersion) == null) {
+                        content = packet.content();
                     }
-                } catch (Exception e) {
-                    // Fallback if parsing fails
-                    return;
+                } catch (HAProxyProtocolException e) {
+                    log.debug("{} sent malformed subsequent PROXY header", packet.sender(), e);
+                    content = packet.content();
                 }
             }
         }
-        ctx.fireChannelRead(packet.retain());
+
+        // --- Unified packet reconstruction and forwarding logic ---
+        // Regardless of whether the packet originally contained a header, `content` now represents the pure payload.
+        // To ensure consistency in the behavior of downstream handlers, we always create a new packet instance to forward.
+        // This avoids any issues that may arise from the difference in object instances between the original packet (retain) and a new packet.
+        ByteBuf payloadOnly = content.copy();
+        DatagramPacket newPacket = new DatagramPacket(payloadOnly, packet.recipient(), packet.sender());
+        ctx.fireChannelRead(newPacket);
     }
 }
