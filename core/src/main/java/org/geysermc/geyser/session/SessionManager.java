@@ -62,9 +62,18 @@ public final class SessionManager {
     private final Map<InetAddress, AtomicInteger> connectedClients = new ConcurrentHashMap<>();
 
     /**
+     * Specifies the maximum amount of connections per address
+     */
+    private final static int MAX_CONNECTIONS_PER_ADDRESS = Integer.getInteger("Geyser.MaxConnectionsPerAddress", 10);
+
+    /**
      * Called once the player has successfully authenticated to the Geyser server.
      */
-    public void addPendingSession(GeyserSession session) {
+    public boolean addPendingSession(GeyserSession session) {
+        if (getAddressMultiplier(session.getSocketAddress().getAddress()) > MAX_CONNECTIONS_PER_ADDRESS) {
+            return false;
+        }
+
         pendingSessions.add(session);
         connectedClients.compute(session.getSocketAddress().getAddress(), (key, count) -> {
             if (count == null) {
@@ -74,6 +83,8 @@ public final class SessionManager {
             count.incrementAndGet();
             return count;
         });
+
+        return true;
     }
 
     /**
