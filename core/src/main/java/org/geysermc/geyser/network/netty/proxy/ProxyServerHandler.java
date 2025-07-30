@@ -47,48 +47,56 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
         ByteBuf content = packet.content();
 
-        // Always check for a PROXY header in the current packet first.
-        // This supports the "header-per-packet" scenario (e.g., frp for UDP).
         int detectedVersion = ProxyProtocolDecoder.findVersion(content);
-        InetSocketAddress realAddress = null;
 
         if (detectedVersion != -1) {
-            // A header is present in THIS packet. Attempt to decode it.
-            // The decode method will consume the header bytes from the `content` ByteBuf.
+            // A PROXY protocol header is detected in this packet.
             final HAProxyMessage decoded;
             try {
-                if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) != null) {
-                    // Successfully decoded and stripped the header.
-                    realAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
-
-                    // Update the cache with the latest address information.
-                    GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), realAddress);
-                    log.trace("Decoded PROXY header: (from {}) {}", packet.sender(), realAddress);
-                }
-                // If decode returns null, it's a malformed header, and we will drop the packet later.
+                // The decode method consumes the header bytes from the `content` ByteBuf.
+                decoded = ProxyProtocolDecoder.decode(content, detectedVersion);
             } catch (HAProxyProtocolException e) {
                 log.debug("{} sent malformed PROXY header", packet.sender(), e);
-                return; // Drop malformed packet immediately.
+                return; // Drop malformed packet.
             }
+
+            if (decoded == null) {
+                // This case should ideally not be reached if detectedVersion is valid, but acts as a safeguard.
+                log.debug("PROXY header detected but failed to decode for {}", packet.sender());
+                return;
+            }
+
+            // Header decoded successfully. Let's cache the real address.
+            InetSocketAddress realAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
+            GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), realAddress);
+            log.trace("Decoded PROXY header from proxy {} for real address {}", packet.sender(), realAddress);
+
+            // CRITICAL CHECK: Determine if there is any payload left after stripping the header.
+            if (!content.isReadable()) {
+                // This was a header-only packet.
+                // We have extracted and cached the necessary information.
+                // There is no payload to forward, so we stop processing this packet here.
+                return;
+            }
+
+            // This packet had a header AND a payload.
+            // The header is now stripped, and we can forward the remaining payload.
+            ctx.fireChannelRead(packet.retain());
+            
         } else {
-            // No header in this packet. Check if we have a cached address.
-            // This supports the "header-once" scenario for subsequent packets.
-            realAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
-            if (realAddress != null) {
-                log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), realAddress);
+            // No PROXY header detected in this packet.
+            // This must be a subsequent data packet for a session initiated with a header.
+            InetSocketAddress cachedAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
+
+            if (cachedAddress == null) {
+                // No header in this packet AND no cached session information.
+                // This is an invalid packet from an unknown source.
+                return;
             }
-        }
 
-        // After all checks, if we still don't have a real address, the packet is invalid.
-        if (realAddress == null) {
-            // This occurs if:
-            // 1. It's the first packet from a source and it has no PROXY header.
-            // 2. The packet contained a malformed header that failed to decode.
-            return;
+            // We have a valid session from cache. Forward this data packet as is.
+            log.trace("Reusing PROXY session for proxy {}", packet.sender());
+            ctx.fireChannelRead(packet.retain());
         }
-
-        // If we've reached here, the packet is valid and 'content' is stripped of any header it might have had.
-        // Fire the read to pass the clean packet (game data only) to the next handler in the pipeline.
-        ctx.fireChannelRead(packet.retain());
     }
 }
