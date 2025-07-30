@@ -58,7 +58,7 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
         }
 
         // Kick users that try to send illegal packets
-        logger.error("Illegal packet from " + session.bedrockUsername(), rootCause.getMessage());
+        logger.error("Illegal packet from " + session.bedrockUsername(), cause);
         session.disconnect("Invalid packet received!");
         session.forciblyCloseUpstream();
     }
