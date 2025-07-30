@@ -128,9 +128,9 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                         return InteractiveTag.EQUIP_HARNESS;
                     }
                 } else if (itemInHand.asItem() == Items.SHEARS) {
-                    if (this.equipment.get(EquipmentSlot.BODY) != null) {
+                    if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
-                        return InteractiveTag.SHEAR;
+                        return InteractiveTag.REMOVE_HARNESS;
                     }
                 }
             }
@@ -157,7 +157,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                         return InteractionResult.SUCCESS;
                     }
                 } else if (itemInHand.asItem() == Items.SHEARS) {
-                    if (this.equipment.get(EquipmentSlot.BODY) != null) {
+                    if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
                         return InteractionResult.SUCCESS;
                     }
