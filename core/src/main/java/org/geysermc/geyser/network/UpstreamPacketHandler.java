@@ -89,6 +89,8 @@ import java.util.concurrent.TimeUnit;
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
+    private boolean receivedLoginPacket = false;
+    private boolean finishedResourcePackSending = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
 
@@ -193,6 +195,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        if (receivedLoginPacket) {
+            GeyserImpl.getInstance().getLogger().warning("Received duplicate login packet from " + session.name());
+            session.disconnect("Received duplicate login packet!");
+            return PacketSignal.HANDLED;
+        }
+        receivedLoginPacket = true;
+
+        if (geyser.getSessionManager().reachedMaxConnectionsPerAddress(session)) {
+            session.disconnect("Too many connections are originating from this location!");
+            return PacketSignal.HANDLED;
+        }
+
         // Set the block translation based off of version
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
@@ -204,14 +218,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.name()));
+            return PacketSignal.HANDLED;
+        }
+
+        geyser.getSessionManager().addPendingSession(session);
+
         // Fire SessionInitializeEvent here as we now know the client data
         geyser.eventBus().fire(new SessionInitializeEvent(session));
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
-
-        geyser.getSessionManager().addPendingSession(session);
 
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session);
         this.geyser.eventBus().fire(this.resourcePackLoadEvent);
@@ -231,8 +250,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
+        if (finishedResourcePackSending) {
+            session.disconnect("Illegal duplicate resource pack response packet received!");
+            return PacketSignal.HANDLED;
+        }
+
         switch (packet.getStatus()) {
             case COMPLETED -> {
+                finishedResourcePackSending = true;
                 if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
@@ -314,6 +339,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
+        if (finishedResourcePackSending) {
+            session.disconnect("Illegal duplicate resource pack packet received!");
+            return PacketSignal.HANDLED;
+        }
         // Resolve some console pack downloading issues.
         // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
