@@ -160,7 +160,7 @@ public class ScoreboardIssueTests {
                 assertEquals(npcUuid, packet.getUuid());
                 assertEquals("1297", packet.getUsername());
                 assertEquals((byte) 1, packet.getMetadata().get(EntityDataTypes.NAMETAG_ALWAYS_SHOW));
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("1297", packet.getMetadata().get(EntityDataTypes.NAME));
             });
             assertNoNextPacket(context);
 
