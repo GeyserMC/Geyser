@@ -88,7 +88,11 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                 for (Map.Entry<String, Object> entry : componentsTag.entrySet()) {
                     var consumer = DATA_COMPONENT_DECODERS.get(entry.getKey());
                     if (consumer != null) {
-                        consumer.accept(session, (NbtMap) entry.getValue(), components);
+                        try {
+                            consumer.accept(session, (NbtMap) entry.getValue(), components);
+                        } catch (RuntimeException exception) {
+                            session.getGeyser().getLogger().warning("Failed to translate vault item component data for " + entry.getKey() + "! Did the component structure change?");
+                        }
                     }
                 }
                 ItemData bedrockItem = ItemTranslator.translateToBedrock(session, mapping.getJavaItem(), mapping, count, components).build();
