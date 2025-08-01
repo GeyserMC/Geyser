@@ -1,4 +1,5 @@
 [versions]
+protocol.codec = "raknet"
 base-api = "1.0.2"
 cumulus = "1.1.2"
 erosion = "1.1-20240521.000109-3"
