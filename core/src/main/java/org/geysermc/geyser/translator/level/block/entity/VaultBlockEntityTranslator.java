@@ -94,7 +94,7 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                             consumer.accept(session, (NbtMap) entry.getValue(), components);
                         } catch (RuntimeException exception) {
                             if (!loggedComponentTranslationFailure) {
-                                session.getGeyser().getLogger().error("Failed to translate vault item component data for " + entry.getKey() + "! Did the component structure change?", exception);
+                                session.getGeyser().getLogger().warning("Failed to translate vault item component data for " + entry.getKey() + "! Did the component structure change?");
                                 loggedComponentTranslationFailure = true;
                             }
                         }
