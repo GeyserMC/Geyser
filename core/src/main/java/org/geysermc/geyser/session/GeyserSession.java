@@ -1283,15 +1283,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             this.bundleCache.tick();
+            this.dialogManager.tick();
+            this.waypointCache.tick();
 
             if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
             }
-
-            dialogManager.tick();
-            waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

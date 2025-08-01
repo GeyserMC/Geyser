@@ -57,6 +57,8 @@ import java.util.UUID;
 
 @BlockEntity(type = BlockEntityType.VAULT)
 public class VaultBlockEntityTranslator extends BlockEntityTranslator {
+    private static boolean loggedComponentTranslationFailure = false;
+
     // Bedrock 1.21 does not send the position nor ID in the tag.
     @Override
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
@@ -88,7 +90,14 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
                 for (Map.Entry<String, Object> entry : componentsTag.entrySet()) {
                     var consumer = DATA_COMPONENT_DECODERS.get(entry.getKey());
                     if (consumer != null) {
-                        consumer.accept(session, (NbtMap) entry.getValue(), components);
+                        try {
+                            consumer.accept(session, (NbtMap) entry.getValue(), components);
+                        } catch (RuntimeException exception) {
+                            if (!loggedComponentTranslationFailure) {
+                                session.getGeyser().getLogger().warning("Failed to translate vault item component data for " + entry.getKey() + "! Did the component structure change?");
+                                loggedComponentTranslationFailure = true;
+                            }
+                        }
                     }
                 }
                 ItemData bedrockItem = ItemTranslator.translateToBedrock(session, mapping.getJavaItem(), mapping, count, components).build();
