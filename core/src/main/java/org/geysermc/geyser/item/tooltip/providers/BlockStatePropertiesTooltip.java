@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.item.tooltip.providers;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 
-public class TropicalFishBucketItem extends Item {
+import java.util.function.Consumer;
 
-    public TropicalFishBucketItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
+public class BlockStatePropertiesTooltip implements ComponentTooltipProvider<BlockStateProperties> {
+    private static final Component MAX_HONEY_LEVEL = Component.text(5);
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, tooltip, builder);
-
-        // Prevent name from appearing as "Bucket of"
-        builder.putByte("AppendCustomName", (byte) 1);
-        builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull BlockStateProperties state) {
+        String honeyLevel = state.getProperties().get("honey_level");
+        if (honeyLevel != null) {
+            try {
+                int level = Integer.parseInt(honeyLevel);
+                adder.accept(Component.translatable("container.beehive.honey", Component.text(level), MAX_HONEY_LEVEL).color(NamedTextColor.GRAY));
+            } catch (NumberFormatException ignored) {}
+        }
     }
 }

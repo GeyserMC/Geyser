@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.tags;
+package org.geysermc.geyser.item.components;
 
-import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import net.kyori.adventure.text.Component;
 
-/**
- * A tag in any of the registries that tags are loaded for by Geyser.
- */
-public record Tag<T>(JavaRegistryKey<T, ?> registry, Key tag) {
+import java.util.Locale;
+
+// Ordered and named by Java ID
+public enum FireworkExplosionShape {
+    SMALL_BALL,
+    LARGE_BALL,
+    STAR,
+    CREEPER,
+    BURST;
+
+    public Component displayName() {
+        return Component.translatable("item.minecraft.firework_star.shape." + name().toLowerCase(Locale.ROOT));
+    }
 }

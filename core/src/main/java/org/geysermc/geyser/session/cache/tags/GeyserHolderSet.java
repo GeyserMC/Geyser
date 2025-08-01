@@ -58,28 +58,28 @@ import java.util.function.ToIntFunction;
 @Data
 public final class GeyserHolderSet<T> {
 
-    private final JavaRegistryKey<T> registry;
+    private final JavaRegistryKey<T, ?> registry;
     private final @Nullable Tag<T> tag;
     private final int @Nullable [] holders;
     private final @Nullable List<T> inline;
 
-    private GeyserHolderSet(JavaRegistryKey<T> registry) {
+    private GeyserHolderSet(JavaRegistryKey<T, ?> registry) {
         this(registry, IntArrays.EMPTY_ARRAY);
     }
 
-    public GeyserHolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
+    public GeyserHolderSet(JavaRegistryKey<T, ?> registry, int @NonNull [] holders) {
         this(registry, null, holders, null);
     }
 
-    public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
+    public GeyserHolderSet(JavaRegistryKey<T, ?> registry, @NonNull Tag<T> tagId) {
         this(registry, tagId, null, null);
     }
 
-    public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull List<T> inline) {
+    public GeyserHolderSet(JavaRegistryKey<T, ?> registry, @NonNull List<T> inline) {
         this(registry, null, null, inline);
     }
 
-    private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, int @Nullable [] holders, @Nullable List<T> inline) {
+    private GeyserHolderSet(JavaRegistryKey<T, ?> registry, @Nullable Tag<T> tag, int @Nullable [] holders, @Nullable List<T> inline) {
         this.registry = registry;
         this.tag = tag;
         this.holders = holders;
@@ -89,7 +89,7 @@ public final class GeyserHolderSet<T> {
     /**
      * Constructs a {@link GeyserHolderSet} from a MCPL HolderSet.
      */
-    public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
+    public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T, ?> registry, @NonNull HolderSet holderSet) {
         // MCPL HolderSets don't have to support inline elements... for now (TODO CHECK ME)
         Tag<T> tag = holderSet.getLocation() == null ? null : new Tag<>(registry, holderSet.getLocation());
         return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null);
@@ -135,7 +135,7 @@ public final class GeyserHolderSet<T> {
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
+    public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T, ?> registry, @Nullable Object holderSet) {
         return readHolderSet(registry, holderSet, key -> registry.networkId(session, key));
     }
 
@@ -146,7 +146,7 @@ public final class GeyserHolderSet<T> {
      * @param holderSet the HolderSet as a NBT object.
      * @param idMapper a function that maps a key in this registry to its respective network ID.
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, ToIntFunction<Key> idMapper) {
+    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T, ?> registry, @Nullable Object holderSet, ToIntFunction<Key> idMapper) {
         return readHolderSet(registry, holderSet, idMapper, null);
     }
 
@@ -159,7 +159,7 @@ public final class GeyserHolderSet<T> {
      * @param idMapper a function that maps a key in this registry to its respective network ID.
      * @param reader a function that reads an object in the HolderSet's registry, serialised as NBT. When {@code null}, this method doesn't support reading inline HolderSets.
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet,
+    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T, ?> registry, @Nullable Object holderSet,
                                                        ToIntFunction<Key> idMapper, @Nullable Function<NbtMap, T> reader) {
         if (holderSet == null) {
             return new GeyserHolderSet<>(registry);

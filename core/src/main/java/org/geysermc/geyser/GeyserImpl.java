@@ -253,6 +253,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 return;
             }
 
+            MinecraftLocale.downloadDeprecations();
             MinecraftLocale.ensureEN_US();
             String locale = GeyserLocale.getDefaultLocale();
             if (!"en_us".equals(locale)) {
