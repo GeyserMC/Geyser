@@ -8,6 +8,10 @@ dependencies {
     annotationProcessor(libs.velocity.api)
     api(projects.core)
 
+    compileOnly(libs.velocity.proxy)
+    compileOnly(libs.netty.transport.native.io.uring)
+    compileOnly(libs.netty.transport.native.kqueue)
+
     compileOnlyApi(libs.velocity.api)
     api(libs.cloud.velocity)
 }
