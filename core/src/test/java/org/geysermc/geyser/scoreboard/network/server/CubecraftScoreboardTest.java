@@ -25,14 +25,6 @@
 
 package org.geysermc.geyser.scoreboard.network.server;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayer;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -59,6 +51,13 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.*;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CubecraftScoreboardTest {
     @Test
@@ -650,49 +649,49 @@ public class CubecraftScoreboardTest {
             spawnPlayer(context, "A_Player", 2);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(2, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("A_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "B_Player", 3);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(3, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("B_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "E_Player", 4);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(4, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("E_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "H_Player", 5);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(5, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("H_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "J_Player", 6);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(6, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("J_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "K_Player", 7);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(7, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("K_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "L_Player", 8);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(8, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("L_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
 
             spawnPlayer(context, "O_Player", 9);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
                 assertEquals(9, packet.getRuntimeEntityId());
-                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+                assertEquals("O_Player", packet.getMetadata().get(EntityDataTypes.NAME));
             });
         });
     }
