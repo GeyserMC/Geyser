@@ -25,14 +25,31 @@
 
 package org.geysermc.geyser.item.tooltip;
 
+import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public record TooltipContext(GeyserSession session, boolean advanced, boolean creative, Item item, DataComponents components,
+import java.util.Optional;
+import java.util.function.Consumer;
+
+public record TooltipContext(Optional<GeyserSession> session, boolean advanced, boolean creative, Item item, DataComponents components,
                              TooltipOptions options) {
+
+    public <T> void getRegistryEntry(JavaRegistryKey<T, ?> registry, Key key, Consumer<T> consumer) {
+        session.flatMap(session -> Optional.ofNullable(registry.value(session, key))).ifPresent(consumer);
+    }
+
+    public <T, MCPL> void getRegistryEntry(JavaRegistryKey<T, MCPL> registry, Holder<MCPL> holder, Consumer<T> consumer) {
+        session.flatMap(session -> Optional.ofNullable(registry.value(session, holder))).ifPresent(consumer);
+    }
+
+    public void withSession(Consumer<GeyserSession> consumer) {
+        session.ifPresent(consumer);
+    }
 
     public TooltipContext withItemComponents(Item item, DataComponents components) {
         return new TooltipContext(session, advanced, creative, item, components, options);
@@ -43,6 +60,11 @@ public record TooltipContext(GeyserSession session, boolean advanced, boolean cr
     }
 
     public static TooltipContext create(GeyserSession session, Item item, DataComponents components) {
-        return new TooltipContext(session, session.isAdvancedTooltips(), session.getGameMode() == GameMode.CREATIVE, item, components, TooltipOptions.fromComponents(components));
+        return new TooltipContext(Optional.of(session), session.isAdvancedTooltips(), false, item, components, TooltipOptions.fromComponents(components));
+    }
+
+    public static TooltipContext createForCreativeMenu(Item item) {
+        DataComponents components = item.gatherComponents(null);
+        return new TooltipContext(Optional.empty(), false, true, item, components, TooltipOptions.fromComponents(components));
     }
 }

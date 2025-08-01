@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 
 import java.util.function.Consumer;
@@ -39,9 +40,11 @@ public class InstrumentTooltip implements ComponentTooltipProvider<InstrumentCom
 
     @Override
     public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull InstrumentComponent component) {
-        try {
-            GeyserInstrument instrument = GeyserInstrument.fromComponent(context.session(), component);
-            adder.accept(instrument.description().colorIfAbsent(NamedTextColor.GRAY));
-        } catch (IllegalStateException ignored) {}
+        Consumer<GeyserInstrument> tooltipAdder = instrument -> adder.accept(instrument.description().colorIfAbsent(NamedTextColor.GRAY));
+        if (component.instrumentLocation() != null) {
+            context.getRegistryEntry(JavaRegistries.INSTRUMENT, component.instrumentLocation(), tooltipAdder);
+        } else {
+            context.getRegistryEntry(JavaRegistries.INSTRUMENT, component.instrumentHolder(), tooltipAdder);
+        }
     }
 }

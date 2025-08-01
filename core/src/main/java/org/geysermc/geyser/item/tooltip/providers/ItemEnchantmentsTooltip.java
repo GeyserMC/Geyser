@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
@@ -42,31 +43,33 @@ public class ItemEnchantmentsTooltip implements ComponentTooltipProvider<ItemEnc
 
     @Override
     public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull ItemEnchantments component) {
-        int[] tooltipOrder = context.session().getTagCache().getRaw(EnchantmentTag.TOOLTIP_ORDER);
+        context.withSession(session -> {
+            int[] tooltipOrder = session.getTagCache().getRaw(EnchantmentTag.TOOLTIP_ORDER);
 
-        Map<Integer, Integer> enchantments = component.getEnchantments();
-        for (int orderedEnchantment : tooltipOrder) {
-            Integer level = enchantments.get(orderedEnchantment);
-            if (level != null && level > 0) {
-                adder.accept(enchantmentName(context, orderedEnchantment, level));
+            Map<Integer, Integer> enchantments = component.getEnchantments();
+            for (int orderedEnchantment : tooltipOrder) {
+                Integer level = enchantments.get(orderedEnchantment);
+                if (level != null && level > 0) {
+                    adder.accept(enchantmentName(session, orderedEnchantment, level));
+                }
             }
-        }
 
-        for (int enchantment : enchantments.keySet()) {
-            if (!context.session().getTagCache().is(EnchantmentTag.TOOLTIP_ORDER, enchantment)) {
-                adder.accept(enchantmentName(context, enchantment, enchantments.get(enchantment)));
+            for (int enchantment : enchantments.keySet()) {
+                if (!session.getTagCache().is(EnchantmentTag.TOOLTIP_ORDER, enchantment)) {
+                    adder.accept(enchantmentName(session, enchantment, enchantments.get(enchantment)));
+                }
             }
-        }
+        });
     }
 
-    private static Component enchantmentName(TooltipContext context, int id, int level) {
-        Enchantment enchantment = JavaRegistries.ENCHANTMENT.value(context.session(), id);
+    private static Component enchantmentName(GeyserSession session, int id, int level) {
+        Enchantment enchantment = JavaRegistries.ENCHANTMENT.value(session, id);
         if (enchantment == null) {
             return Component.empty();
         }
 
         Component tooltip = enchantment.description();
-        boolean curse = context.session().getTagCache().is(EnchantmentTag.CURSE, enchantment);
+        boolean curse = session.getTagCache().is(EnchantmentTag.CURSE, enchantment);
         if (curse) {
             tooltip = tooltip.colorIfAbsent(NamedTextColor.RED);
         } else {

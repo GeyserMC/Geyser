@@ -124,14 +124,14 @@ public class AttributeModifiersTooltip implements ComponentTooltipProvider<ItemA
         String operationTotal = switch (operation) {
             case ADD -> {
                 if (name.equals("knockback_resistance")) {
-                    amount *= 10;
+                    amount *= 10.0;
                 }
 
                 if (modifier.getId().equals(BASE_ATTACK_DAMAGE_ID)) {
-                    amount += context.session().getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_DAMAGE);
+                    amount += context.session().map(session -> session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_DAMAGE)).orElse(1.0F);
                     baseModifier = true;
                 } else if (modifier.getId().equals(BASE_ATTACK_SPEED_ID)) {
-                    amount += context.session().getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_SPEED);
+                    amount += context.session().map(session -> session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_SPEED)).orElse(4.0F);
                     baseModifier = true;
                 }
 

@@ -28,7 +28,6 @@ package org.geysermc.geyser.item.tooltip.providers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
@@ -44,11 +43,12 @@ public class BannerPatternLayersTooltip implements ComponentTooltipProvider<List
     public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull List<BannerPatternLayer> patterns) {
         for (int i = 0; i < Math.min(6, patterns.size()); i++) {
             BannerPatternLayer layer = patterns.get(i);
-            BannerPattern pattern = JavaRegistries.BANNER_PATTERN.value(context.session(), layer.getPattern());
-            DyeColor color = DyeColor.getById(layer.getColorId());
-            if (pattern != null && color != null) {
-                adder.accept(Component.translatable(pattern.translationKey() + "." + color.getJavaIdentifier()).color(NamedTextColor.GRAY));
-            }
+            context.getRegistryEntry(JavaRegistries.BANNER_PATTERN, layer.getPattern(), pattern -> {
+                DyeColor color = DyeColor.getById(layer.getColorId());
+                if (color != null) {
+                    adder.accept(Component.translatable(pattern.translationKey() + "." + color.getJavaIdentifier()).color(NamedTextColor.GRAY));
+                }
+            });
         }
     }
 }

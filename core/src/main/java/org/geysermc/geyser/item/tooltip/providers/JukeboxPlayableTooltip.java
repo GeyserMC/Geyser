@@ -40,12 +40,11 @@ public class JukeboxPlayableTooltip implements ComponentTooltipProvider<JukeboxP
 
     @Override
     public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull JukeboxPlayable playable) {
-        JukeboxSong song = playable.songHolder() != null
-            ? JavaRegistries.JUKEBOX_SONG.value(context.session(), playable.songHolder())
-            : JavaRegistries.JUKEBOX_SONG.value(context.session(), playable.songLocation());
-
-        if (song != null) {
-            adder.accept(song.description().colorIfAbsent(NamedTextColor.GRAY));
+        Consumer<JukeboxSong> tooltipAdder = song -> adder.accept(song.description().colorIfAbsent(NamedTextColor.GRAY));
+        if (playable.songLocation() != null) {
+            context.getRegistryEntry(JavaRegistries.JUKEBOX_SONG, playable.songLocation(), tooltipAdder);
+        } else {
+            context.getRegistryEntry(JavaRegistries.JUKEBOX_SONG, playable.songHolder(), tooltipAdder);
         }
     }
 }
