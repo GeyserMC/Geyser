@@ -69,15 +69,7 @@ public abstract class GeyserWaypoint {
     }
 
     public void update(WaypointData data) {
-        try {
-            setData(data);
-        } catch (ClassCastException exception) {
-            // Subclasses cast WaypointData to their respective expected data (Vec3iWaypointData, ChunkWaypointData, etc.)
-            // A ClassCastException occurs when the server sends us the wrong data for a waypoint
-            // Java fails and logs a warning message in this case, and so should we
-            session.getGeyser().getLogger().warning("Unsupported waypoint data " + data.getClass() + " for " + getClass());
-            return;
-        }
+        setData(data);
         sendLocationPacket(false);
     }
 
