@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
@@ -48,6 +49,7 @@ public final class Team {
     private final Set<Entity> managedEntities;
     @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     private TeamColor color;
+    private CollisionRule collisionRule;
 
     private String name;
     private String prefix;
@@ -62,13 +64,16 @@ public final class Team {
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
-        TeamColor color
+        TeamColor color,
+        CollisionRule collisionRule
     ) {
         this.scoreboard = scoreboard;
         this.id = id;
         this.entities = new ObjectOpenHashSet<>();
         this.managedEntities = new ObjectOpenHashSet<>();
         this.lastUpdate = LAST_UPDATE_DEFAULT;
+
+        this.collisionRule = collisionRule;
 
         // doesn't call entity update
         updateProperties(name, prefix, suffix, visibility, color);
@@ -314,6 +319,10 @@ public final class Team {
 
     public TeamColor color() {
         return color;
+    }
+
+    public CollisionRule collisionRule() {
+        return collisionRule;
     }
 
     public long lastUpdate() {
