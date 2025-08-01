@@ -186,6 +186,7 @@ import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.protocol.bedrock.entity.player.input.BlockBreakHandler;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -451,6 +452,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
+
     /**
      * Which dimension Bedrock understands themselves to be in.
      * This should only be set after the ChangeDimensionPacket is sent, or
@@ -459,8 +461,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
-    @Setter
-    private int breakingBlock;
+    /**
+     * The block break handler for this session.
+     */
+    BlockBreakHandler blockBreakHandler = new BlockBreakHandler(this);
 
     @Setter
     private Vector3i lastBlockPlacePosition;
@@ -1778,7 +1782,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
-        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
