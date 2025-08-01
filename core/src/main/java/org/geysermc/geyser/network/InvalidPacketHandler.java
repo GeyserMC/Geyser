@@ -51,7 +51,6 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
 
         if (!(rootCause instanceof IllegalArgumentException)) {
             // Kick users that cause exceptions
-            session.disconnect("An internal error occurred!");
             session.forciblyCloseUpstream();
             return;
         }
