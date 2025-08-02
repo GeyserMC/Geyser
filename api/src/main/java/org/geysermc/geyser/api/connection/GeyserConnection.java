@@ -35,8 +35,11 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.skin.SkinData;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -117,6 +120,34 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.8.0
      */
     void sendCommand(String command);
+
+    /**
+     * Gets the hostname/ip and port the player used to connect with.
+     * Example:
+     * <ul>
+     *     <li> {@code test.geysermc.org:19132} </li>
+     *     <li> {@code 127.0.0.1:20202} </li>
+     *     <li> {@code af2a:5373:463b:7029:b58d:0e92:b5d9:ca2c:90909} </li>
+     * </ul>
+     *
+     * @throws NoSuchElementException if called before the session is fully initialized
+     * @return the connection details sent by the client when connecting
+     * @since 2.8.3
+     */
+    @NonNull String clientConnectionAddress();
+
+    /**
+     * Applies a skin to a player seen by this Geyser connection.
+     * If the uuid matches the {@link GeyserConnection#javaUuid()}, this
+     * will update the skin of this Geyser connection.
+     * If the player uuid provided is not known to this connection, this method
+     * will silently return.
+     *
+     * @param player which player this skin should be applied to
+     * @param skinData the skin data to apply
+     * @since 2.8.3
+     */
+    void sendSkin(@NonNull UUID player, @NonNull SkinData skinData);
 
     /**
      * @param javaId the Java entity ID to look up.
