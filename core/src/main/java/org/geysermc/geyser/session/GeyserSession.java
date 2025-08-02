@@ -244,6 +244,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -601,6 +602,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int lastAirHitTick;
 
     /**
+     * Keep track of fireworks rockets that are attached to the player.
+     * Used to keep track of attached fireworks rocket and improve fireworks rocket boosting parity.
+     */
+    private final List<Long> attachedFireworkRockets = new CopyOnWriteArrayList<>();
+
+    /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
     private boolean daylightCycle = true;
@@ -675,18 +682,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int ticks;
 
     /**
+     * The number of ticks that have elapsed since the start of this session according to the client.
+     */
+    @Setter
+    private long clientTicks;
+
+    /**
      * The world time in ticks according to the server
      * <p>
      * Note: The TickingStatePacket is currently ignored.
      */
     @Setter
     private long worldTicks;
-
-    /**
-     * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
-     */
-    @Setter
-    private ScheduledFuture<?> lookBackScheduledFuture = null;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -1036,7 +1043,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.cookies = loginEvent.cookies();
-        this.remoteServer = loginEvent.remoteServer();
+        // Don't allow changing the remote server when it's not up to us
+        // Just imagine the chaos of using an integrated world manager for an external server :)
+        this.remoteServer = this.geyser.platformType() == PlatformType.STANDALONE ? loginEvent.remoteServer() : remoteServer;
 
         // Start ticking
         tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
@@ -1142,6 +1151,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Mark session as closed before cancelling erosion futures
         closed = true;
         erosionHandler.close();
+    }
+
+    /**
+     * Forcibly closes the upstream session
+     */
+    public void forciblyCloseUpstream() {
+        upstream.forciblyClose();
     }
 
     /**
@@ -1271,15 +1287,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             this.bundleCache.tick();
+            this.dialogManager.tick();
+            this.waypointCache.tick();
 
             if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
             }
-
-            dialogManager.tick();
-            waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1386,15 +1401,27 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     * Same as useItem but always default to useTouchRotation false.
      */
     public void useItem(Hand hand) {
+        useItem(hand, false);
+    }
+
+    /**
+     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     */
+    public void useItem(Hand hand, boolean useTouchRotation) {
         if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
             return;
         }
 
-        sendDownstreamGamePacket(new ServerboundUseItemPacket(
-            hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
+            yaw = playerEntity.getBedrockInteractRotation().getY();
+            pitch = playerEntity.getBedrockInteractRotation().getX();
+        }
+
+        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), yaw, pitch));
     }
 
     public void releaseItem() {

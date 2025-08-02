@@ -42,8 +42,7 @@ import java.util.Set;
  * @param description only populated if {@link #bedrockEnchantment()} is null.
  * @param anvilCost also as a rarity multiplier
  */
-public record Enchantment(String identifier,
-                          Set<EnchantmentComponent> effects,
+public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
                           String description,
@@ -66,8 +65,7 @@ public record Enchantment(String identifier,
 
         String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
 
-        return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
-                description, anvilCost, exclusiveSet, bedrockEnchantment);
+        return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 
     private static Set<EnchantmentComponent> readEnchantmentComponents(NbtMap effects) {
