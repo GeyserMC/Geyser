@@ -168,7 +168,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private final EventBus<EventRegistrar> eventBus;
+    private final GeyserEventBus eventBus;
     private final GeyserExtensionManager extensionManager;
 
     private Metrics metrics;
@@ -751,6 +751,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Override
     @NonNull
     public EventBus<EventRegistrar> eventBus() {
+        return this.eventBus;
+    }
+
+    public GeyserEventBus geyserEventBus() {
         return this.eventBus;
     }
 
