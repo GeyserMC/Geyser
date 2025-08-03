@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
@@ -122,19 +123,35 @@ public interface GeyserConnection extends Connection, CommandSource {
     void sendCommand(String command);
 
     /**
-     * Gets the hostname/ip and port the player used to connect with.
+     * Gets the hostname or ip address the player used to join this Geyser instance.
      * Example:
      * <ul>
-     *     <li> {@code test.geysermc.org:19132} </li>
-     *     <li> {@code 127.0.0.1:20202} </li>
-     *     <li> {@code af2a:5373:463b:7029:b58d:0e92:b5d9:ca2c:90909} </li>
+     *     <li> {@code test.geysermc.org} </li>
+     *     <li> {@code 127.0.0.1} </li>
+     *     <li> {@code 06e9:c755:4eff:5f13:9b4c:4b21:9df2:6a73} </li>
      * </ul>
      *
      * @throws NoSuchElementException if called before the session is fully initialized
-     * @return the connection details sent by the client when connecting
+     * @return the ip or address string sent by the client when connecting
      * @since 2.8.3
      */
-    @NonNull String clientConnectionAddress();
+    @NonNull
+    String joinAddress();
+
+    /**
+     * Gets the port the player used to join this Geyser instance.
+     * Example:
+     * <ul>
+     *     <li> {@code 19132} </li>
+     *     <li> {@code 2202} </li>
+     * </ul>
+     *
+     * @throws NoSuchElementException if called before the session is fully initialized
+     * @return the port used by the player to connect to this server
+     * @since 2.8.3
+     */
+    @Positive
+    int joinPort();
 
     /**
      * Applies a skin to a player seen by this Geyser connection.

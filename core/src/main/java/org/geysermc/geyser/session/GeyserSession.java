@@ -46,6 +46,7 @@ import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -1582,8 +1583,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public @NonNull String clientConnectionAddress() {
-        return Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+    public @NonNull String joinAddress() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        String[] parts = combined.split(":");
+        return String.join(":", Arrays.copyOf(parts, parts.length - 1));
+    }
+
+    @Override
+    public @Positive int joinPort() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        String[] parts = combined.split(":");
+        return Integer.parseInt(parts[parts.length - 1]);
     }
 
     @Override
