@@ -231,7 +231,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(playStatus);
 
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session);
-        this.geyser.geyserEventBus().fireEventElseKick(this.resourcePackLoadEvent, session);
+        this.geyser.eventBus().fireEventElseKick(this.resourcePackLoadEvent, session);
         if (session.isClosed()) {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
@@ -252,6 +252,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
+        if (session.getUpstream().isClosed() || session.isClosed()) {
+            return PacketSignal.HANDLED;
+        }
+
         if (finishedResourcePackSending) {
             session.disconnect("Illegal duplicate resource pack response packet received!");
             return PacketSignal.HANDLED;
@@ -298,7 +302,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
                 session.sendUpstreamPacket(stackPacket);
             }
-            default -> session.disconnect("disconnectionScreen.resourcePack");
+            default -> {
+                GeyserImpl.getInstance().getLogger().debug("received unknown status packet: " + packet);
+                session.disconnect("disconnectionScreen.resourcePack");
+            }
         }
 
         return PacketSignal.HANDLED;
@@ -306,6 +313,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ModalFormResponsePacket packet) {
+        if (session.getUpstream().isClosed() || session.isClosed()) {
+            return PacketSignal.HANDLED;
+        }
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return PacketSignal.HANDLED;
     }
@@ -347,7 +357,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        if (session.isClosed()) {
+        if (session.getUpstream().isClosed() || session.isClosed()) {
             return PacketSignal.HANDLED;
         }
 
