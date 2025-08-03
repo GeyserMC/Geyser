@@ -51,6 +51,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -420,6 +421,29 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             return;
         }
         dirtyMetadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
+    }
+
+    @Override
+    public void setPose(Pose pose) {
+        super.setPose(pose);
+        setFlag(EntityFlag.SWIMMING, false);
+        setFlag(EntityFlag.CRAWLING, false);
+
+        if (pose == Pose.SWIMMING) {
+            // This is just for, so we know if player is swimming or crawling.
+            if (session.getGeyser().getWorldManager().blockAt(session, this.position().toInt()).is(Blocks.WATER)) {
+                setFlag(EntityFlag.SWIMMING, true);
+            } else {
+                setFlag(EntityFlag.CRAWLING, true);
+                // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
+                updateRotation(this.yaw, 0, this.onGround);
+            }
+        }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        super.setPitch(getFlag(EntityFlag.CRAWLING) ? 0 : pitch);
     }
 
     @Override

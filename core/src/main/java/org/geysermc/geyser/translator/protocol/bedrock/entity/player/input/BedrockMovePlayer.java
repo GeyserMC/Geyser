@@ -49,6 +49,10 @@ final class BedrockMovePlayer {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
+        // We need to save player interact rotation value, as this rotation is used for Touch device and indicate where the player is touching.
+        // This is needed so that we can interact with where player actually touch on the screen on Bedrock and not just from the center of the screen.
+        entity.setBedrockInteractRotation(packet.getInteractRotation());
+
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
@@ -79,13 +83,6 @@ final class BedrockMovePlayer {
         boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
-        if (session.getLookBackScheduledFuture() != null) {
-            // Resend the rotation if it was changed by Geyser
-            rotationChanged |= !session.getLookBackScheduledFuture().isDone();
-            session.getLookBackScheduledFuture().cancel(false);
-            session.setLookBackScheduledFuture(null);
-        }
-
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
@@ -108,6 +105,7 @@ final class BedrockMovePlayer {
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)

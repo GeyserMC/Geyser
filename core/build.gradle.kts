@@ -36,18 +36,17 @@ dependencies {
         exclude("io.netty", "*")
     }
 
-    implementation(libs.netty.resolver.dns)
-    implementation(libs.netty.resolver.dns.native.macos) { artifact { classifier = "osx-x86_64" } }
-    implementation(libs.netty.codec.haproxy)
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
+    implementation(libs.netty.codec.haproxy)
 
     api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
+    // kqueue is macos only
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
-    //api(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
-    //implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
+    api(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
     api(libs.bundles.adventure)
