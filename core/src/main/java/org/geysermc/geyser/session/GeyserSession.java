@@ -119,6 +119,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
+import org.geysermc.geyser.api.network.NetworkManager;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
@@ -154,6 +155,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.GeyserNetworkManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -734,9 +736,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean allowVibrantVisuals = true;
 
+    private final GeyserNetworkManager networkManager;
+
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
-        this.upstream = new UpstreamSession(bedrockServerSession);
+        this.upstream = new UpstreamSession(this, bedrockServerSession);
         this.tickEventLoop = tickEventLoop;
 
         this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
@@ -785,6 +789,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.remoteServer = geyser.defaultRemoteServer();
+        this.networkManager = new GeyserNetworkManager(this);
     }
 
     /**
@@ -2350,6 +2355,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public boolean hasFormOpen() {
         return formCache.hasFormOpen();
+    }
+
+    @Override
+    @NonNull
+    public NetworkManager networkManager() {
+        return this.networkManager;
     }
 
     @Override
