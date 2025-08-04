@@ -1585,15 +1585,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull String joinAddress() {
         String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
-        String[] parts = combined.split(":");
-        return String.join(":", Arrays.copyOf(parts, parts.length - 1));
+        int index = combined.lastIndexOf(":");
+        return combined.substring(0, index);
     }
 
     @Override
     public @Positive int joinPort() {
         String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
-        String[] parts = combined.split(":");
-        return Integer.parseInt(parts[parts.length - 1]);
+        int index = combined.lastIndexOf(":");
+        return Integer.parseInt(combined.substring(index + 1));
     }
 
     @Override
