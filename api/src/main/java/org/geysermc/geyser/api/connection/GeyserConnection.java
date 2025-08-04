@@ -132,7 +132,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * @throws NoSuchElementException if called before the session is fully initialized
-     * @return the ip or address string sent by the client when connecting
+     * @return the ip address or hostname string the player used to join 
      * @since 2.8.3
      */
     @NonNull
@@ -147,7 +147,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * @throws NoSuchElementException if called before the session is fully initialized
-     * @return the port used by the player to connect to this server
+     * @return the port the player used to join 
      * @since 2.8.3
      */
     @Positive
