@@ -148,10 +148,10 @@ inner class GitInfo {
 tasks.register<DownloadFilesTask>("downloadBedrockData") {
     urls = listOf(
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/entity_identifiers.dat",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/biome_definitions.dat",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/block_palette.nbt",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/creative_items.json",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json"
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/stripped_biome_definitions.json"
     )
     suffixedFiles = listOf("block_palette.nbt", "creative_items.json", "runtime_item_states.json")
 
