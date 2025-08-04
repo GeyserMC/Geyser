@@ -361,12 +361,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (finishedResourcePackSending) {
-            GeyserImpl.getInstance().getLogger().warning("Received resource pack chunk packet after stage completed! " + packet.toString());
-            session.disconnect("Illegal duplicate resource pack packet received!");
-            return PacketSignal.HANDLED;
-        }
-
         // Resolve some console pack downloading issues.
         // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
@@ -406,6 +400,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 chunkRequestQueue.clear();
                 return;
             }
+        } else if (finishedResourcePackSending) {
+            GeyserImpl.getInstance().getLogger().warning("Received resource pack chunk packet after stage completed! " + packet);
+            session.disconnect("Duplicate resource pack packet received!");
+            chunkRequestQueue.clear();
+            return;
         }
 
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
