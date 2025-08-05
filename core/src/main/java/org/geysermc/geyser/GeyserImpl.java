@@ -53,7 +53,6 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
@@ -168,7 +167,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private final EventBus<EventRegistrar> eventBus;
+    private final GeyserEventBus eventBus;
     private final GeyserExtensionManager extensionManager;
 
     private Metrics metrics;
@@ -750,7 +749,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     @NonNull
-    public EventBus<EventRegistrar> eventBus() {
+    public GeyserEventBus eventBus() {
         return this.eventBus;
     }
 
