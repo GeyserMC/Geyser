@@ -427,7 +427,7 @@ public final class ItemTranslator {
             return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
         }
 
-        if (includeDefault && !contents.getCustomEffects().isEmpty()) {
+        if (includeDefault) {
             // Make a name when has custom effects
             // because the custom effect information is display from the second line of the name.
             // if name is not set, the custom effect information will not be displayed.
@@ -586,16 +586,15 @@ public final class ItemTranslator {
                 boolean forceName = false;
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
-                    boolean showPotionEffects = TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
+                    // hold the custom effect information (reason for this is mentioned in getPotionName method)
+                    forceName = TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS)
+                            && !potionContents.getCustomEffects().isEmpty();
+                    // Get name in "potion_contents" component for vanilla potion items
                     if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
-                        // Get name in "potion_contents" component
-                        String potionName = getPotionName(potionContents, mapping, showPotionEffects, session.locale());
+                        String potionName = getPotionName(potionContents, mapping, forceName, session.locale());
                         if (potionName != null) {
                             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                         }
-                    } else {
-                        // hold the custom effect information (reason for this is mentioned in getPotionName method)
-                        forceName = showPotionEffects && !potionContents.getCustomEffects().isEmpty();
                     }
                 }
 
