@@ -84,7 +84,8 @@ public enum PaintingType {
     PASSAGE("passage", 4, 2),
     POND("pond", 3, 4),
     SUNFLOWERS("sunflowers", 3, 3),
-    TIDES("tides", 3, 3);
+    TIDES("tides", 3, 3),
+    DENNIS("dennis", 3, 3);
 
     private static final PaintingType[] VALUES = values();
     private final String bedrockName;

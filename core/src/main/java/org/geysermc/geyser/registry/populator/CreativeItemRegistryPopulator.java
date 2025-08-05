@@ -142,9 +142,12 @@ public class CreativeItemRegistryPopulator {
                 }
             }
 
-            if (!found) {
-                return null;
-            }
+            // TODO this is nice, but has the nasty side-effect of breaking creative categories.
+            // We would need to re-write those to fully remove new items / categories
+//            if (!found) {
+//                GeyserImpl.getInstance().getLogger().debug("Removing item that we don't yet translate: " + identifier);
+//                return null;
+//            }
         }
 
         JsonNode damageNode = itemNode.get("damage");

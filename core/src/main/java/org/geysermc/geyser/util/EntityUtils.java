@@ -39,15 +39,19 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Locale;
 
@@ -166,7 +170,7 @@ public final class EntityUtils {
     /**
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
-    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
+    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, int index, int passengers) {
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -179,7 +183,7 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case CAMEL -> {
                     zOffset = 0.5f;
-                    if (moreThanOneEntity) {
+                    if (passengers > 1) {
                         if (!rider) {
                             zOffset = -0.7f;
                         }
@@ -221,12 +225,18 @@ public final class EntityUtils {
                         }
                     }
                 }
+                case HAPPY_GHAST -> {
+                    int seatingIndex = Math.min(index, 4);
+                    xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
+                    yOffset = 3.4f;
+                    zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
+                }
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
             } else if (mount instanceof BoatEntity) {
                 // Without the X offset, more than one entity on a boat is stacked on top of each other
-                if (moreThanOneEntity) {
+                if (passengers > 1) {
                     xOffset = rider ? 0.2f : -0.6f;
                     if (passenger instanceof AnimalEntity) {
                         xOffset += 0.2f;
@@ -340,6 +350,15 @@ public final class EntityUtils {
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
         String typeName = type.name().toLowerCase(Locale.ROOT);
         return translatedEntityName("minecraft", typeName, session);
+    }
+
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityType entity) {
+        if (equippable.allowedEntities() == null) {
+            return true;
+        }
+
+        GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        return session.getTagCache().is(holderSet, entity);
     }
 
     private EntityUtils() {

@@ -90,13 +90,13 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     @Override
-    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
+    protected Vector3f getInputVector(VehicleContext ctx, float speed, Vector3f input) {
         if (isStationary()) {
             return Vector3f.ZERO;
         }
 
         SessionPlayerEntity player = vehicle.getSession().getPlayerEntity();
-        Vector3f inputVelocity = super.getInputVelocity(ctx, speed);
+        Vector3f inputVelocity = super.getInputVector(ctx, speed, input);
         float jumpStrength = player.getVehicleJumpStrength();
 
         if (jumpStrength > 0) {
@@ -117,11 +117,11 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     @Override
-    protected Vector2f getVehicleRotation() {
+    protected Vector2f getRiddenRotation() {
         if (isStationary()) {
             return Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
         }
-        return super.getVehicleRotation();
+        return super.getRiddenRotation();
     }
 
     /**

@@ -78,9 +78,14 @@ public class BlockRegistries {
     public static final ListRegistry<Block> JAVA_BLOCKS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
-     * A mapped registry containing the Java identifiers to IDs.
+     * A mapped registry containing the Java block state identifiers to IDs.
      */
-    public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
+    public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_BLOCK_STATE_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
+
+    /**
+     * A registry containing non-vanilla block IDS.
+     */
+    public static final SimpleRegistry<BitSet> NON_VANILLA_BLOCK_IDS = SimpleRegistry.create(RegistryLoaders.empty(BitSet::new));
 
     /**
      * A registry containing all the waterlogged blockstates.

@@ -37,8 +37,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
@@ -451,7 +451,8 @@ public class CollisionManager {
      * @param updateMetadata whether we should update metadata if something changed
      */
     public void updateScaffoldingFlags(boolean updateMetadata) {
-        Entity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
+        entity.setInsideScaffolding(touchingScaffolding);
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
         entity.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);

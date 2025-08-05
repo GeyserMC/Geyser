@@ -44,7 +44,6 @@ import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 
@@ -60,12 +59,9 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
             }
 
             @Override
-            public void openInventory(GeyserSession session, Container container) {
-                if (!container.isUsingRealBlock()) {
-                    InventoryUtils.closeInventory(session, container.getJavaId(), false);
-                    return;
-                }
-                super.openInventory(session, container);
+            public boolean prepareInventory(GeyserSession session, Container container) {
+                // Virtual beacon inventories aren't possible - we don't want to spawn a whole pyramid!
+                return super.canUseRealBlock(session, container);
             }
         }, UIInventoryUpdater.INSTANCE);
     }

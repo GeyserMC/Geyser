@@ -213,7 +213,6 @@ public final class Registries {
         PARTICLES.load();
         // load potion mixes later
         //RECIPES.load();
-        RESOURCE_PACKS.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();

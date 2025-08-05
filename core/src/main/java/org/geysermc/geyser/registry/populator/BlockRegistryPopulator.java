@@ -42,10 +42,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
-import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
 import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -58,8 +57,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.populator.conversion.Conversion776_766;
-import org.geysermc.geyser.registry.populator.conversion.Conversion786_776;
+import org.geysermc.geyser.registry.populator.conversion.Conversion800_786;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
@@ -119,10 +117,9 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), Conversion776_766::remapBlock)
-                .put(ObjectIntPair.of("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()), Conversion786_776::remapBlock)
-                .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), Conversion800_786::remapBlock)
                 .put(ObjectIntPair.of("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -424,7 +421,7 @@ public final class BlockRegistryPopulator {
             javaRuntimeId++;
             String javaId = javaBlockState.toString().intern();
 
-            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
         }
 
         BLOCKS_NBT = blocksNbt;
@@ -444,7 +441,7 @@ public final class BlockRegistryPopulator {
     private static BitSet toBlockStateSet(ArrayNode node) {
         BitSet blockStateSet = new BitSet(node.size());
         for (JsonNode javaIdentifier : node) {
-            blockStateSet.set(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
+            blockStateSet.set(BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
         }
         return blockStateSet;
     }

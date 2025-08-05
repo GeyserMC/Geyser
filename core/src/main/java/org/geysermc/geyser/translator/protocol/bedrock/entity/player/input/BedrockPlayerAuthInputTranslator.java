@@ -75,6 +75,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
+        session.setClientTicks(packet.getTick());
+
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
 

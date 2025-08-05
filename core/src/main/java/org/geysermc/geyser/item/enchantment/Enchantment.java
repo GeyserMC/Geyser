@@ -28,9 +28,7 @@ package org.geysermc.geyser.item.enchantment;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -44,8 +42,7 @@ import java.util.Set;
  * @param description only populated if {@link #bedrockEnchantment()} is null.
  * @param anvilCost also as a rarity multiplier
  */
-public record Enchantment(String identifier,
-                          Set<EnchantmentComponent> effects,
+public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
                           String description,
@@ -57,19 +54,18 @@ public record Enchantment(String identifier,
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ITEM, data.get("supported_items"), itemId -> Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemId.asString(), Items.AIR).javaId());
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ITEM, data.get("supported_items"));
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
         String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
 
-        return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
-                description, anvilCost, exclusiveSet, bedrockEnchantment);
+        return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 
     private static Set<EnchantmentComponent> readEnchantmentComponents(NbtMap effects) {
