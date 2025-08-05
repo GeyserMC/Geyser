@@ -420,20 +420,14 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping,
-                                       boolean isPotionItem, boolean customOnly, String language) {
-        if (isPotionItem) {
-            String customPotionName = contents.getCustomName();
-            if (customPotionName != null) {
-                // "custom_name" tag in "potion_contents" component
-                return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
-            }
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
+        String customPotionName = contents.getCustomName();
+        if (customPotionName != null) {
+            // "custom_name" tag in "potion_contents" component
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
         }
 
-        if (!customOnly && !contents.getCustomEffects().isEmpty()) {
-            if (!isPotionItem) {
-                return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey(), language);
-            }
+        if (includeDefault && !contents.getCustomEffects().isEmpty()) {
             // Make a name when has custom effects
             // because the custom effect information is display from the second line of the name.
             // if name is not set, the custom effect information will not be displayed.
@@ -589,17 +583,23 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
+                boolean forceName = false;
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
-                    boolean isPotionItem = mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem;
-                    boolean customOnly = !TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
-                    String potionName = getPotionName(potionContents, mapping, isPotionItem, customOnly, session.locale());
-                    if (potionName != null) {
-                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                    boolean showPotionEffects = TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS);
+                    if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
+                        // Get name in "potion_contents" component
+                        String potionName = getPotionName(potionContents, mapping, showPotionEffects, session.locale());
+                        if (potionName != null) {
+                            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                        }
+                    } else {
+                        // hold the custom effect information (reason for this is mentioned in getPotionName method)
+                        forceName = showPotionEffects && !potionContents.getCustomEffects().isEmpty();
                     }
                 }
 
-                if (includeAll) {
+                if (includeAll || forceName) {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
@@ -612,6 +612,11 @@ public final class ItemTranslator {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
                     return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                }
+
+                if (forceName) {
+                    String translationKey = mapping.getJavaItem().translationKey();
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
                 }
             }
         }
