@@ -44,6 +44,7 @@ import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.BedrockBannerPattern;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
@@ -100,7 +101,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
 
         String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
-        BannerPattern requestedPattern = BannerPattern.getByBedrockIdentifier(bedrockPattern);
+        BannerPattern requestedPattern = BannerPattern.fromBedrockPattern(session, BedrockBannerPattern.getByBedrockIdentifier(bedrockPattern));
         if (requestedPattern == null) {
             GeyserImpl.getInstance().getLogger().warning("Unknown Bedrock pattern id: " + bedrockPattern);
             return rejectRequest(request);

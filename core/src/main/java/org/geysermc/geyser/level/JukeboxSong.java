@@ -25,17 +25,23 @@
 
 package org.geysermc.geyser.level;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
 
-public record JukeboxSong(String soundEvent, String description) {
+public record JukeboxSong(String soundEvent, Component description) {
 
     public static JukeboxSong read(RegistryEntryContext context) {
         NbtMap data = context.data();
         String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.id());
-        String description = MessageTranslator.deserializeDescription(context.session(), data);
+        Component description = MessageTranslator.componentFromNbtTag(data.get("description"));
         return new JukeboxSong(soundEvent, description);
+    }
+
+    public static JukeboxSong fromJukeboxPlayableSong(JukeboxPlayable.JukeboxSong song) {
+        return new JukeboxSong(song.soundEvent().getName(), song.description());
     }
 }
