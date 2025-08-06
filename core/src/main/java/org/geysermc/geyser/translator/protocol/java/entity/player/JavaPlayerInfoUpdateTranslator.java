@@ -106,7 +106,9 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
 
         for (PlayerListEntry entry : packet.getEntries()) {
             PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfileId());
-            if (entity == null) {
+            if (entry.getProfileId().equals(session.getPlayerEntity().getUuid())) {
+                entity = session.getPlayerEntity();
+            } else if (entity == null) {
                 session.getGeyser().getLogger().debug("Ignoring player info update for " + entry.getProfileId());
                 continue;
             }
