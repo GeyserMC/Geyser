@@ -429,8 +429,8 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setVehicle(Entity entity) {
-        // For boat, we send width 0.6 and height 1.6 since there is a problem with player "clipping" into the boat
-        // and having a wide bounding box fixed that, the problem is that this is incorrect and create certain problems
+        // For boats, we send width = 0.6 and height = 1.6 since there is otherwise a problem with player "clipping" into the boat when standing on it or running into it.
+        // Having a wide bounding box fixed that, however, it is technically incorrect and creates certain problems
         // when you're actually riding the boat (https://github.com/GeyserMC/Geyser/issues/3106), since the box is way too big
         // the boat motion stop right before we hit the block and not letting the actual bounding clip collide into the block,
         // causing the issues. So to fix this, everytime player enter a boat we send the java bounding box and only send the
