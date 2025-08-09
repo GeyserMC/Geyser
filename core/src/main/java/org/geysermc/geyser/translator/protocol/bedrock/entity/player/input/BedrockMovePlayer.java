@@ -246,15 +246,13 @@ final class BedrockMovePlayer {
                 // 1.21.7 entity pushing logic.
                 float xDistance = entity.getPosition().getX() - other.getPosition().getX();
                 float zDistance = entity.getPosition().getZ() - other.getPosition().getZ();
-                float largestDistance = MathUtils.absMax(xDistance, zDistance);
+                float largestDistance = Math.max(Math.abs(xDistance), Math.abs(zDistance));
 
                 Vector3f pushVelocity = Vector3f.from(xDistance, 0, zDistance);
                 if (largestDistance >= 0.01F) {
                     largestDistance = (float) GenericMath.sqrt(largestDistance);
                     pushVelocity = pushVelocity.div(largestDistance);
-                    float d3 = Math.min(1 / largestDistance, 1);
-
-                    pushVelocity = pushVelocity.mul(d3);
+                    pushVelocity = pushVelocity.mul(Math.min(1 / largestDistance, 1));
                     pushVelocity = pushVelocity.mul(0.05F);
 
                     // The push motion should be relative to the current motion, we don't want player to fly by sending y vel 0.
