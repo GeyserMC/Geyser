@@ -79,6 +79,7 @@ public class TeleportCache {
     }
 
     public enum TeleportType {
-        NORMAL, KEEP_VELOCITY;
+        NORMAL, 
+        KEEP_VELOCITY;
     }
 }
