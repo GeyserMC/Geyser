@@ -304,6 +304,14 @@ public final class BlockRegistryPopulator {
                     netherPortalBlockDefinition = bedrockDefinition;
                 }
 
+                if (block == Blocks.BAMBOO) {
+                    builder.javaBambooBlock(javaRuntimeId);
+                }
+
+                if (block == Blocks.POINTED_DRIPSTONE) {
+                    builder.javaPointedDripstone(javaRuntimeId);
+                }
+
                 boolean waterlogged = blockState.getValue(Properties.WATERLOGGED, false)
                         || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.KELP_PLANT
                         || block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS;

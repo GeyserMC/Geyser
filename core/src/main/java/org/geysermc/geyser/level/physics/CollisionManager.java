@@ -277,15 +277,15 @@ public class CollisionManager {
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockState state = BlockState.of(blocks[iter.getIteration()]);
+            final int blockId = blocks[iter.getIteration()];
 
             // These block have different offset between BE and JE so we ignore them because if we "correct" the position
             // it will lead to complication and more inaccurate movement.
-            if (state.is(Blocks.BAMBOO) || state.is(Blocks.POINTED_DRIPSTONE)) {
+            if (blockId == session.getBlockMappings().getJavaBambooBlock() || blockId == session.getBlockMappings().getJavaPointedDripstone()) {
                 continue;
             }
 
-            BlockCollision blockCollision = BlockUtils.getCollision(state.javaId());
+            BlockCollision blockCollision = BlockUtils.getCollision(blockId);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;
