@@ -79,8 +79,8 @@ final class BedrockMovePlayer {
         float headYaw = packet.getRotation().getY();
 
         // Even though on Java Edition the yaw rotation should never get wrapped and can get larger than 180, on Bedrock Edition
-        // the client always seems to wrap and limit it to -180 and 180, which is not vanilla behaviour which doesn't cause much problem
-        // on the surface but some anticheat checks for this - so we better account for it
+        // the client always seems to wrap and limit it to -180 and 180, which is not vanilla behaviour, and doesn't cause problems
+        // on the surface - however, some anticheat checks for this, so we account for it
         float javaYaw = entity.getJavaYaw() + MathUtils.wrapDegrees(yaw - entity.getJavaYaw());
 
         boolean hasVehicle = entity.getVehicle() != null;
