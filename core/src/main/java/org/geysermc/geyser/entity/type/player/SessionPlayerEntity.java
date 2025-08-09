@@ -432,7 +432,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         // For boats, we send width = 0.6 and height = 1.6 since there is otherwise a problem with player "clipping" into the boat when standing on it or running into it.
         // Having a wide bounding box fixed that, however, it is technically incorrect and creates certain problems
         // when you're actually riding the boat (https://github.com/GeyserMC/Geyser/issues/3106), since the box is way too big
-        // the boat motion stop right before we hit the block and not letting the actual bounding clip collide into the block,
+        // the boat's motion stops right before the block is hit and doesn't let the actual bounding clip collide into the block,
         // causing the issues. So to fix this, everytime player enter a boat we send the java bounding box and only send the
         // definition box when player is not riding the boat.
         if (entity instanceof BoatEntity) {
