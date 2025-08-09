@@ -63,7 +63,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 packet.getPrefix(),
                 packet.getSuffix(),
                 packet.getNameTagVisibility(),
-                packet.getColor()
+                packet.getColor(),
+                packet.getCollisionRule()
             );
         } else {
             Team team = scoreboard.getTeam(packet.getTeamName());
