@@ -231,7 +231,7 @@ final class BedrockMovePlayer {
         if (entity.getVehicle() == null && entity.isPushable(session)) {
             boolean affectedByPushMotion = false;
             for (Entity other : session.getEntityCache().getEntities().values()) {
-                if (other == entity)  {
+                if (other == entity) {
                     continue;
                 }
 
