@@ -213,7 +213,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         BedrockMovePlayer.translate(session, packet);
 
-        // This is the best way send this since most modern anticheat will expect this to be in sync with player movement packet.
+        // This is the best way send this since most modern anticheat will expect this to be in sync with the player movement packet.
         if (session.isSpawned()) {
             session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
         }
