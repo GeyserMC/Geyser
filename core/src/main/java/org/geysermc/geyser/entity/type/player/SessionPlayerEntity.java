@@ -39,6 +39,8 @@ import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -423,6 +425,28 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setVehicleJumpStrength(int vehicleJumpStrength) {
         this.vehicleJumpStrength = MathUtils.constrain(vehicleJumpStrength, 0, 100);
+    }
+
+    @Override
+    public void setVehicle(Entity entity) {
+        // For boats, we send width = 0.6 and height = 1.6 since there is otherwise a problem with player "clipping" into the boat when standing on it or running into it.
+        // Having a wide bounding box fixed that, however, it is technically incorrect and creates certain problems
+        // when you're actually riding the boat (https://github.com/GeyserMC/Geyser/issues/3106), since the box is way too big
+        // the boat's motion stops right before the block is hit and doesn't let the actual bounding clip collide into the block,
+        // causing the issues. So to fix this, everytime player enter a boat we send the java bounding box and only send the
+        // definition box when player is not riding the boat.
+        if (entity instanceof BoatEntity) {
+            // These bounding box values are based off 1.21.7
+            entity.setBoundingBoxWidth(1.375F);
+            entity.setBoundingBoxHeight(0.5625F);
+            entity.updateBedrockMetadata();
+        } else if (entity == null && this.vehicle instanceof BoatEntity) {
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
+            this.vehicle.updateBedrockMetadata();
+        }
+
+        super.setVehicle(entity);
     }
 
     private boolean isBelowVoidFloor() {
