@@ -212,6 +212,12 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
         session.sendUpstreamPacket(movePlayerPacket);
 
+
+        if (teleported && !(this instanceof SessionPlayerEntity)) {
+            // As of 1.19.0, head yaw seems to be ignored during teleports, also don't do this for session player.
+            updateHeadLookRotation(headYaw);
+        }
+
         if (leftParrot != null) {
             leftParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
         }
@@ -240,8 +246,8 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         if (getFlag(EntityFlag.SLEEPING)) {
             if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
                 // Force the player movement by using a teleport
-                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
+                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
                 movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
             }
         }

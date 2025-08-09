@@ -627,6 +627,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private boolean flying = false;
 
+    /**
+     * If the current player should be able to noclip through blocks, this is used for void floor workaround and not spectator.
+     */
     private boolean noClip = false;
 
     @Setter
@@ -1954,6 +1957,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();
+
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
@@ -2001,7 +2005,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             abilities.add(Ability.INSTABUILD);
         }
 
-        if (noClip) {
+        if (noClip && !spectator) {
             abilities.add(Ability.NO_CLIP);
         }
 

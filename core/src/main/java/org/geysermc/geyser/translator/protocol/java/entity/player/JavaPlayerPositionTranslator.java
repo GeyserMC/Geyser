@@ -93,6 +93,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // Log out and back in - and you're looking elsewhere :)
             entity.updateOwnRotation(entity.getYaw(), entity.getPitch(), entity.getHeadYaw());
             session.setSpawned(true);
+            // DataComponentHashers.testHashing(session); // TODO remove me
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
             session.setUnconfirmedTeleport(new TeleportCache(entity.position(), Vector3f.ZERO, packet.getXRot(), packet.getYRot(), packet.getId(), TeleportCache.TeleportType.NORMAL));
@@ -131,12 +132,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             deltaMovement = MathUtils.xYRot(deltaMovement, (lastPlayerPitch - newPitch) * 0.017453292519943295F, (lastPlayerYaw - newYaw) * 0.017453292519943295F);
         }
 
-        TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
-        if (deltaMovement.distanceSquared(Vector3f.ZERO) <= 1.0E-8F) { // Do normal teleport if the delta movement is just 0.
-            entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
-        } else {
-            entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
 
+        TeleportCache.TeleportType type = TeleportCache.TeleportType.NORMAL;
+        if (deltaMovement.distanceSquared(Vector3f.ZERO) > 1.0E-8F) {
             entity.setMotion(deltaMovement);
 
             // Our motion got reset by the teleport but the deltaMovement is not 0 so send a motion packet to fix that.
