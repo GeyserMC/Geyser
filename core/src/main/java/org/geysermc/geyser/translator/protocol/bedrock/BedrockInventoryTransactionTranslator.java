@@ -478,6 +478,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamGamePacket(attackPacket);
 
+                        // Even though it is true that we already send this in BedrockAnimateTranslator, the behaviour is a bit inconsistent and
+                        // beside we want to ensure that this should be sent right away after we send interact packet or else the order will
+                        // be weird eg: interact - some packet - swing, which is not vanilla behaviour and might flag some anticheats.
+                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                         CooldownUtils.sendCooldown(session);
                     }
