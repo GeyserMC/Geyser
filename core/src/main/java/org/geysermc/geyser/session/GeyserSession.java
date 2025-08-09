@@ -850,9 +850,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves
         // so the item data can show up in the creative menu. Also doing it here so that we know what locale player choose and translate it properly.
-        for (int i = 0; i < this.itemMappings.getCreativeItems().size(); i++) {
-            CreativeItemData data = this.itemMappings.getCreativeItems().get(i);
+
+        final List<CreativeItemData> creativeItemList = new ArrayList<>();
+
+        for (CreativeItemData data : this.itemMappings.getCreativeItems()) {
             if (!data.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
+                creativeItemList.add(data);
                 continue;
             }
 
@@ -866,7 +869,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 tag = builder.build();
             }
 
-            this.itemMappings.getCreativeItems().set(i, new CreativeItemData(ItemData.builder()
+            creativeItemList.add(new CreativeItemData(ItemData.builder()
                 .usingNetId(true)
                 .netId(data.getItem().getNetId())
                 .definition(data.getItem().getDefinition())
@@ -876,7 +879,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
+        creativePacket.getContents().addAll(creativeItemList);
         creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
         upstream.sendPacket(creativePacket);
 
