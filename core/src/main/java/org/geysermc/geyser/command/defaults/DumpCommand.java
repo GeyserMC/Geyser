@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -148,7 +149,7 @@ public class DumpCommand extends GeyserCommand {
         } else {
             source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.uploading", source.locale()));
 
-            String response;
+            String response = null;
             JsonNode responseNode;
             try {
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
@@ -156,6 +157,9 @@ public class DumpCommand extends GeyserCommand {
             } catch (IOException e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", source.locale()));
                 geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
+                if (e instanceof JsonParseException && response != null) {
+                    geyser.getLogger().error("Failed to parse dump response! got: " + response);
+                }
                 return;
             }
 

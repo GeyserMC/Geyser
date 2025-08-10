@@ -29,19 +29,17 @@ dependencies {
     neoForge(libs.neoforge.minecraft)
 
     api(project(":mod", configuration = "namedElements"))
-    shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
-        isTransitive = false
-    }
-    shadow(projects.core) { isTransitive = false }
+    shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
+    shadowBundle(projects.core)
 
     // Minecraft (1.21.2+) includes jackson. But an old version!
-    shadow(libs.jackson.core) { isTransitive = false }
-    shadow(libs.jackson.databind) { isTransitive = false }
-    shadow(libs.jackson.dataformat.yaml) { isTransitive = false }
-    shadow(libs.jackson.annotations) { isTransitive = false }
+    shadowBundle(libs.jackson.core)
+    shadowBundle(libs.jackson.databind)
+    shadowBundle(libs.jackson.dataformat.yaml)
+    shadowBundle(libs.jackson.annotations)
 
     // Let's shade in our own api
-    shadow(projects.api) { isTransitive = false }
+    shadowBundle(projects.api)
 
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)

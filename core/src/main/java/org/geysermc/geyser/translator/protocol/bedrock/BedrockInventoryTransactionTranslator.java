@@ -290,7 +290,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
                             if (blockState.is(Blocks.WATER) && blockState.getValue(Properties.LEVEL) == 0) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
-                                useItem(session, packet, blockState.javaId());
+                                useItem(session, packet, blockState.javaId(), false);
                                 break;
                             }
                         }
@@ -313,14 +313,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (item instanceof BoatItem || item == Items.LILY_PAD || item == Items.FROGSPAWN) {
-                                useItem(session, packet, blockState.javaId());
+                                useItem(session, packet, blockState.javaId(), true);
                             } else if (item == Items.GLASS_BOTTLE) {
                                 Block block = blockState.block();
                                 if (!session.isSneaking() && block instanceof CauldronBlock && block != Blocks.WATER_CAULDRON) {
                                     // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
                                     return;
                                 }
-                                useItem(session, packet, blockState.javaId());
+                                useItem(session, packet, blockState.javaId(), true);
                             } else if (session.getItemMappings().getBuckets().contains(definition)) {
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (definition != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockDefinition()) {
@@ -328,7 +328,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         // ServerboundUseItemPacket is not sent for cauldrons and buckets
                                         return;
                                     }
-                                    session.setPlacedBucket(useItem(session, packet, blockState.javaId()));
+                                    session.setPlacedBucket(useItem(session, packet, blockState.javaId(), true));
                                 } else {
                                     session.setPlacedBucket(true);
                                 }
@@ -598,7 +598,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         return false;
     }
 
-    private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
+    private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState, boolean useTouchRotation) {
         // Update the player's inventory to remove any items added by the client itself
         PlayerInventory playerInventory = session.getPlayerInventory();
         int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
@@ -633,7 +633,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             }
         }
 
-        session.useItem(Hand.MAIN_HAND);
+        session.useItem(Hand.MAIN_HAND, useTouchRotation);
         return true;
     }
 }

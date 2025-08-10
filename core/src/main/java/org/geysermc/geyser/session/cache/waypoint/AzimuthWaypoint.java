@@ -50,8 +50,12 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
     @Override
     public void setData(WaypointData data) {
-        angle = ((AzimuthWaypointData) data).angle();
-        updatePosition();
+        if (data instanceof AzimuthWaypointData azimuthData) {
+            angle = azimuthData.angle();
+            updatePosition();
+        } else {
+            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for azimuth waypoint");
+        }
     }
 
     @Override
