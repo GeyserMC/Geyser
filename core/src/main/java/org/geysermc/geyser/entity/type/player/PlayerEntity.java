@@ -30,14 +30,12 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -60,6 +58,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -114,17 +113,13 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     /**
      * The gamemode as it's sent in the player info packet
      */
-    private GameMode gameMode;
-
-    /**
-     * The tab list display name
-     */
-    private @NonNull String tabListDisplayName;
+    private GameMode gameMode = GameMode.SURVIVAL;
 
     /**
      * The tablist display name component as sent by the Java server
      */
-    private @Nullable Component tabListDisplayNameComponent;
+    @Setter
+    private @Nullable Component tabListDisplayName;
 
     /**
      * Whether this player is currently listed.
@@ -162,13 +157,14 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
+        addPlayerPacket.setGameType(EntityUtils.toBedrockGamemode(gameMode));
         addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
         addPlayerPacket.getMetadata().putFlags(flags);
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        // Otherwise, tab display names would be shown
         dirtyMetadata.put(EntityDataTypes.NAME, username);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
@@ -405,9 +401,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+        if (nametag == null) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
@@ -502,27 +496,23 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         return getUuid();
     }
 
-    public void updateTabListDisplayName(@Nullable Component component) {
-        if (component != null) {
-            this.tabListDisplayNameComponent = component;
-            if (gameMode == GameMode.SPECTATOR) {
-                component = component.style(Style.style(TextDecoration.ITALIC));
-            }
-            this.tabListDisplayName = MessageTranslator.convertMessageRaw(component, session.locale());
-            return;
+    public String getTabListDisplayName() {
+        boolean spectator = gameMode == GameMode.SPECTATOR;
+        // First: Use manual override sent in the player list
+        if (tabListDisplayName != null) {
+            return MessageTranslator.convertMessageRaw(
+                spectator ? tabListDisplayName.style(Style.style(TextDecoration.ITALIC)) :
+                    tabListDisplayName, session.locale());
         }
 
-        this.tabListDisplayNameComponent = null;
+        // Second: apply styling from team
         Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(getUsername());
-        if (playerTeam == null) {
-            String name = username;
-            if (gameMode == GameMode.SPECTATOR) {
-                name = ChatColor.ITALIC + name;
-            }
-            this.tabListDisplayName = name;
-        } else {
-            this.tabListDisplayName = playerTeam.formatTabDisplay(username, gameMode == GameMode.SPECTATOR);
+        if (playerTeam != null) {
+            return playerTeam.formatTabDisplay(username, spectator);
         }
+
+        // Finally: Return username, optionally italic if in spectator mode
+        return spectator ? ChatColor.ITALIC + username : username;
     }
 
     @Override

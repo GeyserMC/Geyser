@@ -31,17 +31,18 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import lombok.Getter;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically

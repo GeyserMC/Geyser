@@ -42,6 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -101,7 +102,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
             }
         }
 
-        List<PlayerListPacket.Entry> newOrUpdatedEntries = new ArrayList<>();
+        Set<PlayerEntity> toUpdate = new HashSet<>();
         List<PlayerListPacket.Entry> removedEntries = new ArrayList<>();
 
         for (PlayerListEntry entry : packet.getEntries()) {
@@ -118,34 +119,32 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     case UPDATE_GAME_MODE -> {
                         // Only update if we must
                         if (entity.getGameMode() == GameMode.SPECTATOR || entry.getGameMode() == GameMode.SPECTATOR) {
-                            entity.setGameMode(entry.getGameMode());
-                            entity.updateTabListDisplayName(entity.getTabListDisplayNameComponent());
-                            newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
+                            toUpdate.add(entity);
                         }
+                        entity.setGameMode(entry.getGameMode());
                     }
                     case UPDATE_LISTED -> {
+                        entity.setListed(entry.isListed());
                         if (entry.isListed()) {
-                            entity.setGameMode(entry.getGameMode());
-                            entity.updateTabListDisplayName(entry.getDisplayName());
-                            newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
+                            toUpdate.add(entity);
                             session.getWaypointCache().listPlayer(entity);
                         } else {
                             removedEntries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
                             session.getWaypointCache().unlistPlayer(entity);
                         }
-                        entity.setListed(entry.isListed());
                     }
                     case UPDATE_DISPLAY_NAME -> {
-                        entity.updateTabListDisplayName(entry.getDisplayName());
-                        newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
+                        entity.setTabListDisplayName(entry.getDisplayName());
+                        toUpdate.add(entity);
                     }
                 }
             }
         }
 
-        if (!newOrUpdatedEntries.isEmpty()) {
-            PlayerListUtils.batchSendPlayerList(session, newOrUpdatedEntries, PlayerListPacket.Action.ADD);
+        if (!toUpdate.isEmpty()) {
+            PlayerListUtils.updateEntries(session, toUpdate);
         }
+
         if (!removedEntries.isEmpty()) {
             PlayerListUtils.batchSendPlayerList(session, removedEntries, PlayerListPacket.Action.REMOVE);
         }

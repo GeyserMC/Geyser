@@ -26,8 +26,12 @@
 package org.geysermc.geyser.util;
 
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class PlayerListUtils {
@@ -59,5 +63,13 @@ public class PlayerListUtils {
             packet.getEntries().addAll(entries);
             session.sendUpstreamPacket(packet);
         }
+    }
+
+    public static void updateEntries(GeyserSession session, Collection<PlayerEntity> entries) {
+        List<PlayerListPacket.Entry> newOrUpdatedEntries = new ArrayList<>();
+        for (PlayerEntity entity : entries) {
+            newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
+        }
+        PlayerListUtils.batchSendPlayerList(session, newOrUpdatedEntries, PlayerListPacket.Action.ADD);
     }
 }
