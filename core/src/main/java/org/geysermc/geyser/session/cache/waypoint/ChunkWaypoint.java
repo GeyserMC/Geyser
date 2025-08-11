@@ -43,8 +43,11 @@ public class ChunkWaypoint extends GeyserWaypoint {
 
     @Override
     public void setData(WaypointData data) {
-        ChunkWaypointData chunk = (ChunkWaypointData) data;
-        // Set position in centre of chunk
-        position = Vector3f.from(chunk.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunk.chunkZ() * 16.0F + 8.0F);
+        if (data instanceof ChunkWaypointData chunkData) {
+            // Set position in centre of chunk
+            position = Vector3f.from(chunkData.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkData.chunkZ() * 16.0F + 8.0F);
+        } else {
+            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
+        }
     }
 }
