@@ -45,52 +45,69 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
-        ByteBuf content = packet.content().copy();
+        ByteBuf content = packet.content();
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
 
         if (presentAddress == null) {
-            // We haven't received a header from given address before and we couldn't detect a 
-             // PROXY header, ignore.
+            // We haven't received a header from given address before and we couldn't detect a PROXY header, ignore
+            content.markReaderIndex(); // Mark the reader index before attempting to decode.
             int detectedVersion = ProxyProtocolDecoder.findVersion(content);
             if (detectedVersion == -1) {
+                // No header detected. Reset index and drop the packet as it's invalid.
+                content.resetReaderIndex(); 
                 return;
             }
 
             final HAProxyMessage decoded;
             try {
-                if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
+                // Attempt to decode. If it returns null, the header is incomplete/malformed.
+                decoded = ProxyProtocolDecoder.decode(content, detectedVersion);
+                if (decoded == null) {
+                    log.debug("{} sent a packet that looked like a PROXY header but was malformed/incomplete.", packet.sender());
+                    content.resetReaderIndex(); // Reset index on failure and drop.
                     return;
                 }
             } catch (HAProxyProtocolException e) {
                 log.debug("{} sent malformed PROXY header", packet.sender(), e);
+                content.resetReaderIndex(); // Reset index on exception and drop.
                 return;
             }
 
+            // Successfully decoded, cache the real address to establish the session.
             presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
             log.debug("Got PROXY header: (from {}) {}. Caching session.", packet.sender(), presentAddress);
             GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
         } else {
-            // --- Subsequent packet processing logic ---
+            // --- SUBSEQUENT PACKET LOGIC (Strip header if present) ---
+            // A session for this proxy is already cached. We trust the cached address.
+            // Our only job here is to strip any redundant headers (for per-packet-header mode).
+            
+            content.markReaderIndex(); // Mark the reader index before speculative decoding.
             int detectedVersion = ProxyProtocolDecoder.findVersion(content);
             if (detectedVersion != -1) {
-                // If a subsequent packet also contains a header, only strip it without using its content
                 try {
+                    // We only call decode for its side-effect of advancing the reader index.
+                    // If it returns null, the decode failed, so we must reset and drop the packet.
                     if (ProxyProtocolDecoder.decode(content, detectedVersion) == null) {
-                        content = packet.content();
+                        log.debug("Detected a subsequent PROXY header from {} but it was malformed/incomplete.", packet.sender());
+                        content.resetReaderIndex(); // Reset index on failure and drop.
+                        return;
                     }
                 } catch (HAProxyProtocolException e) {
                     log.debug("{} sent malformed subsequent PROXY header", packet.sender(), e);
-                    content = packet.content();
+                    content.resetReaderIndex(); // Reset index on exception and drop.
+                    return;
                 }
+            } else {
+                // No subsequent header was detected. Reset the index to its original state before this check.
+                content.resetReaderIndex();
             }
         }
-
-        // --- Unified packet reconstruction and forwarding logic ---
-        // Regardless of whether the packet originally contained a header, `content` now represents the pure payload.
-        // To ensure consistency in the behavior of downstream handlers, we always create a new packet instance to forward.
-        // This avoids any issues that may arise from the difference in object instances between the original packet (retain) and a new packet.
-        ByteBuf payloadOnly = content.copy();
-        DatagramPacket newPacket = new DatagramPacket(payloadOnly, packet.recipient(), packet.sender());
-        ctx.fireChannelRead(newPacket);
+        
+        // At this point, the buffer's reader index is correctly positioned at the start of the actual payload,
+        // because any valid PROXY header has been consumed.
+        // We pass the original packet down the pipeline, with its buffer view now correctly adjusted.
+        // This avoids the overhead of creating a new packet object and copying the buffer.
+        ctx.fireChannelRead(packet.retain());
     }
 }
