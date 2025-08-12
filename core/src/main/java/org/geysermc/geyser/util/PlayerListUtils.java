@@ -74,6 +74,6 @@ public class PlayerListUtils {
         for (PlayerEntity entity : entries) {
             newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
         }
-        PlayerListUtils.batchSendPlayerList(session, newOrUpdatedEntries, PlayerListPacket.Action.ADD);
+        batchSendPlayerList(session, newOrUpdatedEntries, PlayerListPacket.Action.ADD);
     }
 }

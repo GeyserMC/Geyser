@@ -640,9 +640,8 @@ public class CubecraftScoreboardTest {
             });
 
             // after this we get a ClientboundPlayerInfoUpdatePacket with the action UPDATE_DISPLAY_NAME,
-            // but that one is only shown in the tablist so we don't have to handle that.
-            // And after that we get each player's ClientboundPlayerInfoUpdatePacket with also a UPDATE_DISPLAY_NAME,
-            // which is also not interesting for us.
+            // since that only affects the tablist, we ensure that the name in the add player packet is actually the
+            // username, not the tablist name.
             // CubeCraft seems to use two armor stands per player: 1 for the rank badge and 1 for the player name.
             // So the only thing we have to verify is that the nametag is hidden
 

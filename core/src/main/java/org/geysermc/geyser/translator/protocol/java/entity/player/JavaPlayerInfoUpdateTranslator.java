@@ -118,24 +118,27 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 switch (action) {
                     case UPDATE_GAME_MODE -> {
                         // Only update if we must
-                        if (entity.getGameMode() == GameMode.SPECTATOR || entry.getGameMode() == GameMode.SPECTATOR) {
+                        if (entity.isListed() && (entity.getGameMode() == GameMode.SPECTATOR || entry.getGameMode() == GameMode.SPECTATOR)) {
                             toUpdate.add(entity);
                         }
                         entity.setGameMode(entry.getGameMode());
                     }
                     case UPDATE_LISTED -> {
-                        entity.setListed(entry.isListed());
                         if (entry.isListed()) {
                             toUpdate.add(entity);
                             session.getWaypointCache().listPlayer(entity);
-                        } else {
+                        } else if (entity.isListed()) {
+                            // Only remove players that have bene listed before
                             removedEntries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
                             session.getWaypointCache().unlistPlayer(entity);
                         }
+                        entity.setListed(entry.isListed());
                     }
                     case UPDATE_DISPLAY_NAME -> {
                         entity.setTabListDisplayName(entry.getDisplayName());
-                        toUpdate.add(entity);
+                        if (entity.isListed()) {
+                            toUpdate.add(entity);
+                        }
                     }
                 }
             }
