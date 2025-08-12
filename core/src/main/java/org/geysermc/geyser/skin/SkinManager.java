@@ -153,7 +153,7 @@ public class SkinManager {
             PlayerListPacket.Entry updatedEntry = buildEntryManually(
                     session,
                     entity.getUuid(),
-                    entity.getUsername(),
+                    entity.getTabListDisplayName(),
                     entity.getGeyserId(),
                     skin,
                     cape,

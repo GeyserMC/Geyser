@@ -238,18 +238,18 @@ public final class Team {
      */
     public void updateEntities(Collection<Entity> entities, Team team, boolean updatePlayerList) {
         if (entities().contains(playerName())) {
-            refreshAllEntities();
+            refreshAllEntities(updatePlayerList);
             return;
         }
 
-        iterateAndUpdate(entities.iterator(), updatePlayerList, ($, $$) -> true, $ -> team);
+        iterateAndUpdate(entities.iterator(), updatePlayerList, ($, $$) -> true, $ -> team, false);
     }
 
     /**
      * Iterates through the provided entity iterator, and, if the predicate matches, updates the nametag based on the
      * team function. It further updates the player list entries.
      */
-    public void iterateAndUpdate(Iterator<Entity> iterator, boolean updatePlayerList, BiPredicate<Entity, Iterator<Entity>> predicate, Function<Entity, Team> function) {
+    public void iterateAndUpdate(Iterator<Entity> iterator, boolean updatePlayerList, BiPredicate<Entity, Iterator<Entity>> predicate, Function<Entity, Team> function, boolean addSessionPlayer) {
         Set<PlayerEntity> entries = updatePlayerList ? new HashSet<>() : null;
         while (iterator.hasNext()) {
             Entity entity = iterator.next();
@@ -262,8 +262,14 @@ public final class Team {
             }
         }
 
-        if (entries != null && !entries.isEmpty()) {
-            PlayerListUtils.updateEntries(session(), entries);
+        if (entries != null) {
+            if (addSessionPlayer) {
+                entries.add(session().getPlayerEntity());
+            }
+
+            if (!entries.isEmpty()) {
+                PlayerListUtils.updateEntries(session(), entries);
+            }
         }
     }
 
@@ -292,16 +298,16 @@ public final class Team {
         iterateAndUpdate(session().getEntityCache().getEntities().values().iterator(),
             requiresPlayerListUpdate(),
             (entity, $) -> {
-            if (names.contains(entity.teamIdentifier())) {
-                managedEntities.add(entity);
-                return !containsSelf;
-            }
-            return false;
+                if (names.contains(entity.teamIdentifier())) {
+                    managedEntities.add(entity);
+                    return !containsSelf;
+                }
+                return false;
             },
-            $ -> this);
+            $ -> this, false);
 
         if (containsSelf) {
-            refreshAllEntities();
+            refreshAllEntities(requiresPlayerListUpdate());
         }
     }
 
@@ -313,10 +319,10 @@ public final class Team {
                 return !containsSelf;
             }
             return false;
-        }, $ -> null);
+        }, $ -> null, false);
 
         if (containsSelf) {
-            refreshAllEntities();
+            refreshAllEntities(requiresPlayerListUpdate());
         }
     }
 
@@ -329,12 +335,13 @@ public final class Team {
         managedEntities.removeIf(entity -> name.equals(entity.teamIdentifier()));
     }
 
-    private void refreshAllEntities() {
+    private void refreshAllEntities(boolean updatePlayerList) {
         iterateAndUpdate(
             session().getEntityCache().getEntities().values().iterator(),
-            requiresPlayerListUpdate(),
+            updatePlayerList,
             ($, $$) -> true,
-            entity -> scoreboard.getTeamFor(entity.teamIdentifier()));
+            entity -> scoreboard.getTeamFor(entity.teamIdentifier()),
+            true);
     }
 
     private GeyserSession session() {
