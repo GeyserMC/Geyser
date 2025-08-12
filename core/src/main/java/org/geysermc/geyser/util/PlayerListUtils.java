@@ -66,6 +66,10 @@ public class PlayerListUtils {
     }
 
     public static void updateEntries(GeyserSession session, Collection<PlayerEntity> entries) {
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            // Avoid loading a bunch of resource related things
+            return;
+        };
         List<PlayerListPacket.Entry> newOrUpdatedEntries = new ArrayList<>();
         for (PlayerEntity entity : entries) {
             newOrUpdatedEntries.add(SkinManager.buildCachedEntry(session, entity));
