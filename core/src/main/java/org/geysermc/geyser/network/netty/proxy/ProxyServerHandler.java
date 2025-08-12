@@ -35,79 +35,84 @@ import io.netty.handler.codec.haproxy.HAProxyProtocolException;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.CIDRMatcher;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 @ChannelHandler.Sharable
 public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(ProxyServerHandler.class);
     public static final String NAME = "rak-proxy-server-handler";
+    // The 13th byte of a v2 PROXY header for a PROXY command is 0x21 (33).
+    private static final int V2_PROXY_COMMAND = 33;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
         ByteBuf content = packet.content();
+        // Mark the current position of the buffer before we attempt any speculative reads.
+        content.markReaderIndex();
+
+        // Try to decode a PROXY v2 header. If successful, the readerIndex will be advanced.
+        // If it fails for any reason, we will reset the readerIndex and pass the original packet through.
+        boolean decodedSuccessfully = tryDecodeProxyHeader(packet, content);
+
+        if (!decodedSuccessfully) {
+            // Decoding failed (header not present, malformed, or incomplete).
+            // Reset the buffer to its original state to allow downstream handlers to process it.
+            content.resetReaderIndex();
+        }
+
+        // Forward the packet. Its content is now either the stripped payload (on success)
+        // or the original, untouched content (on failure).
+        ctx.fireChannelRead(packet.retain());
+    }
+
+    private boolean tryDecodeProxyHeader(DatagramPacket packet, ByteBuf content) {
+        // Since PROXY protocol v1 is not used for UDP, we only check for v2.
+        if (ProxyProtocolDecoder.findVersion(content) != V2_PROXY_COMMAND) {
+            return false;
+        }
+
+        // check if the address is whitelisted
+        // This is a simple check to ensure that the proxier address is whitelisted.
+        List<String> allowedProxyIPs = GeyserImpl.getInstance().getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
+        if (allowedProxyIPs.isEmpty()) {
+            // No whitelisted IPs, so we trust the PROXY header
+            return true;
+        }
+        boolean isWhitelistedProxier = false;
+        for (org.geysermc.geyser.network.CIDRMatcher matcher : GeyserImpl.getInstance().getConfig().getBedrock().getWhitelistedIPsMatchers()) {
+            // Check if the sender's address matches any of the whitelisted CIDRs
+            if (matcher.matches(packet.sender().getAddress())) {
+                isWhitelistedProxier = true;
+                break;
+            }
+        }
+
+        final HAProxyMessage decoded;
+        try {
+            decoded = ProxyProtocolDecoder.decode(content, V2_PROXY_COMMAND);
+            if (decoded == null) {
+                // The header was detected but was incomplete. Treat as failure.
+                return false;
+            }
+        } catch (HAProxyProtocolException e) {
+            // The header was malformed. Treat as failure.
+            log.trace("{} sent what looked like a PROXY header, but it was malformed.", packet.sender(), e);
+            return false;
+        }
+
+        // The readerIndex has been successfully advanced past the header.
+        // If this is the first packet and proxier in whitelist from this proxy, cache the real address.
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
-
-        if (presentAddress == null) {
-            // We haven't received a header from given address before and we couldn't detect a PROXY header, ignore
-            content.markReaderIndex(); // Mark the reader index before attempting to decode.
-            int detectedVersion = ProxyProtocolDecoder.findVersion(content);
-            if (detectedVersion == -1) {
-                // No header detected. Reset index and drop the packet as it's invalid.
-                content.resetReaderIndex(); 
-                return;
-            }
-
-            final HAProxyMessage decoded;
-            try {
-                // Attempt to decode. If it returns null, the header is incomplete/malformed.
-                decoded = ProxyProtocolDecoder.decode(content, detectedVersion);
-                if (decoded == null) {
-                    log.debug("{} sent a packet that looked like a PROXY header but was malformed/incomplete.", packet.sender());
-                    content.resetReaderIndex(); // Reset index on failure and drop.
-                    return;
-                }
-            } catch (HAProxyProtocolException e) {
-                log.debug("{} sent malformed PROXY header", packet.sender(), e);
-                content.resetReaderIndex(); // Reset index on exception and drop.
-                return;
-            }
-
-            // Successfully decoded, cache the real address to establish the session.
+        if (presentAddress == null && isWhitelistedProxier) {
+            // The proxier is whitelisted, so we trust the PROXY header.
             presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
             log.debug("Got PROXY header: (from {}) {}. Caching session.", packet.sender(), presentAddress);
             GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
-        } else {
-            // --- SUBSEQUENT PACKET LOGIC (Strip header if present) ---
-            // A session for this proxy is already cached. We trust the cached address.
-            // Our only job here is to strip any redundant headers (for per-packet-header mode).
-            
-            content.markReaderIndex(); // Mark the reader index before speculative decoding.
-            int detectedVersion = ProxyProtocolDecoder.findVersion(content);
-            if (detectedVersion != -1) {
-                try {
-                    // We only call decode for its side-effect of advancing the reader index.
-                    // If it returns null, the decode failed, so we must reset and drop the packet.
-                    if (ProxyProtocolDecoder.decode(content, detectedVersion) == null) {
-                        log.debug("Detected a subsequent PROXY header from {} but it was malformed/incomplete.", packet.sender());
-                        content.resetReaderIndex(); // Reset index on failure and drop.
-                        return;
-                    }
-                } catch (HAProxyProtocolException e) {
-                    log.debug("{} sent malformed subsequent PROXY header", packet.sender(), e);
-                    content.resetReaderIndex(); // Reset index on exception and drop.
-                    return;
-                }
-            } else {
-                // No subsequent header was detected. Reset the index to its original state before this check.
-                content.resetReaderIndex();
-            }
         }
         
-        // At this point, the buffer's reader index is correctly positioned at the start of the actual payload,
-        // because any valid PROXY header has been consumed.
-        // We pass the original packet down the pipeline, with its buffer view now correctly adjusted.
-        // This avoids the overhead of creating a new packet object and copying the buffer.
-        ctx.fireChannelRead(packet.retain());
+        return true;
     }
 }
