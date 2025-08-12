@@ -76,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+    private static final Style SPECTATOR_MODE_STYLING = Style.style(TextDecoration.ITALIC);
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
     static {
@@ -498,14 +499,13 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     public String getTabListDisplayName() {
         boolean spectator = gameMode == GameMode.SPECTATOR;
-        // First: Use manual override sent in the player list
+        // First: Use manual override sent in the player list, if present
         if (tabListDisplayName != null) {
-            return MessageTranslator.convertMessageRaw(
-                spectator ? tabListDisplayName.style(Style.style(TextDecoration.ITALIC)) :
-                    tabListDisplayName, session.locale());
+            return MessageTranslator.convertMessageRaw(spectator ?
+                tabListDisplayName.style(SPECTATOR_MODE_STYLING) : tabListDisplayName, session.locale());
         }
 
-        // Second: apply styling from team
+        // Second: apply styling from team, if in one
         Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(getUsername());
         if (playerTeam != null) {
             return playerTeam.formatTabDisplay(username, spectator);

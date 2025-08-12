@@ -26,6 +26,12 @@
 package org.geysermc.geyser.scoreboard;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.entity.type.Entity;
@@ -36,9 +42,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public final class Team {
     public static final long LAST_UPDATE_DEFAULT = -1;
@@ -197,14 +200,14 @@ public final class Team {
             || color != oldColor;
         if (!this.name.equals(oldName) || stylingChange) {
             markChanged();
-            updateEntities(stylingChange);
+            updateEntities(managedEntities, this, stylingChange);
             return;
         }
 
         if (isVisibleFor(playerName()) != oldVisible) {
             // if just the visibility changed, we only have to update the entities.
             // We don't have to mark it as changed
-            updateEntities(false);
+            updateEntities(managedEntities, this, false);
         }
     }
 
@@ -227,33 +230,35 @@ public final class Team {
             scoreboard.getPlayerToTeam().remove(name);
         }
 
+        updateEntities(managedEntities, null, true);
+    }
+
+    /**
+     * Iterates through the provided entity collection to perform nametag, metadata and tablist updates.
+     */
+    public void updateEntities(Collection<Entity> entities, Team team, boolean updatePlayerList) {
         if (entities().contains(playerName())) {
             refreshAllEntities();
             return;
         }
 
-        Set<PlayerEntity> entries = requiresPlayerListUpdate() ? new HashSet<>() : null;
-        for (Entity entity : managedEntities) {
-            entity.updateNametag(null);
-            entity.updateBedrockMetadata();
-            if (entries != null && entity instanceof PlayerEntity player) {
-                entries.add(player);
-            }
-        }
-
-        if (entries != null && !entries.isEmpty()) {
-            PlayerListUtils.updateEntries(session(), entries);
-        }
+        iterateAndUpdate(entities.iterator(), updatePlayerList, ($, $$) -> true, $ -> team);
     }
 
-    private void updateEntities(boolean updatePlayerList) {
+    /**
+     * Iterates through the provided entity iterator, and, if the predicate matches, updates the nametag based on the
+     * team function. It further updates the player list entries.
+     */
+    public void iterateAndUpdate(Iterator<Entity> iterator, boolean updatePlayerList, BiPredicate<Entity, Iterator<Entity>> predicate, Function<Entity, Team> function) {
         Set<PlayerEntity> entries = updatePlayerList ? new HashSet<>() : null;
-        for (Entity entity : managedEntities) {
-            entity.updateNametag(this);
-            entity.updateBedrockMetadata();
-
-            if (entries != null && entity instanceof PlayerEntity player) {
-                entries.add(player);
+        while (iterator.hasNext()) {
+            Entity entity = iterator.next();
+            if (predicate.test(entity, iterator)) {
+                entity.updateNametag(function.apply(entity));
+                entity.updateBedrockMetadata();
+                if (entries != null && entity instanceof PlayerEntity player) {
+                    entries.add(player);
+                }
             }
         }
 
@@ -282,26 +287,18 @@ public final class Team {
         if (names.isEmpty()) {
             return;
         }
-        boolean containsSelf = names.contains(playerName());
-        Set<PlayerEntity> entries = requiresPlayerListUpdate() ? new HashSet<>() : null;
 
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
+        boolean containsSelf = names.contains(playerName());
+        iterateAndUpdate(session().getEntityCache().getEntities().values().iterator(),
+            requiresPlayerListUpdate(),
+            (entity, $) -> {
             if (names.contains(entity.teamIdentifier())) {
                 managedEntities.add(entity);
-                if (!containsSelf) {
-                    entity.updateNametag(this);
-                    entity.updateBedrockMetadata();
-
-                    if (entries != null && entity instanceof PlayerEntity player) {
-                        entries.add(player);
-                    }
-                }
+                return !containsSelf;
             }
-        }
-
-        if (entries != null && !entries.isEmpty()) {
-            PlayerListUtils.updateEntries(session(), entries);
-        }
+            return false;
+            },
+            $ -> this);
 
         if (containsSelf) {
             refreshAllEntities();
@@ -310,27 +307,13 @@ public final class Team {
 
     private void removeRemovedEntities(Set<String> names) {
         boolean containsSelf = names.contains(playerName());
-        Set<PlayerEntity> entries = requiresPlayerListUpdate() ? new HashSet<>() : null;
-
-        var iterator = managedEntities.iterator();
-        while (iterator.hasNext()) {
-            var entity = iterator.next();
+        iterateAndUpdate(managedEntities.iterator(), requiresPlayerListUpdate(), (entity, iterator) -> {
             if (names.contains(entity.teamIdentifier())) {
                 iterator.remove();
-                if (!containsSelf) {
-                    entity.updateNametag(null);
-                    entity.updateBedrockMetadata();
-
-                    if (entries != null && entity instanceof PlayerEntity player) {
-                        entries.add(player);
-                    }
-                }
+                return !containsSelf;
             }
-        }
-
-        if (entries != null && !entries.isEmpty()) {
-            PlayerListUtils.updateEntries(session(), entries);
-        }
+            return false;
+        }, $ -> null);
 
         if (containsSelf) {
             refreshAllEntities();
@@ -347,19 +330,11 @@ public final class Team {
     }
 
     private void refreshAllEntities() {
-        Set<PlayerEntity> entries = requiresPlayerListUpdate() ? new HashSet<>() : null;
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
-            entity.updateNametag(scoreboard.getTeamFor(entity.teamIdentifier()));
-            entity.updateBedrockMetadata();
-            // Also update / yeet team-based formatting
-            if (entries != null && entity instanceof PlayerEntity player) {
-                entries.add(player);
-            }
-        }
-
-        if (entries != null && !entries.isEmpty()) {
-            PlayerListUtils.updateEntries(session(), entries);
-        }
+        iterateAndUpdate(
+            session().getEntityCache().getEntities().values().iterator(),
+            requiresPlayerListUpdate(),
+            ($, $$) -> true,
+            entity -> scoreboard.getTeamFor(entity.teamIdentifier()));
     }
 
     private GeyserSession session() {
