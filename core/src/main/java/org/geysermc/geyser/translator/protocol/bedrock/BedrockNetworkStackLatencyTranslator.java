@@ -50,6 +50,6 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public boolean shouldExecuteInEventLoop() {
-        return true;
+        return false; // Controlled by the latency ping cache runnables instead
     }
 }

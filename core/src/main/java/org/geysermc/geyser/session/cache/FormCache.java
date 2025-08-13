@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.component.util.ComponentType;
 import org.geysermc.cumulus.form.CustomForm;
@@ -92,29 +91,25 @@ public class FormCache {
 
         // Hack to fix the (url) image loading bug
         if (form instanceof SimpleForm) {
-            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-            latencyPacket.setFromServer(true);
-            latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
-            session.scheduleInEventLoop(
-                    () -> {
-                        session.getLatencyPingCache().add(() -> session.scheduleInEventLoop(() -> {
-                            // Hack to fix the url image loading bug
-                            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                            attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            // Two delays:
+            // First, 500ms, before we send the network stack latency packet
+            session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
+                    // Then, wait 500ms after we receive the response, then update attributes to get the image to show
+                    session.scheduleInEventLoop(() -> {
+                        // Hack to fix the url image loading bug
+                        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
 
-                            AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
-                            if (attribute != null) {
-                                attributesPacket.setAttributes(Collections.singletonList(attribute));
-                            } else {
-                                attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
-                            }
+                        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                        if (attribute != null) {
+                            attributesPacket.setAttributes(Collections.singletonList(attribute));
+                        } else {
+                            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                        }
 
-                            session.sendUpstreamPacket(attributesPacket);
-                        }, 500, TimeUnit.MILLISECONDS));
-                        session.sendUpstreamPacket(latencyPacket);
-                    },
-                    500, TimeUnit.MILLISECONDS
-            );
+                        session.sendUpstreamPacket(attributesPacket);
+                    }, 500, TimeUnit.MILLISECONDS);
+                }), 500, TimeUnit.MILLISECONDS);
         }
     }
 

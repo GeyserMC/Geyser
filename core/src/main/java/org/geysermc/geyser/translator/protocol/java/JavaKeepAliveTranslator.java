@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundKeepAlivePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundKeepAlivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 
 /**
@@ -44,37 +43,8 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
             return;
         }
 
-        // We use this once the client replies
         final long javaId = packet.getPingId();
-
-        long timestamp = javaId;
-
-        // We take the abs because we rely on the client responding with a negative value ONLY when we send
-        // a negative timestamp in the form-image-hack performed in FormCache.
-        // Apart from that case, we don't actually use the value the client responds with, instead using our keep alive cache.
-        if (timestamp == Long.MIN_VALUE) {
-            timestamp = Long.MAX_VALUE; // There is not an abs representation of MIN_VALUE (2's complement)
-        } else {
-            timestamp = Math.absExact(timestamp);
-        }
-
-        // Bedrock will overflow on timestamps that are too large, and respond with a mangled negative value.
-        // Keeping leftmost digits allows for easier debugging
-        while (timestamp > 1e10) {
-            timestamp /= 10;
-        }
-
-        session.getLatencyPingCache().add(() -> {
-            // use our cached value because
-            // a) bedrock can be inaccurate with the value returned
-            // b) playstation replies with a different magnitude than other platforms
-            // c) 1.20.10 and later reply with a different magnitude
-            session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId));
-        });
-
-        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-        latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(timestamp);
-        session.sendUpstreamPacket(latencyPacket);
+        // ClientboundKeepAlivePacket's are async, hence we won't add additional delay ensuring it's sent in the event loop would add
+        session.sendNetworkLatencyStackPacket(javaId, false, () -> session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId)));
     }
 }
