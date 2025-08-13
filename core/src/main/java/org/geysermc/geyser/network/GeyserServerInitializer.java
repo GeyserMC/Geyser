@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
@@ -41,14 +42,11 @@ import java.net.InetSocketAddress;
 public class GeyserServerInitializer extends BedrockServerInitializer {
     private final GeyserImpl geyser;
     // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
+    @Getter
     private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
 
     public GeyserServerInitializer(GeyserImpl geyser) {
         this.geyser = geyser;
-    }
-
-    public DefaultEventLoopGroup getEventLoopGroup() {
-        return eventLoopGroup;
     }
 
     @Override
