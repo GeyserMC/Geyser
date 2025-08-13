@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
+import io.netty.buffer.AdaptiveByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.CommandSender;
@@ -82,9 +84,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
+        // TODO remove when this isn't an issue anymore
+        boolean adaptiveAllocatorUsed = System.getProperty("io.netty.allocator.type") == null && ByteBufAllocator.DEFAULT instanceof AdaptiveByteBufAllocator;
+
         try {
             List<Integer> supportedProtocols = ProtocolConstants.SUPPORTED_VERSION_IDS;
-            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion())) {
+            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion()) || adaptiveAllocatorUsed) {
                 geyserLogger.error("      / \\");
                 geyserLogger.error("     /   \\");
                 geyserLogger.error("    /  |  \\");
@@ -95,6 +100,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         } catch (Throwable e) {
             geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
+        }
+
+        // See https://github.com/SpigotMC/BungeeCord/blob/e62fc6c2916a991e00177c580986d8b1a22fdb41/proxy/src/main/java/net/md_5/bungee/netty/PipelineUtils.java#L138
+        if (Boolean.getBoolean("bungee.io_uring")) {
+            System.setProperty("Mcpl.io_uring", "true");
         }
 
         if (!this.loadConfig()) {

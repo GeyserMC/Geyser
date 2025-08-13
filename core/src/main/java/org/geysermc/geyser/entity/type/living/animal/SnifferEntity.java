@@ -64,12 +64,12 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
             setBoundingBoxHeight(DIGGING_HEIGHT);
             setBoundingBoxWidth(definition.width());
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
@@ -90,7 +90,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         setFlag(EntityFlag.DIGGING, snifferState == SnifferState.DIGGING);
         setFlag(EntityFlag.RISING, snifferState == SnifferState.RISING);
 
-        setDimensions(pose);
+        setDimensionsFromPose(pose);
 
         if (getFlag(EntityFlag.DIGGING)) {
             digTicks = DIG_END;

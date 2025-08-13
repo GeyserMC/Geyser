@@ -31,8 +31,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
-import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.entity.type.PaintingEntity;
+import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -102,13 +101,6 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         if (packet.getType() == EntityType.FALLING_BLOCK) {
             entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
                     position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
-        } else if (packet.getType() == EntityType.ITEM_FRAME || packet.getType() == EntityType.GLOW_ITEM_FRAME) {
-            // Item frames need the hanging direction
-            entity = new ItemFrameEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                    definition, position, motion, yaw, pitch, headYaw, (Direction) packet.getData());
-        } else if (packet.getType() == EntityType.PAINTING) {
-            entity = new PaintingEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                    definition, position, motion, yaw, pitch, headYaw, (Direction) packet.getData());
         } else if (packet.getType() == EntityType.FISHING_BOBBER) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
@@ -123,6 +115,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         } else {
             entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                     packet.getUuid(), definition, position, motion, yaw, pitch, headYaw);
+
+            // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
+            if (entity instanceof HangingEntity hanging) {
+                hanging.setDirection((Direction) packet.getData());
+            }
         }
 
         if (packet.getType() == EntityType.WARDEN) {

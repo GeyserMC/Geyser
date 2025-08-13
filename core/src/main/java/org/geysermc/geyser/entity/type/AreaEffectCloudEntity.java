@@ -54,9 +54,10 @@ public class AreaEffectCloudEntity extends Entity {
 
         // This disabled client side shrink of the cloud
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 3.0f);
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
+        //noinspection deprecation - still needed for these to show up
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 

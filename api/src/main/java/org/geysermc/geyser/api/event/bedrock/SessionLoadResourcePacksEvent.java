@@ -113,4 +113,14 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      * @since 2.1.1
      */
     public abstract boolean unregister(@NonNull UUID uuid);
+
+    /**
+     * Whether to forcefully disable vibrant visuals for joining clients.
+     * While vibrant visuals are nice to look at, they can cause issues with
+     * some resource packs.
+     *
+     * @param enabled Whether vibrant visuals are allowed. This is true by default.
+     * @since 2.7.2
+     */
+    public abstract void allowVibrantVisuals(boolean enabled);
 }

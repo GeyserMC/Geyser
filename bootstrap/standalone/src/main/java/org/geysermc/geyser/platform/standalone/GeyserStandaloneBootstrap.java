@@ -89,6 +89,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
         }
 
+        // Restore allocator used before Netty 4.2 due to oom issues with the adaptive allocator
+        if (System.getProperty("io.netty.allocator.type") == null) {
+            System.setProperty("io.netty.allocator.type", "pooled");
+        }
+
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         GeyserStandaloneLogger.setupStreams();
 
@@ -231,6 +236,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             // Event must be fired after CommandRegistry has subscribed its listener.
             // Also, the subscription for the Permissions class is created when Geyser is initialized.
             cloud.fireRegisterPermissionsEvent();
+        } else {
+            // This isn't ideal - but geyserLogger#start won't ever finish, leading to a reloading deadlock
+            geyser.setReloading(false);
         }
 
         if (gui != null) {

@@ -33,7 +33,6 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
@@ -49,6 +48,10 @@ final class BedrockMovePlayer {
     static void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
+
+        // We need to save player interact rotation value, as this rotation is used for Touch device and indicate where the player is touching.
+        // This is needed so that we can interact with where player actually touch on the screen on Bedrock and not just from the center of the screen.
+        entity.setBedrockInteractRotation(packet.getInteractRotation());
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
@@ -80,20 +83,13 @@ final class BedrockMovePlayer {
         boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw);
 
-        if (session.getLookBackScheduledFuture() != null) {
-            // Resend the rotation if it was changed by Geyser
-            rotationChanged |= !session.getLookBackScheduledFuture().isDone();
-            session.getLookBackScheduledFuture().cancel(false);
-            session.setLookBackScheduledFuture(null);
-        }
-
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
         }
 
         // Due to how ladder works on Bedrock, we won't get climbing velocity from tick end unless if you're colliding horizontally. So we account for it ourselves.
-        boolean onClimbableBlock = session.getTagCache().is(BlockTag.CLIMBABLE, session.getGeyser().getWorldManager().blockAt(session, entity.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toInt()).block());
+        boolean onClimbableBlock = entity.isOnClimbableBlock();
         if (onClimbableBlock && packet.getInputData().contains(PlayerAuthInputData.JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
         }
@@ -102,12 +98,14 @@ final class BedrockMovePlayer {
         boolean isOnGround;
         if (hasVehicle) {
             // VERTICAL_COLLISION is not accurate while in a vehicle (as of 1.21.62)
-            isOnGround = Math.abs(entity.getLastTickEndVelocity().getY()) < 0.1;
+            // If the player is riding a vehicle or is in spectator mode, onGround is always set to false for the player
+            isOnGround = false;
         } else {
             isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
 
         entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)

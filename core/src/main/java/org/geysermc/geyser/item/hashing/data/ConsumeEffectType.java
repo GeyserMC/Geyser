@@ -49,7 +49,7 @@ public enum ConsumeEffectType {
 
     <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz) {
         this.clazz = clazz;
-        this.builder = MapBuilder.empty();
+        this.builder = MapBuilder.unit();
     }
 
     <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz, MapBuilder<T> builder) {
