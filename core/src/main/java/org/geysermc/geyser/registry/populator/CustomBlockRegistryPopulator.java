@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -402,7 +402,7 @@ public class CustomBlockRegistryPopulator {
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
                 .putCompound("menu_category", NbtMap.builder()
-                    .putString("category", creativeCategory.internalName())
+                    .putString("category", creativeCategory.bedrockName())
                     .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())
