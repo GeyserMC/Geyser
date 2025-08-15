@@ -34,49 +34,85 @@ import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.haproxy.HAProxyProtocolException;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
+import org.geysermc.geyser.network.CIDRMatcher;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 @ChannelHandler.Sharable
 public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(ProxyServerHandler.class);
     public static final String NAME = "rak-proxy-server-handler";
+    // The 13th byte of a v2 PROXY header for a PROXY command is 0x21 (33).
+    private static final int V2_PROXY_COMMAND = 33;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
         ByteBuf content = packet.content();
-        GeyserBedrockPeer peer = (GeyserBedrockPeer) ctx.pipeline().get(BedrockPeer.NAME);
-        int detectedVersion = peer != null ? -1 : ProxyProtocolDecoder.findVersion(content);
-        InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
+        // Mark the current position of the buffer before we attempt any speculative reads.
+        content.markReaderIndex();
 
-        if (presentAddress == null && detectedVersion == -1) {
-            // We haven't received a header from given address before and we couldn't detect a
-            // PROXY header, ignore.
-            return;
+        // Try to decode a PROXY v2 header. If successful, the readerIndex will be advanced.
+        // If it fails for any reason, we will reset the readerIndex and pass the original packet through.
+        boolean decodedSuccessfully = tryDecodeProxyHeader(packet, content);
+
+        if (!decodedSuccessfully) {
+            // Decoding failed (header not present, malformed, or incomplete).
+            // Reset the buffer to its original state to allow downstream handlers to process it.
+            content.resetReaderIndex();
         }
 
-        if (presentAddress == null) {
-            final HAProxyMessage decoded;
-            try {
-                if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
-                    // PROXY header was not present in the packet, ignore.
-                    return;
-                }
-            } catch (HAProxyProtocolException e) {
-                log.debug("{} sent malformed PROXY header", packet.sender(), e);
-                return;
-            }
-
-            presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
-            log.debug("Got PROXY header: (from {}) {}", packet.sender(), presentAddress);
-            GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
-        } else {
-            log.trace("Reusing PROXY header: (from {}) {}", packet.sender(), presentAddress);
-        }
-
+        // Forward the packet. Its content is now either the stripped payload (on success)
+        // or the original, untouched content (on failure).
         ctx.fireChannelRead(packet.retain());
+    }
+
+    private boolean tryDecodeProxyHeader(DatagramPacket packet, ByteBuf content) {
+        // Since PROXY protocol v1 is not used for UDP, we only check for v2.
+        if (ProxyProtocolDecoder.findVersion(content) != V2_PROXY_COMMAND) {
+            return false;
+        }
+
+        // check if the address is whitelisted
+        // This is a simple check to ensure that the proxier address is whitelisted.
+        List<String> allowedProxyIPs = GeyserImpl.getInstance().getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
+        if (allowedProxyIPs.isEmpty()) {
+            // No whitelisted IPs, so we trust the PROXY header
+            return true;
+        }
+        boolean isWhitelistedProxier = false;
+        for (org.geysermc.geyser.network.CIDRMatcher matcher : GeyserImpl.getInstance().getConfig().getBedrock().getWhitelistedIPsMatchers()) {
+            // Check if the sender's address matches any of the whitelisted CIDRs
+            if (matcher.matches(packet.sender().getAddress())) {
+                isWhitelistedProxier = true;
+                break;
+            }
+        }
+
+        final HAProxyMessage decoded;
+        try {
+            decoded = ProxyProtocolDecoder.decode(content, V2_PROXY_COMMAND);
+            if (decoded == null) {
+                // The header was detected but was incomplete. Treat as failure.
+                return false;
+            }
+        } catch (HAProxyProtocolException e) {
+            // The header was malformed. Treat as failure.
+            log.trace("{} sent what looked like a PROXY header, but it was malformed.", packet.sender(), e);
+            return false;
+        }
+
+        // The readerIndex has been successfully advanced past the header.
+        // If this is the first packet and proxier in whitelist from this proxy, cache the real address.
+        InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
+        if (presentAddress == null && isWhitelistedProxier) {
+            // The proxier is whitelisted, so we trust the PROXY header.
+            presentAddress = new InetSocketAddress(decoded.sourceAddress(), decoded.sourcePort());
+            log.debug("Got PROXY header: (from {}) {}. Caching session.", packet.sender(), presentAddress);
+            GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().put(packet.sender(), presentAddress);
+        }
+        
+        return true;
     }
 }
