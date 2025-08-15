@@ -126,6 +126,10 @@ public final class GeyserHolderSet<T> {
         return tagCache.getRaw(Objects.requireNonNull(tag, "HolderSet must have a tag if it doesn't have a list of IDs"));
     }
 
+    public boolean contains(GeyserSession session, T value) {
+        return contains(resolveRaw(session.getTagCache()), registry.toNetworkId(session, value));
+    }
+
     /**
      * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
      *
@@ -194,5 +198,15 @@ public final class GeyserHolderSet<T> {
             : "either a tag, a string ID, an inline registry element, a list of string IDs, or a list of inline registry elements";
         GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry + " + registry + "! Expected " + expected + ", found " + holderSet);
         return new GeyserHolderSet<>(registry);
+    }
+
+    // TODO
+    private static boolean contains(int[] array, int i) {
+        for (int item : array) {
+            if (item == i) {
+                return true;
+            }
+        }
+        return false;
     }
 }
