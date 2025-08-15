@@ -26,14 +26,20 @@
 package org.geysermc.geyser.scoreboard;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
@@ -132,6 +138,19 @@ public final class Team {
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 
+    public String formatTabDisplay(String username, boolean spectator) {
+        String chatColor = ChatColor.chatColorFor(color);
+        if (ChatColor.RESET.equals(chatColor)) {
+            chatColor = "";
+        }
+
+        if (spectator && !ChatColor.ITALIC.equals(chatColor)) {
+            chatColor += ChatColor.ITALIC;
+        }
+        // also add reset because setting the color does not reset the formatting, unlike Java
+        return chatColor + prefix + ChatColor.RESET + chatColor + username + ChatColor.RESET + chatColor + suffix;
+    }
+
     public boolean isVisibleFor(String entity) {
         return switch (nameTagVisibility) {
             case HIDE_FOR_OTHER_TEAMS -> {
@@ -175,19 +194,20 @@ public final class Team {
             return;
         }
 
-        if (!this.name.equals(oldName)
-            || !this.prefix.equals(oldPrefix)
+        // Avoid updating player list entries if just the name changed
+        boolean stylingChange = !this.prefix.equals(oldPrefix)
             || !this.suffix.equals(oldSuffix)
-            || color != oldColor) {
+            || color != oldColor;
+        if (!this.name.equals(oldName) || stylingChange) {
             markChanged();
-            updateEntities();
+            updateEntities(managedEntities, this, stylingChange);
             return;
         }
 
         if (isVisibleFor(playerName()) != oldVisible) {
             // if just the visibility changed, we only have to update the entities.
             // We don't have to mark it as changed
-            updateEntities();
+            updateEntities(managedEntities, this, false);
         }
     }
 
@@ -210,20 +230,46 @@ public final class Team {
             scoreboard.getPlayerToTeam().remove(name);
         }
 
-        if (entities().contains(playerName())) {
-            refreshAllEntities();
-            return;
-        }
-        for (Entity entity : managedEntities) {
-            entity.updateNametag(null);
-            entity.updateBedrockMetadata();
-        }
+        updateEntities(managedEntities, null, true);
     }
 
-    private void updateEntities() {
-        for (Entity entity : managedEntities) {
-            entity.updateNametag(this);
-            entity.updateBedrockMetadata();
+    /**
+     * Iterates through the provided entity collection to perform nametag, metadata and tablist updates.
+     */
+    public void updateEntities(Collection<Entity> entities, Team team, boolean updatePlayerList) {
+        if (entities().contains(playerName())) {
+            refreshAllEntities(updatePlayerList);
+            return;
+        }
+
+        iterateAndUpdate(entities.iterator(), updatePlayerList, ($, $$) -> true, $ -> team, false);
+    }
+
+    /**
+     * Iterates through the provided entity iterator, and, if the predicate matches, updates the nametag based on the
+     * team function. It further updates the player list entries.
+     */
+    public void iterateAndUpdate(Iterator<Entity> iterator, boolean updatePlayerList, BiPredicate<Entity, Iterator<Entity>> predicate, Function<Entity, Team> function, boolean addSessionPlayer) {
+        Set<PlayerEntity> entries = updatePlayerList ? new HashSet<>() : null;
+        while (iterator.hasNext()) {
+            Entity entity = iterator.next();
+            if (predicate.test(entity, iterator)) {
+                entity.updateNametag(function.apply(entity));
+                entity.updateBedrockMetadata();
+                if (entries != null && entity instanceof PlayerEntity player) {
+                    entries.add(player);
+                }
+            }
+        }
+
+        if (entries != null) {
+            if (addSessionPlayer) {
+                entries.add(session().getPlayerEntity());
+            }
+
+            if (!entries.isEmpty()) {
+                PlayerListUtils.updateEntries(session(), entries);
+            }
         }
     }
 
@@ -247,40 +293,36 @@ public final class Team {
         if (names.isEmpty()) {
             return;
         }
-        boolean containsSelf = names.contains(playerName());
 
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
-            if (names.contains(entity.teamIdentifier())) {
-                managedEntities.add(entity);
-                if (!containsSelf) {
-                    entity.updateNametag(this);
-                    entity.updateBedrockMetadata();
+        boolean containsSelf = names.contains(playerName());
+        iterateAndUpdate(session().getEntityCache().getEntities().values().iterator(),
+            requiresPlayerListUpdate(),
+            (entity, $) -> {
+                if (names.contains(entity.teamIdentifier())) {
+                    managedEntities.add(entity);
+                    return !containsSelf;
                 }
-            }
-        }
+                return false;
+            },
+            $ -> this, false);
 
         if (containsSelf) {
-            refreshAllEntities();
+            refreshAllEntities(requiresPlayerListUpdate());
         }
     }
 
     private void removeRemovedEntities(Set<String> names) {
         boolean containsSelf = names.contains(playerName());
-
-        var iterator = managedEntities.iterator();
-        while (iterator.hasNext()) {
-            var entity = iterator.next();
+        iterateAndUpdate(managedEntities.iterator(), requiresPlayerListUpdate(), (entity, iterator) -> {
             if (names.contains(entity.teamIdentifier())) {
                 iterator.remove();
-                if (!containsSelf) {
-                    entity.updateNametag(null);
-                    entity.updateBedrockMetadata();
-                }
+                return !containsSelf;
             }
-        }
+            return false;
+        }, $ -> null, false);
 
         if (containsSelf) {
-            refreshAllEntities();
+            refreshAllEntities(requiresPlayerListUpdate());
         }
     }
 
@@ -293,11 +335,13 @@ public final class Team {
         managedEntities.removeIf(entity -> name.equals(entity.teamIdentifier()));
     }
 
-    private void refreshAllEntities() {
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
-            entity.updateNametag(scoreboard.getTeamFor(entity.teamIdentifier()));
-            entity.updateBedrockMetadata();
-        }
+    private void refreshAllEntities(boolean updatePlayerList) {
+        iterateAndUpdate(
+            session().getEntityCache().getEntities().values().iterator(),
+            updatePlayerList,
+            ($, $$) -> true,
+            entity -> scoreboard.getTeamFor(entity.teamIdentifier()),
+            true);
     }
 
     private GeyserSession session() {
@@ -322,6 +366,10 @@ public final class Team {
 
     public Set<String> entities() {
         return entities;
+    }
+
+    private boolean requiresPlayerListUpdate() {
+        return !prefix.isEmpty() || !suffix.isEmpty() || color() != TeamColor.RESET;
     }
 
     @Override

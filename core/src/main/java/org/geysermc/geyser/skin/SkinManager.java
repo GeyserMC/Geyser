@@ -93,7 +93,7 @@ public class SkinManager {
         return buildEntryManually(
                 session,
                 playerEntity.getUuid(),
-                playerEntity.getUsername(),
+                playerEntity.getTabListDisplayName(),
                 playerEntity.getGeyserId(),
                 skin,
                 cape,
@@ -153,7 +153,7 @@ public class SkinManager {
             PlayerListPacket.Entry updatedEntry = buildEntryManually(
                     session,
                     entity.getUuid(),
-                    entity.getUsername(),
+                    entity.getTabListDisplayName(),
                     entity.getGeyserId(),
                     skin,
                     cape,
