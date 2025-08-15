@@ -66,6 +66,9 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     BlockDefinition mobSpawnerBlock;
     BlockDefinition netherPortalBlock;
 
+    int javaBambooBlock;
+    int javaPointedDripstone;
+
     Map<NbtMap, BlockDefinition> itemFrames;
     Map<Block, NbtMap> flowerPotBlocks;
 
