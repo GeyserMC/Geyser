@@ -98,15 +98,15 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
                 return;
             }
 
+            GeyserImpl.getInstance().getLogger().debug("Registering permission %s with permission default %s", permission, def);
+
             if (def == TriState.TRUE) {
-                // Don't add to base permissions if this permission was manually defined
-                if (!baseDeniedPermissions.contains(permission)) {
-                    basePermissions.add(permission);
-                }
+                // The last caller gets to override earlier set defaults
+                baseDeniedPermissions.remove(permission);
+                basePermissions.add(permission);
             } else {
-                if (!basePermissions.contains(permission)) {
-                    baseDeniedPermissions.add(permission);
-                }
+                basePermissions.remove(permission);
+                baseDeniedPermissions.add(permission);
             }
         });
     }
