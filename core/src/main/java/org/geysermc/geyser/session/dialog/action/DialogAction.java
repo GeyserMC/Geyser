@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.dialog.action;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
@@ -210,9 +211,9 @@ public interface DialogAction {
 
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
-            NbtMap map = inputs.asNbtMap();
+            NbtMapBuilder map = inputs.asNbtMap().toBuilder();
             map.putAll(additions); // Can be optional on Java. We just read an empty map when it doesn't exist.
-            session.sendDownstreamPacket(new ServerboundCustomClickActionPacket(id, map));
+            session.sendDownstreamPacket(new ServerboundCustomClickActionPacket(id, map.build()));
         }
     }
 }

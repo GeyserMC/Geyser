@@ -46,6 +46,7 @@ import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -120,6 +121,8 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -131,6 +134,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
@@ -174,14 +178,15 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
-import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -232,13 +237,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -676,18 +683,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int ticks;
 
     /**
+     * The number of ticks that have elapsed since the start of this session according to the client.
+     */
+    @Setter
+    private long clientTicks;
+
+    /**
      * The world time in ticks according to the server
      * <p>
      * Note: The TickingStatePacket is currently ignored.
      */
     @Setter
     private long worldTicks;
-
-    /**
-     * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
-     */
-    @Setter
-    private ScheduledFuture<?> lookBackScheduledFuture = null;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -1037,7 +1044,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.cookies = loginEvent.cookies();
-        this.remoteServer = loginEvent.remoteServer();
+        // Don't allow changing the remote server when it's not up to us
+        // Just imagine the chaos of using an integrated world manager for an external server :)
+        this.remoteServer = this.geyser.platformType() == PlatformType.STANDALONE ? loginEvent.remoteServer() : remoteServer;
 
         // Start ticking
         tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
@@ -1143,6 +1152,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Mark session as closed before cancelling erosion futures
         closed = true;
         erosionHandler.close();
+    }
+
+    /**
+     * Forcibly closes the upstream session
+     */
+    public void forciblyCloseUpstream() {
+        upstream.forciblyClose();
     }
 
     /**
@@ -1272,15 +1288,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             this.bundleCache.tick();
+            this.dialogManager.tick();
+            this.waypointCache.tick();
 
             if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
                 // Could move this to the PlayerAuthInput translator, in the event the player lags
                 // but this will work once we implement matching Java custom tick cycles
                 sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
             }
-
-            dialogManager.tick();
-            waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1387,15 +1402,27 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     * Same as useItem but always default to useTouchRotation false.
      */
     public void useItem(Hand hand) {
+        useItem(hand, false);
+    }
+
+    /**
+     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     */
+    public void useItem(Hand hand, boolean useTouchRotation) {
         if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
             return;
         }
 
-        sendDownstreamGamePacket(new ServerboundUseItemPacket(
-            hand, worldCache.nextPredictionSequence(), playerEntity.getYaw(), playerEntity.getPitch()));
+        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
+            yaw = playerEntity.getBedrockInteractRotation().getY();
+            pitch = playerEntity.getBedrockInteractRotation().getX();
+        }
+
+        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), yaw, pitch));
     }
 
     public void releaseItem() {
@@ -1553,6 +1580,33 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.sendCommandPacket(command);
+    }
+
+    @Override
+    public @NonNull String joinAddress() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return combined.substring(0, index);
+    }
+
+    @Override
+    public @Positive int joinPort() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return Integer.parseInt(combined.substring(index + 1));
+    }
+
+    @Override
+    public void sendSkin(@NonNull UUID player, @NonNull SkinData skinData) {
+        Objects.requireNonNull(player, "player uuid must not be null!");
+        Objects.requireNonNull(skinData, "skinData must not be null!");
+
+        PlayerEntity entity = this.entityCache.getPlayerEntity(player);
+        if (entity == null) {
+            return;
+        }
+
+        SkinManager.sendSkinPacket(this, entity, skinData);
     }
 
     @Override

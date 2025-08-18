@@ -25,11 +25,17 @@
 
 package org.geysermc.geyser.pack;
 
+import lombok.With;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.pack.option.OptionHolder;
 
+import java.util.UUID;
+
+@With
 public record ResourcePackHolder(
     @NonNull GeyserResourcePack pack,
     @NonNull OptionHolder optionHolder
@@ -41,5 +47,17 @@ public record ResourcePackHolder(
 
     public ResourcePack resourcePack() {
         return this.pack;
+    }
+
+    public PackCodec codec() {
+        return this.pack.codec();
+    }
+
+    public UUID uuid() {
+        return this.pack.uuid();
+    }
+
+    public ResourcePackManifest.Version version() {
+        return pack.manifest().header().version();
     }
 }
