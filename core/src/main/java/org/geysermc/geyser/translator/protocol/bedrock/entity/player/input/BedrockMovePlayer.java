@@ -29,18 +29,15 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionResult;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
@@ -235,11 +232,15 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
+                if (!other.isPushable(session)) {
+                    continue;
+                }
+
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
                 entityBoundingBox.translate(other.position().toDouble());
 
                 // If this entity can't collide with the player or isn't near the player or is the player itself, continue.
-                if (!entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox()) || !other.isPushable(session)) {
+                if (!entityBoundingBox.checkIntersection(session.getCollisionManager().getPlayerBoundingBox())) {
                     continue;
                 }
 
