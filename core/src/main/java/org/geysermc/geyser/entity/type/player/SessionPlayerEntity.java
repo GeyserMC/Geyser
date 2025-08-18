@@ -157,11 +157,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
-            if (session.isSpawned() && position.getY() >= session.getBedrockDimension().minY() - 5) {
+            if (session.isNoClip() && position.getY() >= session.getBedrockDimension().minY() - 5) {
                 session.setNoClip(false);
             }
         }
-
         this.position = position.add(0, definition.offset(), 0);
     }
 
@@ -205,7 +204,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isSpawned() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }

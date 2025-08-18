@@ -50,6 +50,15 @@ public class TeleportCache {
      */
     private static final int RESEND_THRESHOLD = 20; // Make it one full second with auth input
 
+    public TeleportCache(Vector3f position, float pitch, float yaw, int teleportConfirmId) {
+        this.position = position;
+        this.velocity = Vector3f.ZERO;
+        this.pitch = pitch;
+        this.yaw = yaw;
+        this.teleportConfirmId = teleportConfirmId;
+        this.teleportType = TeleportType.NORMAL;
+    }
+
     private final Vector3f position;
     private final Vector3f velocity;
     private final float pitch, yaw;

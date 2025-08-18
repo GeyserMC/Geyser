@@ -56,7 +56,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         final SessionPlayerEntity entity = session.getPlayerEntity();
         Vector3d position = packet.getPosition();
 
-        position = position.add(packet.getRelatives().contains(PositionElement.X) ? entity.getPosition().getX() : 0,
+        position = position.add(
+            packet.getRelatives().contains(PositionElement.X) ? entity.getPosition().getX() : 0,
             packet.getRelatives().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityDefinitions.PLAYER.offset() : 0,
             packet.getRelatives().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
@@ -96,7 +97,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             // DataComponentHashers.testHashing(session); // TODO remove me
 
             // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
-            session.setUnconfirmedTeleport(new TeleportCache(entity.position(), Vector3f.ZERO, packet.getXRot(), packet.getYRot(), packet.getId(), TeleportCache.TeleportType.NORMAL));
+            session.setUnconfirmedTeleport(new TeleportCache(entity.position(), packet.getXRot(), packet.getYRot(), packet.getId()));
 
             if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
                 // See DimensionUtils for an explanation

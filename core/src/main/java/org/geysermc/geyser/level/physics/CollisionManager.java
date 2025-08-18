@@ -281,7 +281,7 @@ public class CollisionManager {
 
             // These block have different offset between BE and JE so we ignore them because if we "correct" the position
             // it will lead to complication and more inaccurate movement.
-            if (blockId == session.getBlockMappings().getJavaBambooBlock() || blockId == session.getBlockMappings().getJavaPointedDripstone()) {
+            if (session.getBlockMappings().getCollisionIgnoredBlocks().contains(blockId)) {
                 continue;
             }
 
