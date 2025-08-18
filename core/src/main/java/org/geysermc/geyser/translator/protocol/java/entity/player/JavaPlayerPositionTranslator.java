@@ -130,7 +130,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         );
 
         if (packet.getRelatives().contains(PositionElement.ROTATE_DELTA)) {
-            deltaMovement = MathUtils.xYRot(deltaMovement, Math.toRadians(lastPlayerPitch - newPitch), Math.toRadians(lastPlayerYaw - newYaw));
+            deltaMovement = MathUtils.xYRot(deltaMovement, (float) Math.toRadians(lastPlayerPitch - newPitch), (float) Math.toRadians(lastPlayerYaw - newYaw));
         }
 
         entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
