@@ -110,6 +110,11 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
+    public boolean isPushable(GeyserSession session) {
+        return false;
+    }
+
+    @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveAbsolute(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
     }
