@@ -296,4 +296,9 @@ public class AbstractHorseEntity extends AnimalEntity {
             return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
         }
     }
+
+    @Override
+    public boolean isPushable(GeyserSession session) {
+        return this.getPassengers().isEmpty();
+    }
 }

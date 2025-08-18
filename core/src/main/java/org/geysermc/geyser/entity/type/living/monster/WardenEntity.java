@@ -72,6 +72,11 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     }
 
     @Override
+    public boolean isPushable(GeyserSession session) {
+        return super.isPushable(session) && !getFlag(EntityFlag.DIGGING) && !getFlag(EntityFlag.EMERGING);
+    }
+
+    @Override
     public void tick() {
         if (++tickCount % heartBeatDelay == 0 && !silent) {
             // We have to do these calculations because they're clientside on Java Edition but we mute entities

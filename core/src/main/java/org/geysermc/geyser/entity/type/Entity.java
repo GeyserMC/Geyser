@@ -413,6 +413,24 @@ public class Entity implements GeyserEntity {
     }
 
     /**
+     * Gets the position of the entity without it being offset.
+     *
+     * @return the position of the entity without the offset value
+     */
+    public Vector3f position() {
+        return this.position;
+    }
+
+    /**
+     * Tests whether an entity can be pushed by a player. For player entities, the team they're in determines if they can be pushed.
+     * @param session the Bedrock client session
+     * @return if this entity can collide with the session's player
+     */
+    public boolean isPushable(GeyserSession session) {
+        return false;
+    }
+
+    /**
      * Set a boolean - whether the entity is invisible or visible
      *
      * @param value true if the entity is invisible
