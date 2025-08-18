@@ -1191,6 +1191,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)
                 .addTranslator(MetadataTypes.INT, WolfEntity::setWolfAngerTime)
                 .addTranslator(MetadataTypes.WOLF_VARIANT, WolfEntity::setVariant)
+                .addTranslator(null) // sound variant; these aren't clientsided anyways... right??
                 .build();
 
         // As of 1.18 these don't track entity data at all

@@ -75,10 +75,11 @@ public class FireworkEntity extends Entity {
         if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
             // If we don't send this, the bedrock client will always stop boosting after 20 ticks
             // However this is not the case for Java as the player will stop boosting after entity despawn.
-            // So we let player boost "infinitely" and then only stop them when the entity despawn.
+            // So we let player boost for a really long time and then only stop them when the entity despawn.
             // Also doing this allow player to boost simply by having a fireworks rocket attached to them
             // and not necessary have to use a rocket (as some plugin do this to boost player)
-            sendElytraBoost(Integer.MAX_VALUE);
+            // You can't really send Integer.MAX_VALUE since Bedrock client doesn't seem to like way too large number very much (as of 1.21.73).
+            sendElytraBoost(1000000);
             this.attachedToSession = true;
 
             // We need to keep track of the fireworks rockets.
@@ -99,7 +100,7 @@ public class FireworkEntity extends Entity {
         // Else player will stop boosting even if the fireworks is not attached to them or there is a fireworks that is boosting them
         // and not just this one.
         if (this.attachedToSession && session.getAttachedFireworkRockets().isEmpty()) {
-            // Since we send an effect packet for player to boost "infinitely", we have to stop them when the entity despawn.
+            // Since we send an effect packet for player to boost really long, we have to stop them when the entity despawn.
             sendElytraBoost(0);
             this.attachedToSession = false;
         }
@@ -112,6 +113,7 @@ public class FireworkEntity extends Entity {
         movementEffect.setDuration(duration);
         movementEffect.setEffectType(MovementEffectType.GLIDE_BOOST);
         movementEffect.setEntityRuntimeId(session.getPlayerEntity().getGeyserId());
+        movementEffect.setTick(session.getClientTicks());
         session.sendUpstreamPacket(movementEffect);
     }
 }

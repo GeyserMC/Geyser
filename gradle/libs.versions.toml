@@ -5,17 +5,17 @@ erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.15-SNAPSHOT"
-netty = "4.2.1.Final"
+netty = "4.2.3.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta7-20250705.103024-11"
-protocol-common = "3.0.0.Beta7-20250705.103024-11"
-protocol-codec = "3.0.0.Beta7-20250705.103024-11"
-raknet = "1.0.0.CR3-20250218.160705-18"
+protocol-connection = "3.0.0.Beta7-20250812.232642-18"
+protocol-common = "3.0.0.Beta7-20250812.232642-18"
+protocol-codec = "3.0.0.Beta7-20250812.232642-18"
+raknet = "1.0.0.CR3-20250811.214335-20"
 minecraftauth = "4.1.1"
-mcprotocollib = "1.21.7-20250712.190650-3"
-adventure = "4.21.0"
+mcprotocollib = "1.21.7-20250725.134643-4"
+adventure = "4.24.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
 checkerframework = "3.19.0"
@@ -35,13 +35,13 @@ viaproxy = "3.3.2-SNAPSHOT"
 fabric-loader = "0.16.14"
 fabric-api = "0.128.1+1.21.7"
 fabric-permissions-api = "0.4.0-SNAPSHOT"
-neoforge-minecraft = "21.7.0-beta"
+neoforge-minecraft = "21.8.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.7"
+minecraft = "1.21.8"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.7"
+runpaperversion = "1.21.8"
 runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
@@ -81,8 +81,6 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 adventure-text-serializer-bungeecord = { group = "net.kyori", name = "adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
 
-netty-resolver-dns = { group = "io.netty", name = "netty-resolver-dns", version.ref = "netty" }
-netty-resolver-dns-native-macos = { group = "io.netty", name = "netty-resolver-dns-native-macos", version.ref = "netty" }
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
@@ -132,6 +130,7 @@ minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
+velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
