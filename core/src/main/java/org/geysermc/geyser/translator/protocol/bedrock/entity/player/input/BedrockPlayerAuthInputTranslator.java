@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -65,9 +68,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Translator(packet = PlayerAuthInputPacket.class)
 public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
 
@@ -90,7 +90,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             leftOverInputData.remove(input);
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
-                case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
+                case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
+                case PERFORM_BLOCK_ACTIONS -> session.getBlockBreakHandler().handleBlockBreakActions(packet);
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
                 case START_CRAWLING -> session.setCrawling(true);

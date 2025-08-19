@@ -35,6 +35,28 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -163,6 +185,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BlockBreakHandler;
 import org.geysermc.geyser.session.cache.BookEditCache;
 import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
@@ -227,29 +250,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 
-import java.net.InetSocketAddress;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
@@ -299,6 +299,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
+
+    private final BlockBreakHandler blockBreakHandler;
 
     @Setter
     private TeleportCache unconfirmedTeleport;
@@ -765,6 +767,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
+        this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -1810,7 +1813,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
-        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        // Server authorative block breaking results in the client always sending
+        // positions for block breaking actions, which is easier to validate
+        // It does *not* mean we can dictate the break speed server-sided :(
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
