@@ -148,11 +148,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
     public void setPosition(Vector3f position) {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);

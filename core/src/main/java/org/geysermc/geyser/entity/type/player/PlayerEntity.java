@@ -205,13 +205,9 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-
-        if (teleported) {
-            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-        }
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
 
         session.sendUpstreamPacket(movePlayerPacket);
-
 
         if (teleported && !(this instanceof SessionPlayerEntity)) {
             // As of 1.19.0, head yaw seems to be ignored during teleports, also don't do this for session player.
@@ -241,6 +237,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
@@ -248,7 +245,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
             }
         }
         session.sendUpstreamPacket(movePlayerPacket);
