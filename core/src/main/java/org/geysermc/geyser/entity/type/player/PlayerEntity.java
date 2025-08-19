@@ -205,7 +205,9 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        }
 
         session.sendUpstreamPacket(movePlayerPacket);
 
@@ -237,7 +239,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
@@ -247,6 +248,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
             }
         }
+
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        }
+
         session.sendUpstreamPacket(movePlayerPacket);
         if (leftParrot != null) {
             leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
