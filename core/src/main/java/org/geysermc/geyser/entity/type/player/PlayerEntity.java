@@ -224,16 +224,15 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setPosition(this.position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-
-        if (teleported) {
-            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+        movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         }
 
         session.sendUpstreamPacket(movePlayerPacket);
 
-        if (teleported) {
-            // As of 1.19.0, head yaw seems to be ignored during teleports.
+        if (teleported && !(this instanceof SessionPlayerEntity)) {
+            // As of 1.19.0, head yaw seems to be ignored during teleports, also don't do this for session player.
             updateHeadLookRotation(headYaw);
         }
 
@@ -259,7 +258,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setPosition(position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
@@ -267,9 +266,13 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
             }
         }
+
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        }
+
         session.sendUpstreamPacket(movePlayerPacket);
         if (leftParrot != null) {
             leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
