@@ -225,22 +225,22 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             int blockState = session.getGameMode() == GameMode.CREATIVE ?
                 session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : session.getBreakingBlock();
 
-            session.setLastBlockPlaced(null);
-            session.setLastBlockPlacePosition(null);
-
-            // Same deal with vanilla block placing as above.
-            if (!session.getWorldBorder().isInsideBorderBoundaries()) {
-                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
-                return;
-            }
+//            session.setLastBlockPlaced(null);
+//            session.setLastBlockPlacePosition(null);
+//
+//            // Same deal with vanilla block placing as above.
+//            if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+//                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
+//                return;
+//            }
 
             Vector3f playerPosition = session.getPlayerEntity().getPosition();
             playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
-            if (!BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, transaction.getBlockPosition())) {
-                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
-                return;
-            }
+//            if (!BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, transaction.getBlockPosition())) {
+//                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
+//                return;
+//            }
 
             int sequence = session.getWorldCache().nextPredictionSequence();
             session.getWorldCache().markPositionInSequence(transaction.getBlockPosition());
@@ -254,7 +254,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             blockBreakPacket.setPosition(transaction.getBlockPosition().toFloat());
             blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
             session.sendUpstreamPacket(blockBreakPacket);
-            session.setBreakingBlock(-1);
 
             Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, transaction.getBlockPosition());
             if (itemFrameEntity != null) {

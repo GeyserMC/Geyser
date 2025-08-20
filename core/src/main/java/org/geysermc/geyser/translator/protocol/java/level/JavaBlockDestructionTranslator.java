@@ -58,7 +58,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
         Pair<Integer, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
         if (lastUpdate == null) {
             levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
-            levelEventPacket.setData(100000); // just a high value, we don't have any better one available
+            levelEventPacket.setData(65535 / 10000); // just a high value, we don't have any better one available
         } else {
             // Ticks since last update
             int ticksSince = session.getTicks() - lastUpdate.first();
@@ -67,7 +67,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
             int remainingStages = 10 - packet.getStage().ordinal();
 
             levelEventPacket.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-            levelEventPacket.setData(Math.max(remainingStages * ticksPerStage, 0));
+            levelEventPacket.setData(65535 / Math.max(remainingStages * ticksPerStage, 0));
         }
 
         session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getTicks(), packet.getStage()));

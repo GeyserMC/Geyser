@@ -25,14 +25,23 @@
 
 package org.geysermc.geyser.util;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
@@ -129,7 +138,7 @@ public final class BlockUtils {
         return Math.max(cache.getHaste(), cache.getConduitPower());
     }
 
-    public static double getSessionBreakTimeTicks(GeyserSession session, Block block) {
+    public static double getSessionBreakTimeTicks(GeyserSession session, Block block, float progress) {
         return Math.ceil(1 / getBlockMiningProgressPerTick(session, block, session.getPlayerInventory().getItemInHand()));
     }
 
@@ -174,8 +183,60 @@ public final class BlockUtils {
         return BlockRegistries.COLLISIONS.get(blockId);
     }
 
-    public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
-        return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, blockPos));
+    public static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
+        LevelEventPacket levelEventPacket = new LevelEventPacket();
+        switch (direction) {
+            case UP -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_UP);
+            case DOWN -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_DOWN);
+            case NORTH -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_NORTH);
+            case EAST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_EAST);
+            case SOUTH -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_SOUTH);
+            case WEST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_WEST);
+        }
+        levelEventPacket.setPosition(position.toFloat());
+        levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
+        session.sendUpstreamPacket(levelEventPacket);
+    }
+
+    public static void sendBedrockStopBlockBreak(GeyserSession session, Vector3f vector) {
+        LevelEventPacket stopBreak = new LevelEventPacket();
+        stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
+        stopBreak.setPosition(vector);
+        stopBreak.setData(0);
+        session.sendUpstreamPacket(stopBreak);
+    }
+
+    public static void restoreCorrectBlock(GeyserSession session, Vector3i vector, BlockState blockState) {
+        BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(blockState);
+
+        if (blockState.block() instanceof SkullBlock skullBlock && skullBlock.skullType() == SkullBlock.Type.PLAYER) {
+            // The changed block was a player skull so check if a custom block was defined for this skull
+            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
+            if (skull != null && skull.getBlockDefinition() != null) {
+                bedrockBlock = skull.getBlockDefinition();
+            }
+        }
+
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(vector);
+        updateBlockPacket.setDefinition(bedrockBlock);
+        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateBlockPacket);
+
+        UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
+        updateWaterPacket.setDataLayer(1);
+        updateWaterPacket.setBlockPosition(vector);
+        updateWaterPacket.setDefinition(BlockRegistries.WATERLOGGED.get().get(blockState.javaId()) ? session.getBlockMappings().getBedrockWater() : session.getBlockMappings().getBedrockAir());
+        updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateWaterPacket);
+
+        // Reset the item in hand to prevent "missing" blocks
+        session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getHeldItemSlot()); // TODO test
+    }
+
+    public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
+        restoreCorrectBlock(session, blockPos, session.getGeyser().getWorldManager().blockAt(session, blockPos));
     }
 
     private BlockUtils() {

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.Pair;
@@ -35,18 +36,44 @@ import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.CustomItemTranslator;
+import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 
 public class BlockBreakHandler {
 
-    private final GeyserSession session;
+    protected final GeyserSession session;
+    protected Vector3i currentBlock = Vector3i.ZERO;
+    protected BlockState currentState = Blocks.AIR.defaultBlockState();
+    protected long blockStartBreakTime = 0;
+
+    // To prevent sending multiple updates, cache all blocks we had to restore
+    // e.g. due to out-of-range or being unable to mine
+    protected Set<Vector3i> restoredBlocks = new HashSet<>();
+    protected Set<Vector3i> instaBreakBlocks = new HashSet<>();
 
     @Getter
     private final Cache<Vector3i, Pair<Integer, BlockBreakStage>> destructionStageCache = CacheBuilder.newBuilder()
@@ -58,10 +85,16 @@ public class BlockBreakHandler {
         this.session = session;
     }
 
+    public void handleBlockBreaking(PlayerAuthInputPacket packet) {
+        if (packet.getInputData().contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
+            handleBlockBreakActions(packet);
+        }
+        restoredBlocks.clear();
+        instaBreakBlocks.clear();
+    }
+
     public void handleBlockBreakActions(PlayerAuthInputPacket packet) {
-        // To prevent sending multiple updates, cache all blocks we had to restore
-        // e.g. due to out-of-range or being unable to mine
-        Set<Vector3i> restoredBlocks = new HashSet<>(1);
+        boolean creativeMode = session.getGameMode() == GameMode.CREATIVE;
 
         for (var actionData : packet.getPlayerActions()) {
             Vector3i vector = actionData.getBlockPosition();
@@ -73,31 +106,165 @@ public class BlockBreakHandler {
                         vector, Direction.VALUES[blockFace], 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
+                case START_BREAK -> {
+                    if (creativeMode || restoredBlocks.contains(vector)) {
+                        continue;
+                    }
+
+                    if (!restoredBlocks.isEmpty() || !canStartBreaking(vector)) {
+                        BlockUtils.sendBedrockStopBlockBreak(session, vector.toFloat());
+                        restoredBlocks.add(vector);
+                        continue;
+                    }
+
+                    startBreaking(vector, blockFace, packet.getTick());
+                }
+                case BLOCK_CONTINUE_DESTROY -> {
+                    if (creativeMode || restoredBlocks.contains(vector)) {
+                        continue;
+                    }
+                    
+                    if (!restoredBlocks.isEmpty() || !canContinueBreaking(vector)) {
+                        BlockUtils.sendBedrockStopBlockBreak(session, vector.toFloat());
+                        restoredBlocks.add(vector);
+                        continue;
+                    }
+
+                    handleContinueBreaking(vector, blockFace, packet.getTick());
+                }
+                case BLOCK_PREDICT_DESTROY -> {
+                    if (creativeMode) {
+                        continue;
+                    }
+
+                    // TODO properly reset vars
+                    if (instaBreakBlocks.contains(vector)) {
+                        continue;
+                    }
+
+                    if (!restoredBlocks.isEmpty() && restoredBlocks.contains(vector)) {
+                        BlockUtils.restoreCorrectBlock(session, vector);
+                        continue;
+                    }
+
+                    Preconditions.checkArgument(vector == currentBlock);
+
+                    if (!canContinueBreaking(vector)) {
+                        BlockUtils.sendBedrockStopBlockBreak(session, vector.toFloat());
+                        BlockUtils.restoreCorrectBlock(session, vector);
+                        restoredBlocks.add(vector);
+                        continue;
+                    }
+
+                    handleBlockBreaking(vector, blockFace, packet.getTick());
+                }
+                case ABORT_BREAK -> handleAbortBreaking(vector);
+                default -> {
+                    throw new IllegalStateException("Unknown action: " + actionData.getAction());
+                }
             }
         }
     }
 
-    public static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        switch (direction) {
-            case UP -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_UP);
-            case DOWN -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_DOWN);
-            case NORTH -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_NORTH);
-            case EAST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_EAST);
-            case SOUTH -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_SOUTH);
-            case WEST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_WEST);
+    protected void handleAbortBreaking(Vector3i vector) {
+        if (session.getGameMode() != GameMode.CREATIVE) {
+            // As of 1.16.210: item frame items are taken out here.
+            // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
+            Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
+            if (itemFrameEntity != null) {
+                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
+                    InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+                session.sendDownstreamGamePacket(interactPacket);
+                return;
+            }
         }
-        levelEventPacket.setPosition(position.toFloat());
-        levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
-        session.sendUpstreamPacket(levelEventPacket);
+
+        // Bedrock edition "confirms" it stopped breaking blocks by sending
+        if (currentBlock != null) {
+            ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, 0);
+            session.sendDownstreamGamePacket(abortBreakingPacket);
+        }
+
+        BlockUtils.sendBedrockStopBlockBreak(session, vector.toFloat());
     }
 
-    public void stopBedrockBreaking(Vector3f vector) {
-        LevelEventPacket stopBreak = new LevelEventPacket();
-        stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
-        stopBreak.setPosition(vector);
-        stopBreak.setData(0);
-        session.sendUpstreamPacket(stopBreak);
+    protected void startBreaking(Vector3i vector, int blockFace, long tick) {
+        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+        float breakProgress = BlockUtils.getBlockMiningProgressPerTick(session, BlockState.of(blockState).block(), session.getPlayerInventory().getItemInHand());
+        double breakTime = calculateBlockBreakTime(blockState, vector, breakProgress);
+
+        if (breakProgress > 1) {
+            // Avoids sending STOP_BREAK for instantly broken blocks
+            instaBreakBlocks.add(vector);
+        }
+
+        // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
+        GeyserItemStack item = session.getPlayerInventory().getItemInHand();
+        ItemMapping mapping = item.getMapping(session);
+        ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
+        CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
+        SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
+
+        this.blockStartBreakTime = 0;
+        if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(blockState) || blockStateOverride != null || customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+            this.blockStartBreakTime = System.currentTimeMillis();
+        }
+
+        LevelEventPacket startBreak = new LevelEventPacket();
+        startBreak.setType(LevelEvent.BLOCK_START_BREAK);
+        startBreak.setPosition(vector.toFloat());
+        startBreak.setData((int) (65535 / breakTime));
+        session.sendUpstreamPacket(startBreak);
+
+        // Account for fire - the client likes to hit the block behind.
+        Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, blockFace);
+        Block block = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
+        Direction direction = Direction.VALUES[blockFace];
+        if (block == Blocks.FIRE || block == Blocks.SOUL_FIRE) {
+            ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
+                direction, session.getWorldCache().nextPredictionSequence());
+            session.sendDownstreamGamePacket(startBreakingPacket);
+        }
+
+        this.currentBlock = vector;
+        this.currentState = BlockState.of(blockState);
+
+        ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING,
+            vector, direction, session.getWorldCache().nextPredictionSequence());
+        session.sendDownstreamGamePacket(startBreakingPacket);
+
+        BlockUtils.spawnBlockBreakParticles(session, direction, vector, currentState);
     }
 
+    protected boolean canStartBreaking(Vector3i vector) {
+        if (session.isHandsBusy() || !session.getWorldBorder().isInsideBorderBoundaries()) {
+            return false;
+        }
+
+        Vector3f playerPosition = session.getPlayerEntity().getPosition();
+        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
+        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, vector);
+    }
+
+    protected void handleContinueBreaking(Vector3i vector, int blockFace, long tick) {
+
+    }
+
+    protected void handleBlockBreaking(Vector3i vector, int blockFace, long tick) {
+
+    }
+
+    protected boolean canContinueBreaking(Vector3i vector) {
+        if (session.isHandsBusy() || !session.getWorldBorder().isInsideBorderBoundaries()) {
+            return false;
+        }
+
+        Vector3f playerPosition = session.getPlayerEntity().getPosition();
+        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
+        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, vector);
+    }
+
+    protected double calculateBlockBreakTime(int state, Vector3i vector, float progress) {
+        return BlockUtils.getSessionBreakTimeTicks(session, BlockState.of(state).block(), progress);
+    }
 }
