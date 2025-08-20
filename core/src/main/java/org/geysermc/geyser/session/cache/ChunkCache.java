@@ -102,7 +102,7 @@ public class ChunkCache {
             palette.set(x & 0xF, y & 0xF, z & 0xF, block);
         } catch (Throwable e) {
             GeyserImpl.getInstance().getLogger().error("Failed to update block in chunk cache! ", e);
-            GeyserImpl.getInstance().getLogger().debug("newChunk=%s, block=%s, pos=%s,%s,%s", previouslyEmpty, block, x, y, z);
+            GeyserImpl.getInstance().getLogger().error("Info: newChunk=%s, block=%s, pos=%s,%s,%s", previouslyEmpty, block, x, y, z);
         }
     }
 
