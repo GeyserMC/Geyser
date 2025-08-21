@@ -242,6 +242,14 @@ public class Entity implements GeyserEntity {
         valid = false;
     }
 
+    /**
+     * Set the player's position without applying an offset or moving the bounding box
+     * @param position the new position of the Bedrock player
+     */
+    public void setPositionManual(Vector3f position) {
+        this.position = position;
+    }
+
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
         moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
@@ -410,6 +418,15 @@ public class Entity implements GeyserEntity {
         // Swimming is ignored here and instead we rely on the pose
         setGliding((xd & 0x80) == 0x80);
         setInvisible((xd & 0x20) == 0x20);
+    }
+
+    /**
+     * Gets the position of the entity without it being offset.
+     *
+     * @return the position of the entity without the offset value
+     */
+    public Vector3f position() {
+        return this.position;
     }
 
     /**
