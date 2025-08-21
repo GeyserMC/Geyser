@@ -441,7 +441,9 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
-        this.lastRemovedVehicle = null;
+        if (entity != null) {
+            this.lastRemovedVehicle = null;
+        }
         super.setVehicle(entity);
     }
   
