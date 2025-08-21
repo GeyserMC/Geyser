@@ -68,6 +68,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -116,6 +117,12 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter @Setter
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
+
+    /**
+     * The vehicle that player was previously in before it got removed from the world.
+     */
+    @Getter @Setter
+    private Integer lastRemovedVehicle = null;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -434,6 +441,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
+        this.lastRemovedVehicle = null;
         super.setVehicle(entity);
     }
   
