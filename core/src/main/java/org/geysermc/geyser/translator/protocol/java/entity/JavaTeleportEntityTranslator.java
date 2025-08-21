@@ -35,15 +35,19 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 
 @Translator(packet = ClientboundTeleportEntityPacket.class)
 public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
+        boolean sendPosition = false;
+
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
         if (packet.getId() == session.getPlayerEntity().getLastRemovedVehicle()) {
             entity = session.getPlayerEntity();
+            sendPosition = true;
         }
 
         if (entity == null) return;
@@ -83,6 +87,11 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
             entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
             entityMotionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(entityMotionPacket);
+        }
+
+        if (sendPosition) {
+            ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, position.getX(), position.getY(), position.getZ(), newYaw, newPitch);
+            session.sendDownstreamGamePacket(positionPacket);
         }
     }
 }
