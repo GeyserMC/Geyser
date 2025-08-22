@@ -63,7 +63,8 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         final SessionPlayerEntity playerEntity = session.getPlayerEntity();
-        if (playerEntity.getLastRemovedVehicle() == packet.getEntityId()) {
+        Integer lastRemovedVehicle = session.getPlayerEntity().getLastRemovedVehicle();
+        if (lastRemovedVehicle != null && lastRemovedVehicle == packet.getEntityId()) {
             playerEntity.setLastRemovedVehicle(null);
         }
 
