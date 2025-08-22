@@ -45,7 +45,8 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
         boolean sendPosition = false;
 
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
-        if (packet.getId() == session.getPlayerEntity().getLastRemovedVehicle()) {
+        Integer lastRemovedVehicle = session.getPlayerEntity().getLastRemovedVehicle();
+        if (lastRemovedVehicle != null && packet.getId() == lastRemovedVehicle) {
             entity = session.getPlayerEntity();
             sendPosition = true;
         }
