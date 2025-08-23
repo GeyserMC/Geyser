@@ -64,7 +64,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
      * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class, Enum)} method
      * to create a reader to be used in {@link org.geysermc.geyser.session.cache.RegistryCache}.
      */
-    JavaRegistryKey<? extends BedrockVariant> variantRegistry();
+    JavaRegistryKey<? extends BedrockVariant, ?> variantRegistry();
 
     /**
      * Should set the variant for bedrock.
