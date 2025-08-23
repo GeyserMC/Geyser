@@ -59,14 +59,30 @@ public class BlockCollision {
      * Silently move player bounding box/position out of block when needed to.
      */
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
         // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
-        playerCollision.setSizeX(playerCollision.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
+        playerCollision.setSizeX(playerCollision.getSizeX() + collisionExpansion);
+        playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() + collisionExpansion);
+
+        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
 
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
             }
+
+//            double boxMinY = (boundingBox.getMiddleY() + y) - (boundingBox.getSizeY() / 2);
+//            double boxMaxY = (boundingBox.getMiddleY() + y) + (boundingBox.getSizeY() / 2);
+//            if (boundingBox.checkIntersection(x, y, z, playerCollision) && playerMinY >= boxMinY) {
+//                // Max steppable distance in Minecraft as far as we know is 0.5625 blocks (for beds)
+//                if (boxMaxY - playerMinY <= 0.5625) {
+//                    playerCollision.translate(0, boxMaxY - playerMinY, 0);
+//                    System.out.println("Move up by: " + (boxMaxY - playerMinY));
+//                    // Update player Y for next collision box
+//                    playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
+//                }
+//            }
 
             // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
             // So we check if the player is intersecting the block, if they do then push them out. This NoCheatPlus's Passable check and other anticheat checks.
@@ -104,16 +120,21 @@ public class BlockCollision {
                 playerCollision.translate(translateDistance, 0, 0);
             }
 
-            double bottomFaceYPos = boundingBox.getMiddleY() - (boundingBox.getSizeY() / 2);
-            translateDistance = bottomFaceYPos - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
+            translateDistance = boundingBox.getMin(Axis.Y) - relativePlayerPosition.getY() - playerCollision.getSizeY() / 2;
+            if (Math.abs(translateDistance) < pushAwayTolerance) {
+                playerCollision.translate(0, translateDistance, 0);
+            }
+
+            translateDistance = boundingBox.getMax(Axis.Y) - relativePlayerPosition.getY() + playerCollision.getSizeY() / 2;
             if (Math.abs(translateDistance) < pushAwayTolerance) {
                 playerCollision.translate(0, translateDistance, 0);
             }
         }
 
         // Set the collision size back to normal
-        playerCollision.setSizeX(0.6);
-        playerCollision.setSizeZ(0.6);
+        playerCollision.setSizeX(playerCollision.getSizeX() - collisionExpansion);
+        playerCollision.setSizeY(playerCollision.getSizeY() - collisionExpansion);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() - collisionExpansion);
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {
