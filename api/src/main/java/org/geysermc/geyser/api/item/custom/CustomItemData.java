@@ -34,7 +34,10 @@ import java.util.Set;
 
 /**
  * This is used to store data for a custom item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
  */
+@Deprecated
 public interface CustomItemData {
     /**
      * Gets the item's name.

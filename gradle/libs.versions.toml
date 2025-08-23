@@ -19,6 +19,7 @@ adventure = "4.24.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
 checkerframework = "3.19.0"
+jetbrains-annotations = "24.0.0"
 log4j = "2.20.0"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
@@ -75,6 +76,7 @@ fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "o
 fastutil-object-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-object-maps", version.ref = "fastutil" }
 fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
 fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
+fastutil-object-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-boolean-maps", version.ref = "fastutil" }
 
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
 adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
@@ -122,6 +124,7 @@ adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all",
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
@@ -160,7 +163,7 @@ runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-databind", "jackson-dataformat-yaml" ]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps", "fastutil-object-boolean-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

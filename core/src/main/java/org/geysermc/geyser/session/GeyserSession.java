@@ -167,6 +167,7 @@ import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.session.cache.BookEditCache;
 import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.session.cache.FormCache;
@@ -287,6 +288,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final BookEditCache bookEditCache;
     private final BundleCache bundleCache;
     private final ChunkCache chunkCache;
+    private final ComponentCache componentCache;
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
@@ -551,6 +553,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean isUsingExperimentalMinecartLogic = false;
 
     /**
+     * Whether a fishing bobber in the world is connected to the player. Used for custom items, updates the item the player is holding when changed.
+     */
+    private boolean hasFishingRodCast = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */
@@ -759,6 +766,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.bookEditCache = new BookEditCache(this);
         this.bundleCache = new BundleCache(this);
         this.chunkCache = new ChunkCache(this);
+        this.componentCache = new ComponentCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.formCache = new FormCache(this);
@@ -1411,6 +1419,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setClientData(BedrockClientData data) {
         this.clientData = data;
         this.inputCache.setInputMode(org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
+    public boolean hasFishingRodCast() {
+        return hasFishingRodCast;
+    }
+
+    /**
+     * Also updates the item the player is holding.
+     */
+    public void setFishingRodCast(boolean cast) {
+        this.hasFishingRodCast = cast;
+        int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
+        this.playerInventoryHolder.updateSlot(slot);
     }
 
     /**
