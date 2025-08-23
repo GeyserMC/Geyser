@@ -66,7 +66,5 @@ public class ScaffoldingCollision extends BlockCollision {
             playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
             playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
         }
-
-        // Normal move correction isn't really needed for scaffolding
     }
 }

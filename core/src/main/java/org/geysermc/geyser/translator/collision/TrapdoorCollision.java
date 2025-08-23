@@ -26,10 +26,8 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
@@ -58,52 +56,16 @@ public class TrapdoorCollision extends BlockCollision {
         super.correctPosition(session, x, y, z, playerCollision);
 
         final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-        final Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
 
-        // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
+        // Check for trapdoor bug (trapdoors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
             }
 
-            switch (facing) {
-                case NORTH -> {
-                    double distance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(0, 0, distance);
-                    }
-                }
-                case EAST -> {
-                    double distance = boundingBox.getMax(Axis.X) - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(distance, 0, 0);
-                    }
-                }
-                case SOUTH -> {
-                    double distance = boundingBox.getMax(Axis.Z) - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(0, 0, distance);
-                    }
-                }
-                case WEST -> {
-                    double distance = boundingBox.getMin(Axis.X) - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(distance, 0, 0);
-                    }
-                }
-                case UP -> {
-                    double distance = boundingBox.getMax(Axis.Y) - relativePlayerPosition.getY() + playerCollision.getSizeY() / 2;
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(0, distance, 0);
-                    }
-                }
-                case DOWN -> {
-                    double distance = boundingBox.getMin(Axis.Y) - relativePlayerPosition.getY() - playerCollision.getSizeY() / 2;
-                    if (Math.abs(distance) < maxPushDistance) {
-                        playerCollision.translate(0, distance, 0);
-                    }
-                }
-            }
+            boundingBox = boundingBox.clone();
+            boundingBox.translate(x, y, z);
+            boundingBox.pushOutOfBoundingBox(playerCollision, facing, maxPushDistance);
         }
     }
 }

@@ -27,11 +27,11 @@ package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode
@@ -59,52 +59,29 @@ public class BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + collisionExpansion);
 
+        // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
+        // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
+        // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
+        // push distance is smaller than "pushAwayTolerance", we don't want to push player out when they're actually inside a block.
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
             }
 
-            // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
-            // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
-            // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
-            // push distance is smaller than "pushAwayTolerance", we don't want to push player out when they're actually inside a block.
-            Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
+            boundingBox = boundingBox.clone();
+            boundingBox.translate(x, y, z);
 
             // The ULP should give an upper bound on the floating point error
             double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
             double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
-
             double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP), zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
 
-            double translateDistance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-            if (Math.abs(translateDistance) < zPushAwayTolerance) {
-                playerCollision.translate(0, 0, translateDistance); // North
-            }
-
-            translateDistance = boundingBox.getMax(Axis.Z) - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-            if (Math.abs(translateDistance) < zPushAwayTolerance) {
-                playerCollision.translate(0, 0, translateDistance); // South
-            }
-
-            translateDistance = boundingBox.getMax(Axis.X) - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-            if (Math.abs(translateDistance) < xPushAwayTolerance) {
-                playerCollision.translate(translateDistance, 0, 0); // East
-            }
-
-            translateDistance = boundingBox.getMin(Axis.X) - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-            if (Math.abs(translateDistance) < xPushAwayTolerance) {
-                playerCollision.translate(translateDistance, 0, 0); // West
-            }
-
-            translateDistance = boundingBox.getMin(Axis.Y) - relativePlayerPosition.getY() - playerCollision.getSizeY() / 2;
-            if (Math.abs(translateDistance) < pushAwayTolerance) {
-                playerCollision.translate(0, translateDistance, 0); // Bottom
-            }
-
-            translateDistance = boundingBox.getMax(Axis.Y) - relativePlayerPosition.getY() + playerCollision.getSizeY() / 2;
-            if (Math.abs(translateDistance) < pushAwayTolerance) {
-                playerCollision.translate(0, translateDistance, 0); // Upper
-            }
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.NORTH, zPushAwayTolerance);
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, zPushAwayTolerance);
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.EAST, xPushAwayTolerance);
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.WEST, xPushAwayTolerance);
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
         }
 
         // Set the collision size back to normal
