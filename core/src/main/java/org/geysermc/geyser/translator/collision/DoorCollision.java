@@ -26,9 +26,12 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
@@ -61,23 +64,41 @@ public class DoorCollision extends BlockCollision {
     @Override
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         super.correctPosition(session, x, y, z, playerCollision);
-        // Hack to prevent false positives
-        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
+        final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
+        final Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        if (this.checkIntersection(x, y, z, playerCollision)) {
-            switch (facing) {
-                case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
-                case 2 -> playerCollision.setMiddleX(x + 0.5125); // East
-                case 3 -> playerCollision.setMiddleZ(z + 0.4875); // South
-                case 4 -> playerCollision.setMiddleX(x + 0.4875); // West
+        for (BoundingBox boundingBox : this.boundingBoxes) {
+            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
+                continue;
+            }
+
+            switch (this.facing) {
+                case 1 -> {
+                    double distance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                    if (Math.abs(distance) < maxPushDistance) {
+                        playerCollision.translate(0, 0, distance); // North
+                    }
+                }
+                case 2 -> {
+                    double distance = boundingBox.getMax(Axis.X) - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                    if (Math.abs(distance) < maxPushDistance) {
+                        playerCollision.translate(distance, 0, 0); // East
+                    }
+                }
+                case 3 -> {
+                    double distance = boundingBox.getMax(Axis.Z) - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                    if (Math.abs(distance) < maxPushDistance) {
+                        playerCollision.translate(0, 0, distance); // South
+                    }
+                }
+                case 4 -> {
+                    double distance = boundingBox.getMin(Axis.X) - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                    if (Math.abs(distance) < maxPushDistance) {
+                        playerCollision.translate(distance, 0, 0); // West
+                    }
+                }
             }
         }
-
-        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
     }
 }
