@@ -238,8 +238,7 @@ public class BoundingBox implements Cloneable {
     @SneakyThrows(CloneNotSupportedException.class)
     @Override
     public BoundingBox clone() {
-        super.clone();
-        BoundingBox clone = new BoundingBox(0, 0, 0, 0, 0, 0);
+        BoundingBox clone = (BoundingBox) super.clone();
         clone.middleX = middleX;
         clone.middleY = middleY;
         clone.middleZ = middleZ;
