@@ -26,8 +26,10 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
@@ -54,18 +56,35 @@ public class TrapdoorCollision extends BlockCollision {
     @Override
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         super.correctPosition(session, x, y, z, playerCollision);
-        if (!this.checkIntersection(x, y, z, playerCollision)) {
-            return;
+
+        final Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
+
+        for (BoundingBox boundingBox : this.boundingBoxes) {
+            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
+                continue;
+            }
+
+            // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
+            switch (facing) {
+                case NORTH -> playerCollision.setMiddleZ(z + 0.5125);
+                case EAST -> playerCollision.setMiddleX(x + 0.5125);
+                case SOUTH -> playerCollision.setMiddleZ(z + 0.4875);
+                case WEST -> playerCollision.setMiddleX(x + 0.4875);
+                case UP -> {
+                    double distance = boundingBox.getMax(Axis.Y) - relativePlayerPosition.getY() + playerCollision.getSizeY() / 2;
+                    if (Math.abs(distance) < 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F) {
+                        playerCollision.translate(0, distance, 0);
+                    }
+                }
+                case DOWN -> {
+                    double distance = boundingBox.getMin(Axis.Y) - relativePlayerPosition.getY() - playerCollision.getSizeY() / 2;
+                    if (Math.abs(distance) < 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F) {
+                        playerCollision.translate(0, distance, 0); // Bottom
+                    }
+                }
+            }
         }
 
-        // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        switch (facing) {
-            case NORTH -> playerCollision.setMiddleZ(z + 0.5125);
-            case EAST -> playerCollision.setMiddleX(x + 0.5125);
-            case SOUTH -> playerCollision.setMiddleZ(z + 0.4875);
-            case WEST -> playerCollision.setMiddleX(x + 0.4875);
-            case UP -> {}
-            case DOWN -> playerCollision.setMiddleY(y + 1 - (3.0 / 16.0) - playerCollision.getSizeY() / 2.0 - CollisionManager.COLLISION_TOLERANCE);
-        }
+
     }
 }
