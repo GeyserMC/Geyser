@@ -65,8 +65,6 @@ public class BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + collisionExpansion);
 
-        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
