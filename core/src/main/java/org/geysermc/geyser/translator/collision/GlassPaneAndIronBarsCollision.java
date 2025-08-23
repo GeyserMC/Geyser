@@ -109,7 +109,6 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
                 if (Math.abs(distance) < maxPushDistance) {
                     playerCollision.translate(distance, 0, 0);
                 }
-                System.out.println(distance);
             }
         }
     }
