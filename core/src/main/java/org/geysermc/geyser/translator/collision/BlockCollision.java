@@ -50,12 +50,6 @@ public class BlockCollision {
     }
 
     /**
-     * Overridden in classes like GrassPathCollision when correction code needs to be run before the
-     * main correction
-     */
-    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {}
-
-    /**
      * Silently move player bounding box/position out of block when needed to.
      */
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {

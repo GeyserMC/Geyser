@@ -26,9 +26,12 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
@@ -70,43 +73,44 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
     @Override
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         super.correctPosition(session, x, y, z, playerCollision);
-        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
-        if (this.checkIntersection(x, y, z, playerCollision)) {
-            double newMiddleX = x;
-            double newMiddleZ = z;
+        final double maxPushDistance = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
+        final Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
 
-            switch (facing) {
-                case 1 -> newMiddleZ += 0.8625; // North
-                case 2 -> newMiddleX += 0.1375; // East
-                case 3 -> newMiddleZ += 0.1375; // South
-                case 4 -> newMiddleX += 0.8625; // West
-                case 5 -> { // North, East
-                    newMiddleZ += 0.8625;
-                    newMiddleX += 0.1375;
-                }
-                case 6 -> { // East, South
-                    newMiddleX += 0.1375;
-                    newMiddleZ += 0.1375;
-                }
-                case 7 -> { // South, West
-                    newMiddleZ += 0.1375;
-                    newMiddleX += 0.8625;
-                }
-                case 8 -> { // West, North
-                    newMiddleX += 0.8625;
-                    newMiddleZ += 0.8625;
+        // Check for glass pane/iron bars bug (pane/iron bars is 0.5 blocks thick on Bedrock but 0.5625 on Java when only 1 side is connected).
+        for (BoundingBox boundingBox : this.boundingBoxes) {
+            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
+                continue;
+            }
+
+            if (this.facing == 2 || this.facing == 6 || this.facing == 5) { // East
+                double distance = boundingBox.getMin(Axis.X) - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                if (Math.abs(distance) < maxPushDistance) {
+                    playerCollision.translate(distance, 0, 0); // East
                 }
             }
 
-            playerCollision.setMiddleX(newMiddleX);
-            playerCollision.setMiddleZ(newMiddleZ);
-        }
+            if (this.facing == 1 || this.facing == 5 || this.facing == 8) { // North.
+                double distance = boundingBox.getMax(Axis.Z) - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                if (Math.abs(distance) < maxPushDistance) {
+                    playerCollision.translate(0, 0, distance);
+                }
+            }
 
-        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
+            if (this.facing == 3 || this.facing == 6 || this.facing == 7) { // South
+                double distance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                if (Math.abs(distance) < maxPushDistance) {
+                    playerCollision.translate(0, 0, distance);
+                }
+            }
+
+            if (this.facing == 4 || this.facing == 7 || this.facing == 8) { // West
+                double distance = boundingBox.getMax(Axis.X) - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                if (Math.abs(distance) < maxPushDistance) {
+                    playerCollision.translate(distance, 0, 0);
+                }
+                System.out.println(distance);
+            }
+        }
     }
 }

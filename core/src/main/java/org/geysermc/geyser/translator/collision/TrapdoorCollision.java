@@ -60,12 +60,12 @@ public class TrapdoorCollision extends BlockCollision {
         final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
         final Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x, playerCollision.getMiddleY() - y, playerCollision.getMiddleZ() - z);
 
+        // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
             }
 
-            // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
             switch (facing) {
                 case NORTH -> {
                     double distance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
