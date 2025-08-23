@@ -211,6 +211,11 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
+    public Vector3f position() {
+        return this.position.down(definition.offset());
+    }
+
+    @Override
     protected InteractiveTag testInteraction(Hand hand) {
         if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;
