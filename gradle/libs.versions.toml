@@ -9,10 +9,10 @@ netty = "4.2.3.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta7-20250730.214113-17"
-protocol-common = "3.0.0.Beta7-20250730.214113-17"
-protocol-codec = "3.0.0.Beta7-20250730.214113-17"
-raknet = "1.0.0.CR3-20250218.160705-18"
+protocol-connection = "3.0.0.Beta7-20250812.232642-18"
+protocol-common = "3.0.0.Beta7-20250812.232642-18"
+protocol-codec = "3.0.0.Beta7-20250812.232642-18"
+raknet = "1.0.0.CR3-20250811.214335-20"
 minecraftauth = "4.1.1"
 mcprotocollib = "1.21.7-20250725.134643-4"
 adventure = "4.24.0"
@@ -130,6 +130,7 @@ minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
+velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }

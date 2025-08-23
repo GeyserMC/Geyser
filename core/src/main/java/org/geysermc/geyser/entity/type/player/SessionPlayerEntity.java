@@ -36,12 +36,14 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -115,20 +117,8 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
 
-    /**
-     * The player y rotation but not wrapped between -180.0 and 180.0.
-     */
     @Getter @Setter
     private float javaYaw;
-
-    /**
-     * Determines if our position is currently out-of-sync with the Java server
-     * due to our workaround for the void floor
-     * <p>
-     * Must be reset when dying, switching worlds, or being teleported out of the void
-     */
-    @Getter @Setter
-    private boolean voidPositionDesynched;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -162,29 +152,18 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        if (voidPositionDesynched) {
-            if (!isBelowVoidFloor()) {
-                voidPositionDesynched = false; // No need to fix our offset; we've been moved
-            }
-        }
         super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
-    }
-
-    @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        if (voidPositionDesynched) {
-            if (!isBelowVoidFloor()) {
-                voidPositionDesynched = false; // No need to fix our offset; we've been moved
-            }
-        }
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
     public void setPosition(Vector3f position) {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
+
+            if (session.isNoClip() && position.getY() >= session.getBedrockDimension().minY() - 5) {
+                session.setNoClip(false);
+            }
         }
         this.position = position.add(0, definition.offset(), 0);
     }
@@ -210,6 +189,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
 
         session.sendUpstreamPacket(movePlayerPacket);
+
+        // We're just setting rotation, player shouldn't lose motion, send motion packet to account for that.
+        SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+        entityMotionPacket.setRuntimeEntityId(geyserId);
+        entityMotionPacket.setMotion(motion);
+        session.sendUpstreamPacket(entityMotionPacket);
     }
 
     /**
@@ -221,6 +206,11 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     public void setPositionManual(Vector3f position) {
         this.position = position;
+
+        // Player is "above" the void so they're not supposed to no clip.
+        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+            session.setNoClip(false);
+        }
     }
 
     /**
@@ -364,9 +354,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
-
-        // We're either respawning or switching worlds, either way, we are no longer desynched
-        this.setVoidPositionDesynched(false);
     }
 
     @Override
@@ -431,50 +418,28 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.vehicleJumpStrength = MathUtils.constrain(vehicleJumpStrength, 0, 100);
     }
 
-    private boolean isBelowVoidFloor() {
-        return position.getY() < voidFloorPosition();
-    }
-
-    public int voidFloorPosition() {
-        // The void floor is offset about 40 blocks below the bottom of the world
-        BedrockDimension bedrockDimension = session.getBedrockDimension();
-        return bedrockDimension.minY() - 40;
-    }
-
-    /**
-     * This method handles teleporting the player below or above the Bedrock void floor.
-     * The Java server should never see this desync as we adjust the position that we send to it
-     *
-     * @param up in which direction to teleport - true to resync our position, or false to be
-     *           teleported below the void floor.
-     */
-    public void teleportVoidFloorFix(boolean up) {
-        // Safety to avoid double teleports
-        if ((voidPositionDesynched && !up) || (!voidPositionDesynched && up)) {
-            return;
+    @Override
+    public void setVehicle(Entity entity) {
+        // For boats, we send width = 0.6 and height = 1.6 since there is otherwise a problem with player "clipping" into the boat when standing on it or running into it.
+        // Having a wide bounding box fixed that, however, it is technically incorrect and creates certain problems
+        // when you're actually riding the boat (https://github.com/GeyserMC/Geyser/issues/3106), since the box is way too big
+        // the boat's motion stops right before the block is hit and doesn't let the actual bounding clip collide into the block,
+        // causing the issues. So to fix this, everytime player enter a boat we send the java bounding box and only send the
+        // definition box when player is not riding the boat.
+        if (entity instanceof BoatEntity) {
+            // These bounding box values are based off 1.21.7
+            entity.setBoundingBoxWidth(1.375F);
+            entity.setBoundingBoxHeight(0.5625F);
+            entity.updateBedrockMetadata();
+        } else if (entity == null && this.vehicle instanceof BoatEntity) {
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
+            this.vehicle.updateBedrockMetadata();
         }
 
-        // Work around there being a floor at the bottom of the world and teleport the player below it
-        // Moving from below to above the void floor works fine
-        Vector3f newPosition = this.getPosition();
-        if (up) {
-            newPosition = newPosition.up(4f);
-            voidPositionDesynched = false;
-        } else {
-            newPosition = newPosition.down(4f);
-            voidPositionDesynched = true;
-        }
-
-        this.setPositionManual(newPosition);
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(newPosition);
-        movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-        session.sendUpstreamPacketImmediately(movePlayerPacket);
+        super.setVehicle(entity);
     }
-
+  
     /**
      * Used to calculate player jumping velocity for ground status calculation.
      */
