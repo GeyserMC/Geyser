@@ -84,32 +84,32 @@ public class BlockCollision {
 
             double translateDistance = boundingBox.getMin(Axis.Z) - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
             if (Math.abs(translateDistance) < zPushAwayTolerance) {
-                playerCollision.translate(0, 0, translateDistance);
+                playerCollision.translate(0, 0, translateDistance); // North
             }
 
             translateDistance = boundingBox.getMax(Axis.Z) - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
             if (Math.abs(translateDistance) < zPushAwayTolerance) {
-                playerCollision.translate(0, 0, translateDistance);
+                playerCollision.translate(0, 0, translateDistance); // South
             }
 
             translateDistance = boundingBox.getMax(Axis.X) - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
             if (Math.abs(translateDistance) < xPushAwayTolerance) {
-                playerCollision.translate(translateDistance, 0, 0);
+                playerCollision.translate(translateDistance, 0, 0); // East
             }
 
             translateDistance = boundingBox.getMin(Axis.X) - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
             if (Math.abs(translateDistance) < xPushAwayTolerance) {
-                playerCollision.translate(translateDistance, 0, 0);
+                playerCollision.translate(translateDistance, 0, 0); // West
             }
 
             translateDistance = boundingBox.getMin(Axis.Y) - relativePlayerPosition.getY() - playerCollision.getSizeY() / 2;
             if (Math.abs(translateDistance) < pushAwayTolerance) {
-                playerCollision.translate(0, translateDistance, 0);
+                playerCollision.translate(0, translateDistance, 0); // Bottom
             }
 
             translateDistance = boundingBox.getMax(Axis.Y) - relativePlayerPosition.getY() + playerCollision.getSizeY() / 2;
             if (Math.abs(translateDistance) < pushAwayTolerance) {
-                playerCollision.translate(0, translateDistance, 0);
+                playerCollision.translate(0, translateDistance, 0); // Upper
             }
         }
 
