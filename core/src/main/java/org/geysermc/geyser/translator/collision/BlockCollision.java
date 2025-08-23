@@ -72,18 +72,6 @@ public class BlockCollision {
                 continue;
             }
 
-//            double boxMinY = (boundingBox.getMiddleY() + y) - (boundingBox.getSizeY() / 2);
-//            double boxMaxY = (boundingBox.getMiddleY() + y) + (boundingBox.getSizeY() / 2);
-//            if (boundingBox.checkIntersection(x, y, z, playerCollision) && playerMinY >= boxMinY) {
-//                // Max steppable distance in Minecraft as far as we know is 0.5625 blocks (for beds)
-//                if (boxMaxY - playerMinY <= 0.5625) {
-//                    playerCollision.translate(0, boxMaxY - playerMinY, 0);
-//                    System.out.println("Move up by: " + (boxMaxY - playerMinY));
-//                    // Update player Y for next collision box
-//                    playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-//                }
-//            }
-
             // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
             // So we check if the player is intersecting the block, if they do then push them out. This NoCheatPlus's Passable check and other anticheat checks.
             // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
