@@ -68,8 +68,8 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, x, y, z, playerCollision);
+    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        super.correctPosition(session, x, y, z, playerCollision);
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
@@ -108,6 +108,5 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
         playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return result;
     }
 }

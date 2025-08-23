@@ -52,8 +52,8 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, x, y, z, playerCollision);
+    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        super.correctPosition(session, x, y, z, playerCollision);
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
@@ -78,6 +78,5 @@ public class TrapdoorCollision extends BlockCollision {
                     break;
             }
         }
-        return result;
     }
 }
