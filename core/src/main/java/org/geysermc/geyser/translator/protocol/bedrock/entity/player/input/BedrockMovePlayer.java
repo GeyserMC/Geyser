@@ -148,9 +148,6 @@ final class BedrockMovePlayer {
             session.setNoClip(!possibleOnGround);
         }
 
-        entity.setLastTickEndVelocity(packet.getDelta());
-        entity.setMotion(packet.getDelta());
-
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
         // This isn't sent when a player is riding a vehicle (as of 1.21.62)
@@ -216,6 +213,9 @@ final class BedrockMovePlayer {
         } else if (horizontalCollision != session.getInputCache().lastHorizontalCollision() || isOnGround != entity.isOnGround()) {
             session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(isOnGround, horizontalCollision));
         }
+
+        entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         session.getInputCache().setLastHorizontalCollision(horizontalCollision);
         entity.setOnGround(isOnGround);
