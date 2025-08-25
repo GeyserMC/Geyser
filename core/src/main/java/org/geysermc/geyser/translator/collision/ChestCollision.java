@@ -72,7 +72,7 @@ public class ChestCollision extends BlockCollision {
         // Check for chest bug (chest are 0.875 blocks thick on Java but 0.95 blocks thick on Bedrock)
         // We grab the player velocity from last tick then apply collision on it, if the player can still fall then we correct
         // their position to fall down. If not then just use the player current position. Also do the same when player is jumping, if player
-        // haven't collided yet, then correct them. Resolve #3277.
+        // haven't collided yet, then correct them. Resolve #3277 and #4955
         double yVelocity = Math.max(beforeYVelocity, this.computeCollisionOffset(x, y, z, previous, Axis.Y, beforeYVelocity));
         // Player velocity is close enough, no need to correct, avoid moving player position silently if possible. Also don't move the player upwards.
         if (Math.abs(beforeYVelocity - yVelocity) <= CollisionManager.COLLISION_TOLERANCE || yVelocity > CollisionManager.COLLISION_TOLERANCE) {
