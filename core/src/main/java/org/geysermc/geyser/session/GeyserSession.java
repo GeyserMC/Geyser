@@ -95,6 +95,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
@@ -442,6 +443,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Pose pose = Pose.STANDING;
 
+    /**
+     * This is used to keep track of player sprinting and should only change by START_SPRINT and STOP_SPRINT sent by the player, not from flag update.
+     */
     @Setter
     private boolean sprinting;
 
@@ -631,6 +635,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * If the current player is flying
      */
     private boolean flying = false;
+
+    /**
+     * If the current player should be able to noclip through blocks, this is used for void floor workaround and not spectator.
+     */
+    private boolean noClip = false;
 
     @Setter
     private boolean instabuild = false;
@@ -1290,12 +1299,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
-
-            if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
-                // Could move this to the PlayerAuthInput translator, in the event the player lags
-                // but this will work once we implement matching Java custom tick cycles
-                sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
-            }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1380,6 +1383,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         playerEntity.updateBedrockMetadata();
     }
 
+    public void setNoClip(boolean noClip) {
+        if (this.noClip == noClip) {
+            return;
+        }
+
+        this.noClip = noClip;
+        this.sendAdventureSettings();
+    }
+
     public void setFlying(boolean flying) {
         this.flying = flying;
 
@@ -1416,7 +1428,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
-        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        float yaw = playerEntity.getJavaYaw(), pitch = playerEntity.getPitch();
         if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
             yaw = playerEntity.getBedrockInteractRotation().getY();
             pitch = playerEntity.getBedrockInteractRotation().getX();
@@ -1835,7 +1847,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return itemNetId.getAndIncrement();
     }
 
-    public void confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3f position) {
         if (unconfirmedTeleport == null) {
             return;
         }
@@ -1850,8 +1862,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (unconfirmedTeleport.shouldResend()) {
             unconfirmedTeleport.resetUnconfirmedFor();
             geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
-            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
+            getPlayerEntity().moveAbsolute(unconfirmedTeleport.getPosition(),
                 unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
+
+            if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
+                SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+                entityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
+                this.sendUpstreamPacket(entityMotionPacket);
+            }
         }
     }
 
@@ -2033,6 +2052,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (gameMode == GameMode.CREATIVE) {
             // Needed so the client doesn't attempt to take away items
             abilities.add(Ability.INSTABUILD);
+        }
+
+        if (noClip && !spectator) {
+            abilities.add(Ability.NO_CLIP);
         }
 
         if (commandPermission == CommandPermission.GAME_DIRECTORS) {

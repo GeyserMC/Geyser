@@ -290,17 +290,6 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert a Bedrock message string back to a format Java can understand
-     *
-     * @param message Message to convert
-     * @return The formatted JSON string
-     */
-    public static String convertToJavaMessage(String message) {
-        Component component = BEDROCK_SERIALIZER.deserialize(message);
-        return GSON_SERIALIZER.serialize(component);
-    }
-
-    /**
      * Convert a Java message to plain text
      *
      * @param message Message to convert
