@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,7 +46,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -266,37 +266,37 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setHelmet(ItemStack helmet) {
+    public void setHelmet(GeyserItemStack helmet) {
         super.setHelmet(helmet);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setChestplate(ItemStack chestplate) {
+    public void setChestplate(GeyserItemStack chestplate) {
         super.setChestplate(chestplate);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setLeggings(ItemStack leggings) {
+    public void setLeggings(GeyserItemStack leggings) {
         super.setLeggings(leggings);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setBoots(ItemStack boots) {
+    public void setBoots(GeyserItemStack boots) {
         super.setBoots(boots);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setHand(ItemStack hand) {
+    public void setHand(GeyserItemStack hand) {
         super.setHand(hand);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setOffhand(ItemStack offHand) {
+    public void setOffhand(GeyserItemStack offHand) {
         super.setOffhand(offHand);
         updateSecondEntityStatus(true);
     }

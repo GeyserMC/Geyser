@@ -259,8 +259,6 @@ class CodecProcessor {
             .updateSerializer(CreatePhotoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(NpcRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PhotoInfoRequestPacket.class, ILLEGAL_SERIALIZER)
-            // Unused serverbound packets for featured servers, which is for some reason still occasionally sent
-            .updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER)
             // Illegal unused serverbound packets that are deprecated
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
@@ -276,14 +274,11 @@ class CodecProcessor {
             .updateSerializer(MapInfoRequestPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SettingsCommandPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER)
             // Illegal when serverbound due to Geyser specific setup
             .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748)
             .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748)
             .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
             .updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER)
-            .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER)
             // Ignored only when serverbound
             .updateSerializer(BossEventPacket.class, bossEventSerializer)
             .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
@@ -302,6 +297,18 @@ class CodecProcessor {
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
+
+            // These packets have been removed post 1.21.80.
+            if (codec.getProtocolVersion() < 800) {
+                codecBuilder
+                    .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
+                    .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
+            }
+
+            if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
+                codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
+                codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
+            }
 
             return codecBuilder.build();
     }

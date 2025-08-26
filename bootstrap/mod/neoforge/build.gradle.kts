@@ -26,13 +26,11 @@ dependencies {
     neoForge(libs.neoforge.minecraft)
 
     api(project(":mod", configuration = "namedElements"))
-    shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
-        isTransitive = false
-    }
-    shadow(projects.core) { isTransitive = false }
+    shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
+    shadowBundle(projects.core)
 
     // Let's shade in our own api
-    shadow(projects.api) { isTransitive = false }
+    shadowBundle(projects.api)
 
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)

@@ -43,6 +43,15 @@ public class BoundingBox implements Cloneable {
     private double sizeY;
     private double sizeZ;
 
+    public BoundingBox(Vector3d position, double sizeX, double sizeY, double sizeZ) {
+        this.middleX = position.getX();
+        this.middleY = position.getY();
+        this.middleZ = position.getZ();
+        this.sizeX = sizeX;
+        this.sizeY = sizeY;
+        this.sizeZ = sizeZ;
+    }
+
     public void translate(double x, double y, double z) {
         middleX += x;
         middleY += y;
@@ -85,6 +94,10 @@ public class BoundingBox implements Cloneable {
 
     public boolean checkIntersection(Vector3d offset, BoundingBox otherBox) {
         return checkIntersection(offset.getX(), offset.getY(), offset.getZ(), otherBox);
+    }
+
+    public boolean checkIntersection(BoundingBox otherBox) {
+        return checkIntersection(0, 0, 0, otherBox);
     }
 
     public Vector3d getMin() {

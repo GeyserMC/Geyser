@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.network.translators.chat;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MessageTranslatorTest {
@@ -69,6 +67,12 @@ public class MessageTranslatorTest {
             "§e All participants will receive a reward\n" +
             "§e and the top 3 will get extra bonus prizes!");
 
+        // Escape curly braces in translatable strings (make MessageFormat ignore them)
+        messages.put("{\"translate\":\"tt{tt%stt}tt\",\"with\":[\"AA\"]}", "tt{ttAAtt}tt");
+        messages.put("{\"translate\":\"tt{'tt%stt'{tt\",\"with\":[\"AA\"]}", "tt{'ttAAtt'{tt");
+        messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
+        messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
+
         MessageTranslator.init();
     }
 
@@ -98,10 +102,5 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");
         Assertions.assertEquals("", MessageTranslator.convertToPlainTextLenient("", "en_US"), "Empty message is not handled properly");
         Assertions.assertEquals("     ", MessageTranslator.convertToPlainTextLenient("     ", "en_US"), "Whitespace is not preserved");
-    }
-
-    @Test
-    public void testNullTextPacket() {
-        DefaultComponentSerializer.get().deserialize("null");
     }
 }

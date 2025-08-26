@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.pack;
 
+import lombok.With;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -32,6 +33,7 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
 import java.util.Objects;
 
+@With
 public record GeyserResourcePack(
     @NonNull PackCodec codec,
     @NonNull ResourcePackManifest manifest,
@@ -41,7 +43,7 @@ public record GeyserResourcePack(
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
-    public static final int CHUNK_SIZE = 102400;
+    public static final int CHUNK_SIZE = 1024 * 256;
 
     public static class Builder implements ResourcePack.Builder {
 

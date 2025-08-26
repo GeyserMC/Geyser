@@ -45,12 +45,14 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
+import org.geysermc.geyser.command.defaults.CustomOptionsCommand;
 import org.geysermc.geyser.command.defaults.DumpCommand;
 import org.geysermc.geyser.command.defaults.ExtensionsCommand;
 import org.geysermc.geyser.command.defaults.HelpCommand;
 import org.geysermc.geyser.command.defaults.ListCommand;
 import org.geysermc.geyser.command.defaults.OffhandCommand;
 import org.geysermc.geyser.command.defaults.PingCommand;
+import org.geysermc.geyser.command.defaults.QuickActionsCommand;
 import org.geysermc.geyser.command.defaults.ReloadCommand;
 import org.geysermc.geyser.command.defaults.SettingsCommand;
 import org.geysermc.geyser.command.defaults.StatisticsCommand;
@@ -96,6 +98,9 @@ import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
 public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
+
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().platformType() == PlatformType.STANDALONE ||
+        GeyserImpl.getInstance().platformType() == PlatformType.VIAPROXY;
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -163,6 +168,9 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
         registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
         registerBuiltInCommand(new PingCommand("ping", "geyser.commands.ping.desc", "geyser.command.ping"));
+        registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
+        registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
+
         if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
@@ -274,12 +282,15 @@ public class CommandRegistry implements EventRegistrar {
 
         cloud.command(builder.handler(context -> {
             GeyserCommandSource source = context.sender();
-            if (!source.hasPermission(help.permission())) {
-                // delegate if possible - otherwise we have nothing else to offer the user.
+            if (source.hasPermission(help.permission())) {
+                // Delegate to help if possible
+                help.execute(source);
+            } else if (STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
+                // If we are on an appropriate platform, forward the command to the backend
+                session.sendCommandPacket(context.rawInput().input());
+            } else {
                 source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
-                return;
             }
-            help.execute(source);
         }));
     }
 

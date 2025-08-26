@@ -306,11 +306,15 @@ public class Block {
 
         private List<BlockState> build(Block block) {
             if (states.isEmpty()) {
+                BlockState state;
                 if (javaId == null) {
-                    javaId = BlockRegistries.BLOCK_STATES.get().size();
+                    state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
+                    BlockRegistries.BLOCK_STATES.get().add(state);
+                } else {
+                    state = new BlockState(block, javaId);
+                    BlockRegistries.BLOCK_STATES.registerWithAnyIndex(javaId, state, Blocks.AIR.defaultBlockState());
                 }
-                BlockState state = new BlockState(block, javaId);
-                BlockRegistries.BLOCK_STATES.get().add(state);
+
                 return List.of(state);
             } else if (states.size() == 1) {
                 // We can optimize because we don't need to worry about combinations

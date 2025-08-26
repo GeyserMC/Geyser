@@ -28,6 +28,11 @@ package org.geysermc.geyser.command.defaults;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -41,11 +46,6 @@ import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.suggestion.SuggestionProvider;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.incendo.cloud.parser.standard.StringArrayParser.stringArrayParser;
 
@@ -141,14 +141,17 @@ public class DumpCommand extends GeyserCommand {
         } else {
             source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.uploading", source.locale()));
 
-            String response;
+            String response = null;
             JsonObject responseNode;
             try {
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
                 responseNode = JsonUtils.parseJson(response);
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", source.locale()));
                 geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
+                if (e instanceof JsonParseException && response != null) {
+                    geyser.getLogger().error("Failed to parse dump response! got: " + response);
+                }
                 return;
             }
 

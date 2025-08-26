@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,44 +61,42 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
         // remove is handled in #remove()
         if (updateType == UpdateType.ADD) {
-            for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
-                playerRegistered(player);
-            }
+            session.getEntityCache().forEachPlayerEntity(this::playerRegistered);
             return;
         }
         if (updateType == UpdateType.UPDATE) {
-            for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
+            session.getEntityCache().forEachPlayerEntity(player -> {
                 setBelowNameText(player, scoreFor(player.getUsername()));
-            }
+            });
             updateType = UpdateType.NOTHING;
             return;
         }
 
-        for (var score : displayScores.values()) {
-            // we don't have to worry about a score not existing, because that's handled by both
-            // this method when an objective is added and addScore/playerRegistered.
-            // we only have to update them, if they have changed
-            // (or delete them, if the score no longer exists)
-            if (!score.shouldUpdate()) {
-                continue;
-            }
+        synchronized (displayScores) {
+            for (var score : displayScores.values()) {
+                // we don't have to worry about a score not existing, because that's handled by both
+                // this method when an objective is added and addScore/playerRegistered.
+                // we only have to update them, if they have changed
+                // (or delete them, if the score no longer exists)
+                if (!score.shouldUpdate()) {
+                    continue;
+                }
 
-            if (score.referenceRemoved()) {
-                clearBelowNameText(score.player());
-                continue;
-            }
+                if (score.referenceRemoved()) {
+                    clearBelowNameText(score.player());
+                    continue;
+                }
 
-            score.markUpdated();
-            setBelowNameText(score.player(), score.reference());
+                score.markUpdated();
+                setBelowNameText(score.player(), score.reference());
+            }
         }
     }
 
     @Override
     public void remove() {
         updateType = UpdateType.REMOVE;
-        for (PlayerEntity player : session.getEntityCache().getAllPlayerEntities()) {
-            clearBelowNameText(player);
-        }
+        session.getEntityCache().forEachPlayerEntity(this::clearBelowNameText);
     }
 
     @Override
@@ -119,7 +117,9 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
     @Override
     public void playerRemoved(PlayerEntity player) {
-        displayScores.remove(player.getGeyserId());
+        synchronized (displayScores) {
+            displayScores.remove(player.getGeyserId());
+        }
     }
 
     private void addDisplayScore(ScoreReference reference) {
@@ -131,7 +131,9 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
     private BelownameDisplayScore addDisplayScore(PlayerEntity player, ScoreReference reference) {
         var score = new BelownameDisplayScore(this, objective.getScoreboard().nextId(), reference, player);
-        displayScores.put(player.getGeyserId(), score);
+        synchronized (displayScores) {
+            displayScores.put(player.getGeyserId(), score);
+        }
         return score;
     }
 

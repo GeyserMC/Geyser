@@ -25,9 +25,12 @@
 
 package org.geysermc.geyser.translator.text;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -39,6 +42,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -48,15 +52,11 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -74,16 +74,15 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
+    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {
-        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
-        GsonComponentSerializer source = DefaultComponentSerializer.get()
+        GSON_SERIALIZER = DefaultComponentSerializer.get()
                 .toBuilder()
                 // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
                 // fixes issues where legacy hover events throw deserialization errors
                 .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
                 .build();
-        GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
@@ -106,10 +105,9 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
 
-        // Can be removed once Adventure 1.15.0 is released (see https://github.com/KyoriPowered/adventure/pull/954)
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
-                .mapper(ScoreComponent.class, component -> "")
-                .build();
+            .nestingLimit(30)
+            .build();
 
         BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
                 .formats(formats)
@@ -197,7 +195,7 @@ public class MessageTranslator {
             String finalLegacyString = finalLegacy.toString();
 
             // Remove duplicate resets and trailing resets
-            finalLegacyString = finalLegacyString.replaceAll("(" + RESET + "){2,}", RESET);
+            finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
             if (finalLegacyString.endsWith(RESET)) {
                 finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
             }
@@ -292,17 +290,6 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert a Bedrock message string back to a format Java can understand
-     *
-     * @param message Message to convert
-     * @return The formatted JSON string
-     */
-    public static String convertToJavaMessage(String message) {
-        Component component = BEDROCK_SERIALIZER.deserialize(message);
-        return GSON_SERIALIZER.serialize(component);
-    }
-
-    /**
      * Convert a Java message to plain text
      *
      * @param message Message to convert
@@ -364,11 +351,25 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender, @Nullable UUID senderUuid) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
+
+        if (senderUuid == null) {
+            textPacket.setXuid(session.getAuthData().xuid());
+        } else {
+            String xuid = "";
+            GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(senderUuid);
+
+            // Prefer looking up xuid using the session to catch linked players
+            if (playerSession != null) {
+                xuid = playerSession.getAuthData().xuid();
+            } else if (senderUuid.version() == 0) {
+                xuid = Long.toString(senderUuid.getLeastSignificantBits());
+            }
+            textPacket.setXuid(xuid);
+        }
         textPacket.setType(TextPacket.Type.CHAT);
 
         textPacket.setNeedsTranslation(false);
@@ -472,6 +473,13 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
+    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return null;
+        }
+        return convertMessage(session, componentFromNbtTag(nbtTag));
+    }
+
     public static Component componentFromNbtTag(Object nbtTag) {
         return componentFromNbtTag(nbtTag, Style.empty());
     }
@@ -498,7 +506,7 @@ public class MessageTranslator {
             } else {
                 String translateKey = map.getString("translate", null);
                 if (translateKey != null) {
-                    String fallback = map.getString("fallback", "");
+                    String fallback = map.getString("fallback", null);
                     List<Component> args = new ArrayList<>();
 
                     Object with = map.get("with");

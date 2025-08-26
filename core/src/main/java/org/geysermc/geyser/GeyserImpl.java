@@ -44,7 +44,7 @@ import org.bstats.charts.SingleLineChart;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -56,7 +56,6 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
@@ -116,7 +115,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -169,7 +167,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private GeyserServer geyserServer;
     private final GeyserBootstrap bootstrap;
 
-    private final EventBus<EventRegistrar> eventBus;
+    private final GeyserEventBus eventBus;
     private final GeyserExtensionManager extensionManager;
 
     private MetricsBase metrics;
@@ -184,7 +182,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     /**
      * Determines if we're currently reloading. Replaces per-bootstrap reload checks
      */
-    private volatile boolean isReloading;
+    @Setter
+    private boolean isReloading;
 
     /**
      * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
@@ -214,6 +213,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     public void initialize() {
+        // Setup encryption early so we don't start if we can't auth
+        EncryptionUtils.getMojangPublicKey();
+
         long startupTime = System.currentTimeMillis();
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
@@ -523,6 +525,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SimplePie("platform", platformType()::platformName));
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
+            metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.java().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.bedrock().useHaproxyProtocol())));
             metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {
@@ -788,7 +792,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     @NonNull
-    public EventBus<EventRegistrar> eventBus() {
+    public GeyserEventBus eventBus() {
         return this.eventBus;
     }
 
@@ -828,11 +832,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
-        ArrayList<MinecraftVersion> versions = new ArrayList<>();
-        for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
-            versions.add(new MinecraftVersionImpl(codec.getMinecraftVersion(), codec.getProtocolVersion()));
-        }
-        return Collections.unmodifiableList(versions);
+        return Collections.unmodifiableList(GameProtocol.SUPPORTED_BEDROCK_VERSIONS);
     }
 
     @Override

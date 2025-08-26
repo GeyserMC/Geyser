@@ -45,7 +45,11 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.type.living.MobEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -171,7 +175,7 @@ public class Entity implements GeyserEntity {
         dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
-        setDimensions(Pose.STANDING);
+        setDimensionsFromPose(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -401,12 +405,10 @@ public class Entity implements GeyserEntity {
     public void setFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
-        setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
-        setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-
+        setSneaking((xd & 0x02) == 0x02);
+        setSprinting((xd & 0x08) == 0x08);
         // Swimming is ignored here and instead we rely on the pose
-        setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
-
+        setGliding((xd & 0x80) == 0x80);
         setInvisible((xd & 0x20) == 0x20);
     }
 
@@ -417,6 +419,21 @@ public class Entity implements GeyserEntity {
      */
     protected void setInvisible(boolean value) {
         setFlag(EntityFlag.INVISIBLE, value);
+    }
+
+    /**
+     * Set a boolean - whether the entity is gliding
+     */
+    protected void setGliding(boolean value) {
+        setFlag(EntityFlag.GLIDING, value);
+    }
+
+    protected void setSprinting(boolean value) {
+        setFlag(EntityFlag.SPRINTING, value);
+    }
+
+    protected void setSneaking(boolean value) {
+        setFlag(EntityFlag.SNEAKING, value);
     }
 
     /**
@@ -529,15 +546,16 @@ public class Entity implements GeyserEntity {
      */
     public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+        // FALL_FLYING is instead set via setFlags
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
-        setDimensions(pose);
+        setDimensionsFromPose(pose);
     }
 
     /**
      * Set the height and width of the entity's bounding box
      */
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
         setBoundingBoxHeight(definition.height());
         setBoundingBoxWidth(definition.width());
@@ -603,7 +621,7 @@ public class Entity implements GeyserEntity {
             Entity passenger = passengers.get(i);
             if (passenger != null) {
                 boolean rider = i == 0;
-                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
                 passenger.updateBedrockMetadata();
             }
         }
@@ -615,7 +633,7 @@ public class Entity implements GeyserEntity {
     protected void updateMountOffset() {
         if (vehicle != null) {
             boolean rider = vehicle.getPassengers().get(0) == this;
-            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
     }
@@ -668,19 +686,46 @@ public class Entity implements GeyserEntity {
      * to ensure packet parity as well as functionality parity (such as sound effect responses).
      */
     public InteractionResult interact(Hand hand) {
-        if (isAlive() && this instanceof Leashable leashable) {
+        Item itemInHand = session.getPlayerInventory().getItemInHand(hand).asItem();
+        if (itemInHand == Items.SHEARS) {
+            if (hasLeashesToDrop()) {
+                return InteractionResult.SUCCESS;
+            }
+
+            if (this instanceof MobEntity mob && !session.isSneaking() && mob.canShearEquipment()) {
+                return InteractionResult.SUCCESS;
+            }
+        } else if (isAlive() && this instanceof Leashable leashable) {
             if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD
+                && !(session.getEntityCache().getEntityByGeyserId(leashable.leashHolderBedrockId()) instanceof PlayerEntity)) {
                 // We shall leash
                 return InteractionResult.SUCCESS;
             }
         }
 
         return InteractionResult.PASS;
+    }
+
+    public boolean hasLeashesToDrop() {
+        BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
+        List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getGeyserId())
+            .filter(entity -> {
+                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                return searchBB.checkIntersection(leashedBB);
+            }).map(Leashable.class::cast).toList();
+
+        boolean found = !leashedInRange.isEmpty();
+        if (this instanceof Leashable leashable && leashable.isLeashed()) {
+            found = true;
+        }
+
+        return found;
     }
 
     /**

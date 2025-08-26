@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
@@ -45,15 +46,18 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 public class WebUtils {
 
@@ -63,9 +67,10 @@ public class WebUtils {
      * Makes a web request to the given URL and returns the body as a string
      *
      * @param reqURL URL to fetch
-     * @return Body contents or error message if the request fails
+     * @return body content or
+     * @throws IOException / a wrapped UnknownHostException for nicer errors.
      */
-    public static String getBody(String reqURL) {
+    public static String getBody(String reqURL) throws IOException {
         try {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -75,8 +80,8 @@ public class WebUtils {
             con.setReadTimeout(10000);
 
             return connectionToString(con);
-        } catch (Exception e) {
-            return e.getMessage();
+        } catch (UnknownHostException e) {
+            throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
         }
     }
 
@@ -122,7 +127,7 @@ public class WebUtils {
      * @return Path to the downloaded pack file, or null if it was unable to be loaded
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static @Nullable Path downloadRemotePack(String url, boolean force) {
+    public static @NonNull Path downloadRemotePack(String url, boolean force) throws IOException {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -148,6 +153,9 @@ public class WebUtils {
                 throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
                     "Bedrock Edition only supports the application/zip content type.", url, type));
             }
+
+            // Ensure remote pack cache dir exists
+            Files.createDirectories(REMOTE_PACK_CACHE);
 
             Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
             Path downloadLocation;
@@ -192,6 +200,27 @@ public class WebUtils {
             }
 
             try {
+                boolean shouldDeleteEnclosing = false;
+                var originalZip = downloadLocation;
+                try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
+                    // This can (or should???) contain a zip
+                    if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
+                        // Unzip the pack, as that's what we're after
+                        downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
+                        Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+                        shouldDeleteEnclosing = true;
+                    }
+                } finally {
+                    if (shouldDeleteEnclosing) {
+                        // We don't need the original zip anymore
+                        Files.delete(originalZip);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Encountered exception while reading downloaded resource pack at url: %s".formatted(url), e);
+            }
+
+            try {
                 Files.write(
                         packMetadata,
                         Arrays.asList(
@@ -199,26 +228,25 @@ public class WebUtils {
                                 con.getHeaderField("ETag"),
                                 String.valueOf(con.getLastModified()),
                                 downloadLocation.getFileName().toString()
-                        ));
+                        ),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
                 packMetadata.toFile().setLastModified(System.currentTimeMillis());
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Failed to write cached pack metadata: " + e.getMessage());
                 Files.delete(packMetadata);
                 Files.delete(downloadLocation);
-                return null;
+                throw new IllegalStateException("Failed to write cached pack metadata: " + e.getMessage());
             }
 
             downloadLocation.toFile().setLastModified(System.currentTimeMillis());
+            logger.debug("Successfully downloaded remote pack! URL: %s (to: %s )".formatted(url, downloadLocation));
             return downloadLocation;
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s! ".formatted(url));
+            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s".formatted(url));
         } catch (SocketTimeoutException | ConnectException e) {
-            logger.error("Unable to download pack from url %s due to network error! ( %s )".formatted(url, e.getMessage()));
             logger.debug(e);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to download and save remote resource pack from: %s ( %s )!".formatted(url, e.getMessage()));
+            throw new IllegalArgumentException("Unable to download pack from url %s due to network error ( %s )".formatted(url, e.toString()));
         }
-        return null;
     }
 
 

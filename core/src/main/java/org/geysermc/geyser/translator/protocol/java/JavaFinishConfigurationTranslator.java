@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,14 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRec
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,12 +57,11 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
     @Override
     public void translate(GeyserSession session, ClientboundFinishConfigurationPacket packet) {
         // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
-        PlayerListPacket playerListPacket = new PlayerListPacket();
-        playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-        for (PlayerEntity otherEntity : session.getEntityCache().getAllPlayerEntities()) {
-            playerListPacket.getEntries().add(new PlayerListPacket.Entry(otherEntity.getTabListUuid()));
-        }
-        session.sendUpstreamPacket(playerListPacket);
+        List<PlayerListPacket.Entry> entries = new ArrayList<>();
+        session.getEntityCache().forEachPlayerEntity(otherPlayer -> {
+            entries.add(new PlayerListPacket.Entry(otherPlayer.getTabListUuid()));
+        });
+        PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
         session.getEntityCache().removeAllPlayerEntities();
 
         // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
