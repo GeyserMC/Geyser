@@ -314,7 +314,7 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
-        String unusableSpaceBlock = GeyserImpl.getInstance().config().advanced().unusableSpaceBlock();
+        String unusableSpaceBlock = GeyserImpl.getInstance().config().unusableSpaceBlock();
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {

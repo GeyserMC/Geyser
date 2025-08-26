@@ -123,7 +123,7 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", geyser.config().advanced().listenCount()) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", geyser.config().listenCount()) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
@@ -220,7 +220,7 @@ public final class GeyserServer {
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().mtu());
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
@@ -235,7 +235,7 @@ public final class GeyserServer {
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().mtu())
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().mtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)

@@ -191,7 +191,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                         }
                         initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.config().advanced().disableCompression()) {
+                        if (bootstrap.config().disableCompression()) {
                             ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
                                     new GeyserBungeeCompressionDisabler());
                         }

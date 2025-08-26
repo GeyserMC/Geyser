@@ -36,7 +36,7 @@ public final class ProvidedMetricsPlatform implements MetricsPlatform {
 
     @Override
     public String serverUuid() {
-        return GeyserImpl.getInstance().config().advanced().metricsUuid().toString();
+        return GeyserImpl.getInstance().config().metricsUuid().toString();
     }
 
     @Override

@@ -293,7 +293,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public Path getFloodgateKeyPath() {
-        return Path.of(geyserConfig.advanced().floodgateKeyFile());
+        return Path.of(geyserConfig.floodgateKeyFile());
     }
 
     /**

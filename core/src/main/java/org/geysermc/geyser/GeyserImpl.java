@@ -316,7 +316,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"java\" section to \"false\".");
         }
 
-        if (config.advanced().disableXboxAuth()) {
+        if (config.disableXboxAuth()) {
             logger.error("XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
             logger.error("While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
             logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config-advanced.yml file.");
@@ -430,7 +430,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
             }
-        } else if (!config.advanced().useDirectConnection()) {
+        } else if (!config.useDirectConnection()) {
             logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
 
@@ -448,7 +448,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         BedrockDimension.changeBedrockNetherId(config.netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
 
-        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", config.advanced().bedrockNetworkThreadCount());
+        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", config.bedrockNetworkThreadCount());
         if (bedrockThreadCount == -1) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));

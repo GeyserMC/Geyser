@@ -51,9 +51,8 @@ public class GeyserMockContext {
 
         var geyserImpl = context.mock(GeyserImpl.class);
         var config = context.mock(GeyserConfig.class);
-        when(config.advanced()).thenReturn(context.mock(AdvancedConfig.class));
 
-        when(config.advanced().scoreboardPacketThreshold()).thenReturn(1_000);
+        when(config.scoreboardPacketThreshold()).thenReturn(1_000);
 
         when(geyserImpl.config()).thenReturn(config);
 

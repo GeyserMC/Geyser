@@ -113,7 +113,7 @@ public class DumpInfo {
             this.config = toGson(configNode);
 
             ConfigurationNode advancedConfigNode = CommentedConfigurationNode.root(options);
-            advancedConfigNode.set(geyser.config().advanced());
+            advancedConfigNode.set(geyser.config());
             this.advancedConfig = toGson(advancedConfigNode);
         } catch (SerializationException e) {
             e.printStackTrace();

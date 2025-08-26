@@ -26,27 +26,22 @@
 package org.geysermc.geyser.configuration;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.common.returnsreceiver.qual.This;
-import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.spongepowered.configurate.CommentedConfigurationNode;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.NodePath;
-import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
-import org.spongepowered.configurate.objectmapping.meta.Processor;
-import org.spongepowered.configurate.transformation.ConfigurationTransformation;
-import org.spongepowered.configurate.yaml.NodeStyle;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
+import org.spongepowered.configurate.objectmapping.meta.Processor;
+import org.spongepowered.configurate.transformation.ConfigurationTransformation;
+import org.spongepowered.configurate.yaml.NodeStyle;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
@@ -66,15 +61,6 @@ public final class ConfigLoader {
             NOTICE: See https://geysermc.org/wiki/geyser/setup/ for the setup guide. Many video tutorials are outdated.
             In most cases, especially with server hosting providers, further hosting-specific configuration is required.
             --------------------------------""";
-
-    private static final String ADVANCED_HEADER = """
-            --------------------------------
-            Geyser ADVANCED Configuration File
-            
-            In most cases, you do *not* need to mess with this file to get Geyser running.
-            Tread with caution.
-            --------------------------------
-            """;
 
     /**
      * Only nullable for testing.
@@ -138,7 +124,7 @@ public final class ConfigLoader {
     }
 
     private <T extends GeyserConfig> T load0(Class<T> configClass) throws IOException {
-        var loader = createLoader(configFile, HEADER);
+        var loader = createLoader(configFile);
 
         CommentedConfigurationNode node = loader.load();
         boolean originallyEmpty = !configFile.exists() || node.isNull();
@@ -216,28 +202,16 @@ public final class ConfigLoader {
         CommentedConfigurationNode newRoot = CommentedConfigurationNode.root(loader.defaultOptions());
         newRoot.set(config);
 
-        // Create the path in a way that Standalone changing the config name will be fine.
-        int extensionIndex = configFile.getName().lastIndexOf(".");
-        File advancedConfigPath = new File(configFile.getParent(), configFile.getName().substring(0, extensionIndex) + "-advanced" + configFile.getName().substring(extensionIndex));
-        AdvancedConfig advancedConfig = null;
-
         if (originallyEmpty || currentVersion != newVersion) {
-
             if (!originallyEmpty && currentVersion > 4) {
                 // Only copy comments over if the file already existed, and we are going to replace it
 
                 // Second case: Version 4 is pre-configurate where there were commented out nodes.
                 // These get treated as comments on lower nodes, which produces very undesirable results.
-
                 ConfigurationCommentMover.moveComments(node, newRoot);
-            } else if (currentVersion <= 4) {
-                advancedConfig = migrateToAdvancedConfig(advancedConfigPath, node);
             }
 
             loader.save(newRoot);
-        }
-        if (advancedConfig == null) {
-            advancedConfig = loadAdvancedConfig(advancedConfigPath);
         }
 
         if (transformer != null) {
@@ -246,8 +220,6 @@ public final class ConfigLoader {
             config = newRoot.get(configClass);
         }
 
-        config.advanced(advancedConfig);
-
         if (this.bootstrap != null) { // Null for testing only.
             this.bootstrap.getGeyserLogger().setDebug(config.debugMode());
         }
@@ -255,53 +227,7 @@ public final class ConfigLoader {
         return config;
     }
 
-    private AdvancedConfig migrateToAdvancedConfig(File file, ConfigurationNode configRoot) throws IOException {
-        Stream<NodePath> copyFromOldConfig = Stream.of("max-visible-custom-skulls", "custom-skull-render-distance", "scoreboard-packet-threshold", "mtu",
-                "floodgate-key-file", "use-direct-connection", "disable-compression", "disableXboxAuth")
-            .map(NodePath::path);
-
-        var loader = createLoader(file, ADVANCED_HEADER);
-
-        CommentedConfigurationNode advancedNode = CommentedConfigurationNode.root(loader.defaultOptions());
-        copyFromOldConfig.forEach(path -> {
-            ConfigurationNode node = configRoot.node(path);
-            if (!node.virtual()) {
-                advancedNode.node(path).mergeFrom(node);
-                configRoot.removeChild(path);
-            }
-        });
-
-        ConfigurationNode metricsUuid = configRoot.node("metrics", "uuid");
-        if (!metricsUuid.virtual()) {
-            advancedNode.node("metrics-uuid").set(metricsUuid.get(UUID.class));
-        }
-
-        advancedNode.node("version").set(Constants.ADVANCED_CONFIG_VERSION);
-
-        AdvancedConfig advancedConfig = advancedNode.get(AdvancedConfig.class);
-        // Ensure all fields get populated
-        CommentedConfigurationNode newNode = CommentedConfigurationNode.root(loader.defaultOptions());
-        newNode.set(advancedConfig);
-        loader.save(newNode);
-        return advancedConfig;
-    }
-
-    private AdvancedConfig loadAdvancedConfig(File file) throws IOException {
-        var loader = createLoader(file, ADVANCED_HEADER);
-        if (file.exists()) {
-            ConfigurationNode node = loader.load();
-            return node.get(AdvancedConfig.class);
-        } else {
-            ConfigurationNode node = CommentedConfigurationNode.root(loader.defaultOptions());
-            node.node("version").set(Constants.ADVANCED_CONFIG_VERSION);
-            AdvancedConfig advancedConfig = node.get(AdvancedConfig.class);
-            node.set(advancedConfig);
-            loader.save(node);
-            return advancedConfig;
-        }
-    }
-
-    private YamlConfigurationLoader createLoader(File file, String header) {
+    private YamlConfigurationLoader createLoader(File file) {
         return YamlConfigurationLoader.builder()
             .file(file)
             .indent(2)
@@ -313,7 +239,7 @@ public final class ConfigLoader {
                     }
                 })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
-                .header(header)
+                .header(ConfigLoader.HEADER)
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
             .build();
     }
