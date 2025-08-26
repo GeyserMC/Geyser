@@ -214,7 +214,13 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     public void initialize() {
         // Setup encryption early so we don't start if we can't auth
-        EncryptionUtils.getMojangPublicKey();
+        if (!config().disableXboxAuth()) {
+            try {
+                EncryptionUtils.getMojangPublicKey();
+            } catch (Throwable t) {
+                GeyserImpl.getInstance().getLogger().error("Unable to set up encryption! This can be caused by your internet connection or the Minecraft api being unreachable. ", t);
+            }
+        }
 
         long startupTime = System.currentTimeMillis();
 

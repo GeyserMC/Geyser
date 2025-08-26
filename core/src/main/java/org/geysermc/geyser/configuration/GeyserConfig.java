@@ -380,6 +380,7 @@ public interface GeyserConfig {
         This option specifies the amount of network threads in the Bedrock network event loop group.
         When set to -1, this count will be automatically determined based on the amount of available processors.""")
     @DefaultNumeric(-1)
+    @NumericRange(from = -1, to = 100)
     int bedrockNetworkThreadCount();
 
     @Comment("""
