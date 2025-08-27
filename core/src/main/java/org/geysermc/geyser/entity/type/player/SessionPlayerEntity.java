@@ -117,6 +117,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
 
+    @Getter @Setter
+    private float javaYaw;
+
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
 
@@ -139,6 +142,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void spawnEntity() {
         // Already logged in
+    }
+
+    @Override
+    public void setYaw(float yaw) {
+        super.setYaw(yaw);
+        this.javaYaw = yaw;
     }
 
     @Override
@@ -214,12 +223,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
             super.setFlags(entityMetadata);
         }
-    }
-
-    @Override
-    protected void setSprinting(boolean value) {
-        super.setSprinting(value);
-        session.setSprinting(value);
     }
 
     @Override
