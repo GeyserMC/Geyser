@@ -708,12 +708,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long worldTicks;
 
     /**
-     * Used to get player input data taken from PlayerAuthInputPacket.
-     */
-    @Getter @Setter
-    private Set<PlayerAuthInputData> inputData = EnumSet.noneOf(PlayerAuthInputData.class);
-
-    /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
      */
     @Setter

@@ -55,9 +55,7 @@ public class BlockCollision {
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
         // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
-        playerCollision.setSizeX(playerCollision.getSizeX() + collisionExpansion);
-        playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + collisionExpansion);
+        playerCollision.expand(collisionExpansion);
 
         // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
         // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
@@ -85,9 +83,7 @@ public class BlockCollision {
         }
 
         // Set the collision size back to normal
-        playerCollision.setSizeX(playerCollision.getSizeX() - collisionExpansion);
-        playerCollision.setSizeY(playerCollision.getSizeY() - collisionExpansion);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - collisionExpansion);
+        playerCollision.expand(-collisionExpansion);
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {

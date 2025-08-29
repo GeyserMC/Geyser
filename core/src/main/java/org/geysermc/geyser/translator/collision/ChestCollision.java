@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Axis;
@@ -45,16 +44,16 @@ public class ChestCollision extends BlockCollision {
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         super.correctPosition(session, x, y, z, playerCollision);
 
+        final SessionPlayerEntity player = session.getPlayerEntity();
+
         // Player haven't even fall on the blocks yet, no need to move them down.
-        if (!session.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION)) {
+        if (!player.isCollidingVertically()) {
             return;
         }
 
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
         // Slightly expand the collision so we can see if the player is actually colliding with the block or not.
         playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
-
-        final SessionPlayerEntity player = session.getPlayerEntity();
 
         double beforeYVelocity = player.getLastTickEndVelocity().getY();
         // If the player is already colliding with the block or player velocity y is larger than 0 then player likely don't need to be correct.
