@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.tooltip.providers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
 import org.geysermc.geyser.item.tooltip.TooltipContext;
 import org.geysermc.geyser.item.tooltip.TooltipProviders;
@@ -63,15 +64,14 @@ public class ChargedProjectilesTooltip implements ComponentTooltipProvider<List<
     }
 
     private static void addProjectile(TooltipContext context, ItemStack stack, int count, Consumer<Component> adder) {
+        GeyserItemStack geyserStack = GeyserItemStack.from(stack);
         if (count == 1) {
-            // TODO stack name
-            adder.accept(Component.translatable("item.minecraft.crossbow.projectile.single", Component.text(stack.toString())));
+            adder.accept(Component.translatable("item.minecraft.crossbow.projectile.single", geyserStack.getName()));
         } else {
             adder.accept(Component.translatable("item.minecraft.crossbow.projectile.multiple", Component.text(count), Component.text(stack.toString())));
         }
 
-        // TODO default components?
-        TooltipProviders.addTooltips(context.withItemComponents(Registries.JAVA_ITEMS.get(stack.getId()), stack.getDataComponentsPatch()).withFlags(false, false),
+        TooltipProviders.addTooltips(context.withItemComponents(Registries.JAVA_ITEMS.get(stack.getId()), geyserStack.getAllComponents()).withFlags(false, false),
             tooltip -> adder.accept(Component.space().append(tooltip).color(NamedTextColor.GRAY)));
     }
 }

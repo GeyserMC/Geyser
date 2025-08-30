@@ -51,8 +51,7 @@ public class ContainerContentsTooltip implements ComponentTooltipProvider<List<I
             total++;
             if (lines < 5) {
                 lines++;
-                // TODO itemStack name properly
-                adder.accept(Component.translatable("item.container.item_count", Component.translatable(itemStack.asItem().translationKey()), Component.text(itemStack.getAmount())));
+                adder.accept(Component.translatable("item.container.item_count", itemStack.getName(), Component.text(itemStack.getAmount())));
             }
         }
 
