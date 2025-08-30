@@ -34,11 +34,13 @@ import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEnumEntityProperty;
 import org.geysermc.geyser.api.entity.property.GeyserFloatEntityProperty;
 import org.geysermc.geyser.api.entity.property.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -84,20 +86,46 @@ public class GeyserEntityData implements EntityData {
 
     @Override
     public void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
         Entity entity = (Entity)geyserEntity;
+        if (entity.getSession() != session) {
+            throw new IllegalStateException("Given entity must be from this session!");
+        }
+        if (entity.getDefinition() == null) {
+            throw new IllegalArgumentException(
+                "Given entity has no registered properties!"
+            );
+        }
+        SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(entity.getGeyserId());
         GeyserEntityProperties propertyDefinitions = entity.getDefinition().registeredProperties();
         for (GeyserEntityProperty property : properties) {
             int index = propertyDefinitions.getPropertyIndex(property.name());
             if (index < 0) {
-                continue;
+                throw new IllegalArgumentException(
+                    "No property with the name " + property.name() + " has been registered."
+                );
             }
             if (property instanceof GeyserFloatEntityProperty floatProperty) {
                 packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, floatProperty.value()));
             }
             else if (property instanceof GeyserIntEntityProperty intProperty) {
                 packet.getProperties().getIntProperties().add(new IntEntityProperty(index, intProperty.value()));
+            }
+            else if (property instanceof GeyserEnumEntityProperty enumProperty) {
+                if (propertyDefinitions.getProperties().get(index) instanceof EnumProperty values) {
+                    int i = values.getIndex(enumProperty.value());
+                    if (i < 0) {
+                        throw new IllegalArgumentException(
+                            "The property with the name " + property.name() + " does not have a value called " + enumProperty.value() + "."
+                        );
+                    }
+                    packet.getProperties().getIntProperties().add(new IntEntityProperty(index, i));
+                }
+                else {
+                    throw new IllegalArgumentException(
+                        "The property with the name " + property.name() + " is not an enum property."
+                    );
+                }
             }
         }
         session.sendUpstreamPacket(packet);
