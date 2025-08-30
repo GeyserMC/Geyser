@@ -1,11 +1,9 @@
 {
     "required": true,
     "minVersion": "0.8",
-    "package": "org.geysermc.geyser.platform.fabric.gametest.mixin",
+    "package": "org.geysermc.geyser.platform.gametest.mixin",
     "compatibilityLevel": "JAVA_17",
-    "mixins": [
-        "GameTestServerMixin"
-    ],
+    "mixins": [],
     "server": [],
     "client": [],
     "injectors": {

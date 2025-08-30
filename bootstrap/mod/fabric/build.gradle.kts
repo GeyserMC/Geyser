@@ -18,15 +18,6 @@ loom {
     }
 }
 
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = "geyser-gametest"
-        enableClientGameTests = false
-        eula = true
-    }
-}
-
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
@@ -58,6 +49,15 @@ dependencies {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "geyser-gametest"
+        enableClientGameTests = false
+        eula = true
+    }
+}
 
 tasks {
     jar {

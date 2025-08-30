@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.gametest;
 
-public class GeyserGameTest {
-    // TODO actually add gametests
+import net.fabricmc.api.ModInitializer;
+
+public class GeyserGameTestBootstrap implements ModInitializer {
+
+    @Override
+    public void onInitialize() {
+        GeyserGameTests.bootstrap();
+    }
 }
