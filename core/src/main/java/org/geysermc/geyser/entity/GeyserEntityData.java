@@ -85,12 +85,14 @@ public class GeyserEntityData implements EntityData {
     @Override
     public void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
-        Entity entity = ((Entity)geyserEntity);
+        Entity entity = (Entity)geyserEntity;
         packet.setRuntimeEntityId(entity.getGeyserId());
         GeyserEntityProperties propertyDefinitions = entity.getDefinition().registeredProperties();
         for (GeyserEntityProperty property : properties) {
             int index = propertyDefinitions.getPropertyIndex(property.name());
-            if (index < 0) continue;
+            if (index < 0) {
+                continue;
+            }
             if (property instanceof GeyserFloatEntityProperty floatProperty) {
                 packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, floatProperty.value()));
             }

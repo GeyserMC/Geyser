@@ -41,10 +41,6 @@ public class GeyserEntityPropertyManager {
     private final ObjectArrayList<IntEntityProperty> intEntityProperties = new ObjectArrayList<>();
     private final ObjectArrayList<FloatEntityProperty> floatEntityProperties = new ObjectArrayList<>();
 
-    public NbtMap toNbtMap(String entityType) {
-        return this.properties.toNbtMap(entityType);
-    }
-
     public GeyserEntityPropertyManager(GeyserEntityProperties properties) {
         this.properties = properties;
     }
@@ -99,5 +95,9 @@ public class GeyserEntityPropertyManager {
     public void applyFloatProperties(List<FloatEntityProperty> properties) {
         properties.addAll(floatEntityProperties);
         floatEntityProperties.clear();
+    }
+
+    public NbtMap toNbtMap(String entityType) {
+        return this.properties.toNbtMap(entityType);
     }
 }
