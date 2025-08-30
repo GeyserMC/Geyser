@@ -1,8 +1,8 @@
 {
     "schemaVersion": 1,
-    "id": "${id}-fabric-tests",
+    "id": "${id}-gametest",
     "version": "${version}",
-    "name": "${name}-Fabric-gametest",
+    "name": "${name}-Gametest",
     "description": "A bridge/proxy allowing you to connect to Minecraft: Java Edition servers with Minecraft: Bedrock Edition. ",
     "authors": [
         "${author}"
@@ -15,16 +15,16 @@
     "icon": "assets/geyser/icon.png",
     "environment": "*",
     "entrypoints": {
-        "fabric-gametest": [
-            "org.geysermc.geyser.platform.fabric.gametest.GeyserFabricGametestBootstrap"
+        "main": [
+            "org.geysermc.geyser.gametest.GeyserGameTestBootstrap"
         ]
     },
     "mixins": [
-        "geyser-fabric-tests.mixins.json"
+        "geyser-gametest.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.16.7",
+        "fabricloader": ">=0.17.2",
         "fabric-api": "*",
-        "minecraft": ">=1.21.5"
+        "minecraft": ">=1.21.9"
     }
 }

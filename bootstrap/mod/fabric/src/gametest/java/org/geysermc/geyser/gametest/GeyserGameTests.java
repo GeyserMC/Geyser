@@ -23,38 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric.gametest;
+package org.geysermc.geyser.gametest;
 
-import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestInstance;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.ResourceLocation;
-import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public class GeyserGameTests {
 
-public abstract class GeyserTestInstance extends GameTestInstance {
-
-    protected GeyserTestInstance() {
-        // TODO use default vanilla test environment
-        super(new TestData<>(Holder.direct(new TestEnvironmentDefinition.AllOf(List.of())),
-            ResourceLocation.withDefaultNamespace("empty"), 1, 1, true));
+    private static ResourceLocation createKey(String name) {
+        return ResourceLocation.fromNamespaceAndPath("geyser", name);
     }
 
-    @Override
-    public void run(@NotNull GameTestHelper helper) {
-        /*Map<UUID, GeyserSession> sessions = GeyserImpl.getInstance().getSessionManager().getSessions();
-        while (sessions.isEmpty()) {
-            try {
-                Thread.sleep(100L);
-            } catch (InterruptedException ignored) {}
-        }
-        GeyserSession session = sessions.values().stream().findAny().orElseThrow();*/
-        run(helper, null);
+    private static void register(String name, MapCodec<? extends GameTestInstance> codec) {
+        Registry.register(BuiltInRegistries.TEST_INSTANCE_TYPE, createKey(name), codec);
     }
 
-    protected abstract void run(@NotNull GameTestHelper helper, GeyserSession session);
+    public static void bootstrap() {
+        register("component_hash", GeyserComponentHashTestInstance.CODEC);
+    }
 }

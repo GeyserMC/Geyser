@@ -23,17 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric.gametest;
+package org.geysermc.geyser.util;
 
-import net.fabricmc.api.ModInitializer;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import org.geysermc.geyser.api.util.PlatformType;
 
-public class GeyserFabricGametestBootstrap implements ModInitializer {
-
-    @Override
-    public void onInitialize() {
-        Registry.register(BuiltInRegistries.TEST_INSTANCE_TYPE, ResourceLocation.fromNamespaceAndPath("geyser", "component_hash"), GeyserComponentHashTestInstance.CODEC);
-    }
+public final class InternalPlatformType {
+    public static final PlatformType GAMETEST = new PlatformType("gametest");
 }

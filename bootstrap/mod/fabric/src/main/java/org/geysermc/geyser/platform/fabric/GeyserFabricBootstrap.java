@@ -93,6 +93,6 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public boolean isServer() {
-        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
+        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER) && !GeyserFabricPlatform.isGameTestServer();
     }
 }

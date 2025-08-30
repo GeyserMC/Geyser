@@ -18,15 +18,6 @@ loom {
     }
 }
 
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = "geyser-gametest"
-        enableClientGameTests = false
-        eula = true
-    }
-}
-
 dependencies {
     implementation(libs.fabric.loader)
     api(libs.fabric.api)
@@ -68,6 +59,15 @@ tasks.withType<Jar> {
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "geyser-gametest"
+        enableClientGameTests = false
+        eula = true
+    }
+}
 
 tasks {
     named<Jar>("mergeShadowAndJarJar") {

@@ -102,6 +102,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CodeOfConductManager;
+import org.geysermc.geyser.util.InternalPlatformType;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
@@ -335,190 +336,192 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config file.");
         }
 
-        String geyserUdpPort = System.getProperty("geyserUdpPort", "");
-        String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
-        if ("-1".equals(pluginUdpPort)) {
-            throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
-        }
-        boolean portPropertyApplied = false;
-        String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
-
-        if (platformType() != PlatformType.STANDALONE) {
-            int javaPort = bootstrap.getServerPort();
-            String serverAddress = bootstrap.getServerBindAddress();
-            if (!serverAddress.isEmpty() && !"0.0.0.0".equals(serverAddress)) {
-                config.java().address(serverAddress);
-            } else {
-                // Set the remote address to localhost since that is where we are always connecting
-                try {
-                    config.java().address(InetAddress.getLocalHost().getHostAddress());
-                } catch (UnknownHostException ex) {
-                    logger.debug("Unknown host when trying to find localhost.");
-                    if (config.debugMode()) {
-                        ex.printStackTrace();
-                    }
-                    config.java().address(InetAddress.getLoopbackAddress().getHostAddress());
-                }
+        if (platformType() != InternalPlatformType.GAMETEST) {
+            String geyserUdpPort = System.getProperty("geyserUdpPort", "");
+            String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
+            if ("-1".equals(pluginUdpPort)) {
+                throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
             }
-            if (javaPort != -1) {
-                config.java().port(javaPort);
-            }
+            boolean portPropertyApplied = false;
+            String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
 
-            boolean forceMatchServerPort = "server".equals(pluginUdpPort);
-            if ((config.bedrock().cloneRemotePort() || forceMatchServerPort) && javaPort != -1) {
-                config.bedrock().port(javaPort);
-                if (forceMatchServerPort) {
-                    if (geyserUdpPort.isEmpty()) {
-                        logger.info("Port set from system generic property to match Java server.");
-                    } else {
-                        logger.info("Port set from system property to match Java server.");
-                    }
-                    portPropertyApplied = true;
-                }
-            }
-
-            if ("server".equals(pluginUdpAddress)) {
-                String address = bootstrap.getServerBindAddress();
-                if (!address.isEmpty()) {
-                    config.bedrock().address(address);
-                }
-            } else if (!pluginUdpAddress.isEmpty()) {
-                config.bedrock().address(pluginUdpAddress);
-            }
-
-            if (!portPropertyApplied && !pluginUdpPort.isEmpty()) {
-                int port = Integer.parseInt(pluginUdpPort);
-                config.bedrock().port(port);
-                if (geyserUdpPort.isEmpty()) {
-                    logger.info("Port set from generic system property: " + port);
+            if (platformType() != PlatformType.STANDALONE) {
+                int javaPort = bootstrap.getServerPort();
+                String serverAddress = bootstrap.getServerBindAddress();
+                if (!serverAddress.isEmpty() && !"0.0.0.0".equals(serverAddress)) {
+                    config.java().address(serverAddress);
                 } else {
-                    logger.info("Port set from system property: " + port);
+                    // Set the remote address to localhost since that is where we are always connecting
+                    try {
+                        config.java().address(InetAddress.getLocalHost().getHostAddress());
+                    } catch (UnknownHostException ex) {
+                        logger.debug("Unknown host when trying to find localhost.");
+                        if (config.debugMode()) {
+                            ex.printStackTrace();
+                        }
+                        config.java().address(InetAddress.getLoopbackAddress().getHostAddress());
+                    }
                 }
-            }
+                if (javaPort != -1) {
+                    config.java().port(javaPort);
+                }
+
+                boolean forceMatchServerPort = "server".equals(pluginUdpPort);
+                if ((config.bedrock().cloneRemotePort() || forceMatchServerPort) && javaPort != -1) {
+                    config.bedrock().port(javaPort);
+                    if (forceMatchServerPort) {
+                        if (geyserUdpPort.isEmpty()) {
+                            logger.info("Port set from system generic property to match Java server.");
+                        } else {
+                            logger.info("Port set from system property to match Java server.");
+                        }
+                        portPropertyApplied = true;
+                    }
+                }
+
+                if ("server".equals(pluginUdpAddress)) {
+                    String address = bootstrap.getServerBindAddress();
+                    if (!address.isEmpty()) {
+                        config.bedrock().address(address);
+                    }
+                } else if (!pluginUdpAddress.isEmpty()) {
+                    config.bedrock().address(pluginUdpAddress);
+                }
+
+                if (!portPropertyApplied && !pluginUdpPort.isEmpty()) {
+                    int port = Integer.parseInt(pluginUdpPort);
+                    config.bedrock().port(port);
+                    if (geyserUdpPort.isEmpty()) {
+                        logger.info("Port set from generic system property: " + port);
+                    } else {
+                        logger.info("Port set from system property: " + port);
+                    }
+                }
 
 
-            if (platformType() != PlatformType.VIAPROXY) {
-                boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
-                if (config.java().authType() == AuthType.FLOODGATE && !floodgatePresent) {
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                if (platformType() != PlatformType.VIAPROXY) {
+                    boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
+                    if (config.java().authType() == AuthType.FLOODGATE && !floodgatePresent) {
+                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
                             + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-                    return;
-                } else if (floodgatePresent) {
-                    // Floodgate installed means that the user wants Floodgate authentication
-                    logger.debug("Auto-setting to Floodgate authentication.");
-                    config.java().authType(AuthType.FLOODGATE);
+                        return;
+                    } else if (floodgatePresent) {
+                        // Floodgate installed means that the user wants Floodgate authentication
+                        logger.debug("Auto-setting to Floodgate authentication.");
+                        config.java().authType(AuthType.FLOODGATE);
+                    }
                 }
             }
-        }
 
-        // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
-        String broadcastPort = System.getProperty("geyserBroadcastPort", "");
-        if (!broadcastPort.isEmpty()) {
-            try {
-                int parsedPort = Integer.parseInt(broadcastPort);
-                if (parsedPort < 1 || parsedPort > 65535) {
-                    throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
-                }
-                config.advanced().bedrock().broadcastPort(parsedPort);
-                logger.info("Broadcast port set from system property: " + parsedPort);
-            } catch (NumberFormatException e) {
-                logger.error(String.format("Invalid broadcast port from system property: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
-            }
-        }
-
-        // It's set to 0 only if no system property or manual config value was set
-        if (config.advanced().bedrock().broadcastPort() == 0) {
-            config.advanced().bedrock().broadcastPort(config.bedrock().port());
-        }
-
-        if (!(config instanceof GeyserPluginConfig)) {
-            String remoteAddress = config.java().address();
-            // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-            if (!IP_REGEX.matcher(remoteAddress).matches() && !remoteAddress.equalsIgnoreCase("localhost")) {
-                String[] record = WebUtils.findSrvRecord(this, remoteAddress);
-                if (record != null) {
-                    int remotePort = Integer.parseInt(record[2]);
-                    config.java().address(remoteAddress = record[3]);
-                    config.java().port(remotePort);
-                    logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
+            // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
+            String broadcastPort = System.getProperty("geyserBroadcastPort", "");
+            if (!broadcastPort.isEmpty()) {
+                try {
+                    int parsedPort = Integer.parseInt(broadcastPort);
+                    if (parsedPort < 1 || parsedPort > 65535) {
+                        throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
+                    }
+                    config.advanced().bedrock().broadcastPort(parsedPort);
+                    logger.info("Broadcast port set from system property: " + parsedPort);
+                } catch (NumberFormatException e) {
+                    logger.error(String.format("Invalid broadcast port from system property: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
                 }
             }
-        } else if (!config.advanced().java().useDirectConnection()) {
-            logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
+
+            // It's set to 0 only if no system property or manual config value was set
+            if (config.advanced().bedrock().broadcastPort() == 0) {
+                config.advanced().bedrock().broadcastPort(config.bedrock().port());
+            }
+
+            if (!(config instanceof GeyserPluginConfig)) {
+                String remoteAddress = config.java().address();
+                // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
+                if (!IP_REGEX.matcher(remoteAddress).matches() && !remoteAddress.equalsIgnoreCase("localhost")) {
+                    String[] record = WebUtils.findSrvRecord(this, remoteAddress);
+                    if (record != null) {
+                        int remotePort = Integer.parseInt(record[2]);
+                        config.java().address(remoteAddress = record[3]);
+                        config.java().port(remotePort);
+                        logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
+                    }
+                }
+            } else if (!config.advanced().java().useDirectConnection()) {
+                logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
+            }
+
+            this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
+
+            if (Epoll.isAvailable()) {
+                this.erosionUnixListener = new UnixSocketClientListener();
+            } else {
+                logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
+            }
+
+            int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
+            if (bedrockThreadCount == -1) {
+                // Copy the code from Netty's default thread count fallback
+                bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+            }
+
+            this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+            this.geyserServer.bind(new InetSocketAddress(config.bedrock().address(), config.bedrock().port()))
+                .whenComplete((avoid, throwable) -> {
+                    String address = config.bedrock().address();
+                    String port = String.valueOf(config.bedrock().port()); // otherwise we get commas
+
+                    if (throwable == null) {
+                        if ("0.0.0.0".equals(address)) {
+                            // basically just hide it in the log because some people get confused and try to change it
+                            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_suppressed", port));
+                        } else {
+                            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
+                        }
+                    } else {
+                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
+                        if (!"0.0.0.0".equals(address)) {
+                            logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                            logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
+                        }
+                    }
+                }).join();
+
+            if (config.java().authType() == AuthType.FLOODGATE) {
+                try {
+                    Key key = new AesKeyProducer().produceFrom(bootstrap.getFloodgateKeyPath());
+                    cipher = new AesCipher(new Base64Topping());
+                    cipher.init(key);
+                    logger.debug("Loaded Floodgate key!");
+                    if (config.advanced().bedrock().validateBedrockLogin()) {
+                        // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
+                        // to load successfully. Spigot complains about class loader if the plugin is disabled.
+                        skinUploader = new FloodgateSkinUploader(this).start();
+                    }
+                } catch (Exception exception) {
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+                }
+            }
+
+            setupMetrics(config, logger);
+
+            loadSavedAuthChains(config, logger);
+
+            newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+
+            if (config.notifyOnNewBedrockUpdate()) {
+                VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
+            }
         }
 
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.pendingAuthenticationTimeout());
 
-        this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
-
         Packets.initGeyser();
 
-        if (Epoll.isAvailable()) {
-            this.erosionUnixListener = new UnixSocketClientListener();
-        } else {
-            logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
-        }
-
         BedrockDimension.changeBedrockNetherId(config.gameplay().netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
-
-        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
-        if (bedrockThreadCount == -1) {
-            // Copy the code from Netty's default thread count fallback
-            bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
-        }
-
-        this.geyserServer = new GeyserServer(this, bedrockThreadCount);
-        this.geyserServer.bind(new InetSocketAddress(config.bedrock().address(), config.bedrock().port()))
-            .whenComplete((avoid, throwable) -> {
-                String address = config.bedrock().address();
-                String port = String.valueOf(config.bedrock().port()); // otherwise we get commas
-
-                if (throwable == null) {
-                    if ("0.0.0.0".equals(address)) {
-                        // basically just hide it in the log because some people get confused and try to change it
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_suppressed", port));
-                    } else {
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
-                    }
-                } else {
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
-                    if (!"0.0.0.0".equals(address)) {
-                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
-                    }
-                }
-            }).join();
-
-        if (config.java().authType() == AuthType.FLOODGATE) {
-            try {
-                Key key = new AesKeyProducer().produceFrom(bootstrap.getFloodgateKeyPath());
-                cipher = new AesCipher(new Base64Topping());
-                cipher.init(key);
-                logger.debug("Loaded Floodgate key!");
-                if (config.advanced().bedrock().validateBedrockLogin()) {
-                    // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
-                    // to load successfully. Spigot complains about class loader if the plugin is disabled.
-                    skinUploader = new FloodgateSkinUploader(this).start();
-                }
-            } catch (Exception exception) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
-            }
-        }
-
-        setupMetrics(config, logger);
-
-        loadSavedAuthChains(config, logger);
-
-        newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
 
         if (isReloading) {
             this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
         } else {
             this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
-        }
-
-        if (config.notifyOnNewBedrockUpdate()) {
-            VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
         }
     }
 
