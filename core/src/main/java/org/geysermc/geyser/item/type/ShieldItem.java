@@ -41,6 +41,14 @@ public class ShieldItem extends Item {
     }
 
     @Override
+    public Component getName(GeyserItemStack stack) {
+        Integer color = stack.getComponent(DataComponentTypes.BASE_COLOR);
+        return color != null
+            ? Component.translatable(translationKey() + "." + Objects.requireNonNull(DyeColor.getById(color)).getJavaIdentifier())
+            : super.getName(stack);
+    }
+
+    @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
