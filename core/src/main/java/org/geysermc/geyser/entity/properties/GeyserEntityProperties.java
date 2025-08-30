@@ -137,9 +137,9 @@ public class GeyserEntityProperties {
                         "Cannot register enum property with name " + name + " because it contains a null value."
                     );
                 }
-                else if (!name.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
+                else if (name.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
                     throw new IllegalArgumentException(
-                        "Cannot register enum property with name " + name + " and value" + value +
+                        "Cannot register enum property with name " + name + " and value " + value +
                             " because enum values can only contain alphanumeric characters and underscores."
                     );
                 }
