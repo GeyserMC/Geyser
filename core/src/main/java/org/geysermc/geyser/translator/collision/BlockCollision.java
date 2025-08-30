@@ -55,6 +55,7 @@ public class BlockCollision {
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
         // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
+        // TODO: Is this still needed? This should be removed if it's not needed anymore.
         playerCollision.expand(collisionExpansion);
 
         // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
