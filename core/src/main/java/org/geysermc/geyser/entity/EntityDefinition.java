@@ -161,7 +161,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
-            if (identifier != null && GeyserImpl.getInstance() != null) {
+            if (identifier != null && GeyserImpl.getInstance().eventBus() != null) {
                 GeyserEntityProperties.Builder propertiesBuilder = new GeyserEntityProperties.Builder();
                 GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
                     @Override
@@ -190,7 +190,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                     }
 
                     @Override
-                    public void registerEnumProperty(@NonNull String name, @NotNull @NonNull String... values) {
+                    public void registerEnumProperty(@NonNull String name, @NotNull String... values) {
                         propertiesBuilder.addEnum(name, values);
                     }
                 });
