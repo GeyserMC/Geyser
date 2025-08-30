@@ -28,7 +28,9 @@ package org.geysermc.geyser.entity;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.type.Entity;
@@ -37,6 +39,7 @@ import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Locale;
@@ -157,6 +160,45 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         public EntityDefinition<T> build(boolean register) {
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
+            }
+            if (identifier != null) {
+                GeyserEntityProperties.Builder propertiesBuilder = new GeyserEntityProperties.Builder();
+                GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+                    @Override
+                    public String entityIdentifier() {
+                        return identifier;
+                    }
+
+                    @Override
+                    public void registerFloatProperty(@NotNull String name, float min, float max) {
+                        propertiesBuilder.addFloat(name, min, max);
+                    }
+
+                    @Override
+                    public void registerIntegerProperty(@NotNull String name, int min, int max) {
+                        propertiesBuilder.addInt(name, min, max);
+                    }
+
+                    @Override
+                    public void registerBooleanProperty(@NotNull String name) {
+                        propertiesBuilder.addBoolean(name);
+                    }
+
+                    @Override
+                    public void registerEnumProperty(@NotNull String name, @NotNull List<String> values) {
+                        propertiesBuilder.addEnum(name, values);
+                    }
+
+                    @Override
+                    public void registerEnumProperty(@NonNull String name, @NotNull @NonNull String... values) {
+                        propertiesBuilder.addEnum(name, values);
+                    }
+                });
+                if (!propertiesBuilder.isEmpty()) {
+                    if (registeredProperties != null)
+                        registeredProperties.addToBuilder(propertiesBuilder);
+                    registeredProperties = propertiesBuilder.build();
+                }
             }
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {

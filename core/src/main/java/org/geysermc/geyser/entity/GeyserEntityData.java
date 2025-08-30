@@ -28,14 +28,22 @@ package org.geysermc.geyser.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
+import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.EntityData;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +79,25 @@ public class GeyserEntityData implements EntityData {
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties) {
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        Entity entity = ((Entity)geyserEntity);
+        packet.setRuntimeEntityId(entity.getGeyserId());
+        GeyserEntityProperties propertyDefinitions = entity.getDefinition().registeredProperties();
+        for (GeyserEntityProperty property : properties) {
+            int index = propertyDefinitions.getPropertyIndex(property.name());
+            if (index < 0) continue;
+            if (property instanceof GeyserFloatEntityProperty floatProperty) {
+                packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, floatProperty.value()));
+            }
+            else if (property instanceof GeyserIntEntityProperty intProperty) {
+                packet.getProperties().getIntProperties().add(new IntEntityProperty(index, intProperty.value()));
+            }
+        }
         session.sendUpstreamPacket(packet);
     }
 

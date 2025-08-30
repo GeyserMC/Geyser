@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.properties.type.FloatProperty;
 import org.geysermc.geyser.entity.properties.type.IntProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +55,12 @@ public class GeyserEntityProperties {
             Object2IntMap<String> propertyIndices) {
         this.properties = properties;
         this.propertyIndices = propertyIndices;
+    }
+
+    public void addToBuilder(Builder builder) {
+        for (Object2IntMap.Entry<String> entry : propertyIndices.object2IntEntrySet()) {
+            builder.add(entry.getKey(), properties.get(entry.getIntValue()));
+        }
     }
 
     public NbtMap toNbtMap(String entityType) {
@@ -79,6 +86,20 @@ public class GeyserEntityProperties {
     public static class Builder {
         private final ObjectArrayList<PropertyType> properties = new ObjectArrayList<>();
         private final Object2IntMap<String> propertyIndices = new Object2IntOpenHashMap<>();
+
+        public boolean isEmpty() {
+            return this.properties.isEmpty();
+        }
+
+        public Builder add(@NonNull String name, PropertyType property) {
+            if (propertyIndices.containsKey(name)) {
+                throw new IllegalArgumentException(
+                    "Property with name " + name + " already exists on builder!");
+            }
+            this.properties.add(property);
+            propertyIndices.put(name, properties.size() - 1);
+            return this;
+        }
 
         public Builder addInt(@NonNull String name, int min, int max) {
             if (propertyIndices.containsKey(name)) {
