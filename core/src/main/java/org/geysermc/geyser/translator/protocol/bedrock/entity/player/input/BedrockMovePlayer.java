@@ -94,6 +94,11 @@ final class BedrockMovePlayer {
         boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getJavaYaw() != javaYaw || entity.getPitch() != pitch);
 
+        // Drop invalid rotation packets
+        if (isInvalidNumber(yaw) || isInvalidNumber(pitch) || isInvalidNumber(headYaw)) {
+            return;
+        }
+
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
@@ -136,10 +141,14 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
+                if (other == entity) {
+                    continue;
+                }
+
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? entity.getDefinition().offset() : 0).toDouble());
+                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getDefinition().offset() : 0).toDouble());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;
@@ -175,11 +184,16 @@ final class BedrockMovePlayer {
             }
         } else if (positionChangedAndShouldUpdate) {
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
-                if (!session.getWorldBorder().isPassingIntoBorderBoundaries(entity.getPosition(), true)) {
-                    CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
-                    if (result != null) { // A null return value cancels the packet
-                        Vector3d position = result.correctedMovement();
+                CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
+                if (result != null) { // A null return value cancels the packet
+                    Vector3d position = result.correctedMovement();
 
+                    Vector3f correctedF = Vector3f.from(
+                            (float) position.getX(),
+                            (float) position.getY(),
+                            (float) position.getZ()
+                    );
+                    if (!session.getWorldBorder().isPassingIntoBorderBoundaries(correctedF, true)) {
                         Packet movePacket;
                         if (rotationChanged) {
                             // Send rotation updates as well
@@ -205,6 +219,8 @@ final class BedrockMovePlayer {
 
                         session.getInputCache().markPositionPacketSent();
                         session.getSkullCache().updateVisibleSkulls();
+                    } else {
+                        session.getCollisionManager().recalculatePosition();
                     }
                 }
             } else {
@@ -249,4 +265,3 @@ final class BedrockMovePlayer {
         return true;
     }
 }
-
