@@ -185,15 +185,10 @@ final class BedrockMovePlayer {
         } else if (positionChangedAndShouldUpdate) {
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
                 CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
-                if (result != null) { // A null return value cancels the packet
-                    Vector3d position = result.correctedMovement();
+            if (result != null) { // A null return value cancels the packet
+                Vector3d position = result.correctedMovement();
 
-                    Vector3f correctedF = Vector3f.from(
-                            (float) position.getX(),
-                            (float) position.getY(),
-                            (float) position.getZ()
-                    );
-                    if (!session.getWorldBorder().isPassingIntoBorderBoundaries(correctedF, true)) {
+                if (!session.getWorldBorder().isPassingIntoBorderBoundaries(position.toFloat(), true)) {
                         Packet movePacket;
                         if (rotationChanged) {
                             // Send rotation updates as well
