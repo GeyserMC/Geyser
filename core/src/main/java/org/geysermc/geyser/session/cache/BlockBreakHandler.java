@@ -107,10 +107,11 @@ public class BlockBreakHandler {
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 case START_BREAK -> {
-                    if (creativeMode || restoredBlocks.contains(vector)) {
+                    if (creativeMode) {
                         continue;
                     }
 
+                    // TODO test if this is actually a good idea
                     if (!restoredBlocks.isEmpty() || !canStartBreaking(vector)) {
                         BlockUtils.sendBedrockStopBlockBreak(session, vector.toFloat());
                         restoredBlocks.add(vector);
@@ -120,7 +121,7 @@ public class BlockBreakHandler {
                     startBreaking(vector, blockFace, packet.getTick());
                 }
                 case BLOCK_CONTINUE_DESTROY -> {
-                    if (creativeMode || restoredBlocks.contains(vector)) {
+                    if (creativeMode || restoredBlocks.contains(vector) || instaBreakBlocks.contains(vector)) {
                         continue;
                     }
                     
@@ -193,28 +194,32 @@ public class BlockBreakHandler {
         float breakProgress = BlockUtils.getBlockMiningProgressPerTick(session, BlockState.of(blockState).block(), session.getPlayerInventory().getItemInHand());
         double breakTime = calculateBlockBreakTime(blockState, vector, breakProgress);
 
+        // insta-breaking should be treated differently; don't send STOP_BREAK for these
         if (breakProgress > 1) {
             // Avoids sending STOP_BREAK for instantly broken blocks
             instaBreakBlocks.add(vector);
+        } else {
+            // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
+            GeyserItemStack item = session.getPlayerInventory().getItemInHand();
+            ItemMapping mapping = item.getMapping(session);
+            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
+            CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
+            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
+
+            this.blockStartBreakTime = 0;
+            if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(blockState) || blockStateOverride != null || customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+                this.blockStartBreakTime = System.currentTimeMillis();
+            }
+
+            LevelEventPacket startBreak = new LevelEventPacket();
+            startBreak.setType(LevelEvent.BLOCK_START_BREAK);
+            startBreak.setPosition(vector.toFloat());
+            startBreak.setData((int) (65535 / breakTime));
+            session.sendUpstreamPacket(startBreak);
+
+            this.currentBlock = vector;
+            this.currentState = BlockState.of(blockState);
         }
-
-        // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
-        GeyserItemStack item = session.getPlayerInventory().getItemInHand();
-        ItemMapping mapping = item.getMapping(session);
-        ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
-        CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
-        SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
-
-        this.blockStartBreakTime = 0;
-        if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(blockState) || blockStateOverride != null || customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
-            this.blockStartBreakTime = System.currentTimeMillis();
-        }
-
-        LevelEventPacket startBreak = new LevelEventPacket();
-        startBreak.setType(LevelEvent.BLOCK_START_BREAK);
-        startBreak.setPosition(vector.toFloat());
-        startBreak.setData((int) (65535 / breakTime));
-        session.sendUpstreamPacket(startBreak);
 
         // Account for fire - the client likes to hit the block behind.
         Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, blockFace);
@@ -226,13 +231,8 @@ public class BlockBreakHandler {
             session.sendDownstreamGamePacket(startBreakingPacket);
         }
 
-        this.currentBlock = vector;
-        this.currentState = BlockState.of(blockState);
-
-        ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING,
-            vector, direction, session.getWorldCache().nextPredictionSequence());
-        session.sendDownstreamGamePacket(startBreakingPacket);
-
+        session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING,
+            vector, direction, session.getWorldCache().nextPredictionSequence()));
         BlockUtils.spawnBlockBreakParticles(session, direction, vector, currentState);
     }
 
@@ -247,7 +247,41 @@ public class BlockBreakHandler {
     }
 
     protected void handleContinueBreaking(Vector3i vector, int blockFace, long tick) {
+        // TODO check if the block changed!
+        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+        if (blockState != this.currentState.javaId()) {
+            throw new IllegalStateException("TODO check java client!");
+        }
 
+        BlockUtils.spawnBlockBreakParticles(session, Direction.VALUES[blockFace], vector, currentState);
+        double breakTime = BlockUtils.getSessionBreakTimeTicks(session, currentState.block(), 0);
+
+        if (blockStartBreakTime != 0) {
+            long timeSinceStart = System.currentTimeMillis() - blockBreakStartTime;
+            // We need to add a slight delay to the break time, otherwise the client breaks blocks too fast
+            if (timeSinceStart >= (breakTime += 2) * 50) {
+                // Play break sound and particle
+                LevelEventPacket effectPacket = new LevelEventPacket();
+                effectPacket.setPosition(vectorFloat);
+                effectPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
+                effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakingBlock));
+                session.sendUpstreamPacket(effectPacket);
+
+                // Break the block
+                ServerboundPlayerActionPacket finishBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.FINISH_DIGGING,
+                    vector, direction, session.getWorldCache().nextPredictionSequence());
+                session.sendDownstreamGamePacket(finishBreakingPacket);
+                session.setBlockBreakStartTime(0);
+                break;
+            }
+        }
+
+        // Update the break time in the event that player conditions changed (jumping, effects applied)
+        LevelEventPacket updateBreak = new LevelEventPacket();
+        updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
+        updateBreak.setPosition(vectorFloat);
+        updateBreak.setData((int) (65535 / breakTime));
+        session.sendUpstreamPacket(updateBreak);
     }
 
     protected void handleBlockBreaking(Vector3i vector, int blockFace, long tick) {

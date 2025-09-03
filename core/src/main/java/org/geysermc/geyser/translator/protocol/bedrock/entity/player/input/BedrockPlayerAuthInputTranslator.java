@@ -53,9 +53,7 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -81,6 +79,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
+        session.getBlockBreakHandler().handleBlockBreaking(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;
 
@@ -93,7 +92,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
-                case PERFORM_BLOCK_ACTIONS -> session.getBlockBreakHandler().handleBlockBreakActions(packet);
                 case START_SWIMMING -> session.setSwimming(true);
                 case STOP_SWIMMING -> session.setSwimming(false);
                 case START_CRAWLING -> session.setCrawling(true);
@@ -229,10 +227,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
     }
 
+    // TODO move
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
         if (transaction.getActionType() == 2) {
             int blockState = session.getGameMode() == GameMode.CREATIVE ?
-                session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : session.getBreakingBlock();
+                session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : 0; //session.getBreakingBlock();
 
 //            session.setLastBlockPlaced(null);
 //            session.setLastBlockPlacePosition(null);
