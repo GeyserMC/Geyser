@@ -30,7 +30,6 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 
 @EqualsAndHashCode(callSuper = true)
 public class OtherCollision extends BlockCollision {
-
     public OtherCollision(BoundingBox[] boundingBoxes) {
         super(boundingBoxes);
     }
