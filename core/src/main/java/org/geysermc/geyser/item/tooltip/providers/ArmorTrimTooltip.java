@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.tags;
+package org.geysermc.geyser.item.tooltip.providers;
 
-import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 
-/**
- * A tag in any of the registries that tags are loaded for by Geyser.
- */
-public record Tag<T>(JavaRegistryKey<T, ?> registry, Key tag) {
+import java.util.function.Consumer;
+
+public class ArmorTrimTooltip implements ComponentTooltipProvider<ArmorTrim> {
+    private static final Component TITLE = Component.translatable("item.minecraft.smithing_template.upgrade").color(NamedTextColor.GRAY);
+
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<Component> adder, @NonNull ArmorTrim component) {
+        adder.accept(TITLE);
+        // TODO - is the component fully provided by bedrock? even for custom stuff?
+    }
 }

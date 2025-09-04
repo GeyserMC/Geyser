@@ -113,7 +113,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.WOLF_VARIANT;
     }
 
