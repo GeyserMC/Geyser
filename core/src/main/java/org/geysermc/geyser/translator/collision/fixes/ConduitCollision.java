@@ -26,8 +26,8 @@
 package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
@@ -36,22 +36,19 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^lantern$|^soul_lantern$", usesParams = true, passDefaultBoxes = true)
-public class LanternCollision extends BlockCollision {
-    private final boolean hanging;
-
-    public LanternCollision(BlockState state, BoundingBox[] boxes) {
+@CollisionRemapper(regex = "^conduit$", passDefaultBoxes = true)
+public class ConduitCollision extends BlockCollision {
+    public ConduitCollision(BlockState state, BoundingBox[] boxes) {
         super(boxes);
-
-        this.hanging = state.getValue(Properties.HANGING);
     }
 
     @Override
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         super.correctPosition(session, x, y, z, playerCollision);
 
-        // Check for lantern collision (lantern is 0.0625 block higher on Java)
-        final double maxPushDistance = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
+        final double maxPushDistance = 0.1875F + CollisionManager.COLLISION_TOLERANCE * 1.01F;
+
+        // Check for conduit bug (conduit is lifted from the ground on Java unlike Bedrock where conduit is placed on the ground)
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
@@ -60,11 +57,7 @@ public class LanternCollision extends BlockCollision {
             boundingBox = boundingBox.clone();
             boundingBox.translate(x, y, z);
 
-            if (this.hanging) {
-                boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, maxPushDistance);
-            } else {
-                boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, maxPushDistance);
-            }
+            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, maxPushDistance);
         }
     }
 }
