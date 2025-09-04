@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.properties;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
@@ -94,5 +95,9 @@ public class GeyserEntityPropertyManager {
     public void applyFloatProperties(List<FloatEntityProperty> properties) {
         properties.addAll(floatEntityProperties);
         floatEntityProperties.clear();
+    }
+
+    public NbtMap toNbtMap(String entityType) {
+        return this.properties.toNbtMap(entityType);
     }
 }
