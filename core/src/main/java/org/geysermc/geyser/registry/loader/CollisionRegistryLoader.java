@@ -41,7 +41,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 import org.geysermc.geyser.translator.collision.OtherCollision;
-import org.geysermc.geyser.translator.collision.SolidCollision;
+import org.geysermc.geyser.translator.collision.fixes.ShulkerBoxCollision;
 import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
@@ -136,7 +136,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
         // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
         if (collisionIndex == 1) {
-            return new SolidCollision(state);
+            return new ShulkerBoxCollision(state);
         }
         return new OtherCollision(collisionList.get(collisionIndex));
     }
