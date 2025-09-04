@@ -57,7 +57,6 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
@@ -66,6 +65,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 public class BlockBreakHandler {
 
     protected final GeyserSession session;
+    protected int currentTickBlockState = 0;
     protected Vector3i currentBlock = Vector3i.ZERO;
     protected BlockState currentState = Blocks.AIR.defaultBlockState();
     protected long blockStartBreakTime = 0;
@@ -91,6 +91,7 @@ public class BlockBreakHandler {
         }
         restoredBlocks.clear();
         instaBreakBlocks.clear();
+        currentTickBlockState = 0;
     }
 
     public void handleBlockBreakActions(PlayerAuthInputPacket packet) {
@@ -169,13 +170,7 @@ public class BlockBreakHandler {
 
     protected void handleAbortBreaking(Vector3i vector) {
         if (session.getGameMode() != GameMode.CREATIVE) {
-            // As of 1.16.210: item frame items are taken out here.
-            // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
-            Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
-            if (itemFrameEntity != null) {
-                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
-                    InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                session.sendDownstreamGamePacket(interactPacket);
+            if (testForItemFrameEntity(vector)) {
                 return;
             }
         }
@@ -247,45 +242,70 @@ public class BlockBreakHandler {
     }
 
     protected void handleContinueBreaking(Vector3i vector, int blockFace, long tick) {
-        // TODO check if the block changed!
-        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
-        if (blockState != this.currentState.javaId()) {
-            throw new IllegalStateException("TODO check java client!");
+        // quick hack to avoid multiple lookups in the same tick
+        if (currentTickBlockState == 0) {
+            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+            if (blockState != this.currentState.javaId()) {
+                throw new IllegalStateException("TODO check java client!");
+            }
         }
 
-        BlockUtils.spawnBlockBreakParticles(session, Direction.VALUES[blockFace], vector, currentState);
+        Direction direction = Direction.VALUES[blockFace];
+
+        BlockUtils.spawnBlockBreakParticles(session, direction, vector, currentState);
         double breakTime = BlockUtils.getSessionBreakTimeTicks(session, currentState.block(), 0);
 
         if (blockStartBreakTime != 0) {
-            long timeSinceStart = System.currentTimeMillis() - blockBreakStartTime;
+            long timeSinceStart = System.currentTimeMillis() - blockStartBreakTime;
             // We need to add a slight delay to the break time, otherwise the client breaks blocks too fast
             if (timeSinceStart >= (breakTime += 2) * 50) {
                 // Play break sound and particle
                 LevelEventPacket effectPacket = new LevelEventPacket();
-                effectPacket.setPosition(vectorFloat);
+                effectPacket.setPosition(vector.toFloat());
                 effectPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
-                effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakingBlock));
+                effectPacket.setData(session.getBlockMappings().getBedrockBlockId(currentState.javaId()));
                 session.sendUpstreamPacket(effectPacket);
 
                 // Break the block
                 ServerboundPlayerActionPacket finishBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.FINISH_DIGGING,
                     vector, direction, session.getWorldCache().nextPredictionSequence());
                 session.sendDownstreamGamePacket(finishBreakingPacket);
-                session.setBlockBreakStartTime(0);
-                break;
+                blockStartBreakTime = 0;
+                return;
             }
         }
 
         // Update the break time in the event that player conditions changed (jumping, effects applied)
         LevelEventPacket updateBreak = new LevelEventPacket();
         updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-        updateBreak.setPosition(vectorFloat);
+        updateBreak.setPosition(vector.toFloat());
         updateBreak.setData((int) (65535 / breakTime));
         session.sendUpstreamPacket(updateBreak);
     }
 
     protected void handleBlockBreaking(Vector3i vector, int blockFace, long tick) {
+        // TODO creative will ONLY "hit" here
 
+        // TODO if creative mode is used here; ONLY send START_BREAK
+        int sequence = session.getWorldCache().nextPredictionSequence();
+        session.getWorldCache().markPositionInSequence(vector);
+
+
+        PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
+        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, vector, Direction.VALUES[blockFace], sequence);
+
+        BlockUtils.sendBedrockBlockDestroy(session, vector.toFloat(), currentState.javaId());
+    }
+
+    private boolean testForItemFrameEntity(Vector3i position) {
+        Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
+        if (itemFrameEntity != null) {
+            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
+                InteractAction.ATTACK, session.isSneaking());
+            session.sendDownstreamGamePacket(attackPacket);
+            return true;
+        }
+        return false;
     }
 
     protected boolean canContinueBreaking(Vector3i vector) {
@@ -300,5 +320,11 @@ public class BlockBreakHandler {
 
     protected double calculateBlockBreakTime(int state, Vector3i vector, float progress) {
         return BlockUtils.getSessionBreakTimeTicks(session, BlockState.of(state).block(), progress);
+    }
+
+    protected void clearCurrentVariables() {
+        this.currentBlock = null;
+        this.currentState = null;
+        this.blockStartBreakTime = 0L;
     }
 }

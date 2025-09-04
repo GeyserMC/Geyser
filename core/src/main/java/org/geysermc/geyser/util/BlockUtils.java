@@ -206,6 +206,14 @@ public final class BlockUtils {
         session.sendUpstreamPacket(stopBreak);
     }
 
+    public static void sendBedrockBlockDestroy(GeyserSession session, Vector3f vector, int blockState) {
+        LevelEventPacket blockBreakPacket = new LevelEventPacket();
+        blockBreakPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
+        blockBreakPacket.setPosition(vector);
+        blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
+        session.sendUpstreamPacket(blockBreakPacket);
+    }
+
     public static void restoreCorrectBlock(GeyserSession session, Vector3i vector, BlockState blockState) {
         BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(blockState);
 
