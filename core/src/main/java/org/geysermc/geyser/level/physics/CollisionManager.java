@@ -186,8 +186,11 @@ public class CollisionManager {
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
         playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
         // Correct player position
-        correctPlayerPosition();
-
+        if (!correctPlayerPosition()) {
+            // Cancel the movement if it needs to be cancelled
+            recalculatePosition();
+            return null;
+        }
         // The server can't complain about our movement if we never send it
         // TODO get rid of this and handle teleports smoothly
         if (pistonCache.isPlayerCollided()) {
@@ -252,10 +255,12 @@ public class CollisionManager {
     }
 
     /**
-     * Silently compensate for movement problems due to collision and floating points errors on bedrock.
+     * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
+     * cancelled
      * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
      */
-    public void correctPlayerPosition() {
+    public boolean correctPlayerPosition() {
+
         // These may be set to true by the correctPosition method in ScaffoldingCollision
         touchingScaffolding = false;
         onScaffolding = false;
@@ -263,6 +268,12 @@ public class CollisionManager {
         // Used when correction code needs to be run before the main correction
         BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
         int[] blocks = session.getGeyser().getWorldManager().getBlocksAt(session, iter);
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
+            if (blockCollision != null) {
+                blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
+            }
+        }
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
@@ -276,11 +287,15 @@ public class CollisionManager {
 
             BlockCollision blockCollision = BlockUtils.getCollision(blockId);
             if (blockCollision != null) {
-                blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
+                if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
+                    return false;
+                }
             }
         }
 
         updateScaffoldingFlags(true);
+
+        return true;
     }
 
     public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld, boolean teleported) {

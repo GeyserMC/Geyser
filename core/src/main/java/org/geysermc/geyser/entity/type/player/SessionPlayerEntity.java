@@ -117,12 +117,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
 
-    /**
-     * If the player is colliding on the vertical axis or not according to the client.
-     */
-    @Getter @Setter
-    private boolean collidingVertically;
-
     @Getter @Setter
     private float javaYaw;
 
