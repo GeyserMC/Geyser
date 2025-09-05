@@ -57,22 +57,4 @@ public class LanternCollision extends BlockCollision {
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
         }
     }
-
-    @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
-
-        // Check for lantern collision (lantern is 0.0625 block higher on Java)
-        final double maxPushDistance = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
-            }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-
-
-        }
-    }
 }
