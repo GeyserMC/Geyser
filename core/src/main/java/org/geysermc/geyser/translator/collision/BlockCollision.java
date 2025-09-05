@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -42,12 +41,6 @@ public class BlockCollision {
 
     /**
      * This is used for the step up logic.
-     * Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
-     * For snow layers, due to its beforeCorrectPosition method the player can be slightly below (0.125 blocks) and
-     * still need to step up
-     * This used to be 0 but for now this has been set to 1 as it fixes bed collision
-     * I didn't just set it for beds because other collision may also be slightly raised off the ground.
-     * If this causes any problems, change this back to 0 and add an exception for beds.
      */
     protected double pushUpTolerance = 1;
 
@@ -55,6 +48,9 @@ public class BlockCollision {
      * This is used to control the maximum distance a face of a bounding box can push the player away
      */
     protected final double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+
+    // Max steppable distance (beds)
+    private static final double MAX_STEP = 0.5625;
 
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
@@ -73,72 +69,100 @@ public class BlockCollision {
      * This functionality is currently only used in 6 or 7 layer snow
      */
     public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        for (BoundingBox b : this.boundingBoxes) {
-            double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
-            double boxMaxY = (b.getMiddleY() + y) + (b.getSizeY() / 2);
-            if (b.checkIntersection(x, y, z, playerCollision) && (playerMinY + pushUpTolerance) >= boxMinY) {
-                // Max steppable distance in Minecraft as far as we know is 0.5625 blocks (for beds)
-                if (boxMaxY - playerMinY <= 0.5625) {
-                    playerCollision.translate(0, boxMaxY - playerMinY, 0);
-                    // Update player Y for next collision box
-                    playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-                }
-           }
+        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() * 0.5);
 
-            // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
-            playerCollision.setSizeX(playerCollision.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
-            playerCollision.setSizeZ(playerCollision.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
+        // Cache original sizes to restore exactly (not hardcoded 0.6)
+        final double originalSizeX = playerCollision.getSizeX();
+        final double originalSizeZ = playerCollision.getSizeZ();
+        final double expandEpsilon = CollisionManager.COLLISION_TOLERANCE * 2.0;
+
+        for (int i = 0; i < this.boundingBoxes.length; i++) {
+            BoundingBox b = this.boundingBoxes[i];
+
+            // Precompute halves for performance/readability
+            final double halfBx = b.getSizeX() * 0.5;
+            final double halfBy = b.getSizeY() * 0.5;
+            final double halfBz = b.getSizeZ() * 0.5;
+
+            // Absolute Y min/max of the block AABB in world coords
+            final double boxMinY = (b.getMiddleY() + y) - halfBy;
+            final double boxMaxY = (b.getMiddleY() + y) + halfBy;
+
+            // 1) Step-up logic with "normal" player collision
+            if (b.checkIntersection(x, y, z, playerCollision) && (playerMinY + pushUpTolerance) >= boxMinY) {
+                final double step = boxMaxY - playerMinY;
+                if (step <= MAX_STEP) {
+                    playerCollision.translate(0, step, 0);
+                    // Update for next collision box
+                    playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() * 0.5);
+                }
+            }
+
+            // 2) Passable fix: slightly enlarge X/Z to catch near-intersections
+            playerCollision.setSizeX(originalSizeX + expandEpsilon);
+            playerCollision.setSizeZ(originalSizeZ + expandEpsilon);
 
             // If the player still intersects the block, then push them out
             // This fixes NoCheatPlus's Passable check
             // This check doesn't allow players right up against the block, so they must be pushed slightly away
             if (b.checkIntersection(x, y, z, playerCollision)) {
-                Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
-                        playerCollision.getMiddleY() - y,
-                        playerCollision.getMiddleZ() - z);
+                // ULP bounds for floating point safety
+                final double absXMax = Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() * 0.5, Math.abs(x) + 1.0);
+                final double absZMax = Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() * 0.5, Math.abs(z) + 1.0);
 
-                // The ULP should give an upper bound on the floating point error
-                double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
-                double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
+                final double xPushAwayTolerance = Math.max(pushAwayTolerance, Math.ulp((float) absXMax));
+                final double zPushAwayTolerance = Math.max(pushAwayTolerance, Math.ulp((float) absZMax));
 
-                double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP);
-                double zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
+                // Faces of the block (relative to block origin)
+                final double northFaceZ = b.getMiddleZ() - halfBz;
+                final double southFaceZ = b.getMiddleZ() + halfBz;
+                final double eastFaceX  = b.getMiddleX() + halfBx;
+                final double westFaceX  = b.getMiddleX() - halfBx;
+                final double bottomFaceY = b.getMiddleY() - halfBy;
 
-                double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
-                double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                final double playerHalfX = playerCollision.getSizeX() * 0.5;
+                final double playerHalfY = playerCollision.getSizeY() * 0.5;
+                final double playerHalfZ = playerCollision.getSizeZ() * 0.5;
+
+                // Z axis - north
+                double relZ = playerCollision.getMiddleZ() - z;
+                double translateDistance = northFaceZ - relZ - playerHalfZ;
                 if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
-                double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
-                translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                // Z axis - south
+                relZ = playerCollision.getMiddleZ() - z;
+                translateDistance = southFaceZ - relZ + playerHalfZ;
                 if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
-                double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
-                translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                // X axis - east
+                double relX = playerCollision.getMiddleX() - x;
+                translateDistance = eastFaceX - relX + playerHalfX;
                 if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
-                translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                // X axis - west
+                relX = playerCollision.getMiddleX() - x;
+                translateDistance = westFaceX - relX - playerHalfX;
                 if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                double bottomFaceYPos = b.getMiddleY() - (b.getSizeY() / 2);
-                translateDistance = bottomFaceYPos - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
+                // Y axis - bottom
+                double relY = playerCollision.getMiddleY() - y;
+                translateDistance = bottomFaceY - relY - playerHalfY;
                 if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(0, translateDistance, 0);
                 }
             }
 
-            // Set the collision size back to normal
-            playerCollision.setSizeX(0.6);
-            playerCollision.setSizeZ(0.6);
+            // Restore original player collision size exactly (don't break possible special sizes)
+            playerCollision.setSizeX(originalSizeX);
+            playerCollision.setSizeZ(originalSizeZ);
         }
 
         return true;
