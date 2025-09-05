@@ -83,9 +83,14 @@ public class BlockCollision {
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
 
+            correctPosition(session, x, y, z, boundingBox, playerCollision);
+
             // Revert back to the old collision size.
             playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
         }
+    }
+
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {

@@ -38,6 +38,8 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_trapdoor$", usesParams = true, passDefaultBoxes = true)
 public class TrapdoorCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01;
+
     private final Direction facing;
 
     public TrapdoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
@@ -54,20 +56,8 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
-
-        final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
         // Check for trapdoor bug (trapdoors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
-            }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-            boundingBox.pushOutOfBoundingBox(playerCollision, facing, maxPushDistance);
-        }
+        blockCollision.pushOutOfBoundingBox(playerCollision, facing, MAX_PUSH_DISTANCE);
     }
 }

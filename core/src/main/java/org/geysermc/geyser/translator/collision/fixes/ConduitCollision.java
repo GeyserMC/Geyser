@@ -37,26 +37,15 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^conduit$", passDefaultBoxes = true)
 public class ConduitCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.1875 + CollisionManager.COLLISION_TOLERANCE * 1.01;
+
     public ConduitCollision(BlockState state, BoundingBox[] boxes) {
         super(boxes);
     }
 
     @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
-
-        final double maxPushDistance = 0.1875F + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
         // Check for conduit bug (conduit is lifted from the ground on Java unlike Bedrock where conduit is placed on the ground)
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
-            }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-
-            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, maxPushDistance);
-        }
+        blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }

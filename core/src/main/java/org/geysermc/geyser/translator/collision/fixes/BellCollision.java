@@ -38,6 +38,8 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^bell$", passDefaultBoxes = true)
 public class BellCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.1875 + CollisionManager.COLLISION_TOLERANCE * 1.01;
+
     private final boolean standing;
 
     public BellCollision(BlockState state, BoundingBox[] boxes) {
@@ -47,24 +49,12 @@ public class BellCollision extends BlockCollision {
     }
 
     @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
         if (!this.standing) {
             return;
         }
 
-        final double maxPushDistance = 0.1875F + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-
         // Check for bell collision bug (bell on Java is 0.1875 block higher than Bedrock)
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
-            }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-
-            boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, maxPushDistance);
-        }
+        blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }
