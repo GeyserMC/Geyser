@@ -30,8 +30,10 @@ import com.google.common.hash.HashCode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * {@link MapHasher}s are used to encode a {@link Type} to a map-like structure, which is then hashed using a {@link MinecraftHashEncoder}.
@@ -135,11 +137,7 @@ public class MapHasher<Type> {
      * @param <Value> the type of the value.
      */
     public <Value> MapHasher<Type> optionalNullable(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor) {
-        Value value = extractor.apply(object);
-        if (value != null) {
-            acceptConstant(key, hasher, value);
-        }
-        return this;
+        return optionalPredicate(key, hasher, extractor, Objects::nonNull);
     }
 
     /**
@@ -166,8 +164,21 @@ public class MapHasher<Type> {
      * @param <Value> the type of the value.
      */
     public <Value> MapHasher<Type> optional(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor, Value defaultValue) {
+        return optionalPredicate(key, hasher, extractor, value -> !value.equals(defaultValue));
+    }
+
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map only if {@code predicate} returns {@code true} for it.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param predicate the predicate that checks if a {@link Value} should be added to the map. The {@link Value} won't be added to the map if the predicate returns {@code false} for it.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optionalPredicate(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor, Predicate<Value> predicate) {
         Value value = extractor.apply(object);
-        if (!value.equals(defaultValue)) {
+        if (predicate.test(value)) {
             acceptConstant(key, hasher, value);
         }
         return this;
@@ -202,9 +213,6 @@ public class MapHasher<Type> {
     }
 
     public HashCode build() {
-        if (unhashed != null) {
-            System.out.println(unhashed);
-        }
         return encoder.map(map);
     }
 }

@@ -55,7 +55,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
      * Sets the variant of the entity.
      */
     default void setVariantFromJavaId(int variant) {
-        setBedrockVariant(variantRegistry().fromNetworkId(getSession(), variant));
+        setBedrockVariant(variantRegistry().value(getSession(), variant));
     }
 
     GeyserSession getSession();

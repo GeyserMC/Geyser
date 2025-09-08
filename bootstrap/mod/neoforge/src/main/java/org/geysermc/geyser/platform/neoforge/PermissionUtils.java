@@ -32,6 +32,8 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.platform.neoforge.mixin.PermissionNodeMixin;
 
+import java.util.Objects;
+
 /**
  * Common logic for handling the more complicated way we have to register permission on NeoForge
  */
@@ -69,7 +71,7 @@ public class PermissionUtils {
                 case FALSE -> false;
                 case NOT_SET -> {
                     if (player != null) {
-                        yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
+                        yield player.createCommandSourceStack().hasPermission(Objects.requireNonNull(player.getServer()).getOperatorUserPermissionLevel());
                     }
                     yield false; // NeoForge javadocs say player is null in the case of an offline player.
                 }

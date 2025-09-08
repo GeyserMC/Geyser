@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
 public final class LocalSession extends ClientNetworkSession {
-    private static DefaultEventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
+    private static EventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 
     private final SocketAddress spoofedRemoteAddress;

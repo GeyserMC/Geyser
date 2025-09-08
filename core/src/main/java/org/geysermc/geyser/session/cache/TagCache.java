@@ -62,7 +62,7 @@ public final class TagCache {
         this.session = session;
     }
 
-    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
 
@@ -110,7 +110,7 @@ public final class TagCache {
     }
 
     public <T> boolean is(Tag<T> tag, T object) {
-        return contains(getRaw(tag), tag.registry().toNetworkId(session, object));
+        return contains(getRaw(tag), tag.registry().networkId(session, object));
     }
 
     /**
@@ -127,7 +127,7 @@ public final class TagCache {
         if (holderSet == null || object == null) {
             return false;
         }
-        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().toNetworkId(session, object));
+        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
     }
 
     /**
@@ -173,7 +173,7 @@ public final class TagCache {
      * Maps a raw array of network IDs to their respective objects.
      */
     public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
-        return Arrays.stream(array).mapToObj(i -> registry.fromNetworkId(session, i)).toList();
+        return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
     }
 
     private static boolean contains(int[] array, int i) {

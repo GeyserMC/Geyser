@@ -51,6 +51,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -102,6 +103,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
     private @Nullable ParrotEntity rightParrot;
+
+    /**
+     * Whether this player is currently listed.
+     */
+    private boolean listed = false;
 
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
@@ -156,6 +162,8 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         // Since we re-use player entities: Clear flags, held item, etc
         this.resetMetadata();
         this.nametag = username;
+
+        this.equipment.clear();
         this.hand = ItemData.AIR;
         this.offhand = ItemData.AIR;
         this.boots = ItemData.AIR;
@@ -196,16 +204,15 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setPosition(this.position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-
-        if (teleported) {
-            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+        movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         }
 
         session.sendUpstreamPacket(movePlayerPacket);
 
-        if (teleported) {
-            // As of 1.19.0, head yaw seems to be ignored during teleports.
+        if (teleported && !(this instanceof SessionPlayerEntity)) {
+            // As of 1.19.0, head yaw seems to be ignored during teleports, also don't do this for session player.
             updateHeadLookRotation(headYaw);
         }
 
@@ -231,7 +238,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         movePlayerPacket.setPosition(position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
@@ -239,9 +246,13 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
             }
         }
+
+        if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        }
+
         session.sendUpstreamPacket(movePlayerPacket);
         if (leftParrot != null) {
             leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
@@ -416,7 +427,30 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    public void setPose(Pose pose) {
+        super.setPose(pose);
+        setFlag(EntityFlag.SWIMMING, false);
+        setFlag(EntityFlag.CRAWLING, false);
+
+        if (pose == Pose.SWIMMING) {
+            // This is just for, so we know if player is swimming or crawling.
+            if (session.getGeyser().getWorldManager().blockAt(session, this.position().toInt()).is(Blocks.WATER)) {
+                setFlag(EntityFlag.SWIMMING, true);
+            } else {
+                setFlag(EntityFlag.CRAWLING, true);
+                // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
+                updateRotation(this.yaw, 0, this.onGround);
+            }
+        }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        super.setPitch(getFlag(EntityFlag.CRAWLING) ? 0 : pitch);
+    }
+
+    @Override
+    public void setDimensionsFromPose(Pose pose) {
         float height;
         float width;
         switch (pose) {
@@ -433,7 +467,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 width = 0.2f;
             }
             default -> {
-                super.setDimensions(pose);
+                super.setDimensionsFromPose(pose);
                 return;
             }
         }

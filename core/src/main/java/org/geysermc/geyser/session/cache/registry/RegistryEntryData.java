@@ -27,5 +27,5 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 
-public record RegistryEntryData<T>(Key key, T data) {
+public record RegistryEntryData<T>(int id, Key key, T data) {
 }

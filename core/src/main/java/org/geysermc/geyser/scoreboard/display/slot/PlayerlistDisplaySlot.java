@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.geyser.scoreboard.display.slot;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +40,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 
 public class PlayerlistDisplaySlot extends DisplaySlot {
-    private final Long2ObjectMap<PlayerlistDisplayScore> displayScores =
-        Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Long2ObjectMap<PlayerlistDisplayScore> displayScores = new Long2ObjectOpenHashMap<>();
     private final List<PlayerlistDisplayScore> removedScores = Collections.synchronizedList(new ArrayList<>());
 
     public PlayerlistDisplaySlot(GeyserSession session, Objective objective) {
@@ -71,35 +69,37 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             removedScores.clear();
         }
 
-        for (var score : displayScores.values()) {
-            if (score.referenceRemoved()) {
-                ScoreInfo cachedInfo = score.cachedInfo();
-                // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
-                // removed before a single update cycle is performed
-                if (cachedInfo != null) {
-                    removeScores.add(cachedInfo);
+        synchronized (displayScores) {
+            for (var score : displayScores.values()) {
+                if (score.referenceRemoved()) {
+                    ScoreInfo cachedInfo = score.cachedInfo();
+                    // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
+                    // removed before a single update cycle is performed
+                    if (cachedInfo != null) {
+                        removeScores.add(cachedInfo);
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            //todo does an animated title exist on tab?
-            boolean add = objectiveAdd || objectiveUpdate;
-            boolean exists = score.exists();
+                //todo does an animated title exist on tab?
+                boolean add = objectiveAdd || objectiveUpdate;
+                boolean exists = score.exists();
 
-            if (score.shouldUpdate()) {
-                score.update(objective);
-                add = true;
-            }
+                if (score.shouldUpdate()) {
+                    score.update(objective);
+                    add = true;
+                }
 
-            if (add) {
-                addScores.add(score.cachedInfo());
-            }
+                if (add) {
+                    addScores.add(score.cachedInfo());
+                }
 
-            // we need this as long as MCPE-143063 hasn't been fixed.
-            // the checks after 'add' are there to prevent removing scores that
-            // are going to be removed anyway / don't need to be removed
-            if (add && exists && objectiveNothing) {
-                removeScores.add(score.cachedInfo());
+                // we need this as long as MCPE-143063 hasn't been fixed.
+                // the checks after 'add' are there to prevent removing scores that
+                // are going to be removed anyway / don't need to be removed
+                if (add && exists && objectiveNothing) {
+                    removeScores.add(score.cachedInfo());
+                }
             }
         }
 
@@ -124,16 +124,17 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             players.add(selfPlayer);
         }
 
-        for (PlayerEntity player : players) {
-            var score =
-                new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.getGeyserId());
-            displayScores.put(player.getGeyserId(), score);
+        synchronized (displayScores) {
+            for (PlayerEntity player : players) {
+                var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.getGeyserId());
+                displayScores.put(player.getGeyserId(), score);
+            }
         }
     }
 
     private void registerExisting() {
         playerRegistered(session.getPlayerEntity());
-        session.getEntityCache().getAllPlayerEntities().forEach(this::playerRegistered);
+        session.getEntityCache().forEachPlayerEntity(this::playerRegistered);
     }
 
     @Override
@@ -142,14 +143,20 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
         if (reference == null) {
             return;
         }
-        var score =
-            new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.getGeyserId());
-        displayScores.put(player.getGeyserId(), score);
+
+        var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.getGeyserId());
+        synchronized (displayScores) {
+            displayScores.put(player.getGeyserId(), score);
+        }
     }
 
     @Override
     public void playerRemoved(PlayerEntity player) {
-        var score = displayScores.remove(player.getGeyserId());
+        PlayerlistDisplayScore score;
+        synchronized (displayScores) {
+            score = displayScores.remove(player.getGeyserId());
+        }
+
         if (score == null) {
             return;
         }

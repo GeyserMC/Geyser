@@ -36,17 +36,16 @@ dependencies {
         exclude("io.netty", "*")
     }
 
-    implementation(libs.netty.resolver.dns)
-    implementation(libs.netty.resolver.dns.native.macos) { artifact { classifier = "osx-x86_64" } }
-    implementation(libs.netty.codec.haproxy)
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
+    implementation(libs.netty.codec.haproxy)
 
-    implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
+    api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
+    // kqueue is macos only
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
-    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+    api(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
@@ -149,10 +148,10 @@ inner class GitInfo {
 tasks.register<DownloadFilesTask>("downloadBedrockData") {
     urls = listOf(
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/entity_identifiers.dat",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/biome_definitions.dat",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/block_palette.nbt",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/creative_items.json",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json"
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/stripped_biome_definitions.json"
     )
     suffixedFiles = listOf("block_palette.nbt", "creative_items.json", "runtime_item_states.json")
 
