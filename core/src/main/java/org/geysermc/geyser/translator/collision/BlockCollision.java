@@ -55,7 +55,7 @@ public class BlockCollision {
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
 
-        // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
+        // Due to floating points errors, or because of block collision difference, player could be slightly clipping into the block.
         // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
         // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
         // push distance is smaller than "pushAwayTolerance", we don't want to push player out when they're actually inside a block.
