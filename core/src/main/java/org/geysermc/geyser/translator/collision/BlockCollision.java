@@ -53,12 +53,18 @@ public class BlockCollision {
      * Silently move player bounding box/position out of block when needed to.
      */
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        // Due to floating points errors, or possibly how collision is handled on Bedrock, player could be slightly clipping into the block.
+        final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
+
+        // Due to floating points errors, or because of block collision difference, player could be slightly clipping into the block.
         // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
         // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
         // push distance is smaller than "pushAwayTolerance", we don't want to push player out when they're actually inside a block.
         for (BoundingBox boundingBox : this.boundingBoxes) {
+            // Make player collision slightly bigger to pick up on blocks that could cause problems with NoCheatPlus's Passable check.
+            playerCollision.expand(collisionExpansion, 0, collisionExpansion);
+
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
+                playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
                 continue;
             }
 
@@ -76,7 +82,15 @@ public class BlockCollision {
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.WEST, xPushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
+
+            correctPosition(session, x, y, z, boundingBox, playerCollision);
+
+            // Revert back to the old collision size.
+            playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
         }
+    }
+
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {
