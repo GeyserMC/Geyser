@@ -142,10 +142,6 @@ public final class BlockUtils {
         return Math.ceil(1 / speed);
     }
 
-    public static double getSessionTotalBreakTimeTicks(GeyserSession session, Block block) {
-        return reciprocal(getBlockMiningProgressPerTick(session, block, session.getPlayerInventory().getItemInHand()));
-    }
-
     /**
      * Given a position, return the position if a block were located on the specified block face.
      * @param blockPos the block position

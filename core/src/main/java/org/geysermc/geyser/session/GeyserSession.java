@@ -1892,6 +1892,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamGamePacket(Packet packet) {
+        if (packet instanceof ServerboundPlayerActionPacket) {
+            GeyserImpl.getInstance().getLogger().info(packet.toString());
+        }
         sendDownstreamPacket(packet, ProtocolState.GAME);
     }
 
