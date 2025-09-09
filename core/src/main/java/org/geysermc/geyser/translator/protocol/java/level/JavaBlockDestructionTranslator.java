@@ -55,13 +55,13 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
         // Bedrock wants a total destruction time, not a stage - so we estimate!
 
         // First: Check if we know when the last packet for this position was sent - we'll use that for our estimation
-        Pair<Integer, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
+        Pair<Long, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
         if (lastUpdate == null) {
             levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
-            levelEventPacket.setData(65535 / 10000); // just a high value, we don't have any better one available
+            levelEventPacket.setData(65535 / 6000); // just a high value (5 mins), we'll update this once we get a new progress update
         } else {
             // Ticks since last update
-            int ticksSince = session.getTicks() - lastUpdate.first();
+            int ticksSince = (int) (session.getClientTicks() - lastUpdate.first());
             int stagesSince = packet.getStage().compareTo(lastUpdate.second());
             int ticksPerStage = stagesSince == 0 ? ticksSince : ticksSince / stagesSince;
             int remainingStages = 10 - packet.getStage().ordinal();
@@ -70,7 +70,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
             levelEventPacket.setData(65535 / Math.max(remainingStages * ticksPerStage, 0));
         }
 
-        session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getTicks(), packet.getStage()));
+        session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getClientTicks(), packet.getStage()));
         session.sendUpstreamPacket(levelEventPacket);
     }
 }

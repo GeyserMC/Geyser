@@ -138,8 +138,12 @@ public final class BlockUtils {
         return Math.max(cache.getHaste(), cache.getConduitPower());
     }
 
-    public static double getSessionBreakTimeTicks(GeyserSession session, Block block, float progress) {
-        return Math.ceil(1 / getBlockMiningProgressPerTick(session, block, session.getPlayerInventory().getItemInHand()));
+    public static double reciprocal(double speed) {
+        return Math.ceil(1 / speed);
+    }
+
+    public static double getSessionTotalBreakTimeTicks(GeyserSession session, Block block) {
+        return reciprocal(getBlockMiningProgressPerTick(session, block, session.getPlayerInventory().getItemInHand()));
     }
 
     /**
