@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import java.util.Objects;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -37,7 +36,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 public class JavaBlockBreakHandler extends BlockBreakHandler {
 
@@ -93,62 +91,29 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
     }
 
     @Override
-    protected void handleContinueBreaking(Vector3i vector, int blockFace, long tick) {
-        this.continueDestroying(vector, direction, tick, false);
+    protected void handleContinueBreaking(Vector3i position, int blockFace, long tick) {
+        this.continueDestroying(position, direction, tick, false);
     }
 
     @Override
-    protected void handleBlockBreaking(Vector3i vector, int blockFace, long tick) {
-        this.continueDestroying(vector, direction, tick, true);
+    protected void handleBlockBreaking(Vector3i position, int blockFace, long tick) {
+        this.continueDestroying(position, direction, tick, true);
     }
 
     public void continueDestroying(Vector3i blockPosition, Direction direction, long tick, boolean bedrockDestroyed) {
-        if (session.getGameMode() == GameMode.CREATIVE) {
-            this.destroyDelay = 5;
-            this.currentBlockPos = blockPosition;
-            this.currentBlockState = session.getGeyser().getWorldManager().blockAt(session, blockPosition);
-            //sendBlockAction(PlayerAction.START_DIGGING, direction);
-
-            if (canDestroyBlock(currentBlockState)) {
-                BlockUtils.spawnBlockBreakParticles(session, direction, currentBlockPos, currentBlockState);
-
-                LevelEventPacket effectPacket = new LevelEventPacket();
-                effectPacket.setPosition(currentBlockPos.toFloat());
-                effectPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
-                effectPacket.setData(session.getBlockMappings().getBedrockBlockId(currentBlockState.javaId()));
-                session.sendUpstreamPacket(effectPacket);
-            } else {
-                BlockUtils.sendBedrockStopBlockBreak(session, blockPosition.toFloat());
-                BlockUtils.restoreCorrectBlock(session, blockPosition);
-            }
-
-            clearVariables();
-        } else if (Objects.equals(this.currentBlockPos, blockPosition)) {
+        if (currentBlockState != null && currentBlockPos != null && currentBlockPos.equals(blockPosition)) {
             final float currentProgress = BlockUtils.getBlockMiningProgressPerTick(session, this.currentBlockState.block(), session.getPlayerInventory().getItemInHand());
             this.currentProgress = this.currentProgress + currentProgress;
             if (this.currentProgress >= 1.0F) {
-                if (canDestroyBlock(currentBlockState)) {
-                    BlockUtils.spawnBlockBreakParticles(session, direction, currentBlockPos, currentBlockState);
-
-                    LevelEventPacket effectPacket = new LevelEventPacket();
-                    effectPacket.setPosition(currentBlockPos.toFloat());
-                    effectPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
-                    effectPacket.setData(session.getBlockMappings().getBedrockBlockId(currentBlockState.javaId()));
-                    session.sendUpstreamPacket(effectPacket);
-                } else {
-                    BlockUtils.sendBedrockStopBlockBreak(session, currentBlockPos.toFloat());
-                    BlockUtils.restoreCorrectBlock(session, currentBlockPos);
-                }
-                //sendBlockAction(PlayerAction.FINISH_DIGGING, direction);
-
-                clearVariables();
+                // Calling super since our override only matters for instant breaking + creative mode
+                super.destroyBlock(currentBlockState, currentBlockPos, direction, false);
                 return;
             }
 
             // Prevent the Bedrock client from destroying blocks quicker than Java allows.
             if (bedrockDestroyed) {
                 // TODO test
-                //stopBedrockBreaking(session, blockPosition.toFloat());
+                //BlockUtils.sendBedrockStopBlockBreak(session, blockPosition.toFloat());
                 BlockUtils.restoreCorrectBlock(session, blockPosition);
             }
 
@@ -169,6 +134,13 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
         }
     }
 
+    @Override
+    protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
+        if (instamine && session.isInstabuild()) {
+            this.destroyDelay = 5;
+        }
+        super.destroyBlock(state, vector, direction, instamine);
+    }
 
     @Override
     protected void clearVariables() {
