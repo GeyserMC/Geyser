@@ -57,6 +57,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
@@ -105,6 +106,8 @@ public class BlockBreakHandler {
         .maximumSize(200)
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build();
+
+    private final BlockPredicateCache blockPredicateCache = new BlockPredicateCache();
 
     private final Set<Block> GAME_MASTER_BLOCKS = Set.of(
         Blocks.COMMAND_BLOCK,
@@ -355,17 +358,11 @@ public class BlockBreakHandler {
             case SPECTATOR -> {
                 return false;
             }
-//            case ADVENTURE -> {
-//                GeyserItemStack stack = session.getPlayerInventory().getItemInHand();
-//                if (!stack.isEmpty()) {
-//                    AdventureModePredicate canBreak = stack.getComponent(DataComponentTypes.CAN_BREAK);
-//                    if (canBreak != null) {
-//                        for (AdventureModePredicate.BlockPredicate predicate : canBreak.getPredicates()) {
-//                            // TODO i'm lazy
-//                        }
-//                    }
-//                }
-//            }
+            case ADVENTURE -> {
+                if (/*!blockPredicateCache.calculatePredicate(session, state, session.getPlayerInventory().getItemInHand())*/ false) {
+                    return false;
+                }
+            }
         }
 
         Vector3f playerPosition = session.getPlayerEntity().getPosition();
@@ -429,5 +426,38 @@ public class BlockBreakHandler {
         clearCurrentVariables();
         this.lastInstaMinedPosition = null;
         this.destructionStageCache.invalidateAll();
+    }
+
+    private static class BlockPredicateCache {
+        private BlockState lastBlockState;
+        private GeyserItemStack lastItemStack;
+        private Boolean lastResult;
+
+        private boolean calculatePredicate(GeyserSession session, BlockState state, GeyserItemStack stack) {
+            // An empty stack will never pass
+            if (stack.isEmpty()) {
+                return false;
+            }
+
+            AdventureModePredicate canBreak = stack.getComponent(DataComponentTypes.CAN_BREAK);
+            if (canBreak == null) { // Neither will a stack without can_break
+                return false;
+            } else if (state.equals(lastBlockState) && stack.equals(lastItemStack) && lastResult != null) { // Check lastResult just in case.
+                return lastResult;
+            }
+
+            lastBlockState = state;
+            lastItemStack = stack;
+
+            // Any of the predicates have to match for the stack to match
+            for (AdventureModePredicate.BlockPredicate predicate : canBreak.getPredicates()) {
+                if (BlockUtils.blockMatchesPredicate(session, state, predicate)) {
+                    lastResult = true;
+                    return true;
+                }
+            }
+            lastResult = false;
+            return false;
+        }
     }
 }

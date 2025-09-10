@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.SkullBlock;
@@ -41,8 +42,12 @@ import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
+
+import java.util.List;
+import java.util.Optional;
 
 public final class BlockUtils {
 
@@ -246,6 +251,50 @@ public final class BlockUtils {
 
     public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
         restoreCorrectBlock(session, blockPos, session.getGeyser().getWorldManager().blockAt(session, blockPos));
+    }
+
+    public static boolean blockMatchesPredicate(GeyserSession session, BlockState state, AdventureModePredicate.BlockPredicate predicate) {
+        if (predicate.getBlocks() != null && !session.getTagCache().isBlock(predicate.getBlocks(), state.block())) {
+            return false;
+        } else if (predicate.getProperties() != null) {
+            List<AdventureModePredicate.PropertyMatcher> matchers = predicate.getProperties();
+            if (!matchers.isEmpty()) {
+                for (AdventureModePredicate.PropertyMatcher matcher : matchers) {
+                    for (Property<?> property : state.block().propertyKeys()) {
+                        if (matcher.getName().equals(property.name())) {
+                            if (!propertyMatchesPredicate(state, property, matcher)) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Not checking NBT or data components - assume the predicate matches
+        return true;
+    }
+
+    private static <T extends Comparable<T>> boolean propertyMatchesPredicate(BlockState state, Property<T> property, AdventureModePredicate.PropertyMatcher matcher) {
+        T stateValue = state.getValue(property);
+        if (matcher.getValue() != null) {
+            Optional<T> value = property.valueOf(matcher.getValue());
+            return value.isPresent() && stateValue.equals(value.get());
+        } else {
+            if (matcher.getMinValue() != null) {
+                Optional<T> min = property.valueOf(matcher.getMinValue());
+                if (min.isEmpty() || stateValue.compareTo(min.get()) < 0) {
+                    return false;
+                }
+            }
+            if (matcher.getMaxValue() != null) {
+                Optional<T> max = property.valueOf(matcher.getMaxValue());
+                if (max.isEmpty() || stateValue.compareTo(max.get()) > 0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private BlockUtils() {
