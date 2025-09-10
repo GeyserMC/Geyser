@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -58,6 +55,10 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Translator(packet = PlayerAuthInputPacket.class)
 public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<PlayerAuthInputPacket> {
 
@@ -69,7 +70,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
-        session.getBlockBreakHandler().handleBlockBreaking(packet);
+        session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;
 

@@ -48,7 +48,7 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
     }
 
     @Override
-    public void handleBlockBreaking(PlayerAuthInputPacket packet) {
+    public void handlePlayerAuthInputPacket(PlayerAuthInputPacket packet) {
         if (packet.getInputData().contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS) &&
             !packet.getPlayerActions().isEmpty()) {
             handleBlockBreakActions(packet);
@@ -68,9 +68,9 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
     }
 
     @Override
-    protected void startBreaking(Vector3i position, int blockFace, long tick) {
+    protected void handleStartBreak(Vector3i position, int blockFace, long tick) {
         this.direction = Direction.VALUES[blockFace]; // will get cleared if block is broken!
-        super.startBreaking(position, blockFace, tick);
+        super.handleStartBreak(position, blockFace, tick);
     }
 
     @Override
@@ -91,12 +91,12 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
     }
 
     @Override
-    protected void handleContinueBreaking(Vector3i position, int blockFace, long tick) {
+    protected void handleContinueDestroy(Vector3i position, int blockFace, long tick) {
         this.continueDestroying(position, direction, tick, false);
     }
 
     @Override
-    protected void handleBlockBreaking(Vector3i position, int blockFace, long tick) {
+    protected void handlePredictDestroy(Vector3i position, int blockFace, long tick) {
         this.continueDestroying(position, direction, tick, true);
     }
 
@@ -130,7 +130,7 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
                 // TODO
                 GeyserImpl.getInstance().getLogger().info("STILL DESTROYING!!!");
             }
-            super.startBreaking(blockPosition, direction.ordinal(), tick);
+            super.handleStartBreak(blockPosition, direction.ordinal(), tick);
         }
     }
 
@@ -143,8 +143,8 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
     }
 
     @Override
-    protected void clearVariables() {
-        super.clearVariables();
+    protected void clearCurrentVariables() {
+        super.clearCurrentVariables();
         this.direction = null;
         this.currentProgress = 0.0F;
     }
