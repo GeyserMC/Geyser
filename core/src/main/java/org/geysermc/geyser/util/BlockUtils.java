@@ -144,8 +144,8 @@ public final class BlockUtils {
         return Math.max(cache.getHaste(), cache.getConduitPower());
     }
 
-    public static double reciprocal(double speed) {
-        return Math.ceil(1 / speed);
+    public static double reciprocal(double progress) {
+        return Math.ceil(1 / progress);
     }
 
     /**
@@ -251,6 +251,11 @@ public final class BlockUtils {
 
     public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
         restoreCorrectBlock(session, blockPos, session.getGeyser().getWorldManager().blockAt(session, blockPos));
+    }
+
+    public static void stopBreakAndRestoreBlock(GeyserSession session, Vector3i vector, BlockState blockState) {
+        sendBedrockStopBlockBreak(session, vector.toFloat());
+        restoreCorrectBlock(session, vector, blockState);
     }
 
     public static boolean blockMatchesPredicate(GeyserSession session, BlockState state, AdventureModePredicate.BlockPredicate predicate) {

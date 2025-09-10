@@ -299,6 +299,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
+
+    /**
+     * Handles block breaking and break animation progress caching
+     */
     private final BlockBreakHandler blockBreakHandler;
 
     @Setter
@@ -765,11 +769,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
-        this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.worldBorder = new WorldBorder(this);
-
         this.collisionManager = new CollisionManager(this);
+        this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
@@ -1893,6 +1896,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamGamePacket(Packet packet) {
+        if (packet instanceof ServerboundPlayerActionPacket) {
+            geyser.getLogger().warning(packet.toString());
+        }
         sendDownstreamPacket(packet, ProtocolState.GAME);
     }
 
