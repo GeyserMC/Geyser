@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -220,6 +221,10 @@ public class LivingEntity extends Entity {
 
         // OptionalPack usage
         setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
+
+        if (this instanceof SessionPlayerEntity playerEntity) {
+            playerEntity.forceFlagUpdate();
+        }
     }
 
     protected void setSpinAttack(boolean value) {
