@@ -94,6 +94,11 @@ final class BedrockMovePlayer {
         boolean positionChangedAndShouldUpdate = !hasVehicle && (session.getInputCache().shouldSendPositionReminder() || actualPositionChanged);
         boolean rotationChanged = hasVehicle || (entity.getJavaYaw() != javaYaw || entity.getPitch() != pitch);
 
+        // Drop invalid rotation packets
+        if (isInvalidNumber(yaw) || isInvalidNumber(pitch) || isInvalidNumber(headYaw)) {
+            return;
+        }
+
         // Simulate jumping since it happened this tick, not from the last tick end.
         if (entity.isOnGround() && packet.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), Math.max(entity.getLastTickEndVelocity().getY(), entity.getJumpVelocity()), entity.getLastTickEndVelocity().getZ()));
@@ -105,8 +110,6 @@ final class BedrockMovePlayer {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
         }
 
-        entity.setCollidingVertically(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION));
-
         // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
         if (hasVehicle || session.isNoClip()) {
@@ -115,7 +118,7 @@ final class BedrockMovePlayer {
             // Also do this if player have no clip ability since they shouldn't be able to collide with anything.
             isOnGround = false;
         } else {
-            isOnGround = entity.isCollidingVertically() && entity.getLastTickEndVelocity().getY() < 0;
+            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
         }
 
         // Resolve https://github.com/GeyserMC/Geyser/issues/3521, no void floor on java so player not supposed to collide with anything.
@@ -136,10 +139,14 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
+                if (other == entity) {
+                    continue;
+                }
+
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? entity.getDefinition().offset() : 0).toDouble());
+                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getDefinition().offset() : 0).toDouble());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;
@@ -149,6 +156,9 @@ final class BedrockMovePlayer {
 
             session.setNoClip(!possibleOnGround);
         }
+
+        entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
@@ -175,11 +185,11 @@ final class BedrockMovePlayer {
             }
         } else if (positionChangedAndShouldUpdate) {
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
-                if (!session.getWorldBorder().isPassingIntoBorderBoundaries(entity.getPosition(), true)) {
-                    CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
-                    if (result != null) { // A null return value cancels the packet
-                        Vector3d position = result.correctedMovement();
+                CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
+                if (result != null) { // A null return value cancels the packet
+                    Vector3d position = result.correctedMovement();
 
+                    if (!session.getWorldBorder().isPassingIntoBorderBoundaries(position.toFloat(), true)) {
                         Packet movePacket;
                         if (rotationChanged) {
                             // Send rotation updates as well
@@ -205,6 +215,8 @@ final class BedrockMovePlayer {
 
                         session.getInputCache().markPositionPacketSent();
                         session.getSkullCache().updateVisibleSkulls();
+                    } else {
+                        session.getCollisionManager().recalculatePosition();
                     }
                 }
             } else {
@@ -215,9 +227,6 @@ final class BedrockMovePlayer {
         } else if (horizontalCollision != session.getInputCache().lastHorizontalCollision() || isOnGround != entity.isOnGround()) {
             session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(isOnGround, horizontalCollision));
         }
-
-        entity.setLastTickEndVelocity(packet.getDelta());
-        entity.setMotion(packet.getDelta());
 
         session.getInputCache().setLastHorizontalCollision(horizontalCollision);
         entity.setOnGround(isOnGround);
@@ -249,4 +258,3 @@ final class BedrockMovePlayer {
         return true;
     }
 }
-
