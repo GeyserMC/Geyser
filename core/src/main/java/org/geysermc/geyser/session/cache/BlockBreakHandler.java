@@ -145,7 +145,7 @@ public class BlockBreakHandler {
                 // Must do this ugly as it can also be called in block_continue_destroy :(
                 case START_BREAK -> preStartBreakHandle(position, blockFace, packet.getTick());
                 case BLOCK_CONTINUE_DESTROY -> {
-                    if (instabuild || restoredBlocks.contains(position) || testForLastInstaBreakPosOrReset(position)) {
+                    if (restoredBlocks.contains(position) || testForLastInstaBreakPosOrReset(position)) {
                         continue;
                     }
 
@@ -178,8 +178,8 @@ public class BlockBreakHandler {
                     handleContinueDestroy(position, blockFace, packet.getTick());
                 }
                 case BLOCK_PREDICT_DESTROY -> {
-                    // If a block was instantly broken in one tick, only START_BREAK is sent
-                    if (instabuild || testForLastInstaBreakPosOrReset(position)) {
+                    // If a block was instantly broken in one tick, only START_BREAK is sent to the Java client
+                    if (testForLastInstaBreakPosOrReset(position)) {
                         continue;
                     }
 
@@ -188,10 +188,10 @@ public class BlockBreakHandler {
                         continue;
                     }
 
-                    boolean valid = currentBlockState == null || !Objects.equals(position, currentBlockPos);
+                    boolean valid = currentBlockState != null && Objects.equals(position, currentBlockPos);
                     if (!canBreak(position) || !valid) {
                         if (!valid) {
-                            GeyserImpl.getInstance().getLogger().warning("Player %s to break block at %s (%s), without starting to destroy it!"
+                            GeyserImpl.getInstance().getLogger().warning("Player %s tried to break block at %s (%s), without starting to destroy it!"
                                 .formatted(session.bedrockUsername(), position, currentBlockState));
                         }
                         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
