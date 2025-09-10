@@ -301,9 +301,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final WorldCache worldCache;
 
     /**
-     * Handles block breaking and break animation progress caching
+     * Handles block breaking and break animation progress caching.
      */
-    private final BlockBreakHandler blockBreakHandler;
+    @Setter
+    private BlockBreakHandler blockBreakHandler;
 
     @Setter
     private TeleportCache unconfirmedTeleport;
