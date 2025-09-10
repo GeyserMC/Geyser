@@ -145,7 +145,7 @@ public class BlockBreakHandler {
                 // Must do this ugly as it can also be called in block_continue_destroy :(
                 case START_BREAK -> preStartBreakHandle(position, blockFace, packet.getTick());
                 case BLOCK_CONTINUE_DESTROY -> {
-                    if (restoredBlocks.contains(position) || testForLastInstaBreakPosOrReset(position)) {
+                    if (testForLastInstaBreakPosOrReset(position) || restoredBlocks.contains(position)) {
                         continue;
                     }
 
@@ -259,7 +259,7 @@ public class BlockBreakHandler {
         float breakProgress = calculateBreakProgress(state, position, item);
 
         // insta-breaking should be treated differently; don't send STOP_BREAK for these
-        if (session.isInstabuild() || breakProgress > 1) {
+        if (session.isInstabuild() || breakProgress >= 1.0F) {
             // Avoid sending STOP_BREAK for instantly broken blocks
             lastInstaMinedPosition = position;
             destroyBlock(state, position, direction, true);

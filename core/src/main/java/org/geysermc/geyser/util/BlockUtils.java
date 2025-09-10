@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -49,16 +48,18 @@ public final class BlockUtils {
 
     /**
      * Returns the total mining progress added by mining the block in a single tick
+     * Mirrors mojmap BlockBehaviour#getDestroyProgress
+     *
      * @return the mining progress added by this tick.
      */
     public static float getBlockMiningProgressPerTick(GeyserSession session, Block block, GeyserItemStack itemInHand) {
         float destroySpeed = block.destroyTime();
-        if (destroySpeed == -1) {
+        if (destroySpeed == -1.0F) {
             return 0;
         }
 
         int speedMultiplier = hasCorrectTool(session, block, itemInHand) ? 30 : 100;
-        return getPlayerDestroySpeed(session, block, itemInHand) / destroySpeed / speedMultiplier;
+        return getPlayerDestroySpeed(session, block, itemInHand) / destroySpeed / (float) speedMultiplier;
     }
 
     private static boolean hasCorrectTool(GeyserSession session, Block block, GeyserItemStack stack) {
@@ -85,7 +86,7 @@ public final class BlockUtils {
     private static float getItemDestroySpeed(GeyserSession session, Block block, GeyserItemStack stack) {
         ToolData tool = stack.getComponent(DataComponentTypes.TOOL);
         if (tool == null) {
-            return 1f;
+            return 1.0F;
         }
 
         for (ToolData.Rule rule : tool.getRules()) {
@@ -101,15 +102,15 @@ public final class BlockUtils {
 
     private static float getPlayerDestroySpeed(GeyserSession session, Block block, GeyserItemStack itemInHand) {
         float destroySpeed = getItemDestroySpeed(session, block, itemInHand);
-        EntityEffectCache effectCache = session.getEffectCache();
 
         if (destroySpeed > 1.0F) {
-            destroySpeed += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.MINING_EFFICIENCY);
+            destroySpeed += (float) session.getPlayerEntity().getMiningEfficiency();
         }
 
+        EntityEffectCache effectCache = session.getEffectCache();
         int miningSpeedMultiplier = getMiningSpeedAmplification(effectCache);
         if (miningSpeedMultiplier > 0) {
-            destroySpeed *= miningSpeedMultiplier * 0.2F;
+            destroySpeed *= 1.0F + miningSpeedMultiplier * 0.2F;
         }
 
         if (effectCache.getMiningFatigue() != 0) {
@@ -122,13 +123,13 @@ public final class BlockUtils {
             destroySpeed *= slowdown;
         }
 
-        destroySpeed *= session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.BLOCK_BREAK_SPEED);
+        destroySpeed *= (float) session.getPlayerEntity().getBlockBreakSpeed();
         if (session.getCollisionManager().isWaterInEyes()) {
-            destroySpeed *= session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.SUBMERGED_MINING_SPEED);
+            destroySpeed *= (float) session.getPlayerEntity().getSubmergedMiningSpeed();
         }
 
         if (!session.getPlayerEntity().isOnGround()) {
-            destroySpeed /= 5F;
+            destroySpeed /= 5.0F;
         }
 
         return destroySpeed;

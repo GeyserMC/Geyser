@@ -102,8 +102,8 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
 
     public void continueDestroying(Vector3i blockPosition, Direction direction, long tick, boolean bedrockDestroyed) {
         if (currentBlockState != null && currentBlockPos != null && currentBlockPos.equals(blockPosition)) {
-            final float currentProgress = BlockUtils.getBlockMiningProgressPerTick(session, this.currentBlockState.block(), session.getPlayerInventory().getItemInHand());
-            this.currentProgress = this.currentProgress + currentProgress;
+            final float newProgress = BlockUtils.getBlockMiningProgressPerTick(session, this.currentBlockState.block(), session.getPlayerInventory().getItemInHand());
+            this.currentProgress = this.currentProgress + newProgress;
             if (this.currentProgress >= 1.0F) {
                 // Calling super since our override only matters for instant breaking + creative mode
                 super.destroyBlock(currentBlockState, currentBlockPos, direction, false);
@@ -120,7 +120,7 @@ public class JavaBlockBreakHandler extends BlockBreakHandler {
             LevelEventPacket updateBreak = new LevelEventPacket();
             updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
             updateBreak.setPosition(blockPosition.toFloat());
-            updateBreak.setData((int) (65535 / BlockUtils.reciprocal(currentProgress)));
+            updateBreak.setData((int) (65535 / BlockUtils.reciprocal(newProgress)));
             session.sendUpstreamPacket(updateBreak);
 
             BlockUtils.spawnBlockBreakParticles(session, direction, blockPosition, currentBlockState);
