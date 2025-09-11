@@ -32,6 +32,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -243,6 +244,7 @@ public final class BlockRegistryPopulator {
                     .toList();
             Map<Block, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
+            IntArrayList collisionIgnoredBlocks = new IntArrayList();
 
             Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
             Map<String, BlockDefinition> structureBlockDefinitions = new Object2ObjectOpenHashMap<>();
@@ -308,6 +310,10 @@ public final class BlockRegistryPopulator {
                     netherPortalBlockDefinition = bedrockDefinition;
                 }
 
+                if (block == Blocks.BAMBOO || block == Blocks.POINTED_DRIPSTONE) {
+                    collisionIgnoredBlocks.add(javaRuntimeId);
+                }
+
                 boolean waterlogged = blockState.getValue(Properties.WATERLOGGED, false)
                         || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.KELP_PLANT
                         || block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS;
@@ -325,6 +331,8 @@ public final class BlockRegistryPopulator {
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
+
+            builder.collisionIgnoredBlocks(collisionIgnoredBlocks);
 
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
