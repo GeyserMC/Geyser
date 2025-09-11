@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import java.util.List;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -64,6 +63,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
+import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -89,6 +89,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
+
+import java.util.List;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -323,6 +325,24 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     session.setPlacedBucket(useItem(session, packet, blockState.javaId(), true));
                                 } else {
                                     session.setPlacedBucket(true);
+                                }
+                            }
+
+                            // Fix https://github.com/GeyserMC/Geyser/issues/5295
+                            // This is not an issue on 1.21.8, as there the Java server matches the client prediction
+                            // However, plugins might change that, so, let's always stop Bedrock shenanigans
+                            if (blockState.block() instanceof FlowerPotBlock flowerPotBlock && flowerPotBlock.flower() != Blocks.AIR) {
+                                Item mightStackHere = flowerPotBlock.flower().asItem();
+                                for (int i = 0; i < 36; i++) {
+                                    int slot = i;
+                                    if (i < 9) {
+                                        slot = session.getPlayerInventory().getOffsetForHotbar(slot);
+                                    }
+                                    GeyserItemStack stack = session.getPlayerInventory().getItem(slot);
+                                    if (stack.isEmpty() || stack.getJavaId() == mightStackHere.javaId()) {
+                                        session.getPlayerInventoryHolder().updateSlot(slot);
+                                        break;
+                                    }
                                 }
                             }
                         }
