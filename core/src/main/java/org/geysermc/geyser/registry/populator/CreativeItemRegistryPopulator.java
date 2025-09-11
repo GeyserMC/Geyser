@@ -45,7 +45,6 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -59,7 +58,8 @@ public class CreativeItemRegistryPopulator {
             (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
-    static List<CreativeItemGroup> readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette, List<CreativeItemData> creativeItemData) {
+    static void readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette, List<CreativeItemData> creativeItemData,
+                                       List<CreativeItemGroup> creativeItemGroups, Map<String, Integer> groupIndexMap, Map<CreativeItemCategory, Integer> lastCreativeItemGroup) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         JsonNode creativeItemEntries;
@@ -69,7 +69,6 @@ public class CreativeItemRegistryPopulator {
             throw new AssertionError("Unable to load creative item groups", e);
         }
 
-        List<CreativeItemGroup> creativeItemGroups = new ArrayList<>();
         for (JsonNode creativeItemEntry : creativeItemEntries) {
             CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntry.get("category").asText().toUpperCase(Locale.ROOT));
             String name = creativeItemEntry.get("name").asText();
@@ -88,10 +87,29 @@ public class CreativeItemRegistryPopulator {
                     .orElseThrow();
             }
 
+            if (!name.isEmpty()) {
+                groupIndexMap.put(name, creativeItemGroups.size());
+            }
+
             creativeItemGroups.add(new CreativeItemGroup(category, name, itemData));
         }
 
-        return creativeItemGroups;
+        CreativeItemCategory category = null;
+        for (int i = 0; i < creativeItemGroups.size(); i++) {
+            CreativeItemGroup creativeItemGroup = creativeItemGroups.get(i);
+            if (category == null) {
+                category = creativeItemGroup.getCategory();
+            }
+
+            if (creativeItemGroup.getCategory() != category) {
+                lastCreativeItemGroup.put(category, i--);
+                category = creativeItemGroup.getCategory();
+            }
+
+            if (i == creativeItemGroups.size() - 1) {
+                lastCreativeItemGroup.put(creativeItemGroup.getCategory(), i);
+            }
+        }
     }
 
     static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, BiConsumer<ItemData.Builder, Integer> itemConsumer) {
