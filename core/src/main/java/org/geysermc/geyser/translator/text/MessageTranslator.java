@@ -73,7 +73,7 @@ public class MessageTranslator {
     public static final String BASE = "\u00a7";
 
     // Reset character
-    public static final String RESET = BASE + "r";
+    private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.recipe;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
@@ -63,7 +64,7 @@ public final class TrimRecipe {
         // Find the nearest legacy color from the style Java gives us to work with
         Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
         String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
-        String color = legacy.isEmpty() ? MessageTranslator.RESET : legacy.substring(2).trim();
+        String color = legacy.isEmpty() ? MessageTranslator.BASE + CharacterAndFormat.WHITE.character() : legacy.substring(2).trim();
 
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
