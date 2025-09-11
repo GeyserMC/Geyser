@@ -70,7 +70,7 @@ public class MessageTranslator {
     private static final String BEDROCK_COLORS;
 
     // Legacy formatting character
-    public static final String BASE = "\u00a7";
+    private static final String BASE = "\u00a7";
 
     // Reset character
     private static final String RESET = BASE + "r";
