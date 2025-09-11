@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockDestructionPacket;
 
@@ -39,20 +40,16 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setPosition(packet.getPosition().toFloat());
-
         if (packet.getStage() == BlockBreakStage.RESET) {
             // Invalidate the position now that it's not being broken anymore
             session.getBlockBreakHandler().getDestructionStageCache().invalidate(packet.getPosition());
-
-            levelEventPacket.setType(LevelEvent.BLOCK_STOP_BREAK);
-            levelEventPacket.setData(0);
-            session.sendUpstreamPacket(levelEventPacket);
+            BlockUtils.sendBedrockStopBlockBreak(session, packet.getPosition().toFloat());
             return;
         }
 
         // Bedrock wants a total destruction time, not a stage - so we estimate!
+        LevelEventPacket levelEventPacket = new LevelEventPacket();
+        levelEventPacket.setPosition(packet.getPosition().toFloat());
 
         // First: Check if we know when the last packet for this position was sent - we'll use that for our estimation
         Pair<Long, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
@@ -67,7 +64,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
             int remainingStages = 10 - packet.getStage().ordinal();
 
             levelEventPacket.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-            levelEventPacket.setData(65535 / Math.max(remainingStages * ticksPerStage, 0));
+            levelEventPacket.setData(65535 / Math.max(remainingStages, 1) * ticksPerStage);
         }
 
         session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getClientTicks(), packet.getStage()));

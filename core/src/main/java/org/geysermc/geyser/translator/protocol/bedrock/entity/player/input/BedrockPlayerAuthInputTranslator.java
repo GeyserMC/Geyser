@@ -219,7 +219,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     }
 
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
-        if (transaction.getActionType() != 2) {
+        if (transaction.getActionType() == 2) {
+            session.setLastBlockPlaced(null);
+            session.setLastBlockPlacePosition(null);
+        } else {
             session.getGeyser().getLogger().error("Unhandled item use transaction type!");
             if (session.getGeyser().getLogger().isDebug()) {
                 session.getGeyser().getLogger().debug(transaction);

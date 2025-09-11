@@ -168,7 +168,7 @@ public class BlockBreakHandler {
                 // Must do this ugly as it can also be called from the block_continue_destroy case :(
                 case START_BREAK -> preStartBreakHandle(position, blockFace, packet.getTick());
                 case BLOCK_CONTINUE_DESTROY -> {
-                    if (testForLastInstaBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
+                    if (testForItemFrameEntity(position) || testForLastInstaBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
                         continue;
                     }
 
@@ -201,7 +201,7 @@ public class BlockBreakHandler {
                     handleContinueDestroy(position, state, blockFace, packet.getTick());
                 }
                 case BLOCK_PREDICT_DESTROY -> {
-                    if (testForLastInstaBreakPosOrReset(position)) {
+                    if (testForItemFrameEntity(position) || testForLastInstaBreakPosOrReset(position)) {
                         continue;
                     }
 
