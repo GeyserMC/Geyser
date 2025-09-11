@@ -370,6 +370,17 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
+        super.setLivingEntityFlags(entityMetadata);
+
+        // Forcefully update flags since we're not tracking thing like using item properly.
+        // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
+        // If the server disagree with the player using item state, it will send a metadata set USING_ITEM flag to false
+        // But since it never got set to true, nothing changed, causing the client to not receive the USING_ITEM flag they're supposed to.
+        this.forceFlagUpdate();
+    }
+
+    @Override
     public void resetMetadata() {
         super.resetMetadata();
 

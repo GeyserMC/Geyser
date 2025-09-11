@@ -221,10 +221,6 @@ public class LivingEntity extends Entity {
 
         // OptionalPack usage
         setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
-
-        if (this instanceof SessionPlayerEntity playerEntity) {
-            playerEntity.forceFlagUpdate();
-        }
     }
 
     protected void setSpinAttack(boolean value) {
