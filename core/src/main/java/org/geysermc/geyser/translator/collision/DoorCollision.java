@@ -29,8 +29,6 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
-import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
@@ -61,25 +59,26 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
-        final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, x, y, z, playerCollision);
+        // Hack to prevent false positives
+        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
+        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
-            }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-
-            switch (this.facing) {
-                case 1 -> boundingBox.pushOutOfBoundingBox(playerCollision, Direction.NORTH, maxPushDistance);
-                case 2 -> boundingBox.pushOutOfBoundingBox(playerCollision, Direction.EAST, maxPushDistance);
-                case 3 -> boundingBox.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, maxPushDistance);
-                case 4 -> boundingBox.pushOutOfBoundingBox(playerCollision, Direction.WEST, maxPushDistance);
+        if (this.checkIntersection(x, y, z, playerCollision)) {
+            switch (facing) {
+                case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
+                case 2 -> playerCollision.setMiddleX(x + 0.5125); // East
+                case 3 -> playerCollision.setMiddleZ(z + 0.4875); // South
+                case 4 -> playerCollision.setMiddleX(x + 0.4875); // West
             }
         }
+
+        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
+        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
+        return result;
     }
 }

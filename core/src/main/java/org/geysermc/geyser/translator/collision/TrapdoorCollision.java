@@ -52,20 +52,32 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        super.correctPosition(session, x, y, z, playerCollision);
-
-        final double maxPushDistance = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01F;
-
-        // Check for trapdoor bug (trapdoors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        for (BoundingBox boundingBox : this.boundingBoxes) {
-            if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
-                continue;
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, x, y, z, playerCollision);
+        // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
+        if (this.checkIntersection(x, y, z, playerCollision)) {
+            switch (facing) {
+                case NORTH:
+                    playerCollision.setMiddleZ(z + 0.5125);
+                    break;
+                case EAST:
+                    playerCollision.setMiddleX(x + 0.5125);
+                    break;
+                case SOUTH:
+                    playerCollision.setMiddleZ(z + 0.4875);
+                    break;
+                case WEST:
+                    playerCollision.setMiddleX(x + 0.4875);
+                    break;
+                case UP:
+                    // Up-facing trapdoors are handled by the step-up check
+                    break;
+                case DOWN:
+                    // (top y of trap door) - (trap door thickness) = top y of player
+                    playerCollision.setMiddleY(y + 1 - (3.0 / 16.0) - playerCollision.getSizeY() / 2.0 - CollisionManager.COLLISION_TOLERANCE);
+                    break;
             }
-
-            boundingBox = boundingBox.clone();
-            boundingBox.translate(x, y, z);
-            boundingBox.pushOutOfBoundingBox(playerCollision, facing, maxPushDistance);
         }
+        return result;
     }
 }
