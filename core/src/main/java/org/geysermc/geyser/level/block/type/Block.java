@@ -223,7 +223,7 @@ public class Block {
                 '}';
     }
 
-    Property<?>[] propertyKeys() {
+    public Property<?>[] propertyKeys() {
         return propertyKeys;
     }
 

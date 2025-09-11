@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import org.cloudburstmc.math.vector.Vector3d;
+import java.util.List;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -44,11 +44,9 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
@@ -66,10 +64,8 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -90,13 +86,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -189,7 +181,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 default -> false;
                             };
                             if (isGodBridging) {
-                                restoreCorrectBlock(session, blockPos);
+                                BlockUtils.restoreCorrectBlock(session, blockPos);
                                 return;
                             }
                         }
@@ -209,7 +201,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, belowBlockPos);
                                 BlockDefinition extendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
                                 if (extendedCollisionDefinition != null && (System.currentTimeMillis() - session.getLastInteractionTime()) < 200) {
-                                    restoreCorrectBlock(session, blockPos);
+                                    BlockUtils.restoreCorrectBlock(session, blockPos);
                                     return;
                                 }
                             }
@@ -229,7 +221,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         if (isIncorrectHeldItem(session, packet)) {
-                            restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos);
                             return;
                         }
 
@@ -249,7 +241,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
                         // Blocks cannot be placed or destroyed outside of the world border
                         if (!session.getWorldBorder().isInsideBorderBoundaries()) {
-                            restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos);
                             return;
                         }
 
@@ -258,7 +250,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
-                            restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos);
                             return;
                         }
 
@@ -272,7 +264,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         double clickDistanceY = clickPositionFullY - blockCenter.getY();
                         double clickDistanceZ = clickPositionFullZ - blockCenter.getZ();
                         if (!(Math.abs(clickDistanceX) < 1.0000001D && Math.abs(clickDistanceY) < 1.0000001D && Math.abs(clickDistanceZ) < 1.0000001D)) {
-                            restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos);
                             return;
                         }
 
@@ -551,42 +543,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         float diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
         float diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
         return ((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) < (additionalRangeCheck * additionalRangeCheck);
-    }
-
-    /**
-     * Restore the correct block state from the server without updating the chunk cache.
-     *
-     * @param session the session of the Bedrock client
-     * @param blockPos the block position to restore
-     */
-    public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
-        BlockState javaBlockState = session.getGeyser().getWorldManager().blockAt(session, blockPos);
-        BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(javaBlockState);
-
-        if (javaBlockState.block() instanceof SkullBlock skullBlock && skullBlock.skullType() == SkullBlock.Type.PLAYER) {
-            // The changed block was a player skull so check if a custom block was defined for this skull
-            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(blockPos);
-            if (skull != null && skull.getBlockDefinition() != null) {
-                bedrockBlock = skull.getBlockDefinition();
-            }
-        }
-
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(blockPos);
-        updateBlockPacket.setDefinition(bedrockBlock);
-        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.sendUpstreamPacket(updateBlockPacket);
-
-        UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
-        updateWaterPacket.setDataLayer(1);
-        updateWaterPacket.setBlockPosition(blockPos);
-        updateWaterPacket.setDefinition(BlockRegistries.WATERLOGGED.get().get(javaBlockState.javaId()) ? session.getBlockMappings().getBedrockWater() : session.getBlockMappings().getBedrockAir());
-        updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.sendUpstreamPacket(updateWaterPacket);
-
-        // Reset the item in hand to prevent "missing" blocks
-        session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getHeldItemSlot()); // TODO test
     }
 
     private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
