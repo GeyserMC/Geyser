@@ -64,7 +64,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
             int remainingStages = 10 - packet.getStage().ordinal();
 
             levelEventPacket.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-            levelEventPacket.setData(65535 / Math.max(remainingStages, 1) * ticksPerStage);
+            levelEventPacket.setData(65535 / Math.max(remainingStages, 1) * Math.max(ticksPerStage, 1));
         }
 
         session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getClientTicks(), packet.getStage()));
