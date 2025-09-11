@@ -70,10 +70,10 @@ public class MessageTranslator {
     private static final String BEDROCK_COLORS;
 
     // Legacy formatting character
-    private static final String BASE = "\u00a7";
+    public static final String BASE = "\u00a7";
 
     // Reset character
-    private static final String RESET = BASE + "r";
+    public static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
 
     static {
