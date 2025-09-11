@@ -26,7 +26,6 @@
 package org.geysermc.geyser.inventory.recipe;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
