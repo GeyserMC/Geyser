@@ -26,15 +26,21 @@
 package org.geysermc.geyser.platform.mod;
 
 import net.minecraft.server.level.ServerPlayer;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
+import org.geysermc.geyser.adapters.CommandManagerAdapter;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserModUpdateListener {
-    public static void onPlayReady(ServerPlayer player) {
+    public static void onPlayReady(ServerPlayer player, CommandManagerAdapter<?, ?> commandManagerAdapter) {
         // Should be creating this in the supplier, but we need it for the permission check.
         // Not a big deal currently because ModCommandSource doesn't load locale, so don't need to try to wait for it.
-        ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
+        ModCommandSource source = new ModCommandSource(((CommandManagerAdapter<Object, Object>) commandManagerAdapter).getCommandSenderDefinition(
+            player,
+            msg -> GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(msg + ChatColor.RESET))
+        ));
         if (source.hasPermission(Permissions.CHECK_UPDATE)) {
             VersionCheckUtils.checkForGeyserUpdate(() -> source);
         }

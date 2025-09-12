@@ -24,7 +24,7 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.16-SNAPSHOT"
+adapters = "1.17-SNAPSHOT"
 cloud = "2.0.0-rc.2"
 cloud-minecraft = "2.0.0-beta.11"
 cloud-minecraft-modded = "2.0.0-beta.12"
@@ -120,8 +120,13 @@ fabric-permissions-api = { group = "me.lucko", name = "fabric-permissions-api", 
 
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
+adapters = { group = "org.geysermc.geyser.adapters", name = "common", version.ref = "adapters" }
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
+adapters-fabric-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-fabric", version.ref = "adapters" }
+adapters-neoforge-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-neoforge", version.ref = "adapters" }
+adapters-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-fabric", version.ref = "adapters" }
+adapters-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-neoforge", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }

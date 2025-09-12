@@ -34,17 +34,10 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
-    include(libs.cloud.fabric)
-
-    include("org.incendo:cloud-fabric:2.0.0-beta.11")
-    include("org.incendo:cloud-fabric:2.0.0-beta.10")
-    include("org.incendo:cloud-fabric:2.0.0-beta.9")
-    include("org.incendo:cloud-fabric:2.0.0-beta.8")
-    include("org.incendo:cloud-fabric:2.0.0-beta.7")
-    include("org.incendo:cloud-fabric:2.0.0-beta.6")
-    include("org.incendo:cloud-fabric:2.0.0-beta.5")
-    include("org.incendo:cloud-fabric:2.0.0-beta.4")
+    compileOnly(libs.adapters)
+    include(libs.adapters)
+    include(libs.adapters.fabric.v1215)
+    include(libs.adapters.fabric.v1206)
 
     include(libs.fabric.permissions.api)
 }

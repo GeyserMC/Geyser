@@ -49,26 +49,7 @@ public class GeyserModMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        WorldVersion worldVersion = DetectedVersion.tryDetectVersion();
-
-        List<String> potentialMethods = List.of("name", "getName", "comp_4024", "method_48019");
-
-        Method nameMethod = null;
-
-        for (String methodName : potentialMethods) {
-            try {
-                nameMethod = worldVersion.getClass().getMethod(methodName);
-                break;
-            } catch (NoSuchMethodException ignored) {}
-        }
-
-        if (nameMethod == null) throw new IllegalStateException("Unable to determine suitable method for getting Minecraft version.");
-
-        try {
-            return !mixinClassName.startsWith("org.geysermc.geyser.platform.mod.mixin") || nameMethod.invoke(worldVersion).equals(ModConstants.MODERN_VERSION);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e); // This hopefully, will never happen
-        }
+        return !mixinClassName.startsWith("org.geysermc.geyser.platform.mod.mixin");
     }
 
     @Override
