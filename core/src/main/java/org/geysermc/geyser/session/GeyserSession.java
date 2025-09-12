@@ -46,13 +46,13 @@ import net.raphimc.minecraftauth.step.java.StepMCProfile;
 import net.raphimc.minecraftauth.step.java.StepMCToken;
 import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector2i;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -94,6 +94,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
@@ -120,6 +121,7 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -132,6 +134,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
@@ -149,7 +152,6 @@ import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -161,6 +163,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BlockBreakHandler;
 import org.geysermc.geyser.session.cache.BookEditCache;
 import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
@@ -184,6 +187,7 @@ import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -218,7 +222,6 @@ import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
@@ -234,6 +237,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -294,6 +299,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
+
+    /**
+     * Handles block breaking and break animation progress caching.
+     */
+    @Setter
+    private BlockBreakHandler blockBreakHandler;
 
     @Setter
     private TeleportCache unconfirmedTeleport;
@@ -437,6 +448,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Pose pose = Pose.STANDING;
 
+    /**
+     * This is used to keep track of player sprinting and should only change by START_SPRINT and STOP_SPRINT sent by the player, not from flag update.
+     */
     @Setter
     private boolean sprinting;
 
@@ -458,9 +472,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
-
-    @Setter
-    private int breakingBlock;
 
     @Setter
     private Vector3i lastBlockPlacePosition;
@@ -573,12 +584,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long lastInteractionTime;
 
     /**
-     * Stores when the player started to break a block. Used to allow correct break time for custom blocks.
-     */
-    @Setter
-    private long blockBreakStartTime;
-
-    /**
      * Stores whether the player intended to place a bucket.
      */
     @Setter
@@ -626,6 +631,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * If the current player is flying
      */
     private boolean flying = false;
+
+    /**
+     * If the current player should be able to noclip through blocks, this is used for void floor workaround and not spectator.
+     */
+    private boolean noClip = false;
 
     @Setter
     private boolean instabuild = false;
@@ -762,8 +772,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.entityData = new GeyserEntityData(this);
 
         this.worldBorder = new WorldBorder(this);
-
         this.collisionManager = new CollisionManager(this);
+        this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
@@ -1150,6 +1160,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Forcibly closes the upstream session
+     */
+    public void forciblyCloseUpstream() {
+        upstream.forciblyClose();
+    }
+
+    /**
      * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
      */
     public void ensureInEventLoop(Runnable runnable) {
@@ -1276,15 +1293,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             this.bundleCache.tick();
-
-            if (spawned && protocol.getOutboundState() == ProtocolState.GAME) {
-                // Could move this to the PlayerAuthInput translator, in the event the player lags
-                // but this will work once we implement matching Java custom tick cycles
-                sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
-            }
-
-            dialogManager.tick();
-            waypointCache.tick();
+            this.dialogManager.tick();
+            this.waypointCache.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1369,6 +1379,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         playerEntity.updateBedrockMetadata();
     }
 
+    public void setNoClip(boolean noClip) {
+        if (this.noClip == noClip) {
+            return;
+        }
+
+        this.noClip = noClip;
+        this.sendAdventureSettings();
+    }
+
     public void setFlying(boolean flying) {
         this.flying = flying;
 
@@ -1405,7 +1424,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
-        float yaw = playerEntity.getYaw(), pitch = playerEntity.getPitch();
+        float yaw = playerEntity.getJavaYaw(), pitch = playerEntity.getPitch();
         if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
             yaw = playerEntity.getBedrockInteractRotation().getY();
             pitch = playerEntity.getBedrockInteractRotation().getX();
@@ -1569,6 +1588,33 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.sendCommandPacket(command);
+    }
+
+    @Override
+    public @NonNull String joinAddress() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return combined.substring(0, index);
+    }
+
+    @Override
+    public @Positive int joinPort() {
+        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return Integer.parseInt(combined.substring(index + 1));
+    }
+
+    @Override
+    public void sendSkin(@NonNull UUID player, @NonNull SkinData skinData) {
+        Objects.requireNonNull(player, "player uuid must not be null!");
+        Objects.requireNonNull(skinData, "skinData must not be null!");
+
+        PlayerEntity entity = this.entityCache.getPlayerEntity(player);
+        if (entity == null) {
+            return;
+        }
+
+        SkinManager.sendSkinPacket(this, entity, skinData);
     }
 
     @Override
@@ -1772,7 +1818,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
-        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        // Server authorative block breaking results in the client always sending
+        // positions for block breaking actions, which is easier to validate
+        // It does *not* mean we can dictate the break speed server-sided :(
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
@@ -1797,7 +1846,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return itemNetId.getAndIncrement();
     }
 
-    public void confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3f position) {
         if (unconfirmedTeleport == null) {
             return;
         }
@@ -1812,8 +1861,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (unconfirmedTeleport.shouldResend()) {
             unconfirmedTeleport.resetUnconfirmedFor();
             geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
-            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
+            getPlayerEntity().moveAbsolute(unconfirmedTeleport.getPosition(),
                 unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
+
+            if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
+                SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+                entityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
+                this.sendUpstreamPacket(entityMotionPacket);
+            }
         }
     }
 
@@ -1995,6 +2051,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (gameMode == GameMode.CREATIVE) {
             // Needed so the client doesn't attempt to take away items
             abilities.add(Ability.INSTABUILD);
+        }
+
+        if (noClip && !spectator) {
+            abilities.add(Ability.NO_CLIP);
         }
 
         if (commandPermission == CommandPermission.GAME_DIRECTORS) {
