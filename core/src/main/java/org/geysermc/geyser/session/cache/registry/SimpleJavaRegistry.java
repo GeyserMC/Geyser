@@ -109,6 +109,11 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     }
 
     @Override
+    public int size() {
+        return values.size();
+    }
+
+    @Override
     public String toString() {
         return this.values.toString();
     }
