@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,7 +41,6 @@ import java.util.UUID;
 
 public class CreakingEntity extends MonsterEntity {
     public static final String CREAKING_STATE = "minecraft:creaking_state";
-    public static final String CREAKING_SWAYING_TICKS = "minecraft:creaking_swaying_ticks";
 
     private Vector3i homePosition;
 
@@ -54,18 +52,6 @@ public class CreakingEntity extends MonsterEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         setFlag(EntityFlag.FIRE_IMMUNE, true);
-    }
-
-    @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add(CREAKING_STATE, "neutral");
-        // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
-        // which i guess is responsible for some animation?
-        // it's sent over the network, all 6 "stages" 50ms in between of each other.
-        // no clue what it's used for tbh, so i'm not gonna bother implementing it
-        // - chris
-        propertyManager.add(CREAKING_SWAYING_TICKS, 0);
-        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
     }
 
     public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {

@@ -29,9 +29,11 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,6 +58,14 @@ public interface EntityData {
      * @param emoteId the emote ID to send to this client
      */
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+
+    /**
+     * Updates an entity's properties.
+     *
+     * @param geyserEntity the entity whose properties are being updated.
+     * @param properties the updated properties to send to this client.
+     */
+    void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties);
 
     /**
      * Gets the {@link GeyserPlayerEntity} of this connection.

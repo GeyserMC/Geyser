@@ -67,12 +67,6 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add("minecraft:sound_variant", "default");
-        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
-    }
-
-    @Override
     public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
         // Reset wolf color

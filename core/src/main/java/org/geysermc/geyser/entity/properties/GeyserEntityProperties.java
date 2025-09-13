@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -54,6 +55,12 @@ public class GeyserEntityProperties {
             Object2IntMap<String> propertyIndices) {
         this.properties = properties;
         this.propertyIndices = propertyIndices;
+    }
+
+    public void addToBuilder(Builder builder) {
+        for (Object2IntMap.Entry<String> entry : propertyIndices.object2IntEntrySet()) {
+            builder.add(entry.getKey(), properties.get(entry.getIntValue()));
+        }
     }
 
     public NbtMap toNbtMap(String entityType) {
@@ -80,82 +87,61 @@ public class GeyserEntityProperties {
         private final ObjectArrayList<PropertyType> properties = new ObjectArrayList<>();
         private final Object2IntMap<String> propertyIndices = new Object2IntOpenHashMap<>();
 
-        public Builder addInt(@NonNull String name, int min, int max) {
+        public boolean isEmpty() {
+            return this.properties.isEmpty();
+        }
+
+        public Builder add(@NonNull String name, PropertyType property) {
             if (propertyIndices.containsKey(name)) {
                 throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
+                    "Property with name " + name + " already exists on builder!");
             }
-            PropertyType property = new IntProperty(name, min, max);
+            else if (name.matches(".*[A-Z].*") || name.contains(" ")) {
+                throw new IllegalArgumentException(
+                    "Cannot register property with name " + name + " because property names cannot contain capital letters or spaces."
+                );
+            }
+            else if (!name.contains(":")) {
+                throw new IllegalArgumentException(
+                    "Property identifier must have a namespace. " + "Property with name " + name + " was not registered."
+                );
+            }
             this.properties.add(property);
             propertyIndices.put(name, properties.size() - 1);
             return this;
         }
 
-        public Builder addInt(@NonNull String name) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
-            }
-            PropertyType property = new IntProperty(name, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
+        public Builder addInt(@NonNull String name, int min, int max, int defaultValue) {
+            return add(name, new IntProperty(name, min, max, defaultValue));
         }
 
-        public Builder addFloat(@NonNull String name, float min, float max) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
-            }
-            PropertyType property = new FloatProperty(name, min, max);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
+        public Builder addFloat(@NonNull String name, float min, float max, float defaultValue) {
+            return add(name, new FloatProperty(name, min, max, defaultValue));
         }
 
-        public Builder addFloat(@NonNull String name) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
-            }
-            PropertyType property = new FloatProperty(name, Float.MIN_NORMAL, Float.MAX_VALUE);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
+        public Builder addBoolean(@NonNull String name, boolean defaultValue) {
+            return add(name, new BooleanProperty(name, defaultValue));
         }
 
-        public Builder addBoolean(@NonNull String name) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
+        public Builder addEnum(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
+            for (String value : values) {
+                if (value == null) {
+                    throw new IllegalArgumentException(
+                        "Cannot register enum property with name " + name + " because it contains a null value."
+                    );
+                }
+                else if (name.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
+                    throw new IllegalArgumentException(
+                        "Cannot register enum property with name " + name + " and value " + value +
+                            " because enum values can only contain alphanumeric characters and underscores."
+                    );
+                }
             }
-            PropertyType property = new BooleanProperty(name);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
+            return add(name, new EnumProperty(name, values, defaultValue));
         }
 
-        public Builder addEnum(@NonNull String name, List<String> values) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
-            }
-            PropertyType property = new EnumProperty(name, values);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
-        }
-
-        public Builder addEnum(@NonNull String name, String... values) {
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                        "Property with name " + name + " already exists on builder!");
-            }
-            List<String> valuesList = Arrays.asList(values); // Convert array to list
-            PropertyType property = new EnumProperty(name, valuesList);
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
-            return this;
+        public Builder addEnum(@NonNull String name, @NonNull String... values) {
+            return addEnum(name, Arrays.asList(values), null);
         }
 
         public GeyserEntityProperties build() {

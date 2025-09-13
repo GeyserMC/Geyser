@@ -41,7 +41,7 @@ public class VanillaEntityProperties {
         .build();
 
     public static final GeyserEntityProperties BEE = new GeyserEntityProperties.Builder()
-        .addBoolean("minecraft:has_nectar")
+        .addBoolean("minecraft:has_nectar", false)
         .build();
 
     public static final GeyserEntityProperties CLIMATE_VARIANT = new GeyserEntityProperties.Builder()
@@ -51,6 +51,11 @@ public class VanillaEntityProperties {
             "cold")
         .build();
 
+    // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
+    // which i guess is responsible for some animation?
+    // it's sent over the network, all 6 "stages" 50ms in between of each other.
+    // no clue what it's used for tbh, so i'm not gonna bother implementing it
+    // - chris
     public static final GeyserEntityProperties CREAKING = new GeyserEntityProperties.Builder()
         .addEnum(CreakingEntity.CREAKING_STATE,
             "neutral",
@@ -58,11 +63,11 @@ public class VanillaEntityProperties {
             "hostile_unobserved",
             "twitching",
             "crumbling")
-        .addInt(CreakingEntity.CREAKING_SWAYING_TICKS, 0, 6)
+        .addInt("minecraft:creaking_swaying_ticks", 0, 6, 0)
         .build();
 
     public static final GeyserEntityProperties HAPPY_GHAST = new GeyserEntityProperties.Builder()
-        .addBoolean("minecraft:can_move")
+        .addBoolean("minecraft:can_move", false)
         .build();
 
     public static final GeyserEntityProperties WOLF_SOUND_VARIANT = new GeyserEntityProperties.Builder()

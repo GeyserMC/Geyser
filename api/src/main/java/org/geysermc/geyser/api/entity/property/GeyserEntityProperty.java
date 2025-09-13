@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property;
 
-import org.cloudburstmc.nbt.NbtMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-public interface PropertyType {
-    String getName();
-    NbtMap nbtMap();
+/**
+ * This class is used to store an entity property.
+ */
+public interface GeyserEntityProperty {
+    /**
+     * @return the property's name.
+     */
+    @NonNull String name();
 }
