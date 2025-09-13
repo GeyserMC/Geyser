@@ -51,13 +51,13 @@ public enum Direction {
     private final Axis axis;
     @Getter
     @Accessors(fluent = true)
-    private final org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue;
+    private final org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl;
 
-    Direction(int reversedId, Vector3i unitVector, Axis axis, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
+    Direction(int reversedId, Vector3i unitVector, Axis axis, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl) {
         this.reversedId = reversedId;
         this.unitVector = unitVector;
         this.axis = axis;
-        this.pistonValue = pistonValue;
+        this.mcpl = mcpl;
     }
 
     public Direction reversed() {
@@ -72,9 +72,9 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
-    public static @NonNull Direction fromPistonValue(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
+    public static @NonNull Direction fromMCPL(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
         for (Direction direction : VALUES) {
-            if (direction.pistonValue == pistonValue) {
+            if (direction.mcpl == pistonValue) {
                 return direction;
             }
         }
@@ -84,8 +84,8 @@ public enum Direction {
     public static <T> Direction getUntrusted(T source, ToIntFunction<T> idExtractor) {
         int id = idExtractor.applyAsInt(source);
         if (id < 0 || id >= VALUES.length) {
-            GeyserImpl.getInstance().getLogger().warning("Received invalid direction from " + source + " (ID was " + id + ")");
-            return DOWN; // Default to DOWN
+            GeyserImpl.getInstance().getLogger().debug("Received invalid direction from " + source + " (ID was " + id + ")");
+            return DOWN; // Default to DOWN when receiving an invalid ID
         }
         return Direction.VALUES[id];
     }

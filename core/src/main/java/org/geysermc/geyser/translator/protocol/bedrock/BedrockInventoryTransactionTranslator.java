@@ -152,7 +152,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
-                                Direction.DOWN.pistonValue(),
+                                Direction.DOWN.mcpl(),
                                 0
                         );
                         session.sendDownstreamGamePacket(dropPacket);
@@ -294,7 +294,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.getWorldCache().markPositionInSequence(blockPos);
                         ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 packet.getBlockPosition(),
-                                Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).pistonValue(),
+                                Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).mcpl(),
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,

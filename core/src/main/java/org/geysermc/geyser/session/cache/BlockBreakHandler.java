@@ -176,12 +176,14 @@ public class BlockBreakHandler {
         for (int i = 0; i < packet.getPlayerActions().size(); i++) {
             PlayerBlockActionData actionData = packet.getPlayerActions().get(i);
             Vector3i position = actionData.getBlockPosition();
+            // Worth noting: the bedrock client, as of version  1.21.101, sends weird values for the face, outside the [0;6] range, when sending ABORT_BREAK
+            // Not sure why, but, blockFace isn't used for ABORT_BREAK, so it's fine
             Direction blockFace = Direction.getUntrusted(packet, ignored -> actionData.getFace());
 
             switch (actionData.getAction()) {
                 case DROP_ITEM -> {
                     ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
-                        position, blockFace.pistonValue(), 0);
+                        position, blockFace.mcpl(), 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 // Must do this ugly as it can also be called from the block_continue_destroy case :(
@@ -298,7 +300,7 @@ public class BlockBreakHandler {
         Block possibleFireBlock = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
         if (possibleFireBlock == Blocks.FIRE || possibleFireBlock == Blocks.SOUL_FIRE) {
             ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
-                blockFace.pistonValue(), session.getWorldCache().nextPredictionSequence());
+                blockFace.mcpl(), session.getWorldCache().nextPredictionSequence());
             session.sendDownstreamGamePacket(startBreakingPacket);
         }
 
@@ -336,7 +338,7 @@ public class BlockBreakHandler {
             this.currentBlockState = state;
 
             session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position,
-                blockFace.pistonValue(), session.getWorldCache().nextPredictionSequence()));
+                blockFace.mcpl(), session.getWorldCache().nextPredictionSequence()));
         }
     }
 
@@ -372,7 +374,7 @@ public class BlockBreakHandler {
         // We don't forward those as a Java client wouldn't send those either
         if (currentBlockPos != null) {
             ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, currentBlockPos,
-                Direction.DOWN.pistonValue(), 0);
+                Direction.DOWN.mcpl(), 0);
             session.sendDownstreamGamePacket(abortBreakingPacket);
         }
 
@@ -466,7 +468,7 @@ public class BlockBreakHandler {
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
         // Send java packet
         session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(instamine ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING,
-            vector, direction.pistonValue(), session.getWorldCache().nextPredictionSequence()));
+            vector, direction.mcpl(), session.getWorldCache().nextPredictionSequence()));
         session.getWorldCache().markPositionInSequence(vector);
 
         if (canDestroyBlock(state)) {
