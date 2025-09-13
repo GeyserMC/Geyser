@@ -171,7 +171,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 switch (packet.getActionType()) {
                     case 0 -> {
                         final Vector3i packetBlockPosition = packet.getBlockPosition();
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, packet.getBlockFace());
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.VALUES[packet.getBlockFace()]);
 
                         if (session.getGeyser().getConfig().isDisableBedrockScaffolding()) {
                             float yaw = session.getPlayerEntity().getYaw();
