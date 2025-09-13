@@ -80,4 +80,9 @@ public interface JavaRegistry<T> {
      * All values of this registry, as a list.
      */
     List<T> values();
+
+    /**
+     * The amount of values registered in this registry.
+     */
+    int size();
 }
