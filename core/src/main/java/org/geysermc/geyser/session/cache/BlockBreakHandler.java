@@ -110,7 +110,7 @@ public class BlockBreakHandler {
      * The last known face of the block the client was breaking.
      * Only set when keeping track of custom blocks / custom items breaking blocks.
      */
-    protected int lastBlockBreakFace = 0;
+    protected Direction lastBlockBreakFace = null;
 
     /**
      * The last block position that was instantly broken.
@@ -148,7 +148,7 @@ public class BlockBreakHandler {
     }
 
     /**
-     * Main entrypoint that handles block breaking actions, if present
+     * Main entrypoint that handles block breaking actions, if present. Also ticks the handler.
      * @param packet the player auth input packet
      */
     public void handlePlayerAuthInputPacket(PlayerAuthInputPacket packet) {
@@ -157,15 +157,16 @@ public class BlockBreakHandler {
             restoredBlocks.clear();
             this.itemFramePos = null;
         }
+        tick();
     }
 
-    public void tick() {
+    protected void tick() {
         // We need to manually check if a block should be destroyed, and send the client progress updates, when mining a custom block, or with a custom item
         // This is because, in CustomItemRegistryPopulator#computeToolProperties, we set a block break speed of 0,
         // meaning the client will only ever send START_BREAK for breaking blocks, and nothing else
 
-        // Check currentBlockPos and currentBlockState, just in case
-        if (blockStartBreakTime != 0 && currentBlockPos != null && currentBlockState != null) {
+        // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
+        if (blockStartBreakTime != 0 && lastBlockBreakFace != null && currentBlockPos != null && currentBlockState != null) {
             handleContinueDestroy(currentBlockPos, currentBlockState, lastBlockBreakFace, session.getClientTicks());
         }
     }
@@ -174,12 +175,12 @@ public class BlockBreakHandler {
         for (int i = 0; i < packet.getPlayerActions().size(); i++) {
             PlayerBlockActionData actionData = packet.getPlayerActions().get(i);
             Vector3i position = actionData.getBlockPosition();
-            int blockFace = actionData.getFace();
+            Direction blockFace = Direction.VALUES[actionData.getFace()];
 
             switch (actionData.getAction()) {
                 case DROP_ITEM -> {
                     ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
-                        position, Direction.VALUES[blockFace], 0);
+                        position, blockFace, 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 // Must do this ugly as it can also be called from the block_continue_destroy case :(
@@ -270,7 +271,7 @@ public class BlockBreakHandler {
      * Called from either a START_BREAK or BLOCK_CONTINUE_DESTROY case, the latter
      * if the client switches to a new block. This method then runs pre-break checks.
      */
-    private void preStartBreakHandle(Vector3i position, int blockFace, long tick) {
+    private void preStartBreakHandle(Vector3i position, Direction blockFace, long tick) {
         // New block being broken -> ignore previous insta-mine pos since that's no longer relevant
         lastInstaMinedPosition = null;
 
@@ -288,16 +289,15 @@ public class BlockBreakHandler {
         handleStartBreak(position, state, blockFace, tick);
     }
 
-    protected void handleStartBreak(@NonNull Vector3i position, @NonNull BlockState state, int blockFace, long tick) {
+    protected void handleStartBreak(@NonNull Vector3i position, @NonNull BlockState state, Direction blockFace, long tick) {
         GeyserItemStack item = session.getPlayerInventory().getItemInHand();
-        Direction direction = Direction.VALUES[blockFace];
 
         // Account for fire - the client likes to hit the block behind.
         Vector3i fireBlockPos = BlockUtils.getBlockPosition(position, blockFace);
         Block possibleFireBlock = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
         if (possibleFireBlock == Blocks.FIRE || possibleFireBlock == Blocks.SOUL_FIRE) {
             ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
-                direction, session.getWorldCache().nextPredictionSequence());
+                blockFace, session.getWorldCache().nextPredictionSequence());
             session.sendDownstreamGamePacket(startBreakingPacket);
         }
 
@@ -308,7 +308,7 @@ public class BlockBreakHandler {
         if (session.isInstabuild() || breakProgress >= 1.0F) {
             // Avoid sending STOP_BREAK for instantly broken blocks
             lastInstaMinedPosition = position;
-            destroyBlock(state, position, direction, true);
+            destroyBlock(state, position, blockFace, true);
         } else {
             // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
             ItemMapping mapping = item.getMapping(session);
@@ -329,25 +329,24 @@ public class BlockBreakHandler {
             startBreak.setData((int) (65535 / BlockUtils.reciprocal(breakProgress)));
             session.sendUpstreamPacket(startBreak);
 
-            BlockUtils.spawnBlockBreakParticles(session, direction, position, state);
+            BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
 
             this.currentBlockPos = position;
             this.currentBlockState = state;
 
-            session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position, direction, session.getWorldCache().nextPredictionSequence()));
+            session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position, blockFace, session.getWorldCache().nextPredictionSequence()));
         }
     }
 
-    protected void handleContinueDestroy(Vector3i position, BlockState state, int blockFace, long tick) {
-        Direction direction = Direction.VALUES[blockFace];
-        BlockUtils.spawnBlockBreakParticles(session, direction, position, state);
+    protected void handleContinueDestroy(Vector3i position, BlockState state, Direction blockFace, long tick) {
+        BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
         double totalBreakTime = BlockUtils.reciprocal(calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand()));
 
         if (blockStartBreakTime != 0) {
             long ticksSinceStart = tick - blockStartBreakTime;
             // We need to add a slight delay to the break time, otherwise the client breaks blocks too fast
             if (ticksSinceStart >= (totalBreakTime += 2)) {
-                destroyBlock(state, position, direction, false);
+                destroyBlock(state, position, blockFace, false);
                 return;
             }
             // Update in case it has changed
@@ -362,8 +361,8 @@ public class BlockBreakHandler {
         session.sendUpstreamPacket(updateBreak);
     }
 
-    protected void handlePredictDestroy(Vector3i position, BlockState state, int blockFace, long tick) {
-        destroyBlock(state, position, Direction.VALUES[blockFace], false);
+    protected void handlePredictDestroy(Vector3i position, BlockState state, Direction blockFace, long tick) {
+        destroyBlock(state, position, blockFace, false);
     }
 
     protected void handleAbortBreaking(Vector3i position) {

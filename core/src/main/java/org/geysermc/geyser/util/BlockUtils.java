@@ -154,15 +154,14 @@ public final class BlockUtils {
      * @param face the face of the block - see {@link org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction}
      * @return the block position with the block face accounted for
      */
-    public static Vector3i getBlockPosition(Vector3i blockPos, int face) {
+    public static Vector3i getBlockPosition(Vector3i blockPos, Direction face) {
         return switch (face) {
-            case 0 -> blockPos.sub(0, 1, 0);
-            case 1 -> blockPos.add(0, 1, 0);
-            case 2 -> blockPos.sub(0, 0, 1);
-            case 3 -> blockPos.add(0, 0, 1);
-            case 4 -> blockPos.sub(1, 0, 0);
-            case 5 -> blockPos.add(1, 0, 0);
-            default -> blockPos;
+            case DOWN -> blockPos.sub(0, 1, 0);
+            case UP -> blockPos.add(0, 1, 0);
+            case NORTH -> blockPos.sub(0, 0, 1);
+            case SOUTH -> blockPos.add(0, 0, 1);
+            case WEST -> blockPos.sub(1, 0, 0);
+            case EAST -> blockPos.add(1, 0, 0);
         };
     }
 

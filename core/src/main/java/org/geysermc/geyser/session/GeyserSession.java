@@ -1295,7 +1295,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
-            this.blockBreakHandler.tick();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
