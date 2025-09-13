@@ -148,7 +148,7 @@ public class BlockBreakHandler {
     }
 
     /**
-     * Main entrypoint that handles block breaking actions, if present. Also ticks the handler.
+     * Main entrypoint that handles block breaking actions, if present. Ticks the handler if no breaking actions were performed.
      * @param packet the player auth input packet
      */
     public void handlePlayerAuthInputPacket(PlayerAuthInputPacket packet) {
@@ -156,8 +156,9 @@ public class BlockBreakHandler {
             handleBlockBreakActions(packet);
             restoredBlocks.clear();
             this.itemFramePos = null;
+        } else {
+            tick();
         }
-        tick();
     }
 
     protected void tick() {
