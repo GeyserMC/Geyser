@@ -64,6 +64,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -76,7 +77,6 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.SoundUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
@@ -152,7 +152,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
-                                Direction.DOWN,
+                                Direction.DOWN.mcpl(),
                                 0
                         );
                         session.sendDownstreamGamePacket(dropPacket);
@@ -171,7 +171,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 switch (packet.getActionType()) {
                     case 0 -> {
                         final Vector3i packetBlockPosition = packet.getBlockPosition();
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.VALUES[packet.getBlockFace()]);
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace));
 
                         if (session.getGeyser().getConfig().isDisableBedrockScaffolding()) {
                             float yaw = session.getPlayerEntity().getYaw();
@@ -294,7 +294,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.getWorldCache().markPositionInSequence(blockPos);
                         ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 packet.getBlockPosition(),
-                                Direction.VALUES[packet.getBlockFace()],
+                                Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).mcpl(),
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,
