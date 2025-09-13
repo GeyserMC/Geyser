@@ -27,11 +27,22 @@ package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
 
-public class BooleanProperty implements PropertyType {
+public class BooleanProperty implements IIntProperty {
     private final String name;
+    private final boolean defaultValue;
 
     public BooleanProperty(String name) {
+        this(name, false);
+    }
+
+    public BooleanProperty(String name, boolean defaultValue) {
         this.name = name;
+        this.defaultValue = defaultValue;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -40,5 +51,10 @@ public class BooleanProperty implements PropertyType {
                 .putString("name", name)
                 .putInt("type", 2)
                 .build();
+    }
+
+    @Override
+    public int getDefaultValue() {
+        return defaultValue ? 1 : 0;
     }
 }

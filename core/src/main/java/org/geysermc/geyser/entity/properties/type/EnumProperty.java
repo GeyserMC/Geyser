@@ -32,18 +32,29 @@ import org.cloudburstmc.nbt.NbtType;
 
 import java.util.List;
 
-public class EnumProperty implements PropertyType {
+public class EnumProperty implements IIntProperty {
     private final String name;
     private final List<String> values;
     private final Object2IntMap<String> valueIndexMap;
+    private final int defaultIndex;
 
     public EnumProperty(String name, List<String> values) {
+        this(name, values, values.get(0));
+    }
+
+    public EnumProperty(String name, List<String> values, String defaultValue) {
         this.name = name;
         this.values = values;
-                this.valueIndexMap = new Object2IntOpenHashMap<>(values.size());
+        this.valueIndexMap = new Object2IntOpenHashMap<>(values.size());
         for (int i = 0; i < values.size(); i++) {
             valueIndexMap.put(values.get(i), i);
         }
+        this.defaultIndex = valueIndexMap.getOrDefault(defaultValue, 0);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -57,5 +68,10 @@ public class EnumProperty implements PropertyType {
 
     public int getIndex(String value) {
         return valueIndexMap.getOrDefault(value, -1);
+    }
+
+    @Override
+    public int getDefaultValue() {
+        return defaultIndex;
     }
 }

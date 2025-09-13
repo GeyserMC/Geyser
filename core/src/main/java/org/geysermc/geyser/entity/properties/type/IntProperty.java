@@ -27,15 +27,26 @@ package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
 
-public class IntProperty implements PropertyType {
+public class IntProperty implements IIntProperty {
     private final String name;
     private final int max;
     private final int min;
+    private final int defaultValue;
 
     public IntProperty(String name, int min, int max) {
+        this(name, min, max, 0);
+    }
+
+    public IntProperty(String name, int min, int max, int defaultValue) {
         this.name = name;
         this.max = max;
         this.min = min;
+        this.defaultValue = defaultValue;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -46,5 +57,10 @@ public class IntProperty implements PropertyType {
                 .putInt("min", min)
                 .putInt("type", 0)
                 .build();
+    }
+
+    @Override
+    public int getDefaultValue() {
+        return defaultValue;
     }
 }

@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.entity.property.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -106,10 +107,10 @@ public class GeyserEntityData implements EntityData {
                 );
             }
             if (property instanceof GeyserFloatEntityProperty floatProperty) {
-                packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, floatProperty.value()));
+                addFloatPropertyToDataPacket(packet, entity, floatProperty.name(), index, floatProperty.value());
             }
             else if (property instanceof GeyserIntEntityProperty intProperty) {
-                packet.getProperties().getIntProperties().add(new IntEntityProperty(index, intProperty.value()));
+                addIntPropertyToDataPacket(packet, entity, intProperty.name(), index, intProperty.value());
             }
             else if (property instanceof GeyserEnumEntityProperty enumProperty) {
                 if (propertyDefinitions.getProperties().get(index) instanceof EnumProperty values) {
@@ -119,7 +120,7 @@ public class GeyserEntityData implements EntityData {
                             "The property with the name " + property.name() + " does not have a value called " + enumProperty.value() + "."
                         );
                     }
-                    packet.getProperties().getIntProperties().add(new IntEntityProperty(index, i));
+                    addIntPropertyToDataPacket(packet, entity, enumProperty.name(), index, i);
                 }
                 else {
                     throw new IllegalArgumentException(
@@ -129,6 +130,18 @@ public class GeyserEntityData implements EntityData {
             }
         }
         session.sendUpstreamPacket(packet);
+    }
+
+    private void addIntPropertyToDataPacket(SetEntityDataPacket packet, Entity entity, String name, int index, int value) {
+        if (entity.getPropertyManager().add(name, value)) {
+            packet.getProperties().getIntProperties().add(new IntEntityProperty(index, value));
+        }
+    }
+
+    private void addFloatPropertyToDataPacket(SetEntityDataPacket packet, Entity entity, String name, int index, float value) {
+        if (entity.getPropertyManager().add(name, value)) {
+            packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, value));
+        }
     }
 
     @Override

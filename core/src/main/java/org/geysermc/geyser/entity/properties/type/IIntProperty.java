@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-
-public interface PropertyType {
-    String getName();
-    NbtMap nbtMap();
+public interface IIntProperty extends PropertyType {
+    int getDefaultValue();
 }

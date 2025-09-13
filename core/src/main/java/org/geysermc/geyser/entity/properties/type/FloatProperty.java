@@ -25,17 +25,30 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import lombok.Getter;
 import org.cloudburstmc.nbt.NbtMap;
 
 public class FloatProperty implements PropertyType {
     private final String name;
     private final float max;
     private final float min;
+    @Getter
+    private final float defaultValue;
 
     public FloatProperty(String name, float min, float max) {
+        this(name, min, max, 0);
+    }
+
+    public FloatProperty(String name, float min, float max, float defaultValue) {
         this.name = name;
         this.max = max;
         this.min = min;
+        this.defaultValue = defaultValue;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

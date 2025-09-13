@@ -201,6 +201,10 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
         addEntityPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addEntityPacket.getMetadata());
+        if (propertyManager != null) {
+            propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
+            propertyManager.applyFloatProperties(addEntityPacket.getProperties().getFloatProperties());
+        }
         addAdditionalSpawnData(addEntityPacket);
 
         valid = true;

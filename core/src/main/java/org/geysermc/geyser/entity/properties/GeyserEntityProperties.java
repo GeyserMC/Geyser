@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -110,27 +111,19 @@ public class GeyserEntityProperties {
             return this;
         }
 
-        public Builder addInt(@NonNull String name, int min, int max) {
-            return add(name, new IntProperty(name, min, max));
+        public Builder addInt(@NonNull String name, int min, int max, int defaultValue) {
+            return add(name, new IntProperty(name, min, max, defaultValue));
         }
 
-        public Builder addInt(@NonNull String name) {
-            return addInt(name, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        public Builder addFloat(@NonNull String name, float min, float max, float defaultValue) {
+            return add(name, new FloatProperty(name, min, max, defaultValue));
         }
 
-        public Builder addFloat(@NonNull String name, float min, float max) {
-            return add(name, new FloatProperty(name, min, max));
+        public Builder addBoolean(@NonNull String name, boolean defaultValue) {
+            return add(name, new BooleanProperty(name, defaultValue));
         }
 
-        public Builder addFloat(@NonNull String name) {
-            return addFloat(name, Float.MIN_VALUE, Float.MAX_VALUE);
-        }
-
-        public Builder addBoolean(@NonNull String name) {
-            return add(name, new BooleanProperty(name));
-        }
-
-        public Builder addEnum(@NonNull String name, @NonNull List<String> values) {
+        public Builder addEnum(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
             for (String value : values) {
                 if (value == null) {
                     throw new IllegalArgumentException(
@@ -144,11 +137,11 @@ public class GeyserEntityProperties {
                     );
                 }
             }
-            return add(name, new EnumProperty(name, values));
+            return add(name, new EnumProperty(name, values, defaultValue));
         }
 
         public Builder addEnum(@NonNull String name, @NonNull String... values) {
-            return addEnum(name, Arrays.asList(values));
+            return addEnum(name, Arrays.asList(values), null);
         }
 
         public GeyserEntityProperties build() {

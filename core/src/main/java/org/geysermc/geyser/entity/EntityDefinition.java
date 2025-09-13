@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
@@ -170,28 +171,23 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                     }
 
                     @Override
-                    public void registerFloatProperty(@NotNull String name, float min, float max) {
-                        propertiesBuilder.addFloat(name, min, max);
+                    public void registerFloatProperty(@NotNull String name, float min, float max, float defaultValue) {
+                        propertiesBuilder.addFloat(name, min, max, defaultValue);
                     }
 
                     @Override
-                    public void registerIntegerProperty(@NotNull String name, int min, int max) {
-                        propertiesBuilder.addInt(name, min, max);
+                    public void registerIntegerProperty(@NotNull String name, int min, int max, int defaultValue) {
+                        propertiesBuilder.addInt(name, min, max, defaultValue);
                     }
 
                     @Override
-                    public void registerBooleanProperty(@NotNull String name) {
-                        propertiesBuilder.addBoolean(name);
+                    public void registerBooleanProperty(@NotNull String name, boolean defaultValue) {
+                        propertiesBuilder.addBoolean(name, defaultValue);
                     }
 
                     @Override
-                    public void registerEnumProperty(@NotNull String name, @NotNull List<String> values) {
-                        propertiesBuilder.addEnum(name, values);
-                    }
-
-                    @Override
-                    public void registerEnumProperty(@NonNull String name, @NotNull String... values) {
-                        propertiesBuilder.addEnum(name, values);
+                    public void registerEnumProperty(@NotNull String name, @NotNull List<String> values, @Nullable String defaultValue) {
+                        propertiesBuilder.addEnum(name, values, defaultValue);
                     }
                 });
                 if (!propertiesBuilder.isEmpty()) {
