@@ -107,6 +107,12 @@ public class BlockBreakHandler {
     protected long blockStartBreakTime = 0;
 
     /**
+     * The last known face of the block the client was breaking.
+     * Only set when keeping track of custom blocks / custom items breaking blocks.
+     */
+    protected int lastBlockBreakFace = 0;
+
+    /**
      * The last block position that was instantly broken.
      * Used to ignore subsequent block actions from the Bedrock client.
      */
@@ -150,6 +156,17 @@ public class BlockBreakHandler {
             handleBlockBreakActions(packet);
             restoredBlocks.clear();
             this.itemFramePos = null;
+        }
+    }
+
+    public void tick() {
+        // We need to manually check if a block should be destroyed, and send the client progress updates, when mining a custom block, or with a custom item
+        // This is because, in CustomItemRegistryPopulator#computeToolProperties, we set a block break speed of 0,
+        // meaning the client will only ever send START_BREAK for breaking blocks, and nothing else
+
+        // Check currentBlockPos and currentBlockState, just in case
+        if (blockStartBreakTime != 0 && currentBlockPos != null && currentBlockState != null) {
+            handleContinueDestroy(currentBlockPos, currentBlockState, lastBlockBreakFace, session.getClientTicks());
         }
     }
 
@@ -303,6 +320,7 @@ public class BlockBreakHandler {
             if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(state.javaId()) || blockStateOverride != null ||
                     customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
                 this.blockStartBreakTime = tick;
+                this.lastBlockBreakFace = blockFace;
             }
 
             LevelEventPacket startBreak = new LevelEventPacket();
@@ -332,6 +350,8 @@ public class BlockBreakHandler {
                 destroyBlock(state, position, direction, false);
                 return;
             }
+            // Update in case it has changed
+            lastBlockBreakFace = blockFace;
         }
 
         // Update the break time in the event that player conditions changed (jumping, effects applied)
