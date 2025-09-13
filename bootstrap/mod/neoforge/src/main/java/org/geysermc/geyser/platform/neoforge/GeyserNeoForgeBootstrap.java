@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModContainer;
@@ -37,23 +36,29 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.adapters.CommandManagerAdapter;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.geysermc.geyser.text.ChatColor;
 import org.incendo.cloud.CommandManager;
-import org.incendo.cloud.execution.ExecutionCoordinator;
-import org.incendo.cloud.neoforge.NeoForgeServerCommandManager;
 
 import java.util.Objects;
 
 @Mod(ModConstants.MOD_ID)
 public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
+    private final CommandManagerAdapter<?, ?> commandManagerAdapter;
+
     public GeyserNeoForgeBootstrap(ModContainer container) {
         super(new GeyserNeoForgePlatform(container));
+
+        commandManagerAdapter = CommandManagerAdapter.get();
 
         if (isServer()) {
             // Set as an event so we can get the proper IP and port if needed
@@ -69,18 +74,21 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
         this.onGeyserInitialize();
 
-        var sourceConverter = CommandSourceConverter.layered(
-                CommandSourceStack.class,
-                id -> getServer().getPlayerList().getPlayer(id),
-                ServerPlayer::createCommandSourceStack,
-                () -> getServer().createCommandSourceStack(),
-                ModCommandSource::new
-        );
-        CommandManager<GeyserCommandSource> cloud = new NeoForgeServerCommandManager<>(
-                ExecutionCoordinator.simpleCoordinator(),
-                sourceConverter
-        );
-        GeyserNeoForgeCommandRegistry registry = new GeyserNeoForgeCommandRegistry(getGeyser(), cloud);
+        CommandManager<GeyserCommandSource> cloud;
+
+        if (commandManagerAdapter != null) {
+            cloud = commandManagerAdapter.getCommandManager(
+                ModCommandSource::new,
+                CommandSourceConverter::layered,
+                message -> GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET))
+            );
+        } else { // Fallback to the standalone manager, this *shouldn't* happen, since there should be an adapter for all versions of Minecraft this will load on
+            cloud = new StandaloneCloudCommandManager(GeyserImpl.getInstance());
+            GeyserImpl.getInstance().getLogger().warning("No CommandManagerAdapter was found. Permissions will be handled by a standalone file. Commands will only be accessible to Geyser users.");
+        }
+
+        GeyserNeoForgeCommandRegistry registry = new GeyserNeoForgeCommandRegistry(GeyserImpl.getInstance(), cloud);
+
         this.setCommandRegistry(registry);
         // An auxiliary listener for registering undefined permissions belonging to commands. See javadocs for more info.
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, registry::onPermissionGatherForUndefined);
@@ -105,7 +113,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            GeyserModUpdateListener.onPlayReady(player);
+            GeyserModUpdateListener.onPlayReady(player, commandManagerAdapter);
         }
     }
 

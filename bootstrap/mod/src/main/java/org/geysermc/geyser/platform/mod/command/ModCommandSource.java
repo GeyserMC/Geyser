@@ -25,66 +25,45 @@
 
 package org.geysermc.geyser.platform.mod.command;
 
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.adapters.command.CommandSenderDefinition;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.text.ChatColor;
 
 import java.util.UUID;
 
 public class ModCommandSource implements GeyserCommandSource {
 
-    private final CommandSourceStack source;
+    private final CommandSenderDefinition source;
 
-    public ModCommandSource(CommandSourceStack source) {
+    public ModCommandSource(CommandSenderDefinition source) {
         this.source = source;
-        // todo find locale?
     }
 
     @Override
     public String name() {
-        return source.getTextName();
+        return source.name();
     }
 
     @Override
     public void sendMessage(@NonNull String message) {
-        if (source.getEntity() instanceof ServerPlayer) {
-            ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
-        } else {
-            GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
-        }
+        source.sendMessage(message);
     }
 
     @Override
     public void sendMessage(net.kyori.adventure.text.Component message) {
-        if (source.getEntity() instanceof ServerPlayer player) {
-            JsonElement jsonComponent = GsonComponentSerializer.gson().serializeToTree(message);
-            player.displayClientMessage(ComponentSerialization.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE, player.registryAccess()), jsonComponent).getOrThrow(), false);
-            return;
-        }
-        GeyserCommandSource.super.sendMessage(message);
+        source.sendMessage(message, msg -> GeyserCommandSource.super.sendMessage(msg));
     }
 
     @Override
     public boolean isConsole() {
-        return !(source.getEntity() instanceof ServerPlayer);
+        return source.isConsole();
     }
 
     @Override
     public @Nullable UUID playerUuid() {
-        if (source.getEntity() instanceof ServerPlayer player) {
-            return player.getUUID();
-        }
-        return null;
+        return source.playerUuid();
     }
 
     @Override
@@ -97,6 +76,6 @@ public class ModCommandSource implements GeyserCommandSource {
 
     @Override
     public Object handle() {
-        return source;
+        return source.handle();
     }
 }

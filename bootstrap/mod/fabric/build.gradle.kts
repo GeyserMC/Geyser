@@ -34,8 +34,11 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
-    include(libs.cloud.fabric)
+    compileOnly(libs.adapters)
+    include(libs.adapters)
+    include(libs.adapters.fabric.v1215)
+    include(libs.adapters.fabric.v1206)
+
     include(libs.fabric.permissions.api)
 }
 
