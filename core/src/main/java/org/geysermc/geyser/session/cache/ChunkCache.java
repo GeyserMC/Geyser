@@ -90,7 +90,7 @@ public class ChunkCache {
                 previouslyEmpty = true;
                 if (block != Block.JAVA_AIR_ID) {
                     // A previously empty chunk, which is no longer empty as a block has been added to it
-                    palette = DataPalette.createForChunk(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
+                    palette = DataPalette.createForBlockState(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
                     chunk.sections()[(y - minY) >> 4] = palette;
                 } else {
                     // Nothing to update
