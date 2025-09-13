@@ -38,9 +38,11 @@ import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -100,34 +102,54 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
             }
         }
 
-        if (actions.contains(PlayerListEntryAction.UPDATE_LISTED)) {
-            List<PlayerListPacket.Entry> toAdd = new ArrayList<>();
-            List<PlayerListPacket.Entry> toRemove = new ArrayList<>();
+        Set<PlayerEntity> toUpdate = new HashSet<>();
+        List<PlayerListPacket.Entry> removedEntries = new ArrayList<>();
 
-            for (PlayerListEntry entry : packet.getEntries()) {
-                PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfileId());
-                if (entity == null) {
-                    session.getGeyser().getLogger().debug("Ignoring player info update for " + entry.getProfileId());
-                    continue;
+        for (PlayerListEntry entry : packet.getEntries()) {
+            PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfileId());
+            if (entry.getProfileId().equals(session.getPlayerEntity().getUuid())) {
+                entity = session.getPlayerEntity();
+            } else if (entity == null) {
+                session.getGeyser().getLogger().debug("Ignoring player info update for " + entry.getProfileId());
+                continue;
+            }
+
+            for (PlayerListEntryAction action : packet.getActions()) {
+                switch (action) {
+                    case UPDATE_GAME_MODE -> {
+                        // Only update if we must
+                        if (entity.isListed() && (entity.getGameMode() == GameMode.SPECTATOR || entry.getGameMode() == GameMode.SPECTATOR)) {
+                            toUpdate.add(entity);
+                        }
+                        entity.setGameMode(entry.getGameMode());
+                    }
+                    case UPDATE_LISTED -> {
+                        if (entry.isListed()) {
+                            toUpdate.add(entity);
+                            session.getWaypointCache().listPlayer(entity);
+                        } else if (entity.isListed()) {
+                            // Only remove players that have bene listed before
+                            removedEntries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                            session.getWaypointCache().unlistPlayer(entity);
+                        }
+                        entity.setListed(entry.isListed());
+                    }
+                    case UPDATE_DISPLAY_NAME -> {
+                        entity.setTabListDisplayName(entry.getDisplayName());
+                        if (entity.isListed()) {
+                            toUpdate.add(entity);
+                        }
+                    }
                 }
+            }
+        }
 
-                if (entry.isListed()) {
-                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
-                    toAdd.add(playerListEntry);
-                    session.getWaypointCache().listPlayer(entity);
-                } else {
-                    toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
-                    session.getWaypointCache().unlistPlayer(entity);
-                }
-                entity.setListed(entry.isListed());
-            }
+        if (!toUpdate.isEmpty()) {
+            PlayerListUtils.updateEntries(session, toUpdate);
+        }
 
-            if (!toAdd.isEmpty()) {
-                PlayerListUtils.batchSendPlayerList(session, toAdd, PlayerListPacket.Action.ADD);
-            }
-            if (!toRemove.isEmpty()) {
-                PlayerListUtils.batchSendPlayerList(session, toRemove, PlayerListPacket.Action.REMOVE);
-            }
+        if (!removedEntries.isEmpty()) {
+            PlayerListUtils.batchSendPlayerList(session, removedEntries, PlayerListPacket.Action.REMOVE);
         }
     }
 }
