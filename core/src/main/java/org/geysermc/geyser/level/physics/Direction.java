@@ -84,7 +84,7 @@ public enum Direction {
     public static <T> Direction getUntrusted(T source, ToIntFunction<T> idExtractor) {
         int id = idExtractor.applyAsInt(source);
         if (id < 0 || id >= VALUES.length) {
-            GeyserImpl.getInstance().getLogger().debug("Received invalid direction from " + source + " (ID was " + id + ")");
+            GeyserImpl.getInstance().getLogger().warning("Received invalid direction from " + source + " (ID was " + id + ")");
             return DOWN; // Default to DOWN when receiving an invalid ID
         }
         return Direction.VALUES[id];

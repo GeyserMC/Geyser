@@ -178,21 +178,22 @@ public class BlockBreakHandler {
             Vector3i position = actionData.getBlockPosition();
             // Worth noting: the bedrock client, as of version  1.21.101, sends weird values for the face, outside the [0;6] range, when sending ABORT_BREAK
             // Not sure why, but, blockFace isn't used for ABORT_BREAK, so it's fine
-            Direction blockFace = Direction.getUntrusted(packet, ignored -> actionData.getFace());
+            // This is why blockFace is individually turned into a Direction in each of the switch statements, except for the ABORT_BREAK one
 
             switch (actionData.getAction()) {
                 case DROP_ITEM -> {
                     ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
-                        position, blockFace.mcpl(), 0);
+                        position, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace).mcpl(), 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 // Must do this ugly as it can also be called from the block_continue_destroy case :(
-                case START_BREAK -> preStartBreakHandle(position, blockFace, packet.getTick());
+                case START_BREAK -> preStartBreakHandle(position, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
                 case BLOCK_CONTINUE_DESTROY -> {
                     if (testForItemFrameEntity(position) || testForLastInstaBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
                         continue;
                     }
 
+                    Direction blockFace = Direction.getUntrusted(actionData, PlayerBlockActionData::getFace);
                     // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
                     // That applies in creative mode too! (last test in 1.21.100)
                     if (!Objects.equals(position, currentBlockPos) || currentBlockState == null) {
@@ -245,7 +246,7 @@ public class BlockBreakHandler {
                         continue;
                     }
 
-                    handlePredictDestroy(position, state, blockFace, packet.getTick());
+                    handlePredictDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
                 }
                 case ABORT_BREAK -> {
                     // Abort break can also be sent after the block on that pos was broken.....
