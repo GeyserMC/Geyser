@@ -53,6 +53,7 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -120,7 +121,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
             boolean extendedCollisionNextSection = false;
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
-                ChunkSection javaSection = MinecraftTypes.readChunkSection(in);
+                ChunkSection javaSection = MinecraftTypes.readChunkSection(in, BlockRegistries.BLOCK_STATES.get().size(),
+                    session.getRegistryCache().registry(JavaRegistries.BIOME).size());
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
                 boolean extendedCollision = extendedCollisionNextSection;
