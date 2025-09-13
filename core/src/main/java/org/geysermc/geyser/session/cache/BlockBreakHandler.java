@@ -48,6 +48,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -55,7 +56,6 @@ import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.translator.protocol.java.level.JavaBlockDestructionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
@@ -176,12 +176,12 @@ public class BlockBreakHandler {
         for (int i = 0; i < packet.getPlayerActions().size(); i++) {
             PlayerBlockActionData actionData = packet.getPlayerActions().get(i);
             Vector3i position = actionData.getBlockPosition();
-            Direction blockFace = Direction.VALUES[actionData.getFace()];
+            Direction blockFace = Direction.getUntrusted(packet, ignored -> actionData.getFace());
 
             switch (actionData.getAction()) {
                 case DROP_ITEM -> {
                     ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
-                        position, blockFace, 0);
+                        position, blockFace.pistonValue(), 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 // Must do this ugly as it can also be called from the block_continue_destroy case :(
@@ -298,7 +298,7 @@ public class BlockBreakHandler {
         Block possibleFireBlock = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
         if (possibleFireBlock == Blocks.FIRE || possibleFireBlock == Blocks.SOUL_FIRE) {
             ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
-                blockFace, session.getWorldCache().nextPredictionSequence());
+                blockFace.pistonValue(), session.getWorldCache().nextPredictionSequence());
             session.sendDownstreamGamePacket(startBreakingPacket);
         }
 
@@ -335,7 +335,8 @@ public class BlockBreakHandler {
             this.currentBlockPos = position;
             this.currentBlockState = state;
 
-            session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position, blockFace, session.getWorldCache().nextPredictionSequence()));
+            session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position,
+                blockFace.pistonValue(), session.getWorldCache().nextPredictionSequence()));
         }
     }
 
@@ -370,7 +371,8 @@ public class BlockBreakHandler {
         // Bedrock edition "confirms" it stopped breaking blocks by sending an abort packet
         // We don't forward those as a Java client wouldn't send those either
         if (currentBlockPos != null) {
-            ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, currentBlockPos, Direction.DOWN, 0);
+            ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, currentBlockPos,
+                Direction.DOWN.pistonValue(), 0);
             session.sendDownstreamGamePacket(abortBreakingPacket);
         }
 
@@ -464,7 +466,7 @@ public class BlockBreakHandler {
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
         // Send java packet
         session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(instamine ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING,
-            vector, direction, session.getWorldCache().nextPredictionSequence()));
+            vector, direction.pistonValue(), session.getWorldCache().nextPredictionSequence()));
         session.getWorldCache().markPositionInSequence(vector);
 
         if (canDestroyBlock(state)) {

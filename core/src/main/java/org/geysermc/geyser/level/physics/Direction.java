@@ -26,8 +26,12 @@
 package org.geysermc.geyser.level.physics;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.GeyserImpl;
+
+import java.util.function.ToIntFunction;
 
 public enum Direction {
     DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN),
@@ -45,6 +49,8 @@ public enum Direction {
     private final Vector3i unitVector;
     @Getter
     private final Axis axis;
+    @Getter
+    @Accessors(fluent = true)
     private final org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue;
 
     Direction(int reversedId, Vector3i unitVector, Axis axis, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
@@ -73,5 +79,14 @@ public enum Direction {
             }
         }
         throw new IllegalStateException();
+    }
+
+    public static <T> Direction getUntrusted(T source, ToIntFunction<T> idExtractor) {
+        int id = idExtractor.applyAsInt(source);
+        if (id < 0 || id >= VALUES.length) {
+            GeyserImpl.getInstance().getLogger().warning("Received invalid direction from " + source + " (ID was " + id + ")");
+            return DOWN; // Default to DOWN
+        }
+        return Direction.VALUES[id];
     }
 }
