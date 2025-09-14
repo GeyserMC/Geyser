@@ -129,7 +129,8 @@ public class GeyserEntityData implements EntityData {
                 }
             }
         }
-        session.sendUpstreamPacket(packet);
+        if (!packet.getProperties().getIntProperties().isEmpty() || !packet.getProperties().getFloatProperties().isEmpty())
+            session.sendUpstreamPacket(packet);
     }
 
     private void addIntPropertyToDataPacket(SetEntityDataPacket packet, Entity entity, String name, int index, int value) {
