@@ -77,16 +77,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class BlockBreakHandler {
 
-    private final static Set<Block> GAME_MASTER_BLOCKS = Set.of(
-        Blocks.COMMAND_BLOCK,
-        Blocks.CHAIN_COMMAND_BLOCK,
-        Blocks.REPEATING_COMMAND_BLOCK,
-        Blocks.JIGSAW,
-        Blocks.STRUCTURE_BLOCK,
-        Blocks.TEST_BLOCK,
-        Blocks.TEST_INSTANCE_BLOCK
-    );
-
     protected final GeyserSession session;
 
     /**
