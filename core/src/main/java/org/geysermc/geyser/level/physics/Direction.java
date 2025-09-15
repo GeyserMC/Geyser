@@ -72,9 +72,9 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
-    public static @NonNull Direction fromMCPL(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
+    public static @NonNull Direction fromMCPL(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl) {
         for (Direction direction : VALUES) {
-            if (direction.mcpl == pistonValue) {
+            if (direction.mcpl == mcpl) {
                 return direction;
             }
         }
