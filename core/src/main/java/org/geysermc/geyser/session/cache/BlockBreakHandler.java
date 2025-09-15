@@ -51,6 +51,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.UtilMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
@@ -457,7 +458,7 @@ public class BlockBreakHandler {
             }
         }
 
-        if (GAME_MASTER_BLOCKS.contains(state.block())) {
+        if (UtilMappings.get().gameMasterBlocks().contains(state.block().javaIdentifier())) {
             if (!instabuild || session.getOpPermissionLevel() < 2) {
                 return false;
             }
