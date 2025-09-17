@@ -39,10 +39,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Used to load and store the {@code mappings/util.json} file. When adding new fields to util mappings, be sure to create a proper registry for them
+ * in {@link org.geysermc.geyser.registry.Registries}. Use {@link org.geysermc.geyser.registry.loader.RegistryLoaders#UTIL_MAPPINGS_KEYS} (or create a new loader if loading something
+ * other than keys).
+ */
 public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockEntities, List<Key> dangerousEntities) {
     private static final String INPUT = "mappings/util.json";
     private static UtilMappings loaded = null;
 
+    /**
+     * Gets the loaded util mappings, or loads them if they weren't yet.
+     */
     private static UtilMappings get() {
         if (loaded == null) {
             try (InputStream utilInput = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(INPUT)) {
@@ -67,6 +75,11 @@ public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockE
         return loaded;
     }
 
+    /**
+     * Simply gets a field of the loaded {@link UtilMappings} object. Instead of re-opening the util mappings file every time a field is loaded,
+     * the mappings are parsed once by {@link UtilMappings#get()} and kept in a static variable.
+     * Loader input is a function that extracts the field to get from the {@link UtilMappings} object.
+     */
     public static class Loader<T> implements RegistryLoader<Function<UtilMappings, T>, T> {
 
         @Override
