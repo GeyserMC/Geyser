@@ -50,6 +50,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
@@ -75,16 +76,6 @@ import java.util.concurrent.TimeUnit;
  * by extensions (not officially supported!).
  */
 public class BlockBreakHandler {
-
-    private final static Set<Block> GAME_MASTER_BLOCKS = Set.of(
-        Blocks.COMMAND_BLOCK,
-        Blocks.CHAIN_COMMAND_BLOCK,
-        Blocks.REPEATING_COMMAND_BLOCK,
-        Blocks.JIGSAW,
-        Blocks.STRUCTURE_BLOCK,
-        Blocks.TEST_BLOCK,
-        Blocks.TEST_INSTANCE_BLOCK
-    );
 
     protected final GeyserSession session;
 
@@ -457,7 +448,7 @@ public class BlockBreakHandler {
             }
         }
 
-        if (GAME_MASTER_BLOCKS.contains(state.block())) {
+        if (Registries.GAME_MASTER_BLOCKS.get().contains(state.block().javaIdentifier())) {
             if (!instabuild || session.getOpPermissionLevel() < 2) {
                 return false;
             }
