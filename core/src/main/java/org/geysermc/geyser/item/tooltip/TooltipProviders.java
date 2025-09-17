@@ -57,6 +57,7 @@ import org.geysermc.geyser.item.tooltip.providers.TropicalFishPatternTooltip;
 import org.geysermc.geyser.item.tooltip.providers.WrittenBookTooltip;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.SpawnEggItem;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -73,9 +74,6 @@ public class TooltipProviders {
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> NAME_PROVIDERS = new Reference2ObjectOpenHashMap<>();
     private static final Map<DataComponentType<?>, ComponentTooltipProvider<?>> PROVIDERS = new Reference2ObjectOpenHashMap<>();
 
-    private static final List<Key> DANGEROUS_BLOCK_ENTITIES = List.of(MinecraftKey.key("command_block"), MinecraftKey.key("lectern"), MinecraftKey.key("sign"),
-                                                                        MinecraftKey.key("hanging_sign"), MinecraftKey.key("mob_spawner"), MinecraftKey.key("trial_spawner"));
-    private static final List<Key> DANGEROUS_ENTITIES = List.of(MinecraftKey.key("falling_block"), MinecraftKey.key("command_block_minecart"), MinecraftKey.key("spawner_minecart"));
     private static final List<Component> DANGEROUS_NBT_WARNING = List.of(
         Component.translatable("item.op_warning.line1").color(NamedTextColor.RED).decorate(TextDecoration.BOLD),
         Component.translatable("item.op_warning.line2").color(NamedTextColor.RED),
@@ -217,7 +215,7 @@ public class TooltipProviders {
         if (entityData != null) {
             try {
                 Key entityId = MinecraftKey.key(entityData.getString("id"));
-                return DANGEROUS_BLOCK_ENTITIES.contains(entityId) || DANGEROUS_ENTITIES.contains(entityId);
+                return Registries.DANGEROUS_BLOCK_ENTITIES.get().contains(entityId) || Registries.DANGEROUS_ENTITIES.get().contains(entityId);
             } catch (InvalidKeyException ignored) {}
         }
         return false;
