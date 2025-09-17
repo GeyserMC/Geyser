@@ -99,8 +99,18 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     }
 
     @Override
+    public List<Key> keys() {
+        return this.values.stream().map(RegistryEntryData::key).toList();
+    }
+
+    @Override
     public List<T> values() {
         return this.values.stream().map(RegistryEntryData::data).toList();
+    }
+
+    @Override
+    public int size() {
+        return values.size();
     }
 
     @Override

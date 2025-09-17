@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -126,8 +127,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                         // Harnesses the ghast
                         return InteractiveTag.EQUIP_HARNESS;
                     }
+                } else if (itemInHand.asItem() == Items.SHEARS) {
+                    if (this.canShearEquipment() && !session.isSneaking()) {
+                        // Shears the harness off of the ghast
+                        return InteractiveTag.REMOVE_HARNESS;
+                    }
                 }
-                // TODO: Handle shearing the harness off
             }
 
             if (this.equipment.get(EquipmentSlot.BODY) != null && !session.isSneaking()) {
@@ -151,8 +156,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
                     }
+                } else if (itemInHand.asItem() == Items.SHEARS) {
+                    if (this.canShearEquipment() && !session.isSneaking()) {
+                        // Shears the harness off of the ghast
+                        return InteractionResult.SUCCESS;
+                    }
                 }
-                // TODO: Handle shearing the harness off
             }
 
             if (this.equipment.get(EquipmentSlot.BODY) == null && !session.isSneaking()) {

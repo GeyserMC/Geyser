@@ -72,7 +72,17 @@ public interface JavaRegistry<T> {
     void reset(List<RegistryEntryData<T>> values);
 
     /**
+     * All keys of this registry, as a list.
+     */
+    List<Key> keys();
+
+    /**
      * All values of this registry, as a list.
      */
     List<T> values();
+
+    /**
+     * The amount of values registered in this registry.
+     */
+    int size();
 }

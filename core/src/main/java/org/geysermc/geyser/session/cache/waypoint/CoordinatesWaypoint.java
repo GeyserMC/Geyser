@@ -42,6 +42,10 @@ public class CoordinatesWaypoint extends GeyserWaypoint {
 
     @Override
     public void setData(WaypointData data) {
-        position = ((Vec3iWaypointData) data).vector().toFloat();
+        if (data instanceof Vec3iWaypointData vec3iData) {
+            position = vec3iData.vector().toFloat();
+        } else {
+            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for coordinates waypoint");
+        }
     }
 }

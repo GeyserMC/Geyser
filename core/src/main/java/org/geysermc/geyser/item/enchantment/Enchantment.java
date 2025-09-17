@@ -42,8 +42,7 @@ import java.util.Set;
 /**
  * @param anvilCost also as a rarity multiplier
  */
-public record Enchantment(String identifier,
-                          Set<EnchantmentComponent> effects,
+public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
                           Component description,
@@ -66,8 +65,7 @@ public record Enchantment(String identifier,
 
         Component description = MessageTranslator.componentFromNbtTag(data.get("description"));
 
-        return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
-                description, anvilCost, exclusiveSet, bedrockEnchantment);
+        return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 
     private static Set<EnchantmentComponent> readEnchantmentComponents(NbtMap effects) {

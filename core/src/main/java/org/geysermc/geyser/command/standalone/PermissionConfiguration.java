@@ -39,4 +39,7 @@ public class PermissionConfiguration {
 
     @JsonProperty("default-permissions")
     private Set<String> defaultPermissions = Collections.emptySet();
+
+    @JsonProperty("default-denied-permissions")
+    private Set<String> defaultDeniedPermissions = Collections.emptySet();
 }

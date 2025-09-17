@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
@@ -35,8 +36,11 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.skin.SkinData;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -117,6 +121,50 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.8.0
      */
     void sendCommand(String command);
+
+    /**
+     * Gets the hostname or ip address the player used to join this Geyser instance.
+     * Example:
+     * <ul>
+     *     <li> {@code test.geysermc.org} </li>
+     *     <li> {@code 127.0.0.1} </li>
+     *     <li> {@code 06e9:c755:4eff:5f13:9b4c:4b21:9df2:6a73} </li>
+     * </ul>
+     *
+     * @throws NoSuchElementException if called before the session is fully initialized
+     * @return the ip address or hostname string the player used to join 
+     * @since 2.8.3
+     */
+    @NonNull
+    String joinAddress();
+
+    /**
+     * Gets the port the player used to join this Geyser instance.
+     * Example:
+     * <ul>
+     *     <li> {@code 19132} </li>
+     *     <li> {@code 2202} </li>
+     * </ul>
+     *
+     * @throws NoSuchElementException if called before the session is fully initialized
+     * @return the port the player used to join 
+     * @since 2.8.3
+     */
+    @Positive
+    int joinPort();
+
+    /**
+     * Applies a skin to a player seen by this Geyser connection.
+     * If the uuid matches the {@link GeyserConnection#javaUuid()}, this
+     * will update the skin of this Geyser connection.
+     * If the player uuid provided is not known to this connection, this method
+     * will silently return.
+     *
+     * @param player which player this skin should be applied to
+     * @param skinData the skin data to apply
+     * @since 2.8.3
+     */
+    void sendSkin(@NonNull UUID player, @NonNull SkinData skinData);
 
     /**
      * @param javaId the Java entity ID to look up.
