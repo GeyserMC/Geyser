@@ -53,7 +53,7 @@ public class ModCommandSource implements GeyserCommandSource {
 
     @Override
     public void sendMessage(net.kyori.adventure.text.Component message) {
-        source.sendMessage(message, msg -> GeyserCommandSource.super.sendMessage(msg));
+        source.sendMessage(message, GeyserCommandSource.super::sendMessage);
     }
 
     @Override
