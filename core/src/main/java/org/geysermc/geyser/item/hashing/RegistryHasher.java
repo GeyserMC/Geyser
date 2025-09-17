@@ -30,7 +30,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
-import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
+import org.geysermc.geyser.item.components.FireworkExplosionShape;
 import org.geysermc.geyser.item.hashing.data.ItemContainerSlot;
 import org.geysermc.geyser.item.hashing.data.entity.AxolotlVariant;
 import org.geysermc.geyser.item.hashing.data.entity.FoxVariant;
@@ -355,7 +355,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      *
      * @param registry the registry to create a hasher for.
      */
-    static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
+    static RegistryHasher<?> registry(JavaRegistryKey<?, ?> registry) {
         MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::key);
         return hasher::hash;
     }
@@ -371,7 +371,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @see RegistryHasher#holder()
      */
     // We don't use the registry generic type, because various registries don't use the MCPL type as their type
-    static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?> registry, MinecraftHasher<DirectType> directHasher) {
+    static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?, ?> registry, MinecraftHasher<DirectType> directHasher) {
         return new RegistryHasherWithDirectHasher<>(registry(registry), directHasher);
     }
 

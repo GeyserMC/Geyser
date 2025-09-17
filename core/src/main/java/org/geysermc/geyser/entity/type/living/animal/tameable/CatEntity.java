@@ -85,7 +85,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.CAT_VARIANT;
     }
 

@@ -134,6 +134,10 @@ public class Item {
         return baseComponents.get(type);
     }
 
+    public Component getName(GeyserItemStack stack) {
+        return baseComponents.getOrDefault(DataComponentTypes.ITEM_NAME, Component.empty());
+    }
+
     public String translationKey() {
         return "item." + javaIdentifier.namespace() + "." + javaIdentifier.value();
     }
@@ -164,14 +168,6 @@ public class Item {
      * Takes components from Java Edition and map them into Bedrock.
      */
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        List<Component> loreComponents = components.get(DataComponentTypes.LORE);
-        if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
-            List<String> lore = builder.getOrCreateLore();
-            for (Component loreComponent : loreComponents) {
-                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
-            }
-        }
-
         Integer damage = components.get(DataComponentTypes.DAMAGE);
         if (damage != null) {
             builder.setDamage(damage);
@@ -254,8 +250,7 @@ public class Item {
 
         BedrockEnchantment bedrockEnchantment = enchantment.bedrockEnchantment();
         if (bedrockEnchantment == null) {
-            String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
-            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            // Java only
             return null;
         }
 
@@ -263,12 +258,6 @@ public class Item {
                 .putShort("id", (short) bedrockEnchantment.ordinal())
                 .putShort("lvl", (short) level)
                 .build();
-    }
-
-    private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
-        String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
-
-        builder.getOrCreateLore().add(0, ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {

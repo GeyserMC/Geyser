@@ -46,6 +46,7 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
@@ -127,7 +128,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(jukeboxSong.description()));
+            textPacket.setParameters(Collections.singletonList(MessageTranslator.convertMessage(session, jukeboxSong.description())));
             session.sendUpstreamPacket(textPacket);
             return;
         }

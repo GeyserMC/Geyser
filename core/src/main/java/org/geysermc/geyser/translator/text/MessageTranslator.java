@@ -186,7 +186,7 @@ public class MessageTranslator {
      * @return Parsed and formatted message for bedrock, in gray color
      */
     public static String convertMessageForTooltip(Component message, String locale) {
-        return RESET + ChatColor.GRAY + convertMessageRaw(message, locale);
+        return RESET + convertMessageRaw(message, locale);
     }
 
     /**
@@ -391,7 +391,7 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender, @Nullable UUID senderUuid) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> holder, Component targetName, Component sender, @Nullable UUID senderUuid) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
@@ -414,7 +414,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
+        ChatType chatType = JavaRegistries.CHAT_TYPE.value(session, holder);
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages
@@ -493,24 +493,6 @@ public class MessageTranslator {
             return "";
         }
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
-    }
-
-    /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
-        Object description = tag.get("description");
-        Component parsed = componentFromNbtTag(description);
-        return convertMessage(session, parsed);
-    }
-
-    /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
-        Object description = tag.get("description");
-        Component parsed = componentFromNbtTag(description);
-        return convertMessageForTooltip(parsed, session.locale());
     }
 
     public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {

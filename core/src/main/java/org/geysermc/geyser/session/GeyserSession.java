@@ -56,6 +56,8 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
@@ -77,6 +79,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
@@ -151,7 +154,10 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+import org.geysermc.geyser.item.tooltip.TooltipProviders;
 import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -855,7 +861,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(cameraPresetsPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
+        creativePacket.getContents().addAll(addCreativeModeTooltips(this.itemMappings.getCreativeItems()));
         creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
         upstream.sendPacket(creativePacket);
 
@@ -2428,5 +2434,34 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
         sendUpstreamPacket(packet);
+    }
+
+    private List<CreativeItemData> addCreativeModeTooltips(List<CreativeItemData> items) {
+        List<CreativeItemData> withTooltips = new ArrayList<>();
+        for (CreativeItemData item : items) {
+            Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(item.getItem().getDefinition().getIdentifier());
+            CreativeItemData withTooltip = item;
+
+            if (javaItem != null) {
+                List<String> tooltips = new ArrayList<>();
+                TooltipProviders.addTooltips(TooltipContext.createForCreativeMenu(javaItem), line -> tooltips.add(MessageTranslator.convertMessage(this, line)));
+                if (!tooltips.isEmpty()) {
+                    NbtMapBuilder tooltipNbt = NbtMap.builder()
+                        .putCompound("display", NbtMap.builder()
+                            .putList("Lore", NbtType.STRING, tooltips)
+                            .build());
+                    if (item.getItem().getTag() != null) {
+                        tooltipNbt.putAll(item.getItem().getTag());
+                    }
+                    withTooltip = new CreativeItemData(item.getItem().toBuilder().tag(tooltipNbt.build()).build(), item.getNetId(), item.getGroupId());
+                }
+            } else {
+                // Happens for all bedrock items whose identifier does not directly match its Java counterpart
+                // There's quite a bit of those, but usually the tooltip for them is just empty
+                geyser.getLogger().debug("Not adding tooltips for item " + item.getItem().getDefinition().getIdentifier() + " because there is no Java item for it!");
+            }
+            withTooltips.add(withTooltip);
+        }
+        return withTooltips;
     }
 }

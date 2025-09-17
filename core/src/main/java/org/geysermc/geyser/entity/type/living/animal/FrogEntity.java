@@ -58,7 +58,7 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.FROG_VARIANT;
     }
 

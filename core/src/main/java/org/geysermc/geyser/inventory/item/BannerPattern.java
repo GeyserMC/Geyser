@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,84 +25,36 @@
 
 package org.geysermc.geyser.inventory.item;
 
-import lombok.Getter;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 
-import java.util.Locale;
+public record BannerPattern(BedrockBannerPattern bedrockPattern, String translationKey) {
 
-@Getter
-public enum BannerPattern {
-    BASE("b"),
-    SQUARE_BOTTOM_LEFT("bl"),
-    SQUARE_BOTTOM_RIGHT("br"),
-    SQUARE_TOP_LEFT("tl"),
-    SQUARE_TOP_RIGHT("tr"),
-    STRIPE_BOTTOM("bs"),
-    STRIPE_TOP("ts"),
-    STRIPE_LEFT("ls"),
-    STRIPE_RIGHT("rs"),
-    STRIPE_CENTER("cs"),
-    STRIPE_MIDDLE("ms"),
-    STRIPE_DOWNRIGHT("drs"),
-    STRIPE_DOWNLEFT("dls"),
-    SMALL_STRIPES("ss"),
-    CROSS("cr"),
-    STRAIGHT_CROSS("sc"),
-    TRIANGLE_BOTTOM("bt"),
-    TRIANGLE_TOP("tt"),
-    TRIANGLES_BOTTOM("bts"),
-    TRIANGLES_TOP("tts"),
-    DIAGONAL_LEFT("ld"),
-    DIAGONAL_UP_RIGHT("rd"),
-    DIAGONAL_UP_LEFT("lud"),
-    DIAGONAL_RIGHT("rud"),
-    CIRCLE("mc"),
-    RHOMBUS("mr"),
-    HALF_VERTICAL("vh"),
-    HALF_HORIZONTAL("hh"),
-    HALF_VERTICAL_RIGHT("vhr"),
-    HALF_HORIZONTAL_BOTTOM("hhb"),
-    BORDER("bo"),
-    CURLY_BORDER("cbo"),
-    GRADIENT("gra"),
-    GRADIENT_UP("gru"),
-    BRICKS("bri"),
-    GLOBE("glb"),
-    CREEPER("cre"),
-    SKULL("sku"),
-    FLOWER("flo"),
-    MOJANG("moj"),
-    PIGLIN("pig"),
-    FLOW("flw"),
-    GUSTER("gus");
-
-    private static final BannerPattern[] VALUES = values();
-
-    private final Key javaIdentifier;
-    private final String bedrockIdentifier;
-
-    BannerPattern(String bedrockIdentifier) {
-        this.javaIdentifier = MinecraftKey.key(this.name().toLowerCase(Locale.ROOT));
-        this.bedrockIdentifier = bedrockIdentifier;
+    public static BannerPattern read(RegistryEntryContext context) {
+        String translationKey = context.data().getString("translation_key");
+        // getByJavaIdentifier defaults to BASE
+        return new BannerPattern(BedrockBannerPattern.getByJavaIdentifier(context.id()), translationKey);
     }
 
-    public static BannerPattern getByJavaIdentifier(Key key) {
-        for (BannerPattern bannerPattern : VALUES) {
-            if (bannerPattern.javaIdentifier.equals(key)) {
-                return bannerPattern;
-            }
+    /**
+     * @return the corresponding registered {@link BannerPattern} for the given {@link BedrockBannerPattern}, or null if none exists
+     */
+    public static BannerPattern fromBedrockPattern(GeyserSession session, @Nullable BedrockBannerPattern bedrockPattern) {
+        if (bedrockPattern == null) {
+            return null;
         }
-        return BASE; // Default fallback
-    }
 
-    public static @Nullable BannerPattern getByBedrockIdentifier(String bedrockIdentifier) {
-        for (BannerPattern bannerPattern : VALUES) {
-            if (bannerPattern.bedrockIdentifier.equals(bedrockIdentifier)) {
-                return bannerPattern;
+        for (BannerPattern javaPattern : session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).values()) {
+            if (javaPattern.bedrockPattern == bedrockPattern) {
+                return javaPattern;
             }
         }
         return null;
+    }
+
+    public static int findNetworkId(GeyserSession session, BedrockBannerPattern bedrockPattern) {
+        return JavaRegistries.BANNER_PATTERN.networkId(session, fromBedrockPattern(session, bedrockPattern));
     }
 }

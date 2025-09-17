@@ -23,13 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.hashing.data;
+package org.geysermc.geyser.item.tooltip.providers;
 
-// Ordered and named by Java ID
-public enum FireworkExplosionShape {
-    SMALL_BALL,
-    LARGE_BALL,
-    STAR,
-    CREEPER,
-    BURST
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.tooltip.ComponentTooltipProvider;
+import org.geysermc.geyser.item.tooltip.TooltipContext;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+public class LoreTooltip implements ComponentTooltipProvider<List<Component>> {
+
+    @Override
+    public void addTooltip(TooltipContext context, Consumer<net.kyori.adventure.text.Component> adder, @NonNull List<Component> lore) {
+        for (Component component : lore) {
+            adder.accept(component.colorIfAbsent(NamedTextColor.DARK_PURPLE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE));
+        }
+    }
 }

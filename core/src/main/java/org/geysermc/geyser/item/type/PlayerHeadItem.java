@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
@@ -43,12 +45,21 @@ public class PlayerHeadItem extends BlockItem {
     }
 
     @Override
+    public Component getName(GeyserItemStack stack) {
+        GameProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
+        return profile != null && profile.getName() != null
+            ? Component.translatable(translationKey() + ".named", profile.getName())
+            : super.getName(stack);
+    }
+
+    @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         // Use the correct color, determined by the rarity of the item
         char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
+        // TODO name translation where?
         GameProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
             String name = profile.getName();
