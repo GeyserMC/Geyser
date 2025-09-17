@@ -29,6 +29,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.loader.RegistryLoader;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.IOException;
@@ -36,12 +37,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockEntities, List<Key> dangerousEntities) {
     private static final String INPUT = "mappings/util.json";
     private static UtilMappings loaded = null;
 
-    public static UtilMappings get() {
+    private static UtilMappings get() {
         if (loaded == null) {
             try (InputStream utilInput = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(INPUT)) {
                 JsonObject utilJson = JsonParser.parseReader(new InputStreamReader(utilInput)).getAsJsonObject();
@@ -63,5 +65,13 @@ public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockE
             }
         }
         return loaded;
+    }
+
+    public static class Loader<T> implements RegistryLoader<Function<UtilMappings, T>, T> {
+
+        @Override
+        public T load(Function<UtilMappings, T> input) {
+            return input.apply(UtilMappings.get());
+        }
     }
 }
