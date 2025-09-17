@@ -28,25 +28,19 @@ package org.geysermc.geyser.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
-import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
-import org.geysermc.geyser.api.entity.property.GeyserEnumEntityProperty;
-import org.geysermc.geyser.api.entity.property.GeyserFloatEntityProperty;
-import org.geysermc.geyser.api.entity.property.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -55,7 +49,6 @@ import java.util.concurrent.CompletableFuture;
 public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
-
     private final Set<UUID> movementLockOwners = new HashSet<>();
 
     public GeyserEntityData(GeyserSession session) {
@@ -86,62 +79,37 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
-    public void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties) {
-        Entity entity = (Entity)geyserEntity;
+    public void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull GeyserEntityProperty<?>... properties) {
+        Objects.requireNonNull(properties);
+        if (!(geyserEntity instanceof Entity entity)) {
+            throw new IllegalArgumentException("GeyserEntity must be an instance of Entity!");
+        }
         if (entity.getSession() != session) {
             throw new IllegalStateException("Given entity must be from this session!");
         }
-        if (entity.getDefinition() == null) {
-            throw new IllegalArgumentException(
-                "Given entity has no registered properties!"
-            );
+        GeyserEntityPropertyManager propertyManager = entity.getPropertyManager();
+        if (propertyManager == null) {
+            throw new IllegalArgumentException("Given entity has no registered properties!");
         }
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(entity.getGeyserId());
+
         GeyserEntityProperties propertyDefinitions = entity.getDefinition().registeredProperties();
-        for (GeyserEntityProperty property : properties) {
+        for (GeyserEntityProperty<?> property : properties) {
+            Objects.requireNonNull(property.value(), "property value must not be null! " + property);
             int index = propertyDefinitions.getPropertyIndex(property.name());
             if (index < 0) {
-                throw new IllegalArgumentException(
-                    "No property with the name " + property.name() + " has been registered."
-                );
+                throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
             }
-            if (property instanceof GeyserFloatEntityProperty floatProperty) {
-                addFloatPropertyToDataPacket(packet, entity, floatProperty.name(), index, floatProperty.value());
-            }
-            else if (property instanceof GeyserIntEntityProperty intProperty) {
-                addIntPropertyToDataPacket(packet, entity, intProperty.name(), index, intProperty.value());
-            }
-            else if (property instanceof GeyserEnumEntityProperty enumProperty) {
-                if (propertyDefinitions.getProperties().get(index) instanceof EnumProperty values) {
-                    int i = values.getIndex(enumProperty.value());
-                    if (i < 0) {
-                        throw new IllegalArgumentException(
-                            "The property with the name " + property.name() + " does not have a value called " + enumProperty.value() + "."
-                        );
-                    }
-                    addIntPropertyToDataPacket(packet, entity, enumProperty.name(), index, i);
-                }
-                else {
-                    throw new IllegalArgumentException(
-                        "The property with the name " + property.name() + " is not an enum property."
-                    );
-                }
-            }
+
+            PropertyType<?, ?> propertyType = propertyDefinitions.getProperties().get(index);
+            propertyManager.addProperty(property.name(), propertyType.create(index, property.value()));
         }
-        if (!packet.getProperties().getIntProperties().isEmpty() || !packet.getProperties().getFloatProperties().isEmpty())
+
+        if (propertyManager.hasProperties()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(entity.getGeyserId());
+            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
             session.sendUpstreamPacket(packet);
-    }
-
-    private void addIntPropertyToDataPacket(SetEntityDataPacket packet, Entity entity, String name, int index, int value) {
-        if (entity.getPropertyManager().add(name, value)) {
-            packet.getProperties().getIntProperties().add(new IntEntityProperty(index, value));
-        }
-    }
-
-    private void addFloatPropertyToDataPacket(SetEntityDataPacket packet, Entity entity, String name, int index, float value) {
-        if (entity.getPropertyManager().add(name, value)) {
-            packet.getProperties().getFloatProperties().add(new FloatEntityProperty(index, value));
         }
     }
 

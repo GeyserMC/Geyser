@@ -23,28 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.property;
+package org.geysermc.geyser.entity.properties.type;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
-/**
- * This class is used to store a float entity property.
- */
-public class GeyserFloatEntityProperty implements GeyserEntityProperty {
-    private final String name;
-    private final float value;
+import java.util.Objects;
 
-    public GeyserFloatEntityProperty(@NonNull String name, float value) {
-        this.name = name;
-        this.value = value;
-    }
+public record EntityProperty<T>(
+    String name,
+    T value
+) implements GeyserEntityProperty<T> {
 
-    @Override
-    public @NonNull String name() {
-        return name;
-    }
-
-    public float value() {
-        return value;
+    public EntityProperty(String name, T value) {
+        this.name = Objects.requireNonNull(name);
+        this.value = Objects.requireNonNull(value);
     }
 }

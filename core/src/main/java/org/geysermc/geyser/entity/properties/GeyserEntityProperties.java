@@ -44,30 +44,28 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @EqualsAndHashCode
 @ToString
 public class GeyserEntityProperties {
-    private final ObjectArrayList<PropertyType> properties;
+
+    private final static Pattern ENTITY_PROPERTY_PATTERN = Pattern.compile("^[a-z0-9_.:-]*:[a-z0-9_.:-]*$");
+
+    private final ObjectArrayList<PropertyType<?, ?>> properties;
     private final Object2IntMap<String> propertyIndices;
 
-    private GeyserEntityProperties(ObjectArrayList<PropertyType> properties,
+    private GeyserEntityProperties(ObjectArrayList<PropertyType<?, ?>> properties,
             Object2IntMap<String> propertyIndices) {
         this.properties = properties;
         this.propertyIndices = propertyIndices;
-    }
-
-    public void addToBuilder(Builder builder) {
-        for (Object2IntMap.Entry<String> entry : propertyIndices.object2IntEntrySet()) {
-            builder.add(entry.getKey(), properties.get(entry.getIntValue()));
-        }
     }
 
     public NbtMap toNbtMap(String entityType) {
         NbtMapBuilder mapBuilder = NbtMap.builder();
         List<NbtMap> nbtProperties = new ArrayList<>();
 
-        for (PropertyType property : properties) {
+        for (PropertyType<?, ?> property : properties) {
             nbtProperties.add(property.nbtMap());
         }
         mapBuilder.putList("properties", NbtType.COMPOUND, nbtProperties);
@@ -75,7 +73,11 @@ public class GeyserEntityProperties {
         return mapBuilder.putString("type", entityType).build();
     }
 
-    public @NonNull List<PropertyType> getProperties() {
+    public Builder toBuilder() {
+        return new Builder(properties, propertyIndices);
+    }
+
+    public @NonNull List<PropertyType<?, ?>> getProperties() {
         return properties;
     }
 
@@ -84,26 +86,29 @@ public class GeyserEntityProperties {
     }
 
     public static class Builder {
-        private final ObjectArrayList<PropertyType> properties = new ObjectArrayList<>();
+        private final ObjectArrayList<PropertyType<?, ?>> properties = new ObjectArrayList<>();
         private final Object2IntMap<String> propertyIndices = new Object2IntOpenHashMap<>();
+
+        public Builder(ObjectArrayList<PropertyType<?, ?>> properties, Object2IntMap<String> propertyIndices) {
+            this.properties.addAll(properties);
+            this.propertyIndices.putAll(propertyIndices);
+        }
+
+        public Builder() {
+        }
 
         public boolean isEmpty() {
             return this.properties.isEmpty();
         }
 
-        public Builder add(@NonNull String name, PropertyType property) {
+        public Builder add(@NonNull String name, PropertyType<?, ?> property) {
             if (propertyIndices.containsKey(name)) {
                 throw new IllegalArgumentException(
                     "Property with name " + name + " already exists on builder!");
             }
-            else if (name.matches(".*[A-Z].*") || name.contains(" ")) {
+            else if (!ENTITY_PROPERTY_PATTERN.matcher(name).matches()) {
                 throw new IllegalArgumentException(
-                    "Cannot register property with name " + name + " because property names cannot contain capital letters or spaces."
-                );
-            }
-            else if (!name.contains(":")) {
-                throw new IllegalArgumentException(
-                    "Property identifier must have a namespace. " + "Property with name " + name + " was not registered."
+                    "Cannot register property with name " + name + " because property name is invalid! Must match: " + ENTITY_PROPERTY_PATTERN.pattern()
                 );
             }
             this.properties.add(property);
@@ -129,14 +134,18 @@ public class GeyserEntityProperties {
                     throw new IllegalArgumentException(
                         "Cannot register enum property with name " + name + " because it contains a null value."
                     );
-                }
-                else if (name.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
+                } else if (value.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
                     throw new IllegalArgumentException(
                         "Cannot register enum property with name " + name + " and value " + value +
                             " because enum values can only contain alphanumeric characters and underscores."
                     );
                 }
             }
+
+            if (!values.contains(defaultValue)) {
+                throw new IllegalArgumentException("Unable to find default value for enum property with name " + name);
+            }
+
             return add(name, new EnumProperty(name, values, defaultValue));
         }
 

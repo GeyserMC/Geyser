@@ -26,13 +26,73 @@
 package org.geysermc.geyser.api.entity.property;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
- * This class is used to store an entity property.
+ * Represents a property that can be attached to an entity.
+ * <p>
+ * Entity properties are used to describe metadata about an entity, such as
+ * integers, floats, booleans, or enums.
+ *
+ * @param <T> the type of value stored by this property
  */
-public interface GeyserEntityProperty {
+public interface GeyserEntityProperty<T> {
+
     /**
-     * @return the property's name.
+     * Gets the unique name of this property.
+     *
+     * @return the property's name
      */
     @NonNull String name();
+
+    /**
+     * Gets the value stored by this property.
+     *
+     * @return the value of this property
+     */
+    @NonNull T value();
+
+    /**
+     * Creates a new entity property that stores an integer value.
+     *
+     * @param name  the name of the property
+     * @param value the integer value to store
+     * @return a new integer property
+     */
+    static GeyserEntityProperty<Integer> intValue(@NonNull String name, int value) {
+        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
+    }
+
+    /**
+     * Creates a new entity property that stores a floating-point value.
+     *
+     * @param name  the name of the property
+     * @param value the float value to store
+     * @return a new float property
+     */
+    static GeyserEntityProperty<Float> floatValue(@NonNull String name, float value) {
+        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
+    }
+
+    /**
+     * Creates a new entity property that stores a boolean value.
+     *
+     * @param name  the name of the property
+     * @param value the boolean value to store
+     * @return a new boolean property
+     */
+    static GeyserEntityProperty<Boolean> booleanValue(@NonNull String name, boolean value) {
+        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
+    }
+
+    /**
+     * Creates a new entity property that stores an enum value.
+     *
+     * @param name  the name of the property
+     * @param value the enum value to store
+     * @return a new enum property
+     */
+    static GeyserEntityProperty<Enum<?>> enumValue(@NonNull String name, Enum<?> value) {
+        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
+    }
 }

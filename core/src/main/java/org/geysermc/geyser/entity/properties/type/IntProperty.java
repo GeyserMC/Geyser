@@ -25,29 +25,27 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 
-public class IntProperty implements IIntProperty {
-    private final String name;
-    private final int max;
-    private final int min;
-    private final int defaultValue;
+public record IntProperty(
+    String name,
+    int max,
+    int min,
+    Integer defaultValue
+) implements PropertyType<Integer, IntEntityProperty> {
 
-    public IntProperty(String name, int min, int max) {
-        this(name, min, max, 0);
-    }
-
-    public IntProperty(String name, int min, int max, int defaultValue) {
-        this.name = name;
-        this.max = max;
-        this.min = min;
-        this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
+//    public IntProperty(String name, int min, int max) {
+//        this(name, min, max, 0);
+//    }
+//
+//    public IntProperty(String name, int min, int max, int defaultValue) {
+//        this.name = name;
+//        this.max = max;
+//        this.min = min;
+//        this.defaultValue = defaultValue;
+//    }
 
     @Override
     public NbtMap nbtMap() {
@@ -60,7 +58,20 @@ public class IntProperty implements IIntProperty {
     }
 
     @Override
-    public int getDefaultValue() {
-        return defaultValue;
+    public IntEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue == null ? 0 : defaultValue);
+    }
+
+    @Override
+    public IntEntityProperty createValue(int index, @NonNull Integer value) {
+        return new IntEntityProperty(index, value);
+    }
+
+    @Override
+    public Integer fromObject(Object object) {
+        if (object instanceof Integer integerObject) {
+            return integerObject;
+        }
+        throw new ClassCastException("Cannot cast " + object.getClass() + " to " + Integer.class);
     }
 }

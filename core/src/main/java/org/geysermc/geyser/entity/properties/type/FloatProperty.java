@@ -25,29 +25,23 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
 
-public class FloatProperty implements PropertyType {
-    private final String name;
-    private final float max;
-    private final float min;
-    @Getter
-    private final float defaultValue;
+public record FloatProperty(
+    String name,
+    float max,
+    float min,
+    Float defaultValue
+) implements PropertyType<Float, FloatEntityProperty> {
 
     public FloatProperty(String name, float min, float max) {
-        this(name, min, max, 0);
-    }
-
-    public FloatProperty(String name, float min, float max, float defaultValue) {
-        this.name = name;
-        this.max = max;
-        this.min = min;
-        this.defaultValue = defaultValue;
+        this(name, min, max, 0F);
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return name;
     }
 
@@ -59,5 +53,23 @@ public class FloatProperty implements PropertyType {
                 .putFloat("min", min)
                 .putInt("type", 1)
                 .build();
+    }
+
+    @Override
+    public FloatEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue == null ? 0f : defaultValue);
+    }
+
+    @Override
+    public FloatEntityProperty createValue(int index, @NonNull Float value) {
+        return new FloatEntityProperty(index, value);
+    }
+
+    @Override
+    public Float fromObject(Object object) {
+        if (object instanceof Float floatObject) {
+            return floatObject;
+        }
+        throw new IllegalArgumentException("Cannot convert " + object + " to Float");
     }
 }

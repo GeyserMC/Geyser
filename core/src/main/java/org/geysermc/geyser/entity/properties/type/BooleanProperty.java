@@ -25,24 +25,17 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 
-public class BooleanProperty implements IIntProperty {
-    private final String name;
-    private final boolean defaultValue;
+public record BooleanProperty(
+    String name,
+    Boolean defaultValue
+) implements PropertyType<Boolean, IntEntityProperty> {
 
     public BooleanProperty(String name) {
         this(name, false);
-    }
-
-    public BooleanProperty(String name, boolean defaultValue) {
-        this.name = name;
-        this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -54,7 +47,20 @@ public class BooleanProperty implements IIntProperty {
     }
 
     @Override
-    public int getDefaultValue() {
-        return defaultValue ? 1 : 0;
+    public IntEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue != null && defaultValue);
+    }
+
+    @Override
+    public IntEntityProperty createValue(int index, @NonNull Boolean value) {
+        return new IntEntityProperty(index, value ? 1 : 0);
+    }
+
+    @Override
+    public Boolean fromObject(Object object) {
+        if (object instanceof Boolean booleanObject) {
+            return booleanObject;
+        }
+        throw new ClassCastException("Cannot cast " + object.getClass() + " to " + Boolean.class);
     }
 }

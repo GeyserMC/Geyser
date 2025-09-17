@@ -33,7 +33,6 @@ import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -65,7 +64,7 @@ public interface EntityData {
      * @param geyserEntity the entity whose properties are being updated.
      * @param properties the updated properties to send to this client.
      */
-    void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull List<GeyserEntityProperty> properties);
+    void updateProperties(@NonNull GeyserEntity geyserEntity, @NonNull GeyserEntityProperty<?>... properties);
 
     /**
      * Gets the {@link GeyserPlayerEntity} of this connection.

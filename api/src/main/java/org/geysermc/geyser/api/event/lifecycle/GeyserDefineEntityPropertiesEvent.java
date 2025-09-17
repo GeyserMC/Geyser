@@ -26,63 +26,63 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Called on Geyser's startup when looking for custom entity properties. Player properties must be registered through this event.
+ * Called on Geyser's startup when looking for user-defined entity properties.
+ * This event can be used to e.g. register player properties.
  */
 public interface GeyserDefineEntityPropertiesEvent extends Event {
+
     /**
-     * @return The identifier of the entity currently being registered.
+     * @return the identifier of the entity currently being registered
      */
     String entityIdentifier();
 
     /**
      * Registers a float entity property with the given attributes.
-     * @param name The name of the property.
-     * @param min The minimum value that can be assigned to the property.
-     * @param max The maximum value that can be assigned to the property.
-     * @param defaultValue The default value of the property.
+     *
+     * @param name the name of the property
+     * @param min the minimum value that can be assigned to the property
+     * @param max the maximum value that can be assigned to the property
+     * @param defaultValue the default value of the property
      */
     void registerFloatProperty(@NonNull String name, float min, float max, float defaultValue);
 
-    default void registerFloatProperty(@NonNull String name) {
-        registerFloatProperty(name, Float.MIN_VALUE, Float.MAX_VALUE, 0);
-    }
-
     /**
      * Registers an int entity property with the given attributes.
-     * @param name The name of the property.
-     * @param min The minimum value that can be assigned to the property.
-     * @param max The maximum value that can be assigned to the property.
-     * @param defaultValue The default value of the property.
+     *
+     * @param name the name of the property
+     * @param min the minimum value that can be assigned to the property
+     * @param max the maximum value that can be assigned to the property
+     * @param defaultValue the default value of the property
      */
     void registerIntegerProperty(@NonNull String name, int min, int max, int defaultValue);
 
-    default void registerIntegerProperty(@NonNull String name) {
-        registerIntegerProperty(name, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
-    }
-
     /**
      * Registers a boolean entity property with the given name.
-     * @param name The name of the property.
-     * @param defaultValue The default value of the property.
+     *
+     * @param name the name of the property
+     * @param defaultValue the default value of the property
      */
     void registerBooleanProperty(@NonNull String name, boolean defaultValue);
 
+    /**
+     * Registers a boolean entity property with the given name
+     * and the default value set to "false"
+     *
+     * @param name the name of the property
+     */
     default void registerBooleanProperty(@NonNull String name) {
         registerBooleanProperty(name, false);
     }
 
     /**
      * Registers an int entity property with the given attributes.
-     * @param name The name of the property.
-     * @param values The string values for the enum.
-     * @param defaultValue The default value of the property.
+     *
+     * @param name the name of the property
+     * @param enumClass the enum class
+     * @param defaultValue the default enum value of the property
      */
-    void registerEnumProperty(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue);
+    <E extends Enum<E>> void registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @NonNull E defaultValue);
 }
