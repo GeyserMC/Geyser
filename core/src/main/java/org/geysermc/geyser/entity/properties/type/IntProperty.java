@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.properties.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
+import org.geysermc.geyser.GeyserImpl;
 
 public record IntProperty(
     String name,
@@ -36,16 +37,20 @@ public record IntProperty(
     Integer defaultValue
 ) implements PropertyType<Integer, IntEntityProperty> {
 
-//    public IntProperty(String name, int min, int max) {
-//        this(name, min, max, 0);
-//    }
-//
-//    public IntProperty(String name, int min, int max, int defaultValue) {
-//        this.name = name;
-//        this.max = max;
-//        this.min = min;
-//        this.defaultValue = defaultValue;
-//    }
+    public IntProperty {
+        if (min > max) {
+            throw new IllegalArgumentException("Cannot create int entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
+                .formatted(name, min, max));
+        }
+        if (defaultValue < min || defaultValue > max) {
+            throw new IllegalArgumentException("Cannot create int entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
+                .formatted(name, defaultValue, min, max));
+        }
+        if (min < -1000000 || max > 1000000) {
+            // https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#a-note-on-large-integer-entity-property-values
+            GeyserImpl.getInstance().getLogger().warning("Using int entity properties with min / max values larger than +- 1 million is not recommended!");
+        }
+    }
 
     @Override
     public NbtMap nbtMap() {

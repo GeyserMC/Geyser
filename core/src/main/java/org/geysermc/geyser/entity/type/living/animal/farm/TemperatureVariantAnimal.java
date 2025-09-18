@@ -27,7 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal.farm;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
@@ -38,6 +38,12 @@ import java.util.UUID;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
+    public static final EnumProperty TEMPERATE_VARIANT_PROPERTY = new EnumProperty(
+        "minecraft:climate_variant",
+        BuiltInVariant.class,
+        BuiltInVariant.TEMPERATE
+    );
+
     public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
 
     public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
@@ -47,14 +53,14 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
 
     @Override
     public void setBedrockVariant(BuiltInVariant variant) {
-        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, variant.toBedrock());
+        TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
         updateBedrockEntityProperties();
     }
 
     public enum BuiltInVariant implements VariantHolder.BuiltIn {
-        COLD,
         TEMPERATE,
-        WARM;
+        WARM,
+        COLD;
 
         public String toBedrock() {
             return name().toLowerCase(Locale.ROOT);

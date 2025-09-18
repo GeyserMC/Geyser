@@ -34,10 +34,6 @@ public record BooleanProperty(
     Boolean defaultValue
 ) implements PropertyType<Boolean, IntEntityProperty> {
 
-    public BooleanProperty(String name) {
-        this(name, false);
-    }
-
     @Override
     public NbtMap nbtMap() {
         return NbtMap.builder()

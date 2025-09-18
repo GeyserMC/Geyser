@@ -32,8 +32,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
+import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 public record EnumProperty(
     String name,
@@ -42,8 +46,41 @@ public record EnumProperty(
     int defaultIndex
 ) implements PropertyType<String, IntEntityProperty> {
 
+    public static final Pattern VALUE_VALIDATION_REGEX = Pattern.compile("^[A-Za-z][A-Za-z0-9_]{0,31}$");
+
+    public EnumProperty {
+        if (values.size() > 16) {
+            throw new IllegalArgumentException("Cannot register enum property with name " + name + " because it has more than 16 values!");
+        }
+
+        for (String value : values) {
+            if (value == null) {
+                throw new IllegalArgumentException(
+                    "Cannot register enum property with name " + name + " because it contains a null value."
+                );
+            } else if (!VALUE_VALIDATION_REGEX.matcher(value).matches()) {
+                throw new IllegalArgumentException(
+                    "Cannot register enum property with name " + name + " and value " + value +
+                        " because enum values can only contain alphanumeric characters and underscores."
+                );
+            }
+        }
+
+        if (defaultIndex < 0) {
+            throw new IllegalArgumentException("Unable to find default value for enum property with name " + name);
+        }
+    }
+
     public EnumProperty(String name, List<String> values, @Nullable String defaultValue) {
         this(name, values, getValueIndexMap(values), defaultValue == null ? 0 : values.indexOf(defaultValue));
+    }
+
+    public <E extends Enum<E>> EnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+        this(name,
+            Arrays.stream(enumClass.getEnumConstants())
+                .map(entry -> entry.name().toLowerCase(Locale.ROOT))
+                .toList(),
+            defaultValue != null ? defaultValue.name().toLowerCase(Locale.ROOT) : null);
     }
 
     private static Object2IntMap<String> getValueIndexMap(List<String> values) {
@@ -87,5 +124,9 @@ public record EnumProperty(
 
     public int getIndex(String value) {
         return valueIndexMap.getOrDefault(value, -1);
+    }
+
+    public <E extends Enum<E>> void apply(GeyserEntityPropertyManager manager, E value) {
+        apply(manager, value.name().toLowerCase(Locale.ROOT));
     }
 }

@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.properties.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
+import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 
 public interface PropertyType<Type, NetworkRepresentation extends EntityProperty> {
     String name();
@@ -43,4 +44,8 @@ public interface PropertyType<Type, NetworkRepresentation extends EntityProperty
     }
 
     Type fromObject(Object object);
+
+    default void apply(GeyserEntityPropertyManager manager, Type value) {
+        manager.addProperty(this, value);
+    }
 }

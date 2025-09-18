@@ -87,6 +87,11 @@ public interface GeyserEntityProperty<T> {
 
     /**
      * Creates a new entity property that stores an enum value.
+     * Due to Bedrock edition limitations, there cannot be more than 16 values, and
+     * each value cannot exceed 32 characters. The first character must be alphabetical,
+     * all following can be alphabetical, numerical, or an underscore.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#limitations-of-entity-properties">here</a>
+     * for more information.
      *
      * @param name  the name of the property
      * @param value the enum value to store

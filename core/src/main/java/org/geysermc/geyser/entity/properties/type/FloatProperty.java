@@ -36,8 +36,15 @@ public record FloatProperty(
     Float defaultValue
 ) implements PropertyType<Float, FloatEntityProperty> {
 
-    public FloatProperty(String name, float min, float max) {
-        this(name, min, max, 0F);
+    public FloatProperty {
+        if (min > max) {
+            throw new IllegalArgumentException("Cannot create float entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
+                .formatted(name, min, max));
+        }
+        if (defaultValue < min || defaultValue > max) {
+            throw new IllegalArgumentException("Cannot create float entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
+                .formatted(name, defaultValue, min, max));
+        }
     }
 
     @Override

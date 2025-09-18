@@ -44,6 +44,7 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @EqualsAndHashCode
@@ -101,7 +102,9 @@ public class GeyserEntityProperties {
             return this.properties.isEmpty();
         }
 
-        public Builder add(@NonNull String name, PropertyType<?, ?> property) {
+        public Builder add(@NonNull PropertyType<?, ?> property) {
+            Objects.requireNonNull(property, "property cannot be null!");
+            String name = property.name();
             if (propertyIndices.containsKey(name)) {
                 throw new IllegalArgumentException(
                     "Property with name " + name + " already exists on builder!");
@@ -117,36 +120,27 @@ public class GeyserEntityProperties {
         }
 
         public Builder addInt(@NonNull String name, int min, int max, int defaultValue) {
-            return add(name, new IntProperty(name, min, max, defaultValue));
+            return add(new IntProperty(name, min, max, defaultValue));
         }
 
         public Builder addFloat(@NonNull String name, float min, float max, float defaultValue) {
-            return add(name, new FloatProperty(name, min, max, defaultValue));
+            return add(new FloatProperty(name, min, max, defaultValue));
         }
 
         public Builder addBoolean(@NonNull String name, boolean defaultValue) {
-            return add(name, new BooleanProperty(name, defaultValue));
+            return add(new BooleanProperty(name, defaultValue));
+        }
+
+        public <E extends Enum<E>> Builder addEnum(@NonNull String name, @NonNull Class<E> enumClass, @NonNull E defaultValue) {
+            List<String> values = Arrays.stream(enumClass.getEnumConstants())
+                .map(Enum::name)
+                .toList();
+
+            return addEnum(name, values, defaultValue.name());
         }
 
         public Builder addEnum(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
-            for (String value : values) {
-                if (value == null) {
-                    throw new IllegalArgumentException(
-                        "Cannot register enum property with name " + name + " because it contains a null value."
-                    );
-                } else if (value.matches("^[a-zA-Z0-9_]*$") || name.contains(" ")) {
-                    throw new IllegalArgumentException(
-                        "Cannot register enum property with name " + name + " and value " + value +
-                            " because enum values can only contain alphanumeric characters and underscores."
-                    );
-                }
-            }
-
-            if (!values.contains(defaultValue)) {
-                throw new IllegalArgumentException("Unable to find default value for enum property with name " + name);
-            }
-
-            return add(name, new EnumProperty(name, values, defaultValue));
+            return add(new EnumProperty(name, values, defaultValue));
         }
 
         public Builder addEnum(@NonNull String name, @NonNull String... values) {

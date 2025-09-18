@@ -33,6 +33,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
@@ -40,7 +41,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -93,7 +93,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private float width;
         private float height;
         private float offset = 0.00001f;
-        private GeyserEntityProperties registeredProperties;
+        private GeyserEntityProperties.Builder propertiesBuilder;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         private Builder(EntityFactory<T> factory) {
@@ -108,7 +108,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             this.width = width;
             this.height = height;
             this.offset = offset;
-            this.registeredProperties = registeredProperties;
+            this.propertiesBuilder = registeredProperties == null ? new GeyserEntityProperties.Builder() : registeredProperties.toBuilder();
             this.translators = translators;
         }
 
@@ -135,8 +135,8 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        public Builder<T> properties(GeyserEntityProperties registeredProperties) {
-            this.registeredProperties = registeredProperties;
+        public Builder<T> property(PropertyType<?, ?> propertyType) {
+            propertiesBuilder.add(propertyType);
             return this;
         }
 
@@ -162,15 +162,9 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
+            GeyserEntityProperties registeredProperties = null;
             //noinspection ConstantValue - for static testing
             if (identifier != null && GeyserImpl.getInstance().eventBus() != null && register) {
-                GeyserEntityProperties.Builder propertiesBuilder;
-                if (registeredProperties != null) {
-                    propertiesBuilder = registeredProperties.toBuilder();
-                } else {
-                    propertiesBuilder = new GeyserEntityProperties.Builder();
-                }
-
                 GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
 
                     @Override
@@ -181,24 +175,12 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                     @Override
                     public void registerFloatProperty(@NonNull String name, float min, float max, float defaultValue) {
                         Objects.requireNonNull(name);
-                        if (min > max) {
-                            throw new IllegalArgumentException("Min value (" + min + ") is greater than max value (" + max + ")!");
-                        }
-                        if (defaultValue < min || defaultValue > max) {
-                            throw new IllegalArgumentException("Default value (" + defaultValue + ") is outside range (" + min + "-" + max + ")!");
-                        }
                         propertiesBuilder.addFloat(name, min, max, defaultValue);
                     }
 
                     @Override
                     public void registerIntegerProperty(@NonNull String name, int min, int max, int defaultValue) {
                         Objects.requireNonNull(name);
-                        if (min > max) {
-                            throw new IllegalArgumentException("Min value (" + min + ") is greater than max value (" + max + ")!");
-                        }
-                        if (defaultValue < min || defaultValue > max) {
-                            throw new IllegalArgumentException("Default value (" + defaultValue + ") is outside range (" + min + "-" + max + ")!");
-                        }
                         propertiesBuilder.addInt(name, min, max, defaultValue);
                     }
 
@@ -213,12 +195,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                         Objects.requireNonNull(name);
                         Objects.requireNonNull(enumClass);
                         Objects.requireNonNull(defaultValue);
-
-                        List<String> values = Arrays.stream(enumClass.getEnumConstants())
-                                .map(Enum::name)
-                                .toList();
-
-                        propertiesBuilder.addEnum(name, values, defaultValue.name());
+                        propertiesBuilder.addEnum(name, enumClass, defaultValue);
                     }
                 });
 

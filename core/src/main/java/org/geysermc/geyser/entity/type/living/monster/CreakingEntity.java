@@ -32,6 +32,8 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
@@ -40,7 +42,31 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CreakingEntity extends MonsterEntity {
-    public static final String CREAKING_STATE = "minecraft:creaking_state";
+
+    public static final EnumProperty STATE_PROPERTY = new EnumProperty(
+        "minecraft:creaking_state",
+        State.class,
+        State.NEUTRAL
+    );
+
+    // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
+    // which i guess is responsible for some animation?
+    // it's sent over the network, all 6 "stages" 50ms in between of each other.
+    // no clue what it's used for tbh, so i'm not gonna bother implementing it
+    // - chris
+    // update: this still holds true, even a refactor later :(
+    public static final IntProperty SWAYING_TICKS_PROPERTY = new IntProperty(
+        "minecraft:creaking_swaying_ticks",
+        6, 0, 0
+    );
+
+    public enum State {
+        NEUTRAL,
+        HOSTILE_OBSERVED,
+        HOSTILE_UNOBSERVED,
+        TWITCHING,
+        CRUMBLING
+    }
 
     private Vector3i homePosition;
 
@@ -56,19 +82,19 @@ public class CreakingEntity extends MonsterEntity {
 
     public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         setFlag(EntityFlag.BODY_ROTATION_BLOCKED, !booleanEntityMetadata.getValue());
-        propertyManager.add(CREAKING_STATE, booleanEntityMetadata.getValue() ? "hostile_unobserved" : "hostile_observed");
+        STATE_PROPERTY.apply(propertyManager, booleanEntityMetadata.getValue() ? State.HOSTILE_UNOBSERVED : State.HOSTILE_OBSERVED);
         updateBedrockEntityProperties();
     }
 
     public void setActive(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (!booleanEntityMetadata.getValue()) {
-            propertyManager.add(CREAKING_STATE, "neutral");
+            STATE_PROPERTY.apply(propertyManager, State.NEUTRAL);
         }
     }
 
     public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (booleanEntityMetadata.getValue()) {
-            propertyManager.add(CREAKING_STATE, "crumbling");
+            STATE_PROPERTY.apply(propertyManager, State.CRUMBLING);
             updateBedrockEntityProperties();
         }
     }
