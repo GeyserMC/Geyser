@@ -63,6 +63,11 @@ public record IntProperty(
     }
 
     @Override
+    public Class<Integer> typeClass() {
+        return Integer.class;
+    }
+
+    @Override
     public IntEntityProperty defaultValue(int index) {
         return createValue(index, defaultValue == null ? 0 : defaultValue);
     }
@@ -70,13 +75,5 @@ public record IntProperty(
     @Override
     public IntEntityProperty createValue(int index, @NonNull Integer value) {
         return new IntEntityProperty(index, value);
-    }
-
-    @Override
-    public Integer fromObject(Object object) {
-        if (object instanceof Integer integerObject) {
-            return integerObject;
-        }
-        throw new ClassCastException("Cannot cast " + object.getClass() + " to " + Integer.class);
     }
 }

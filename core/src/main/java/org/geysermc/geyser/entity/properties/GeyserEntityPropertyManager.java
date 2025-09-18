@@ -55,7 +55,7 @@ public class GeyserEntityPropertyManager {
         this.addProperty(propertyType.name(), propertyType.createValue(index, value));
     }
 
-    public void addProperty(String propertyName, EntityProperty entityProperty) {
+    private void addProperty(String propertyName, EntityProperty entityProperty) {
         if (entityProperty instanceof FloatEntityProperty floatEntityProperty) {
             floatEntityProperties.put(propertyName, floatEntityProperty);
         } else if (entityProperty instanceof IntEntityProperty intEntityProperty) {

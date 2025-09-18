@@ -35,15 +35,18 @@ public interface PropertyType<Type, NetworkRepresentation extends EntityProperty
 
     NbtMap nbtMap();
 
+    Class<Type> typeClass();
+
     NetworkRepresentation defaultValue(int index);
 
     NetworkRepresentation createValue(int index, @NonNull Type value);
 
-    default NetworkRepresentation create(int index, @NonNull Object value) {
-        return createValue(index, fromObject(value));
+    default void tryApply(GeyserEntityPropertyManager manager, @NonNull Object value) {
+        if (typeClass().isInstance(value)) {
+            apply(manager, typeClass().cast(value));
+        }
+        throw new IllegalArgumentException("Cannot create value of type " + value.getClass());
     }
-
-    Type fromObject(Object object);
 
     default void apply(GeyserEntityPropertyManager manager, Type value) {
         manager.addProperty(this, value);

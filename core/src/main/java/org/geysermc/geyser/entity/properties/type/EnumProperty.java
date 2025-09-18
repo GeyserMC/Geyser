@@ -101,6 +101,11 @@ public record EnumProperty(
     }
 
     @Override
+    public Class<String> typeClass() {
+        return String.class;
+    }
+
+    @Override
     public IntEntityProperty defaultValue(int index) {
         return new IntEntityProperty(index, defaultIndex);
     }
@@ -112,14 +117,6 @@ public record EnumProperty(
             throw new IllegalArgumentException("Enum value " + value + " is not a valid enum value!");
         }
         return new IntEntityProperty(index, valueIndex);
-    }
-
-    @Override
-    public String fromObject(Object object) {
-        if (object instanceof String string) {
-            return string;
-        }
-        throw new ClassCastException("Cannot cast " + object + " to " + this.getClass().getSimpleName());
     }
 
     public int getIndex(String value) {

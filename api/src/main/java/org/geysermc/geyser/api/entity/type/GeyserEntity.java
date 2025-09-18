@@ -26,6 +26,8 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
 /**
  * Represents a unique instance of an entity. Each {@link org.geysermc.geyser.api.connection.GeyserConnection}
@@ -37,4 +39,11 @@ public interface GeyserEntity {
      */
     @NonNegative
     int javaId();
+
+    /**
+     * Updates this entity's properties.
+     *
+     * @param properties the updated properties to send to this client.
+     */
+    void updateProperties(@NonNull GeyserEntityProperty<?>... properties);
 }

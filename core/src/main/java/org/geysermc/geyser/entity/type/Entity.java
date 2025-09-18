@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -41,10 +42,13 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
@@ -755,5 +759,37 @@ public class Entity implements GeyserEntity {
         packet.setType(type);
         packet.setData(data);
         session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void updateProperties(@NonNull GeyserEntityProperty<?>... properties) {
+        if (!isValid()) {
+            throw new IllegalStateException("Entity is not valid!");
+        }
+
+        if (this.propertyManager != null) {
+            Objects.requireNonNull(properties);
+            GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
+            for (GeyserEntityProperty<?> property : properties) {
+                Objects.requireNonNull(property.value(), "property value must not be null! " + property);
+                int index = propertyDefinitions.getPropertyIndex(property.name());
+                if (index < 0) {
+                    throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
+                }
+
+                PropertyType<?, ?> propertyType = propertyDefinitions.getProperties().get(index);
+                propertyType.tryApply(propertyManager, property.value());
+            }
+
+            if (propertyManager.hasProperties()) {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(getGeyserId());
+                propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+                propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                session.sendUpstreamPacket(packet);
+            }
+        } else {
+            throw new IllegalArgumentException("Given entity has no registered properties!");
+        }
     }
 }

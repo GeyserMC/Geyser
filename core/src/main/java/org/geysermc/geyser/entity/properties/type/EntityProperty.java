@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.properties.type;
 
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
+import java.util.Locale;
 import java.util.Objects;
 
 public record EntityProperty<T>(
@@ -35,7 +36,11 @@ public record EntityProperty<T>(
 ) implements GeyserEntityProperty<T> {
 
     public EntityProperty(String name, T value) {
-        this.name = Objects.requireNonNull(name);
+        if (value instanceof Enum<?> enumValue) {
+            this.name = enumValue.name().toUpperCase(Locale.ROOT);
+        } else {
+            this.name = name.toUpperCase(Locale.ROOT);
+        }
         this.value = Objects.requireNonNull(value);
     }
 }

@@ -43,6 +43,11 @@ public record BooleanProperty(
     }
 
     @Override
+    public Class<Boolean> typeClass() {
+        return Boolean.class;
+    }
+
+    @Override
     public IntEntityProperty defaultValue(int index) {
         return createValue(index, defaultValue != null && defaultValue);
     }
@@ -50,13 +55,5 @@ public record BooleanProperty(
     @Override
     public IntEntityProperty createValue(int index, @NonNull Boolean value) {
         return new IntEntityProperty(index, value ? 1 : 0);
-    }
-
-    @Override
-    public Boolean fromObject(Object object) {
-        if (object instanceof Boolean booleanObject) {
-            return booleanObject;
-        }
-        throw new ClassCastException("Cannot cast " + object.getClass() + " to " + Boolean.class);
     }
 }

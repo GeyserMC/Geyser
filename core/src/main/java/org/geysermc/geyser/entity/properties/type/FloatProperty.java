@@ -63,6 +63,11 @@ public record FloatProperty(
     }
 
     @Override
+    public Class<Float> typeClass() {
+        return Float.class;
+    }
+
+    @Override
     public FloatEntityProperty defaultValue(int index) {
         return createValue(index, defaultValue == null ? 0f : defaultValue);
     }
@@ -70,13 +75,5 @@ public record FloatProperty(
     @Override
     public FloatEntityProperty createValue(int index, @NonNull Float value) {
         return new FloatEntityProperty(index, value);
-    }
-
-    @Override
-    public Float fromObject(Object object) {
-        if (object instanceof Float floatObject) {
-            return floatObject;
-        }
-        throw new IllegalArgumentException("Cannot convert " + object + " to Float");
     }
 }
