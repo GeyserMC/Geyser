@@ -25,16 +25,16 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserFloatEntityProperty;
 
 public record FloatProperty(
     String name,
     float max,
     float min,
     Float defaultValue
-) implements PropertyType<Float, FloatEntityProperty> {
+) implements PropertyType<Float, FloatEntityProperty>, GeyserFloatEntityProperty {
 
     public FloatProperty {
         if (min > max) {
@@ -45,11 +45,6 @@ public record FloatProperty(
             throw new IllegalArgumentException("Cannot create float entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
                 .formatted(name, defaultValue, min, max));
         }
-    }
-
-    @Override
-    public String name() {
-        return name;
     }
 
     @Override
@@ -73,7 +68,10 @@ public record FloatProperty(
     }
 
     @Override
-    public FloatEntityProperty createValue(int index, @NonNull Float value) {
+    public FloatEntityProperty createValue(int index, Float value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
         return new FloatEntityProperty(index, value);
     }
 }

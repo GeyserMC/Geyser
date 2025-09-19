@@ -33,7 +33,6 @@ import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.RegistryCache;
 
-import java.util.Locale;
 import java.util.UUID;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
@@ -61,9 +60,5 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
         TEMPERATE,
         WARM,
         COLD;
-
-        public String toBedrock() {
-            return name().toLowerCase(Locale.ROOT);
-        }
     }
 }

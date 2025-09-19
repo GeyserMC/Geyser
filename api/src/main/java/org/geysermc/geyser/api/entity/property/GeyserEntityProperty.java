@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.entity.property;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
 /**
  * Represents a property that can be attached to an entity.
@@ -46,11 +47,22 @@ public interface GeyserEntityProperty<T> {
     @NonNull String name();
 
     /**
-     * Gets the value stored by this property.
+     * Gets the default value of this property.
+     * It is the one initially sent to entities.
      *
-     * @return the value of this property
+     * @return the default value of this property
      */
-    @NonNull T value();
+    @NonNull T defaultValue();
+
+    /**
+     * Updates the value of this property for the given entity.
+     */
+    void updateValue(@NonNull GeyserEntity entity, @NonNull T value);
+
+    /**
+     * Sets a new value but does not send an update to the client
+     */
+    // TODO
 
     /**
      * Creates a new entity property that stores an integer value.

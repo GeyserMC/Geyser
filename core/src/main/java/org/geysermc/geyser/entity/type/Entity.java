@@ -771,14 +771,14 @@ public class Entity implements GeyserEntity {
             Objects.requireNonNull(properties);
             GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
             for (GeyserEntityProperty<?> property : properties) {
-                Objects.requireNonNull(property.value(), "property value must not be null! " + property);
+                Objects.requireNonNull(property.defaultValue(), "property value must not be null! " + property);
                 int index = propertyDefinitions.getPropertyIndex(property.name());
                 if (index < 0) {
                     throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
                 }
 
                 PropertyType<?, ?> propertyType = propertyDefinitions.getProperties().get(index);
-                propertyType.tryApply(propertyManager, property.value());
+                propertyType.tryApply(propertyManager, property.defaultValue());
             }
 
             if (propertyManager.hasProperties()) {

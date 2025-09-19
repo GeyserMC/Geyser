@@ -111,7 +111,11 @@ public record EnumProperty(
     }
 
     @Override
-    public IntEntityProperty createValue(int index, @NonNull String value) {
+    public IntEntityProperty createValue(int index, String value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
+
         int valueIndex = getIndex(value);
         if (valueIndex == -1) {
             throw new IllegalArgumentException("Enum value " + value + " is not a valid enum value!");
@@ -125,5 +129,10 @@ public record EnumProperty(
 
     public <E extends Enum<E>> void apply(GeyserEntityPropertyManager manager, E value) {
         apply(manager, value.name().toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    public @NonNull String defaultValue() {
+        return
     }
 }

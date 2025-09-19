@@ -23,24 +23,8 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property;
 
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
-
-import java.util.Locale;
-import java.util.Objects;
-
-public record EntityProperty<T>(
-    String name,
-    T value
-) implements GeyserEntityProperty<T> {
-
-    public EntityProperty(String name, T value) {
-        if (value instanceof Enum<?> enumValue) {
-            this.name = enumValue.name().toUpperCase(Locale.ROOT);
-        } else {
-            this.name = name.toUpperCase(Locale.ROOT);
-        }
-        this.value = Objects.requireNonNull(value);
-    }
+public interface BatchWriter {
+    <T> void set(GeyserEntityProperty<T> key, T value);
 }

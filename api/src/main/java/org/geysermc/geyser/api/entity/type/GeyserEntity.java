@@ -27,7 +27,14 @@ package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.entity.property.BatchWriter;
+import org.geysermc.geyser.api.entity.property.GeyserBooleanEntityProperty;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserIntEntityProperty;
+import org.geysermc.geyser.api.entity.property.PropertyBatch;
+
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Represents a unique instance of an entity. Each {@link org.geysermc.geyser.api.connection.GeyserConnection}
@@ -40,10 +47,67 @@ public interface GeyserEntity {
     @NonNegative
     int javaId();
 
-    /**
-     * Updates this entity's properties.
-     *
-     * @param properties the updated properties to send to this client.
-     */
-    void updateProperties(@NonNull GeyserEntityProperty<?>... properties);
+    @NonNull
+    <T> Map<GeyserEntityProperty<T>, T> properties();
+
+    PropertyBatch updateProperties();
+
+    void updatePropertiesBatched(Consumer<BatchWriter> consumer);
+
+    default void usageTest() {
+        GeyserBooleanEntityProperty someBoolProperty = new GeyserBooleanEntityProperty() {
+            @Override
+            public @NonNull String name() {
+                return "";
+            }
+
+            @Override
+            public @NonNull Boolean defaultValue() {
+                return null;
+            }
+
+            @Override
+            public void updateValue(@NonNull GeyserEntity entity, @NonNull Boolean value) {
+
+            }
+        };
+
+        GeyserIntEntityProperty someIntProperty = new GeyserIntEntityProperty() {
+
+            @Override
+            public @NonNull String name() {
+                return "";
+            }
+
+            @Override
+            public @NonNull Integer defaultValue() {
+                return 0;
+            }
+
+            @Override
+            public void updateValue(@NonNull GeyserEntity entity, @NonNull Integer value) {
+
+            }
+
+            @Override
+            public int min() {
+                return 0;
+            }
+
+            @Override
+            public int max() {
+                return 0;
+            }
+        };
+
+        this.updateProperties()
+            .set(someBoolProperty, false)
+            .set(someIntProperty, 3)
+            .send();
+
+        this.updatePropertiesBatched(consumer -> {
+            consumer.set(someBoolProperty, false);
+            consumer.set(someIntProperty, 2);
+        });
+    }
 }

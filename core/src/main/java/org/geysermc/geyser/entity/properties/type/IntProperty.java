@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.GeyserImpl;
@@ -73,7 +72,10 @@ public record IntProperty(
     }
 
     @Override
-    public IntEntityProperty createValue(int index, @NonNull Integer value) {
+    public IntEntityProperty createValue(int index, Integer value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
         return new IntEntityProperty(index, value);
     }
 }
