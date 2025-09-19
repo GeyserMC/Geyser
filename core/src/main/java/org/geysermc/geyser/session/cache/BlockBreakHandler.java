@@ -256,7 +256,10 @@ public class BlockBreakHandler {
                     handleAbortBreaking(position);
                 }
                 default -> {
-                    throw new IllegalStateException("Unknown block break action: " + actionData.getAction());
+                    GeyserImpl.getInstance().getLogger().warning("Unknown block break action (%s) received! (origin: %s)!"
+                        .formatted(actionData.getAction(), session.getDebugInfo()));
+                    GeyserImpl.getInstance().getLogger().debug("Odd packet: " + packet);
+                    session.disconnect("Invalid block breaking action received!");
                 }
             }
         }
