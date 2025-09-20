@@ -80,6 +80,11 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
     }
 
     @Override
+    public boolean testViaPresent(@NonNull GeyserModBootstrap bootstrap) {
+        return ModList.get().isLoaded("viaforge");
+    }
+
+    @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
         try {
             Path path = container.getModInfo().getOwningFile().getFile().findResource(resource);
