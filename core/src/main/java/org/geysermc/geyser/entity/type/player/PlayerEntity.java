@@ -28,13 +28,14 @@ package org.geysermc.geyser.entity.type.player;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -52,13 +53,18 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 import java.util.Collections;
 import java.util.List;
@@ -70,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 @Getter @Setter
 public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+    private static final Style SPECTATOR_MODE_STYLING = Style.style(TextDecoration.ITALIC);
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
     static {
@@ -103,6 +110,17 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
     private @Nullable ParrotEntity rightParrot;
+
+    /**
+     * The gamemode as it's sent in the player info packet
+     */
+    private GameMode gameMode = GameMode.SURVIVAL;
+
+    /**
+     * The tablist display name component as sent by the Java server
+     */
+    @Setter
+    private @Nullable Component tabListDisplayName;
 
     /**
      * Whether this player is currently listed.
@@ -140,13 +158,15 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
+        addPlayerPacket.setGameType(EntityUtils.toBedrockGamemode(gameMode));
         addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
         addPlayerPacket.getMetadata().putFlags(flags);
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        // Otherwise, tab display names would be shown
+        dirtyMetadata.put(EntityDataTypes.NAME, username);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
@@ -385,9 +405,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     @Override
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+        if (nametag == null) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
@@ -480,6 +498,24 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return getUuid();
+    }
+
+    public String getTabListDisplayName() {
+        boolean spectator = gameMode == GameMode.SPECTATOR;
+        // First: Use manual override sent in the player list, if present
+        if (tabListDisplayName != null) {
+            return MessageTranslator.convertMessageRaw(spectator ?
+                tabListDisplayName.style(SPECTATOR_MODE_STYLING) : tabListDisplayName, session.locale());
+        }
+
+        // Second: apply styling from team, if in one
+        Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(getUsername());
+        if (playerTeam != null) {
+            return playerTeam.formatTabDisplay(username, spectator);
+        }
+
+        // Finally: Return username, optionally italic if in spectator mode
+        return spectator ? ChatColor.ITALIC + username : username;
     }
 
     @Override
