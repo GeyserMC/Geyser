@@ -38,10 +38,6 @@ public record EnumProperty<E extends Enum<E>>(
 ) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
 
     public EnumProperty {
-        if (enumClass.getEnumConstants().length > 16) {
-            throw new IllegalArgumentException("Cannot register enum property with name " + name + " because it has more than 16 values!");
-        }
-
         validateAllValues(name, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
     }
 

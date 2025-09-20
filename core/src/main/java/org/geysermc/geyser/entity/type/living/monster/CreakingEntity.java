@@ -43,10 +43,10 @@ import java.util.UUID;
 
 public class CreakingEntity extends MonsterEntity {
 
-    public static final EnumProperty<State> STATE_PROPERTY = new EnumProperty<>(
+    public static final EnumProperty<CreakingState> STATE_PROPERTY = new EnumProperty<>(
         "minecraft:creaking_state",
-        State.class,
-        State.NEUTRAL
+        CreakingState.class,
+        CreakingState.NEUTRAL
     );
 
     // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
@@ -59,14 +59,6 @@ public class CreakingEntity extends MonsterEntity {
         "minecraft:creaking_swaying_ticks",
         6, 0, 0
     );
-
-    public enum State {
-        NEUTRAL,
-        HOSTILE_OBSERVED,
-        HOSTILE_UNOBSERVED,
-        TWITCHING,
-        CRUMBLING
-    }
 
     private Vector3i homePosition;
 
@@ -82,19 +74,19 @@ public class CreakingEntity extends MonsterEntity {
 
     public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         setFlag(EntityFlag.BODY_ROTATION_BLOCKED, !booleanEntityMetadata.getValue());
-        STATE_PROPERTY.apply(propertyManager, booleanEntityMetadata.getValue() ? State.HOSTILE_UNOBSERVED : State.HOSTILE_OBSERVED);
+        STATE_PROPERTY.apply(propertyManager, booleanEntityMetadata.getValue() ? CreakingState.HOSTILE_UNOBSERVED : CreakingState.HOSTILE_OBSERVED);
         updateBedrockEntityProperties();
     }
 
     public void setActive(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (!booleanEntityMetadata.getValue()) {
-            STATE_PROPERTY.apply(propertyManager, State.NEUTRAL);
+            STATE_PROPERTY.apply(propertyManager, CreakingState.NEUTRAL);
         }
     }
 
     public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (booleanEntityMetadata.getValue()) {
-            STATE_PROPERTY.apply(propertyManager, State.CRUMBLING);
+            STATE_PROPERTY.apply(propertyManager, CreakingState.CRUMBLING);
             updateBedrockEntityProperties();
         }
     }
@@ -126,5 +118,13 @@ public class CreakingEntity extends MonsterEntity {
 
             session.sendUpstreamPacket(levelEventGenericPacket);
         }
+    }
+
+    public enum CreakingState {
+        NEUTRAL,
+        HOSTILE_OBSERVED,
+        HOSTILE_UNOBSERVED,
+        TWITCHING,
+        CRUMBLING
     }
 }

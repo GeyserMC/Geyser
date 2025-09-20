@@ -48,6 +48,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
  * });
  * }</pre>
  */
+@FunctionalInterface
 public interface BatchPropertyUpdater {
 
     /**

@@ -47,14 +47,6 @@ public class ArmadilloEntity extends AnimalEntity {
         State.UNROLLED
     );
 
-    public enum State {
-        UNROLLED,
-        ROLLED_UP,
-        ROLLED_UP_PEEKING,
-        ROLLED_UP_RELAXING,
-        ROLLED_UP_UNROLLING
-    }
-
     private ArmadilloState armadilloState = ArmadilloState.IDLE;
 
     public ArmadilloEntity(GeyserSession session, int entityId, long geyserId, UUID uuid,
@@ -95,5 +87,13 @@ public class ArmadilloEntity extends AnimalEntity {
     @Nullable
     protected Tag<Item> getFoodTag() {
         return ItemTag.ARMADILLO_FOOD;
+    }
+
+    public enum State {
+        UNROLLED,
+        ROLLED_UP,
+        ROLLED_UP_PEEKING,
+        ROLLED_UP_RELAXING,
+        ROLLED_UP_UNROLLING
     }
 }
