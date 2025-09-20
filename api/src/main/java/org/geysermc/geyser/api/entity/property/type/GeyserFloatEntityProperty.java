@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
-import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 
-public record BooleanProperty(
-    String name,
-    Boolean defaultValue
-) implements PropertyType<Boolean, IntEntityProperty>, GeyserBooleanEntityProperty {
+/**
+ * Represents a float-backed entity property with inclusive bounds.
+ * Values associated with this property must be always within the {@code [min(), max()]} bounds.
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(String, float, float, Float)
+ */
+public interface GeyserFloatEntityProperty extends GeyserEntityProperty<Float> {
 
-    @Override
-    public NbtMap nbtMap() {
-        return NbtMap.builder()
-                .putString("name", name)
-                .putInt("type", 2)
-                .build();
-    }
+    /**
+     * @return the inclusive lower bound for this property
+     */
+    float min();
 
-    @Override
-    public IntEntityProperty defaultValue(int index) {
-        return createValue(index, defaultValue != null && defaultValue);
-    }
-
-    @Override
-    public IntEntityProperty createValue(int index, Boolean value) {
-        if (value == null) {
-            return defaultValue(index);
-        }
-        return new IntEntityProperty(index, value ? 1 : 0);
-    }
+    /**
+     * @return the inclusive upper bound for this property
+     */
+    float max();
 }
