@@ -1682,8 +1682,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
         // Also close current inventories, otherwise the form will not show
-        if (getOpenInventory() != null) {
-            InventoryUtils.closeInventory(this, getOpenInventory().getJavaId(), true);
+        if (inventoryHolder != null) {
+            InventoryUtils.sendJavaContainerClose(inventoryHolder);
+            InventoryUtils.closeInventory(this, inventoryHolder, true);
         }
         return doSendForm(form);
     }
