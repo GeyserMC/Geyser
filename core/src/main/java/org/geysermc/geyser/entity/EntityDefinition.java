@@ -58,7 +58,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                                                  float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, parent.registeredProperties, new ObjectArrayList<>(parent.translators));
+        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, null, new ObjectArrayList<>(parent.translators));
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
