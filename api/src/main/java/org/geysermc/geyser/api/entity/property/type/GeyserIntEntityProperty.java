@@ -23,12 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.property;
+package org.geysermc.geyser.api.entity.property.type;
 
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+
+/**
+ * Represents an int-backed entity property with inclusive bounds.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>Values must be always within the {@code [min(), max()]} bounds</li>
+ *     <li>Molang evaluation uses floats under the hood; very large integers can lose precision.
+ *         Prefer keeping values in a practical range to avoid rounding issues.</li>
+ * </ul>
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(String, int, int, Integer)
+ */
 public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
 
+    /**
+     * @return the inclusive lower bound for this property
+     */
     int min();
 
+    /**
+     * @return the inclusive upper bound for this property
+     */
     int max();
-
 }

@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -60,7 +60,7 @@ import java.util.UUID;
 
 public class WolfEntity extends TameableEntity implements VariantIntHolder {
 
-    public static final EnumProperty SOUND_VARIANT = new EnumProperty(
+    public static final StringEnumProperty SOUND_VARIANT = new StringEnumProperty(
         "minecraft:sound_variant",
         List.of(
             "default",

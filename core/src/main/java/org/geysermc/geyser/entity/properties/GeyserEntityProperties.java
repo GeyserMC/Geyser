@@ -31,18 +31,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.entity.properties.type.BooleanProperty;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
-import org.geysermc.geyser.entity.properties.type.FloatProperty;
-import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -102,14 +97,17 @@ public class GeyserEntityProperties {
             return this.properties.isEmpty();
         }
 
-        public Builder add(@NonNull PropertyType<?, ?> property) {
+        public List<PropertyType<?, ?>> properties() {
+            return properties;
+        }
+
+        public <T> Builder add(@NonNull PropertyType<T, ? extends EntityProperty> property) {
             Objects.requireNonNull(property, "property cannot be null!");
             String name = property.name();
             if (propertyIndices.containsKey(name)) {
                 throw new IllegalArgumentException(
                     "Property with name " + name + " already exists on builder!");
-            }
-            else if (!ENTITY_PROPERTY_PATTERN.matcher(name).matches()) {
+            } else if (!ENTITY_PROPERTY_PATTERN.matcher(name).matches()) {
                 throw new IllegalArgumentException(
                     "Cannot register property with name " + name + " because property name is invalid! Must match: " + ENTITY_PROPERTY_PATTERN.pattern()
                 );
@@ -117,34 +115,6 @@ public class GeyserEntityProperties {
             this.properties.add(property);
             propertyIndices.put(name, properties.size() - 1);
             return this;
-        }
-
-        public Builder addInt(@NonNull String name, int min, int max, int defaultValue) {
-            return add(new IntProperty(name, min, max, defaultValue));
-        }
-
-        public Builder addFloat(@NonNull String name, float min, float max, float defaultValue) {
-            return add(new FloatProperty(name, min, max, defaultValue));
-        }
-
-        public Builder addBoolean(@NonNull String name, boolean defaultValue) {
-            return add(new BooleanProperty(name, defaultValue));
-        }
-
-        public <E extends Enum<E>> Builder addEnum(@NonNull String name, @NonNull Class<E> enumClass, @NonNull E defaultValue) {
-            List<String> values = Arrays.stream(enumClass.getEnumConstants())
-                .map(Enum::name)
-                .toList();
-
-            return addEnum(name, values, defaultValue.name());
-        }
-
-        public Builder addEnum(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
-            return add(new EnumProperty(name, values, defaultValue));
-        }
-
-        public Builder addEnum(@NonNull String name, @NonNull String... values) {
-            return addEnum(name, Arrays.asList(values), null);
         }
 
         public GeyserEntityProperties build() {

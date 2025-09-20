@@ -39,26 +39,15 @@ import java.util.Objects;
 public interface PropertyType<Type, NetworkRepresentation extends EntityProperty> extends GeyserEntityProperty<Type> {
     NbtMap nbtMap();
 
-    Class<Type> typeClass();
-
     NetworkRepresentation defaultValue(int index);
 
     NetworkRepresentation createValue(int index, @Nullable Type value);
 
-    default void tryApply(GeyserEntityPropertyManager manager, @NonNull Object value) {
-        if (typeClass().isInstance(value)) {
-            apply(manager, typeClass().cast(value));
-        }
-        throw new IllegalArgumentException("Cannot create value of type " + value.getClass());
-    }
-
     @Override
-    default void updateValue(@NonNull GeyserEntity entity, @NonNull Type value) {
+    default void updateValue(@NonNull GeyserEntity entity, @Nullable Type value) {
         Objects.requireNonNull(entity);
-        Objects.requireNonNull(value);
-
         if (!(entity instanceof Entity coreEntity)) {
-            throw new IllegalArgumentException("Cannot update non-geyser entity");
+            throw new IllegalArgumentException("Cannot update non-geyser entity implementation!");
         }
 
         if (coreEntity.getPropertyManager() == null) {

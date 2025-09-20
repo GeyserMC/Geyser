@@ -37,7 +37,7 @@ import java.util.UUID;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
-    public static final EnumProperty TEMPERATE_VARIANT_PROPERTY = new EnumProperty(
+    public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
         "minecraft:climate_variant",
         BuiltInVariant.class,
         BuiltInVariant.TEMPERATE

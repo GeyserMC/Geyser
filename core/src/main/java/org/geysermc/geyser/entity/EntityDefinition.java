@@ -29,11 +29,20 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
@@ -41,6 +50,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -168,34 +178,55 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                 GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
 
                     @Override
-                    public String entityIdentifier() {
+                    public @NonNull String entityIdentifier() {
                         return identifier;
                     }
 
                     @Override
-                    public void registerFloatProperty(@NonNull String name, float min, float max, float defaultValue) {
+                    public GeyserFloatEntityProperty registerFloatProperty(@NonNull String name, float min, float max, @Nullable Float defaultValue) {
                         Objects.requireNonNull(name);
-                        propertiesBuilder.addFloat(name, min, max, defaultValue);
+                        FloatProperty property = new FloatProperty(name, min, max, defaultValue);
+                        propertiesBuilder.add(property);
+                        return property;
                     }
 
                     @Override
-                    public void registerIntegerProperty(@NonNull String name, int min, int max, int defaultValue) {
+                    public IntProperty registerIntegerProperty(@NonNull String name, int min, int max, @Nullable Integer defaultValue) {
                         Objects.requireNonNull(name);
-                        propertiesBuilder.addInt(name, min, max, defaultValue);
+                        IntProperty intProperty = new IntProperty(name, min, max, defaultValue);
+                        propertiesBuilder.add(intProperty);
+                        return intProperty;
                     }
 
                     @Override
-                    public void registerBooleanProperty(@NonNull String name, boolean defaultValue) {
+                    public BooleanProperty registerBooleanProperty(@NonNull String name, boolean defaultValue) {
                         Objects.requireNonNull(name);
-                        propertiesBuilder.addBoolean(name, defaultValue);
+                        BooleanProperty booleanProperty = new BooleanProperty(name, defaultValue);
+                        propertiesBuilder.add(booleanProperty);
+                        return booleanProperty;
                     }
 
                     @Override
-                    public <E extends Enum<E>> void registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @NonNull E defaultValue) {
+                    public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
                         Objects.requireNonNull(name);
                         Objects.requireNonNull(enumClass);
-                        Objects.requireNonNull(defaultValue);
-                        propertiesBuilder.addEnum(name, enumClass, defaultValue);
+                        EnumProperty<E> enumProperty = new EnumProperty<>(name, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                        propertiesBuilder.add(enumProperty);
+                        return enumProperty;
+                    }
+
+                    @Override
+                    public GeyserStringEnumProperty registerEnumProperty(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
+                        Objects.requireNonNull(name);
+                        Objects.requireNonNull(values);
+                        StringEnumProperty stringEnumProperty = new StringEnumProperty(name, values, defaultValue);
+                        propertiesBuilder.add(stringEnumProperty);
+                        return stringEnumProperty;
+                    }
+
+                    @Override
+                    public Collection<GeyserEntityProperty<?>> properties() {
+                        return List.copyOf(propertiesBuilder.properties());
                     }
                 });
 

@@ -23,11 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.property;
+package org.geysermc.geyser.api.entity.property.type;
 
-public interface PropertyBatch {
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
-    <T> PropertyBatch set(GeyserEntityProperty<T> key, T value);
-
-    void send(); // actually encode + send one packet
+/**
+ * Represents a boolean entity property.
+ */
+public interface GeyserBooleanEntityProperty extends GeyserEntityProperty<Boolean> {
 }

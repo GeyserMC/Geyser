@@ -26,7 +26,7 @@
 package org.geysermc.geyser.api.entity.property;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
 /**
@@ -36,6 +36,8 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
  * integers, floats, booleans, or enums.
  *
  * @param <T> the type of value stored by this property
+ * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#number-of-entity-properties-per-entity-type">
+ *     Official documentation for info</a>
  */
 public interface GeyserEntityProperty<T> {
 
@@ -44,72 +46,25 @@ public interface GeyserEntityProperty<T> {
      *
      * @return the property's name
      */
-    @NonNull String name();
+    @NonNull
+    String name();
 
     /**
-     * Gets the default value of this property.
-     * It is the one initially sent to entities.
+     * Gets the default value of this property which
+     * is set upon spawning entities.
      *
      * @return the default value of this property
      */
-    @NonNull T defaultValue();
+    @NonNull
+    T defaultValue();
 
     /**
      * Updates the value of this property for the given entity.
+     * {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)} is another method
+     * that can be used for this purpose.
+     * 
+     * @param entity the Geyser entity instance to update
+     * @param value the new value, or null to reset to the default value
      */
-    void updateValue(@NonNull GeyserEntity entity, @NonNull T value);
-
-    /**
-     * Sets a new value but does not send an update to the client
-     */
-    // TODO
-
-    /**
-     * Creates a new entity property that stores an integer value.
-     *
-     * @param name  the name of the property
-     * @param value the integer value to store
-     * @return a new integer property
-     */
-    static GeyserEntityProperty<Integer> intValue(@NonNull String name, int value) {
-        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
-    }
-
-    /**
-     * Creates a new entity property that stores a floating-point value.
-     *
-     * @param name  the name of the property
-     * @param value the float value to store
-     * @return a new float property
-     */
-    static GeyserEntityProperty<Float> floatValue(@NonNull String name, float value) {
-        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
-    }
-
-    /**
-     * Creates a new entity property that stores a boolean value.
-     *
-     * @param name  the name of the property
-     * @param value the boolean value to store
-     * @return a new boolean property
-     */
-    static GeyserEntityProperty<Boolean> booleanValue(@NonNull String name, boolean value) {
-        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
-    }
-
-    /**
-     * Creates a new entity property that stores an enum value.
-     * Due to Bedrock edition limitations, there cannot be more than 16 values, and
-     * each value cannot exceed 32 characters. The first character must be alphabetical,
-     * all following can be alphabetical, numerical, or an underscore.
-     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#limitations-of-entity-properties">here</a>
-     * for more information.
-     *
-     * @param name  the name of the property
-     * @param value the enum value to store
-     * @return a new enum property
-     */
-    static GeyserEntityProperty<Enum<?>> enumValue(@NonNull String name, Enum<?> value) {
-        return GeyserApi.api().provider(GeyserEntityProperty.class, name, value);
-    }
+    void updateValue(@NonNull GeyserEntity entity, @Nullable T value);
 }

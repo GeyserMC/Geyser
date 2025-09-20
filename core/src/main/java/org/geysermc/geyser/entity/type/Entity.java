@@ -36,12 +36,14 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -75,6 +77,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Getter
 @Setter
@@ -762,24 +765,30 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public void updateProperties(@NonNull GeyserEntityProperty<?>... properties) {
-        if (!isValid()) {
-            throw new IllegalStateException("Entity is not valid!");
-        }
-
+    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         if (this.propertyManager != null) {
-            Objects.requireNonNull(properties);
+            Objects.requireNonNull(consumer);
             GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
-            for (GeyserEntityProperty<?> property : properties) {
-                Objects.requireNonNull(property.defaultValue(), "property value must not be null! " + property);
-                int index = propertyDefinitions.getPropertyIndex(property.name());
-                if (index < 0) {
-                    throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
-                }
+            consumer.accept(new BatchPropertyUpdater() {
+                @Override
+                public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                    Objects.requireNonNull(property, "property must not be null!");
+                    if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
+                        throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
+                    }
+                    int index = propertyDefinitions.getPropertyIndex(property.name());
+                    if (index < 0) {
+                        throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
+                    }
 
-                PropertyType<?, ?> propertyType = propertyDefinitions.getProperties().get(index);
-                propertyType.tryApply(propertyManager, property.defaultValue());
-            }
+                    var expectedProperty = propertyDefinitions.getProperties().get(index);
+                    if (!expectedProperty.equals(propertyType)) {
+                        throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                    }
+
+                    propertyType.apply(propertyManager, value);
+                }
+            });
 
             if (propertyManager.hasProperties()) {
                 SetEntityDataPacket packet = new SetEntityDataPacket();

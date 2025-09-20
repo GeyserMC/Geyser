@@ -25,33 +25,41 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
-import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
 
-public record BooleanProperty(
+import java.util.List;
+
+public record StringEnumProperty(
     String name,
-    Boolean defaultValue
-) implements PropertyType<Boolean, IntEntityProperty>, GeyserBooleanEntityProperty {
+    List<String> values,
+    int defaultIndex
+) implements AbstractEnumProperty<String>, GeyserStringEnumProperty {
 
-    @Override
-    public NbtMap nbtMap() {
-        return NbtMap.builder()
-                .putString("name", name)
-                .putInt("type", 2)
-                .build();
-    }
-
-    @Override
-    public IntEntityProperty defaultValue(int index) {
-        return createValue(index, defaultValue != null && defaultValue);
-    }
-
-    @Override
-    public IntEntityProperty createValue(int index, Boolean value) {
-        if (value == null) {
-            return defaultValue(index);
+    public StringEnumProperty {
+        if (defaultIndex < 0) {
+            throw new IllegalArgumentException("Unable to find default value for enum property with name " + name);
         }
-        return new IntEntityProperty(index, value ? 1 : 0);
+        validateAllValues(name, values);
+    }
+
+    public StringEnumProperty(String name, List<String> values, @Nullable String defaultValue) {
+        this(name, values, defaultValue == null ? 0 : values.indexOf(defaultValue));
+    }
+
+    @Override
+    public List<String> allBedrockValues() {
+        return values;
+    }
+
+    @Override
+    public int indexOf(String value) {
+        return values.indexOf(value);
+    }
+
+    @Override
+    public @NonNull String defaultValue() {
+        return values.get(defaultIndex);
     }
 }

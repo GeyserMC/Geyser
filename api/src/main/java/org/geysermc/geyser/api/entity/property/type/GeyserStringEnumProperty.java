@@ -23,10 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.property;
+package org.geysermc.geyser.api.entity.property.type;
 
-public interface GeyserEnumEntityProperty<E extends Enum<E>> extends GeyserEntityProperty<E> {
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
-    Enum<E> allValues(); // or yeet?
+import java.util.List;
 
+/**
+ * Represents a string-backed enum property.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>There cannot be more than 16 values</li>
+ *     <li>The values' names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores</li>
+ * </ul>
+ */
+public interface GeyserStringEnumProperty extends GeyserEntityProperty<String> {
+
+    /**
+     * @return an unmodifiable list of all registered values
+     */
+    List<String> values();
 }

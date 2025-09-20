@@ -41,12 +41,13 @@ import java.util.concurrent.TimeUnit;
 
 public class ArmadilloEntity extends AnimalEntity {
 
-    public static final EnumProperty STATE_PROPERTY = new EnumProperty(
+    public static final EnumProperty<State> STATE_PROPERTY = new EnumProperty<>(
         "minecraft:armadillo_state",
-        STATE.class,
-        STATE.UNROLLED
+        State.class,
+        State.UNROLLED
     );
-    public enum STATE {
+
+    public enum State {
         UNROLLED,
         ROLLED_UP,
         ROLLED_UP_PEEKING,
@@ -65,10 +66,10 @@ public class ArmadilloEntity extends AnimalEntity {
         armadilloState = entityMetadata.getValue();
 
         switch (armadilloState) {
-            case IDLE -> STATE_PROPERTY.apply(propertyManager, STATE.UNROLLED);
-            case ROLLING -> STATE_PROPERTY.apply(propertyManager, STATE.ROLLED_UP);
-            case SCARED -> STATE_PROPERTY.apply(propertyManager, STATE.ROLLED_UP_RELAXING);
-            case UNROLLING -> STATE_PROPERTY.apply(propertyManager, STATE.ROLLED_UP_UNROLLING);
+            case IDLE -> STATE_PROPERTY.apply(propertyManager, State.UNROLLED);
+            case ROLLING -> STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP);
+            case SCARED -> STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_RELAXING);
+            case UNROLLING -> STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_UNROLLING);
         }
 
         updateBedrockEntityProperties();
@@ -77,13 +78,13 @@ public class ArmadilloEntity extends AnimalEntity {
     public void onPeeking() {
         // Technically we should wait if not currently scared
         if (armadilloState == ArmadilloState.SCARED) {
-            STATE_PROPERTY.apply(propertyManager, STATE.ROLLED_UP_PEEKING);
+            STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_PEEKING);
             updateBedrockEntityProperties();
 
             // Needed for consecutive peeks
             session.scheduleInEventLoop(() -> {
                 if (armadilloState == ArmadilloState.SCARED) {
-                    STATE_PROPERTY.apply(propertyManager, STATE.ROLLED_UP_RELAXING);
+                    STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_RELAXING);
                     updateBedrockEntityProperties();
                 }
             }, 250, TimeUnit.MILLISECONDS);

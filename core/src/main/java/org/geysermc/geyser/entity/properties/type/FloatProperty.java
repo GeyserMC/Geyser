@@ -27,7 +27,7 @@ package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
-import org.geysermc.geyser.api.entity.property.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
 
 public record FloatProperty(
     String name,
@@ -58,13 +58,8 @@ public record FloatProperty(
     }
 
     @Override
-    public Class<Float> typeClass() {
-        return Float.class;
-    }
-
-    @Override
     public FloatEntityProperty defaultValue(int index) {
-        return createValue(index, defaultValue == null ? 0f : defaultValue);
+        return createValue(index, defaultValue == null ? min : defaultValue);
     }
 
     @Override

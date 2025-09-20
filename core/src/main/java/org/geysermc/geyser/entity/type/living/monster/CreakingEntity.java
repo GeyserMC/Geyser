@@ -43,7 +43,7 @@ import java.util.UUID;
 
 public class CreakingEntity extends MonsterEntity {
 
-    public static final EnumProperty STATE_PROPERTY = new EnumProperty(
+    public static final EnumProperty<State> STATE_PROPERTY = new EnumProperty<>(
         "minecraft:creaking_state",
         State.class,
         State.NEUTRAL

@@ -28,13 +28,14 @@ package org.geysermc.geyser.entity.properties.type;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.type.GeyserIntEntityProperty;
 
 public record IntProperty(
     String name,
     int max,
     int min,
     Integer defaultValue
-) implements PropertyType<Integer, IntEntityProperty> {
+) implements PropertyType<Integer, IntEntityProperty>, GeyserIntEntityProperty {
 
     public IntProperty {
         if (min > max) {
@@ -62,13 +63,8 @@ public record IntProperty(
     }
 
     @Override
-    public Class<Integer> typeClass() {
-        return Integer.class;
-    }
-
-    @Override
     public IntEntityProperty defaultValue(int index) {
-        return createValue(index, defaultValue == null ? 0 : defaultValue);
+        return createValue(index, defaultValue == null ? min : defaultValue);
     }
 
     @Override
