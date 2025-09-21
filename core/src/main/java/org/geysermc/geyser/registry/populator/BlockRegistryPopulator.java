@@ -59,6 +59,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.populator.conversion.Conversion843_827;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
@@ -118,9 +119,9 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
+                .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
                 .put(ObjectIntPair.of("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()), tag -> tag) // TODO conversion?
             .build();
 
