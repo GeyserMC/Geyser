@@ -31,9 +31,9 @@ import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionSkinApplyEvent;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
@@ -71,18 +71,9 @@ public class SkinProvider {
     private static final Cache<String, Skin> CACHED_JAVA_SKINS = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
-
-    private static final Cache<String, Cape> CACHED_BEDROCK_CAPES = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.HOURS)
-            .build();
-    private static final Cache<String, Skin> CACHED_BEDROCK_SKINS = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.HOURS)
-            .build();
-
+    private static final Map<UUID, SerializedSkin> CACHED_BEDROCK_SKINS = new ConcurrentHashMap<>();
     private static final Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
     private static final Map<String, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
-
-    private static final Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
 
     /**
      * Citizens NPCs use UUID version 2, while legitimate Minecraft players use version 4, and
@@ -178,71 +169,40 @@ public class SkinProvider {
         return CACHED_JAVA_SKINS.getIfPresent(skinUrl);
     }
 
+    static SerializedSkin getCachedBedrockSkin(UUID uuid) {
+        return CACHED_BEDROCK_SKINS.get(uuid);
+    }
+
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
     static SkinData determineFallbackSkinData(UUID uuid) {
-        Skin skin = null;
-        Cape cape = null;
-        SkinGeometry geometry = SkinGeometry.WIDE;
-
-        if (GeyserImpl.getInstance().getConfig().getRemote().authType() != AuthType.ONLINE) {
-            // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
-            GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
-            if (session != null) {
-                String skinId = session.getClientData().getSkinId();
-                skin = CACHED_BEDROCK_SKINS.getIfPresent(skinId);
-                String capeId = session.getClientData().getCapeId();
-                cape = CACHED_BEDROCK_CAPES.getIfPresent(capeId);
-                geometry = cachedGeometry.getOrDefault(uuid, geometry);
-            }
-        }
-
-        if (skin == null) {
-            // We don't have a skin for the player right now. Fall back to a default.
-            ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
-            skin = providedSkin.getData();
-            geometry = providedSkin.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
-        }
-
-        if (cape == null) {
-            cape = EMPTY_CAPE;
-        }
-
-        return new SkinData(skin, cape, geometry);
-    }
-
-    /**
-     * Used as a fallback if an official Java cape doesn't exist for this user.
-     */
-    @NonNull
-    private static Cape getCachedBedrockCape(UUID uuid) {
-        GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
-        if (session != null) {
-            String capeId = session.getClientData().getCapeId();
-            Cape bedrockCape = CACHED_BEDROCK_CAPES.getIfPresent(capeId);
-            if (bedrockCape != null) {
-                return bedrockCape;
-            }
-        }
-        return EMPTY_CAPE;
+        ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
+        return new SkinData(providedSkin.getData(), EMPTY_CAPE, providedSkin.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE);
     }
 
     @Nullable
     static Cape getCachedCape(String capeUrl) {
-        if (capeUrl == null) {
-            return null;
-        }
-        return CACHED_JAVA_CAPES.getIfPresent(capeUrl);
+        return capeUrl == null ? null : CACHED_JAVA_CAPES.getIfPresent(capeUrl);
     }
 
-    static CompletableFuture<SkinData> requestSkinData(PlayerEntity entity, GeyserSession session) {
+    static CompletableFuture<SerializedSkin> requestSkinData(PlayerEntity entity, GeyserSession session) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
-        if (data == null) {
-            // This player likely does not have a textures property
-            return CompletableFuture.completedFuture(determineFallbackSkinData(entity.getUuid()));
+        boolean isLinkedBedrockPlayer = GeyserImpl.getInstance().isLinkedPlayer(entity.getUuid());
+        boolean isBedrock = GeyserImpl.getInstance().isBedrockPlayer(entity.getUuid());
+
+        // Linked player should use their linked skin instead of BE skin,
+        // while unlinked player should use cached Bedrock skin instead of translated JE skin uploaded by ourselves
+        if (!isLinkedBedrockPlayer) {
+            return CompletableFuture.completedFuture(getCachedBedrockSkin(entity.getUuid()));
         }
 
+        if (data == null) {
+            // This player likely does not have a textures property
+            return CompletableFuture.completedFuture(SkinManager.getSerializedSkin(determineFallbackSkinData(entity.getUuid())));
+        }
+
+        // Request skin for JE and Linked player
         return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
                 .thenApplyAsync(skinAndCape -> {
                     try {
@@ -250,16 +210,7 @@ public class SkinProvider {
                         Cape cape = skinAndCape.cape();
                         SkinGeometry geometry = data.isAlex() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
 
-                        // Whether we should see if this player has a Bedrock skin we should check for on failure of
-                        // any skin property
-                        boolean checkForBedrock = entity.getUuid().version() != 4;
-
-                        if (cape.failed() && checkForBedrock) {
-                            cape = getCachedBedrockCape(entity.getUuid());
-                        }
-
                         // Call event to allow extensions to modify the skin, cape and geo
-                        boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.getUuid()) != null;
                         SkinData skinData = new SkinData(skin, cape, geometry);
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
                         GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData) {
@@ -284,12 +235,12 @@ public class SkinProvider {
                             }
                         });
 
-                        return eventSkinData.skinData();
+                        return SkinManager.getSerializedSkin(skin, cape, geometry);
                     } catch (Exception e) {
                         GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
 
-                    return new SkinData(skinAndCape.skin(), skinAndCape.cape(), null);
+                    return SkinManager.getSerializedSkin(skinAndCape.skin(), skinAndCape.cape(), SkinGeometry.WIDE);
                 });
     }
 
@@ -364,19 +315,12 @@ public class SkinProvider {
         return future;
     }
 
-    static void storeBedrockSkin(UUID playerID, String skinId, byte[] skinData) {
-        Skin skin = new Skin(skinId, skinData);
-        CACHED_BEDROCK_SKINS.put(skin.textureUrl(), skin);
+    static void storeBedrockSkin(UUID uuid, SerializedSkin skin) {
+        CACHED_BEDROCK_SKINS.put(uuid, skin);
     }
 
-    static void storeBedrockCape(String capeId, byte[] capeData) {
-        Cape cape = new Cape(capeId, capeId, capeData);
-        CACHED_BEDROCK_CAPES.put(capeId, cape);
-    }
-
-    static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
-        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
-        cachedGeometry.put(playerID, geometry);
+    static void removeBedrockSkin(UUID uuid) {
+        CACHED_BEDROCK_SKINS.remove(uuid);
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {

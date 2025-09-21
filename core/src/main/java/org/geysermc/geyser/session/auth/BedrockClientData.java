@@ -30,10 +30,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimatedTextureType;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimationData;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimationExpressionType;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.PersonaPieceData;
+import org.cloudburstmc.protocol.bedrock.data.skin.PersonaPieceTintData;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.UiProfile;
 
+import java.util.List;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -51,7 +58,7 @@ public final class BedrockClientData {
     @JsonProperty(value = "SkinId")
     private String skinId;
     @JsonProperty(value = "SkinData")
-    private String skinData;
+    private byte[] skinData;
     @JsonProperty(value = "SkinImageHeight")
     private int skinImageHeight;
     @JsonProperty(value = "SkinImageWidth")
@@ -67,13 +74,27 @@ public final class BedrockClientData {
     @JsonProperty(value = "CapeOnClassicSkin")
     private boolean capeOnClassicSkin;
     @JsonProperty(value = "SkinResourcePatch")
-    private String geometryName;
+    private byte[] geometryName;
     @JsonProperty(value = "SkinGeometryData")
-    private String geometryData;
+    private byte[] geometryData;
     @JsonProperty(value = "PersonaSkin")
     private boolean personaSkin;
     @JsonProperty(value = "PremiumSkin")
     private boolean premiumSkin;
+    @JsonIgnore
+    private List<PersonaPieceData> personaPieces;
+    @JsonIgnore
+    private List<PersonaPieceTintData> personaPieceTint;
+    @JsonIgnore
+    private List<AnimationData> skinAnimations;
+    @JsonProperty(value = "SkinAnimationData")
+    private byte[] skinAnimationData;
+    @JsonProperty(value = "ArmSize")
+    private String armSize;
+    @JsonProperty(value = "SkinColor")
+    private String skinColor;
+    @JsonProperty(value = "SkinGeometryDataEngineVersion")
+    private byte[] geometryDataEngineVersion;
 
     @JsonProperty(value = "DeviceId")
     private String deviceId;
@@ -98,12 +119,6 @@ public final class BedrockClientData {
     @JsonProperty(value = "ClientRandomId")
     private long clientRandomId;
 
-    @JsonProperty(value = "ArmSize")
-    private String armSize;
-    @JsonProperty(value = "SkinAnimationData")
-    private String skinAnimationData;
-    @JsonProperty(value = "SkinColor")
-    private String skinColor;
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
     @JsonProperty(value = "PlayFabId")
@@ -128,4 +143,35 @@ public final class BedrockClientData {
     public UiProfile getUiProfile() {
         return uiProfile != null ? uiProfile : UiProfile.CLASSIC;
     }
+
+    @JsonProperty(value = "AnimatedImageData")
+    private void processAnimationData(List<AnimationDataDTO> animationDataDTO) {
+        this.skinAnimations = animationDataDTO.stream().map(animation -> new AnimationData(ImageData.of(animation.imageWidth, animation.ImageHeight, animation.image), animation.textureType(), animation.frames())).toList();
+    }
+
+    @JsonProperty(value = "PersonaPieces")
+    private void processPersonaPieceData(List<PersonaPieceDataDTO> personaPieceDataDTO) {
+        this.personaPieces = personaPieceDataDTO.stream().map(personaPiece -> new PersonaPieceData(personaPiece.id, personaPiece.type, personaPiece.packId, personaPiece.isDefault, personaPiece.productId)).toList();
+    }
+
+    @JsonProperty(value = "PieceTintColors")
+    private void processPersonaPieceTintData(List<PersonaPieceTintDataDTO> personaPieceTintDataDTO) {
+        this.personaPieceTint = personaPieceTintDataDTO.stream().map(personaPieceTint -> new PersonaPieceTintData(personaPieceTint.type, personaPieceTint.colors)).toList();
+    }
+
+    private record AnimationDataDTO(@JsonProperty(value = "Type") AnimatedTextureType textureType,
+                                    @JsonProperty(value = "Image") byte[] image,
+                                    @JsonProperty(value = "ImageWidth") int imageWidth,
+                                    @JsonProperty(value = "ImageHeight") int ImageHeight,
+                                    @JsonProperty(value = "Frames") float frames,
+                                    @JsonProperty(value = "AnimationExpression") AnimationExpressionType expressionType) {}
+
+    private record PersonaPieceDataDTO(@JsonProperty(value = "PieceId") String id,
+                                       @JsonProperty(value = "PieceType") String type,
+                                       @JsonProperty(value = "PackId") String packId,
+                                       @JsonProperty(value = "IsDefault") boolean isDefault,
+                                       @JsonProperty(value = "ProductId") String productId) {}
+
+    private record PersonaPieceTintDataDTO(@JsonProperty(value = "PieceType") String type,
+                                           @JsonProperty(value = "Colors") List<String> colors) {}
 }
