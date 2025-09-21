@@ -43,8 +43,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
-import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
@@ -61,7 +59,6 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.populator.conversion.Conversion800_786;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
@@ -121,8 +118,6 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), Conversion800_786::remapBlock)
-                .put(ObjectIntPair.of("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), tag -> tag)
