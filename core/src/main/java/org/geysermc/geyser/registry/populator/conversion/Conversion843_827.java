@@ -49,7 +49,7 @@ public class Conversion843_827 {
     }
 
     public static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        if (item == Items.CHAIN) {
+        if (item == Items.IRON_CHAIN) {
             return mapping.withBedrockIdentifier("minecraft:chain");
         }
         return mapping;

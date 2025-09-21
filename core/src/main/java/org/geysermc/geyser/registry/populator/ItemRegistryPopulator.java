@@ -123,7 +123,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP), Conversion843_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v843.CODEC.getProtocolVersion())); // TODO fallback
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
