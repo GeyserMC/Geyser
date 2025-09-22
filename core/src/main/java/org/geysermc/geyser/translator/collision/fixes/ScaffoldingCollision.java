@@ -50,7 +50,7 @@ public class ScaffoldingCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+    public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         // Hack to not check below the player
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
@@ -86,8 +86,5 @@ public class ScaffoldingCollision extends BlockCollision {
             playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
             playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
         }
-
-        // Normal move correction isn't really needed for scaffolding
-        return true;
     }
 }
