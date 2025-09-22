@@ -82,6 +82,11 @@ public class BlockCollision {
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.WEST, xPushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
+
+            correctPosition(session, x, y, z, boundingBox, playerCollision);
+
+            // Revert back to the old collision size.
+            playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
         }
     }
 
