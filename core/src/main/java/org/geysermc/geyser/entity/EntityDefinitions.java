@@ -655,12 +655,12 @@ public final class EntityDefinitions {
                 .type(EntityType.PLAYER)
                 .height(1.8f).width(0.6f)
                 .offset(1.62f)
+                .addTranslator(null) // Player main hand
+                .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
                 .addTranslator(MetadataTypes.FLOAT, PlayerEntity::setAbsorptionHearts)
                 .addTranslator(null) // Player score
-                .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
-                .addTranslator(null) // Player main hand
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setLeftParrot)
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setRightParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setLeftParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setRightParrot)
                 .build();
 
         EntityDefinition<MobEntity> mobEntityBase = EntityDefinition.inherited(MobEntity::new, livingEntityBase)

@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -316,11 +317,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
-    public void setLeftParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
+    public void setLeftParrot(EntityMetadata<OptionalInt, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), true);
     }
 
-    public void setRightParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
+    public void setRightParrot(EntityMetadata<OptionalInt, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), false);
     }
 
@@ -328,17 +329,17 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Sets the parrot occupying the shoulder. Bedrock Edition requires a full entity whereas Java Edition just
      * spawns it from the NBT data provided
      */
-    protected void setParrot(NbtMap tag, boolean isLeft) {
-        if (tag != null && !tag.isEmpty()) {
+    protected void setParrot(OptionalInt variant, boolean isLeft) { // TODO test this as of 1.21.9
+        if (variant.isPresent()) {
             if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
                 // No need to update a parrot's data when it already exists
                 return;
             }
-            // The parrot is a separate entity in Bedrock, but part of the player entity in Java //TODO is a UUID provided in NBT?
+            // The parrot is a separate entity in Bedrock, but part of the player entity in Java
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant"));
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));

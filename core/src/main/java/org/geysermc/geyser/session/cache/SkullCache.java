@@ -47,6 +47,7 @@ import org.geysermc.geyser.skin.SkinManager;
 import java.io.IOException;
 import java.util.*;
 
+// TODO 1.21.9
 public class SkullCache {
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;

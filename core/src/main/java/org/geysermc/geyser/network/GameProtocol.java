@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v843.Bedrock_v843;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
 import org.geysermc.mcprotocollib.protocol.codec.PacketCodec;
 
@@ -137,7 +138,9 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    // There doesn't seem to be anything here at the moment...
+    public static boolean is1_21_100(GeyserSession session) {
+        return session.protocolVersion() == Bedrock_v827.CODEC.getProtocolVersion();
+    }
 
     /**
      * Gets the supported Minecraft: Java Edition version names.

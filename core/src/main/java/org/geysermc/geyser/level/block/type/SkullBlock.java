@@ -36,6 +36,8 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -74,12 +76,11 @@ public class SkullBlock extends Block {
         GeyserItemStack itemStack = GeyserItemStack.of(pickItem(state).getId(), 1);
         // This is a universal block entity behavior, but hardcode how it works for now.
         NbtMapBuilder builder = NbtMap.builder()
-                .putString("id", "minecraft:skull")
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
         DataComponents components = itemStack.getOrCreateComponents();
-        components.put(DataComponentTypes.BLOCK_ENTITY_DATA, builder.build());
+        components.put(DataComponentTypes.BLOCK_ENTITY_DATA, new TypedEntityData<>(BlockEntityType.SKULL, builder.build()));
 
         UUID uuid = skull.getUuid();
         String texturesProperty = skull.getTexturesProperty();
@@ -87,7 +88,7 @@ public class SkullBlock extends Block {
         if (texturesProperty != null) {
             profile.setProperties(Collections.singletonList(new GameProfile.Property("textures", texturesProperty)));
         }
-        components.put(DataComponentTypes.PROFILE, profile);
+        // components.put(DataComponentTypes.PROFILE, profile); TODO 1.21.9
         return itemStack.getItemStack();
     }
 

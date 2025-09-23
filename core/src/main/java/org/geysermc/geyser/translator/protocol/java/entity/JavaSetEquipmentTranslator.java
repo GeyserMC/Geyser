@@ -61,12 +61,12 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
             GeyserItemStack stack = GeyserItemStack.from(equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
-                    GameProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
+                    /*GameProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
                     if (livingEntity instanceof PlayerEntity && stack.asItem() == Items.PLAYER_HEAD && profile != null) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
-                    }
+                    }*/ // TODO 1.21.9
 
                     livingEntity.setHelmet(stack);
                     armorUpdated = true;

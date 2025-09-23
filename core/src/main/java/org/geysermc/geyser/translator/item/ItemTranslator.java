@@ -237,7 +237,7 @@ public final class ItemTranslator {
         }
 
         if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
+            // translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder); TODO 1.21.9
         }
 
         translateCustomItem(components, builder, bedrockItem);
@@ -531,10 +531,10 @@ public final class ItemTranslator {
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentTypes.PROFILE));
+            /*CustomSkull customSkull = getCustomSkull(itemStack.getComponent(DataComponentTypes.PROFILE));
             if (customSkull != null) {
                 itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
-            }
+            }*/ // TODO
         }
 
         ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);

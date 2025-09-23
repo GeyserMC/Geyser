@@ -49,7 +49,7 @@ public class PlayerHeadItem extends BlockItem {
         // Use the correct color, determined by the rarity of the item
         char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
-        GameProfile profile = components.get(DataComponentTypes.PROFILE);
+        /*GameProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
             String name = profile.getName();
             if (name != null) {
@@ -62,6 +62,6 @@ public class PlayerHeadItem extends BlockItem {
                 builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
             }
-        }
+        }*/ // TODO 1.21.9
     }
 }
