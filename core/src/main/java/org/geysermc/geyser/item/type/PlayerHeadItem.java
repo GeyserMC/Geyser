@@ -33,7 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -49,9 +49,12 @@ public class PlayerHeadItem extends BlockItem {
         // Use the correct color, determined by the rarity of the item
         char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
-        /*GameProfile profile = components.get(DataComponentTypes.PROFILE);
+        // Ideally we'd resolve the profile here and show the resolved name if it's a dynamic profile
+        // but, resolving is done async, which isn't really possible here
+        // TODO FIXME 1.21.9? also see comment in ItemTranslator
+        ResolvableProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
-            String name = profile.getName();
+            String name = profile.getProfile().getName();
             if (name != null) {
                 // Add correct name of player skull
                 String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
@@ -62,6 +65,6 @@ public class PlayerHeadItem extends BlockItem {
                 builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
             }
-        }*/ // TODO 1.21.9
+        }
     }
 }

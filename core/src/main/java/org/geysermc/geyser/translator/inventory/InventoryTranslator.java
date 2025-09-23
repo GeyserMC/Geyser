@@ -331,7 +331,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.hasNonBaseComponents()) {
-                                //FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE)); TODO 1.21.9
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
                             // we are probably removing the head, so restore the original skin

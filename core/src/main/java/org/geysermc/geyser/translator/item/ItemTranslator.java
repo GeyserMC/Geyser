@@ -38,7 +38,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -59,12 +58,10 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
-import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -237,7 +234,7 @@ public final class ItemTranslator {
         }
 
         if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            // translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder); TODO 1.21.9
+            translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
         }
 
         translateCustomItem(components, builder, bedrockItem);
@@ -623,11 +620,14 @@ public final class ItemTranslator {
         builder.blockDefinition(blockDefinition);
     }
 
-    private static @Nullable CustomSkull getCustomSkull(@Nullable GameProfile profile) {
+    private static @Nullable CustomSkull getCustomSkull(@Nullable ResolvableProfile profile) {
         if (profile == null) {
             return null;
         }
 
+        // TODO FIXME 1.21.9 - maybe if dynamic first send vanilla player head, then once resolved resend the proper player head??
+        // TODO could also work with the head name (see PlayerHeadItem)
+        /*
         Map<TextureType, Texture> textures;
         try {
             textures = profile.getTextures(false);
@@ -649,9 +649,11 @@ public final class ItemTranslator {
 
         String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
         return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        */
+        return null;
     }
 
-    private static void translatePlayerHead(GeyserSession session, GameProfile profile, ItemData.Builder builder) {
+    private static void translatePlayerHead(GeyserSession session, ResolvableProfile profile, ItemData.Builder builder) {
         CustomSkull customSkull = getCustomSkull(profile);
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();

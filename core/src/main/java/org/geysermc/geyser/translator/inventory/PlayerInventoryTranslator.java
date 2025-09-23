@@ -153,12 +153,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
         if (slot == 5) {
             // Check for custom skull
-            /*if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.hasNonBaseComponents()) {
+            if (javaItem.asItem() == Items.PLAYER_HEAD && javaItem.hasNonBaseComponents()) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
-            }*/ // TODO
+            }
         }
 
         if (slot >= 1 && slot <= 44) {

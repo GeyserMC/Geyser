@@ -47,6 +47,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+// TODO 1.21.9
 @BlockEntity(type = BlockEntityType.SKULL)
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
@@ -81,8 +82,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         List<NbtMap> properties = profile.getList("properties", NbtType.COMPOUND);
         if (properties.isEmpty()) {
             if (uuid != null && uuid.version() == 4) {
-                String uuidString = uuid.toString().replace("-", "");
-                return SkinProvider.requestTexturesFromUUID(uuidString);
+                return SkinProvider.requestTexturesFromUUID(uuid);
             } else {
                 String nameTag = profile.getString("name", null);
                 if (nameTag != null) {
