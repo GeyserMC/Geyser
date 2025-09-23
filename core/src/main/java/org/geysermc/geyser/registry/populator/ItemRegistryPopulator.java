@@ -48,6 +48,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v843.Bedrock_v843;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -122,7 +123,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP), Conversion843_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v827.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
