@@ -30,7 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 public class Conversion827_819 {
 
     public static NbtMap remapBlock(NbtMap nbtMap) {
-        nbtMap = Conversion843_827.remapBlock(nbtMap);
+        nbtMap = Conversion844_827.remapBlock(nbtMap);
 
         final String name = nbtMap.getString("name");
         if (name.endsWith("copper_chest")) {

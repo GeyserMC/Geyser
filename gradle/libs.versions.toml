@@ -9,9 +9,9 @@ netty = "4.2.3.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta8-20250929.100800-7"
-protocol-common = "3.0.0.Beta8-20250929.100800-7"
-protocol-codec = "3.0.0.Beta8-20250929.100800-7"
+protocol-connection = "3.0.0.Beta8-20250929.213851-8"
+protocol-common = "3.0.0.Beta8-20250929.213851-8"
+protocol-codec = "3.0.0.Beta8-20250929.213851-8"
 raknet = "1.0.0.CR3-20250811.214335-20"
 minecraftauth = "4.1.1"
 mcprotocollib = "1.21.9-20250929.132357-8"
@@ -30,15 +30,16 @@ cloud-minecraft = "2.0.0-beta.11"
 cloud-minecraft-modded = "2.0.0-beta.12"
 commodore = "2.2"
 bungeecord = "1.21-R0.1-20250215.224541-54"
+bungeecord-api = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
 fabric-loader = "0.17.2"
-fabric-api = "0.133.10+1.21.9"
-fabric-permissions-api = "0.4.1-SNAPSHOT"
+fabric-api = "0.133.14+1.21.9"
+fabric-permissions-api = "0.4.1"
 neoforge-minecraft = "21.8.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.9-pre2"
+minecraft = "1.21.9-rc1"
 mockito = "5.+"
 runtask = "2.3.1"
 runpaperversion = "1.21.8"
@@ -121,6 +122,7 @@ neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref =
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
+bungeecord-api = { group = "net.md-5", name = "bungeecord-api", version.ref = "bungeecord-api" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
