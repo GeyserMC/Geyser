@@ -64,7 +64,7 @@ public final class TrimRecipe {
         // Find the nearest legacy color from the style Java gives us to work with
         Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
         String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
-        String color = legacy.isEmpty() ? ChatColor.WHITE : legacy.substring(2).trim();
+        String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
 
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
