@@ -38,6 +38,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -53,11 +54,13 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
@@ -625,32 +628,32 @@ public final class ItemTranslator {
             return null;
         }
 
-        // TODO FIXME 1.21.9 - maybe if dynamic first send vanilla player head, then once resolved resend the proper player head??
-        // TODO could also work with the head name (see PlayerHeadItem)
-        /*
-        Map<TextureType, Texture> textures;
+        // Ideally we'd update the item once the profile has been resolved, but this isn't really possible,
+        // also see comments in PlayerHeadItem for full explanation
+        GameProfile resolved = SkinManager.resolveProfile(profile).getNow(null);
+        if (resolved == null) {
+            return null;
+        }
+
+        Map<GameProfile.TextureType, GameProfile.Texture> textures;
         try {
-            textures = profile.getTextures(false);
+            textures = resolved.getTextures(false);
         } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(resolved, e.getMessage()));
             return null;
         }
 
         if (textures == null || textures.isEmpty()) {
-            // TODO the java client looks up the texture properties here and updates the item
             return null;
         }
 
-        Texture skinTexture = textures.get(TextureType.SKIN);
-
+        GameProfile.Texture skinTexture = textures.get(GameProfile.TextureType.SKIN);
         if (skinTexture == null) {
             return null;
         }
 
         String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
         return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
-        */
-        return null;
     }
 
     private static void translatePlayerHead(GeyserSession session, ResolvableProfile profile, ItemData.Builder builder) {

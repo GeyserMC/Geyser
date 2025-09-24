@@ -31,7 +31,6 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
@@ -180,8 +179,8 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         this.initializeMetadata();
 
         // Explicitly reset all metadata not handled by initializeMetadata
-        setParrot(null, true);
-        setParrot(null, false);
+        setParrot(OptionalInt.empty(), true);
+        setParrot(OptionalInt.empty(), false);
     }
 
     public void sendPlayer() {
