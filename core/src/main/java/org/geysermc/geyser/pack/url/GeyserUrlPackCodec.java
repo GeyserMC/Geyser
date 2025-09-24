@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.pack.url;
 
+import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.util.Objects;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,10 +38,6 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.text.GeyserLocale;
-
-import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
-import java.util.Objects;
 
 public class GeyserUrlPackCodec extends UrlPackCodec {
     private final @NonNull String url;
@@ -130,10 +129,11 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                 Registries.RESOURCE_PACKS.get().put(updatedPack.uuid(), holder.withPack(pack));
 
             })
-            .exceptionally(throwable -> {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), throwable);
-                Registries.RESOURCE_PACKS.get().remove(holder.uuid());
-                return null;
+            .whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), throwable);
+                    Registries.RESOURCE_PACKS.get().remove(holder.uuid());
+                }
             });
     }
 }

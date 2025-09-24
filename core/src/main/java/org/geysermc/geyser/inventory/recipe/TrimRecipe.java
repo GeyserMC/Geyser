@@ -35,6 +35,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
@@ -63,6 +64,7 @@ public final class TrimRecipe {
         // Find the nearest legacy color from the style Java gives us to work with
         Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
         String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
+        String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
 
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
@@ -81,7 +83,7 @@ public final class TrimRecipe {
         }
 
         // Just pick out the resulting color code, without RESET in front.
-        return new TrimMaterial(key, legacy.substring(2).trim(), trimItem.getBedrockIdentifier());
+        return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
     }
 
     // TODO this is WRONG. this changed. FIXME in 1.21.5
