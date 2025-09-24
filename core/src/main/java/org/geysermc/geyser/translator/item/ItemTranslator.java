@@ -38,7 +38,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -635,25 +634,11 @@ public final class ItemTranslator {
             return null;
         }
 
-        Map<GameProfile.TextureType, GameProfile.Texture> textures;
-        try {
-            textures = resolved.getTextures(false);
-        } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(resolved, e.getMessage()));
-            return null;
-        }
-
-        if (textures == null || textures.isEmpty()) {
-            return null;
-        }
-
-        GameProfile.Texture skinTexture = textures.get(GameProfile.TextureType.SKIN);
+        GameProfile.Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, GameProfile.TextureType.SKIN);
         if (skinTexture == null) {
             return null;
         }
-
-        String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
-        return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        return BlockRegistries.CUSTOM_SKULLS.get(skinTexture.getHash());
     }
 
     private static void translatePlayerHead(GeyserSession session, ResolvableProfile profile, ItemData.Builder builder) {

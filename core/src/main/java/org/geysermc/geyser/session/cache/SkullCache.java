@@ -43,11 +43,11 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 
 import java.io.IOException;
 import java.util.*;
 
-// TODO 1.21.9
 public class SkullCache {
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;
@@ -73,6 +73,14 @@ public class SkullCache {
         // Normal skulls are not rendered beyond 64 blocks
         int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
+    }
+
+    public Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
+        GameProfile.Property textures = resolved.getProperty("textures");
+        if (textures != null) {
+            return putSkull(position, resolved.getId(), textures.getValue(), blockState);
+        }
+        return null;
     }
 
     public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, BlockState blockState) {

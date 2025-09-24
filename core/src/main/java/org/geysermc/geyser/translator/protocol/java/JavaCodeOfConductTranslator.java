@@ -26,7 +26,8 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.cumulus.form.CustomForm;
-import org.geysermc.geyser.codeofconduct.CodeOfConductManager;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.util.CodeOfConductManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -49,16 +50,17 @@ public class JavaCodeOfConductTranslator extends PacketTranslator<ClientboundCod
     private static void showCodeOfConductForm(GeyserSession session, String codeOfConduct) {
         session.prepareForConfigurationForm();
         session.sendForm(CustomForm.builder()
-            .title("Server Code of Conduct") // TODO translate
+            .translator(MinecraftLocale::getLocaleString, session.locale())
+            .title("multiplayer.codeOfConduct.title")
             .label(codeOfConduct)
-            .toggle("Do not notify again for this Code of Conduct") // TODO translate
+            .toggle("multiplayer.codeOfConduct.check")
             .validResultHandler(response -> {
                 if (response.asToggle()) {
                     CodeOfConductManager.getInstance().saveCodeOfConduct(session, codeOfConduct);
                 }
                 session.acceptCodeOfConduct();
             })
-            .closedResultHandler(() -> session.disconnect("Rejected code of conduct")) // TODO geyser translate
+            .closedResultHandler(() -> session.disconnect(MinecraftLocale.getLocaleString("multiplayer.disconnect.code_of_conduct", session.locale())))
         );
     }
 }

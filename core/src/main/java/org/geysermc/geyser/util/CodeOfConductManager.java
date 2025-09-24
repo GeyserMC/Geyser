@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.codeofconduct;
+package org.geysermc.geyser.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,18 +39,34 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class CodeOfConductManager {
     private static final Path SAVE_PATH = Path.of("cache/codeofconducts.json");
     private static CodeOfConductManager loaded = null;
 
-    private final ExecutorService saveService = Executors.newFixedThreadPool(1);
     private final Object2IntMap<String> playerAcceptedCodeOfConducts = new Object2IntOpenHashMap<>();
 
-    private CodeOfConductManager() {}
+    private CodeOfConductManager() {
+        Path savePath = getSavePath();
+        if (Files.exists(savePath) && Files.isRegularFile(savePath)) {
+            GeyserImpl.getInstance().getLogger().debug("Loading codeofconducts.json");
+
+            try (Reader reader = new FileReader(savePath.toFile())) {
+                JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
+                for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                    playerAcceptedCodeOfConducts.put(entry.getKey(), entry.getValue().getAsInt());
+                }
+            } catch (IOException exception) {
+                GeyserImpl.getInstance().getLogger().error("Failed to read code of conduct cache!", exception);
+            }
+        } else {
+            GeyserImpl.getInstance().getLogger().debug("codeofconducts.json not found, not loading");
+        }
+
+        // Save file now and every 5 minutes after
+        GeyserImpl.getInstance().getScheduledThread().scheduleAtFixedRate(this::save, 0L, 5L, TimeUnit.MINUTES);
+    }
 
     public boolean hasAcceptedCodeOfConduct(GeyserSession session, String codeOfConduct) {
         return playerAcceptedCodeOfConducts.getInt(session.xuid()) == codeOfConduct.hashCode();
@@ -58,40 +74,34 @@ public class CodeOfConductManager {
 
     public void saveCodeOfConduct(GeyserSession session, String codeOfConduct) {
         playerAcceptedCodeOfConducts.put(session.xuid(), codeOfConduct.hashCode());
-        CompletableFuture.runAsync(this::save, saveService);
     }
 
-    private void save() {
+    public void save() {
+        GeyserImpl.getInstance().getLogger().debug("Saving codeofconducts.json");
+
         JsonObject saved = new JsonObject();
         playerAcceptedCodeOfConducts.forEach(saved::addProperty);
-        Path path = GeyserImpl.getInstance().configDirectory().resolve(SAVE_PATH);
         try {
-            Files.writeString(path, saved.toString());
+            Files.writeString(getSavePath(), saved.toString());
         } catch (IOException exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to write code of conduct cache!", exception);
         }
     }
 
-    // TODO load at startup
+    private static Path getSavePath() {
+        return GeyserImpl.getInstance().configDirectory().resolve(SAVE_PATH);
+    }
+
+    public static void load() {
+        if (loaded == null) {
+            loaded = new CodeOfConductManager();
+        }
+    }
+
     public static CodeOfConductManager getInstance() {
-        if (loaded != null) {
-            return loaded;
+        if (loaded == null) {
+            throw new IllegalStateException("CodeOfConductManager was accessed before loaded");
         }
-
-        CodeOfConductManager manager = new CodeOfConductManager();
-        Path path = GeyserImpl.getInstance().configDirectory().resolve(SAVE_PATH);
-        if (Files.exists(path) && Files.isRegularFile(path)) {
-            try (Reader reader = new FileReader(path.toFile())) {
-                JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
-                for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                    manager.playerAcceptedCodeOfConducts.put(entry.getKey(), entry.getValue().getAsInt());
-                }
-            } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().error("Failed to read code of conduct cache!", exception);
-            }
-        }
-
-        loaded = manager;
         return loaded;
     }
 }

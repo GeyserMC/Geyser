@@ -55,6 +55,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -240,7 +241,7 @@ public class SkinManager {
         return completedProfileFuture
             .thenCompose(nameAndUUID -> {
                 // Fallback to partial if anything goes wrong - should replicate vanilla Java client behaviour
-                if (nameAndUUID.getId() == null) {
+                if (nameAndUUID.getId() == null || nameAndUUID.getName() == null) {
                     return CompletableFuture.completedFuture(partial);
                 }
 
@@ -260,6 +261,21 @@ public class SkinManager {
                 RESOLVED_PROFILES_CACHE.put(profile, resolved);
                 return resolved;
             });
+    }
+
+    public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
+        Map<GameProfile.TextureType, GameProfile.Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile %s, got: %s".formatted(profile, e.getMessage()));
+            return null;
+        }
+
+        if (textures == null) {
+            return null;
+        }
+        return textures.get(type);
     }
 
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,

@@ -41,16 +41,14 @@ import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager.GameProfileData;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
-import org.geysermc.mcprotocollib.auth.GameProfile.TextureModel;
 import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -118,42 +116,24 @@ public class FakeHeadProvider {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
             }
-
-            Map<TextureType, Texture> textures;
-            try {
-                textures = resolved.getTextures(false);
-            } catch (IllegalStateException exception) {
-                // TODO translate?
-                GeyserImpl.getInstance().getLogger().error("Could not decode player head from profile %s, got: %s".formatted(profile, exception.getMessage()));
-                return;
-            }
-
-            Texture skinTexture = textures.get(TextureType.SKIN);
-            if (skinTexture == null) {
-                return;
-            }
-
-            Texture capeTexture = textures.get(TextureType.CAPE);
-            String capeUrl = capeTexture != null ? capeTexture.getURL() : null;
-
-            boolean isAlex = skinTexture.getModel() == TextureModel.SLIM;
-            loadHeadFromProfile(session, entity, new GameProfileData(skinTexture.getURL(), capeUrl, isAlex), profile);
+            loadHeadFromProfile(session, entity, profile, resolved);
         });
     }
 
-    private static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData, ResolvableProfile profile) {
-        String fakeHeadSkinUrl = gameProfileData.skinUrl();
-
-        session.getPlayerWithCustomHeads().put(entity.getUuid(), profile);
-        String texturesProperty = entity.getTexturesProperty();
-        SkinProvider.getExecutorService().execute(() -> {
-            try {
-                SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity, session));
-                SkinManager.sendSkinPacket(session, entity, mergedSkinData);
-            } catch (ExecutionException e) {
-                GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
-            }
-        });
+    private static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, ResolvableProfile original, GameProfile resolved) {
+        Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
+        String originalTextures = entity.getTexturesProperty();
+        if (skinTexture != null) {
+            session.getPlayerWithCustomHeads().put(entity.getUuid(), original);
+            SkinProvider.getExecutorService().execute(() -> {
+                try {
+                    SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(originalTextures, skinTexture.getURL(), entity, session));
+                    SkinManager.sendSkinPacket(session, entity, mergedSkinData);
+                } catch (ExecutionException e) {
+                    GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin " + resolved, e);
+                }
+            });
+        }
     }
 
     public static void restoreOriginalSkin(GeyserSession session, LivingEntity livingEntity) {
