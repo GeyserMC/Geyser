@@ -56,7 +56,7 @@ public class JavaCodeOfConductTranslator extends PacketTranslator<ClientboundCod
             .toggle("multiplayer.codeOfConduct.check")
             .validResultHandler(response -> {
                 if (response.asToggle()) {
-                    CodeOfConductManager.getInstance().saveCodeOfConduct(session, codeOfConduct);
+                    CodeOfConductManager.getInstance().saveCodeOfConductAccepted(session, codeOfConduct);
                 }
                 session.acceptCodeOfConduct();
             })

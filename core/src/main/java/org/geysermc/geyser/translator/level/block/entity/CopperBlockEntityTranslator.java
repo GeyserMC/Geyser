@@ -39,10 +39,10 @@ public class CopperBlockEntityTranslator extends BlockEntityTranslator implement
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         // Copper golem poses are set through block states on Java and through NBT on bedrock
         bedrockNbt.putBoolean("isMovable", true)
-            .putInt("Pose", javaToCopperPose(blockState.getValue(Properties.COPPER_GOLEM_POSE)));
+            .putInt("Pose", translateCopperPose(blockState.getValue(Properties.COPPER_GOLEM_POSE)));
     }
 
-    private static int javaToCopperPose(String java) {
+    private static int translateCopperPose(String java) {
         return switch (java) {
             case "standing" -> 0;
             case "sitting" -> 1;

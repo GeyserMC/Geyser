@@ -31,6 +31,8 @@ import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionAcceptCodeOfConductEvent;
+import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.io.FileReader;
@@ -46,6 +48,7 @@ public class CodeOfConductManager {
     private static CodeOfConductManager loaded = null;
 
     private final Object2IntMap<String> playerAcceptedCodeOfConducts = new Object2IntOpenHashMap<>();
+    private boolean dirty = false;
 
     private CodeOfConductManager() {
         Path savePath = getSavePath();
@@ -69,22 +72,32 @@ public class CodeOfConductManager {
     }
 
     public boolean hasAcceptedCodeOfConduct(GeyserSession session, String codeOfConduct) {
-        return playerAcceptedCodeOfConducts.getInt(session.xuid()) == codeOfConduct.hashCode();
+        ServerCodeOfConductEvent event = new ServerCodeOfConductEvent(session, codeOfConduct);
+        session.getGeyser().getEventBus().fire(event);
+        return event.hasAccepted() || playerAcceptedCodeOfConducts.getInt(session.xuid()) == codeOfConduct.hashCode();
     }
 
-    public void saveCodeOfConduct(GeyserSession session, String codeOfConduct) {
-        playerAcceptedCodeOfConducts.put(session.xuid(), codeOfConduct.hashCode());
+    public void saveCodeOfConductAccepted(GeyserSession session, String codeOfConduct) {
+        SessionAcceptCodeOfConductEvent event = new SessionAcceptCodeOfConductEvent(session, codeOfConduct);
+        session.getGeyser().getEventBus().fire(event);
+        if (!event.wasSavedElsewhere()) {
+            playerAcceptedCodeOfConducts.put(session.xuid(), codeOfConduct.hashCode());
+            dirty = true;
+        }
     }
 
     public void save() {
-        GeyserImpl.getInstance().getLogger().debug("Saving codeofconducts.json");
+        if (dirty) {
+            GeyserImpl.getInstance().getLogger().debug("Saving codeofconducts.json");
 
-        JsonObject saved = new JsonObject();
-        playerAcceptedCodeOfConducts.forEach(saved::addProperty);
-        try {
-            Files.writeString(getSavePath(), saved.toString());
-        } catch (IOException exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to write code of conduct cache!", exception);
+            JsonObject saved = new JsonObject();
+            playerAcceptedCodeOfConducts.forEach(saved::addProperty);
+            try {
+                Files.writeString(getSavePath(), saved.toString());
+                dirty = false;
+            } catch (IOException exception) {
+                GeyserImpl.getInstance().getLogger().error("Failed to write code of conduct cache!", exception);
+            }
         }
     }
 
