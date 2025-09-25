@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
  * Represents a float-backed entity property with inclusive bounds.
  * Values associated with this property must be always within the {@code [min(), max()]} bounds.
  *
- * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(String, float, float, Float)
+ * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(String, String, float, float, Float)
  */
 public interface GeyserFloatEntityProperty extends GeyserEntityProperty<Float> {
 

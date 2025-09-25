@@ -44,20 +44,19 @@ import java.util.List;
  * Lifecycle event fired during Geyser's startup to allow custom entity properties
  * to be registered for a specific entity type.
  * <p>
- * Listeners receive this event once per entity being processed and can add new
- * properties using the {@code register*Property(...)} methods. The returned
- * {@link GeyserEntityProperty} handles identify the properties and are used to
+ * Listeners can add new properties for any entity by passing the target entity's
+ * identifier (e.g., {@code "minecraft:player"}) to the registration methods.
+ * The returned {@link GeyserEntityProperty} is used to identify the properties and to
  * update the value of a specific entity instance.
  *
  * <h2>Example usage</h2>
  * <pre>{@code
  * public void onDefine(GeyserDefineEntityPropertiesEvent event) {
- *     if ("minecraft:player".equals(event.entityIdentifier())) {
- *         GeyserFloatEntityProperty ANIMATION_SPEED =
- *             event.registerFloatProperty("my_group:animation_speed", 0.0f, 1.0f, 0.1f);
- *         GeyserBooleanEntityProperty SHOW_SHORTS =
- *             event.registerBooleanProperty("my_group:show_shorts:", false);
- *     }
+ *     String player = "minecraft:player";
+ *     GeyserFloatEntityProperty ANIMATION_SPEED =
+ *         event.registerFloatProperty(player, "my_group:animation_speed", 0.0f, 1.0f, 0.1f);
+ *     GeyserBooleanEntityProperty SHOW_SHORTS =
+ *         event.registerBooleanProperty(player, "my_group:show_shorts", false);
  * }
  * }</pre>
  *
@@ -71,98 +70,93 @@ import java.util.List;
  *   <li>The {@code name} must be an identifier, such as {@code my_group:property}, and they may not be shared across properties</li>
  *   <li>Default values must fall within the provided bounds.</li>
  *   <li>There cannot be more than 32 properties registered per entity type in total</li>
- *   <li>{@link #properties()} returns properties registered for the current entity
+ *   <li>{@link #properties(String)} returns properties registered for the given entity
  *       (including those added earlier in the same callback), including vanilla properties.</li>
  * </ul>
  */
 public interface GeyserDefineEntityPropertiesEvent extends Event {
 
     /**
-     * Returns the identifier of the entity type currently being registered.
-     * These include vanilla entities, such as:
-     * <ul>
-     *     <li>{@code minecraft:pig}</li>
-     *     <li>{@code minecraft:player}</li>
-     * </ul>
-     *
-     * @return the identifier for the entity type whose properties are being defined
-     */
-    @NonNull String entityIdentifier();
-
-    /**
      * Returns an <em>unmodifiable</em> view of all properties that have been registered
-     * so far for the current entity. This includes entity properties used for vanilla gameplay, such
-     * as those used for creaking animations.
+     * so far for the given entity type. This includes entity properties used for vanilla gameplay,
+     * such as those used for creaking animations.
      *
+     * @param entityType the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @return an unmodifiable collection of registered properties
      */
-    Collection<GeyserEntityProperty<?>> properties();
+    Collection<GeyserEntityProperty<?>> properties(@NonNull String entityType);
 
     /**
      * Registers a {@code float}-backed entity property.
      *
+     * @param entityType   the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @param name         the unique property name
      * @param min          the minimum allowed value (inclusive)
      * @param max          the maximum allowed value (inclusive)
      * @param defaultValue the default value assigned initially on entity spawn - if null, it will be the minimum value
      * @return the created float property
      */
-    GeyserFloatEntityProperty registerFloatProperty(@NonNull String name, float min, float max, @Nullable Float defaultValue);
+    GeyserFloatEntityProperty registerFloatProperty(@NonNull String entityType, @NonNull String name, float min, float max, @Nullable Float defaultValue);
 
     /**
      * Registers a {@code float}-backed entity property with a default value set to the minimum value.
      *
-     * @param name the unique property name
-     * @param min  the minimum allowed value (inclusive)
-     * @param max  the maximum allowed value (inclusive)
+     * @param entityType the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
+     * @param name       the unique property name
+     * @param min        the minimum allowed value (inclusive)
+     * @param max        the maximum allowed value (inclusive)
      * @return the created float property
-     * @see #registerFloatProperty(String, float, float, Float)
+     * @see #registerFloatProperty(String, String, float, float, Float)
      */
-    default GeyserFloatEntityProperty registerFloatProperty(@NonNull String name, float min, float max) {
-        return registerFloatProperty(name, min, max, null);
+    default GeyserFloatEntityProperty registerFloatProperty(@NonNull String entityType, @NonNull String name, float min, float max) {
+        return registerFloatProperty(entityType, name, min, max, null);
     }
 
     /**
      * Registers an {@code int}-backed entity property.
      *
+     * @param entityType   the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @param name         the unique property name
      * @param min          the minimum allowed value (inclusive)
      * @param max          the maximum allowed value (inclusive)
      * @param defaultValue the default value assigned initially on entity spawn - if null, it will be the minimum value
-     * @return the created float property
+     * @return the created int property
      */
-    GeyserIntEntityProperty registerIntegerProperty(@NonNull String name, int min, int max, @Nullable Integer defaultValue);
+    GeyserIntEntityProperty registerIntegerProperty(@NonNull String entityType, @NonNull String name, int min, int max, @Nullable Integer defaultValue);
 
     /**
      * Registers an {@code int}-backed entity property with a default value set to the minimum value.
      *
-     * @param name the unique property name
-     * @param min  the minimum allowed value (inclusive)
-     * @param max  the maximum allowed value (inclusive)
+     * @param entityType the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
+     * @param name       the unique property name
+     * @param min        the minimum allowed value (inclusive)
+     * @param max        the maximum allowed value (inclusive)
      * @return the created int property
      */
-    default GeyserIntEntityProperty registerIntegerProperty(@NonNull String name, int min, int max) {
-        return registerIntegerProperty(name, min, max, null);
+    default GeyserIntEntityProperty registerIntegerProperty(@NonNull String entityType, @NonNull String name, int min, int max) {
+        return registerIntegerProperty(entityType, name, min, max, null);
     }
 
     /**
      * Registers a {@code boolean}-backed entity property.
      *
+     * @param entityType   the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @param name         the unique property name
      * @param defaultValue the default boolean value
      * @return the created boolean property handle
      */
-    GeyserBooleanEntityProperty registerBooleanProperty(@NonNull String name, boolean defaultValue);
+    GeyserBooleanEntityProperty registerBooleanProperty(@NonNull String entityType, @NonNull String name, boolean defaultValue);
 
     /**
      * Registers a {@code boolean}-backed entity property with a default of {@code false}.
      *
-     * @param name the unique property name
+     * @param entityType the identifier for the entity type (e.g., {@code "minecraft:player"})
+     * @param name       the unique property name
      * @return the created boolean property
-     * @see #registerBooleanProperty(String, boolean)
+     * @see #registerBooleanProperty(String, String, boolean)
      */
-    default GeyserBooleanEntityProperty registerBooleanProperty(@NonNull String name) {
-        return registerBooleanProperty(name, false);
+    default GeyserBooleanEntityProperty registerBooleanProperty(@NonNull String entityType, @NonNull String name) {
+        return registerBooleanProperty(entityType, name, false);
     }
 
     /**
@@ -171,6 +165,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * The enum constants define the allowed values. If {@code defaultValue} is {@code null},
      * the first enum value is set as the default.
      *
+     * @param entityType   the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @param name         the unique property name
      * @param enumClass    the enum class that defines allowed values
      * @param defaultValue the default enum value, or {@code null} for the first enum value to be the default
@@ -178,19 +173,20 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * @return the created enum property
      * @see GeyserEnumEntityProperty for further limitations
      */
-    <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue);
+    <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull String entityType, @NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue);
 
     /**
-     * Registers a typed {@linkplain Enum enum}-backed entity property with the first value set as the default
+     * Registers a typed {@linkplain Enum enum}-backed entity property with the first value set as the default.
      *
-     * @param name      the unique property name
-     * @param enumClass the enum class that defines allowed values
-     * @param <E>       the enum type
+     * @param entityType the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
+     * @param name       the unique property name
+     * @param enumClass  the enum class that defines allowed values
+     * @param <E>        the enum type
      * @return the created enum property
-     * @see #registerEnumProperty(String, Class, Enum)
+     * @see #registerEnumProperty(String, String, Class, Enum)
      */
-    default <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass) {
-        return registerEnumProperty(name, enumClass, null);
+    default <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull String entityType, @NonNull String name, @NonNull Class<E> enumClass) {
+        return registerEnumProperty(entityType, name, enumClass, null);
     }
 
     /**
@@ -198,23 +194,25 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * is defined by the provided list. If {@code defaultValue} is {@code null}, the first value is used as the default
      * on entity spawn. The default must be one of the values in {@code values}.
      *
+     * @param entityType   the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
      * @param name         the unique property name
      * @param values       the allowed string values
      * @param defaultValue the default string value, or {@code null} for the first value to be used
      * @return the created string-enum property
      * @see GeyserStringEnumProperty
      */
-    GeyserStringEnumProperty registerEnumProperty(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue);
+    GeyserStringEnumProperty registerEnumProperty(@NonNull String entityType, @NonNull String name, @NonNull List<String> values, @Nullable String defaultValue);
 
     /**
      * Registers a string-backed "enum-like" entity property with the first value as the default.
      *
-     * @param name   the unique property name
-     * @param values the allowed string values
+     * @param entityType the Java edition entity identifier for the entity type (e.g., {@code "minecraft:player"})
+     * @param name       the unique property name
+     * @param values     the allowed string values
      * @return the created string-enum property handle
-     * @see #registerEnumProperty(String, List, String)
+     * @see #registerEnumProperty(String, String, List, String)
      */
-    default GeyserStringEnumProperty registerEnumProperty(@NonNull String name, @NonNull List<String> values) {
-        return registerEnumProperty(name, values, null);
+    default GeyserStringEnumProperty registerEnumProperty(@NonNull String entityType, @NonNull String name, @NonNull List<String> values) {
+        return registerEnumProperty(entityType, name, values, null);
     }
 }

@@ -31,11 +31,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.registry.Registries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +53,9 @@ public class GeyserEntityProperties {
     private final ObjectArrayList<PropertyType<?, ?>> properties;
     private final Object2IntMap<String> propertyIndices;
 
-    private GeyserEntityProperties(ObjectArrayList<PropertyType<?, ?>> properties,
-            Object2IntMap<String> propertyIndices) {
-        this.properties = properties;
-        this.propertyIndices = propertyIndices;
+    private GeyserEntityProperties() {
+        this.properties = new ObjectArrayList<>();
+        this.propertyIndices = new Object2IntOpenHashMap<>();
     }
 
     public NbtMap toNbtMap(String entityType) {
@@ -69,8 +70,27 @@ public class GeyserEntityProperties {
         return mapBuilder.putString("type", entityType).build();
     }
 
-    public Builder toBuilder() {
-        return new Builder(properties, propertyIndices);
+    public <T> void add(String entityType, @NonNull PropertyType<T, ? extends EntityProperty> property) {
+        if (!Registries.BEDROCK_ENTITY_PROPERTIES.get().isEmpty()) {
+            throw new IllegalStateException("Cannot add properties outside the GeyserDefineEntityProperties event!");
+        }
+
+        if (this.properties.size() > 32) {
+            throw new IllegalArgumentException("Cannot register more than 32 properties for entity type " + entityType);
+        }
+
+        Objects.requireNonNull(property, "property cannot be null!");
+        String name = property.name();
+        if (propertyIndices.containsKey(name)) {
+            throw new IllegalArgumentException(
+                "Property with name " + name + " already exists on builder!");
+        } else if (!ENTITY_PROPERTY_PATTERN.matcher(name).matches()) {
+            throw new IllegalArgumentException(
+                "Cannot register property with name " + name + " because property name is invalid! Must match: " + ENTITY_PROPERTY_PATTERN.pattern()
+            );
+        }
+        this.properties.add(property);
+        propertyIndices.put(name, properties.size() - 1);
     }
 
     public @NonNull List<PropertyType<?, ?>> getProperties() {
@@ -82,43 +102,24 @@ public class GeyserEntityProperties {
     }
 
     public static class Builder {
-        private final ObjectArrayList<PropertyType<?, ?>> properties = new ObjectArrayList<>();
-        private final Object2IntMap<String> propertyIndices = new Object2IntOpenHashMap<>();
+        private GeyserEntityProperties properties;
+        private final String identifier;
 
-        public Builder(ObjectArrayList<PropertyType<?, ?>> properties, Object2IntMap<String> propertyIndices) {
-            this.properties.addAll(properties);
-            this.propertyIndices.putAll(propertyIndices);
-        }
-
-        public Builder() {
-        }
-
-        public boolean isEmpty() {
-            return this.properties.isEmpty();
-        }
-
-        public List<PropertyType<?, ?>> properties() {
-            return properties;
+        public Builder(String identifier) {
+            this.identifier = identifier;
         }
 
         public <T> Builder add(@NonNull PropertyType<T, ? extends EntityProperty> property) {
             Objects.requireNonNull(property, "property cannot be null!");
-            String name = property.name();
-            if (propertyIndices.containsKey(name)) {
-                throw new IllegalArgumentException(
-                    "Property with name " + name + " already exists on builder!");
-            } else if (!ENTITY_PROPERTY_PATTERN.matcher(name).matches()) {
-                throw new IllegalArgumentException(
-                    "Cannot register property with name " + name + " because property name is invalid! Must match: " + ENTITY_PROPERTY_PATTERN.pattern()
-                );
+            if (properties == null) {
+                properties = new GeyserEntityProperties();
             }
-            this.properties.add(property);
-            propertyIndices.put(name, properties.size() - 1);
+            properties.add(identifier, property);
             return this;
         }
 
-        public GeyserEntityProperties build() {
-            return new GeyserEntityProperties(properties, propertyIndices);
+        public @Nullable GeyserEntityProperties build() {
+            return properties;
         }
     }
 }

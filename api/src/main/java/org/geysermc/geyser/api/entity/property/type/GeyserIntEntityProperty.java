@@ -37,7 +37,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
  *         Prefer keeping values in a practical range to avoid rounding issues.</li>
  * </ul>
  *
- * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(String, int, int, Integer)
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(String, String, int, int, Integer)
  */
 public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
 

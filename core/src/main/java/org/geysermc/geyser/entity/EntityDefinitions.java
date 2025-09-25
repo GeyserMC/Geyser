@@ -25,9 +25,22 @@
 
 package org.geysermc.geyser.entity;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
 import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
@@ -154,6 +167,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> ACACIA_BOAT;
@@ -1220,7 +1237,80 @@ public final class EntityDefinitions {
     }
 
     public static void init() {
-        // no-op
+        // entities would be initialized before this event is called
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+            @Override
+            public GeyserFloatEntityProperty registerFloatProperty(@NonNull String identifier, @NonNull String name, float min, float max, @Nullable Float defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(name);
+                FloatProperty property = new FloatProperty(name, min, max, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public IntProperty registerIntegerProperty(@NonNull String identifier, @NonNull String name, int min, int max, @Nullable Integer defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(name);
+                IntProperty property = new IntProperty(name, min, max, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public BooleanProperty registerBooleanProperty(@NonNull String identifier, @NonNull String name, boolean defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(name);
+                BooleanProperty property = new BooleanProperty(name, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull String identifier, @NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(name);
+                Objects.requireNonNull(enumClass);
+                EnumProperty<E> property = new EnumProperty<>(name, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public GeyserStringEnumProperty registerEnumProperty(@NonNull String identifier, @NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(name);
+                Objects.requireNonNull(values);
+                StringEnumProperty property = new StringEnumProperty(name, values, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public Collection<GeyserEntityProperty<?>> properties(@NonNull String identifier) {
+                Objects.requireNonNull(identifier);
+                var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(identifier);
+                if (definition == null) {
+                    throw new IllegalArgumentException("Unknown entity type: " + identifier);
+                }
+                return List.copyOf(definition.registeredProperties().getProperties());
+            }
+        });
+
+        for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
+            if (definition.registeredProperties() != null) {
+                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
+            }
+        }
+    }
+
+    private static <T> void registerProperty(String entityType, PropertyType<T, ?> property) {
+        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType);
+        if (definition == null) {
+            throw new IllegalArgumentException("Unknown entity type: " + entityType);
+        }
+
+        definition.registeredProperties().add(entityType, property);
     }
 
     private EntityDefinitions() {
