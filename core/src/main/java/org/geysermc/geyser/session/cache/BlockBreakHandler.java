@@ -374,6 +374,7 @@ public class BlockBreakHandler {
         }
 
         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
+        this.clearCurrentVariables();
     }
 
     /**
