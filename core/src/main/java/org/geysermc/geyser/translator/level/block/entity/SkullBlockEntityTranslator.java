@@ -85,7 +85,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             .toList();
     }
 
-    private static ResolvableProfile parseResolvableProfile(NbtMap profile) {
+    public static ResolvableProfile parseResolvableProfile(NbtMap profile) {
         UUID uuid = parseUUID(profile.getIntArray("id", null));
         String name = profile.getString("name", null);
         List<GameProfile.Property> properties = parseProperties(profile.getList("properties", NbtType.COMPOUND, null));
