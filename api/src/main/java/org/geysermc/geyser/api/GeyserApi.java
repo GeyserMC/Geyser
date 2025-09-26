@@ -67,6 +67,14 @@ public interface GeyserApi extends GeyserApiBase {
     List<? extends GeyserConnection> onlineConnections();
 
     /**
+     * Method to determine if the given online player is a linked Bedrock player.
+     *
+     * @param uuid the uuid of the online player
+     * @return true if the given online player is a Bedrock player
+     */
+    boolean isLinkedPlayer(@NonNull UUID uuid);
+
+    /**
      * Gets the {@link ExtensionManager}.
      *
      * @return the extension manager

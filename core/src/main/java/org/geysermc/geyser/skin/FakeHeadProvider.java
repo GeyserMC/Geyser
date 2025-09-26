@@ -67,7 +67,8 @@ public class FakeHeadProvider {
             .build(new CacheLoader<>() {
                 @Override
                 public SkinData load(@NonNull FakeHeadEntry fakeHeadEntry) throws Exception {
-                    SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity(), fakeHeadEntry.getSession()), null, 5);
+                    SkinData skinData = SkinManager.getSkinData(SkinProvider.getOrDefault(
+                        SkinProvider.requestSkinData(fakeHeadEntry.getEntity(), fakeHeadEntry.getSession()), null, 5));
 
                     if (skinData == null) {
                         throw new Exception("Couldn't load player's original skin");
