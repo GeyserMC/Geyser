@@ -294,7 +294,6 @@ public class BlockBreakHandler {
         // insta-breaking should be treated differently; don't send STOP_BREAK for these
         if (session.isInstabuild() || breakProgress >= 1.0F) {
             // Avoid sending STOP_BREAK for instantly broken blocks
-            lastMinedPosition = position;
             destroyBlock(state, position, blockFace, true);
         } else {
             LevelEventPacket startBreak = new LevelEventPacket();
@@ -309,7 +308,9 @@ public class BlockBreakHandler {
             this.currentBlockPos = position;
             this.currentBlockState = state;
             this.currentItemStack = item;
-            this.currentProgress = 0.0F;
+            // The Java client calls MultiPlayerGameMode#startDestroyBlock which would set this to zero,
+            // but also #continueDestroyBlock in the same tick to advance the break progress.
+            this.currentProgress = breakProgress;
 
             session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position,
                 blockFace.mcpl(), session.getWorldCache().nextPredictionSequence()));
@@ -327,8 +328,8 @@ public class BlockBreakHandler {
             this.currentBlockFace = blockFace;
             double totalBreakTime = BlockUtils.reciprocal(newProgress);
 
-            if (currentProgress >= 1.0F) {
-                // TODO do we need to add a delay to the total break time?
+            // let's be a bit lenient here; the Vanilla server is as well
+            if (currentProgress >= 0.97F) {
                 destroyBlock(state, position, blockFace, false);
                 return;
             } else if (bedrockDestroyed) {
@@ -466,6 +467,7 @@ public class BlockBreakHandler {
         if (canDestroyBlock(state)) {
             BlockUtils.spawnBlockBreakParticles(session, direction, vector, state);
             BlockUtils.sendBedrockBlockDestroy(session, vector.toFloat(), state.javaId());
+            this.lastMinedPosition = vector;
         } else {
             BlockUtils.restoreCorrectBlock(session, vector, state);
         }
