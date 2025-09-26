@@ -34,13 +34,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -49,11 +48,8 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.translator.protocol.java.level.JavaBlockDestructionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -92,22 +88,27 @@ public class BlockBreakHandler {
     protected @Nullable BlockState currentBlockState = null;
 
     /**
-     * The Bedrock client tick in which block breaking of the current block began.
-     * Only set when keeping track of custom blocks / custom items breaking blocks.
+     * The current block breaking progress
      */
-    protected long blockStartBreakTime = 0;
+    protected float currentProgress = 0.0F;
 
     /**
      * The last known face of the block the client was breaking.
      * Only set when keeping track of custom blocks / custom items breaking blocks.
      */
-    protected Direction lastBlockBreakFace = null;
+    protected Direction currentBlockFace = null;
 
     /**
-     * The last block position that was instantly broken.
+     * The last item used to break blocks.
+     * Used to track whether block breaking should be re-started as the item changed
+     */
+    protected GeyserItemStack currentItemStack = null;
+
+    /**
+     * The last block position that was broken.
      * Used to ignore subsequent block actions from the Bedrock client.
      */
-    protected Vector3i lastInstaMinedPosition = null;
+    protected Vector3i lastMinedPosition = null;
 
     /**
      * Caches all blocks we had to restore e.g. due to out-of-range or being unable to mine
@@ -148,18 +149,19 @@ public class BlockBreakHandler {
             restoredBlocks.clear();
             this.itemFramePos = null;
         } else {
-            tick();
+            tick(packet.getTick());
         }
     }
 
-    protected void tick() {
+    protected void tick(long tick) {
         // We need to manually check if a block should be destroyed, and send the client progress updates, when mining a custom block, or with a custom item
         // This is because, in CustomItemRegistryPopulator#computeToolProperties, we set a block break speed of 0,
         // meaning the client will only ever send START_BREAK for breaking blocks, and nothing else
 
         // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
-        if (blockStartBreakTime != 0 && lastBlockBreakFace != null && currentBlockPos != null && currentBlockState != null) {
-            handleContinueDestroy(currentBlockPos, currentBlockState, lastBlockBreakFace, session.getClientTicks());
+        if (currentBlockFace != null && currentBlockPos != null && currentBlockState != null) {
+            // The client would tell us if it changed the block, but, the stack thing we need to account for ourselves!
+            handleContinueDestroy(currentBlockPos, currentBlockState, currentBlockFace, false, session.getClientTicks());
         }
     }
 
@@ -170,34 +172,37 @@ public class BlockBreakHandler {
             // Worth noting: the bedrock client, as of version  1.21.101, sends weird values for the face, outside the [0;6] range, when sending ABORT_BREAK
             // Not sure why, but, blockFace isn't used for ABORT_BREAK, so it's fine
             // This is why blockFace is individually turned into a Direction in each of the switch statements, except for the ABORT_BREAK one
-
             switch (actionData.getAction()) {
                 case DROP_ITEM -> {
                     ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
                         position, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace).mcpl(), 0);
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
-                // Must do this ugly as it can also be called from the block_continue_destroy case :(
-                case START_BREAK -> preStartBreakHandle(position, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
-                case BLOCK_CONTINUE_DESTROY -> {
-                    if (testForItemFrameEntity(position) || testForLastInstaBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
-                        continue;
+                case START_BREAK -> {
+                    // New block being broken -> ignore previous insta-mine pos since that's no longer relevant
+                    lastMinedPosition = null;
+
+                    if (testForItemFrameEntity(position) || abortDueToBlockRestoring(position)) {
+                        return;
                     }
 
-                    Direction blockFace = Direction.getUntrusted(actionData, PlayerBlockActionData::getFace);
-                    // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
-                    // That applies in creative mode too! (last test in 1.21.100)
-                    if (!Objects.equals(position, currentBlockPos) || currentBlockState == null) {
-                        if (currentBlockPos != null) {
-                            handleAbortBreaking(currentBlockPos);
-                        }
-                        preStartBreakHandle(position, blockFace, packet.getTick());
+                    BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+                    if (!canBreak(position, state, actionData.getAction())) {
+                        BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
+                        restoredBlocks.add(position);
+                        return;
+                    }
+
+                    handleStartBreak(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
+                }
+                case BLOCK_CONTINUE_DESTROY -> {
+                    if (testForItemFrameEntity(position) || testForLastBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
                         continue;
                     }
 
                     // The client loves to send this block action alongside BLOCK_PREDICT_DESTROY in the same packet;
-                    // we can skip handling this action if the same position is updated again in the same tick
-                    if (i < packet.getPlayerActions().size() - 1) {
+                    // we can skip handling this action if this packet is about the same position, and the next packet same position is updated again in the same tick
+                    if (Objects.equals(currentBlockPos, position) && i < packet.getPlayerActions().size() - 1) {
                         PlayerBlockActionData nextAction = packet.getPlayerActions().get(i + 1);
                         if (Objects.equals(nextAction.getBlockPosition(), position)) {
                             continue;
@@ -205,16 +210,21 @@ public class BlockBreakHandler {
                     }
 
                     BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
-                    if (!canBreak(position, state)) {
+                    if (!canBreak(position, state, actionData.getAction())) {
                         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
                         restoredBlocks.add(position);
+
+                        // Also abort old / "current" block breaking, if there is one in progress
+                        if (!Objects.equals(currentBlockPos, position)) {
+                            handleAbortBreaking(position);
+                        }
                         continue;
                     }
 
-                    handleContinueDestroy(position, state, blockFace, packet.getTick());
+                    handleContinueDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), false, packet.getTick());
                 }
                 case BLOCK_PREDICT_DESTROY -> {
-                    if (testForItemFrameEntity(position) || testForLastInstaBreakPosOrReset(position)) {
+                    if (testForItemFrameEntity(position) || testForLastBreakPosOrReset(position)) {
                         continue;
                     }
 
@@ -227,10 +237,11 @@ public class BlockBreakHandler {
 
                     BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
                     boolean valid = currentBlockState != null && Objects.equals(position, currentBlockPos);
-                    if (!canBreak(position, state) || !valid) {
+                    if (!canBreak(position, state, actionData.getAction()) || !valid) {
                         if (!valid) {
                             GeyserImpl.getInstance().getLogger().warning("Player %s tried to break block at %s (%s), without starting to destroy it!"
                                 .formatted(session.bedrockUsername(), position, currentBlockState));
+                            handleAbortBreaking(currentBlockPos);
                         }
                         BlockUtils.stopBreakAndRestoreBlock(session, position, state);
                         restoredBlocks.add(position);
@@ -243,8 +254,8 @@ public class BlockBreakHandler {
                     // Abort break can also be sent after the block on that pos was broken.....
                     // At that point it's safe to assume that we won't get subsequent block actions on this position
                     // so reset it and return since there isn't anything to abort
-                    if (Objects.equals(lastInstaMinedPosition, position)) {
-                        lastInstaMinedPosition = null;
+                    if (Objects.equals(lastMinedPosition, position)) {
+                        lastMinedPosition = null;
                         continue;
                     }
 
@@ -265,28 +276,6 @@ public class BlockBreakHandler {
         }
     }
 
-    /**
-     * Called from either a START_BREAK or BLOCK_CONTINUE_DESTROY case, the latter
-     * if the client switches to a new block. This method then runs pre-break checks.
-     */
-    private void preStartBreakHandle(Vector3i position, Direction blockFace, long tick) {
-        // New block being broken -> ignore previous insta-mine pos since that's no longer relevant
-        lastInstaMinedPosition = null;
-
-        if (testForItemFrameEntity(position) || abortDueToBlockRestoring(position)) {
-            return;
-        }
-
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
-        if (!canBreak(position, state)) {
-            BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
-            restoredBlocks.add(position);
-            return;
-        }
-
-        handleStartBreak(position, state, blockFace, tick);
-    }
-
     protected void handleStartBreak(@NonNull Vector3i position, @NonNull BlockState state, Direction blockFace, long tick) {
         GeyserItemStack item = session.getPlayerInventory().getItemInHand();
 
@@ -305,22 +294,9 @@ public class BlockBreakHandler {
         // insta-breaking should be treated differently; don't send STOP_BREAK for these
         if (session.isInstabuild() || breakProgress >= 1.0F) {
             // Avoid sending STOP_BREAK for instantly broken blocks
-            lastInstaMinedPosition = position;
+            lastMinedPosition = position;
             destroyBlock(state, position, blockFace, true);
         } else {
-            // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
-            ItemMapping mapping = item.getMapping(session);
-            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
-            CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(state.javaId());
-            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(position);
-
-            this.blockStartBreakTime = 0;
-            if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(state.javaId()) || blockStateOverride != null ||
-                    customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
-                this.blockStartBreakTime = tick;
-                this.lastBlockBreakFace = blockFace;
-            }
-
             LevelEventPacket startBreak = new LevelEventPacket();
             startBreak.setType(LevelEvent.BLOCK_START_BREAK);
             startBreak.setPosition(position.toFloat());
@@ -329,42 +305,56 @@ public class BlockBreakHandler {
 
             BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
 
+            this.currentBlockFace = blockFace;
             this.currentBlockPos = position;
             this.currentBlockState = state;
+            this.currentItemStack = item;
+            this.currentProgress = 0.0F;
 
             session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position,
                 blockFace.mcpl(), session.getWorldCache().nextPredictionSequence()));
         }
     }
 
-    protected void handleContinueDestroy(Vector3i position, BlockState state, Direction blockFace, long tick) {
-        BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
-        double totalBreakTime = BlockUtils.reciprocal(calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand()));
+    protected void handleContinueDestroy(@NonNull Vector3i position, @NonNull BlockState state, @NonNull Direction blockFace, boolean bedrockDestroyed, long tick) {
+        // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
+        // That applies in creative mode too! (last test in 1.21.100)
+        // Further: We should also "start" breaking te block anew if the held item changes.
+        if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack()) {
+            BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
+            final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
+            this.currentProgress = this.currentProgress + newProgress;
+            this.currentBlockFace = blockFace;
+            double totalBreakTime = BlockUtils.reciprocal(newProgress);
 
-        if (blockStartBreakTime != 0) {
-            long ticksSinceStart = tick - blockStartBreakTime;
-            // We need to add a slight delay to the break time, otherwise the client breaks blocks too fast
-            if (ticksSinceStart >= (totalBreakTime += 2)) {
+            if (currentProgress >= 1.0F) {
+                // TODO do we need to add a delay to the total break time?
                 destroyBlock(state, position, blockFace, false);
                 return;
+            } else if (bedrockDestroyed) {
+                BlockUtils.restoreCorrectBlock(session, position, state);
             }
-            // Update in case it has changed
-            lastBlockBreakFace = blockFace;
-        }
 
-        // Update the break time in the event that player conditions changed (jumping, effects applied)
-        LevelEventPacket updateBreak = new LevelEventPacket();
-        updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-        updateBreak.setPosition(position.toFloat());
-        updateBreak.setData((int) (65535 / totalBreakTime));
-        session.sendUpstreamPacket(updateBreak);
+            // Update the break time in the event that player conditions changed (jumping, effects applied)
+            LevelEventPacket updateBreak = new LevelEventPacket();
+            updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
+            updateBreak.setPosition(position.toFloat());
+            updateBreak.setData((int) (65535 / totalBreakTime));
+            session.sendUpstreamPacket(updateBreak);
+        } else {
+            // We have switched - either between blocks, or are between the stack we're using to break the block
+            if (currentBlockPos != null) {
+                handleAbortBreaking(currentBlockPos);
+            }
+            handleStartBreak(position, state, blockFace, tick);
+        }
     }
 
     protected void handlePredictDestroy(Vector3i position, BlockState state, Direction blockFace, long tick) {
-        destroyBlock(state, position, blockFace, false);
+        handleContinueDestroy(position, state, blockFace, true, tick);
     }
 
-    protected void handleAbortBreaking(Vector3i position) {
+    private void handleAbortBreaking(Vector3i position) {
         // Bedrock edition "confirms" it stopped breaking blocks by sending an abort packet
         // We don't forward those as a Java client wouldn't send those either
         if (currentBlockPos != null) {
@@ -412,6 +402,12 @@ public class BlockBreakHandler {
         if (!restoredBlocks.isEmpty()) {
             BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
             restoredBlocks.add(position);
+
+            if (currentBlockPos != null && !Objects.equals(position, currentBlockPos)) {
+                restoredBlocks.add(currentBlockPos);
+                handleAbortBreaking(currentBlockPos);
+            }
+
             return true;
         }
         return false;
@@ -422,7 +418,7 @@ public class BlockBreakHandler {
      * This includes world border, "hands busy" (boat steering), and GameMode checks.
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    protected boolean canBreak(Vector3i vector, BlockState state) {
+    protected boolean canBreak(Vector3i vector, BlockState state, PlayerActionType action) {
         if (session.isHandsBusy() || !session.getWorldBorder().isInsideBorderBoundaries()) {
             return false;
         }
@@ -485,12 +481,27 @@ public class BlockBreakHandler {
      * This ensures that Geyser does not send a FINISH_DIGGING player action for instantly mined blocks,
      * or those mined while in creative mode.
      */
-    protected boolean testForLastInstaBreakPosOrReset(Vector3i position) {
-        if (Objects.equals(lastInstaMinedPosition, position)) {
+    protected boolean testForLastBreakPosOrReset(Vector3i position) {
+        if (Objects.equals(lastMinedPosition, position)) {
             return true;
         }
-        lastInstaMinedPosition = null;
+        lastMinedPosition = null;
         return false;
+    }
+
+    private boolean sameItemStack() {
+        if (currentItemStack == null) {
+            return false;
+        }
+        GeyserItemStack stack = session.getPlayerInventory().getItemInHand();
+        if (currentItemStack.isEmpty() && stack.isEmpty()) {
+            return true;
+        }
+        if (currentItemStack.getJavaId() != stack.getJavaId()) {
+            return false;
+        }
+
+        return Objects.equals(stack.getComponents(), currentItemStack.getComponents());
     }
 
     /**
@@ -499,7 +510,9 @@ public class BlockBreakHandler {
     protected void clearCurrentVariables() {
         this.currentBlockPos = null;
         this.currentBlockState = null;
-        this.blockStartBreakTime = 0L;
+        this.currentBlockFace = null;
+        this.currentProgress = 0.0F;
+        this.currentItemStack = null;
     }
 
     /**
@@ -507,7 +520,7 @@ public class BlockBreakHandler {
      */
     public void reset() {
         clearCurrentVariables();
-        this.lastInstaMinedPosition = null;
+        this.lastMinedPosition = null;
         this.destructionStageCache.invalidateAll();
     }
 
