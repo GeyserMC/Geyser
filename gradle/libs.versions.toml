@@ -30,11 +30,12 @@ cloud-minecraft = "2.0.0-beta.11"
 cloud-minecraft-modded = "2.0.0-beta.12"
 commodore = "2.2"
 bungeecord = "1.21-R0.1-20250215.224541-54"
+bungeecord-api = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
 fabric-loader = "0.16.14"
 fabric-api = "0.128.1+1.21.7"
-fabric-permissions-api = "0.4.0-SNAPSHOT"
+fabric-permissions-api = "0.4.1"
 neoforge-minecraft = "21.8.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
@@ -128,6 +129,7 @@ adapters-neoforge-v1215 = { group = "org.geysermc.geyser.adapters", name = "modd
 adapters-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-fabric", version.ref = "adapters" }
 adapters-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-neoforge", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
+bungeecord-api = { group = "net.md-5", name = "bungeecord-api", version.ref = "bungeecord-api" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
