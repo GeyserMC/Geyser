@@ -25,35 +25,60 @@
 
 package org.geysermc.geyser.item.parser;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * Utility class to parse an item stack, or a data component patch, from NBT data.
+ *
+ * <p>This class does <em>NOT</em> parse all possible data components in a data component patch, only those that
+ * can visually change the way an item looks. This class should/is usually used for parsing block entity NBT data,
+ * such as for vault or shelf block entities.</p>
+ *
+ * <p>Be sure to update this class for Java updates!</p>
+ */
+// Lots of unchecked casting happens here. It should all be handled properly.
+// TODO only log somethings once (like was done in vault translator)
 @SuppressWarnings("unchecked")
 public class ItemStackParser {
-    private static final ItemStack AIR = new ItemStack(Items.AIR_ID);
     private static final Map<DataComponentType<?>, DataComponentParser<?, ?>> PARSERS = new Reference2ObjectOpenHashMap<>();
 
+    // We need the rawClass parameter here because the Raw type can't be inferred from the parser alone
     private static <Raw, Parsed> void register(DataComponentType<Parsed> component, Class<Raw> rawClass, DataComponentParser<Raw, Parsed> parser) {
         if (PARSERS.containsKey(component)) {
             throw new IllegalStateException("Duplicate data component parser registered for " + component);
@@ -69,41 +94,96 @@ public class ItemStackParser {
         registerSimple(component, parsedClass, Function.identity());
     }
 
-    private static <Parsed> void registerInstance(DataComponentType<Parsed> component, Parsed instance) {
-        register(component, Object.class, (session, o) -> instance);
+    private static int javaItemIdentifierToNetworkId(String identifier) {
+        if (identifier == null || identifier.isEmpty()) {
+            return Items.AIR_ID;
+        }
+
+        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(identifier);
+        if (item == null) {
+            GeyserImpl.getInstance().getLogger().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
+            return Items.AIR_ID;
+        }
+        return item.javaId();
+    }
+
+    private static ItemEnchantments parseEnchantments(GeyserSession session, NbtMap map) {
+        Int2IntMap enchantments = new Int2IntOpenHashMap(map.size());
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            enchantments.put(JavaRegistries.ENCHANTMENT.networkId(session, MinecraftKey.key(entry.getKey())), (int) entry.getValue());
+        }
+        return new ItemEnchantments(enchantments);
     }
 
     static {
-        // TODO check this again
-        // banner patterns []
-        // base color [X]
-        // charged projectiles [X]
-        // custom model data []
-        // dyed color [X]
-        // enchantment glint override [X]
-        // enchantments [X]
-        // firework explosion []
-        // item model [X]
-        // map color [X]
-        // pot decorations []
-        // profile [X]
+        // The various ignored null-warnings are for things that should never be null as they shouldn't be missing from the data component
+        // If they are null an exception will be thrown, but this will be caught with an error message logged
+
+        register(DataComponentTypes.BANNER_PATTERNS, List.class, (session, raw) -> {
+            List<NbtMap> casted = (List<NbtMap>) raw;
+            List<BannerPatternLayer> layers = new ArrayList<>();
+            for (NbtMap layer : casted) {
+                DyeColor colour = DyeColor.getByJavaIdentifier(layer.getString("color"));
+
+                // Patterns can be an ID or inline
+                Object pattern = layer.get("pattern");
+                Holder<BannerPatternLayer.BannerPattern> patternHolder;
+                if (pattern instanceof String id) {
+                    patternHolder = Holder.ofId(JavaRegistries.BANNER_PATTERN.networkId(session, MinecraftKey.key(id)));
+                } else {
+                    NbtMap inline = (NbtMap) pattern;
+                    Key assetId = MinecraftKey.key(inline.getString("asset_id"));
+                    String translationKey = inline.getString("translation_key");
+                    patternHolder = Holder.ofCustom(new BannerPatternLayer.BannerPattern(assetId, translationKey));
+                }
+                layers.add(new BannerPatternLayer(patternHolder, colour.ordinal()));
+            }
+            return layers;
+        });
         registerSimple(DataComponentTypes.BASE_COLOR, String.class, raw -> DyeColor.getByJavaIdentifier(raw).ordinal());
         register(DataComponentTypes.CHARGED_PROJECTILES, List.class,
             (session, projectiles) -> projectiles.stream()
                 .map(object -> parseItemStack(session, (NbtMap) object))
                 .toList());
-
+        registerSimple(DataComponentTypes.CUSTOM_MODEL_DATA, NbtMap.class, raw -> {
+            List<Float> floats = raw.getList("floats", NbtType.FLOAT);
+            List<Boolean> flags = raw.getList("flags", NbtType.BYTE).stream().map(b -> b != 0).toList();
+            List<String> strings = raw.getList("strings", NbtType.STRING);
+            List<Integer> colours = raw.getList("colors", NbtType.INT);
+            return new CustomModelData(floats, flags, strings, colours);
+        });
         registerSimple(DataComponentTypes.DYED_COLOR, Integer.class);
         registerSimple(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Boolean.class);
-        registerInstance(DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(new Int2IntOpenHashMap()));
+        register(DataComponentTypes.ENCHANTMENTS, NbtMap.class, ItemStackParser::parseEnchantments);
+        registerSimple(DataComponentTypes.FIREWORK_EXPLOSION, NbtMap.class, raw -> {
+            FireworkExplosionShape shape = FireworkExplosionShape.fromJavaIdentifier(raw.getString("shape"));
+            List<Integer> colours = raw.getList("colors", NbtType.INT);
+            List<Integer> fadeColours = raw.getList("fade_colors", NbtType.INT);
+            boolean hasTrail = raw.getBoolean("has_trail");
+            boolean hasTwinkle = raw.getBoolean("has_twinkle");
+            return new Fireworks.FireworkExplosion(shape.ordinal(),
+                colours.stream()
+                    .mapToInt(i -> i) // We need to do this because MCPL wants an int[] array
+                    .toArray(),
+                fadeColours.stream()
+                    .mapToInt(i -> i)
+                    .toArray(),
+                hasTrail, hasTwinkle);
+        });
         registerSimple(DataComponentTypes.ITEM_MODEL, String.class, MinecraftKey::key);
         registerSimple(DataComponentTypes.MAP_COLOR, Integer.class);
-        registerSimple(DataComponentTypes.PROFILE, NbtMap.class, SkullBlockEntityTranslator::parseResolvableProfile);
-
+        registerSimple(DataComponentTypes.POT_DECORATIONS, List.class, list -> list.stream()
+            .map(item -> javaItemIdentifierToNetworkId((String) item))
+            .toList());
         register(DataComponentTypes.POTION_CONTENTS, NbtMap.class, (session, map) -> {
-            // TODO
-            return Optional.ofNullable(tag.getString("potion")).map(Potion::getByJavaIdentifier);
+            Potion potion = Potion.getByJavaIdentifier(map.getString("potion"));
+            int customColour = map.getInt("custom_color", -1);
+            // Not reading custom effects
+            String customName = map.getString("custom_name", null);
+            return new PotionContents(potion == null ? -1 : potion.ordinal(), customColour, List.of(), customName);
         });
+        registerSimple(DataComponentTypes.PROFILE, NbtMap.class, SkullBlockEntityTranslator::parseResolvableProfile);
+        register(DataComponentTypes.STORED_ENCHANTMENTS, NbtMap.class, ItemStackParser::parseEnchantments);
     }
 
     private static <Raw, Parsed> void parseDataComponent(GeyserSession session, DataComponents patch, DataComponentType<?> type,
@@ -148,25 +228,39 @@ public class ItemStackParser {
                 }
             }
         } catch (Exception exception) {
-            // TODO
+            GeyserImpl.getInstance().getLogger().error("Failed to parse data component patch from NBT data!", exception);
         }
+
+        return patch;
     }
 
-    public static ItemStack parseItemStack(GeyserSession session, NbtMap map) {
-        try {
-            Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(map.getString("id"));
-            if (item == null) {
-                GeyserImpl.getInstance().getLogger().warning("Unknown item " + map.getString("id") + " whilst trying to parse NBT item stack!");
-                return AIR;
-            }
+    public static ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map) {
+        if (map == null) {
+            return new ItemStack(Items.AIR_ID);
+        }
 
-            int id = item.javaId();
+        try {
+            int id = javaItemIdentifierToNetworkId(map.getString("id"));
             int count = map.getInt("count");
-            DataComponents patch = parseDataComponentPatch(session, map);
+            DataComponents patch = parseDataComponentPatch(session, map.getCompound("components"));
             return new ItemStack(id, count, patch);
         } catch (Exception exception) {
-            // TODO
+            GeyserImpl.getInstance().getLogger().error("Failed to parse item stack from NBT data!", exception);
         }
+        return new ItemStack(Items.AIR_ID);
+    }
+
+    /**
+     * Shorthand method for calling the following methods:
+     *
+     * <ul>
+     *     <li>{@link ItemStackParser#parseItemStack(GeyserSession, NbtMap)}</li>
+     *     <li>{@link ItemTranslator#translateToBedrock(GeyserSession, ItemStack)}</li>
+     *     <li>{@link BedrockItemBuilder#itemDataToNbt(ItemData)}</li>
+     * </ul>
+     */
+    public static NbtMapBuilder javaItemStackToBedrock(GeyserSession session, @Nullable NbtMap map) {
+        return BedrockItemBuilder.itemDataToNbt(ItemTranslator.translateToBedrock(session, parseItemStack(session, map)));
     }
 
     @FunctionalInterface

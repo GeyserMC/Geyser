@@ -27,13 +27,23 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.item.parser.ItemStackParser;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
+import java.util.Comparator;
+
+@BlockEntity(type = BlockEntityType.SHELF)
 public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-
+        // We can't translate align_items_to_bottom, I think :(
+        bedrockNbt.putList("Items", NbtType.COMPOUND, javaNbt.getList("Items", NbtType.COMPOUND).stream()
+            .sorted(Comparator.comparingInt(stack -> stack.getByte("Slot")))
+            .map(stack -> ItemStackParser.javaItemStackToBedrock(session, stack).build())
+            .toList());
     }
 }
