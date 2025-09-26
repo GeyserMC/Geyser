@@ -122,7 +122,7 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
                 .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
                 .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), Conversion843_827::remapBlock)
-                .put(ObjectIntPair.of("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()), tag -> tag) // TODO conversion?
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
