@@ -34,14 +34,12 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -89,19 +87,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case STOP_CRAWLING -> session.setCrawling(false);
                 case START_SPRINTING -> {
                     if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
-                        // Check if the player is standing on but not surrounded by water; don't allow sprinting in that case
-                        // resolves <https://github.com/GeyserMC/Geyser/issues/1705>
-                        if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
-                            // Update movement speed attribute to prevent sprinting on water. This is fixed in 1.21.80+ natively.
-                            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                            attributesPacket.getAttributes().addAll(entity.getAttributes().values());
-                            session.sendUpstreamPacket(attributesPacket);
-                        } else {
-                            if (!session.isSprinting()) {
-                                sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
-                                session.setSprinting(true);
-                            }
+                        if (!session.isSprinting()) {
+                            sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
+                            session.setSprinting(true);
                         }
                     }
                 }

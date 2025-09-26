@@ -21,9 +21,9 @@ dependencies {
 
     // These are NOT transitively included, and instead shadowed + relocated.
     // Avoids fabric complaining about non-SemVer versioning
-    shadowBundle(libs.protocol.connection)
+    // shadowBundle(libs.protocol.connection) TODO remove me when protocol adventure stuff has been fixed
     shadowBundle(libs.protocol.common)
-    shadowBundle(libs.protocol.codec)
+    // shadowBundle(libs.protocol.codec) TODO remove me same as above
     shadowBundle(libs.raknet)
     shadowBundle(libs.mcprotocollib)
 

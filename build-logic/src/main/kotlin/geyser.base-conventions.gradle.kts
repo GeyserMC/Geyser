@@ -26,7 +26,8 @@ dependencies {
 }
 
 repositories {
-    // mavenLocal()
+    // TODO comment me
+    mavenLocal()
 
     mavenCentral()
 
