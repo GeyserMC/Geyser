@@ -208,7 +208,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public boolean isClientControlled() {
-        if (!hasBodyArmor() || getFlag(EntityFlag.NO_AI) || staysStill) {
+        if (!hasBodyArmor() || staysStill) {
             return false;
         }
 
