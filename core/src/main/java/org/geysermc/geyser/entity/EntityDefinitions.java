@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
 import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
@@ -37,8 +36,6 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
-import org.geysermc.geyser.entity.type.HangingEntity;
-import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -49,6 +46,7 @@ import org.geysermc.geyser.entity.type.FireballEntity;
 import org.geysermc.geyser.entity.type.FireworkEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.FurnaceMinecartEntity;
+import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.InteractionEntity;
 import org.geysermc.geyser.entity.type.ItemEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -60,6 +58,7 @@ import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
+import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.ThrowableEntity;
 import org.geysermc.geyser.entity.type.ThrowableItemEntity;
 import org.geysermc.geyser.entity.type.ThrownPotionEntity;
@@ -82,17 +81,14 @@ import org.geysermc.geyser.entity.type.living.TadpoleEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.animal.AxolotlEntity;
 import org.geysermc.geyser.entity.type.living.animal.BeeEntity;
-import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.FoxEntity;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.GoatEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.HoglinEntity;
 import org.geysermc.geyser.entity.type.living.animal.MooshroomEntity;
 import org.geysermc.geyser.entity.type.living.animal.OcelotEntity;
 import org.geysermc.geyser.entity.type.living.animal.PandaEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
 import org.geysermc.geyser.entity.type.living.animal.PolarBearEntity;
 import org.geysermc.geyser.entity.type.living.animal.PufferFishEntity;
 import org.geysermc.geyser.entity.type.living.animal.RabbitEntity;
@@ -101,6 +97,10 @@ import org.geysermc.geyser.entity.type.living.animal.SnifferEntity;
 import org.geysermc.geyser.entity.type.living.animal.StriderEntity;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
 import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
@@ -464,7 +464,7 @@ public final class EntityDefinitions {
             EGG = EntityDefinition.inherited(ThrowableEggEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .build();
             ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.ENDER_PEARL)
@@ -701,7 +701,8 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setActive)
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setIsTearingDown)
                     .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, CreakingEntity::setHomePos)
-                    .properties(VanillaEntityProperties.CREAKING)
+                    .property(CreakingEntity.STATE_PROPERTY)
+                    .property(CreakingEntity.SWAYING_TICKS_PROPERTY)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
@@ -954,7 +955,7 @@ public final class EntityDefinitions {
             ARMADILLO = EntityDefinition.inherited(ArmadilloEntity::new, ageableEntityBase)
                     .type(EntityType.ARMADILLO)
                     .height(0.65f).width(0.7f)
-                    .properties(VanillaEntityProperties.ARMADILLO)
+                    .property(ArmadilloEntity.STATE_PROPERTY)
                     .addTranslator(MetadataTypes.ARMADILLO_STATE, ArmadilloEntity::setArmadilloState)
                     .build();
             AXOLOTL = EntityDefinition.inherited(AxolotlEntity::new, ageableEntityBase)
@@ -967,20 +968,20 @@ public final class EntityDefinitions {
             BEE = EntityDefinition.inherited(BeeEntity::new, ageableEntityBase)
                     .type(EntityType.BEE)
                     .heightAndWidth(0.6f)
-                    .properties(VanillaEntityProperties.BEE)
+                    .property(BeeEntity.NECTAR_PROPERTY)
                     .addTranslator(MetadataTypes.BYTE, BeeEntity::setBeeFlags)
                     .addTranslator(MetadataTypes.INT, BeeEntity::setAngerTime)
                     .build();
             CHICKEN = EntityDefinition.inherited(ChickenEntity::new, ageableEntityBase)
                     .type(EntityType.CHICKEN)
                     .height(0.7f).width(0.4f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.CHICKEN_VARIANT, ChickenEntity::setVariant)
                     .build();
             COW = EntityDefinition.inherited(CowEntity::new, ageableEntityBase)
                     .type(EntityType.COW)
                     .height(1.4f).width(0.9f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.COW_VARIANT, CowEntity::setVariant)
                     .build();
             FOX = EntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
@@ -1000,7 +1001,7 @@ public final class EntityDefinitions {
             HAPPY_GHAST = EntityDefinition.inherited(HappyGhastEntity::new, ageableEntityBase)
                     .type(EntityType.HAPPY_GHAST)
                     .heightAndWidth(4f)
-                    .properties(VanillaEntityProperties.HAPPY_GHAST)
+                    .property(HappyGhastEntity.CAN_MOVE_PROPERTY)
                     .addTranslator(null) // Is leash holder
                     .addTranslator(MetadataTypes.BOOLEAN, HappyGhastEntity::setStaysStill)
                     .build();
@@ -1039,7 +1040,7 @@ public final class EntityDefinitions {
             PIG = EntityDefinition.inherited(PigEntity::new, ageableEntityBase)
                     .type(EntityType.PIG)
                     .heightAndWidth(0.9f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.INT, PigEntity::setBoost)
                     .addTranslator(MetadataTypes.PIG_VARIANT, PigEntity::setVariant)
                     .build();
@@ -1185,7 +1186,7 @@ public final class EntityDefinitions {
         WOLF = EntityDefinition.inherited(WolfEntity::new, tameableEntityBase)
                 .type(EntityType.WOLF)
                 .height(0.85f).width(0.6f)
-                .properties(VanillaEntityProperties.WOLF_SOUND_VARIANT)
+                .property(WolfEntity.SOUND_VARIANT)
                 // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)

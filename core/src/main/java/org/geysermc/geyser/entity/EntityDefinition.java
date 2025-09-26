@@ -28,9 +28,21 @@ package org.geysermc.geyser.entity;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
@@ -38,8 +50,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -54,7 +68,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                                                  float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, parent.registeredProperties, new ObjectArrayList<>(parent.translators));
+        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, null, new ObjectArrayList<>(parent.translators));
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
@@ -89,7 +103,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private float width;
         private float height;
         private float offset = 0.00001f;
-        private GeyserEntityProperties registeredProperties;
+        private GeyserEntityProperties.Builder propertiesBuilder;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         private Builder(EntityFactory<T> factory) {
@@ -104,7 +118,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             this.width = width;
             this.height = height;
             this.offset = offset;
-            this.registeredProperties = registeredProperties;
+            this.propertiesBuilder = registeredProperties == null ? new GeyserEntityProperties.Builder() : registeredProperties.toBuilder();
             this.translators = translators;
         }
 
@@ -131,8 +145,8 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        public Builder<T> properties(GeyserEntityProperties registeredProperties) {
-            this.registeredProperties = registeredProperties;
+        public Builder<T> property(PropertyType<?, ?> propertyType) {
+            propertiesBuilder.add(propertyType);
             return this;
         }
 
@@ -157,6 +171,68 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         public EntityDefinition<T> build(boolean register) {
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
+            }
+            GeyserEntityProperties registeredProperties = null;
+            //noinspection ConstantValue - for static testing
+            if (identifier != null && GeyserImpl.getInstance().eventBus() != null && register) {
+                GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+
+                    @Override
+                    public @NonNull String entityIdentifier() {
+                        return identifier;
+                    }
+
+                    @Override
+                    public GeyserFloatEntityProperty registerFloatProperty(@NonNull String name, float min, float max, @Nullable Float defaultValue) {
+                        Objects.requireNonNull(name);
+                        FloatProperty property = new FloatProperty(name, min, max, defaultValue);
+                        propertiesBuilder.add(property);
+                        return property;
+                    }
+
+                    @Override
+                    public IntProperty registerIntegerProperty(@NonNull String name, int min, int max, @Nullable Integer defaultValue) {
+                        Objects.requireNonNull(name);
+                        IntProperty intProperty = new IntProperty(name, min, max, defaultValue);
+                        propertiesBuilder.add(intProperty);
+                        return intProperty;
+                    }
+
+                    @Override
+                    public BooleanProperty registerBooleanProperty(@NonNull String name, boolean defaultValue) {
+                        Objects.requireNonNull(name);
+                        BooleanProperty booleanProperty = new BooleanProperty(name, defaultValue);
+                        propertiesBuilder.add(booleanProperty);
+                        return booleanProperty;
+                    }
+
+                    @Override
+                    public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+                        Objects.requireNonNull(name);
+                        Objects.requireNonNull(enumClass);
+                        EnumProperty<E> enumProperty = new EnumProperty<>(name, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                        propertiesBuilder.add(enumProperty);
+                        return enumProperty;
+                    }
+
+                    @Override
+                    public GeyserStringEnumProperty registerEnumProperty(@NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
+                        Objects.requireNonNull(name);
+                        Objects.requireNonNull(values);
+                        StringEnumProperty stringEnumProperty = new StringEnumProperty(name, values, defaultValue);
+                        propertiesBuilder.add(stringEnumProperty);
+                        return stringEnumProperty;
+                    }
+
+                    @Override
+                    public Collection<GeyserEntityProperty<?>> properties() {
+                        return List.copyOf(propertiesBuilder.properties());
+                    }
+                });
+
+                if (!propertiesBuilder.isEmpty()) {
+                    registeredProperties = propertiesBuilder.build();
+                }
             }
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {

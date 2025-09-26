@@ -26,16 +26,25 @@
 package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
 
-public class FloatProperty implements PropertyType {
-    private final String name;
-    private final float max;
-    private final float min;
+public record FloatProperty(
+    String name,
+    float max,
+    float min,
+    Float defaultValue
+) implements PropertyType<Float, FloatEntityProperty>, GeyserFloatEntityProperty {
 
-    public FloatProperty(String name, float min, float max) {
-        this.name = name;
-        this.max = max;
-        this.min = min;
+    public FloatProperty {
+        if (min > max) {
+            throw new IllegalArgumentException("Cannot create float entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
+                .formatted(name, min, max));
+        }
+        if (defaultValue < min || defaultValue > max) {
+            throw new IllegalArgumentException("Cannot create float entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
+                .formatted(name, defaultValue, min, max));
+        }
     }
 
     @Override
@@ -46,5 +55,18 @@ public class FloatProperty implements PropertyType {
                 .putFloat("min", min)
                 .putInt("type", 1)
                 .build();
+    }
+
+    @Override
+    public FloatEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue == null ? min : defaultValue);
+    }
+
+    @Override
+    public FloatEntityProperty createValue(int index, Float value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
+        return new FloatEntityProperty(index, value);
     }
 }
