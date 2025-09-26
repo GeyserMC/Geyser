@@ -331,8 +331,9 @@ public class BlockBreakHandler {
         // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
         // That applies in creative mode too! (last test in 1.21.100)
         // Further: We should also "start" breaking the block anew if the held item changes.
+        boolean sameBlockPosition = currentBlockState != null && Objects.equals(position, currentBlockPos);
         boolean sameItemStack = sameItemStack();
-        if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack) {
+        if (sameBlockPosition && sameItemStack) {
             BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
             final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
             this.currentProgress = this.currentProgress + newProgress;
@@ -361,7 +362,7 @@ public class BlockBreakHandler {
             }
 
             // Player switch between item, not block, which means that this should be handled separately.
-            if (!sameItemStack) {
+            if (!sameItemStack && sameBlockPosition) {
                 if (bedrockDestroyed) {
                     // The player have already broken the block in the same tick they switch item, let's just send them the correct block state.
                     BlockUtils.restoreCorrectBlock(session, position, state);
