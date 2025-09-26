@@ -122,6 +122,11 @@ public class BlockBreakHandler {
     protected @Nullable Vector3i itemFramePos = null;
 
     /**
+     * Used to handle the item switching block break progress, we wait till the player send an abort break to allow them to break again.
+     */
+    protected boolean waitingForAbortBreak;
+
+    /**
      * See {@link JavaBlockDestructionTranslator} for usage and explanation
      */
     @Getter
@@ -251,6 +256,12 @@ public class BlockBreakHandler {
                     handlePredictDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
                 }
                 case ABORT_BREAK -> {
+                    // The player abort the breaking, which means that they have received our immutable world packet, so let them mine again.
+                    if (this.waitingForAbortBreak) {
+                        session.sendAdventureSettings(session.isWorldImmutable());
+                        this.waitingForAbortBreak = false;
+                    }
+
                     // Abort break can also be sent after the block on that pos was broken.....
                     // At that point it's safe to assume that we won't get subsequent block actions on this position
                     // so reset it and return since there isn't anything to abort
@@ -319,8 +330,9 @@ public class BlockBreakHandler {
     protected void handleContinueDestroy(@NonNull Vector3i position, @NonNull BlockState state, @NonNull Direction blockFace, boolean bedrockDestroyed, long tick) {
         // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
         // That applies in creative mode too! (last test in 1.21.100)
-        // Further: We should also "start" breaking te block anew if the held item changes.
-        if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack()) {
+        // Further: We should also "start" breaking the block anew if the held item changes.
+        boolean sameItemStack = sameItemStack();
+        if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack) {
             BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
             final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
             this.currentProgress = this.currentProgress + newProgress;
@@ -343,9 +355,37 @@ public class BlockBreakHandler {
             session.sendUpstreamPacket(updateBreak);
         } else {
             // We have switched - either between blocks, or are between the stack we're using to break the block
-            if (currentBlockPos != null) {
-                handleAbortBreaking(currentBlockPos);
+            if (currentBlockPos == null) {
+                handleStartBreak(position, state, blockFace, tick);
+                return;
             }
+
+            // Player switch between item, not block, which means that this should be handled separately.
+            if (!sameItemStack) {
+                if (bedrockDestroyed) {
+                    // The player have already broken the block in the same tick they switch item, let's just send them the correct block state.
+                    BlockUtils.restoreCorrectBlock(session, position, state);
+                    handleAbortBreaking(currentBlockPos);
+                    return;
+                }
+
+                // So apparently... bedrock client can still continue to break a block despite switching item and there (certified bedrock behaviour)
+                // There doesn't seem to be a lot of way to stop them from continue breaking (even sending a block update)
+                // so we're making the world immutable so the player stop mining. Now the problem is that they will have to release their mouse
+                // and hold again after if they want to continue mining, but scrolling your mouse instead of using key to switch item do the same thing anyway
+                // so it's not a big deal, however it could be annoying, not much we can do about that.
+                session.sendAdventureSettings(true);
+
+                // Return here, since they player will send us an abort break and a new start break in this case, no need to handle it ourselves.
+                // Also, only allow them to break again if they send an abort break packet, since bedrock don't really cancel
+                // the breaking if we send both instantly, and queueing it won't work well with high latency.
+                // Now high latency player won't like this, but it's better than reappearing block hack or possible ghost block because of bugrock.
+                this.waitingForAbortBreak = true;
+                return;
+            }
+
+            // Since bedrock won't send a block abort and a start breaking when they switch between block, we need to handle it separately ourselves.
+            handleAbortBreaking(currentBlockPos);
             handleStartBreak(position, state, blockFace, tick);
         }
     }

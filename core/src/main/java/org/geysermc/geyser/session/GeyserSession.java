@@ -2014,6 +2014,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
+    public void sendAdventureSettings(boolean immutableWorld) {
+        UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+        adventureSettingsPacket.setNoMvP(false);
+        adventureSettingsPacket.setNoPvM(false);
+        adventureSettingsPacket.setImmutableWorld(immutableWorld);
+        adventureSettingsPacket.setShowNameTags(false);
+        adventureSettingsPacket.setAutoJump(true);
+        sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    /**
+     * Send an AdventureSettingsPacket and UpdateAbilitiesPacket to the client with the latest flags and abilities
+     */
     public void sendAdventureSettings() {
         long bedrockId = playerEntity.getGeyserId();
         // Set command permission if OP permission level is high enough
@@ -2025,15 +2038,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         // Update the noClip and worldImmutable values based on the current gamemode
         boolean spectator = gameMode == GameMode.SPECTATOR;
-        boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
-
-        UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
-        adventureSettingsPacket.setNoMvP(false);
-        adventureSettingsPacket.setNoPvM(false);
-        adventureSettingsPacket.setImmutableWorld(worldImmutable);
-        adventureSettingsPacket.setShowNameTags(false);
-        adventureSettingsPacket.setAutoJump(true);
-        sendUpstreamPacket(adventureSettingsPacket);
+        sendAdventureSettings(gameMode == GameMode.ADVENTURE || spectator);
 
         UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
         updateAbilitiesPacket.setUniqueEntityId(bedrockId);
@@ -2113,6 +2118,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
         sendUpstreamPacket(updateAbilitiesPacket);
+    }
+
+    public boolean isWorldImmutable() {
+        return gameMode == GameMode.SPECTATOR || gameMode == GameMode.ADVENTURE;
     }
 
     private int getRenderDistance() {
