@@ -221,12 +221,49 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             }
 
             for (GeyserExtensionDescription description : descriptions.values()) {
-                for (Map.Entry<String, GeyserExtensionDescription.LoadOrder> dependency : description.dependencies().entrySet()) {
+                for (Map.Entry<String, GeyserExtensionDescription.Dependency> dependency : description.dependencies().entrySet()) {
                     String from = null;
                     String to = null; // Java complains if this isn't initialised, but not from, so, both null.
 
+                    // Check if the extension is even loaded
+                    if (!descriptions.containsKey(dependency.getKey())) {
+                        if (dependency.getValue().isRequired()) { // Only disable the extension if this dependency is required
+                            // The extension we are checking is missing 1 or more dependencies
+                            logger.error(
+                                "Extension %s requires %s, but the extension is missing, %s will not load."
+                                    .formatted(description.id(), dependency.getKey(), description.id())
+                            );
+
+                            descriptions.remove(description.id()); // Prevents it from being loaded later
+                        }
+
+                        continue;
+                    }
+
+                    // Determine whether we can do a dependency check, since older extensions may not support this functionality
+                    GeyserExtensionDescription that = descriptions.get(dependency.getKey());
+
+                    if (
+                        !(that.humanApiVersion() >= 2 &&
+                            that.majorApiVersion() >= 8 &&
+                            that.minorApiVersion() >= 4)
+                    ) {
+                        logger.error(
+                            "%s depends on %s, but that extension was made for an older version of the Geyser API and does not support dependencies!"
+                                .formatted(description.id(), that.id())
+                        );
+                        logger.error(
+                            "You may need to find a newer copy of %s. %s will not load."
+                                .formatted(that.id(), description.id())
+                        );
+
+                        descriptions.remove(description.id()); // Prevents it from being loaded later
+
+                        continue;
+                    }
+
                     // Determine which way they should go in the graph
-                    switch (dependency.getValue()) {
+                    switch (dependency.getValue().getLoad()) {
                         case BEFORE -> {
                             from = dependency.getKey();
                             to = description.id();
@@ -235,16 +272,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             from = description.id();
                             to = dependency.getKey();
                         }
-                    };
-
-                    if (!descriptions.containsKey(to)) {
-                        // The extension we are checking is missing 1 or more dependencies
-                        logger.error(
-                            "Extension %s requires %s, but the extension is missing, %s will not load."
-                                .formatted(description.id(), dependency.getKey(), description.id())
-                        );
-
-                        descriptions.remove(description.id()); // Prevents it from being sorted later
                     }
 
                     loadOrderGraph.get(from).add(to);
