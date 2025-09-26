@@ -260,6 +260,26 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         descriptions.remove(description.id()); // Prevents it from being loaded later
 
                         continue;
+                    } else if (
+                        !(description.humanApiVersion() >= 2 &&
+                            description.majorApiVersion() >= 8 &&
+                            description.minorApiVersion() >= 4)
+                    ) {
+                        logger.error(
+                            "%s uses the extension dependency system, but the extension was made for an older version of the Geyser API which does not support the dependency system!"
+                                .formatted(description.id())
+                        );
+                        logger.error(
+                            "This is likely fixable by the developer of this extensions just setting the API version to 2.8.4 or higher in the `extension.yml` file."
+                        );
+                        logger.error(
+                            "Please report this to the developers! (%s)"
+                                .formatted(String.join(", ", description.authors()))
+                        );
+
+                        descriptions.remove(description.id()); // Prevents it from being loaded later
+
+                        continue;
                     }
 
                     // Determine which way they should go in the graph
