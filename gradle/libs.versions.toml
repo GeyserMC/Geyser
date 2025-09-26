@@ -24,7 +24,7 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.16-SNAPSHOT"
+adapters = "1.17-SNAPSHOT"
 cloud = "2.0.0-rc.2"
 cloud-minecraft = "2.0.0-beta.11"
 cloud-minecraft-modded = "2.0.0-beta.12"
@@ -39,6 +39,7 @@ fabric-permissions-api = "0.4.1"
 neoforge-minecraft = "21.8.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
+asm = "9.2"
 minecraft = "1.21.8"
 mockito = "5.+"
 runtask = "2.3.1"
@@ -109,6 +110,7 @@ folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
 
 mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
 mixinextras = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
+asm = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
 
 minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 
@@ -119,8 +121,13 @@ fabric-permissions-api = { group = "me.lucko", name = "fabric-permissions-api", 
 
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
+adapters = { group = "org.geysermc.geyser.adapters", name = "common", version.ref = "adapters" }
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
+adapters-fabric-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-fabric", version.ref = "adapters" }
+adapters-neoforge-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-neoforge", version.ref = "adapters" }
+adapters-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-fabric", version.ref = "adapters" }
+adapters-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-neoforge", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 bungeecord-api = { group = "net.md-5", name = "bungeecord-api", version.ref = "bungeecord-api" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
