@@ -37,9 +37,11 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -48,8 +50,11 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.translator.protocol.java.level.JavaBlockDestructionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -79,6 +84,7 @@ public class BlockBreakHandler {
      * The position of the current block being broken.
      * Null indicates no block breaking in progress.
      */
+    @Getter
     protected @Nullable Vector3i currentBlockPos = null;
 
     /**
@@ -86,6 +92,12 @@ public class BlockBreakHandler {
      * Null indicates no block breaking in progress.
      */
     protected @Nullable BlockState currentBlockState = null;
+
+    /**
+     * The Bedrock client tick in which block breaking of the current block began.
+     * Only set when keeping track of custom blocks / custom items breaking blocks.
+     */
+    protected boolean serverSideBlockBreaking = false;
 
     /**
      * The current block breaking progress
@@ -169,6 +181,7 @@ public class BlockBreakHandler {
         for (int i = 0; i < packet.getPlayerActions().size(); i++) {
             PlayerBlockActionData actionData = packet.getPlayerActions().get(i);
             Vector3i position = actionData.getBlockPosition();
+            GeyserImpl.getInstance().getLogger().info(packet.getTick() + " " + actionData.toString());
             // Worth noting: the bedrock client, as of version  1.21.101, sends weird values for the face, outside the [0;6] range, when sending ABORT_BREAK
             // Not sure why, but, blockFace isn't used for ABORT_BREAK, so it's fine
             // This is why blockFace is individually turned into a Direction in each of the switch statements, except for the ABORT_BREAK one
@@ -179,7 +192,7 @@ public class BlockBreakHandler {
                     session.sendDownstreamGamePacket(dropItemPacket);
                 }
                 case START_BREAK -> {
-                    // New block being broken -> ignore previous insta-mine pos since that's no longer relevant
+                    // New block being broken -> ignore previously mined position since that's no longer relevant
                     lastMinedPosition = null;
 
                     if (testForItemFrameEntity(position) || abortDueToBlockRestoring(position)) {
@@ -296,6 +309,18 @@ public class BlockBreakHandler {
             destroyBlock(state, position, blockFace, true);
             this.lastMinedPosition = position;
         } else {
+            // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
+            ItemMapping mapping = item.getMapping(session);
+            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
+            CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(state.javaId());
+            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(position);
+
+            this.serverSideBlockBreaking = false;
+            if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(state.javaId()) || blockStateOverride != null ||
+                customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+                this.serverSideBlockBreaking = true;
+            }
+
             LevelEventPacket startBreak = new LevelEventPacket();
             startBreak.setType(LevelEvent.BLOCK_START_BREAK);
             startBreak.setPosition(position.toFloat());
@@ -324,17 +349,17 @@ public class BlockBreakHandler {
         // As of 1.21.100 it seems like this is in fact NOT done by BDS!
         if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack()) {
             this.currentBlockFace = blockFace;
+
             final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
             this.currentProgress = this.currentProgress + newProgress;
-            double totalBreakTime = BlockUtils.reciprocal(newProgress);
-            BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
-            final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
-            this.currentProgress = this.currentProgress + newProgress;
-            this.currentBlockFace = blockFace;
             double totalBreakTime = BlockUtils.reciprocal(newProgress);
 
+            if (this.currentProgress % 4.0F == 0.0F) {
+                BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
+            }
+
             // let's be a bit lenient here; the Vanilla server is as well
-            if (currentProgress >= 1.0F || (bedrockDestroyed && currentProgress >= 0.95F)) {
+            if ((serverSideBlockBreaking && currentProgress >= 1.0F) || (bedrockDestroyed && currentProgress >= 0.9F)) {
                 destroyBlock(state, position, blockFace, false);
                 if (!bedrockDestroyed) {
                     // Only store it if we need to ignore subsequent Bedrock block actions
@@ -342,6 +367,7 @@ public class BlockBreakHandler {
                 }
                 return;
             } else if (bedrockDestroyed) {
+                GeyserImpl.getInstance().getLogger().info("restoring block which was destroyed too quickly!");
                 BlockUtils.restoreCorrectBlock(session, position, state);
             }
 
@@ -354,8 +380,15 @@ public class BlockBreakHandler {
         } else {
             // We have switched - either between blocks, or are between the stack we're using to break the block
             if (currentBlockPos != null) {
+                LevelEventPacket updateBreak = new LevelEventPacket();
+                updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
+                updateBreak.setPosition(position.toFloat());
+                updateBreak.setData(0);
+                session.sendUpstreamPacket(updateBreak);
+
                 handleAbortBreaking(currentBlockPos);
             }
+
             handleStartBreak(position, state, blockFace, tick);
         }
     }
@@ -365,6 +398,7 @@ public class BlockBreakHandler {
     }
 
     private void handleAbortBreaking(Vector3i position) {
+        GeyserImpl.getInstance().getLogger().warning("aborting block break! " + position);
         // Bedrock edition "confirms" it stopped breaking blocks by sending an abort packet
         // We don't forward those as a Java client wouldn't send those either
         if (currentBlockPos != null) {
@@ -493,6 +527,7 @@ public class BlockBreakHandler {
      */
     protected boolean testForLastBreakPosOrReset(Vector3i position) {
         if (Objects.equals(lastMinedPosition, position)) {
+            GeyserImpl.getInstance().getLogger().info("ignoring action as it matched a block already mined!");
             return true;
         }
         lastMinedPosition = null;

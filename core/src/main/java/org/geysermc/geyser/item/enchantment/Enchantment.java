@@ -63,7 +63,7 @@ public record Enchantment(Set<EnchantmentComponent> effects,
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
-        String description = MessageTranslator.deserializeDescription(context.session(), data);
+        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
 
         return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }

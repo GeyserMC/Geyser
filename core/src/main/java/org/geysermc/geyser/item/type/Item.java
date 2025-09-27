@@ -256,7 +256,7 @@ public class Item {
         // Could we send efficiency? Yes, definitely.
         // However, that results in completely different block break speed calculations...
         // So we handle that on our end instead!
-        if (bedrockEnchantment == null || bedrockEnchantment == BedrockEnchantment.EFFICIENCY) {
+        if (bedrockEnchantment == null) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
             builder.addEnchantmentGlint();
