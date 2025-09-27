@@ -92,11 +92,16 @@ public class BlockBreakHandler {
      * The current block state that is being broken.
      * Null indicates no block breaking in progress.
      */
-    @Setter
     protected @Nullable BlockState currentBlockState = null;
 
     /**
-     * The Bedrock client tick in which block breaking of the current block began.
+     * Indicates that we should re-check the current block state for changes
+     */
+    @Setter
+    protected @Nullable Integer serverState;
+
+    /**
+     * Whether we must break the block ourselves.
      * Only set when keeping track of custom blocks / custom items breaking blocks.
      */
     protected boolean serverSideBlockBreaking = false;
@@ -174,13 +179,11 @@ public class BlockBreakHandler {
         // We also want to tick destroying to ensure that the currently held item did not change
 
         // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
-        if (currentBlockFace != null && currentBlockPos != null) {
+        if (currentBlockFace != null && currentBlockPos != null && currentBlockState != null) {
             // The client would tell us if it changed the block, but, the stack thing we need to account for ourselves!
-            // The client won't tell us if the server changed the block though. so we check ourselves!
-            if (currentBlockState == null) {
-                currentBlockState = session.getGeyser().getWorldManager().blockAt(session, currentBlockPos);
-            }
-            handleContinueDestroy(currentBlockPos, currentBlockState, currentBlockFace, false, false, session.getClientTicks());
+            BlockState current = serverState == null ? currentBlockState : BlockState.of(serverState);
+            serverState = null;
+            handleContinueDestroy(currentBlockPos, current, currentBlockFace, false, false, session.getClientTicks());
         }
     }
 
@@ -562,6 +565,7 @@ public class BlockBreakHandler {
         this.currentBlockFace = null;
         this.currentProgress = 0.0F;
         this.currentItemStack = null;
+        this.serverState = null;
     }
 
     /**

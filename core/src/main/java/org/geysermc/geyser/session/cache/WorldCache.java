@@ -183,7 +183,7 @@ public final class WorldCache {
         // Hack to avoid looking up blockstates for the currently broken position each tick
         Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
         if (clientBreakPos != null && Objects.equals(clientBreakPos, position)) {
-            session.getBlockBreakHandler().setCurrentBlockState(null);
+            session.getBlockBreakHandler().setServerState(blockState);
         }
 
         ChunkUtils.updateBlock(session, blockState, position);
