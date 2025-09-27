@@ -120,8 +120,10 @@ public class MobEntity extends LivingEntity implements Leashable {
         }
 
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            GeyserItemStack equipped = equipment.get(slot);
-            if (equipped == null || equipped.isEmpty()) continue;
+            GeyserItemStack equipped = getItemInSlot(slot);
+            if (equipped.isEmpty()) {
+                continue;
+            }
 
             Equippable equippable = equipped.getComponent(DataComponentTypes.EQUIPPABLE);
             if (equippable != null && equippable.canBeSheared()) {

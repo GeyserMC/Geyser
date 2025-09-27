@@ -123,7 +123,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
         } else {
             if (!itemInHand.isEmpty()) {
                 if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractiveTag.EQUIP_HARNESS;
                     }
@@ -135,7 +135,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) != null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractiveTag.RIDE_HORSE;
             } else {
@@ -152,7 +152,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
         } else {
             if (!itemInHand.isEmpty()) {
                 if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
                     }
@@ -164,7 +164,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) == null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractionResult.SUCCESS;
             } else {

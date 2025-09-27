@@ -62,7 +62,7 @@ public class CopperGolemEntity extends GolemEntity {
 
     @Override
     protected @NonNull InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (itemInHand.isEmpty() && !equipment.get(EquipmentSlot.MAIN_HAND).isEmpty()) {
+        if (itemInHand.isEmpty() && !getMainHandItem().isEmpty()) {
             return InteractiveTag.DROP_ITEM;
         } else if (itemInHand.is(Items.SHEARS) && canBeSheared()) {
             return InteractiveTag.SHEAR;
@@ -79,8 +79,7 @@ public class CopperGolemEntity extends GolemEntity {
 
     @Override
     protected @NonNull InteractionResult mobInteract(@NonNull Hand usedHand, @NonNull GeyserItemStack itemInHand) {
-        if ((itemInHand.isEmpty() && !equipment.get(EquipmentSlot.MAIN_HAND).isEmpty())
-                || (itemInHand.is(Items.SHEARS) && canBeSheared())) {
+        if ((itemInHand.isEmpty() && !getMainHandItem().isEmpty()) || (itemInHand.is(Items.SHEARS) && canBeSheared())) {
             return InteractionResult.SUCCESS;
         }
 
@@ -88,7 +87,7 @@ public class CopperGolemEntity extends GolemEntity {
     }
 
     private boolean canBeSheared() {
-        return isAlive() && equipment.get(EquipmentSlot.HELMET).is(session, ItemTag.SHEARABLE_FROM_COPPER_GOLEM);
+        return isAlive() && getItemInSlot(EquipmentSlot.HELMET).is(session, ItemTag.SHEARABLE_FROM_COPPER_GOLEM);
     }
 
     @Override
