@@ -224,7 +224,14 @@ public class BlockBreakHandler {
                     handleContinueDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), false, packet.getTick());
                 }
                 case BLOCK_PREDICT_DESTROY -> {
-                    if (testForItemFrameEntity(position) || testForLastBreakPosOrReset(position)) {
+                    if (testForItemFrameEntity(position)) {
+                        continue;
+                    }
+
+                    // At this point it's safe to assume that we won't get subsequent block actions on this position
+                    // so reset it and return since we've already broken the block
+                    if (Objects.equals(lastMinedPosition, position)) {
+                        lastMinedPosition = null;
                         continue;
                     }
 
@@ -251,14 +258,6 @@ public class BlockBreakHandler {
                     handlePredictDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
                 }
                 case ABORT_BREAK -> {
-                    // Abort break can also be sent after the block on that pos was broken.....
-                    // At that point it's safe to assume that we won't get subsequent block actions on this position
-                    // so reset it and return since there isn't anything to abort
-                    if (Objects.equals(lastMinedPosition, position)) {
-                        lastMinedPosition = null;
-                        continue;
-                    }
-
                     // Also handles item frame interactions in adventure mode
                     if (testForItemFrameEntity(position)) {
                         continue;
@@ -295,6 +294,7 @@ public class BlockBreakHandler {
         if (session.isInstabuild() || breakProgress >= 1.0F) {
             // Avoid sending STOP_BREAK for instantly broken blocks
             destroyBlock(state, position, blockFace, true);
+            this.lastMinedPosition = position;
         } else {
             LevelEventPacket startBreak = new LevelEventPacket();
             startBreak.setType(LevelEvent.BLOCK_START_BREAK);
@@ -321,7 +321,12 @@ public class BlockBreakHandler {
         // Position mismatch == we break a new block! Bedrock won't send START_BREAK when continuously mining
         // That applies in creative mode too! (last test in 1.21.100)
         // Further: We should also "start" breaking te block anew if the held item changes.
+        // As of 1.21.100 it seems like this is in fact NOT done by BDS!
         if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack()) {
+            this.currentBlockFace = blockFace;
+            final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
+            this.currentProgress = this.currentProgress + newProgress;
+            double totalBreakTime = BlockUtils.reciprocal(newProgress);
             BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
             final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
             this.currentProgress = this.currentProgress + newProgress;
@@ -329,8 +334,12 @@ public class BlockBreakHandler {
             double totalBreakTime = BlockUtils.reciprocal(newProgress);
 
             // let's be a bit lenient here; the Vanilla server is as well
-            if (currentProgress >= 0.97F) {
+            if (currentProgress >= 1.0F || (bedrockDestroyed && currentProgress >= 0.95F)) {
                 destroyBlock(state, position, blockFace, false);
+                if (!bedrockDestroyed) {
+                    // Only store it if we need to ignore subsequent Bedrock block actions
+                    this.lastMinedPosition = position;
+                }
                 return;
             } else if (bedrockDestroyed) {
                 BlockUtils.restoreCorrectBlock(session, position, state);
@@ -467,7 +476,6 @@ public class BlockBreakHandler {
         if (canDestroyBlock(state)) {
             BlockUtils.spawnBlockBreakParticles(session, direction, vector, state);
             BlockUtils.sendBedrockBlockDestroy(session, vector.toFloat(), state.javaId());
-            this.lastMinedPosition = vector;
         } else {
             BlockUtils.restoreCorrectBlock(session, vector, state);
         }
