@@ -76,7 +76,11 @@ public enum InteractiveTag {
     REMOVE_WOLF_ARMOR("removewolfarmor"),
     REPAIR_WOLF_ARMOR("repairwolfarmor"),
     EQUIP_HARNESS("equipharness"),
-    REMOVE_HARNESS("removeharness");
+    REMOVE_HARNESS("removeharness"),
+    SCRAPE,
+    WAX_ON,
+    WAX_OFF,
+    DROP_ITEM;
 
     /**
      * The full string that should be passed on to the client.

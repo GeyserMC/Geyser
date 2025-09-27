@@ -116,6 +116,10 @@ public class LivingEntity extends Entity {
 
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            equipment.put(slot, GeyserItemStack.EMPTY);
+        }
     }
 
     public void setHelmet(GeyserItemStack stack) {

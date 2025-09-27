@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.properties;
 
+import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.monster.CreakingEntity;
 
 public class VanillaEntityProperties {
@@ -74,5 +75,20 @@ public class VanillaEntityProperties {
             "mad",
             "puglin",
             "sad")
+        .build();
+
+    public static final GeyserEntityProperties COPPER_GOLEM = new GeyserEntityProperties.Builder()
+        .addEnum(CopperGolemEntity.CHEST_INTERACTION,
+            "none",
+            "take",
+            "take_fail",
+            "put",
+            "put_fail")
+        .addBoolean(CopperGolemEntity.HAS_FLOWER)
+        .addEnum(CopperGolemEntity.OXIDIZATION_LEVEL,
+            "unoxidized",
+            "exposed",
+            "weathered",
+            "oxidized")
         .build();
 }

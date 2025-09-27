@@ -40,6 +40,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -113,6 +114,14 @@ public class GeyserItemStack {
 
     public int getAmount() {
         return isEmpty() ? 0 : amount;
+    }
+
+    public boolean is(Item item) {
+        return javaId == item.javaId();
+    }
+
+    public boolean is(GeyserSession session, Tag<Item> tag) {
+        return session.getTagCache().is(tag, this);
     }
 
     /**

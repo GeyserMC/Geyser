@@ -70,6 +70,7 @@ import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.entity.type.living.AllayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.BatEntity;
+import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
@@ -182,6 +183,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
     public static final EntityDefinition<AbstractFishEntity> COD;
+    public static final EntityDefinition<CopperGolemEntity> COPPER_GOLEM;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
     public static final EntityDefinition<CreakingEntity> CREAKING;
@@ -693,6 +695,13 @@ public final class EntityDefinitions {
             BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
                     .type(EntityType.BREEZE)
                     .height(1.77f).width(0.6f)
+                    .build();
+            COPPER_GOLEM = EntityDefinition.inherited(CopperGolemEntity::new, mobEntityBase)
+                    .type(EntityType.COPPER_GOLEM)
+                    .height(0.49f).width(0.98f)
+                    .addTranslator(MetadataTypes.WEATHERING_COPPER_STATE, CopperGolemEntity::setWeatheringState)
+                    .addTranslator(MetadataTypes.COPPER_GOLEM_STATE, CopperGolemEntity::setGolemState)
+                    .properties(VanillaEntityProperties.COPPER_GOLEM)
                     .build();
             CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
                     .type(EntityType.CREAKING)
