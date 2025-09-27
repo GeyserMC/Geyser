@@ -38,6 +38,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -62,15 +63,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
     }
 
-    private static UUID parseUUID(int[] uuid) {
-        if (uuid != null && uuid.length == 4) {
-            // thank u viaversion
-            return new UUID((long) uuid[0] << 32 | ((long) uuid[1] & 0xFFFFFFFFL),
-                    (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
-        }
-        return null;
-    }
-
     private static List<GameProfile.Property> parseProperties(List<NbtMap> properties) {
         if (properties == null) {
             return null;
@@ -86,7 +78,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static ResolvableProfile parseResolvableProfile(NbtMap profile) {
-        UUID uuid = parseUUID(profile.getIntArray("id", null));
+        UUID uuid = EntityUtils.uuidFromIntArray(profile.getIntArray("id", null));
         String name = profile.getString("name", null);
         List<GameProfile.Property> properties = parseProperties(profile.getList("properties", NbtType.COMPOUND, null));
 

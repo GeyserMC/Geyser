@@ -146,7 +146,7 @@ public final class BedrockItemBuilder {
     /**
      * Creates item NBT to nest within NBT with name, count, damage, and tag set.
      */
-    public static NbtMapBuilder itemDataToNbt(ItemData data) {
+    public static NbtMapBuilder createItemNbt(ItemData data) {
         NbtMapBuilder builder = BedrockItemBuilder.createItemNbt(data.getDefinition().getIdentifier(), data.getCount(), data.getDamage());
         if (data.getTag() != null) {
             builder.putCompound("tag", data.getTag());

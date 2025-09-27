@@ -35,6 +35,7 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.parser.ItemStackParser;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.util.List;
@@ -61,7 +62,7 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
         List<int[]> connectedPlayers = sharedData.getList("connected_players", NbtType.INT_ARRAY);
         LongList bedrockPlayers = new LongArrayList(connectedPlayers.size());
         for (int[] player : connectedPlayers) {
-            UUID uuid = uuidFromIntArray(player);
+            UUID uuid = EntityUtils.uuidFromIntArray(player);
             if (uuid.equals(session.getPlayerEntity().getUuid())) {
                 bedrockPlayers.add(session.getPlayerEntity().getGeyserId());
             } else {
@@ -76,11 +77,5 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
         // Fill this in, since as of Java 1.21, Bedrock always seems to include it, but Java assumes the default
         // if it is not sent over the network
         bedrockNbt.putFloat("connected_particle_range", (float) sharedData.getDouble("connected_particles_range", 4.5d));
-    }
-
-    // From ViaVersion! thank u!!
-    // TODO code dup
-    private static UUID uuidFromIntArray(int[] parts) {
-        return new UUID((long) parts[0] << 32 | (parts[1] & 0xFFFFFFFFL), (long) parts[2] << 32 | (parts[3] & 0xFFFFFFFFL));
     }
 }

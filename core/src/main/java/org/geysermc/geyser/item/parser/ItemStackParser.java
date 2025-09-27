@@ -73,9 +73,9 @@ import java.util.function.Function;
  * <p>Be sure to update this class for Java updates!</p>
  */
 // Lots of unchecked casting happens here. It should all be handled properly.
-// TODO only log somethings once (like was done in vault translator)
 @SuppressWarnings("unchecked")
-public class ItemStackParser {
+// TODO only log some things once (like was done in vault translator)
+public final class ItemStackParser {
     private static final Map<DataComponentType<?>, DataComponentParser<?, ?>> PARSERS = new Reference2ObjectOpenHashMap<>();
 
     // We need the rawClass parameter here because the Raw type can't be inferred from the parser alone
@@ -256,12 +256,14 @@ public class ItemStackParser {
      * <ul>
      *     <li>{@link ItemStackParser#parseItemStack(GeyserSession, NbtMap)}</li>
      *     <li>{@link ItemTranslator#translateToBedrock(GeyserSession, ItemStack)}</li>
-     *     <li>{@link BedrockItemBuilder#itemDataToNbt(ItemData)}</li>
+     *     <li>{@link BedrockItemBuilder#createItemNbt(ItemData)}</li>
      * </ul>
      */
     public static NbtMapBuilder javaItemStackToBedrock(GeyserSession session, @Nullable NbtMap map) {
-        return BedrockItemBuilder.itemDataToNbt(ItemTranslator.translateToBedrock(session, parseItemStack(session, map)));
+        return BedrockItemBuilder.createItemNbt(ItemTranslator.translateToBedrock(session, parseItemStack(session, map)));
     }
+
+    private ItemStackParser() {}
 
     @FunctionalInterface
     private interface DataComponentParser<Raw, Parsed> {
