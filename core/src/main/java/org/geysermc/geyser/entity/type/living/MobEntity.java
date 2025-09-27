@@ -85,7 +85,7 @@ public class MobEntity extends LivingEntity implements Leashable {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-            if (itemStack.asItem() == Items.NAME_TAG) {
+            if (itemStack.is(Items.NAME_TAG)) {
                 InteractionResult result = checkInteractWithNameTag(itemStack);
                 if (result.consumesAction()) {
                     return InteractiveTag.NAME;
@@ -137,7 +137,7 @@ public class MobEntity extends LivingEntity implements Leashable {
     }
 
     private InteractionResult checkPriorityInteractions(GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.NAME_TAG) {
+        if (itemInHand.is(Items.NAME_TAG)) {
             InteractionResult result = checkInteractWithNameTag(itemInHand);
             if (result.consumesAction()) {
                 return result;

@@ -147,7 +147,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         if (getFlag(EntityFlag.ANGRY)) {
             return InteractiveTag.NONE;
         }
-        if (itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.TAMED)) {
+        if (itemInHand.is(Items.BONE) && !getFlag(EntityFlag.TAMED)) {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
         }
@@ -160,10 +160,10 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
                     return super.testMobInteraction(hand, itemInHand);
                 }
             }
-            if (itemInHand.asItem() == Items.WOLF_ARMOR && !getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
+            if (itemInHand.is(Items.WOLF_ARMOR) && !getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
                 return InteractiveTag.EQUIP_WOLF_ARMOR;
             }
-            if (itemInHand.asItem() == Items.SHEARS && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
+            if (itemInHand.is(Items.SHEARS) && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
@@ -181,7 +181,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
-                || itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.ANGRY)) {
+                || itemInHand.is(Items.BONE) && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry
             return InteractionResult.CONSUME;
         } else {

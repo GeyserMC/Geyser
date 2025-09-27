@@ -340,7 +340,7 @@ public class LivingEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-        if (itemStack.asItem() == Items.NAME_TAG) {
+        if (itemStack.is(Items.NAME_TAG)) {
             InteractionResult result = checkInteractWithNameTag(itemStack);
             if (result.consumesAction()) {
                 return result;

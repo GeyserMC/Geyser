@@ -130,6 +130,10 @@ public class GeyserItemStack {
         return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
     }
 
+    public boolean isSameItem(GeyserItemStack other) {
+        return javaId == other.javaId;
+    }
+
     /**
      * Returns all components of this item - base and additional components sent over the network.
      * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
@@ -261,6 +265,10 @@ public class GeyserItemStack {
             return EmptySlotDisplay.INSTANCE;
         }
         return new ItemStackSlotDisplay(this.getItemStack());
+    }
+
+    public int getMaxStackSize() {
+        return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, () -> 1);
     }
 
     public int getMaxDamage() {

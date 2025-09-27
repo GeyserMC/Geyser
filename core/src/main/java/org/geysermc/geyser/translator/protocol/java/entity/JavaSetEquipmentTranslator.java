@@ -62,7 +62,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
             switch (equipment.getSlot()) {
                 case HELMET -> {
                     ResolvableProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
-                    if (livingEntity instanceof PlayerEntity && stack.asItem() == Items.PLAYER_HEAD && profile != null) {
+                    if (livingEntity instanceof PlayerEntity && stack.is(Items.PLAYER_HEAD) && profile != null) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);

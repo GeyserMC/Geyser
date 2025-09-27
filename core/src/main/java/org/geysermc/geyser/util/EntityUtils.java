@@ -297,14 +297,14 @@ public final class EntityUtils {
      * Determine if an action would result in a successful bucketing of the given entity.
      */
     public static boolean attemptToBucket(GeyserItemStack itemInHand) {
-        return itemInHand.asItem() == Items.WATER_BUCKET;
+        return itemInHand.is(Items.WATER_BUCKET);
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
     public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.SADDLE) {
+        if (itemInHand.is(Items.SADDLE)) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;

@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -72,8 +71,7 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Override
     public void setHand(GeyserItemStack stack) {
-        ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
-        boolean toCrossbow = stack != null && stack.asItem() == crossbow.getJavaItem();
+        boolean toCrossbow = stack != null && stack.is(Items.CROSSBOW);
 
         if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
             dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
@@ -148,6 +146,6 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     private boolean canGiveGoldTo(@NonNull GeyserItemStack itemInHand) {
-        return !getFlag(EntityFlag.BABY) && itemInHand.asItem() == Items.GOLD_INGOT && !getFlag(EntityFlag.ADMIRING);
+        return !getFlag(EntityFlag.BABY) && itemInHand.is(Items.GOLD_INGOT) && !getFlag(EntityFlag.ADMIRING);
     }
 }

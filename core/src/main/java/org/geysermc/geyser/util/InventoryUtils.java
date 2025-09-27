@@ -266,7 +266,7 @@ public class InventoryUtils {
             canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
-        return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getComponents(), item2.getComponents());
+        return item1.isSameItem(item2) && Objects.equals(item1.getComponents(), item2.getComponents());
     }
 
     private static void canStackDebug(GeyserItemStack item1, GeyserItemStack item2) {

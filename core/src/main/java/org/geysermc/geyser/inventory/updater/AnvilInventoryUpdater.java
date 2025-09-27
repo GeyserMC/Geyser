@@ -223,7 +223,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (!material.isEmpty()) {
             totalRepairCost += getRepairCost(material);
             if (isCombining(input, material)) {
-                if (hasDurability(input) && input.getJavaId() == material.getJavaId()) {
+                if (hasDurability(input) && input.isSameItem(material)) {
                     cost += calcMergeRepairCost(input, material);
                 }
 
@@ -388,11 +388,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isEnchantedBook(GeyserItemStack itemStack) {
-        return itemStack.asItem() == Items.ENCHANTED_BOOK;
+        return itemStack.is(Items.ENCHANTED_BOOK);
     }
 
     private boolean isCombining(GeyserItemStack input, GeyserItemStack material) {
-        return isEnchantedBook(material) || (input.getJavaId() == material.getJavaId() && hasDurability(input));
+        return isEnchantedBook(material) || (input.isSameItem(material) && hasDurability(input));
     }
 
     private boolean isRepairing(GeyserItemStack input, GeyserItemStack material, GeyserSession session) {
