@@ -47,6 +47,7 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -159,17 +160,16 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
                     return super.testMobInteraction(hand, itemInHand);
                 }
             }
-            if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.body.isValid() && !getFlag(EntityFlag.BABY)) {
+            if (itemInHand.asItem() == Items.WOLF_ARMOR && !getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
                 return InteractiveTag.EQUIP_WOLF_ARMOR;
             }
-            if (itemInHand.asItem() == Items.SHEARS && this.body.isValid()
+            if (itemInHand.asItem() == Items.SHEARS && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
             if (getFlag(EntityFlag.SITTING) &&
                     session.getTagCache().isItem(repairableItems, itemInHand.asItem()) &&
-                    this.body.isValid() && this.body.getTag() != null &&
-                    this.body.getTag().getInt("Damage") > 0) {
+                    !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
                 return InteractiveTag.REPAIR_WOLF_ARMOR;
             }
             // Tamed and owned by player - can sit/stand

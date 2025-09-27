@@ -104,13 +104,13 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         }
 
         if (armorUpdated) {
-            livingEntity.updateArmor(session);
+            livingEntity.updateArmor();
         }
         if (mainHandUpdated) {
-            livingEntity.updateMainHand(session);
+            livingEntity.updateMainHand();
         }
         if (offHandUpdated) {
-            livingEntity.updateOffHand(session);
+            livingEntity.updateOffHand();
         }
     }
 }

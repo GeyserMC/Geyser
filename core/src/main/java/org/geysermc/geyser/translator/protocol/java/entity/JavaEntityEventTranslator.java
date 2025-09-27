@@ -259,8 +259,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 if (entity instanceof LivingEntity livingEntity) {
                     livingEntity.switchHands();
 
-                    livingEntity.updateMainHand(session);
-                    livingEntity.updateOffHand(session);
+                    livingEntity.updateMainHand();
+                    livingEntity.updateOffHand();
                 } else {
                     session.getGeyser().getLogger().debug("Got status message to swap hands for a non-living entity.");
                 }

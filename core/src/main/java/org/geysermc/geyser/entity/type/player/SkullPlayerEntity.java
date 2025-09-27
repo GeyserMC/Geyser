@@ -41,6 +41,7 @@ import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkullSkinManager;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -86,7 +87,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.setPosition(position.sub(0, definition.offset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
-        addPlayerPacket.setHand(hand);
+        addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");

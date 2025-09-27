@@ -275,6 +275,10 @@ public class GeyserItemStack {
         return getComponent(DataComponentTypes.MAX_DAMAGE) != null && getComponent(DataComponentTypes.UNBREAKABLE) == null && getComponent(DataComponentTypes.DAMAGE) != null;
     }
 
+    public boolean isDamaged() {
+        return isDamageable() && getDamage() > 0;
+    }
+
     public Item asItem() {
         if (isEmpty()) {
             return Items.AIR;

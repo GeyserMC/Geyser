@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -52,6 +51,7 @@ import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -135,7 +135,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         addPlayerPacket.setPosition(position.sub(0, definition.offset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
-        addPlayerPacket.setHand(hand);
+        addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
@@ -164,12 +164,6 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         this.nametag = username;
 
         this.equipment.clear();
-        this.hand = ItemData.AIR;
-        this.offhand = ItemData.AIR;
-        this.boots = ItemData.AIR;
-        this.leggings = ItemData.AIR;
-        this.chestplate = ItemData.AIR;
-        this.helmet = ItemData.AIR;
     }
 
     public void resetMetadata() {

@@ -42,6 +42,7 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 import java.util.UUID;
 
@@ -74,14 +75,14 @@ public class PiglinEntity extends BasePiglinEntity {
         ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
         boolean toCrossbow = stack != null && stack.asItem() == crossbow.getJavaItem();
 
-        if (toCrossbow ^ this.hand.getDefinition() == crossbow.getBedrockDefinition()) { // If switching to/from crossbow
+        if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
             dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
             dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
             setFlag(EntityFlag.CHARGED, false);
             setFlag(EntityFlag.USING_ITEM, false);
             updateBedrockMetadata();
 
-            if (this.hand.isValid()) {
+            if (!getMainHandItem().isEmpty()) {
                 MobEquipmentPacket mobEquipmentPacket = new MobEquipmentPacket();
                 mobEquipmentPacket.setRuntimeEntityId(geyserId);
                 mobEquipmentPacket.setContainerId(ContainerId.INVENTORY);
@@ -96,11 +97,11 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     @Override
-    public void updateMainHand(GeyserSession session) {
-        super.updateMainHand(session);
+    public void updateMainHand() {
+        super.updateMainHand();
 
-        if (this.hand.getDefinition() == session.getItemMappings().getStoredItems().crossbow().getBedrockDefinition()) {
-            if (this.hand.getTag() != null && this.hand.getTag().containsKey("chargedItem")) {
+        if (getMainHandItem().is(Items.CROSSBOW)) {
+            if (getMainHandItem().getComponent(DataComponentTypes.CHARGED_PROJECTILES) != null) {
                 dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, Byte.MAX_VALUE);
                 setFlag(EntityFlag.CHARGING, false);
                 setFlag(EntityFlag.CHARGED, true);
@@ -116,12 +117,12 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     @Override
-    public void updateOffHand(GeyserSession session) {
+    public void updateOffHand() {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        setFlag(EntityFlag.ADMIRING, session.getTagCache().is(ItemTag.PIGLIN_LOVED, session.getItemMappings().getMapping(this.offhand).getJavaItem()));
+        setFlag(EntityFlag.ADMIRING, getOffHandItem().is(session, ItemTag.PIGLIN_LOVED));
         super.updateBedrockMetadata();
 
-        super.updateOffHand(session);
+        super.updateOffHand();
     }
 
     @NonNull
