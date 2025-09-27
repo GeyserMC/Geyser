@@ -379,7 +379,7 @@ public class InventoryUtils {
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
         if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
-            return session.getTagCache().is(new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()), itemStack.asItem());
+            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()));
         }
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;

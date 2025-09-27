@@ -312,7 +312,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.asItem());
+            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(session, input.asItem());
 
             List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
             for (Enchantment incompatible : incompatibleEnchantments) {
@@ -401,7 +401,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             return false;
         }
 
-        return session.getTagCache().isItem(repairable, material.asItem());
+        return material.is(session, repairable);
     }
 
     private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {

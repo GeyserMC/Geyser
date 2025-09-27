@@ -498,7 +498,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
         Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
-        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
+        if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
         }
 

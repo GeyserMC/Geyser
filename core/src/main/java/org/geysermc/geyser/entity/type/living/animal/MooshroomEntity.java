@@ -84,7 +84,7 @@ public class MooshroomEntity extends CowEntity {
         } else if (!isBaby && isAlive() && itemInHand.asItem() == Items.SHEARS) {
             // Shear items
             return InteractionResult.SUCCESS;
-        } else if (isBrown && session.getTagCache().is(ItemTag.SMALL_FLOWERS, itemInHand)) {
+        } else if (isBrown && itemInHand.is(session, ItemTag.SMALL_FLOWERS)) {
             // ?
             return InteractionResult.SUCCESS;
         }

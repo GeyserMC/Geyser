@@ -167,8 +167,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
-            if (getFlag(EntityFlag.SITTING) &&
-                    session.getTagCache().isItem(repairableItems, itemInHand.asItem()) &&
+            if (getFlag(EntityFlag.SITTING) && itemInHand.is(session, repairableItems) &&
                     !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
                 return InteractiveTag.REPAIR_WOLF_ARMOR;
             }

@@ -359,7 +359,7 @@ public final class EntityUtils {
         }
 
         GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
-        return session.getTagCache().is(holderSet, entity);
+        return holderSet.contains(session, entity);
     }
 
     // From ViaVersion! thank u!!

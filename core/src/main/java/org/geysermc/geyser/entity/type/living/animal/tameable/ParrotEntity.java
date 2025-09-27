@@ -53,11 +53,11 @@ public class ParrotEntity extends TameableEntity {
     }
 
     private boolean isTameFood(Item item) {
-        return session.getTagCache().is(ItemTag.PARROT_FOOD, item);
+        return item.is(session, ItemTag.PARROT_FOOD);
     }
 
     private boolean isPoisonousFood(Item item) {
-        return session.getTagCache().is(ItemTag.PARROT_POISONOUS_FOOD, item);
+        return item.is(session, ItemTag.PARROT_POISONOUS_FOOD);
     }
 
     @NonNull

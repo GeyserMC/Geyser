@@ -122,7 +122,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.testMobInteraction(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
                     if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractiveTag.EQUIP_HARNESS;
@@ -151,7 +151,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.mobInteract(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
                     if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
