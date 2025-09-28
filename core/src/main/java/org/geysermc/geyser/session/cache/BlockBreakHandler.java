@@ -98,7 +98,7 @@ public class BlockBreakHandler {
      * Indicates that we should re-check the current block state for changes
      */
     @Setter
-    protected @Nullable Integer serverState;
+    protected @Nullable Integer updatedServerBlockStateId;
 
     /**
      * Whether we must break the block ourselves.
@@ -181,8 +181,9 @@ public class BlockBreakHandler {
         // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
         if (currentBlockFace != null && currentBlockPos != null && currentBlockState != null) {
             // The client would tell us if it changed the block, but, the stack thing we need to account for ourselves!
-            BlockState current = serverState == null ? currentBlockState : BlockState.of(serverState);
-            serverState = null;
+            BlockState current = updatedServerBlockStateId == null ? currentBlockState : BlockState.of(updatedServerBlockStateId);
+            // Discard since the currentBlockState will be changed if it actually changed
+            this.updatedServerBlockStateId = null;
             handleContinueDestroy(currentBlockPos, current, currentBlockFace, false, false, session.getClientTicks());
         }
     }
@@ -202,7 +203,7 @@ public class BlockBreakHandler {
                 }
                 case START_BREAK -> {
                     // New block being broken -> ignore previously mined position since that's no longer relevant
-                    lastMinedPosition = null;
+                    this.lastMinedPosition = null;
 
                     if (testForItemFrameEntity(position) || abortDueToBlockRestoring(position)) {
                         return;
@@ -223,7 +224,7 @@ public class BlockBreakHandler {
                     }
 
                     // The client loves to send this block action alongside BLOCK_PREDICT_DESTROY in the same packet;
-                    // we can skip handling this action if this packet is about the same position, and the next packet same position is updated again in the same tick
+                    // we can skip handling this action about the current position if the next action is also about it
                     if (Objects.equals(currentBlockPos, position) && i < packet.getPlayerActions().size() - 1) {
                         PlayerBlockActionData nextAction = packet.getPlayerActions().get(i + 1);
                         if (Objects.equals(nextAction.getBlockPosition(), position)) {
@@ -368,7 +369,7 @@ public class BlockBreakHandler {
             }
 
             // let's be a bit lenient here; the Vanilla server is as well
-            if ((serverSideBlockBreaking && currentProgress >= 1.0F) || (bedrockDestroyed && currentProgress >= 0.9F)) {
+            if (mayBreak(currentProgress, bedrockDestroyed)) {
                 destroyBlock(state, position, blockFace, false);
                 if (!bedrockDestroyed) {
                     // Only store it if we need to ignore subsequent Bedrock block actions
@@ -392,7 +393,7 @@ public class BlockBreakHandler {
                 updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(position.toFloat());
                 updateBreak.setData(0);
-                session.sendUpstreamPacket(updateBreak);
+                session.sendUpstreamPacketImmediately(updateBreak);
 
                 handleAbortBreaking(currentBlockPos);
             }
@@ -508,6 +509,10 @@ public class BlockBreakHandler {
         return !state.is(Blocks.AIR);
     }
 
+    protected boolean mayBreak(float progress, boolean bedrockDestroyed) {
+        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.9F);
+    }
+
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
         // Send java packet
         session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(instamine ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING,
@@ -534,7 +539,6 @@ public class BlockBreakHandler {
      */
     protected boolean testForLastBreakPosOrReset(Vector3i position) {
         if (Objects.equals(lastMinedPosition, position)) {
-            GeyserImpl.getInstance().getLogger().info("ignoring action as it matched a block already mined!");
             return true;
         }
         lastMinedPosition = null;
@@ -565,7 +569,7 @@ public class BlockBreakHandler {
         this.currentBlockFace = null;
         this.currentProgress = 0.0F;
         this.currentItemStack = null;
-        this.serverState = null;
+        this.updatedServerBlockStateId = null;
     }
 
     /**
