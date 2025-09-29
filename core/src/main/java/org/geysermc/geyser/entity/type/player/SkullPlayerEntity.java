@@ -84,13 +84,11 @@ public class SkullPlayerEntity extends AvatarEntity {
             updateBedrockMetadata();
 
             skullUUID = skull.getUuid();
-            texturesProperty = skull.getTexturesProperty();
-
-            SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
+            setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();
-            }, 250, TimeUnit.MILLISECONDS)));
+            }, 250, TimeUnit.MILLISECONDS));
         } else {
             // Just a rotation/position change
             setFlag(EntityFlag.INVISIBLE, false);

@@ -149,6 +149,7 @@ import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
+import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -239,6 +240,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
     public static final EntityDefinition<BoatEntity> MANGROVE_BOAT;
     public static final EntityDefinition<ChestBoatEntity> MANGROVE_CHEST_BOAT;
+    public static final EntityDefinition<MannequinEntity> MANNEQUIN;
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
@@ -662,10 +664,15 @@ public final class EntityDefinitions {
             .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
             .build();
 
+        MANNEQUIN = EntityDefinition.inherited(MannequinEntity::new, avatarEntityBase)
+            .type(EntityType.MANNEQUIN)
+            .addTranslator(MetadataTypes.RESOLVABLE_PROFILE, MannequinEntity::setProfile)
+            .addTranslator(null) // Immovable
+            .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, MannequinEntity::setDescription)
+            .build();
+
         PLAYER = EntityDefinition.<PlayerEntity>inherited(null, avatarEntityBase)
                 .type(EntityType.PLAYER)
-                .height(1.8f).width(0.6f)
-                .offset(1.62f)
                 .addTranslator(MetadataTypes.FLOAT, PlayerEntity::setAbsorptionHearts)
                 .addTranslator(null) // Player score
                 .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setLeftParrot)

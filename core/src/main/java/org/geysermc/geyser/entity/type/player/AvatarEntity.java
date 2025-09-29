@@ -44,12 +44,16 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.skin.SkullSkinManager;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.util.Collections;
 import java.util.List;
@@ -88,7 +92,7 @@ public class AvatarEntity extends LivingEntity {
         BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
     }
 
-    public AvatarEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<? extends AvatarEntity> definition,
+    public AvatarEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
                         Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, String username) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         this.username = username;
@@ -221,6 +225,32 @@ public class AvatarEntity extends LivingEntity {
             return null;
         }
         return bedPosition;
+    }
+
+    public void setSkin(ResolvableProfile profile, boolean cape, Runnable after) {
+        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, after));
+    }
+
+    public void setSkin(GameProfile profile, boolean cape, Runnable after) {
+        GameProfile.Property textures = profile.getProperty("textures");
+        if (textures != null) {
+            setSkin(textures.getValue(), cape, after);
+        } else {
+            setSkin((String) null, cape, after);
+        }
+    }
+
+    public void setSkin(String texturesProperty, boolean cape, Runnable after) {
+        if (Objects.equals(texturesProperty, this.texturesProperty)) {
+            return;
+        }
+
+        this.texturesProperty = texturesProperty;
+        if (cape) {
+            SkinManager.requestAndHandleSkinAndCape(this, session, skin -> after.run());
+        } else {
+            SkullSkinManager.requestAndHandleSkin(this, session, skin -> after.run());
+        }
     }
 
     public void setSkinVisibility(ByteEntityMetadata entityMetadata) {

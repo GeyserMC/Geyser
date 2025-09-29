@@ -67,6 +67,8 @@ public class SkinManager {
         .expireAfterAccess(1, TimeUnit.HOURS)
         .build();
     private static final UUID EMPTY_UUID = new UUID(0L, 0L);
+    public static final GameProfile EMPTY_PROFILE = new GameProfile((UUID) null, null);
+    public static final ResolvableProfile EMPTY_RESOLVABLE_PROFILE = new ResolvableProfile(EMPTY_PROFILE, null, null, null, null, false);
 
     static final String GEOMETRY = new String(FileUtils.readAllBytes("bedrock/geometries/geo.json"), StandardCharsets.UTF_8);
 
