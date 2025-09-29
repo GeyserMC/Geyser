@@ -243,26 +243,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         continue;
                     }
 
-                    // Determine whether we can do a dependency check, since older extensions may not support this functionality
-                    GeyserExtensionDescription that = descriptions.get(dependency.getKey());
-
                     if (
-                        !(that.humanApiVersion() >= 2 &&
-                            that.majorApiVersion() >= 8 &&
-                            that.minorApiVersion() >= 4)
-                    ) {
-                        logger.error(
-                            GeyserLocale.getLocaleStringLog(
-                                "geyser.extensions.load.failed_dependency_too_old",
-                                description.id(),
-                                dependency.getKey()
-                            )
-                        );
-
-                        descriptions.remove(description.id()); // Prevents it from being loaded later
-
-                        continue;
-                    } else if (
                         !(description.humanApiVersion() >= 2 &&
                             description.majorApiVersion() >= 8 &&
                             description.minorApiVersion() >= 4)
@@ -271,7 +252,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             GeyserLocale.getLocaleStringLog(
                                 "geyser.extensions.load.failed_cannot_use_dependencies",
                                 description.id(),
-                                String.join(", ", description.authors())
+                                description.apiVersion()
                             )
                         );
 
@@ -297,7 +278,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             }
 
             Set<String> visited = new HashSet<>();
-            Set<String> visiting = new HashSet<>();
+            List<String> visiting = new ArrayList<>();
             List<String> loadOrder = new ArrayList<>();
 
             AtomicReference<Consumer<String>> sortMethod = new AtomicReference<>(); // yay, lambdas. This doesn't feel to suited to be a method
@@ -306,7 +287,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     logger.error(
                         GeyserLocale.getLocaleStringLog(
                             "geyser.extensions.load.failed_cyclical_dependencies",
-                            node
+                            node,
+                            visiting.get(visiting.indexOf(node) - 1)
                         )
                     );
 
