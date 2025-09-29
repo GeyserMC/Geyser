@@ -34,7 +34,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
