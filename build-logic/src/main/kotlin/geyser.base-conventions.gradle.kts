@@ -28,9 +28,6 @@ dependencies {
 repositories {
     // mavenLocal()
 
-    // TODO REMOVE ME USED FOR PROTOCOL WITHOUT ADVENTURE
-    maven("https://maven.eclipseisoffline.xyz/releases")
-
     mavenCentral()
 
     // Floodgate, Cumulus etc.
