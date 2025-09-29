@@ -250,7 +250,7 @@ public class BlockBreakHandler {
                     // At this point it's safe to assume that we won't get subsequent block actions on this position
                     // so reset it and return since we've already broken the block
                     if (Objects.equals(lastMinedPosition, position)) {
-                        lastMinedPosition = null;
+                        this.lastMinedPosition = null;
                         continue;
                     }
 
@@ -515,7 +515,7 @@ public class BlockBreakHandler {
 
     protected boolean mayBreak(float progress, boolean bedrockDestroyed) {
         // We're tolerant here to account for e.g. obsidian breaking speeds not matching 1:1 :(
-        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.7F);
+        return (progress >= 1.0F) || (bedrockDestroyed && progress >= 0.7F);
     }
 
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {

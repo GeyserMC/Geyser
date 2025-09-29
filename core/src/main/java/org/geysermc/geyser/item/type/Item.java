@@ -253,7 +253,7 @@ public class Item {
         }
 
         BedrockEnchantment bedrockEnchantment = enchantment.bedrockEnchantment();
-        if (bedrockEnchantment == null) {
+        if (bedrockEnchantment == null || bedrockEnchantment == BedrockEnchantment.EFFICIENCY) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
             builder.addEnchantmentGlint();
