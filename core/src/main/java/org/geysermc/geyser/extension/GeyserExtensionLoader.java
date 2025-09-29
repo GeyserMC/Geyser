@@ -63,7 +63,7 @@ import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
-    private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
+    private static final Pattern EXTENSION_FILTER = Pattern.compile("^.+\\.jar$");
 
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
@@ -133,8 +133,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
     }
 
-    public Pattern[] extensionFilters() {
-        return EXTENSION_FILTERS;
+    public Pattern extensionFilter() {
+        return EXTENSION_FILTER;
     }
 
     public Class<?> classByName(final String name) throws ClassNotFoundException{
@@ -249,17 +249,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
      */
     private void processExtensionsFolder(Path directory, ThrowingBiConsumer<Path, GeyserExtensionDescription> accept, BiConsumer<Path, Throwable> reject) throws IOException {
         List<Path> extensionPaths = Files.list(directory).toList();
-        Pattern[] extensionFilters = this.extensionFilters();
+        Pattern extensionFilter = this.extensionFilter();
         extensionPaths.forEach(path -> {
             if (Files.isDirectory(path)) {
                 return;
             }
 
             // Only look at files that meet the extension filter
-            for (Pattern filter : extensionFilters) {
-                if (!filter.matcher(path.getFileName().toString()).matches()) {
-                    return;
-                }
+            if (!extensionFilter.matcher(path.getFileName().toString()).matches()) {
+                return;
             }
 
             try {
