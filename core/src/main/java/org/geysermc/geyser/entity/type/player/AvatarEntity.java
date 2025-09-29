@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.entity.type.player;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -59,17 +61,21 @@ public class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
+    @Getter
     protected String username;
 
     /**
      * The textures property from the GameProfile.
      */
+    @Getter
+    @Setter
     @Nullable
-    protected String texturesProperty;
+    protected String texturesProperty; // TODO no direct setter, rather one that updates the skin
 
     private String cachedScore = "";
     private boolean scoreVisible = true;
 
+    @Getter
     @Nullable
     private Vector3i bedPosition;
 

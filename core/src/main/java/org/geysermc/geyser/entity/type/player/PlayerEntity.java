@@ -209,6 +209,10 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         super.setNametag(nametag, fromDisplayName);
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     /**
      * @return the UUID that should be used when dealing with Bedrock's tab list.
      */

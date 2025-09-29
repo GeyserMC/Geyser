@@ -151,14 +151,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public void onDisconnect(String reason) {
+    public void onDisconnect(CharSequence reason) {
         // Use our own disconnect messages for these reasons
-        if (BedrockDisconnectReasons.CLOSED.equals(reason)) {
+        if (BedrockDisconnectReasons.CLOSED.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
-        } else if (BedrockDisconnectReasons.TIMEOUT.equals(reason)) {
+        } else if (BedrockDisconnectReasons.TIMEOUT.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out"));
         }
-        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason());
+        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason().toString());
     }
 
     @Override

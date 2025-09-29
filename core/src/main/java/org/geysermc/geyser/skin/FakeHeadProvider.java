@@ -39,7 +39,7 @@ import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.LivingEntity;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.auth.GameProfile;
@@ -100,7 +100,7 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, @Nullable ResolvableProfile profile) {
+    public static void setHead(GeyserSession session, AvatarEntity entity, @Nullable ResolvableProfile profile) {
         if (profile == null) {
             return;
         }
@@ -120,7 +120,7 @@ public class FakeHeadProvider {
         });
     }
 
-    private static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, ResolvableProfile original, GameProfile resolved) {
+    private static void loadHeadFromProfile(GeyserSession session, AvatarEntity entity, ResolvableProfile original, GameProfile resolved) {
         Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
         String originalTextures = entity.getTexturesProperty();
         if (skinTexture != null) {
@@ -137,7 +137,7 @@ public class FakeHeadProvider {
     }
 
     public static void restoreOriginalSkin(GeyserSession session, LivingEntity livingEntity) {
-        if (!(livingEntity instanceof PlayerEntity entity)) {
+        if (!(livingEntity instanceof AvatarEntity entity)) {
             return;
         }
 
@@ -161,7 +161,7 @@ public class FakeHeadProvider {
     private static class FakeHeadEntry {
         private final String texturesProperty;
         private final String fakeHeadSkinUrl;
-        private PlayerEntity entity;
+        private AvatarEntity entity;
         private GeyserSession session;
 
         @Override

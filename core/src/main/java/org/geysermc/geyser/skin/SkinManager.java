@@ -40,7 +40,7 @@ import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -73,7 +73,7 @@ public class SkinManager {
     /**
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
-    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
+    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, AvatarEntity playerEntity) {
         // First: see if we have the cached skin texture ID.
         GameProfileData data = GameProfileData.from(playerEntity);
         Skin skin = null;
@@ -156,7 +156,7 @@ public class SkinManager {
         return entry;
     }
 
-    public static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinData skinData) {
+    public static void sendSkinPacket(GeyserSession session, AvatarEntity entity, SkinData skinData) {
         Skin skin = skinData.skin();
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
@@ -278,7 +278,7 @@ public class SkinManager {
         return textures.get(type);
     }
 
-    public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
+    public static void requestAndHandleSkinAndCape(AvatarEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (skinData == null) {
@@ -299,7 +299,7 @@ public class SkinManager {
         });
     }
 
-    public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
+    public static void handleBedrockSkin(AvatarEntity playerEntity, BedrockClientData clientData) {
         GeyserImpl geyser = GeyserImpl.getInstance();
         if (geyser.getConfig().isDebugMode()) {
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
@@ -370,7 +370,7 @@ public class SkinManager {
          * @param entity entity to build the GameProfileData from
          * @return The built GameProfileData
          */
-        public static @Nullable GameProfileData from(PlayerEntity entity) {
+        public static @Nullable GameProfileData from(AvatarEntity entity) {
             String texturesProperty = entity.getTexturesProperty();
             if (texturesProperty == null) {
                 // Likely offline mode

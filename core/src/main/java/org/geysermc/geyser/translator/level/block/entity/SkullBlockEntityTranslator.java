@@ -86,7 +86,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         partialOrStatic.setProperties(properties);
         // Only if all fields are present, then the profile is a static one
         // TODO shorthand constructor in MCPL
-        return new ResolvableProfile(partialOrStatic, uuid == null || name == null || properties == null);
+        return new ResolvableProfile(partialOrStatic);
     }
 
     public static @Nullable BlockDefinition translateSkull(GeyserSession session, NbtMap javaNbt, Vector3i blockPosition, BlockState blockState) {

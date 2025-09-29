@@ -655,7 +655,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
 
-        EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.inherited(AvatarEntity::new, livingEntityBase)
+        EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.<AvatarEntity>inherited(null, livingEntityBase)
             .height(1.8f).width(0.6f)
             .offset(1.62f)
             .addTranslator(null) // Player main hand
