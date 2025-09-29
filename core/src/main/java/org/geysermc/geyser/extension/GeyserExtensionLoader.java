@@ -230,8 +230,11 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         if (dependency.getValue().isRequired()) { // Only disable the extension if this dependency is required
                             // The extension we are checking is missing 1 or more dependencies
                             logger.error(
-                                "Extension %s requires %s, but the extension is missing, %s will not load."
-                                    .formatted(description.id(), dependency.getKey(), description.id())
+                                GeyserLocale.getLocaleStringLog(
+                                    "geyser.extensions.load.failed_dependency_missing",
+                                    description.id(),
+                                    dependency.getKey()
+                                )
                             );
 
                             descriptions.remove(description.id()); // Prevents it from being loaded later
@@ -249,12 +252,11 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             that.minorApiVersion() >= 4)
                     ) {
                         logger.error(
-                            "%s depends on %s, but that extension was made for an older version of the Geyser API and does not support dependencies!"
-                                .formatted(description.id(), that.id())
-                        );
-                        logger.error(
-                            "You may need to find a newer copy of %s. %s will not load."
-                                .formatted(that.id(), description.id())
+                            GeyserLocale.getLocaleStringLog(
+                                "geyser.extensions.load.failed_dependency_too_old",
+                                description.id(),
+                                dependency.getKey()
+                            )
                         );
 
                         descriptions.remove(description.id()); // Prevents it from being loaded later
@@ -266,15 +268,11 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             description.minorApiVersion() >= 4)
                     ) {
                         logger.error(
-                            "%s uses the extension dependency system, but the extension was made for an older version of the Geyser API which does not support the dependency system!"
-                                .formatted(description.id())
-                        );
-                        logger.error(
-                            "This is likely fixable by the developer of this extensions just setting the API version to 2.8.4 or higher in the `extension.yml` file."
-                        );
-                        logger.error(
-                            "Please report this to the developers! (%s)"
-                                .formatted(String.join(", ", description.authors()))
+                            GeyserLocale.getLocaleStringLog(
+                                "geyser.extensions.load.failed_cannot_use_dependencies",
+                                description.id(),
+                                String.join(", ", description.authors())
+                            )
                         );
 
                         descriptions.remove(description.id()); // Prevents it from being loaded later
@@ -305,7 +303,13 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             AtomicReference<Consumer<String>> sortMethod = new AtomicReference<>(); // yay, lambdas. This doesn't feel to suited to be a method
             sortMethod.set((node) -> {
                 if (visiting.contains(node)) {
-                    logger.error("The extension %s is in a cycle with other dependencies. This extension cannot load.".formatted(node));
+                    logger.error(
+                        GeyserLocale.getLocaleStringLog(
+                            "geyser.extensions.load.failed_cyclical_dependencies",
+                            node
+                        )
+                    );
+
                     visiting.remove(node);
                     return;
                 }
