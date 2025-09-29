@@ -67,22 +67,27 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
         this.mods = new ArrayList<>();
 
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            ModMetadata meta = mod.getMetadata();
-            this.mods.add(new ModInfo(
-                FabricLoader.getInstance().isModLoaded(meta.getId()),
-                meta.getId(),
-                meta.getVersion().getFriendlyString(),
-                meta.getAuthors().stream().map(Person::getName).collect(Collectors.toList()))
-            );
+            if (mod.getContainingMod().isPresent()) continue;
+            this.mods.add(getModInfo(mod));
         }
+    }
+
+    public ModInfo getModInfo(ModContainer mod) {
+        ModMetadata meta = mod.getMetadata();
+        return new ModInfo(
+            meta.getId(),
+            meta.getVersion().getFriendlyString(),
+            meta.getAuthors().stream().map(Person::getName).collect(Collectors.toList()),
+            mod.getContainedMods().stream().map(this::getModInfo).collect(Collectors.toList())
+        );
     }
 
     @Getter
     @AllArgsConstructor
     public static class ModInfo {
-        public boolean enabled;
         public String name;
         public String version;
         public List<String> authors;
+        public List<ModInfo> submods;
     }
 }

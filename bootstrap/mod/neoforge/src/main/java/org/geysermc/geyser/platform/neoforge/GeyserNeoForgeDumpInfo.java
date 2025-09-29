@@ -65,10 +65,9 @@ public class GeyserNeoForgeDumpInfo extends BootstrapDumpInfo {
 
         for (IModInfo mod : ModList.get().getMods()) {
             this.mods.add(new ModInfo(
-                    ModList.get().isLoaded(mod.getModId()),
-                    mod.getModId(),
-                    mod.getVersion().toString(),
-                    mod.getModURL().map(URL::toString).orElse("")
+                mod.getModId(),
+                mod.getVersion().toString(),
+                mod.getModURL().map(URL::toString).orElse("")
             ));
         }
     }
@@ -76,7 +75,6 @@ public class GeyserNeoForgeDumpInfo extends BootstrapDumpInfo {
     @Getter
     @AllArgsConstructor
     public static class ModInfo {
-        public boolean enabled;
         public String name;
         public String version;
         public String url;
