@@ -148,6 +148,7 @@ import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -653,12 +654,18 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setLeftLegRotation)
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
-        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, livingEntityBase)
+
+        EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.inherited(AvatarEntity::new, livingEntityBase)
+            .height(1.8f).width(0.6f)
+            .offset(1.62f)
+            .addTranslator(null) // Player main hand
+            .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
+            .build();
+
+        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, avatarEntityBase)
                 .type(EntityType.PLAYER)
                 .height(1.8f).width(0.6f)
                 .offset(1.62f)
-                .addTranslator(null) // Player main hand
-                .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
                 .addTranslator(MetadataTypes.FLOAT, PlayerEntity::setAbsorptionHearts)
                 .addTranslator(null) // Player score
                 .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setLeftParrot)
