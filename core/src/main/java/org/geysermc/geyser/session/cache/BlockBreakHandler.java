@@ -180,11 +180,7 @@ public class BlockBreakHandler {
 
         // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
         if (currentBlockFace != null && currentBlockPos != null && currentBlockState != null) {
-            // The client would tell us if it changed the block, but, the stack thing we need to account for ourselves!
-            BlockState current = updatedServerBlockStateId == null ? currentBlockState : BlockState.of(updatedServerBlockStateId);
-            // Discard since the currentBlockState will be changed if it actually changed
-            this.updatedServerBlockStateId = null;
-            handleContinueDestroy(currentBlockPos, current, currentBlockFace, false, false, session.getClientTicks());
+            handleContinueDestroy(currentBlockPos, getCurrentBlockState(currentBlockPos), currentBlockFace, false, false, session.getClientTicks());
         }
     }
 
@@ -206,14 +202,14 @@ public class BlockBreakHandler {
                     this.lastMinedPosition = null;
 
                     if (testForItemFrameEntity(position) || abortDueToBlockRestoring(position)) {
-                        return;
+                        continue;
                     }
 
-                    BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+                    BlockState state = getCurrentBlockState(position);
                     if (!canBreak(position, state, actionData.getAction())) {
                         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
                         restoredBlocks.add(position);
-                        return;
+                        continue;
                     }
 
                     handleStartBreak(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
@@ -232,7 +228,7 @@ public class BlockBreakHandler {
                         }
                     }
 
-                    BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+                    BlockState state = getCurrentBlockState(position);
                     if (!canBreak(position, state, actionData.getAction())) {
                         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
                         restoredBlocks.add(position);
@@ -265,7 +261,7 @@ public class BlockBreakHandler {
                         continue;
                     }
 
-                    BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+                    BlockState state = getCurrentBlockState(position);
                     boolean valid = currentBlockPos != null && Objects.equals(position, currentBlockPos);
                     if (!canBreak(position, state, actionData.getAction()) || !valid) {
                         if (!valid) {
@@ -387,6 +383,8 @@ public class BlockBreakHandler {
             updateBreak.setData((int) (65535 / totalBreakTime));
             session.sendUpstreamPacket(updateBreak);
         } else {
+            // Don't store last mined position; we don't want to ignore any actions now that we switched!
+            this.lastMinedPosition = null;
             // We have switched - either between blocks, or are between the stack we're using to break the block
             if (currentBlockPos != null) {
                 LevelEventPacket updateBreak = new LevelEventPacket();
@@ -394,6 +392,12 @@ public class BlockBreakHandler {
                 updateBreak.setPosition(position.toFloat());
                 updateBreak.setData(0);
                 session.sendUpstreamPacketImmediately(updateBreak);
+
+                // Prevent ghost blocks when Bedrock thinks it destroyed a block and wants to "move on",
+                // while it wasn't actually destroyed on our end.
+                if (bedrockDestroyed) {
+                    BlockUtils.restoreCorrectBlock(session, currentBlockPos, currentBlockState);
+                }
 
                 handleAbortBreaking(currentBlockPos);
             }
@@ -510,7 +514,8 @@ public class BlockBreakHandler {
     }
 
     protected boolean mayBreak(float progress, boolean bedrockDestroyed) {
-        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.9F);
+        // We're tolerant here to account for e.g. obsidian breaking speeds not matching 1:1 :(
+        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.7F);
     }
 
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
@@ -558,6 +563,23 @@ public class BlockBreakHandler {
         }
 
         return Objects.equals(stack.getComponents(), currentItemStack.getComponents());
+    }
+
+    private @NonNull BlockState getCurrentBlockState(Vector3i position) {
+        if (Objects.equals(position, currentBlockPos)) {
+            if (updatedServerBlockStateId != null) {
+                BlockState updated = BlockState.of(updatedServerBlockStateId);
+                this.updatedServerBlockStateId = null;
+                return updated;
+            }
+
+            if (currentBlockState != null) {
+                return currentBlockState;
+            }
+        }
+
+        this.updatedServerBlockStateId = null;
+        return session.getGeyser().getWorldManager().blockAt(session, position);
     }
 
     /**
