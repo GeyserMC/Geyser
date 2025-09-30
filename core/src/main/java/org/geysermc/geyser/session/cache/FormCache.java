@@ -25,34 +25,23 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
-import org.geysermc.cumulus.component.util.ComponentType;
-import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class FormCache {
-    private static final Gson GSON_TEMP = new Gson();
-
     /**
      * The magnitude of this doesn't actually matter, but it must be negative so that
      * BedrockNetworkStackLatencyTranslator can detect the hack.
@@ -114,50 +103,9 @@ public class FormCache {
             return;
         }
 
-        String responseData = response.getFormData();
-        // TODO drop once 1.21.70 is no longer supported
-        if (form instanceof CustomForm customForm && GameProtocol.isTheOneVersionWithBrokenForms(session) && response.getCancelReason().isEmpty()) {
-            // Labels are no longer included as a json null, so we have to manually add them for now.
-            IntList labelIndexes = new IntArrayList();
-            for (int i = 0; i < customForm.content().size(); i++) {
-                var component = customForm.content().get(i);
-                if (component == null) {
-                    continue;
-                }
-                if (component.type() == ComponentType.LABEL) {
-                    labelIndexes.add(i);
-                }
-            }
-            if (!labelIndexes.isEmpty()) {
-                // If the form only has labels, the response is the literal
-                // null (with a newline char) instead of a json array
-                if (responseData.startsWith("null")) {
-                    List<Object> newResponse = new ArrayList<>();
-                    for (int i = 0; i < labelIndexes.size(); i++) {
-                        newResponse.add(null);
-                    }
-                    responseData = GSON_TEMP.toJson(newResponse);
-                } else {
-                    JsonArray responseDataArray = GSON_TEMP.fromJson(responseData, JsonArray.class);
-                    List<Object> newResponse = new ArrayList<>();
-
-                    int handledLabelCount = 0;
-                    for (int i = 0; i < responseDataArray.size() + labelIndexes.size(); i++) {
-                        if (labelIndexes.contains(i)) {
-                            newResponse.add(null);
-                            handledLabelCount++;
-                            continue;
-                        }
-                        newResponse.add(responseDataArray.get(i - handledLabelCount));
-                    }
-                    responseData = GSON_TEMP.toJson(newResponse);
-                }
-            }
-        }
-
         try {
             formDefinitions.definitionFor(form)
-                    .handleFormResponse(form, responseData);
+                    .handleFormResponse(form, response.getFormData());
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
         }
