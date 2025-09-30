@@ -82,7 +82,8 @@ public class YAxisSimulator {
 
         if (entity.isJumpedOnGround()) {
             // If the jump velocity is close enough then use our value since player delta could contain floating point errors.
-            // If it's not however, then use player value as it will be more accurate.
+            // If it's not however, then use player value as it will be more accurate. Also yes we're casting this to double
+            // intentionally to cause the rounding error like on Java.
             if (Math.abs(deltaY - entity.getJumpVelocity()) <= 1.0e-4) {
                 this.velocity = entity.getJumpVelocity();
             } else {
@@ -112,7 +113,7 @@ public class YAxisSimulator {
         }
 
         // We can track for slow falling but since latency is a thing, it won't be accurate...
-        // Of course, we can still rely on the latency packet to account for well. latency but this is an easier way so.
+        // Of course, we can still rely on the latency packet to account for well... latency but this is an easier way so.
         boolean isSlowFalling = Math.abs(((packet.getDelta().getY() / 0.98F) - 0.01F) - this.velocity) < 1.0e-3;
         this.velocity = (this.velocity - (isSlowFalling ? 0.01D : 0.08D)) * FAULTY_DRAG_VELOCITY;
 
