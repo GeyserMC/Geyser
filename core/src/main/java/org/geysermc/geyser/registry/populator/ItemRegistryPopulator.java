@@ -48,7 +48,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
-import org.cloudburstmc.protocol.bedrock.codec.v843.Bedrock_v843;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -73,7 +73,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.populator.conversion.Conversion843_827;
+import org.geysermc.geyser.registry.populator.conversion.Conversion844_827;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -120,10 +120,10 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         List<PaletteVersion> paletteVersions = new ArrayList<>(6);
-        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP), Conversion843_827::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), Conversion843_827::remapItem));
-        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v843.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP), Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

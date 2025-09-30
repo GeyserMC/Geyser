@@ -31,7 +31,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
-public class Conversion843_827 {
+public class Conversion844_827 {
 
     public static NbtMap remapBlock(NbtMap nbtMap) {
         final String name = nbtMap.getString("name");
