@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
@@ -56,6 +57,7 @@ import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
+import org.geysermc.geyser.registry.type.UtilMappings;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
@@ -197,6 +199,21 @@ public final class Registries {
      */
     public static final SimpleMappedDeferredRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
+    /**
+     * A registry containing all of Java's "game master blocks" - blocks that can't be broken without operator permission level 2 or higher.
+     */
+    public static final ListDeferredRegistry<Key> GAME_MASTER_BLOCKS = ListDeferredRegistry.create(UtilMappings::gameMasterBlocks, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
+    /**
+     * A registry containing all block entities Java considers "dangerous" - these have a red warning in the item tooltip on Java.
+     */
+    public static final ListDeferredRegistry<Key> DANGEROUS_BLOCK_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousBlockEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
+    /**
+     * A registry containing all entities Java considers "dangerous" - spawn eggs of these entities have a red warning in the item tooltip on Java.
+     */
+    public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
     public static void load() {
         if (loaded) return;
         loaded = true;
@@ -216,6 +233,10 @@ public final class Registries {
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();
+
+        GAME_MASTER_BLOCKS.load();
+        DANGEROUS_BLOCK_ENTITIES.load();
+        DANGEROUS_ENTITIES.load();
     }
 
     public static void populate() {

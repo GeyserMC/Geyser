@@ -330,7 +330,7 @@ public final class ItemTranslator {
                     amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_DAMAGE);
                     baseModifier = true;
                 } else if (modifier.getId().equals(BASE_ATTACK_SPEED_ID)) {
-                    amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_SPEED);
+                    amount += session.getAttackSpeed();
                     baseModifier = true;
                 }
 

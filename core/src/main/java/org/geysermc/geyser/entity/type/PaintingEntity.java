@@ -29,7 +29,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -77,10 +76,6 @@ public class PaintingEntity extends HangingEntity {
         PaintingType type = session.getRegistryCache().registry(JavaRegistries.PAINTING_VARIANT).byId(paintingId);
         if (type == null) {
             return;
-        }
-
-        if (type == PaintingType.DENNIS && !GameProtocol.is1_21_90orHigher(session)) {
-            type = PaintingType.TIDES;
         }
 
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();

@@ -42,6 +42,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
@@ -79,11 +80,19 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     protected final Map<GeyserAttributeType, AttributeData> attributes = new Object2ObjectOpenHashMap<>();
+
     /**
-     * Java-only attribute
+     * Java-only attributes
      */
     @Getter
     private double blockInteractionRange = GeyserAttributeType.BLOCK_INTERACTION_RANGE.getDefaultValue();
+    @Getter
+    private double miningEfficiency = GeyserAttributeType.MINING_EFFICIENCY.getDefaultValue();
+    @Getter
+    private double blockBreakSpeed = GeyserAttributeType.BLOCK_BREAK_SPEED.getDefaultValue();
+    @Getter
+    private double submergedMiningSpeed = GeyserAttributeType.SUBMERGED_MINING_SPEED.getDefaultValue();
+
     /**
      * Used in PlayerInputTranslator for movement checks.
      */
@@ -321,12 +330,27 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
-        if (javaAttribute.getType() == AttributeType.Builtin.ATTACK_SPEED) {
-            session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
-        } else if (javaAttribute.getType() == AttributeType.Builtin.BLOCK_INTERACTION_RANGE) {
-            this.blockInteractionRange = AttributeUtils.calculateValue(javaAttribute);
-        } else {
-            super.updateAttribute(javaAttribute, newAttributes);
+        if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
+            switch (type) {
+                case ATTACK_SPEED -> {
+                    session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
+                }
+                case BLOCK_INTERACTION_RANGE -> {
+                    this.blockInteractionRange = AttributeUtils.calculateValue(javaAttribute);
+                }
+                case MINING_EFFICIENCY -> {
+                    this.miningEfficiency = AttributeUtils.calculateValue(javaAttribute);
+                }
+                case BLOCK_BREAK_SPEED -> {
+                    this.blockBreakSpeed = AttributeUtils.calculateValue(javaAttribute);
+                }
+                case SUBMERGED_MINING_SPEED -> {
+                    this.submergedMiningSpeed = AttributeUtils.calculateValue(javaAttribute);
+                }
+                default -> {
+                    super.updateAttribute(javaAttribute, newAttributes);
+                }
+            }
         }
     }
 
@@ -337,6 +361,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         return attributeData;
     }
 
+    /**
+     * This will ONLY include attributes that have a Bedrock equivalent!!!
+     * see {@link LivingEntity#updateAttribute(Attribute, List)}
+     */
     public float attributeOrDefault(GeyserAttributeType type) {
         var attribute = this.attributes.get(type);
         if (attribute == null) {
@@ -367,6 +395,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         // This can happen when switching servers. Resending the absorption attribute fixes the issue
         attributes.put(GeyserAttributeType.ABSORPTION, GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue()));
         super.setAbsorptionHearts(entityMetadata);
+    }
+
+    @Override
+    public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
+        super.setLivingEntityFlags(entityMetadata);
+
+        // Forcefully update flags since we're not tracking thing like using item properly.
+        // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
+        // If the server disagree with the player using item state, it will send a metadata set USING_ITEM flag to false
+        // But since it never got set to true, nothing changed, causing the client to not receive the USING_ITEM flag they're supposed to.
+        this.forceFlagUpdate();
     }
 
     @Override
