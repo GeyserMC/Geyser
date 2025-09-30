@@ -45,6 +45,10 @@ public class YAxisSimulator {
 
     public double simulate(PlayerAuthInputPacket packet, float yPosition) {
         final SessionPlayerEntity entity = session.getPlayerEntity();
+        if (entity.isGliding() || entity.getVehicle() != null || session.getCollisionManager().isPlayerTouchingWater()) {
+            this.velocity = Double.MAX_VALUE;
+            return Double.parseDouble(Float.toString(yPosition));
+        }
 
         final float deltaY = yPosition - this.lastFPYPosition;
 
