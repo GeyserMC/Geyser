@@ -162,6 +162,33 @@ public interface GeyserApi extends GeyserApiBase {
     CommandSource consoleCommandSource();
 
     /**
+     * Gets the default locale used within Geyser
+     * @return the default locale
+     */
+    @NonNull
+    String getDefaultLocale();
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    default String getTranslationString(@NonNull String locale, @NonNull String key) {
+        return getTranslationStringOrDefault(locale, key, key);
+    }
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
+
+    /**
      * Gets the current {@link GeyserApiBase} instance.
      *
      * @return the current geyser api instance
