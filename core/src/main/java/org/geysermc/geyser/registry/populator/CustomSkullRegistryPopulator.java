@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 
 public class CustomSkullRegistryPopulator {
 
-    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
+    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
 
     public static void populate() {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
