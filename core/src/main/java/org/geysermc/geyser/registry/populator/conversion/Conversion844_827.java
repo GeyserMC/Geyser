@@ -26,16 +26,32 @@
 package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
-public class Conversion800_786 {
+public class Conversion844_827 {
 
     public static NbtMap remapBlock(NbtMap nbtMap) {
-
         final String name = nbtMap.getString("name");
-        if (name.equals("minecraft:dried_ghast")) {
-            return ConversionHelper.withoutStates("unknown");
+        if (name.equals("minecraft:iron_chain")) {
+            return ConversionHelper.withName(nbtMap, "chain");
+        } else if (name.equals("minecraft:lightning_rod")) {
+            NbtMapBuilder statesWithoutPoweredBit = nbtMap.getCompound("states").toBuilder();
+            statesWithoutPoweredBit.remove("powered_bit");
+            return nbtMap.toBuilder()
+                .putCompound("states", statesWithoutPoweredBit.build())
+                .build();
         }
 
         return nbtMap;
+    }
+
+    public static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
+        if (item == Items.CHAIN) {
+            return mapping.withBedrockIdentifier("minecraft:chain");
+        }
+        return mapping;
     }
 }

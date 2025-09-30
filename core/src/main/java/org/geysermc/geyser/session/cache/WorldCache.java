@@ -47,6 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 public final class WorldCache {
     private final GeyserSession session;
@@ -177,6 +178,12 @@ public final class WorldCache {
     public void updateServerCorrectBlockState(Vector3i position, int blockState) {
         if (!this.unverifiedPredictions.isEmpty()) {
             this.unverifiedPredictions.removeInt(position);
+        }
+
+        // Hack to avoid looking up blockstates for the currently broken position each tick
+        Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
+        if (clientBreakPos != null && Objects.equals(clientBreakPos, position)) {
+            session.getBlockBreakHandler().setUpdatedServerBlockStateId(blockState);
         }
 
         ChunkUtils.updateBlock(session, blockState, position);

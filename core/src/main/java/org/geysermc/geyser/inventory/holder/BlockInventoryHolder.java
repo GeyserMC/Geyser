@@ -134,7 +134,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // and the bedrock block is vanilla
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
-                if (isValidBlock(state)) {
+                if (isValidBlock(session, session.getLastInteractionBlockPosition(), state)) {
                     // We can safely use this block
                     container.setHolderPosition(session.getLastInteractionBlockPosition());
                     container.setUsingRealBlock(true, state.block());
@@ -161,7 +161,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     /**
      * @return true if this Java block ID can be used for player inventory.
      */
-    protected boolean isValidBlock(BlockState blockState) {
+    protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
         return this.validBlocks.contains(blockState.block());
     }
 
