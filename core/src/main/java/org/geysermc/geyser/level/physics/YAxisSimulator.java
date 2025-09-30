@@ -26,6 +26,7 @@
 package org.geysermc.geyser.level.physics;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -35,6 +36,7 @@ import org.geysermc.geyser.session.GeyserSession;
 public class YAxisSimulator {
     private final GeyserSession session;
     private float lastFPYPosition;
+    @Setter
     private double doubleYPosition;
     private double velocity = Double.MAX_VALUE;
 
@@ -44,7 +46,7 @@ public class YAxisSimulator {
     public double simulate(PlayerAuthInputPacket packet, float yPosition) {
         final SessionPlayerEntity entity = session.getPlayerEntity();
 
-        float deltaY = yPosition - this.lastFPYPosition;
+        final float deltaY = yPosition - this.lastFPYPosition;
 
         float lastTickEndVelY = entity.getLastTickEndVelocity().getY();
         if (this.velocity == Double.MAX_VALUE) {
@@ -99,14 +101,13 @@ public class YAxisSimulator {
         // Only send our position if it's close enough.
         double diff = Math.abs(this.doubleYPosition - Double.parseDouble(Float.toString(yPosition)));
         if (diff <= 1.0e-4) {
-            System.out.println(this.doubleYPosition + "," + yPosition + "," + this.velocity + "," + packet.getDelta().getY());
-            return this.doubleYPosition;
+            System.out.println(diff + "," + this.doubleYPosition + "," + yPosition + "," + this.velocity + "," + packet.getDelta().getY());
         } else {
             System.out.println("Not close enough: " + diff + "," + this.doubleYPosition + "," + yPosition + "," + this.velocity + "," + packet.getDelta().getY());
             this.doubleYPosition = Double.parseDouble(Float.toString(yPosition));
             this.velocity = Double.parseDouble(Float.toString(packet.getDelta().getY() / 0.98F)) * FAULTY_DRAG_VELOCITY;
             System.out.println("New guessed velocity: " + this.velocity);
-            return yPosition;
         }
+        return this.doubleYPosition;
     }
 }

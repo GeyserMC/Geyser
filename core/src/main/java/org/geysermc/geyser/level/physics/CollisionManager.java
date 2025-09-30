@@ -209,7 +209,7 @@ public class CollisionManager {
         }
 
         position = playerBoundingBox.getBottomCenter();
-
+        this.yAxisSimulator.setDoubleYPosition(position.getY());
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
 
