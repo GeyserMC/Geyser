@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 
 public class CustomSkullRegistryPopulator {
 
-    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$");
+    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
 
     public static void populate() {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
@@ -121,7 +121,7 @@ public class CustomSkullRegistryPopulator {
 
         skinHashes.forEach((skinHash) -> {
             if (!SKULL_HASH_PATTERN.matcher(skinHash).matches()) {
-                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]{64}$ and will not be added as a custom block.");
+                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]+$ and will not be added as a custom block.");
                 return;
             }
 

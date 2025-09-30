@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -61,6 +62,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
@@ -466,8 +468,14 @@ public class CustomBlockRegistryPopulator {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
                         .putString("render_method", materialInstance.renderMethod())
-                        .putBoolean("face_dimming", materialInstance.faceDimming())
-                        .putBoolean("ambient_occlusion", materialInstance.faceDimming());
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion());
+
+                if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
+                    materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
+                } else {
+                    materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                }
+
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
                 if (materialInstance.texture() != null) {
                     materialBuilder.putString("texture", materialInstance.texture());

@@ -49,7 +49,6 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
@@ -346,7 +345,7 @@ public class CustomItemRegistryPopulator {
                     .putString("event", "tool_durability")
                     .putString("target", "self")
                     .build())
-            .putBoolean("use_efficiency", true)
+            .putBoolean("use_efficiency", false)
             .build()
         );
 

@@ -86,7 +86,7 @@ public final class GameProtocol {
         register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
         register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
         register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
-        register(Bedrock_v844.CODEC, "1.21.110");
+        register(Bedrock_v844.CODEC, "1.21.111");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -139,7 +139,11 @@ public final class GameProtocol {
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
     public static boolean is1_21_110orHigher(GeyserSession session) {
-        return session.protocolVersion() >= Bedrock_v844.CODEC.getProtocolVersion();
+        return is1_21_110orHigher(session.protocolVersion());
+    }
+
+    public static boolean is1_21_110orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
     }
 
     /**
