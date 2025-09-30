@@ -61,7 +61,7 @@ public class YAxisSimulator {
             return Double.parseDouble(Float.toString(yPosition));
         }
 
-        // We haven't cache any value to even start with yet, so use the values bedrock provided.
+        // We haven't cached any value to even start with yet, so use the values bedrock provided.
         float lastTickEndVelY = entity.getLastTickEndVelocity().getY();
         if (this.velocity == Double.MAX_VALUE) {
             this.velocity = Double.parseDouble(Float.toString(lastTickEndVelY));
@@ -113,7 +113,7 @@ public class YAxisSimulator {
 
         // We can track for slow falling but since latency is a thing, it won't be accurate...
         // Of course, we can still rely on the latency packet to account for well. latency but this is an easier way so.
-        boolean isSlowFalling = Math.abs(((packet.getDelta().getY() / 0.98F) - 0.01F) - this.velocity) < 1.0E-3;
+        boolean isSlowFalling = Math.abs(((packet.getDelta().getY() / 0.98F) - 0.01F) - this.velocity) < 1.0e-3;
         this.velocity = (this.velocity - (isSlowFalling ? 0.01D : 0.08D)) * FAULTY_DRAG_VELOCITY;
 
         this.lastFPYPosition = yPosition;
