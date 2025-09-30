@@ -34,6 +34,7 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -96,9 +97,12 @@ public class CollisionManager {
      */
     private static final double INCORRECT_MOVEMENT_THRESHOLD = 0.08;
 
+    private final YAxisSimulator yAxisSimulator;
+
     public CollisionManager(GeyserSession session) {
         this.session = session;
         this.playerBoundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
+        this.yAxisSimulator = new YAxisSimulator(session);
     }
 
     /**
@@ -158,7 +162,7 @@ public class CollisionManager {
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable CollisionResult adjustBedrockPosition(PlayerAuthInputPacket packet, Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -166,7 +170,7 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY() - EntityDefinitions.PLAYER.offset()));
+        double javaY = this.yAxisSimulator.simulate(packet, bedrockPosition.getY() - EntityDefinitions.PLAYER.offset());
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
@@ -205,11 +209,6 @@ public class CollisionManager {
         }
 
         position = playerBoundingBox.getBottomCenter();
-
-        if (!newOnGround) {
-            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
-            position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
-        }
 
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
