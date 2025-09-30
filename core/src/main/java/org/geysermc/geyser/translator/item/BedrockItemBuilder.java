@@ -79,6 +79,11 @@ public final class BedrockItemBuilder {
         return this;
     }
 
+    public BedrockItemBuilder addEnchantmentGlint() {
+        putList("ench", NbtType.COMPOUND, List.of());
+        return this;
+    }
+
     @NonNull
     public NbtMapBuilder getOrCreateNbt() {
         if (builder == null) {

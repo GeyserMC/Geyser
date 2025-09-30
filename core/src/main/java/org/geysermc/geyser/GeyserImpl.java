@@ -148,7 +148,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
      */
     public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
-    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
+    private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
 
@@ -406,7 +406,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         String remoteAddress = config.getRemote().address();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-        if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+        if (!IP_REGEX.matcher(remoteAddress).matches() && !remoteAddress.equalsIgnoreCase("localhost")) {
             String[] record = WebUtils.findSrvRecord(this, remoteAddress);
             if (record != null) {
                 int remotePort = Integer.parseInt(record[2]);

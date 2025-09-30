@@ -256,6 +256,7 @@ public class Item {
         if (bedrockEnchantment == null) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            builder.addEnchantmentGlint();
             return null;
         }
 
