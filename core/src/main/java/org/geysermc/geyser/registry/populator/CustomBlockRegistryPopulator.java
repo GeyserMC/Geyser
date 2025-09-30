@@ -62,6 +62,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
@@ -469,7 +470,7 @@ public class CustomBlockRegistryPopulator {
                         .putString("render_method", materialInstance.renderMethod())
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion());
 
-                if (protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion()) {
+                if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
                 } else {
                     materialsBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
