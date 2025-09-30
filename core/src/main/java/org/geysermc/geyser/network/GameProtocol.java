@@ -29,11 +29,10 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
-import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
@@ -84,11 +83,10 @@ public final class GameProtocol {
 
     static {
         // Strict ordering
-        register(Bedrock_v786.CODEC, "1.21.70", "1.21.71", "1.21.72", "1.21.73");
-        register(Bedrock_v800.CODEC, "1.21.80", "1.21.81", "1.21.82", "1.21.83", "1.21.84");
         register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
         register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
         register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
+        register(Bedrock_v844.CODEC, "1.21.111");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -140,20 +138,12 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean isTheOneVersionWithBrokenForms(GeyserSession session) {
-        return session.protocolVersion() == Bedrock_v786.CODEC.getProtocolVersion();
+    public static boolean is1_21_110orHigher(GeyserSession session) {
+        return is1_21_110orHigher(session.protocolVersion());
     }
 
-    public static boolean is1_21_80orHigher(GeyserSession session) {
-        return session.protocolVersion() >= Bedrock_v800.CODEC.getProtocolVersion();
-    }
-
-    public static boolean is1_21_90orHigher(GeyserSession session) {
-        return session.protocolVersion() >= Bedrock_v818.CODEC.getProtocolVersion();
-    }
-
-    public static boolean is1_21_80(GeyserSession session) {
-        return session.protocolVersion() == Bedrock_v800.CODEC.getProtocolVersion();
+    public static boolean is1_21_110orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
     }
 
     /**

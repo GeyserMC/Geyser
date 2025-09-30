@@ -155,7 +155,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -836,15 +835,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        if (GameProtocol.is1_21_80orHigher(this)) {
-            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-            biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
-            upstream.sendPacket(biomeDefinitionListPacket);
-        } else {
-            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-            biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
-            upstream.sendPacket(biomeDefinitionListPacket);
-        }
+        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+        biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+        upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
@@ -1683,17 +1676,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         dialogManager.close();
         // Also close current inventories, otherwise the form will not show
         if (inventoryHolder != null) {
+            // We'll open the form when the client confirms current inventory being closed
+            formCache.addForm(form);
             InventoryUtils.sendJavaContainerClose(inventoryHolder);
             InventoryUtils.closeInventory(this, inventoryHolder, true);
+            return true;
+        } else {
+            return doSendForm(form);
         }
-        return doSendForm(form);
     }
 
     /**
      * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
      */
-    public boolean sendDialogForm(@NonNull Form form) {
-        return doSendForm(form);
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
     }
 
     private boolean doSendForm(@NonNull Form form) {
@@ -1714,7 +1711,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
-        formCache.showForm(formBuilder.build());
+        sendForm(formBuilder.build());
         return true;
     }
 
@@ -1801,16 +1798,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
-        // Allows Vibrant Visuals to appear in the settings menu
-        if (allowVibrantVisuals && !GameProtocol.is1_21_90orHigher(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
-        }
-        // Enables 2025 Content Drop 2 features
-        if (GameProtocol.is1_21_80(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
-            // Enables the locator bar for 1.21.80 clients
-            startGamePacket.getExperiments().add(new ExperimentData("locator_bar", true));
-        }
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
