@@ -1682,17 +1682,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         dialogManager.close();
         // Also close current inventories, otherwise the form will not show
         if (inventoryHolder != null) {
+            // We'll open the form when the client confirms current inventory being closed
+            formCache.addForm(form);
             InventoryUtils.sendJavaContainerClose(inventoryHolder);
             InventoryUtils.closeInventory(this, inventoryHolder, true);
+            return true;
+        } else {
+            return doSendForm(form);
         }
-        return doSendForm(form);
     }
 
     /**
      * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
      */
-    public boolean sendDialogForm(@NonNull Form form) {
-        return doSendForm(form);
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
     }
 
     private boolean doSendForm(@NonNull Form form) {
@@ -1730,7 +1734,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
-        formCache.showForm(formBuilder.build());
+        sendForm(formBuilder.build());
         return true;
     }
 
