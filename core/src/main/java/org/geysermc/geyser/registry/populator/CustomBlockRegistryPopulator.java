@@ -473,7 +473,7 @@ public class CustomBlockRegistryPopulator {
                 if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
                 } else {
-                    materialsBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                    materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
                 }
 
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
