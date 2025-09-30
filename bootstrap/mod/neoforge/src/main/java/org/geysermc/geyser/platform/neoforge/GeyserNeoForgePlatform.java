@@ -82,8 +82,7 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
     @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
         try {
-            Path path = container.getModInfo().getOwningFile().getFile().findResource(resource);
-            return Files.newInputStream(path);
+            return container.getModInfo().getOwningFile().getFile().getContents().openFile(resource); // TODO test 1.21.9
         } catch (IOException e) {
             return null;
         }
