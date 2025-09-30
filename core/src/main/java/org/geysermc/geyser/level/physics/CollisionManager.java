@@ -168,10 +168,10 @@ public class CollisionManager {
         if (pistonCache.isPlayerAttachedToHoney()) {
             return null;
         }
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
         double javaY = this.yAxisSimulator.simulate(packet, bedrockPosition.getY() - EntityDefinitions.PLAYER.offset());
 
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         // Don't correct position if controlling a vehicle
@@ -209,6 +209,8 @@ public class CollisionManager {
         }
 
         position = playerBoundingBox.getBottomCenter();
+
+        // Let the simulator knows the new value so we won't false next tick.
         this.yAxisSimulator.setDoubleYPosition(position.getY());
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
