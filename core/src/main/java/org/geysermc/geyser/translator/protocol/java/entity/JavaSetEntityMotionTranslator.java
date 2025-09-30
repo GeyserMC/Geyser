@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityMotionPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -43,7 +44,11 @@ public class JavaSetEntityMotionTranslator extends PacketTranslator<ClientboundS
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
-        entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+        entity.setMotion(Vector3f.from(
+            Float.parseFloat(Double.toString(packet.getMotionX())),
+            Float.parseFloat(Double.toString(packet.getMotionY())),
+            Float.parseFloat(Double.toString(packet.getMotionZ())))
+        );
 
         if (entity == session.getPlayerEntity().getVehicle() && entity instanceof AbstractHorseEntity) {
             // Horses for some reason teleport back when a SetEntityMotionPacket is sent while
@@ -62,5 +67,6 @@ public class JavaSetEntityMotionTranslator extends PacketTranslator<ClientboundS
         entityMotionPacket.setMotion(entity.getMotion());
 
         session.sendUpstreamPacket(entityMotionPacket);
+        GeyserImpl.getInstance().getLogger().warning("Motion Y: " + packet.getMotionY());
     }
 }

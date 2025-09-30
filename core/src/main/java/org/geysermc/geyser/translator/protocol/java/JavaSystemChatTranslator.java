@@ -33,6 +33,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -101,6 +102,8 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         } else {
             session.getUpstream().queuePostStartGamePacket(textPacket);
         }
+
+        GeyserImpl.getInstance().getLogger().info(textPacket.getMessage());
     }
 
     private static @Nullable Integer convertToInt(TranslationArgument translationArgument) {

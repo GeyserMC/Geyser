@@ -100,12 +100,12 @@ public class YAxisSimulator {
         double diff = Math.abs(this.doubleYPosition - Double.parseDouble(Float.toString(yPosition)));
         if (diff <= 1.0e-4) {
             System.out.println(this.doubleYPosition + "," + yPosition + "," + this.velocity + "," + packet.getDelta().getY());
-
             return this.doubleYPosition;
         } else {
             System.out.println("Not close enough: " + diff + "," + this.doubleYPosition + "," + yPosition + "," + this.velocity + "," + packet.getDelta().getY());
             this.doubleYPosition = Double.parseDouble(Float.toString(yPosition));
             this.velocity = Double.parseDouble(Float.toString(packet.getDelta().getY() / 0.98F)) * FAULTY_DRAG_VELOCITY;
+            System.out.println("New guessed velocity: " + this.velocity);
             return yPosition;
         }
     }
