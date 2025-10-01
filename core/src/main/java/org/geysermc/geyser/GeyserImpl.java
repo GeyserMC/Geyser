@@ -102,6 +102,7 @@ import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -813,6 +814,17 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
         String translation = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (translation == null) translation = defaultValue;
+
+        return translation;
+    }
+
+    @Override
+    public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NotNull @NonNull String... parameters) {
+        String translation = getTranslationStringOrDefault(locale, key, defaultValue);
+        int order = 0;
+        for (String parameter : parameters) {
+            translation = translation.replaceFirst("%s", parameter).replace("%" + order + "$s", parameter);
+        }
 
         return translation;
     }

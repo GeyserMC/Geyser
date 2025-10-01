@@ -183,10 +183,36 @@ public interface GeyserApi extends GeyserApiBase {
      * Get's the translation string associated with the key from the locale specified
      * @param locale the locale to use
      * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation
      * @return the translated message, or the key if there is none
      */
     @NonNull
     String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * using the parameters specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @param parameters the parameters of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    default String getTranslationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
+        return getTranslationStringOrDefault(locale, key, key, parameters);
+    }
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * using the parameters specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation
+     * @param parameters the parameters of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);
 
     /**
      * Gets the current {@link GeyserApiBase} instance.
