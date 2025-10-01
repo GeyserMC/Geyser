@@ -537,7 +537,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getAllComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;

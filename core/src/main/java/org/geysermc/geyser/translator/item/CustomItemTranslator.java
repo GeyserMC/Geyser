@@ -49,6 +49,14 @@ import java.util.Collection;
  */
 public final class CustomItemTranslator {
 
+    /**
+     * Looks up whether a Java item is a custom Bedrock item on our end.
+     * @param session the session
+     * @param stackSize the stack size
+     * @param components ALL components of the item; not just the patch
+     * @param mapping the current Bedrock item mapping we have
+     * @return the custom item definition, or null
+     */
     @Nullable
     public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
         if (components == null) {
