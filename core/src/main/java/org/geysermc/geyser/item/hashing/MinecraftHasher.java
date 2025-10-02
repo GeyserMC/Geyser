@@ -35,6 +35,8 @@ import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.GameProfile.TextureModel;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
@@ -135,6 +137,19 @@ public interface MinecraftHasher<Type> {
         .optionalNullable("name", STRING, GameProfile::getName)
         .optionalNullable("id", UUID, GameProfile::getId)
         .optionalList("properties", GAME_PROFILE_PROPERTY, GameProfile::getProperties));
+
+    MinecraftHasher<TextureModel> TEXTURE_MODEL = fromEnum(model -> switch (model) {
+        case WIDE -> "wide";
+        case SLIM -> "slim";
+    });
+
+    MinecraftHasher<ResolvableProfile> RESOLVABLE_PROFILE = mapBuilder(builder -> builder
+        .optionalNullable("profile", GAME_PROFILE, ResolvableProfile::getProfile)
+        .optionalNullable("body", KEY, ResolvableProfile::getBody)
+        .optionalNullable("cape", KEY, ResolvableProfile::getCape)
+        .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
+        .optionalNullable("model", TEXTURE_MODEL, ResolvableProfile::getModel)
+        .optional("dynamic", BOOL, ResolvableProfile::isDynamic, false));
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 

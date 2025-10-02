@@ -74,6 +74,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrim
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
@@ -108,22 +109,24 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> ITEM = registry(JavaRegistries.ITEM);
 
-    RegistryHasher<?> ENTITY_TYPE = enumIdRegistry(EntityType.values());
+    RegistryHasher<EntityType> ENTITY_TYPE = enumIdRegistry(EntityType.values());
 
     RegistryHasher<?> ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
 
-    RegistryHasher<?> ATTRIBUTE = enumIdRegistry(AttributeType.Builtin.values(), AttributeType::getIdentifier);
+    RegistryHasher<AttributeType.Builtin> ATTRIBUTE = enumIdRegistry(AttributeType.Builtin.values(), AttributeType::getIdentifier);
 
     MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.cast(DataComponentType::getKey);
 
     // Mob effects can both be an enum constant or ID in MCPL.
     MinecraftHasher<Effect> EFFECT = enumRegistry();
 
-    RegistryHasher<?> EFFECT_ID = enumIdRegistry(Effect.values());
+    RegistryHasher<Effect> EFFECT_ID = enumIdRegistry(Effect.values());
 
-    RegistryHasher<?> POTION = enumIdRegistry(Potion.values());
+    RegistryHasher<Potion> POTION = enumIdRegistry(Potion.values());
 
-    RegistryHasher<?> VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
+    RegistryHasher<VillagerVariant> VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
+
+    RegistryHasher<BlockEntityType> BLOCK_ENTITY_TYPE = enumIdRegistry(BlockEntityType.values());
 
     // Java data-driven registries
 
@@ -433,7 +436,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @param <EnumConstant> the enum.
      * @see RegistryHasher#enumIdRegistry(Enum[], Function)
      */
-    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values) {
+    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<EnumConstant> enumIdRegistry(EnumConstant[] values) {
         return enumIdRegistry(values, constant -> MinecraftKey.key(constant.name().toLowerCase(Locale.ROOT)));
     }
 
@@ -445,7 +448,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @param <EnumConstant> the enum.
      * @see MinecraftHasher#fromIdEnum(Enum[])
      */
-    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
+    static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<EnumConstant> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
         MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
         return hasher::hash;
     }

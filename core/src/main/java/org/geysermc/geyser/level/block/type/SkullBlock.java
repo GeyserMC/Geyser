@@ -38,6 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -88,7 +89,7 @@ public class SkullBlock extends Block {
         if (texturesProperty != null) {
             profile.setProperties(Collections.singletonList(new GameProfile.Property("textures", texturesProperty)));
         }
-        // components.put(DataComponentTypes.PROFILE, profile); TODO 1.21.9
+        components.put(DataComponentTypes.PROFILE, new ResolvableProfile(profile));
         return itemStack.getItemStack();
     }
 
