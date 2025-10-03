@@ -74,6 +74,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectIns
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Weapon;
@@ -81,6 +82,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBook
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -213,9 +215,9 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.TRIM, RegistryHasher.ARMOR_TRIM);
         register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
-        // register(DataComponentTypes.ENTITY_DATA, MinecraftHasher.NBT_MAP); TODO 1.21.9
+        registerTypedEntityData(DataComponentTypes.ENTITY_DATA, RegistryHasher.ENTITY_TYPE.cast(EntityType::ordinal));
         register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
-        // register(DataComponentTypes.BLOCK_ENTITY_DATA, MinecraftHasher.NBT_MAP); TODO 1.21.9
+        registerTypedEntityData(DataComponentTypes.BLOCK_ENTITY_DATA, RegistryHasher.BLOCK_ENTITY_TYPE.cast(BlockEntityType::ordinal));
 
         register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
         register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);
@@ -235,7 +237,7 @@ public class DataComponentHashers {
             .optional("flight_duration", MinecraftHasher.BYTE, fireworks -> (byte) fireworks.getFlightDuration(), (byte) 0)
             .optionalList("explosions", RegistryHasher.FIREWORK_EXPLOSION, Fireworks::getExplosions));
 
-        // register(DataComponentTypes.PROFILE, MinecraftHasher.GAME_PROFILE); TODO 1.21.9
+        register(DataComponentTypes.PROFILE, MinecraftHasher.RESOLVABLE_PROFILE);
         register(DataComponentTypes.NOTE_BLOCK_SOUND, MinecraftHasher.KEY);
         register(DataComponentTypes.BANNER_PATTERNS, RegistryHasher.BANNER_PATTERN_LAYER.list());
         register(DataComponentTypes.BASE_COLOR, MinecraftHasher.DYE_COLOR);
@@ -283,8 +285,18 @@ public class DataComponentHashers {
         register(component, MinecraftHasher.INT);
     }
 
+    private static <Type> void registerTypedEntityData(DataComponentType<TypedEntityData<Type>> component, MinecraftHasher<Type> typeHasher) {
+        register(component, typedEntityData(typeHasher));
+    }
+
     private static <T> void registerMap(DataComponentType<T> component, MapBuilder<T> builder) {
         register(component, MinecraftHasher.mapBuilder(builder));
+    }
+
+    private static <Type> MinecraftHasher<TypedEntityData<Type>> typedEntityData(MinecraftHasher<Type> typeHasher) {
+        return MinecraftHasher.mapBuilder(builder -> builder
+            .accept("type", typeHasher, TypedEntityData::type)
+            .accept("tag", MinecraftHasher.NBT_MAP, TypedEntityData::tag));
     }
 
     private static <T> void register(DataComponentType<T> component, MinecraftHasher<T> hasher) {
