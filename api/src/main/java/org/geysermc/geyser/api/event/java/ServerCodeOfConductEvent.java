@@ -59,12 +59,12 @@ public final class ServerCodeOfConductEvent extends ConnectionEvent {
     /**
      * @return {@code true} if Geyser should not show the code of conduct to the player, because they have already accepted it
      */
-    public boolean hasAccepted() {
+    public boolean accepted() {
         return hasAccepted;
     }
 
     /**
-     * Sets {@link ServerCodeOfConductEvent#hasAccepted()} to {@code true}.
+     * Sets {@link ServerCodeOfConductEvent#accepted()} to {@code true}.
      */
     public void accept() {
         this.hasAccepted = true;

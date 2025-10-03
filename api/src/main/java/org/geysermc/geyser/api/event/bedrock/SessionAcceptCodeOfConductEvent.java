@@ -65,7 +65,7 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
     /**
      * Sets {@link SessionAcceptCodeOfConductEvent#wasSavedElsewhere()} to {@code true}.
      */
-    public void setSavedElsewhere() {
+    public void savedElsewhere() {
         this.wasSavedElsewhere = true;
     }
 }

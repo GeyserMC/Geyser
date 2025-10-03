@@ -56,7 +56,8 @@ public class CodeOfConductManager {
             GeyserImpl.getInstance().getLogger().debug("Loading codeofconducts.json");
 
             try (Reader reader = new FileReader(savePath.toFile())) {
-                JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
+                //noinspection deprecation - otherwise 1.16.5 doesn't work
+                JsonObject object = new JsonParser().parse(reader).getAsJsonObject();
                 for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
                     playerAcceptedCodeOfConducts.put(entry.getKey(), entry.getValue().getAsInt());
                 }
@@ -74,7 +75,7 @@ public class CodeOfConductManager {
     public boolean hasAcceptedCodeOfConduct(GeyserSession session, String codeOfConduct) {
         ServerCodeOfConductEvent event = new ServerCodeOfConductEvent(session, codeOfConduct);
         session.getGeyser().getEventBus().fire(event);
-        return event.hasAccepted() || playerAcceptedCodeOfConducts.getInt(session.xuid()) == codeOfConduct.hashCode();
+        return event.accepted() || playerAcceptedCodeOfConducts.getInt(session.xuid()) == codeOfConduct.hashCode();
     }
 
     public void saveCodeOfConductAccepted(GeyserSession session, String codeOfConduct) {
