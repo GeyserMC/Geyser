@@ -38,7 +38,6 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class GeyserNeoForgePlatform implements GeyserModPlatform {
@@ -82,7 +81,7 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
     @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
         try {
-            return container.getModInfo().getOwningFile().getFile().getContents().openFile(resource); // TODO test 1.21.9
+            return container.getModInfo().getOwningFile().getFile().getContents().openFile(resource);
         } catch (IOException e) {
             return null;
         }

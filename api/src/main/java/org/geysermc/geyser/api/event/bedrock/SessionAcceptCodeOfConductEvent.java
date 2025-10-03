@@ -38,6 +38,7 @@ import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
  * but an alternative solution may be preferred when using multiple Geyser instances. Such a solution can be implemented through this event and {@link ServerCodeOfConductEvent}.</p>
  *
  * @see ServerCodeOfConductEvent
+ * @since 2.9.0
  */
 public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
     private final String codeOfConduct;
@@ -50,6 +51,7 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
 
     /**
      * @return the code of conduct sent by the server
+     * @since 2.9.0
      */
     public String codeOfConduct() {
         return codeOfConduct;
@@ -57,6 +59,7 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
 
     /**
      * @return {@code true} if Geyser should not save the acceptance of the code of conduct in its own cache (through a JSON file), because it was saved elsewhere
+     * @since 2.9.0
      */
     public boolean wasSavedElsewhere() {
         return wasSavedElsewhere;
@@ -64,6 +67,7 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
 
     /**
      * Sets {@link SessionAcceptCodeOfConductEvent#wasSavedElsewhere()} to {@code true}.
+     * @since 2.9.0
      */
     public void savedElsewhere() {
         this.wasSavedElsewhere = true;

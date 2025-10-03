@@ -54,7 +54,7 @@ public class GeyserNeoForgeDumpInfo extends BootstrapDumpInfo {
     private final List<ModInfo> mods;
 
     public GeyserNeoForgeDumpInfo(MinecraftServer server) {
-        this.platformName = /*FMLLoader.getCurrent().launcherHandlerName()*/""; // TODO 1.21.9 FIXME
+        this.platformName = server.getServerModName();
         this.platformVersion = FMLLoader.getCurrent().getVersionInfo().neoForgeVersion();
         this.minecraftVersion = FMLLoader.getCurrent().getVersionInfo().mcVersion();
         this.dist = FMLLoader.getCurrent().getDist();
