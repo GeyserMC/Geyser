@@ -266,16 +266,24 @@ public class AvatarEntity extends LivingEntity {
         return username;
     }
 
+    protected boolean handlesDisplayName() {
+        return false;
+    }
+
     @Override
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Doesn't do anything for players
-        // TODO test mannequins
+        if (!handlesDisplayName()) {
+            return;
+        }
+        super.setDisplayName(entityMetadata);
     }
 
     @Override
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        // Doesn't do anything for players
-        // TODO test mannequins
+        if (!handlesDisplayName()) {
+            return;
+        }
+        super.setDisplayNameVisible(entityMetadata);
     }
 
     public void setBelowNameText(String text) {
