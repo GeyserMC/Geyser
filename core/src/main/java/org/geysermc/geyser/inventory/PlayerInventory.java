@@ -106,6 +106,11 @@ public class PlayerInventory extends Inventory {
         items[36 + heldItemSlot] = item;
     }
 
+    @Override
+    public boolean shouldConfirmContainerClose() {
+        return false;
+    }
+
     public GeyserItemStack getOffhand() {
         return items[45];
     }
