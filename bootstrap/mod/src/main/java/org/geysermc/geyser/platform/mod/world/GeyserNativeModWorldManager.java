@@ -48,7 +48,7 @@ import java.util.function.Consumer;
 
 public class GeyserNativeModWorldManager extends GeyserWorldManager {
 
-    private final WorldAdapter<ServerLevel> adapter;
+    protected final WorldAdapter<ServerLevel> adapter; // So GeyserLegacyNativeModWorldManager can access this
     private final MinecraftServer server;
 
     public GeyserNativeModWorldManager(MinecraftServer server) {

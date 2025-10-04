@@ -41,6 +41,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
+import org.geysermc.geyser.platform.mod.world.GeyserLegacyNativeModWorldManager;
 import org.geysermc.geyser.platform.mod.world.GeyserNativeModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -123,7 +124,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = ModConstants.isModernVersion() ? new GeyserNativeModWorldManager(server) : null;
+        this.geyserWorldManager = ModConstants.isModernVersion() ?
+                new GeyserNativeModWorldManager(server) :
+                new GeyserLegacyNativeModWorldManager(server);
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*

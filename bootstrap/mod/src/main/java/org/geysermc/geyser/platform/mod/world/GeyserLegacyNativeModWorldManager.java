@@ -30,13 +30,16 @@ import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.block.Block;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,10 +48,7 @@ public class GeyserLegacyNativeModWorldManager extends GeyserNativeModWorldManag
 
     public GeyserLegacyNativeModWorldManager(MinecraftServer server) {
         super(server);
-        List<Integer> allBlockStates = BuiltInRegistries.BLOCK
-            .stream()
-            .map(BuiltInRegistries.BLOCK::getId)
-            .toList();
+        IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
 
         List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
