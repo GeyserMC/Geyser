@@ -134,6 +134,10 @@ public class Item {
         return baseComponents.get(type);
     }
 
+    public Component getName(GeyserItemStack stack) {
+        return baseComponents.getOrDefault(DataComponentTypes.ITEM_NAME, Component.empty());
+    }
+
     public String translationKey() {
         return "item." + javaIdentifier.namespace() + "." + javaIdentifier.value();
     }
