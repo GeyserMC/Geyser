@@ -317,7 +317,7 @@ public class BlockBreakHandler {
         } else {
             // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
             ItemMapping mapping = item.getMapping(session);
-            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
+            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(session, item.getAmount(), item.getAllComponents(), mapping) : null;
             CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(state.javaId());
             SkullCache.Skull skull = session.getSkullCache().getSkulls().get(position);
 

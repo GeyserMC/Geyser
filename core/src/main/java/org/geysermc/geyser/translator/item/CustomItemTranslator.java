@@ -25,100 +25,87 @@
 
 package org.geysermc.geyser.translator.item;
 
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.predicate.MinecraftPredicate;
+import org.geysermc.geyser.api.predicate.PredicateStrategy;
+import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
+import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import it.unimi.dsi.fastutil.Pair;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
-import java.util.List;
-import java.util.OptionalInt;
+import java.util.Collection;
 
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
 public final class CustomItemTranslator {
 
+    /**
+     * Looks up whether a Java item is a custom Bedrock item on our end.
+     * @param session the session
+     * @param stackSize the stack size
+     * @param components ALL components of the item; not just the patch
+     * @param mapping the current Bedrock item mapping we have
+     * @return the custom item definition, or null
+     */
     @Nullable
-    public static ItemDefinition getCustomItem(DataComponents components, ItemMapping mapping) {
+    public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
         if (components == null) {
             return null;
         }
-        List<Pair<CustomItemOptions, ItemDefinition>> customMappings = mapping.getCustomItemOptions();
-        if (customMappings.isEmpty()) {
+
+        Multimap<Key, GeyserCustomMappingData> allCustomItems = mapping.getCustomItemDefinitions();
+        if (allCustomItems == null) {
             return null;
         }
 
-        float customModelDataInt = 0;
-        CustomModelData customModelData = components.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-        if (customModelData != null) {
-            if (!customModelData.floats().isEmpty()) {
-                customModelDataInt = customModelData.floats().get(0);
-            }
+        Key itemModel = components.get(DataComponentTypes.ITEM_MODEL);
+        if (itemModel == null) {
+            return null;
+        }
+        Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
+        if (customItems.isEmpty()) {
+            return null;
         }
 
-        boolean checkDamage = mapping.getJavaItem().defaultMaxDamage() > 0;
-        int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentTypes.DAMAGE, 0);
-        boolean unbreakable = checkDamage && !isDamaged(components, damage);
+        ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
 
-        for (Pair<CustomItemOptions, ItemDefinition> mappingTypes : customMappings) {
-            CustomItemOptions options = mappingTypes.key();
+        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
+        // As with predicate conflict detection, this only works for common predicates that are backed using record classes in the API module, since they work with .equals().
+        // JSON mappings use only these common predicates, extensions may not.
+        Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>();
+        for (GeyserCustomMappingData customMapping : customItems) {
+            boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
+            boolean allMatch = true;
 
-            // Code note: there may be two or more conditions that a custom item must follow, hence the "continues"
-            // here with the return at the end.
-
-            // Implementation details: Java's predicate system works exclusively on comparing float numbers.
-            // A value doesn't necessarily have to match 100%; it just has to be the first to meet all predicate conditions.
-            // This is also why the order of iteration is important as the first to match will be the chosen display item.
-            // For example, if CustomModelData is set to 2f as the requirement, then the NBT can be any number greater or equal (2, 3, 4...)
-            // The same behavior exists for Damage (in fraction form instead of whole numbers),
-            // and Damaged/Unbreakable handles no damage as 0f and damaged as 1f.
-
-            if (checkDamage) {
-                if (unbreakable && options.unbreakable() == TriState.FALSE) {
-                    continue;
-                }
-
-                OptionalInt damagePredicate = options.damagePredicate();
-                if (damagePredicate.isPresent() && damage < damagePredicate.getAsInt()) {
-                    continue;
-                }
-            } else {
-                if (options.unbreakable() != TriState.NOT_SET || options.damagePredicate().isPresent()) {
-                    // These will never match on this item. 1.19.2 behavior
-                    // Maybe move this to CustomItemRegistryPopulator since it'll be the same for every item? If so, add a test.
-                    continue;
+            for (MinecraftPredicate<? super ItemPredicateContext> predicate : customMapping.definition().predicates()) {
+                boolean value = calculatedPredicates.computeIfAbsent(predicate, x -> predicate.test(context));
+                if (value) {
+                    if (needsOnlyOneMatch) {
+                        return customMapping.itemDefinition();
+                    }
+                } else {
+                    allMatch = false;
+                    // If we need everything to match, that is no longer possible, so break
+                    if (!needsOnlyOneMatch) {
+                        break;
+                    }
                 }
             }
-
-            OptionalInt customModelDataOption = options.customModelData();
-            if (customModelDataOption.isPresent() && customModelDataInt < customModelDataOption.getAsInt()) {
-                continue;
+            if (allMatch) {
+                return customMapping.itemDefinition();
             }
-
-            if (options.defaultItem()) {
-                return null;
-            }
-
-            return mappingTypes.value();
         }
-
         return null;
-    }
-
-    /* These two functions are based off their Mojmap equivalents from 1.19.2 */
-
-    private static boolean isDamaged(DataComponents components, int damage) {
-        return isDamagableItem(components) && damage > 0;
-    }
-
-    private static boolean isDamagableItem(DataComponents components) {
-        // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
-        return components.get(DataComponentTypes.UNBREAKABLE) == null;
     }
 
     private CustomItemTranslator() {
