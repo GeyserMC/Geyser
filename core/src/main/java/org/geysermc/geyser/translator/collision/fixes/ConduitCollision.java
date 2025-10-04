@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.collision;
+package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^dirt_path$", passDefaultBoxes = true)
-public class DirtPathCollision extends BlockCollision {
-    public DirtPathCollision(BlockState state, BoundingBox[] defaultBoxes) {
-        super(defaultBoxes);
+@CollisionRemapper(regex = "^conduit$", passDefaultBoxes = true)
+public class ConduitCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.1875 + CollisionManager.COLLISION_TOLERANCE * 1.01;
+
+    public ConduitCollision(BlockState state, BoundingBox[] boxes) {
+        super(boxes);
     }
 
-    // Needs to run before the main correction code or it can move the player into blocks
-    // This is counteracted by the main collision code pushing them out
     @Override
-    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {
-        // In Bedrock, dirt paths are solid blocks, so the player must be pushed down.
-        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        double blockMaxY = y + 1;
-        if (Math.abs(blockMaxY - playerMinY) <= CollisionManager.COLLISION_TOLERANCE) {
-            playerCollision.translate(0, -0.0625, 0);
-        }
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+        // Check for conduit bug (conduit is lifted from the ground on Java unlike Bedrock where conduit is placed on the ground)
+        blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }
