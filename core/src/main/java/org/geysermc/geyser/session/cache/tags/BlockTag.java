@@ -47,6 +47,7 @@ public final class BlockTag {
     public static final Tag<Block> WOODEN_FENCES = create("wooden_fences");
     public static final Tag<Block> FENCE_GATES = create("fence_gates");
     public static final Tag<Block> WOODEN_PRESSURE_PLATES = create("wooden_pressure_plates");
+    public static final Tag<Block> WOODEN_SHELVES = create("wooden_shelves");
     public static final Tag<Block> DOORS = create("doors");
     public static final Tag<Block> SAPLINGS = create("saplings");
     public static final Tag<Block> BAMBOO_BLOCKS = create("bamboo_blocks");
@@ -93,6 +94,13 @@ public final class BlockTag {
     public static final Tag<Block> TERRACOTTA = create("terracotta");
     public static final Tag<Block> COMPLETES_FIND_TREE_TUTORIAL = create("completes_find_tree_tutorial");
     public static final Tag<Block> SHULKER_BOXES = create("shulker_boxes");
+    public static final Tag<Block> COPPER_CHESTS = create("copper_chests");
+    public static final Tag<Block> LIGHTNING_RODS = create("lightning_rods");
+    public static final Tag<Block> COPPER = create("copper");
+    public static final Tag<Block> CHAINS = create("chains");
+    public static final Tag<Block> COPPER_GOLEM_STATUES = create("copper_golem_statues");
+    public static final Tag<Block> LANTERNS = create("lanterns");
+    public static final Tag<Block> BARS = create("bars");
     public static final Tag<Block> CEILING_HANGING_SIGNS = create("ceiling_hanging_signs");
     public static final Tag<Block> STANDING_SIGNS = create("standing_signs");
     public static final Tag<Block> BEE_ATTRACTIVE = create("bee_attractive");
@@ -180,6 +188,7 @@ public final class BlockTag {
     public static final Tag<Block> INCORRECT_FOR_NETHERITE_TOOL = create("incorrect_for_netherite_tool");
     public static final Tag<Block> INCORRECT_FOR_DIAMOND_TOOL = create("incorrect_for_diamond_tool");
     public static final Tag<Block> INCORRECT_FOR_IRON_TOOL = create("incorrect_for_iron_tool");
+    public static final Tag<Block> INCORRECT_FOR_COPPER_TOOL = create("incorrect_for_copper_tool");
     public static final Tag<Block> INCORRECT_FOR_STONE_TOOL = create("incorrect_for_stone_tool");
     public static final Tag<Block> INCORRECT_FOR_GOLD_TOOL = create("incorrect_for_gold_tool");
     public static final Tag<Block> INCORRECT_FOR_WOODEN_TOOL = create("incorrect_for_wooden_tool");

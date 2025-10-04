@@ -41,7 +41,10 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
 
@@ -213,6 +216,14 @@ public class Block {
             throw new RuntimeException("Block ID has already been set!");
         }
         this.javaId = javaId;
+    }
+
+    public boolean is(GeyserSession session, Tag<Block> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
     }
 
     @Override

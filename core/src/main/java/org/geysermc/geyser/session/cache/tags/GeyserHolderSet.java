@@ -95,6 +95,13 @@ public final class GeyserHolderSet<T> {
         return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null);
     }
 
+    public boolean contains(@NonNull GeyserSession session, @Nullable T object) {
+        if (object == null) {
+            return false;
+        }
+        return session.getTagCache().is(this, object);
+    }
+
     /**
      * Resolves the HolderSet, and automatically maps the network IDs to their respective object types.
      * If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache. If it is an inline HolderSet, the list of inline elements will be returned.

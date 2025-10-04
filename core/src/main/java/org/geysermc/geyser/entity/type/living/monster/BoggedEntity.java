@@ -53,7 +53,7 @@ public class BoggedEntity extends AbstractSkeletonEntity {
 
     @Override
     protected @NonNull InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.SHEARS && readyForShearing()) {
+        if (itemInHand.is(Items.SHEARS) && readyForShearing()) {
             return InteractiveTag.SHEAR;
         }
         return super.testMobInteraction(hand, itemInHand);
@@ -61,7 +61,7 @@ public class BoggedEntity extends AbstractSkeletonEntity {
 
     @Override
     protected @NonNull InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.SHEARS && readyForShearing()) {
+        if (itemInHand.is(Items.SHEARS) && readyForShearing()) {
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);

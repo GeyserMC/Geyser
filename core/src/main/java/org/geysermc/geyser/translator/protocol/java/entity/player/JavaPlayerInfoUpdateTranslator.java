@@ -91,11 +91,10 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
                 playerEntity.setUsername(name);
-                playerEntity.setTexturesProperty(texturesProperty);
 
                 if (self) {
-                    SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
-                            GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
+                    playerEntity.setSkin(profile, true,
+                        () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 }
             }
         }

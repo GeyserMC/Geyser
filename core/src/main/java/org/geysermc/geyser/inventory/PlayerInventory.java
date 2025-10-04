@@ -71,7 +71,7 @@ public class PlayerInventory extends Inventory {
      * @return If the player is holding the item in either hand
      */
     public boolean isHolding(@NonNull Item item) {
-        return getItemInHand().asItem() == item || getOffhand().asItem() == item;
+        return getItemInHand().is(item) || getOffhand().is(item);
     }
 
     public GeyserItemStack getItemInHand(@NonNull Hand hand) {
@@ -96,10 +96,6 @@ public class PlayerInventory extends Inventory {
             EquipmentSlot.CHESTPLATE, items[6],
             EquipmentSlot.HELMET, items[5]
         );
-    }
-
-    public boolean eitherHandMatchesItem(@NonNull Item item) {
-        return getItemInHand().asItem() == item || getItemInHand(Hand.OFF_HAND).asItem() == item;
     }
 
     public void setItemInHand(@NonNull GeyserItemStack item) {

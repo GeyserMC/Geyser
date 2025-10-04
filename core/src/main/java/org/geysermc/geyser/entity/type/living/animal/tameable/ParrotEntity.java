@@ -52,21 +52,21 @@ public class ParrotEntity extends TameableEntity {
         return null;
     }
 
-    private boolean isTameFood(Item item) {
-        return session.getTagCache().is(ItemTag.PARROT_FOOD, item);
+    private boolean isTameFood(GeyserItemStack item) {
+        return item.is(session, ItemTag.PARROT_FOOD);
     }
 
-    private boolean isPoisonousFood(Item item) {
-        return session.getTagCache().is(ItemTag.PARROT_POISONOUS_FOOD, item);
+    private boolean isPoisonousFood(GeyserItemStack item) {
+        return item.is(session, ItemTag.PARROT_POISONOUS_FOOD);
     }
 
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
-        if (!tame && isTameFood(itemInHand.asItem())) {
+        if (!tame && isTameFood(itemInHand)) {
             return InteractiveTag.FEED;
-        } else if (isPoisonousFood(itemInHand.asItem())) {
+        } else if (isPoisonousFood(itemInHand)) {
             return InteractiveTag.FEED;
         } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
             // Sitting/standing
@@ -79,9 +79,9 @@ public class ParrotEntity extends TameableEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
-        if (!tame && isTameFood(itemInHand.asItem())) {
+        if (!tame && isTameFood(itemInHand)) {
             return InteractionResult.SUCCESS;
-        } else if (isPoisonousFood(itemInHand.asItem())) {
+        } else if (isPoisonousFood(itemInHand)) {
             return InteractionResult.SUCCESS;
         } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
             // Sitting/standing

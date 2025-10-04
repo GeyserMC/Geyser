@@ -54,10 +54,10 @@ public class GeyserNeoForgeDumpInfo extends BootstrapDumpInfo {
     private final List<ModInfo> mods;
 
     public GeyserNeoForgeDumpInfo(MinecraftServer server) {
-        this.platformName = FMLLoader.launcherHandlerName();
-        this.platformVersion = FMLLoader.versionInfo().neoForgeVersion();
-        this.minecraftVersion = FMLLoader.versionInfo().mcVersion();
-        this.dist = FMLLoader.getDist();
+        this.platformName = server.getServerModName();
+        this.platformVersion = FMLLoader.getCurrent().getVersionInfo().neoForgeVersion();
+        this.minecraftVersion = FMLLoader.getCurrent().getVersionInfo().mcVersion();
+        this.dist = FMLLoader.getCurrent().getDist();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
         this.serverPort = server.getPort();
         this.onlineMode = server.usesAuthentication();

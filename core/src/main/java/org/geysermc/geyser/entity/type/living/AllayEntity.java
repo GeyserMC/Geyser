@@ -30,8 +30,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -60,9 +60,9 @@ public class AllayEntity extends MobEntity {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
             // Maybe better as another tag?
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
-        } else if (!this.hand.isValid() && !itemInHand.isEmpty()) {
+        } else if (getMainHandItem().isEmpty() && !itemInHand.isEmpty()) {
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
-        } else if (this.hand.isValid() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
+        } else if (!getMainHandItem().isEmpty() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
             // Seems like there isn't a good tag for this yet
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
         } else {
@@ -76,10 +76,10 @@ public class AllayEntity extends MobEntity {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
             //TOCHECK sound
             return InteractionResult.SUCCESS;
-        } else if (!this.hand.isValid() && !itemInHand.isEmpty()) {
+        } else if (getMainHandItem().isEmpty() && !itemInHand.isEmpty()) {
             //TODO play sound?
             return InteractionResult.SUCCESS;
-        } else if (this.hand.isValid() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
+        } else if (!getMainHandItem().isEmpty() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
             //TOCHECK also play sound here?
             return InteractionResult.SUCCESS;
         } else {
@@ -88,6 +88,6 @@ public class AllayEntity extends MobEntity {
     }
 
     private boolean isDuplicationItem(GeyserItemStack itemStack) {
-        return itemStack.asItem() == Items.AMETHYST_SHARD;
+        return itemStack.is(session, ItemTag.DUPLICATES_ALLAYS);
     }
 }

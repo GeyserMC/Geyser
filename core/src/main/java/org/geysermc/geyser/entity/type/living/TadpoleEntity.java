@@ -62,6 +62,6 @@ public class TadpoleEntity extends AbstractFishEntity {
     }
 
     private boolean isFood(GeyserItemStack itemStack) {
-        return session.getTagCache().is(ItemTag.FROG_FOOD, itemStack);
+        return itemStack.is(session, ItemTag.FROG_FOOD);
     }
 }

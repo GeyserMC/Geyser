@@ -148,7 +148,7 @@ public abstract class Inventory {
         items[slot] = newItem;
 
         // Lodestone caching
-        if (newItem.asItem() == Items.COMPASS) {
+        if (newItem.is(Items.COMPASS)) {
             var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
             if (tracker != null) {
                 session.getLodestoneCache().cacheInventoryItem(newItem, tracker);

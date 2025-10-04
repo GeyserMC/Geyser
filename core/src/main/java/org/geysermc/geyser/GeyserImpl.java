@@ -94,6 +94,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CodeOfConductManager;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.NewsHandler;
@@ -296,7 +297,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (isReloading) {
             // If we're reloading, the default locale in the config might have changed.
             GeyserLocale.finalizeDefaultLocale(this);
+        } else {
+            CodeOfConductManager.load();
         }
+
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
@@ -683,6 +687,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         ResourcePackLoader.clear();
+        CodeOfConductManager.getInstance().save();
 
         this.setEnabled(false);
     }

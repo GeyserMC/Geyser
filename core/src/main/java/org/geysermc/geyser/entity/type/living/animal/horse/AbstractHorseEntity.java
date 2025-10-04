@@ -165,7 +165,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 return InteractiveTag.ATTACH_CHEST;
             }
 
-            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE) {
+            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE)) {
                 // Will open the inventory to be saddled
                 return InteractiveTag.OPEN_CONTAINER;
             }
@@ -221,7 +221,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             }
 
             // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
-            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE)) {
+            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE))) {
                 // Will open the inventory to be saddled
                 return InteractionResult.SUCCESS;
             }
@@ -245,6 +245,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
+        // TODO this doesn't seem right anymore... (as of Java 1.21.9)
         return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
     }
 
@@ -260,7 +261,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else if (!passengers.isEmpty()) {
             return testHorseInteraction(hand, itemInHand);
         } else {
-            if (Items.SADDLE == itemInHand.asItem()) {
+            if (itemInHand.is(Items.SADDLE)) {
                 return InteractiveTag.OPEN_CONTAINER;
             }
 

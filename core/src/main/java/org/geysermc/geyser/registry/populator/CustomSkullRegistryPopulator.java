@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -179,14 +180,13 @@ public class CustomSkullRegistryPopulator {
      */
     private static @Nullable String getProfileFromUuid(String uuid) {
         try {
-            String uuidDigits = uuid.replace("-", "");
-            if (uuidDigits.length() != 32) {
-                GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
-                return null;
-            }
-            return SkinProvider.requestTexturesFromUUID(uuid).get();
+            UUID parsed = UUID.fromString(uuid);
+            return SkinProvider.requestTexturesFromUUID(parsed).get();
         } catch (InterruptedException | ExecutionException e) {
             GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
+            return null;
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
             return null;
         }
     }

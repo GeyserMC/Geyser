@@ -62,7 +62,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
+                if (session.getPlayerInventory().getItemInHand().is(Items.SHIELD)) {
                     break;
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),

@@ -54,7 +54,7 @@ public class SnowGolemEntity extends GolemEntity {
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (Items.SHEARS == itemInHand.asItem() && isAlive() && !getFlag(EntityFlag.SHEARED)) {
+        if (itemInHand.is(Items.SHEARS) && isAlive() && !getFlag(EntityFlag.SHEARED)) {
             // Shearing the snow golem
             return InteractiveTag.SHEAR;
         }
@@ -64,7 +64,7 @@ public class SnowGolemEntity extends GolemEntity {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (Items.SHEARS == itemInHand.asItem() && isAlive() && !getFlag(EntityFlag.SHEARED)) {
+        if (itemInHand.is(Items.SHEARS) && isAlive() && !getFlag(EntityFlag.SHEARED)) {
             // Shearing the snow golem
             return InteractionResult.SUCCESS;
         }

@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
@@ -46,9 +45,10 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.EntityUtils;
@@ -82,15 +82,6 @@ import java.util.UUID;
 public class LivingEntity extends Entity {
     protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
 
-    protected ItemData helmet = ItemData.AIR;
-    protected ItemData chestplate = ItemData.AIR;
-    protected ItemData leggings = ItemData.AIR;
-    protected ItemData boots = ItemData.AIR;
-    protected ItemData body = ItemData.AIR;
-    protected ItemData saddle = ItemData.AIR;
-    protected ItemData hand = ItemData.AIR;
-    protected ItemData offhand = ItemData.AIR;
-
     @Getter(value = AccessLevel.NONE)
     protected float health = 1f; // The default value in Java Edition before any entity metadata is sent
     @Getter(value = AccessLevel.NONE)
@@ -118,34 +109,48 @@ public class LivingEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
+    public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
+        GeyserItemStack stack = equipment.get(slot);
+        if (stack == null) {
+            return GeyserItemStack.EMPTY;
+        }
+        return stack;
+    }
+
+    public GeyserItemStack getMainHandItem() {
+        return getItemInSlot(EquipmentSlot.MAIN_HAND);
+    }
+
+    public GeyserItemStack getOffHandItem() {
+        return getItemInSlot(EquipmentSlot.OFF_HAND);
+    }
+
+    public boolean isHolding(Item item) {
+        return getMainHandItem().is(item) || getOffHandItem().is(item);
+    }
+
     public void setHelmet(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.HELMET, stack);
-        this.helmet = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setChestplate(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.CHESTPLATE, stack);
-        this.chestplate = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setLeggings(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.LEGGINGS, stack);
-        this.leggings = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setBoots(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.BOOTS, stack);
-        this.boots = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setBody(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.BODY, stack);
-        this.body = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setSaddle(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.SADDLE, stack);
-        this.saddle = ItemTranslator.translateToBedrock(session, stack);
 
         boolean saddled = false;
         if (!stack.isEmpty()) {
@@ -158,12 +163,10 @@ public class LivingEntity extends Entity {
 
     public void setHand(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.MAIN_HAND, stack);
-        this.hand = ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void setOffhand(GeyserItemStack stack) {
         this.equipment.put(EquipmentSlot.OFF_HAND, stack);
-        this.offhand = ItemTranslator.translateToBedrock(session, stack);
     }
 
     protected void updateSaddled(boolean saddled) {
@@ -178,13 +181,9 @@ public class LivingEntity extends Entity {
     }
 
     public void switchHands() {
-        GeyserItemStack javaOffhand = this.equipment.get(EquipmentSlot.OFF_HAND);
+        GeyserItemStack offhand = this.equipment.get(EquipmentSlot.OFF_HAND);
         this.equipment.put(EquipmentSlot.OFF_HAND, this.equipment.get(EquipmentSlot.MAIN_HAND));
-        this.equipment.put(EquipmentSlot.MAIN_HAND, javaOffhand);
-
-        ItemData bedrockOffhand = this.offhand;
-        this.offhand = this.hand;
-        this.hand = bedrockOffhand;
+        this.equipment.put(EquipmentSlot.MAIN_HAND, offhand);
     }
 
     @Override
@@ -279,11 +278,10 @@ public class LivingEntity extends Entity {
     }
 
     protected boolean hasShield(boolean offhand) {
-        ItemMapping shieldMapping = session.getItemMappings().getStoredItems().shield();
         if (offhand) {
-            return this.offhand.getDefinition().equals(shieldMapping.getBedrockDefinition());
+            return getOffHandItem().is(Items.SHIELD);
         } else {
-            return hand.getDefinition().equals(shieldMapping.getBedrockDefinition());
+            return getMainHandItem().is(Items.SHIELD);
         }
     }
 
@@ -342,7 +340,7 @@ public class LivingEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-        if (itemStack.asItem() == Items.NAME_TAG) {
+        if (itemStack.is(Items.NAME_TAG)) {
             InteractionResult result = checkInteractWithNameTag(itemStack);
             if (result.consumesAction()) {
                 return result;
@@ -394,39 +392,38 @@ public class LivingEntity extends Entity {
         return InteractionResult.PASS;
     }
 
-    public void updateArmor(GeyserSession session) {
+    public void updateArmor() {
         if (!valid) return;
 
-        ItemData helmet = this.helmet;
-        ItemData chestplate = this.chestplate;
+        GeyserItemStack helmet = getItemInSlot(EquipmentSlot.HELMET);
+        GeyserItemStack chestplate = getItemInSlot(EquipmentSlot.CHESTPLATE);
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
-        ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (ItemData.AIR.equals(chestplate) && helmet.getDefinition().equals(banner.getBedrockDefinition())) {
-            chestplate = this.helmet;
-            helmet = ItemData.AIR;
-        } else if (chestplate.getDefinition().equals(banner.getBedrockDefinition())) {
+        if (chestplate.isEmpty() && helmet.is(session, ItemTag.BANNERS)) {
+            chestplate = helmet;
+            helmet = GeyserItemStack.EMPTY;
+        } else if (chestplate.is(session, ItemTag.BANNERS)) {
             // Prevent chestplate banners from showing erroneously
-            chestplate = ItemData.AIR;
+            chestplate = GeyserItemStack.EMPTY;
         }
 
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);
-        armorEquipmentPacket.setHelmet(helmet);
-        armorEquipmentPacket.setChestplate(chestplate);
-        armorEquipmentPacket.setLeggings(leggings);
-        armorEquipmentPacket.setBoots(boots);
-        armorEquipmentPacket.setBody(body);
+        armorEquipmentPacket.setHelmet(ItemTranslator.translateToBedrock(session, helmet));
+        armorEquipmentPacket.setChestplate(ItemTranslator.translateToBedrock(session, chestplate));
+        armorEquipmentPacket.setLeggings(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.LEGGINGS)));
+        armorEquipmentPacket.setBoots(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BOOTS)));
+        armorEquipmentPacket.setBody(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BODY)));
 
         session.sendUpstreamPacket(armorEquipmentPacket);
     }
 
-    public void updateMainHand(GeyserSession session) {
+    public void updateMainHand() {
         if (!valid) return;
 
         MobEquipmentPacket handPacket = new MobEquipmentPacket();
         handPacket.setRuntimeEntityId(geyserId);
-        handPacket.setItem(hand);
+        handPacket.setItem(ItemTranslator.translateToBedrock(session, getMainHandItem()));
         handPacket.setHotbarSlot(-1);
         handPacket.setInventorySlot(0);
         handPacket.setContainerId(ContainerId.INVENTORY);
@@ -434,12 +431,12 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(handPacket);
     }
 
-    public void updateOffHand(GeyserSession session) {
+    public void updateOffHand() {
         if (!valid) return;
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
         offHandPacket.setRuntimeEntityId(geyserId);
-        offHandPacket.setItem(offhand);
+        offHandPacket.setItem(ItemTranslator.translateToBedrock(session, getOffHandItem()));
         offHandPacket.setHotbarSlot(-1);
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);

@@ -26,6 +26,8 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -38,29 +40,42 @@ import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class SkinManager {
+
+    private static final Cache<ResolvableProfile, GameProfile> RESOLVED_PROFILES_CACHE = CacheBuilder.newBuilder()
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .build();
+    private static final UUID EMPTY_UUID = new UUID(0L, 0L);
+    public static final GameProfile EMPTY_PROFILE = new GameProfile((UUID) null, null);
+    public static final ResolvableProfile EMPTY_RESOLVABLE_PROFILE = new ResolvableProfile(EMPTY_PROFILE, null, null, null, null, false);
 
     static final String GEOMETRY = new String(FileUtils.readAllBytes("bedrock/geometries/geo.json"), StandardCharsets.UTF_8);
 
     /**
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
-    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
+    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, AvatarEntity playerEntity) {
         // First: see if we have the cached skin texture ID.
         GameProfileData data = GameProfileData.from(playerEntity);
         Skin skin = null;
@@ -143,7 +158,7 @@ public class SkinManager {
         return entry;
     }
 
-    public static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinData skinData) {
+    public static void sendSkinPacket(GeyserSession session, AvatarEntity entity, SkinData skinData) {
         Skin skin = skinData.skin();
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
@@ -190,7 +205,82 @@ public class SkinManager {
             .build();
     }
 
-    public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
+    public static CompletableFuture<GameProfile> resolveProfile(ResolvableProfile profile) {
+        GameProfile partial = profile.getProfile();
+        if (!profile.isDynamic()) {
+            // This is easy: the server has provided the entire profile for us (or however much it knew),
+            // and is asking us to use this
+            return CompletableFuture.completedFuture(partial);
+        } else if (!partial.getProperties().isEmpty() || (partial.getId() == null && partial.getName() == null)) {
+            // If properties have been provided to us, or no ID and no name have been provided, create a static profile from
+            // what we do know
+            // This replicates vanilla Java client behaviour
+            String name = partial.getName() == null ? "" : partial.getName();
+            UUID uuid = partial.getName() == null ? EMPTY_UUID : createOfflinePlayerUUID(partial.getName());
+            GameProfile completed = new GameProfile(uuid, name);
+            completed.setProperties(partial.getProperties());
+            return CompletableFuture.completedFuture(completed);
+        }
+
+        GameProfile cached = RESOLVED_PROFILES_CACHE.getIfPresent(profile);
+        if (cached != null) {
+            return CompletableFuture.completedFuture(cached);
+        }
+
+        // The resolvable profile is dynamic - server wants the client (us) to retrieve the full GameProfile
+        // from Mojang's API
+
+        // The partial profile *should* always have either a name or a UUID, not both
+        CompletableFuture<GameProfile> completedProfileFuture;
+        if (partial.getName() != null) {
+            completedProfileFuture = SkinProvider.requestUUIDFromUsername(partial.getName())
+                .thenApply(uuid -> new GameProfile(uuid, partial.getName()));
+        } else {
+            completedProfileFuture = SkinProvider.requestUsernameFromUUID(partial.getId())
+                .thenApply(name -> new GameProfile(partial.getId(), name));
+        }
+
+        return completedProfileFuture
+            .thenCompose(nameAndUUID -> {
+                // Fallback to partial if anything goes wrong - should replicate vanilla Java client behaviour
+                if (nameAndUUID.getId() == null || nameAndUUID.getName() == null) {
+                    return CompletableFuture.completedFuture(partial);
+                }
+
+                return SkinProvider.requestTexturesFromUUID(nameAndUUID.getId())
+                    .thenApply(encoded -> {
+                        if (encoded == null) {
+                            return partial;
+                        }
+
+                        List<GameProfile.Property> properties = new ArrayList<>();
+                        properties.add(new GameProfile.Property("textures", encoded));
+                        nameAndUUID.setProperties(properties);
+                        return nameAndUUID;
+                    });
+            })
+            .thenApply(resolved -> {
+                RESOLVED_PROFILES_CACHE.put(profile, resolved);
+                return resolved;
+            });
+    }
+
+    public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
+        Map<GameProfile.TextureType, GameProfile.Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile %s, got: %s".formatted(profile, e.getMessage()));
+            return null;
+        }
+
+        if (textures == null) {
+            return null;
+        }
+        return textures.get(type);
+    }
+
+    public static void requestAndHandleSkinAndCape(AvatarEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (skinData == null) {
@@ -211,7 +301,7 @@ public class SkinManager {
         });
     }
 
-    public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
+    public static void handleBedrockSkin(AvatarEntity playerEntity, BedrockClientData clientData) {
         GeyserImpl geyser = GeyserImpl.getInstance();
         if (geyser.getConfig().isDebugMode()) {
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
@@ -238,6 +328,10 @@ public class SkinManager {
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
+    }
+
+    public static UUID createOfflinePlayerUUID(String username) {
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
 
     public record GameProfileData(String skinUrl, String capeUrl, boolean isAlex) {
@@ -278,7 +372,7 @@ public class SkinManager {
          * @param entity entity to build the GameProfileData from
          * @return The built GameProfileData
          */
-        public static @Nullable GameProfileData from(PlayerEntity entity) {
+        public static @Nullable GameProfileData from(AvatarEntity entity) {
             String texturesProperty = entity.getTexturesProperty();
             if (texturesProperty == null) {
                 // Likely offline mode

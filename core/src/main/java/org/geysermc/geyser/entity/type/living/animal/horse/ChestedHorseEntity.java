@@ -54,7 +54,7 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     protected boolean testForChest(@NonNull GeyserItemStack itemInHand) {
-        return itemInHand.asItem() == Items.CHEST && !getFlag(EntityFlag.CHESTED);
+        return itemInHand.is(Items.CHEST) && !getFlag(EntityFlag.CHESTED);
     }
 
     @Override

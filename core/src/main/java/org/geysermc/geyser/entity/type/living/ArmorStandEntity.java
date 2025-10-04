@@ -32,7 +32,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -42,6 +41,7 @@ import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
@@ -257,7 +257,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public InteractionResult interactAt(Hand hand) {
-        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).asItem() != Items.NAME_TAG) {
+        if (!isMarker && !session.getPlayerInventory().getItemInHand(hand).is(Items.NAME_TAG)) {
             // Java Edition returns SUCCESS if in spectator mode, but this is overridden with an earlier check on the client
             return InteractionResult.CONSUME;
         } else {
@@ -332,8 +332,7 @@ public class ArmorStandEntity extends LivingEntity {
             return;
         }
         boolean isNametagEmpty = nametag.isEmpty();
-        if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
-                || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offhand.equals(ItemData.AIR))) {
+        if (!isNametagEmpty && hasAnyEquipment()) {
             // Reset scale of the proper armor stand
             setScale(getScale());
             // Set the proper armor stand to invisible to show armor
@@ -394,6 +393,12 @@ public class ArmorStandEntity extends LivingEntity {
         if (sendMetadata) {
             this.updateBedrockMetadata();
         }
+    }
+
+    private boolean hasAnyEquipment() {
+        return (!getItemInSlot(EquipmentSlot.HELMET).isEmpty() || !getItemInSlot(EquipmentSlot.CHESTPLATE).isEmpty()
+            || !getItemInSlot(EquipmentSlot.LEGGINGS).isEmpty() || !getItemInSlot(EquipmentSlot.BOOTS).isEmpty()
+            || !getMainHandItem().isEmpty() || !getOffHandItem().isEmpty());
     }
 
     @Override
