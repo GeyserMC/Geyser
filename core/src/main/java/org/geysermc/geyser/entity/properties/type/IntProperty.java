@@ -26,16 +26,30 @@
 package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.type.GeyserIntEntityProperty;
 
-public class IntProperty implements PropertyType {
-    private final String name;
-    private final int max;
-    private final int min;
+public record IntProperty(
+    String name,
+    int max,
+    int min,
+    Integer defaultValue
+) implements PropertyType<Integer, IntEntityProperty>, GeyserIntEntityProperty {
 
-    public IntProperty(String name, int min, int max) {
-        this.name = name;
-        this.max = max;
-        this.min = min;
+    public IntProperty {
+        if (min > max) {
+            throw new IllegalArgumentException("Cannot create int entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
+                .formatted(name, min, max));
+        }
+        if (defaultValue < min || defaultValue > max) {
+            throw new IllegalArgumentException("Cannot create int entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
+                .formatted(name, defaultValue, min, max));
+        }
+        if (min < -1000000 || max > 1000000) {
+            // https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#a-note-on-large-integer-entity-property-values
+            GeyserImpl.getInstance().getLogger().warning("Using int entity properties with min / max values larger than +- 1 million is not recommended!");
+        }
     }
 
     @Override
@@ -46,5 +60,18 @@ public class IntProperty implements PropertyType {
                 .putInt("min", min)
                 .putInt("type", 0)
                 .build();
+    }
+
+    @Override
+    public IntEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue == null ? min : defaultValue);
+    }
+
+    @Override
+    public IntEntityProperty createValue(int index, Integer value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
+        return new IntEntityProperty(index, value);
     }
 }

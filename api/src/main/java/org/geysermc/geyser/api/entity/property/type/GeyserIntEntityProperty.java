@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
-import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 
-public record BooleanProperty(
-    String name,
-    Boolean defaultValue
-) implements PropertyType<Boolean, IntEntityProperty>, GeyserBooleanEntityProperty {
+/**
+ * Represents an int-backed entity property with inclusive bounds.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>Values must be always within the {@code [min(), max()]} bounds</li>
+ *     <li>Molang evaluation uses floats under the hood; very large integers can lose precision.
+ *         Prefer keeping values in a practical range to avoid rounding issues.</li>
+ * </ul>
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(String, String, int, int, Integer)
+ */
+public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
 
-    @Override
-    public NbtMap nbtMap() {
-        return NbtMap.builder()
-                .putString("name", name)
-                .putInt("type", 2)
-                .build();
-    }
+    /**
+     * @return the inclusive lower bound for this property
+     */
+    int min();
 
-    @Override
-    public IntEntityProperty defaultValue(int index) {
-        return createValue(index, defaultValue != null && defaultValue);
-    }
-
-    @Override
-    public IntEntityProperty createValue(int index, Boolean value) {
-        if (value == null) {
-            return defaultValue(index);
-        }
-        return new IntEntityProperty(index, value ? 1 : 0);
-    }
+    /**
+     * @return the inclusive upper bound for this property
+     */
+    int max();
 }

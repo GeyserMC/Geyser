@@ -28,9 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
 import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -41,7 +39,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
-import java.util.Locale;
 import java.util.UUID;
 
 @Getter
@@ -55,30 +52,24 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
     }
 
     @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, "temperate");
-        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
-    }
-
-    @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         GeyserItemStack stack = GeyserItemStack.from(entityMetadata.getValue());
-        propertyManager.add(VanillaEntityProperties.CLIMATE_VARIANT_ID, getVariantOrFallback(session, stack));
+        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session, stack));
         updateBedrockEntityProperties();
         this.itemStack = stack;
     }
 
-    private static String getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
+    private static TemperatureVariantAnimal.BuiltInVariant getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
         Holder<Key> holder = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
         if (holder != null) {
             Key chickenVariant = holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id));
             for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
                 if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
-                    return chickenVariant.asMinimalString().toLowerCase(Locale.ROOT);
+                    return variant;
                 }
             }
         }
 
-        return TemperatureVariantAnimal.BuiltInVariant.TEMPERATE.toBedrock();
+        return TemperatureVariantAnimal.BuiltInVariant.TEMPERATE;
     }
 }
