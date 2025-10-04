@@ -1134,6 +1134,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
+            SkinManager.removeCachedBedrockSkin(this);
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
                 if (task != null) {
@@ -2313,7 +2314,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean isLinked() {
-        return false; //todo
+        // Java and linked players' uuid version is 4, while bedrock is 0
+        return this.javaUuid().version() == 4;
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
