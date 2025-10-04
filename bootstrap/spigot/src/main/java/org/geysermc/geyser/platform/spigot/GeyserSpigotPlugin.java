@@ -282,10 +282,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 }
 
                 if (isViaVersion && isViaVersionNeeded()) {
-                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, isPaper);
+                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this);
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, isPaper);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this);
                 }
                 geyserLogger.debug("Using world manager of type: " + this.geyserWorldManager.getClass().getSimpleName());
             } catch (Throwable e) {
