@@ -40,13 +40,11 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.List;
 import java.util.Objects;
 
-public class GeyserViaModWorldManager extends GeyserWorldManager {
+public class GeyserLegacyNativeModWorldManager extends GeyserNativeModWorldManager {
     private final Int2IntMap oldToNewBlockId;
 
-    private final MinecraftServer server;
-
-    public GeyserViaModWorldManager(MinecraftServer server) {
-        this.server = server;
+    public GeyserLegacyNativeModWorldManager(MinecraftServer server) {
+        super(server);
         List<Integer> allBlockStates = BuiltInRegistries.BLOCK
             .stream()
             .map(BuiltInRegistries.BLOCK::getId)
@@ -74,5 +72,10 @@ public class GeyserViaModWorldManager extends GeyserWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         int nativeBlockId = super.getBlockAt(session, x, y, z);
         return oldToNewBlockId.getOrDefault(nativeBlockId, nativeBlockId);
+    }
+
+    @Override
+    public boolean isLegacy() {
+        return true;
     }
 }

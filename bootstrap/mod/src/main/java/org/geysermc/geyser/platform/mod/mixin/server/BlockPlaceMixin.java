@@ -34,6 +34,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -43,6 +44,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// TODO Abstract this out to adapters
+// Allow Geyser to feed adapters Consumers so adapters can trigger Geyser-specific behaviours?
 @Mixin(BlockItem.class)
 public class BlockPlaceMixin {
 
@@ -58,7 +61,7 @@ public class BlockPlaceMixin {
             return;
         }
 
-        Vector3f position = Vector3f.from(
+        Vector3i position = Vector3i.from(
             pos.getX(),
             pos.getY(),
             pos.getZ()
@@ -66,9 +69,17 @@ public class BlockPlaceMixin {
 
         LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
-        placeBlockSoundPacket.setPosition(position);
+        placeBlockSoundPacket.setPosition(position.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(Block.BLOCK_STATE_REGISTRY.getId(placedState)));
+
+        if (!GeyserImpl.getInstance().getWorldManager().isLegacy()) {
+            placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(Block.BLOCK_STATE_REGISTRY.getId(placedState)));
+        } else {
+            placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(
+                    GeyserImpl.getInstance().getWorldManager().getBlockAt(session, position)
+            ));
+        }
+
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);

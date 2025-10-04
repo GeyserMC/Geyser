@@ -38,6 +38,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.CommandManagerAdapter;
+import org.geysermc.geyser.adapters.PlatformAdapters;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -58,7 +59,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     public GeyserNeoForgeBootstrap(ModContainer container) {
         super(new GeyserNeoForgePlatform(container));
 
-        commandManagerAdapter = CommandManagerAdapter.get();
+        commandManagerAdapter = PlatformAdapters.getCommandManagerAdapter();
 
         if (isServer()) {
             // Set as an event so we can get the proper IP and port if needed

@@ -34,6 +34,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.CommandManagerAdapter;
+import org.geysermc.geyser.adapters.PlatformAdapters;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -56,7 +57,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         FabricLoader.getInstance().getEntrypointContainers("geyser:adapter", ModInitializer.class)
             .forEach(entrypoint -> entrypoint.getEntrypoint().onInitialize());
 
-        CommandManagerAdapter<?, ?> commandManagerAdapter = CommandManagerAdapter.get();
+        CommandManagerAdapter<?, ?> commandManagerAdapter = PlatformAdapters.getCommandManagerAdapter();
 
         if (isServer()) {
             // Set as an event, so we can get the proper IP and port if needed

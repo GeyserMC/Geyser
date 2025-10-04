@@ -28,7 +28,6 @@ package org.geysermc.geyser.platform.mod;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.minecraft.SharedConstants;
 import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -42,7 +41,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
+import org.geysermc.geyser.platform.mod.world.GeyserNativeModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -124,7 +123,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = ModConstants.isModernVersion() ? new GeyserModWorldManager(server) : null;
+        this.geyserWorldManager = ModConstants.isModernVersion() ? new GeyserNativeModWorldManager(server) : null;
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
