@@ -1721,7 +1721,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
         hasAcceptedCodeOfConduct = true;
-        sendDownstreamConfigurationPacket(new ServerboundAcceptCodeOfConductPacket(null)); // TODO fix in MCPL
+        sendDownstreamConfigurationPacket(ServerboundAcceptCodeOfConductPacket.INSTANCE);
     }
 
     public void prepareForConfigurationForm() {
