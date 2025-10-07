@@ -514,6 +514,31 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             }
         }
 
+        // Validate packet size to prevent "Packet too large" errors
+        // Minecraft protocol has a default limit of 8MB (8388608 bytes)
+        final int MAX_PACKET_SIZE = 8388608; // 8MB
+        if (payload.length > MAX_PACKET_SIZE) {
+            session.getGeyser().getLogger().error(
+                "Chunk packet too large for player " + session.getPlayerEntity().getUsername() +
+                " at coordinates (" + packet.getX() + ", " + packet.getZ() +
+                "): size " + payload.length + " bytes exceeds limit of " + MAX_PACKET_SIZE + " bytes. " +
+                "This chunk contains " + bedrockBlockEntities.size() + " block entities and " +
+                sectionCount + " sections. Consider reducing custom skulls, holograms, or complex block entities in this area."
+            );
+
+            // Log debug information if debug mode is enabled
+            if (session.getGeyser().getConfig().isDebugMode()) {
+                session.getGeyser().getLogger().debug("Chunk details - X: " + packet.getX() +
+                    ", Z: " + packet.getZ() +
+                    ", Block entities: " + bedrockBlockEntities.size() +
+                    ", Section count: " + sectionCount +
+                    ", Payload size: " + payload.length);
+            }
+
+            // Skip sending this oversized packet to prevent disconnection
+            return;
+        }
+
         LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
         levelChunkPacket.setSubChunksLength(sectionCount);
         levelChunkPacket.setCachingEnabled(false);
