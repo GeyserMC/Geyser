@@ -109,7 +109,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
-        byte[] payload;
+        byte[] payload=null;
         ByteBuf byteBuf = null;
 
         // calculate the difference between the java dimension minY and the bedrock dimension minY as
@@ -512,6 +512,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             if (byteBuf != null) {
                 byteBuf.release(); // Release buffer to allow buffer pooling to be useful
             }
+        }
+
+        if (payload == null) {
+            return;
         }
 
         // Validate packet size to prevent "Packet too large" errors
