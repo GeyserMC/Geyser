@@ -53,6 +53,7 @@ public interface GeyserEntity {
      * @param property a {@link GeyserEntityProperty} registered for this type in the {@link GeyserDefineEntityPropertiesEvent}
      * @param value the new property value
      * @param <T> the type of the value
+     * @since 2.9.0
      */
     default <T> void updateProperty(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
         this.updatePropertiesBatched(consumer -> consumer.update(property, value));

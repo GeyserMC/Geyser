@@ -164,12 +164,12 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
 
     /**
      * Registers a {@code boolean}-backed entity property with a default of {@code false}.
+     * @see #registerBooleanProperty(Identifier, Identifier, boolean)
      *
      * @param entityType the Java edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @return the created boolean property
      * @since 2.9.0
-     * @see #registerBooleanProperty(Identifier, Identifier, boolean)
      */
     default GeyserBooleanEntityProperty registerBooleanProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier) {
         return registerBooleanProperty(entityType, propertyIdentifier, false);
