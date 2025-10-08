@@ -32,7 +32,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.type.Entity;
@@ -40,6 +39,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -64,7 +64,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     public static final float[] Z_OFFSETS = {1.7F, 0.0F, -1.7F, 0.0F};
 
     public static final BooleanProperty CAN_MOVE_PROPERTY = new BooleanProperty(
-        Identifier.of("can_move"),
+        IdentifierImpl.of("can_move"),
         true
     );
 

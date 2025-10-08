@@ -27,9 +27,9 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 public class ArmadilloEntity extends AnimalEntity {
 
     public static final EnumProperty<State> STATE_PROPERTY = new EnumProperty<>(
-        Identifier.of("armadillo_state"),
+        IdentifierImpl.of("armadillo_state"),
         State.class,
         State.UNROLLED
     );
