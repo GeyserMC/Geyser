@@ -60,7 +60,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
             } else {
                 // The original translation will be translated
                 // Can be tested with 1.19.4: {"translate":"%s","with":[{"text":"weeeeeee"}]}
-                localeString = key;
+                return null;
             }
         }
 
