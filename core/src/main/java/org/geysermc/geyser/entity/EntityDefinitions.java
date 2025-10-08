@@ -733,7 +733,9 @@ public final class EntityDefinitions {
                     .height(0.49f).width(0.98f)
                     .addTranslator(MetadataTypes.WEATHERING_COPPER_STATE, CopperGolemEntity::setWeatheringState)
                     .addTranslator(MetadataTypes.COPPER_GOLEM_STATE, CopperGolemEntity::setGolemState)
-                    .properties(VanillaEntityProperties.COPPER_GOLEM)
+                    .property(CopperGolemEntity.CHEST_INTERACTION_PROPERTY)
+                    .property(CopperGolemEntity.HAS_FLOWER_PROPERTY)
+                    .property(CopperGolemEntity.OXIDATION_LEVEL_STATE_ENUM_PROPERTY)
                     .build();
             CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
                     .type(EntityType.CREAKING)
