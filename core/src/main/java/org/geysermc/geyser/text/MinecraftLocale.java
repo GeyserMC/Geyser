@@ -28,6 +28,7 @@ package org.geysermc.geyser.text;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.language.LocaleManager;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
@@ -38,6 +39,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -174,6 +176,29 @@ public class MinecraftLocale {
         if (Files.exists(localeOverride) && Files.isReadable(localeOverride)) {
             langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
+
+        // Load locales from extensions (the ultimate override)
+        GeyserImpl.getInstance().getLanguageManager().registerTranslationStrings(new LocaleManager() {
+            @Override
+            public String getLocaleCode() {
+                return locale;
+            }
+
+            @Override
+            public void registerTranslationString(String key, String value) {
+                langMap.put(key, value);
+            }
+
+            @Override
+            public boolean hasTranslationString(String key) {
+                return langMap.containsKey(key);
+            }
+
+            @Override
+            public Map<String, String> getTranslationStrings() {
+                return Collections.unmodifiableMap(langMap);
+            }
+        });
 
         if (!langMap.isEmpty()) {
             LOCALE_MAPPINGS.put(lowercaseLocale, langMap);

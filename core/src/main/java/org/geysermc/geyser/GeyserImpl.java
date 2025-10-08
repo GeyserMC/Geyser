@@ -54,12 +54,14 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomTranslationsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.language.LanguageProvider;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -73,6 +75,7 @@ import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.language.LanguageManager;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
@@ -99,6 +102,7 @@ import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -151,6 +155,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
+    private final LanguageManager languageManager = new LanguageManager();
 
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
@@ -245,6 +250,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         /* Initialize translators */
         EntityDefinitions.init();
         MessageTranslator.init();
+
+        // Register LanguageProviders before loading any Locale
+        eventBus.fire((GeyserDefineCustomTranslationsEvent) languageManager::registerLanguageProvider);
 
         // Download the latest asset list and cache it
         AssetUtils.generateAssetCache().whenComplete((aVoid, ex) -> {
@@ -795,6 +803,30 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Override
     public @NonNull CommandSource consoleCommandSource() {
         return getLogger();
+    }
+
+    @Override
+    public @NonNull String getDefaultLocale() {
+        return GeyserLocale.getDefaultLocale();
+    }
+
+    @Override
+    public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
+        String translation = MinecraftLocale.getLocaleStringIfPresent(key, locale);
+        if (translation == null) translation = defaultValue;
+
+        return translation;
+    }
+
+    @Override
+    public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NotNull @NonNull String... parameters) {
+        String translation = getTranslationStringOrDefault(locale, key, defaultValue);
+        int order = 0;
+        for (String parameter : parameters) {
+            translation = translation.replaceFirst("%s", parameter).replace("%" + order + "$s", parameter);
+        }
+
+        return translation;
     }
 
     public int buildNumber() {

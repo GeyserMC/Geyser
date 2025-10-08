@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 
 import java.util.UUID;
@@ -59,6 +60,44 @@ public interface CommandSource {
         for (String message : messages) {
             sendMessage(message);
         }
+    }
+
+    /**
+     * Translates the given message using the key and source's locale then sends the message
+     * @param key the translation key
+     */
+    default void sendTranslatedMessage(String key) {
+        sendMessage(GeyserApi.api().getTranslationString(locale(), key));
+    }
+
+    /**
+     * Translates the given message using the key and source's locale then sends the message
+     * @param key the translation key
+     * @param defaultValue the fallback value if the translation does not exist
+     */
+    default void sendTranslatedOrDefaultMessage(String key, String defaultValue) {
+        sendMessage(GeyserApi.api().getTranslationStringOrDefault(locale(), key, defaultValue));
+    }
+
+    /**
+     * Translates the given message using the key and source's locale then sends the message
+     * using the provided parameters
+     * @param key the translation key
+     * @param parameters the parameters for the translation
+     */
+    default void sendTranslatedMessage(String key, String... parameters) {
+        sendMessage(GeyserApi.api().getTranslationString(locale(), key, parameters));
+    }
+
+    /**
+     * Translates the given message using the key and source's locale then sends the message
+     * using the provided parameters
+     * @param key the translation key
+     * @param defaultValue the fallback value if the translation does not exist
+     * @param parameters the parameters for the translation
+     */
+    default void sendTranslatedOrDefaultMessage(String key, String defaultValue, String... parameters) {
+        sendMessage(GeyserApi.api().getTranslationStringOrDefault(locale(), key, defaultValue, parameters));
     }
 
     /**
