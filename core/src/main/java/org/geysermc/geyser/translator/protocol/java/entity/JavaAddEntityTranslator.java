@@ -96,7 +96,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             // only load skin if we're not in a test environment.
             // Otherwise, it tries to load various resources
             if (!EnvironmentUtils.IS_UNIT_TESTING) {
-                SkinManager.requestAndHandleSkinAndCape(entity, session, null);
+                SkinManager.requestAndHandleSkinAndCape(entity, session);
             }
             return;
         }

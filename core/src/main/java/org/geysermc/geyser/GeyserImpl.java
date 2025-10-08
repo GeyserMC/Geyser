@@ -642,6 +642,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     @Override
+    public boolean isLinkedPlayer(@NonNull UUID uuid) {
+        GeyserSession session = connectionByUuid(uuid);
+        return session != null && session.isLinked();
+    }
+
+    @Override
     public boolean sendForm(@NonNull UUID uuid, @NonNull Form form) {
         Objects.requireNonNull(uuid);
         Objects.requireNonNull(form);
