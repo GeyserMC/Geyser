@@ -43,12 +43,15 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -63,11 +66,6 @@ public class Block {
     private final @Nullable BlockEntityType blockEntityType;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
-    /**
-     * Used for classes we don't have implemented yet that override Mojmap getCloneItemStack with their own item.
-     * A supplier prevents any issues arising where the Items class finishes before the Blocks class.
-     */
-    private final Supplier<Item> pickItem;
     protected Item item = null;
     private int javaId = -1;
 
@@ -83,7 +81,6 @@ public class Block {
         this.blockEntityType = builder.blockEntityType;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
-        this.pickItem = builder.pickItem;
 
         BlockState firstState = builder.build(this).get(0);
         this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
@@ -159,13 +156,6 @@ public class Block {
             return this.item = Item.byBlock(this);
         }
         return this.item;
-    }
-
-    public ItemStack pickItem(BlockState state) {
-        if (this.pickItem != null) {
-            return new ItemStack(this.pickItem.get().javaId());
-        }
-        return new ItemStack(this.asItem().javaId());
     }
 
     /**
@@ -248,7 +238,6 @@ public class Block {
         private BlockEntityType blockEntityType = null;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
-        private Supplier<Item> pickItem;
 
         // We'll use this field after building
         private Property<?>[] propertyKeys = null;
@@ -306,7 +295,6 @@ public class Block {
         }
 
         public Builder pickItem(Supplier<Item> pickItem) {
-            this.pickItem = pickItem;
             return this;
         }
 

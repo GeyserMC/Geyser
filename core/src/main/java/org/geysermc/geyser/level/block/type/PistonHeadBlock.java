@@ -25,18 +25,8 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.property.Properties;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-
 public class PistonHeadBlock extends Block {
     public PistonHeadBlock(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-    }
-
-    @Override
-    public ItemStack pickItem(BlockState state) {
-        Block block = state.getValue(Properties.PISTON_TYPE).equals("sticky") ? Blocks.STICKY_PISTON : Blocks.PISTON;
-        return new ItemStack(block.asItem().javaId());
     }
 }
