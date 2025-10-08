@@ -23,42 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
+/**
+ * Represents a string-backed enum property.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>There cannot be more than 16 values</li>
+ *     <li>The values' names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores</li>
+ * </ul>
+ *
+ * @since 2.9.0
+ */
+public interface GeyserStringEnumProperty extends GeyserEntityProperty<String> {
 
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
-    }
-
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
-    }
-
-    @Override
-    public int indexOf(E value) {
-        return value.ordinal();
-    }
-
-    @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
-    }
+    /**
+     * @return an unmodifiable list of all registered values
+     * @since 2.9.0
+     */
+    List<String> values();
 }

@@ -23,42 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+/**
+ * Represents an int-backed entity property with inclusive bounds.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>Values must be always within the {@code [min(), max()]} bounds</li>
+ *     <li>Molang evaluation uses floats under the hood; very large integers can lose precision.
+ *         Prefer keeping values in a practical range to avoid rounding issues.</li>
+ * </ul>
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(Identifier, Identifier, int, int, Integer)
+ * @since 2.9.0
+ */
+public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
 
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
+    /**
+     * @return the inclusive lower bound for this property
+     * @since 2.9.0
+     */
+    int min();
 
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
-    }
-
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
-    }
-
-    @Override
-    public int indexOf(E value) {
-        return value.ordinal();
-    }
-
-    @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
-    }
+    /**
+     * @return the inclusive upper bound for this property
+     * @since 2.9.0
+     */
+    int max();
 }

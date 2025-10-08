@@ -23,42 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.impl;
 
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.Objects;
 
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
+public record IdentifierImpl(Key identifier) implements Identifier {
 
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
+    public static IdentifierImpl of(String namespace, String value) throws IllegalArgumentException {
+        Objects.requireNonNull(namespace, "namespace cannot be null!");
+        Objects.requireNonNull(value, "value cannot be null!");
+        try {
+            return new IdentifierImpl(MinecraftKey.key(namespace, value));
+        } catch (Throwable e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
+    // FIXME using the identifier interface from the API breaks tests
+    public static IdentifierImpl of(String value) {
+        return of(Identifier.DEFAULT_NAMESPACE, value);
     }
 
     @Override
-    public int indexOf(E value) {
-        return value.ordinal();
+    public String namespace() {
+        return identifier.namespace();
     }
 
     @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
+    public String path() {
+        return identifier.value();
+    }
+
+    @Override
+    public String toString() {
+        return identifier.toString();
     }
 }

@@ -27,8 +27,10 @@ package org.geysermc.geyser.entity.type.living;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,19 +47,40 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import java.util.UUID;
 
 public class CopperGolemEntity extends GolemEntity {
-    public static final String CHEST_INTERACTION = "minecraft:chest_interaction";
-    public static final String HAS_FLOWER = "has_flower";
-    public static final String OXIDIZATION_LEVEL = "minecraft:oxidation_level";
+    public static final BooleanProperty HAS_FLOWER_PROPERTY = new BooleanProperty(
+        IdentifierImpl.of("has_flower"),
+        false
+    );
+
+    public static final EnumProperty<ChestInteractionState> CHEST_INTERACTION_PROPERTY = new EnumProperty<>(
+        IdentifierImpl.of("chest_interaction"),
+        ChestInteractionState.class,
+        ChestInteractionState.NONE
+    );
+
+    public static final EnumProperty<OxidationLevelState> OXIDATION_LEVEL_STATE_ENUM_PROPERTY = new EnumProperty<>(
+        IdentifierImpl.of("oxidation_level"),
+        OxidationLevelState.class,
+        OxidationLevelState.UNOXIDIZED
+    );
+
+    public enum ChestInteractionState {
+        NONE,
+        TAKE,
+        TAKE_FAIL,
+        PUT,
+        PUT_FAIL
+    }
+
+    public enum OxidationLevelState {
+        UNOXIDIZED,
+        EXPOSED,
+        WEATHERED,
+        OXIDIZED
+    }
 
     public CopperGolemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-    }
-
-    @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add(CHEST_INTERACTION, "none");
-        propertyManager.add(HAS_FLOWER, false);
-        propertyManager.add(OXIDIZATION_LEVEL, "unoxidized");
     }
 
     @Override
@@ -95,29 +118,29 @@ public class CopperGolemEntity extends GolemEntity {
         super.setSaddle(stack);
 
         // Equipment on Java, entity property on bedrock
-        propertyManager.add(HAS_FLOWER, stack.is(Items.POPPY));
+        HAS_FLOWER_PROPERTY.apply(propertyManager, stack.is(Items.POPPY));
         updateBedrockEntityProperties();
     }
 
     public void setWeatheringState(EntityMetadata<WeatheringCopperState, ? extends MetadataType<WeatheringCopperState>> metadata) {
         WeatheringCopperState state = metadata.getValue();
-        propertyManager.add(OXIDIZATION_LEVEL, switch (state) {
-            case UNAFFECTED -> "unoxidized";
-            case EXPOSED -> "exposed";
-            case WEATHERED -> "weathered";
-            case OXIDIZED -> "oxidized";
+        OXIDATION_LEVEL_STATE_ENUM_PROPERTY.apply(propertyManager, switch (state) {
+            case UNAFFECTED -> OxidationLevelState.UNOXIDIZED;
+            case EXPOSED -> OxidationLevelState.EXPOSED;
+            case WEATHERED -> OxidationLevelState.WEATHERED;
+            case OXIDIZED -> OxidationLevelState.OXIDIZED;
         });
         updateBedrockEntityProperties();
     }
 
     public void setGolemState(EntityMetadata<CopperGolemState, ? extends MetadataType<CopperGolemState>> metadata) {
         CopperGolemState state = metadata.getValue();
-        propertyManager.add(CHEST_INTERACTION, switch (state) {
-            case IDLE -> "none";
-            case GETTING_ITEM -> "take";
-            case GETTING_NO_ITEM -> "take_fail";
-            case DROPPING_ITEM -> "put";
-            case DROPPING_NO_ITEM -> "put_fail";
+        CHEST_INTERACTION_PROPERTY.apply(propertyManager, switch (state) {
+            case IDLE -> ChestInteractionState.NONE;
+            case GETTING_ITEM -> ChestInteractionState.TAKE;
+            case GETTING_NO_ITEM -> ChestInteractionState.TAKE_FAIL;
+            case DROPPING_ITEM -> ChestInteractionState.PUT;
+            case DROPPING_NO_ITEM -> ChestInteractionState.PUT_FAIL;
         });
         updateBedrockEntityProperties();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,40 +25,42 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
 import org.geysermc.geyser.api.util.Identifier;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
-public record EnumProperty<E extends Enum<E>>(
+public record StringEnumProperty(
     Identifier identifier,
-    Class<E> enumClass,
-    E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
+    List<String> values,
+    int defaultIndex
+) implements AbstractEnumProperty<String>, GeyserStringEnumProperty {
 
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
+    public StringEnumProperty {
+        if (defaultIndex < 0) {
+            throw new IllegalArgumentException("Unable to find default value for enum property with name " + identifier);
+        }
+        validateAllValues(identifier, values);
     }
 
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
+    public StringEnumProperty(Identifier name, List<String> values, @Nullable String defaultValue) {
+        this(name, values, defaultValue == null ? 0 : values.indexOf(defaultValue));
     }
 
+    @Override
     public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
+        return values;
     }
 
     @Override
-    public int indexOf(E value) {
-        return value.ordinal();
+    public int indexOf(String value) {
+        return values.indexOf(value);
     }
 
     @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
+    public @NonNull String defaultValue() {
+        return values.get(defaultIndex);
     }
 }

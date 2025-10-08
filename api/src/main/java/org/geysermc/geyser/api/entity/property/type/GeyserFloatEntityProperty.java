@@ -23,42 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+/**
+ * Represents a float-backed entity property with inclusive bounds.
+ * Values associated with this property must be always within the {@code [min(), max()]} bounds.
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(Identifier, Identifier, float, float, Float)
+ * @since 2.9.0
+ */
+public interface GeyserFloatEntityProperty extends GeyserEntityProperty<Float> {
 
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
+    /**
+     * @return the inclusive lower bound for this property
+     * @since 2.9.0
+     */
+    float min();
 
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
-    }
-
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
-    }
-
-    @Override
-    public int indexOf(E value) {
-        return value.ordinal();
-    }
-
-    @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
-    }
+    /**
+     * @return the inclusive upper bound for this property
+     * @since 2.9.0
+     */
+    float max();
 }
