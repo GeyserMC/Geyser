@@ -84,7 +84,6 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -1695,16 +1694,29 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
+        // Also close all currently open forms.
+        if (formCache.hasFormOpen()) {
+            closeForm();
+        }
+
+        // Cache this form, let's see whether we can open it immediately
+        formCache.addForm(form);
+
         // Also close current inventories, otherwise the form will not show
         if (inventoryHolder != null) {
             // We'll open the form when the client confirms current inventory being closed
-            formCache.addForm(form);
             InventoryUtils.sendJavaContainerClose(inventoryHolder);
             InventoryUtils.closeInventory(this, inventoryHolder, true);
-            return true;
-        } else {
-            return doSendForm(form);
         }
+
+        // Open the current form, unless we're in the process of closing another
+        // If we're waiting, the form will be sent when Bedrock confirms closing
+        // If we don't wait, the client rejects the form as it is busy
+        if (!isClosingInventory()) {
+            formCache.resendAllForms();
+        }
+
+        return true;
     }
 
     /**
@@ -2427,7 +2439,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void closeForm() {
-        sendUpstreamPacket(new ClientboundCloseFormPacket());
+        formCache.closeForms();
     }
 
     public void addCommandEnum(String name, String enums) {
