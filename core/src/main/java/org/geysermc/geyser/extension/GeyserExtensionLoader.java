@@ -245,8 +245,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
                     if (
                         !(description.humanApiVersion() >= 2 &&
-                            description.majorApiVersion() >= 8 &&
-                            description.minorApiVersion() >= 4)
+                            description.majorApiVersion() >= 9 &&
+                            description.minorApiVersion() >= 0)
                     ) {
                         logger.error(
                             GeyserLocale.getLocaleStringLog(
