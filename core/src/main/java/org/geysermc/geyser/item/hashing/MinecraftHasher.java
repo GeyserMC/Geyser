@@ -37,6 +37,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
@@ -45,6 +46,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -131,10 +133,15 @@ public interface MinecraftHasher<Type> {
         .accept("value", STRING, GameProfile.Property::getValue)
         .optionalNullable("signature", STRING, GameProfile.Property::getSignature));
 
-    MinecraftHasher<GameProfile> GAME_PROFILE = mapBuilder(builder -> builder
-        .optionalNullable("name", STRING, GameProfile::getName)
-        .optionalNullable("id", UUID, GameProfile::getId)
-        .optionalList("properties", GAME_PROFILE_PROPERTY, GameProfile::getProperties));
+    MinecraftHasher<ResolvableProfile> RESOLVABLE_PROFILE = mapBuilder(builder -> builder
+        .optionalNullable("name", STRING, resolvableProfile -> resolvableProfile.getProfile().getName())
+        .optionalNullable("id", UUID, resolvableProfile -> resolvableProfile.getProfile().getId())
+        .optionalList("properties", GAME_PROFILE_PROPERTY, resolvableProfile -> resolvableProfile.getProfile().getProperties())
+        .optionalNullable("texture", KEY, ResolvableProfile::getBody)
+        .optionalNullable("cape", KEY, ResolvableProfile::getCape)
+        .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
+        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel()).map(GameProfile.TextureModel::name))
+    );
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 
