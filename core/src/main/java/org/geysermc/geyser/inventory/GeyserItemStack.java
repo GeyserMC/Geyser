@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -45,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
@@ -115,6 +117,14 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
+    public boolean is(Item item) {
+        return getJavaId() == item.javaId();
+    }
+
+    public boolean isSameItem(GeyserItemStack other) {
+        return getJavaId() == other.getJavaId();
+    }
+
     /**
      * Returns all components of this item - base and additional components sent over the network.
      * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
@@ -171,6 +181,10 @@ public class GeyserItemStack {
     public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
         T value = getComponent(type);
         return value == null ? supplier.get() : value;
+    }
+
+    public boolean hasComponent(@NonNull DataComponentType<?> type) {
+        return getComponent(type) != null;
     }
 
     public int getNetId() {
@@ -248,6 +262,17 @@ public class GeyserItemStack {
         return new ItemStackSlotDisplay(this.getItemStack());
     }
 
+    public Component getName() {
+        return getComponentElseGet(DataComponentTypes.CUSTOM_NAME, () -> {
+            WrittenBookContent book = getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+            if (book != null) {
+                return Component.text(book.getTitle().getRaw());
+            }
+
+            return asItem().getName(this);
+        });
+    }
+
     public int getMaxDamage() {
         return getComponentElseGet(DataComponentTypes.MAX_DAMAGE, () -> 0);
     }
@@ -263,7 +288,7 @@ public class GeyserItemStack {
     }
 
     public boolean isDamageable() {
-        return getComponent(DataComponentTypes.MAX_DAMAGE) != null && getComponent(DataComponentTypes.UNBREAKABLE) == null && getComponent(DataComponentTypes.DAMAGE) != null;
+        return hasComponent(DataComponentTypes.MAX_DAMAGE) && !hasComponent(DataComponentTypes.UNBREAKABLE) && hasComponent(DataComponentTypes.DAMAGE);
     }
 
     public Item asItem() {
