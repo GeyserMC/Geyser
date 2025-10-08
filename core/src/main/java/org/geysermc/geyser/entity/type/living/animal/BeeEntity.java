@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.item.type.Item;
@@ -45,7 +46,7 @@ import java.util.UUID;
 public class BeeEntity extends AnimalEntity {
 
     public static final BooleanProperty NECTAR_PROPERTY = new BooleanProperty(
-        "minecraft:has_nectar",
+        Identifier.of("has_nectar"),
         false
     );
 

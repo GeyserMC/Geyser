@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
@@ -1240,56 +1241,71 @@ public final class EntityDefinitions {
         // entities would be initialized before this event is called
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
             @Override
-            public GeyserFloatEntityProperty registerFloatProperty(@NonNull String identifier, @NonNull String name, float min, float max, @Nullable Float defaultValue) {
+            public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
                 Objects.requireNonNull(identifier);
-                Objects.requireNonNull(name);
-                FloatProperty property = new FloatProperty(name, min, max, defaultValue);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                FloatProperty property = new FloatProperty(propertyId, min, max, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
 
             @Override
-            public IntProperty registerIntegerProperty(@NonNull String identifier, @NonNull String name, int min, int max, @Nullable Integer defaultValue) {
+            public IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
                 Objects.requireNonNull(identifier);
-                Objects.requireNonNull(name);
-                IntProperty property = new IntProperty(name, min, max, defaultValue);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                IntProperty property = new IntProperty(propertyId, min, max, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
 
             @Override
-            public BooleanProperty registerBooleanProperty(@NonNull String identifier, @NonNull String name, boolean defaultValue) {
+            public BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
                 Objects.requireNonNull(identifier);
-                Objects.requireNonNull(name);
-                BooleanProperty property = new BooleanProperty(name, defaultValue);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                BooleanProperty property = new BooleanProperty(propertyId, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
 
             @Override
-            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull String identifier, @NonNull String name, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
                 Objects.requireNonNull(identifier);
-                Objects.requireNonNull(name);
+                Objects.requireNonNull(propertyId);
                 Objects.requireNonNull(enumClass);
-                EnumProperty<E> property = new EnumProperty<>(name, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                EnumProperty<E> property = new EnumProperty<>(propertyId, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
 
             @Override
-            public GeyserStringEnumProperty registerEnumProperty(@NonNull String identifier, @NonNull String name, @NonNull List<String> values, @Nullable String defaultValue) {
+            public GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
                 Objects.requireNonNull(identifier);
-                Objects.requireNonNull(name);
+                Objects.requireNonNull(propertyId);
                 Objects.requireNonNull(values);
-                StringEnumProperty property = new StringEnumProperty(name, values, defaultValue);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                StringEnumProperty property = new StringEnumProperty(propertyId, values, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
 
             @Override
-            public Collection<GeyserEntityProperty<?>> properties(@NonNull String identifier) {
+            public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
                 Objects.requireNonNull(identifier);
-                var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(identifier);
+                var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(identifier.toString());
                 if (definition == null) {
                     throw new IllegalArgumentException("Unknown entity type: " + identifier);
                 }
@@ -1304,13 +1320,13 @@ public final class EntityDefinitions {
         }
     }
 
-    private static <T> void registerProperty(String entityType, PropertyType<T, ?> property) {
-        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType);
+    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
+        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType.toString());
         if (definition == null) {
             throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
 
-        definition.registeredProperties().add(entityType, property);
+        definition.registeredProperties().add(entityType.toString(), property);
     }
 
     private EntityDefinitions() {

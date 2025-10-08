@@ -36,11 +36,14 @@ import java.util.List;
  *     <li>There cannot be more than 16 values</li>
  *     <li>The values' names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores</li>
  * </ul>
+ *
+ * @since 2.9.0
  */
 public interface GeyserStringEnumProperty extends GeyserEntityProperty<String> {
 
     /**
      * @return an unmodifiable list of all registered values
+     * @since 2.9.0
      */
     List<String> values();
 }

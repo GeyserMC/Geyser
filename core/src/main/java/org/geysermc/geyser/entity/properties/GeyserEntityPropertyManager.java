@@ -44,15 +44,15 @@ public class GeyserEntityPropertyManager {
     public GeyserEntityPropertyManager(GeyserEntityProperties properties) {
         this.properties = properties;
         for (PropertyType<?, ?> property : properties.getProperties()) {
-            String name = property.name();
+            String name = property.identifier().toString();
             int index = properties.getPropertyIndex(name);
             addProperty(name, property.defaultValue(index));
         }
     }
 
     public <T> void addProperty(PropertyType<T, ? extends EntityProperty> propertyType, T value) {
-        int index = properties.getPropertyIndex(propertyType.name());
-        this.addProperty(propertyType.name(), propertyType.createValue(index, value));
+        int index = properties.getPropertyIndex(propertyType.identifier().toString());
+        this.addProperty(propertyType.identifier().toString(), propertyType.createValue(index, value));
     }
 
     private void addProperty(String propertyName, EntityProperty entityProperty) {

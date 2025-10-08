@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.animal.farm;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
@@ -38,7 +39,7 @@ import java.util.UUID;
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
     public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
-        "minecraft:climate_variant",
+        Identifier.of("climate_variant"),
         BuiltInVariant.class,
         BuiltInVariant.TEMPERATE
     );

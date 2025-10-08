@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.entity.property.type;
 
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Represents an int-backed entity property with inclusive bounds.
@@ -37,17 +38,20 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
  *         Prefer keeping values in a practical range to avoid rounding issues.</li>
  * </ul>
  *
- * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(String, String, int, int, Integer)
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(Identifier, Identifier, int, int, Integer)
+ * @since 2.9.0
  */
 public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
 
     /**
      * @return the inclusive lower bound for this property
+     * @since 2.9.0
      */
     int min();
 
     /**
      * @return the inclusive upper bound for this property
+     * @since 2.9.0
      */
     int max();
 }

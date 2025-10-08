@@ -28,23 +28,24 @@ package org.geysermc.geyser.entity.properties.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 
 public record StringEnumProperty(
-    String name,
+    Identifier identifier,
     List<String> values,
     int defaultIndex
 ) implements AbstractEnumProperty<String>, GeyserStringEnumProperty {
 
     public StringEnumProperty {
         if (defaultIndex < 0) {
-            throw new IllegalArgumentException("Unable to find default value for enum property with name " + name);
+            throw new IllegalArgumentException("Unable to find default value for enum property with name " + identifier);
         }
-        validateAllValues(name, values);
+        validateAllValues(identifier, values);
     }
 
-    public StringEnumProperty(String name, List<String> values, @Nullable String defaultValue) {
+    public StringEnumProperty(Identifier name, List<String> values, @Nullable String defaultValue) {
         this(name, values, defaultValue == null ? 0 : values.indexOf(defaultValue));
     }
 

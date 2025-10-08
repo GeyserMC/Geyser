@@ -27,22 +27,26 @@ package org.geysermc.geyser.api.entity.property.type;
 
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Represents a float-backed entity property with inclusive bounds.
  * Values associated with this property must be always within the {@code [min(), max()]} bounds.
  *
- * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(String, String, float, float, Float)
+ * @see GeyserDefineEntityPropertiesEvent#registerFloatProperty(Identifier, Identifier, float, float, Float)
+ * @since 2.9.0
  */
 public interface GeyserFloatEntityProperty extends GeyserEntityProperty<Float> {
 
     /**
      * @return the inclusive lower bound for this property
+     * @since 2.9.0
      */
     float min();
 
     /**
      * @return the inclusive upper bound for this property
+     * @since 2.9.0
      */
     float max();
 }

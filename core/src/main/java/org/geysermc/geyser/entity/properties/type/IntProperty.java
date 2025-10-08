@@ -29,9 +29,10 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.property.type.GeyserIntEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
 public record IntProperty(
-    String name,
+    Identifier identifier,
     int max,
     int min,
     Integer defaultValue
@@ -40,11 +41,11 @@ public record IntProperty(
     public IntProperty {
         if (min > max) {
             throw new IllegalArgumentException("Cannot create int entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
-                .formatted(name, min, max));
+                .formatted(identifier, min, max));
         }
         if (defaultValue < min || defaultValue > max) {
             throw new IllegalArgumentException("Cannot create int entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
-                .formatted(name, defaultValue, min, max));
+                .formatted(identifier, defaultValue, min, max));
         }
         if (min < -1000000 || max > 1000000) {
             // https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#a-note-on-large-integer-entity-property-values
@@ -55,7 +56,7 @@ public record IntProperty(
     @Override
     public NbtMap nbtMap() {
         return NbtMap.builder()
-                .putString("name", name)
+                .putString("name", identifier.toString())
                 .putInt("max", max)
                 .putInt("min", min)
                 .putInt("type", 0)

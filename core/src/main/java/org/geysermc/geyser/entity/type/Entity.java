@@ -776,9 +776,9 @@ public class Entity implements GeyserEntity {
                     if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
                         throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                     }
-                    int index = propertyDefinitions.getPropertyIndex(property.name());
+                    int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
                     if (index < 0) {
-                        throw new IllegalArgumentException("No property with the name " + property.name() + " has been registered.");
+                        throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
                     }
 
                     var expectedProperty = propertyDefinitions.getProperties().get(index);

@@ -28,9 +28,10 @@ package org.geysermc.geyser.entity.properties.type;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
 public record FloatProperty(
-    String name,
+    Identifier identifier,
     float max,
     float min,
     Float defaultValue
@@ -39,18 +40,18 @@ public record FloatProperty(
     public FloatProperty {
         if (min > max) {
             throw new IllegalArgumentException("Cannot create float entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
-                .formatted(name, min, max));
+                .formatted(identifier, min, max));
         }
         if (defaultValue < min || defaultValue > max) {
             throw new IllegalArgumentException("Cannot create float entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
-                .formatted(name, defaultValue, min, max));
+                .formatted(identifier, defaultValue, min, max));
         }
     }
 
     @Override
     public NbtMap nbtMap() {
         return NbtMap.builder()
-                .putString("name", name)
+                .putString("name", identifier.toString())
                 .putFloat("max", max)
                 .putFloat("min", min)
                 .putInt("type", 1)

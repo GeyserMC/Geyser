@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -40,13 +41,13 @@ public interface AbstractEnumProperty<T> extends PropertyType<T, IntEntityProper
     @Override
     default NbtMap nbtMap() {
         return NbtMap.builder()
-            .putString("name", name())
+            .putString("name", identifier().toString())
             .putList("enum", NbtType.STRING, allBedrockValues())
             .putInt("type", 3)
             .build();
     }
 
-    default void validateAllValues(String name, List<String> values) {
+    default void validateAllValues(Identifier name, List<String> values) {
         if (values.size() > 16) {
             throw new IllegalArgumentException("Cannot register enum property with name " + name + " because it has more than 16 values!");
         }

@@ -32,6 +32,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.type.Entity;
@@ -63,7 +64,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     public static final float[] Z_OFFSETS = {1.7F, 0.0F, -1.7F, 0.0F};
 
     public static final BooleanProperty CAN_MOVE_PROPERTY = new BooleanProperty(
-        "minecraft:can_move",
+        Identifier.of("can_move"),
         true
     );
 

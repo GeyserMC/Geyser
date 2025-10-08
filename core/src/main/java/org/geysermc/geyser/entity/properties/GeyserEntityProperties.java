@@ -80,7 +80,7 @@ public class GeyserEntityProperties {
         }
 
         Objects.requireNonNull(property, "property cannot be null!");
-        String name = property.name();
+        String name = property.identifier().toString();
         if (propertyIndices.containsKey(name)) {
             throw new IllegalArgumentException(
                 "Property with name " + name + " already exists on builder!");

@@ -25,16 +25,11 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
-import org.geysermc.geyser.entity.type.Entity;
-
-import java.util.Objects;
 
 public interface PropertyType<Type, NetworkRepresentation extends EntityProperty> extends GeyserEntityProperty<Type> {
     NbtMap nbtMap();
@@ -42,20 +37,6 @@ public interface PropertyType<Type, NetworkRepresentation extends EntityProperty
     NetworkRepresentation defaultValue(int index);
 
     NetworkRepresentation createValue(int index, @Nullable Type value);
-
-    @Override
-    default void updateValue(@NonNull GeyserEntity entity, @Nullable Type value) {
-        Objects.requireNonNull(entity);
-        if (!(entity instanceof Entity coreEntity)) {
-            throw new IllegalArgumentException("Cannot update non-geyser entity implementation!");
-        }
-
-        if (coreEntity.getPropertyManager() == null) {
-            throw new IllegalArgumentException("Entity has no properties!");
-        }
-
-        apply(coreEntity.getPropertyManager(), value);
-    }
 
     default void apply(GeyserEntityPropertyManager manager, Type value) {
         manager.addProperty(this, value);

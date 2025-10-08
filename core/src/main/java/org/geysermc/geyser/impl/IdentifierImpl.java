@@ -23,13 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.property.type;
+package org.geysermc.geyser.impl;
 
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.util.MinecraftKey;
 
-/**
- * Represents a boolean entity property.
- * @since 2.9.0
- */
-public interface GeyserBooleanEntityProperty extends GeyserEntityProperty<Boolean> {
+import java.util.Objects;
+
+public record IdentifierImpl(Key identifier) implements Identifier {
+
+    public static IdentifierImpl of(String namespace, String value) throws IllegalArgumentException {
+        Objects.requireNonNull(namespace, "namespace cannot be null!");
+        Objects.requireNonNull(value, "value cannot be null!");
+        try {
+            return new IdentifierImpl(MinecraftKey.key(namespace, value));
+        } catch (Throwable e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    @Override
+    public String namespace() {
+        return identifier.namespace();
+    }
+
+    @Override
+    public String path() {
+        return identifier.value();
+    }
+
+    @Override
+    public String toString() {
+        return identifier.toString();
+    }
 }

@@ -26,19 +26,20 @@
 package org.geysermc.geyser.entity.properties.type;
 
 import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 public record EnumProperty<E extends Enum<E>>(
-    String name,
+    Identifier identifier,
     Class<E> enumClass,
     E defaultValue
 ) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
 
     public EnumProperty {
-        validateAllValues(name, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
+        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
     }
 
     public List<E> values() {

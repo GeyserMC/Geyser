@@ -61,6 +61,7 @@ public interface GeyserEntity {
     /**
      * Updates multiple properties with just one update packet.
      * @see BatchPropertyUpdater
+     * @since 2.9.0
      */
     void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer);
 }

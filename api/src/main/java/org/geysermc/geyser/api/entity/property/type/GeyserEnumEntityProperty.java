@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
  * </ul>
  *
  * @param <E> the enum type
+ * @since 2.9.0
  */
 public interface GeyserEnumEntityProperty<E extends Enum<E>> extends GeyserEntityProperty<E> {
 }

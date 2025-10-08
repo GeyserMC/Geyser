@@ -26,45 +26,40 @@
 package org.geysermc.geyser.api.entity.property;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Represents a property that can be attached to an entity.
  * <p>
  * Entity properties are used to describe metadata about an entity, such as
  * integers, floats, booleans, or enums.
- *
- * @param <T> the type of value stored by this property
  * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#number-of-entity-properties-per-entity-type">
  *     Official documentation for info</a>
+ *
+ * @param <T> the type of value stored by this property
+ *
+ * @since 2.9.0
  */
 public interface GeyserEntityProperty<T> {
 
     /**
      * Gets the unique name of this property.
+     * Custom properties cannot use the vanilla namespace
+     * to avoid collisions with vanilla entity properties.
      *
-     * @return the property's name
+     * @return the property identifier
+     * @since 2.9.0
      */
     @NonNull
-    String name();
+    Identifier identifier();
 
     /**
      * Gets the default value of this property which
      * is set upon spawning entities.
      *
      * @return the default value of this property
+     * @since 2.9.0
      */
     @NonNull
     T defaultValue();
-
-    /**
-     * Updates the value of this property for the given entity.
-     * {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)} is another method
-     * that can be used for this purpose.
-     * 
-     * @param entity the Geyser entity instance to update
-     * @param value the new value, or null to reset to the default value
-     */
-    void updateValue(@NonNull GeyserEntity entity, @Nullable T value);
 }

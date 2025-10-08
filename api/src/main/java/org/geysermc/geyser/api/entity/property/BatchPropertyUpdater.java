@@ -47,6 +47,8 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
  *     updater.update(SOME_INT_PROPERTY, null); // reset to default
  * });
  * }</pre>
+ *
+ * @since 2.9.0
  */
 @FunctionalInterface
 public interface BatchPropertyUpdater {
@@ -60,6 +62,8 @@ public interface BatchPropertyUpdater {
      * @param property a {@link GeyserEntityProperty} registered for the target entity type
      * @param value    the new value, or {@code null} to reset to the default
      * @param <T>      the property's value type
+     *
+     * @since 2.9.0
      */
     <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value);
 }
