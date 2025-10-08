@@ -189,6 +189,16 @@ public abstract class WorldManager {
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
     }
 
+    /**
+     * This should be set to true if we are post-1.13 but before the latest version, and we should convert the old block state id
+     * to the current one. This only applies if we are using a platform native WorldManager
+     *
+     * @return whether there is a difference between client block state and server block state that requires extra processing
+     */
+    public boolean isLegacy() {
+        return false;
+    }
+
     protected static final Function<Int2ObjectMap<byte[]>, DataComponents> RAW_TRANSFORMER = map -> {
         try {
             Map<DataComponentType<?>, DataComponent<?, ?>> components = new HashMap<>();

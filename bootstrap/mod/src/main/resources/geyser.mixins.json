@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "org.geysermc.geyser.platform.mod.mixin",
+  "plugin": "org.geysermc.geyser.platform.mod.GeyserModMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "server.BlockPlaceMixin",
