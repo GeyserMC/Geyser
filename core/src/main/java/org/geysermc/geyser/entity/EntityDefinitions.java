@@ -83,6 +83,7 @@ import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.entity.type.living.AllayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.BatEntity;
+import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
@@ -161,6 +162,8 @@ import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
+import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -200,6 +203,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
     public static final EntityDefinition<AbstractFishEntity> COD;
+    public static final EntityDefinition<CopperGolemEntity> COPPER_GOLEM;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
     public static final EntityDefinition<CreakingEntity> CREAKING;
@@ -254,6 +258,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
     public static final EntityDefinition<BoatEntity> MANGROVE_BOAT;
     public static final EntityDefinition<ChestBoatEntity> MANGROVE_CHEST_BOAT;
+    public static final EntityDefinition<MannequinEntity> MANNEQUIN;
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
@@ -669,16 +674,27 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setLeftLegRotation)
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
-        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, livingEntityBase)
+
+        EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.<AvatarEntity>inherited(null, livingEntityBase)
+            .height(1.8f).width(0.6f)
+            .offset(1.62f)
+            .addTranslator(null) // Player main hand
+            .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
+            .build();
+
+        MANNEQUIN = EntityDefinition.inherited(MannequinEntity::new, avatarEntityBase)
+            .type(EntityType.MANNEQUIN)
+            .addTranslator(MetadataTypes.RESOLVABLE_PROFILE, MannequinEntity::setProfile)
+            .addTranslator(null) // Immovable
+            .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, MannequinEntity::setDescription)
+            .build();
+
+        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, avatarEntityBase)
                 .type(EntityType.PLAYER)
-                .height(1.8f).width(0.6f)
-                .offset(1.62f)
                 .addTranslator(MetadataTypes.FLOAT, PlayerEntity::setAbsorptionHearts)
                 .addTranslator(null) // Player score
-                .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
-                .addTranslator(null) // Player main hand
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setLeftParrot)
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setRightParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setLeftParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setRightParrot)
                 .build();
 
         EntityDefinition<MobEntity> mobEntityBase = EntityDefinition.inherited(MobEntity::new, livingEntityBase)
@@ -711,6 +727,13 @@ public final class EntityDefinitions {
             BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
                     .type(EntityType.BREEZE)
                     .height(1.77f).width(0.6f)
+                    .build();
+            COPPER_GOLEM = EntityDefinition.inherited(CopperGolemEntity::new, mobEntityBase)
+                    .type(EntityType.COPPER_GOLEM)
+                    .height(0.49f).width(0.98f)
+                    .addTranslator(MetadataTypes.WEATHERING_COPPER_STATE, CopperGolemEntity::setWeatheringState)
+                    .addTranslator(MetadataTypes.COPPER_GOLEM_STATE, CopperGolemEntity::setGolemState)
+                    .properties(VanillaEntityProperties.COPPER_GOLEM)
                     .build();
             CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
                     .type(EntityType.CREAKING)

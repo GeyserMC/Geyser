@@ -127,12 +127,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.testMobInteraction(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractiveTag.EQUIP_HARNESS;
                     }
-                } else if (itemInHand.asItem() == Items.SHEARS) {
+                } else if (itemInHand.is(Items.SHEARS)) {
                     if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
                         return InteractiveTag.REMOVE_HARNESS;
@@ -140,7 +140,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) != null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractiveTag.RIDE_HORSE;
             } else {
@@ -156,12 +156,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.mobInteract(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
                     }
-                } else if (itemInHand.asItem() == Items.SHEARS) {
+                } else if (itemInHand.is(Items.SHEARS)) {
                     if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
                         return InteractionResult.SUCCESS;
@@ -169,7 +169,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) == null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractionResult.SUCCESS;
             } else {

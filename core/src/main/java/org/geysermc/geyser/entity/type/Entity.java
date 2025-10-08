@@ -683,7 +683,7 @@ public class Entity implements GeyserEntity {
                 // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
                 return InteractiveTag.REMOVE_LEASH;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+            if (session.getPlayerInventory().getItemInHand(hand).is(Items.LEAD) && leashable.canBeLeashed()) {
                 // We shall leash
                 return InteractiveTag.LEASH;
             }
@@ -712,7 +712,7 @@ public class Entity implements GeyserEntity {
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD
+            if (session.getPlayerInventory().getItemInHand(hand).is(Items.LEAD)
                 && !(session.getEntityCache().getEntityByGeyserId(leashable.leashHolderBedrockId()) instanceof PlayerEntity)) {
                 // We shall leash
                 return InteractionResult.SUCCESS;
