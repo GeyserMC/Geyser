@@ -269,13 +269,17 @@ public class AvatarEntity extends LivingEntity {
     @Override
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         // Doesn't do anything for players
-        // TODO test mannequins
+        if (!(this instanceof PlayerEntity)) {
+            super.setDisplayName(entityMetadata);
+        }
     }
 
     @Override
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         // Doesn't do anything for players
-        // TODO test mannequins
+        if (!(this instanceof PlayerEntity)) {
+            super.setDisplayNameVisible(entityMetadata);
+        }
     }
 
     public void setBelowNameText(String text) {

@@ -125,7 +125,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    private String displayName;
+    protected String displayName;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */

@@ -38,14 +38,19 @@ import java.util.UUID;
 public class MannequinEntity extends AvatarEntity {
 
     public MannequinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, "Mannequin"); // TODO from translation
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, "");
     }
 
     public void setProfile(EntityMetadata<ResolvableProfile, ?> entityMetadata) {
         setSkin(entityMetadata.getValue(), true, () -> {});
     }
 
-    public void setDescription(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
 
+    public void setDescription(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // TODO
     }
 }
