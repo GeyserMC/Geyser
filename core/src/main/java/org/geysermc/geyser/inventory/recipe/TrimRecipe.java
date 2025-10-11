@@ -86,12 +86,12 @@ public final class TrimRecipe {
         return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
     }
 
-    // TODO this is WRONG. this changed. FIXME in 1.21.5
     public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
-        String itemIdentifier = context.data().getString("template_item");
-        ItemMapping itemMapping = context.session().getItemMappings().getMapping(itemIdentifier);
+        // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
+        String identifier = context.id().asString() + "_armor_trim_smithing_template";
+        ItemMapping itemMapping = context.session().getItemMappings().getMapping(identifier);
         if (itemMapping == null) {
             // This should never happen so not sure what to do here.
             itemMapping = ItemMapping.AIR;

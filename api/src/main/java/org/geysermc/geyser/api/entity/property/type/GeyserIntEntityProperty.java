@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.block.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-public class SpawnerBlock extends Block {
-    public SpawnerBlock(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
+
+/**
+ * Represents an int-backed entity property with inclusive bounds.
+ * There are a few key limitations:
+ * <ul>
+ *     <li>Values must be always within the {@code [min(), max()]} bounds</li>
+ *     <li>Molang evaluation uses floats under the hood; very large integers can lose precision.
+ *         Prefer keeping values in a practical range to avoid rounding issues.</li>
+ * </ul>
+ *
+ * @see GeyserDefineEntityPropertiesEvent#registerIntegerProperty(Identifier, Identifier, int, int, Integer)
+ * @since 2.9.0
+ */
+public interface GeyserIntEntityProperty extends GeyserEntityProperty<Integer> {
+
+    /**
+     * @return the inclusive lower bound for this property
+     * @since 2.9.0
+     */
+    int min();
+
+    /**
+     * @return the inclusive upper bound for this property
+     * @since 2.9.0
+     */
+    int max();
 }

@@ -329,8 +329,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         if (destSlot == 5) {
                             // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                            if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.hasNonBaseComponents()) {
+                            if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {

@@ -234,7 +234,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         Inventory inventory = holder.inventory();
         session.setContainerOutputFuture(session.scheduleInEventLoop(() -> {
             GeyserItemStack template = inventory.getItem(SmithingInventoryTranslator.TEMPLATE);
-            if (template.asItem() != Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE) {
+            if (!template.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)) {
                 // Technically we should probably also do this for custom items, but last I checked Bedrock doesn't even support that.
                 return;
             }

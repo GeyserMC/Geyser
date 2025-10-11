@@ -27,7 +27,6 @@ package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
-import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
 import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
@@ -74,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrim
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
@@ -109,6 +109,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     RegistryHasher<?> ITEM = registry(JavaRegistries.ITEM);
 
     RegistryHasher<?> ENTITY_TYPE = enumIdRegistry(EntityType.values());
+
+    MinecraftHasher<EntityType> ENTITY_TYPE_KEY = enumRegistry();
+
+    MinecraftHasher<BlockEntityType> BLOCK_ENTITY_TYPE_KEY = enumRegistry();
 
     RegistryHasher<?> ENCHANTMENT = registry(JavaRegistries.ENCHANTMENT);
 
@@ -346,7 +350,8 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .optional("has_twinkle", BOOL, Fireworks.FireworkExplosion::isHasTwinkle, false));
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
-        .optional("entity_data", NBT_MAP, BeehiveOccupant::getEntityData, NbtMap.EMPTY)
+        .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
+        .inlineNbt(beehiveOccupant -> beehiveOccupant.getEntityData().tag())
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 

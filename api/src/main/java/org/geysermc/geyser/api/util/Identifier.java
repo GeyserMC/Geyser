@@ -50,12 +50,15 @@ import org.jetbrains.annotations.ApiStatus;
  * If this identifier is referencing anything not in the
  * vanilla Minecraft game, the namespace cannot be "minecraft".
  * Further, paths cannot contain colons ({@code :}).
+ *
+ * @since 2.9.0
  */
 @ApiStatus.NonExtendable
 public interface Identifier {
 
     /**
      * The namespace for Minecraft.
+     * @since 2.9.0
      */
     String DEFAULT_NAMESPACE = "minecraft";
 
@@ -64,6 +67,7 @@ public interface Identifier {
      * 
      * @return the identifier for this namespace and path
      * @throws IllegalArgumentException if either namespace or path are invalid.
+     * @since 2.9.0
      */
     static Identifier of(@NonNull String namespace, @NonNull String path) {
         return GeyserApi.api().provider(Identifier.class, namespace, path);
@@ -74,6 +78,7 @@ public interface Identifier {
      *
      * @return the identifier for this namespace and path
      * @throws IllegalArgumentException if either the namespace or path are invalid
+     * @since 2.9.0
      */
     static Identifier of(String identifier) {
         String[] split = identifier.split(":");
@@ -92,17 +97,20 @@ public interface Identifier {
     }
 
     /**
-     * Returns the namespace of this identifier.
+     * @return the namespace of this identifier.
+     * @since 2.9.0
      */
     String namespace();
 
     /**
-     * Returns the path of this identifier.
+     * @return the path of this identifier.
+     * @since 2.9.0
      */
     String path();
 
     /**
      * Checks whether this identifier is using the "minecraft" namespace.
+     * @since 2.9.0
      */
     default boolean vanilla() {
         return namespace().equals(DEFAULT_NAMESPACE);

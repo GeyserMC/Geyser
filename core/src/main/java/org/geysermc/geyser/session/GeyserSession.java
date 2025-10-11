@@ -154,6 +154,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -212,6 +213,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -219,6 +221,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
 import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.serverbound.ServerboundAcceptCodeOfConductPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -398,7 +401,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * A map of all players (and their heads) that are wearing a player head with a custom texture.
      * Our workaround for these players is to give them a custom skin and geometry to emulate wearing a custom skull.
      */
-    private final Map<UUID, GameProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
+    private final Map<UUID, ResolvableProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
 
     @Setter
     private boolean droppingLecternBook;
@@ -748,6 +751,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private boolean allowVibrantVisuals = true;
+
+    @Accessors(fluent = true)
+    private boolean hasAcceptedCodeOfConduct = false;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -1463,9 +1469,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
 
-        if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
+        if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
             useItem(Hand.MAIN_HAND);
-        } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {
+        } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
             useItem(Hand.OFF_HAND);
         } else {
             // No blocking
@@ -1731,6 +1737,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
+    public void acceptCodeOfConduct() {
+        if (hasAcceptedCodeOfConduct) {
+            return;
+        }
+        hasAcceptedCodeOfConduct = true;
+        sendDownstreamConfigurationPacket(ServerboundAcceptCodeOfConductPacket.INSTANCE);
+    }
+
+    public void prepareForConfigurationForm() {
+        if (!sentSpawnPacket) {
+            connect();
+        }
+        // Disable time progression whilst the form is open
+        // Once logged into the game this is set correctly when receiving a time packet from the server
+        setDaylightCycle(false);
+    }
+
     public @NonNull PlayerInventory getPlayerInventory() {
         return this.playerInventoryHolder.inventory();
     }
@@ -1832,6 +1855,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
 
+        // Enable 2025 Content Drop 3 features on 1.21.100
+        if (GameProtocol.is1_21_100(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
+        }
+
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
@@ -1847,6 +1875,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // positions for block breaking actions, which is easier to validate
         // It does *not* mean we can dictate the break speed server-sided :(
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
+
+        if (playerEntity.getPropertyManager() != null) {
+            startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
+        }
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
@@ -1923,6 +1955,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void sendDownstreamGamePacket(Packet packet) {
         sendDownstreamPacket(packet, ProtocolState.GAME);
+    }
+
+    public void sendDownstreamConfigurationPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.CONFIGURATION);
     }
 
     /**

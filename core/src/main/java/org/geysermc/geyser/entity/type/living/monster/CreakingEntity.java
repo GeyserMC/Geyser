@@ -30,9 +30,11 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
@@ -41,8 +43,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CreakingEntity extends MonsterEntity {
-    public static final String CREAKING_STATE = "minecraft:creaking_state";
-    public static final String CREAKING_SWAYING_TICKS = "minecraft:creaking_swaying_ticks";
+
+    public static final EnumProperty<CreakingState> STATE_PROPERTY = new EnumProperty<>(
+        IdentifierImpl.of("creaking_state"),
+        CreakingState.class,
+        CreakingState.NEUTRAL
+    );
+
+    // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
+    // which i guess is responsible for some animation?
+    // it's sent over the network, all 6 "stages" 50ms in between of each other.
+    // no clue what it's used for tbh, so i'm not gonna bother implementing it
+    // - chris
+    // update: this still holds true, even a refactor later :(
+    public static final IntProperty SWAYING_TICKS_PROPERTY = new IntProperty(
+        IdentifierImpl.of("creaking_swaying_ticks"),
+        6, 0, 0
+    );
 
     private Vector3i homePosition;
 
@@ -56,33 +73,21 @@ public class CreakingEntity extends MonsterEntity {
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
-    @Override
-    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        propertyManager.add(CREAKING_STATE, "neutral");
-        // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
-        // which i guess is responsible for some animation?
-        // it's sent over the network, all 6 "stages" 50ms in between of each other.
-        // no clue what it's used for tbh, so i'm not gonna bother implementing it
-        // - chris
-        propertyManager.add(CREAKING_SWAYING_TICKS, 0);
-        propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
-    }
-
     public void setCanMove(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         setFlag(EntityFlag.BODY_ROTATION_BLOCKED, !booleanEntityMetadata.getValue());
-        propertyManager.add(CREAKING_STATE, booleanEntityMetadata.getValue() ? "hostile_unobserved" : "hostile_observed");
+        STATE_PROPERTY.apply(propertyManager, booleanEntityMetadata.getValue() ? CreakingState.HOSTILE_UNOBSERVED : CreakingState.HOSTILE_OBSERVED);
         updateBedrockEntityProperties();
     }
 
     public void setActive(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (!booleanEntityMetadata.getValue()) {
-            propertyManager.add(CREAKING_STATE, "neutral");
+            STATE_PROPERTY.apply(propertyManager, CreakingState.NEUTRAL);
         }
     }
 
     public void setIsTearingDown(EntityMetadata<Boolean,? extends MetadataType<Boolean>> booleanEntityMetadata) {
         if (booleanEntityMetadata.getValue()) {
-            propertyManager.add(CREAKING_STATE, "crumbling");
+            STATE_PROPERTY.apply(propertyManager, CreakingState.CRUMBLING);
             updateBedrockEntityProperties();
         }
     }
@@ -114,5 +119,13 @@ public class CreakingEntity extends MonsterEntity {
 
             session.sendUpstreamPacket(levelEventGenericPacket);
         }
+    }
+
+    public enum CreakingState {
+        NEUTRAL,
+        HOSTILE_OBSERVED,
+        HOSTILE_UNOBSERVED,
+        TWITCHING,
+        CRUMBLING
     }
 }

@@ -68,7 +68,12 @@ public enum GameRule {
     SPAWNRADIUS("spawnRadius", 10),
     SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", true), // JE only
     UNIVERSALANGER("universalAnger", false),
-    LOCATORBAR("locatorBar", true);
+    LOCATORBAR("locatorBar", true),
+    ALLOWENTERINGNETHERUSINGPORTALS("allowEnteringNetherUsingPortals", true), // JE only
+    COMMANDBLOCKSENABLED("commandBlocksEnabled", true),
+    PVP("pvp", true),
+    SPAWNMONSTERS("spawnMonsters", true),
+    SPAWNERBLOCKSENABLED("spawnerBlocksEnabled", true);
 
     public static final GameRule[] VALUES = values();
 

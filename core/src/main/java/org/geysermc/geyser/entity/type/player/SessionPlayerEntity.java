@@ -322,9 +322,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
-            return session.getPlayerInventory().getOffhand().asItem() == Items.SHIELD;
+            return session.getPlayerInventory().getOffhand().is(Items.SHIELD);
         } else {
-            return session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD;
+            return session.getPlayerInventory().getItemInHand().is(Items.SHIELD);
         }
     }
 
@@ -498,7 +498,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
         Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
-        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
+        if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
         }
 
@@ -539,7 +539,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             }
 
             // Bedrock will NOT allow flight when not wearing an elytra; even if it doesn't have a glider component
-            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().asItem().equals(Items.ELYTRA)) {
+            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().is(Items.ELYTRA)) {
                 return false;
             }
         }
