@@ -40,11 +40,14 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
@@ -113,6 +116,22 @@ public class GeyserItemStack {
 
     public int getAmount() {
         return isEmpty() ? 0 : amount;
+    }
+
+    public boolean is(Item item) {
+        return javaId == item.javaId();
+    }
+
+    public boolean is(GeyserSession session, Tag<Item> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+    }
+
+    public boolean isSameItem(GeyserItemStack other) {
+        return javaId == other.javaId;
     }
 
     /**
@@ -248,6 +267,10 @@ public class GeyserItemStack {
         return new ItemStackSlotDisplay(this.getItemStack());
     }
 
+    public int getMaxStackSize() {
+        return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, () -> 1);
+    }
+
     public int getMaxDamage() {
         return getComponentElseGet(DataComponentTypes.MAX_DAMAGE, () -> 0);
     }
@@ -264,6 +287,10 @@ public class GeyserItemStack {
 
     public boolean isDamageable() {
         return getComponent(DataComponentTypes.MAX_DAMAGE) != null && getComponent(DataComponentTypes.UNBREAKABLE) == null && getComponent(DataComponentTypes.DAMAGE) != null;
+    }
+
+    public boolean isDamaged() {
+        return isDamageable() && getDamage() > 0;
     }
 
     public Item asItem() {

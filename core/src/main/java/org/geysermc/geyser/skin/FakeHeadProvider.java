@@ -39,21 +39,17 @@ import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.LivingEntity;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager.GameProfileData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
-import org.geysermc.mcprotocollib.auth.GameProfile.TextureModel;
 import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -104,86 +100,44 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, @Nullable GameProfile profile) {
+    public static void setHead(GeyserSession session, AvatarEntity entity, @Nullable ResolvableProfile profile) {
         if (profile == null) {
             return;
         }
 
-        GameProfile current = session.getPlayerWithCustomHeads().get(entity.getUuid());
+        ResolvableProfile current = session.getPlayerWithCustomHeads().get(entity.getUuid());
         if (profile.equals(current)) {
             // We already did this, no need to re-compute
             return;
         }
 
-        Map<TextureType, Texture> textures;
-        try {
-            textures = profile.getTextures(false);
-        } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
-            textures = null;
-        }
-
-        if (textures == null || textures.isEmpty()) {
-            loadHeadFromProfile(session, entity, profile);
-            return;
-        }
-
-        Texture skinTexture = textures.get(TextureType.SKIN);
-
-        if (skinTexture == null) {
-            return;
-        }
-
-        Texture capeTexture = textures.get(TextureType.CAPE);
-        String capeUrl = capeTexture != null ? capeTexture.getURL() : null;
-
-        boolean isAlex = skinTexture.getModel() == TextureModel.SLIM;
-
-        loadHeadFromProfile(session, entity, new GameProfileData(skinTexture.getURL(), capeUrl, isAlex), profile);
-    }
-
-    public static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, GameProfile profile) {
-        CompletableFuture<String> texturesFuture;
-        if (profile.getId() != null) {
-            texturesFuture = SkinProvider.requestTexturesFromUUID(profile.getId().toString());
-        } else {
-            texturesFuture = SkinProvider.requestTexturesFromUsername(profile.getName());
-        }
-
-        texturesFuture.whenCompleteAsync((encodedJson, throwable) -> {
+        SkinManager.resolveProfile(profile).whenCompleteAsync((resolved, throwable) -> {
             if (throwable != null) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
             }
-            try {
-                SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(encodedJson);
-                if (gameProfileData == null) {
-                    return;
-                }
-                loadHeadFromProfile(session, entity, gameProfileData, profile);
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
-            }
+            loadHeadFromProfile(session, entity, profile, resolved);
         });
     }
 
-    public static void loadHeadFromProfile(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData, GameProfile profile) {
-        String fakeHeadSkinUrl = gameProfileData.skinUrl();
-
-        session.getPlayerWithCustomHeads().put(entity.getUuid(), profile);
-        String texturesProperty = entity.getTexturesProperty();
-        SkinProvider.getExecutorService().execute(() -> {
-            try {
-                SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity, session));
-                SkinManager.sendSkinPacket(session, entity, mergedSkinData);
-            } catch (ExecutionException e) {
-                GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
-            }
-        });
+    private static void loadHeadFromProfile(GeyserSession session, AvatarEntity entity, ResolvableProfile original, GameProfile resolved) {
+        Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
+        String originalTextures = entity.getTexturesProperty();
+        if (skinTexture != null) {
+            session.getPlayerWithCustomHeads().put(entity.getUuid(), original);
+            SkinProvider.getExecutorService().execute(() -> {
+                try {
+                    SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(originalTextures, skinTexture.getURL(), entity, session));
+                    SkinManager.sendSkinPacket(session, entity, mergedSkinData);
+                } catch (ExecutionException e) {
+                    GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin " + resolved, e);
+                }
+            });
+        }
     }
 
     public static void restoreOriginalSkin(GeyserSession session, LivingEntity livingEntity) {
-        if (!(livingEntity instanceof PlayerEntity entity)) {
+        if (!(livingEntity instanceof AvatarEntity entity)) {
             return;
         }
 
@@ -207,7 +161,7 @@ public class FakeHeadProvider {
     private static class FakeHeadEntry {
         private final String texturesProperty;
         private final String fakeHeadSkinUrl;
-        private PlayerEntity entity;
+        private AvatarEntity entity;
         private GeyserSession session;
 
         @Override

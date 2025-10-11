@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.block.type;
+package org.geysermc.geyser.api.entity.property.type;
 
-public class HoneyBlock extends Block {
-    public HoneyBlock(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+
+/**
+ * Represents a boolean entity property.
+ * @since 2.9.0
+ */
+public interface GeyserBooleanEntityProperty extends GeyserEntityProperty<Boolean> {
 }

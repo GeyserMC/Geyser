@@ -26,6 +26,8 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
 
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +69,14 @@ public class MapHasher<Type> {
         return this;
     }
 
+    private MapHasher<Type> accept(String key, Object value, HashCode valueHash) {
+        if (unhashed != null) {
+            unhashed.put(key, value);
+        }
+        map.put(encoder.string(key), valueHash);
+        return this;
+    }
+
     /**
      * Adds a constant {@link Value} to the map.
      *
@@ -80,6 +90,25 @@ public class MapHasher<Type> {
             unhashed.put(key, value);
         }
         return accept(key, hasher.hash(value, encoder));
+    }
+
+    public MapHasher<Type> inlineNbt(Function<Type, NbtMap> extractor) {
+        NbtMap nbtMap = extractor.apply(object);
+        for (String key : nbtMap.keySet()) {
+            Object value = nbtMap.get(key);
+            if (value instanceof NbtList<?> list) {
+                accept(key, value, encoder.nbtList(list));
+            } else {
+                nbtMap.listenForNumber(key, n -> accept(key, value, encoder.number(n)));
+                nbtMap.listenForString(key, s -> accept(key, value, encoder.string(s)));
+                nbtMap.listenForCompound(key, compound -> accept(key, value, encoder.nbtMap(compound)));
+
+                nbtMap.listenForByteArray(key, bytes -> accept(key, value, encoder.byteArray(bytes)));
+                nbtMap.listenForIntArray(key, ints -> accept(key, value, encoder.intArray(ints)));
+                nbtMap.listenForLongArray(key, longs -> accept(key, value, encoder.longArray(longs)));
+            }
+        }
+        return this;
     }
 
     /**

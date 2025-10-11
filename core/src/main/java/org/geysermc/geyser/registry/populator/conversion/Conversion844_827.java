@@ -35,21 +35,30 @@ public class Conversion844_827 {
 
     public static NbtMap remapBlock(NbtMap nbtMap) {
         final String name = nbtMap.getString("name");
-        if (name.equals("minecraft:iron_chain")) {
+        if (name.equals("minecraft:iron_chain") || name.endsWith("copper_chain")) {
             return ConversionHelper.withName(nbtMap, "chain");
-        } else if (name.equals("minecraft:lightning_rod")) {
+        } else if (name.endsWith("lightning_rod")) {
             NbtMapBuilder statesWithoutPoweredBit = nbtMap.getCompound("states").toBuilder();
             statesWithoutPoweredBit.remove("powered_bit");
             return nbtMap.toBuilder()
+                .putString("name", "minecraft:lightning_rod")
                 .putCompound("states", statesWithoutPoweredBit.build())
                 .build();
+        } else if (name.endsWith("_shelf") || name.endsWith("copper_golem_statue")) {
+            return ConversionHelper.withoutStates("unknown");
+        } else if (name.equals("minecraft:copper_torch")) {
+            return ConversionHelper.withName(nbtMap, "torch");
+        } else if (name.endsWith("copper_bars")) {
+            return ConversionHelper.withName(nbtMap, "iron_bars");
+        } else if (name.endsWith("copper_lantern")) {
+            return ConversionHelper.withName(nbtMap, "lantern");
         }
 
         return nbtMap;
     }
 
     public static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
-        if (item == Items.CHAIN) {
+        if (item == Items.IRON_CHAIN || item.javaIdentifier().endsWith("copper_chain")) {
             return mapping.withBedrockIdentifier("minecraft:chain");
         }
         return mapping;

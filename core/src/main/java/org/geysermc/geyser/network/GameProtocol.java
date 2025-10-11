@@ -138,6 +138,10 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
+    public static boolean is1_21_100(GeyserSession session) {
+        return session.protocolVersion() == Bedrock_v827.CODEC.getProtocolVersion();
+    }
+
     public static boolean is1_21_110orHigher(GeyserSession session) {
         return is1_21_110orHigher(session.protocolVersion());
     }
@@ -152,7 +156,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "1.21.8");
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
     }
 
     /**
@@ -170,7 +174,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return "1.21.8";
+        return "1.21.9";
     }
 
     /**

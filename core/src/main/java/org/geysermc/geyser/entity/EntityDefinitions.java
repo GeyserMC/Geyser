@@ -25,10 +25,23 @@
 
 package org.geysermc.geyser.entity;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.properties.VanillaEntityProperties;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
 import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
@@ -37,8 +50,6 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
-import org.geysermc.geyser.entity.type.HangingEntity;
-import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -49,6 +60,7 @@ import org.geysermc.geyser.entity.type.FireballEntity;
 import org.geysermc.geyser.entity.type.FireworkEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.FurnaceMinecartEntity;
+import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.InteractionEntity;
 import org.geysermc.geyser.entity.type.ItemEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -60,6 +72,7 @@ import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
+import org.geysermc.geyser.entity.type.ThrowableEggEntity;
 import org.geysermc.geyser.entity.type.ThrowableEntity;
 import org.geysermc.geyser.entity.type.ThrowableItemEntity;
 import org.geysermc.geyser.entity.type.ThrownPotionEntity;
@@ -70,6 +83,7 @@ import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.entity.type.living.AllayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.BatEntity;
+import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
@@ -82,17 +96,14 @@ import org.geysermc.geyser.entity.type.living.TadpoleEntity;
 import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.animal.AxolotlEntity;
 import org.geysermc.geyser.entity.type.living.animal.BeeEntity;
-import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.FoxEntity;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.GoatEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.HoglinEntity;
 import org.geysermc.geyser.entity.type.living.animal.MooshroomEntity;
 import org.geysermc.geyser.entity.type.living.animal.OcelotEntity;
 import org.geysermc.geyser.entity.type.living.animal.PandaEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
 import org.geysermc.geyser.entity.type.living.animal.PolarBearEntity;
 import org.geysermc.geyser.entity.type.living.animal.PufferFishEntity;
 import org.geysermc.geyser.entity.type.living.animal.RabbitEntity;
@@ -101,6 +112,10 @@ import org.geysermc.geyser.entity.type.living.animal.SnifferEntity;
 import org.geysermc.geyser.entity.type.living.animal.StriderEntity;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
 import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
+import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
@@ -147,6 +162,8 @@ import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
+import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -154,6 +171,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> ACACIA_BOAT;
@@ -182,6 +203,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
     public static final EntityDefinition<AbstractFishEntity> COD;
+    public static final EntityDefinition<CopperGolemEntity> COPPER_GOLEM;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
     public static final EntityDefinition<CreakingEntity> CREAKING;
@@ -236,6 +258,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
     public static final EntityDefinition<BoatEntity> MANGROVE_BOAT;
     public static final EntityDefinition<ChestBoatEntity> MANGROVE_CHEST_BOAT;
+    public static final EntityDefinition<MannequinEntity> MANNEQUIN;
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
@@ -464,7 +487,7 @@ public final class EntityDefinitions {
             EGG = EntityDefinition.inherited(ThrowableEggEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .build();
             ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.ENDER_PEARL)
@@ -651,16 +674,27 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setLeftLegRotation)
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
-        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, livingEntityBase)
+
+        EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.<AvatarEntity>inherited(null, livingEntityBase)
+            .height(1.8f).width(0.6f)
+            .offset(1.62f)
+            .addTranslator(null) // Player main hand
+            .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
+            .build();
+
+        MANNEQUIN = EntityDefinition.inherited(MannequinEntity::new, avatarEntityBase)
+            .type(EntityType.MANNEQUIN)
+            .addTranslator(MetadataTypes.RESOLVABLE_PROFILE, MannequinEntity::setProfile)
+            .addTranslator(null) // Immovable
+            .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, MannequinEntity::setDescription)
+            .build();
+
+        PLAYER = EntityDefinition.<PlayerEntity>inherited(null, avatarEntityBase)
                 .type(EntityType.PLAYER)
-                .height(1.8f).width(0.6f)
-                .offset(1.62f)
                 .addTranslator(MetadataTypes.FLOAT, PlayerEntity::setAbsorptionHearts)
                 .addTranslator(null) // Player score
-                .addTranslator(MetadataTypes.BYTE, PlayerEntity::setSkinVisibility)
-                .addTranslator(null) // Player main hand
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setLeftParrot)
-                .addTranslator(MetadataTypes.COMPOUND_TAG, PlayerEntity::setRightParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setLeftParrot)
+                .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setRightParrot)
                 .build();
 
         EntityDefinition<MobEntity> mobEntityBase = EntityDefinition.inherited(MobEntity::new, livingEntityBase)
@@ -694,6 +728,15 @@ public final class EntityDefinitions {
                     .type(EntityType.BREEZE)
                     .height(1.77f).width(0.6f)
                     .build();
+            COPPER_GOLEM = EntityDefinition.inherited(CopperGolemEntity::new, mobEntityBase)
+                    .type(EntityType.COPPER_GOLEM)
+                    .height(0.49f).width(0.98f)
+                    .addTranslator(MetadataTypes.WEATHERING_COPPER_STATE, CopperGolemEntity::setWeatheringState)
+                    .addTranslator(MetadataTypes.COPPER_GOLEM_STATE, CopperGolemEntity::setGolemState)
+                    .property(CopperGolemEntity.CHEST_INTERACTION_PROPERTY)
+                    .property(CopperGolemEntity.HAS_FLOWER_PROPERTY)
+                    .property(CopperGolemEntity.OXIDATION_LEVEL_STATE_ENUM_PROPERTY)
+                    .build();
             CREAKING = EntityDefinition.inherited(CreakingEntity::new, mobEntityBase)
                     .type(EntityType.CREAKING)
                     .height(2.7f).width(0.9f)
@@ -701,7 +744,8 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setActive)
                     .addTranslator(MetadataTypes.BOOLEAN, CreakingEntity::setIsTearingDown)
                     .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, CreakingEntity::setHomePos)
-                    .properties(VanillaEntityProperties.CREAKING)
+                    .property(CreakingEntity.STATE_PROPERTY)
+                    .property(CreakingEntity.SWAYING_TICKS_PROPERTY)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
@@ -954,7 +998,7 @@ public final class EntityDefinitions {
             ARMADILLO = EntityDefinition.inherited(ArmadilloEntity::new, ageableEntityBase)
                     .type(EntityType.ARMADILLO)
                     .height(0.65f).width(0.7f)
-                    .properties(VanillaEntityProperties.ARMADILLO)
+                    .property(ArmadilloEntity.STATE_PROPERTY)
                     .addTranslator(MetadataTypes.ARMADILLO_STATE, ArmadilloEntity::setArmadilloState)
                     .build();
             AXOLOTL = EntityDefinition.inherited(AxolotlEntity::new, ageableEntityBase)
@@ -967,20 +1011,20 @@ public final class EntityDefinitions {
             BEE = EntityDefinition.inherited(BeeEntity::new, ageableEntityBase)
                     .type(EntityType.BEE)
                     .heightAndWidth(0.6f)
-                    .properties(VanillaEntityProperties.BEE)
+                    .property(BeeEntity.NECTAR_PROPERTY)
                     .addTranslator(MetadataTypes.BYTE, BeeEntity::setBeeFlags)
                     .addTranslator(MetadataTypes.INT, BeeEntity::setAngerTime)
                     .build();
             CHICKEN = EntityDefinition.inherited(ChickenEntity::new, ageableEntityBase)
                     .type(EntityType.CHICKEN)
                     .height(0.7f).width(0.4f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.CHICKEN_VARIANT, ChickenEntity::setVariant)
                     .build();
             COW = EntityDefinition.inherited(CowEntity::new, ageableEntityBase)
                     .type(EntityType.COW)
                     .height(1.4f).width(0.9f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.COW_VARIANT, CowEntity::setVariant)
                     .build();
             FOX = EntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
@@ -1000,7 +1044,7 @@ public final class EntityDefinitions {
             HAPPY_GHAST = EntityDefinition.inherited(HappyGhastEntity::new, ageableEntityBase)
                     .type(EntityType.HAPPY_GHAST)
                     .heightAndWidth(4f)
-                    .properties(VanillaEntityProperties.HAPPY_GHAST)
+                    .property(HappyGhastEntity.CAN_MOVE_PROPERTY)
                     .addTranslator(null) // Is leash holder
                     .addTranslator(MetadataTypes.BOOLEAN, HappyGhastEntity::setStaysStill)
                     .build();
@@ -1039,7 +1083,7 @@ public final class EntityDefinitions {
             PIG = EntityDefinition.inherited(PigEntity::new, ageableEntityBase)
                     .type(EntityType.PIG)
                     .heightAndWidth(0.9f)
-                    .properties(VanillaEntityProperties.CLIMATE_VARIANT)
+                    .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.INT, PigEntity::setBoost)
                     .addTranslator(MetadataTypes.PIG_VARIANT, PigEntity::setVariant)
                     .build();
@@ -1185,7 +1229,7 @@ public final class EntityDefinitions {
         WOLF = EntityDefinition.inherited(WolfEntity::new, tameableEntityBase)
                 .type(EntityType.WOLF)
                 .height(0.85f).width(0.6f)
-                .properties(VanillaEntityProperties.WOLF_SOUND_VARIANT)
+                .property(WolfEntity.SOUND_VARIANT)
                 // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)
@@ -1219,7 +1263,95 @@ public final class EntityDefinitions {
     }
 
     public static void init() {
-        // no-op
+        // entities would be initialized before this event is called
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+            @Override
+            public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                FloatProperty property = new FloatProperty(propertyId, min, max, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                IntProperty property = new IntProperty(propertyId, min, max, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                BooleanProperty property = new BooleanProperty(propertyId, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(enumClass);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                EnumProperty<E> property = new EnumProperty<>(propertyId, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(values);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                StringEnumProperty property = new StringEnumProperty(propertyId, values, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
+                Objects.requireNonNull(identifier);
+                var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(identifier.toString());
+                if (definition == null) {
+                    throw new IllegalArgumentException("Unknown entity type: " + identifier);
+                }
+                return List.copyOf(definition.registeredProperties().getProperties());
+            }
+        });
+
+        for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
+            if (definition.registeredProperties() != null) {
+                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
+            }
+        }
+    }
+
+    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
+        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType.toString());
+        if (definition == null) {
+            throw new IllegalArgumentException("Unknown entity type: " + entityType);
+        }
+
+        definition.registeredProperties().add(entityType.toString(), property);
     }
 
     private EntityDefinitions() {
