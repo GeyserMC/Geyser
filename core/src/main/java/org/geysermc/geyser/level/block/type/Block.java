@@ -52,7 +52,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Block {
@@ -291,10 +290,6 @@ public class Block {
 
         public Builder pushReaction(PistonBehavior pushReaction) {
             this.pushReaction = pushReaction;
-            return this;
-        }
-
-        public Builder pickItem(Supplier<Item> pickItem) {
             return this;
         }
 

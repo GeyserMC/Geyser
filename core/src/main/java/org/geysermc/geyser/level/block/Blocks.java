@@ -25,10 +25,24 @@
 
 package org.geysermc.geyser.level.block;
 
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.FrontAndTop;
-import org.geysermc.geyser.level.block.type.*;
+import org.geysermc.geyser.level.block.type.BannerBlock;
+import org.geysermc.geyser.level.block.type.BedBlock;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.ButtonBlock;
+import org.geysermc.geyser.level.block.type.CauldronBlock;
+import org.geysermc.geyser.level.block.type.ChestBlock;
+import org.geysermc.geyser.level.block.type.DoorBlock;
+import org.geysermc.geyser.level.block.type.FlowerPotBlock;
+import org.geysermc.geyser.level.block.type.FurnaceBlock;
+import org.geysermc.geyser.level.block.type.LecternBlock;
+import org.geysermc.geyser.level.block.type.MovingPistonBlock;
+import org.geysermc.geyser.level.block.type.PistonBlock;
+import org.geysermc.geyser.level.block.type.SkullBlock;
+import org.geysermc.geyser.level.block.type.TrapDoorBlock;
+import org.geysermc.geyser.level.block.type.WallSkullBlock;
+import org.geysermc.geyser.level.block.type.WaterBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -329,12 +343,12 @@ public final class Blocks {
     public static final Block SHORT_DRY_GRASS = register(new Block("short_dry_grass", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block TALL_DRY_GRASS = register(new Block("tall_dry_grass", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block SEAGRASS = register(new Block("seagrass", builder().pushReaction(PistonBehavior.DESTROY)));
-    public static final Block TALL_SEAGRASS = register(new Block("tall_seagrass", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.SEAGRASS)
+    public static final Block TALL_SEAGRASS = register(new Block("tall_seagrass", builder().pushReaction(PistonBehavior.DESTROY)
         .enumState(DOUBLE_BLOCK_HALF)));
     public static final Block PISTON = register(new PistonBlock("piston", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
         .booleanState(EXTENDED)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PISTON_HEAD = register(new PistonHeadBlock("piston_head", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
+    public static final Block PISTON_HEAD = register(new Block("piston_head", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
         .booleanState(SHORT)
         .enumState(PISTON_TYPE)));
@@ -460,7 +474,7 @@ public final class Blocks {
         .booleanState(UP)
         .booleanState(WEST)));
     public static final Block SOUL_FIRE = register(new Block("soul_fire", builder().pushReaction(PistonBehavior.DESTROY)));
-    public static final Block SPAWNER = register(new SpawnerBlock("spawner", builder().setBlockEntity(BlockEntityType.MOB_SPAWNER).requiresCorrectToolForDrops().destroyTime(5.0f)));
+    public static final Block SPAWNER = register(new Block("spawner", builder().setBlockEntity(BlockEntityType.MOB_SPAWNER).requiresCorrectToolForDrops().destroyTime(5.0f)));
     public static final Block CREAKING_HEART = register(new Block("creaking_heart", builder().setBlockEntity(BlockEntityType.CREAKING_HEART).destroyTime(10.0f)
         .enumState(AXIS, Axis.VALUES)
         .enumState(CREAKING_HEART_STATE)
@@ -940,9 +954,9 @@ public final class Blocks {
         .booleanState(WEST)));
     public static final Block PUMPKIN = register(new Block("pumpkin", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
     public static final Block MELON = register(new Block("melon", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
-    public static final Block ATTACHED_PUMPKIN_STEM = register(new Block("attached_pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.PUMPKIN_SEEDS)
+    public static final Block ATTACHED_PUMPKIN_STEM = register(new Block("attached_pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));
-    public static final Block ATTACHED_MELON_STEM = register(new Block("attached_melon_stem", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.MELON_SEEDS)
+    public static final Block ATTACHED_MELON_STEM = register(new Block("attached_melon_stem", builder().pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));
     public static final Block PUMPKIN_STEM = register(new Block("pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_7)));
@@ -1932,7 +1946,7 @@ public final class Blocks {
     public static final Block BLACK_CONCRETE_POWDER = register(new Block("black_concrete_powder", builder().destroyTime(0.5f)));
     public static final Block KELP = register(new Block("kelp", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_25)));
-    public static final Block KELP_PLANT = register(new Block("kelp_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.KELP)));
+    public static final Block KELP_PLANT = register(new Block("kelp_plant", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block DRIED_KELP_BLOCK = register(new Block("dried_kelp_block", builder().destroyTime(0.5f)));
     public static final Block TURTLE_EGG = register(new Block("turtle_egg", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .intState(EGGS)
@@ -2029,7 +2043,7 @@ public final class Blocks {
     public static final Block BLUE_ICE = register(new Block("blue_ice", builder().destroyTime(2.8f)));
     public static final Block CONDUIT = register(new Block("conduit", builder().setBlockEntity(BlockEntityType.CONDUIT).destroyTime(3.0f)
         .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_SAPLING = register(new Block("bamboo_sapling", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.BAMBOO)));
+    public static final Block BAMBOO_SAPLING = register(new Block("bamboo_sapling", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
     public static final Block BAMBOO = register(new Block("bamboo", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_1)
         .enumState(BAMBOO_LEAVES)
@@ -2338,10 +2352,10 @@ public final class Blocks {
     public static final Block SHROOMLIGHT = register(new Block("shroomlight", builder().destroyTime(1.0f)));
     public static final Block WEEPING_VINES = register(new Block("weeping_vines", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_25)));
-    public static final Block WEEPING_VINES_PLANT = register(new Block("weeping_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.WEEPING_VINES)));
+    public static final Block WEEPING_VINES_PLANT = register(new Block("weeping_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block TWISTING_VINES = register(new Block("twisting_vines", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_25)));
-    public static final Block TWISTING_VINES_PLANT = register(new Block("twisting_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.TWISTING_VINES)));
+    public static final Block TWISTING_VINES_PLANT = register(new Block("twisting_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block CRIMSON_ROOTS = register(new Block("crimson_roots", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block CRIMSON_PLANKS = register(new Block("crimson_planks", builder().destroyTime(2.0f)));
     public static final Block WARPED_PLANKS = register(new Block("warped_planks", builder().destroyTime(2.0f)));
@@ -2448,7 +2462,7 @@ public final class Blocks {
     public static final Block BEEHIVE = register(new Block("beehive", builder().setBlockEntity(BlockEntityType.BEEHIVE).destroyTime(0.6f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .intState(LEVEL_HONEY)));
-    public static final Block HONEY_BLOCK = register(new HoneyBlock("honey_block", builder()));
+    public static final Block HONEY_BLOCK = register(new Block("honey_block", builder()));
     public static final Block HONEYCOMB_BLOCK = register(new Block("honeycomb_block", builder().destroyTime(0.6f)));
     public static final Block NETHERITE_BLOCK = register(new Block("netherite_block", builder().requiresCorrectToolForDrops().destroyTime(50.0f)));
     public static final Block ANCIENT_DEBRIS = register(new Block("ancient_debris", builder().requiresCorrectToolForDrops().destroyTime(30.0f)));
@@ -2588,39 +2602,39 @@ public final class Blocks {
         .intState(CANDLES)
         .booleanState(LIT)
         .booleanState(WATERLOGGED)));
-    public static final Block CANDLE_CAKE = register(new Block("candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block CANDLE_CAKE = register(new Block("candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block WHITE_CANDLE_CAKE = register(new Block("white_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block WHITE_CANDLE_CAKE = register(new Block("white_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block ORANGE_CANDLE_CAKE = register(new Block("orange_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block ORANGE_CANDLE_CAKE = register(new Block("orange_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block MAGENTA_CANDLE_CAKE = register(new Block("magenta_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block MAGENTA_CANDLE_CAKE = register(new Block("magenta_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block LIGHT_BLUE_CANDLE_CAKE = register(new Block("light_blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block LIGHT_BLUE_CANDLE_CAKE = register(new Block("light_blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block YELLOW_CANDLE_CAKE = register(new Block("yellow_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block YELLOW_CANDLE_CAKE = register(new Block("yellow_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block LIME_CANDLE_CAKE = register(new Block("lime_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block LIME_CANDLE_CAKE = register(new Block("lime_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block PINK_CANDLE_CAKE = register(new Block("pink_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block PINK_CANDLE_CAKE = register(new Block("pink_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block GRAY_CANDLE_CAKE = register(new Block("gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block GRAY_CANDLE_CAKE = register(new Block("gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block LIGHT_GRAY_CANDLE_CAKE = register(new Block("light_gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block LIGHT_GRAY_CANDLE_CAKE = register(new Block("light_gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block CYAN_CANDLE_CAKE = register(new Block("cyan_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block CYAN_CANDLE_CAKE = register(new Block("cyan_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block PURPLE_CANDLE_CAKE = register(new Block("purple_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block PURPLE_CANDLE_CAKE = register(new Block("purple_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block BLUE_CANDLE_CAKE = register(new Block("blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block BLUE_CANDLE_CAKE = register(new Block("blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block BROWN_CANDLE_CAKE = register(new Block("brown_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block BROWN_CANDLE_CAKE = register(new Block("brown_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block GREEN_CANDLE_CAKE = register(new Block("green_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block GREEN_CANDLE_CAKE = register(new Block("green_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block RED_CANDLE_CAKE = register(new Block("red_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block RED_CANDLE_CAKE = register(new Block("red_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
-    public static final Block BLACK_CANDLE_CAKE = register(new Block("black_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
+    public static final Block BLACK_CANDLE_CAKE = register(new Block("black_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
         .booleanState(LIT)));
     public static final Block AMETHYST_BLOCK = register(new Block("amethyst_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block BUDDING_AMETHYST = register(new Block("budding_amethyst", builder().requiresCorrectToolForDrops().destroyTime(1.5f).pushReaction(PistonBehavior.DESTROY)));
@@ -3043,7 +3057,7 @@ public final class Blocks {
     public static final Block CAVE_VINES = register(new Block("cave_vines", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_25)
         .booleanState(BERRIES)));
-    public static final Block CAVE_VINES_PLANT = register(new Block("cave_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.GLOW_BERRIES)
+    public static final Block CAVE_VINES_PLANT = register(new Block("cave_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)
         .booleanState(BERRIES)));
     public static final Block SPORE_BLOSSOM = register(new Block("spore_blossom", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block AZALEA = register(new Block("azalea", builder().pushReaction(PistonBehavior.DESTROY)));
