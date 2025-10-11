@@ -81,7 +81,7 @@ public class CodeOfConductManager {
     public void saveCodeOfConductAccepted(GeyserSession session, String codeOfConduct) {
         SessionAcceptCodeOfConductEvent event = new SessionAcceptCodeOfConductEvent(session, codeOfConduct);
         session.getGeyser().getEventBus().fire(event);
-        if (!event.wasSavedElsewhere()) {
+        if (!event.shouldSkipSaving()) {
             playerAcceptedCodeOfConducts.put(session.xuid(), codeOfConduct.hashCode());
             dirty = true;
         }

@@ -42,7 +42,7 @@ import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
  */
 public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
     private final String codeOfConduct;
-    private boolean wasSavedElsewhere = false;
+    private boolean skipSaving = false;
 
     public SessionAcceptCodeOfConductEvent(@NonNull GeyserConnection connection, String codeOfConduct) {
         super(connection);
@@ -61,15 +61,15 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
      * @return {@code true} if Geyser should not save the acceptance of the code of conduct in its own cache (through a JSON file), because it was saved elsewhere
      * @since 2.9.0
      */
-    public boolean wasSavedElsewhere() {
-        return wasSavedElsewhere;
+    public boolean shouldSkipSaving() {
+        return skipSaving;
     }
 
     /**
-     * Sets {@link SessionAcceptCodeOfConductEvent#wasSavedElsewhere()} to {@code true}.
+     * Sets {@link SessionAcceptCodeOfConductEvent#shouldSkipSaving()} to {@code true}.
      * @since 2.9.0
      */
-    public void savedElsewhere() {
-        this.wasSavedElsewhere = true;
+    public void skipSaving() {
+        this.skipSaving = true;
     }
 }
